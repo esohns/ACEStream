@@ -104,7 +104,7 @@ class Stream_Export Stream_MessageBase
 
   // atomic ID generator
   static ACE_Atomic_Op<ACE_Thread_Mutex,
-                       unsigned int> currentID_;
+                       unsigned int> currentID;
 
   unsigned int messageID_;
 };

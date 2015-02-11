@@ -36,10 +36,10 @@ Stream_TaskBase_T<TaskSynchStrategyType,
                   TimePolicyType,
                   SessionMessageType,
                   ProtocolMessageType>::Stream_TaskBase_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR (RPG_STREAM_DEF_HANDLER_THREAD_NAME), // thread name
-              RPG_STREAM_TASK_GROUP_ID,                                  // group id
-              1,                                                         // # thread(s)
-              false)                                                     // auto-start ?
+ : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_DEF_HANDLER_THREAD_NAME), // thread name
+              STREAM_TASK_GROUP_ID,                                  // group id
+              1,                                                     // # thread(s)
+              false)                                                 // auto-start ?
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 

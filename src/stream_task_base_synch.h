@@ -18,13 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_TASK_BASE_SYNCH_H
-#define RPG_STREAM_TASK_BASE_SYNCH_H
+#ifndef STREAM_TASK_BASE_SYNCH_H
+#define STREAM_TASK_BASE_SYNCH_H
 
-#include "rpg_stream_task_base.h"
+#include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
-#include <ace/Global_Macros.h>
-#include <ace/Synch_Traits.h>
+#include "stream_task_base.h"
 
 // forward declaration(s)
 class ACE_Message_Block;
@@ -33,40 +33,40 @@ class ACE_Time_Value;
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-class RPG_Stream_TaskBaseSynch
+class Stream_TaskBaseSynch_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case...
- : public RPG_Stream_TaskBase<ACE_MT_SYNCH,
-                              TimePolicyType,
-                              SessionMessageType,
-                              ProtocolMessageType>
+ : public Stream_TaskBase_T<ACE_MT_SYNCH,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType>
 {
  public:
-  virtual ~RPG_Stream_TaskBaseSynch();
+  virtual ~Stream_TaskBaseSynch_T ();
 
   // override some task-based members
-  virtual int put(ACE_Message_Block*, // data chunk
-                  ACE_Time_Value*);   // timeout value
-  virtual int open(void* = NULL);
-  virtual int close(u_long = 0);
-  virtual int module_closed(void);
+  virtual int put (ACE_Message_Block*, // data chunk
+                   ACE_Time_Value*);   // timeout value
+  virtual int open (void* = NULL);
+  virtual int close (u_long = 0);
+  virtual int module_closed (void);
 
-  // this is a NOP, not an active object
-  virtual void waitForIdleState() const;
+  // this is a NOP (not an active object)
+  virtual void waitForIdleState () const;
 
  protected:
-  RPG_Stream_TaskBaseSynch();
+  Stream_TaskBaseSynch_T ();
 
  private:
-  typedef RPG_Stream_TaskBase<ACE_MT_SYNCH,
-                              TimePolicyType,
-                              SessionMessageType,
-                              ProtocolMessageType> inherited;
+  typedef Stream_TaskBase_T<ACE_MT_SYNCH,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_TaskBaseSynch(const RPG_Stream_TaskBaseSynch&));
-//   ACE_UNIMPLEMENTED_FUNC(RPG_Stream_TaskBaseSynch& operator=(const RPG_Stream_TaskBaseSynch&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T (const Stream_TaskBaseSynch_T&));
+//   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T& operator= (const Stream_TaskBaseSynch_T&));
 };
 
 // include template implementation
-#include "rpg_stream_task_base_synch.inl"
+#include "stream_task_base_synch.inl"
 
 #endif

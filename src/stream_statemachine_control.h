@@ -53,7 +53,7 @@ class Stream_Export Stream_StateMachine_Control
 
  protected:
   // only children can retrieve state
-  const Stream_StateMachine_Control::Control_StateType getState () const;
+  Stream_StateMachine_Control::Control_StateType getState () const;
 
   // only children can change state
   // *WARNING*: PAUSED --> PAUSED is silently remapped to PAUSED --> RUNNING
@@ -71,7 +71,7 @@ class Stream_Export Stream_StateMachine_Control
 
   // helper method
   // *IMPORTANT NOTE*: this method needs to be called with the lock held !
-  void invokeCallback (const Control_StateType&); // new state
+  void invokeCallback (Control_StateType); // new state
 
   // current state
   Control_StateType                  state_;

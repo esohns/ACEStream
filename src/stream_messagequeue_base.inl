@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "common_macros.h"
+#include "stream_macros.h"
 
 template <typename TaskSynchType,
           typename TimePolicyType>

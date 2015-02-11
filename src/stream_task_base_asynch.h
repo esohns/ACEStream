@@ -18,13 +18,17 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_TASK_BASE_ASYNCH_H
-#define RPG_STREAM_TASK_BASE_ASYNCH_H
+#ifndef STREAM_TASK_BASE_ASYNCH_H
+#define STREAM_TASK_BASE_ASYNCH_H
 
-#include "rpg_stream_task_base.h"
-#include "rpg_stream_messagequeue.h"
+#include "ace/Global_Macros.h"
 
-#include <ace/Global_Macros.h>
+#include "stream_task_base.h"
+#include "stream_messagequeue.h"
+
+// forward declarations
+class ACE_Message_Block;
+class ACE_Time_Value;
 
 // *NOTE*: the message queue needs to be synched so that shutdown can be
 // asynchronous...
@@ -32,50 +36,49 @@ template <typename TaskSynchType,
           typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-class RPG_Stream_TaskBaseAsynch
- : public RPG_Stream_TaskBase<TaskSynchType,
-                              TimePolicyType,
-                              SessionMessageType,
-                              ProtocolMessageType>
+class Stream_TaskBaseAsynch_T
+ : public Stream_TaskBase_T<TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType>
 {
  public:
-  virtual ~RPG_Stream_TaskBaseAsynch();
+  virtual ~Stream_TaskBaseAsynch_T ();
 
   // override task-based members
-  virtual int put(ACE_Message_Block*, // data chunk
-                  ACE_Time_Value*);   // timeout value
-  virtual int open(void* = NULL);
-  virtual int close(u_long = 0);
-  virtual int module_closed(void);
-  virtual int svc(void);
+  virtual int put (ACE_Message_Block*, // data chunk
+                   ACE_Time_Value*);   // timeout value
+  virtual int open (void* = NULL);
+  virtual int close (u_long = 0);
+  virtual int module_closed (void);
+  virtual int svc (void);
 
-  // delegate to myQueue !
-  virtual void waitForIdleState() const;
+  virtual void waitForIdleState () const;
 
  protected:
-  RPG_Stream_TaskBaseAsynch();
+  Stream_TaskBaseAsynch_T ();
 
-  ACE_thread_t            myThreadID;
+  ACE_thread_t            threadID_;
 
  private:
-  typedef RPG_Stream_TaskBase<TaskSynchType,
-                              TimePolicyType,
-                              SessionMessageType,
-                              ProtocolMessageType> inherited;
+  typedef Stream_TaskBase_T<TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_TaskBaseAsynch(const RPG_Stream_TaskBaseAsynch&));
-//   ACE_UNIMPLEMENTED_FUNC(RPG_Stream_TaskBaseAsynch& operator=(const RPG_Stream_TaskBaseAsynch&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T (const Stream_TaskBaseAsynch_T&));
+//   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&));
 
   // helper methods
   // enqueue MB_STOP --> stop worker thread
   // *WARNING*: handle with EXTREME care, you should NEVER use this directly
   // if in stream context (i.e. task/module is part of a stream)
-  void shutdown();
+  void shutdown ();
 
-  RPG_Stream_MessageQueue myQueue;
+  Stream_MessageQueue queue_;
 };
 
 // include template implementation
-#include "rpg_stream_task_base_asynch.inl"
+#include "stream_task_base_asynch.inl"
 
 #endif

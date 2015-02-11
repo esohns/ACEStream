@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_messagequeue_base.h"
+#include "stream_messagequeue_base.h"

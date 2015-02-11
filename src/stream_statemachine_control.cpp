@@ -19,67 +19,67 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_statemachine_control.h"
+#include "stream_statemachine_control.h"
 
-#include "rpg_common_macros.h"
+#include "ace/Guard_T.h"
+#include "ace/Synch.h"
 
-#include <ace/Guard_T.h>
-#include <ace/Synch.h>
+#include "stream_macros.h"
 
-RPG_Stream_StateMachine_Control::RPG_Stream_StateMachine_Control()
- : myState(RPG_Stream_StateMachine_Control::INIT)
+Stream_StateMachine_Control::Stream_StateMachine_Control ()
+ : state_ (Stream_StateMachine_Control::STATE_INIT)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_StateMachine_Control::RPG_Stream_StateMachine_Control"));
+  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::Stream_StateMachine_Control"));
 
 }
 
-RPG_Stream_StateMachine_Control::~RPG_Stream_StateMachine_Control()
+Stream_StateMachine_Control::~Stream_StateMachine_Control ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_StateMachine_Control::~RPG_Stream_StateMachine_Control"));
+  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::~Stream_StateMachine_Control"));
 
 }
 
-const RPG_Stream_StateMachine_Control::Control_StateType
-RPG_Stream_StateMachine_Control::getState() const
+Stream_StateMachine_Control::Control_StateType
+Stream_StateMachine_Control::getState () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_StateMachine_Control::getState"));
+  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::getState"));
 
-  ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(myLock);
+  ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard (lock_);
 
-  return myState;
+  return state_;
 }
 
 bool
-RPG_Stream_StateMachine_Control::changeState(const Control_StateType& newState_in)
+Stream_StateMachine_Control::changeState (Control_StateType newState_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_StateMachine_Control::changeState"));
+  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::changeState"));
 
   // synchronize access to state machine...
-  ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(myLock);
+  ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard (lock_);
 
-  switch (myState)
+  switch (state_)
   {
-    case RPG_Stream_StateMachine_Control::INIT:
+    case Stream_StateMachine_Control::STATE_INIT:
     {
       switch (newState_in)
       {
         // good case
-        case RPG_Stream_StateMachine_Control::RUNNING:
+        case Stream_StateMachine_Control::STATE_RUNNING:
         {
-//           ACE_DEBUG((LM_DEBUG,
-//                      ACE_TEXT("state switch: INIT --> RUNNING\n")));
+//           ACE_DEBUG ((LM_DEBUG,
+//                       ACE_TEXT ("state switch: INIT --> RUNNING\n")));
 
-          invokeCallback(newState_in);
+          invokeCallback (newState_in);
 
-          myState = newState_in;
+          state_ = newState_in;
 
           return true;
         }
         // error case
-        case RPG_Stream_StateMachine_Control::INIT:
-        case RPG_Stream_StateMachine_Control::PAUSED:
-        case RPG_Stream_StateMachine_Control::STOPPED:
-        case RPG_Stream_StateMachine_Control::FINISHED:
+        case Stream_StateMachine_Control::STATE_INIT:
+        case Stream_StateMachine_Control::STATE_PAUSED:
+        case Stream_StateMachine_Control::STATE_STOPPED:
+        case Stream_StateMachine_Control::STATE_FINISHED:
         default:
         {
           // what else can we do ?
@@ -90,33 +90,33 @@ RPG_Stream_StateMachine_Control::changeState(const Control_StateType& newState_i
 
       break;
     }
-    case RPG_Stream_StateMachine_Control::RUNNING:
+    case Stream_StateMachine_Control::STATE_RUNNING:
     {
       switch (newState_in)
       {
         // good case
-        case RPG_Stream_StateMachine_Control::PAUSED:
-        case RPG_Stream_StateMachine_Control::STOPPED:
-        case RPG_Stream_StateMachine_Control::FINISHED:
+        case Stream_StateMachine_Control::STATE_PAUSED:
+        case Stream_StateMachine_Control::STATE_STOPPED:
+        case Stream_StateMachine_Control::STATE_FINISHED:
         {
           //std::string newStateString;
-          //ControlState2String(newState_in,
-          //                    newStateString);
-//           ACE_DEBUG((LM_DEBUG,
-//                      ACE_TEXT("state switch: RUNNING --> %s\n"),
-//                      newStateString.c_str()));
+          //ControlState2String (newState_in,
+          //                     newStateString);
+//           ACE_DEBUG ((LM_DEBUG,
+//                       ACE_TEXT ("state switch: RUNNING --> %s\n"),
+//                       ACE_TEXT (newStateString.c_str())));
 
-          invokeCallback(newState_in);
+          invokeCallback (newState_in);
 
-					// *IMPORTANT NOTE*: make sure the transition to RUNNING [--> STOPPED] --> FINISHED
-					//                   works for the inactive (!) case as well...
-					if (myState != RPG_Stream_StateMachine_Control::FINISHED)
-            myState = newState_in;
+          // *IMPORTANT NOTE*: make sure the transition to RUNNING [--> STOPPED] --> FINISHED
+          //                   works for the inactive (!) case as well...
+          if (state_ != Stream_StateMachine_Control::STATE_FINISHED)
+            state_ = newState_in;
 
           return true;
         }
         // error case
-        case RPG_Stream_StateMachine_Control::INIT:
+        case Stream_StateMachine_Control::STATE_INIT:
         default:
         {
           // what else can we do ?
@@ -127,38 +127,38 @@ RPG_Stream_StateMachine_Control::changeState(const Control_StateType& newState_i
 
       break;
     }
-    case RPG_Stream_StateMachine_Control::PAUSED:
+    case Stream_StateMachine_Control::STATE_PAUSED:
     {
       switch (newState_in)
       {
         // good case
-        case RPG_Stream_StateMachine_Control::PAUSED: // just like a tape-recorder...
-        case RPG_Stream_StateMachine_Control::RUNNING: // ...but we also allow this to resume
-        case RPG_Stream_StateMachine_Control::STOPPED:
+        case Stream_StateMachine_Control::STATE_PAUSED: // just like a tape-recorder...
+        case Stream_StateMachine_Control::STATE_RUNNING: // ...but we also allow this to resume
+        case Stream_StateMachine_Control::STATE_STOPPED:
         {
           // need to handle a special case: PAUSED --> PAUSED is logically mapped to
           // PAUSED --> RUNNING, just like a tape recorder...
           // *IMPORTANT NOTE*: make sure our children are aware of this behaviour !!!
-          Control_StateType newState = (newState_in == RPG_Stream_StateMachine_Control::PAUSED) ?
-                                                       RPG_Stream_StateMachine_Control::RUNNING :
+          Control_StateType newState = (newState_in == Stream_StateMachine_Control::STATE_PAUSED) ?
+                                                       Stream_StateMachine_Control::STATE_RUNNING :
                                                        newState_in;
 
           std::string newStateString;
-          ControlState2String(newState,
-                              newStateString);
-          ACE_DEBUG((LM_DEBUG,
-                     ACE_TEXT("state switch: PAUSED --> %s\n"),
-                     newStateString.c_str()));
+          ControlState2String (newState,
+                               newStateString);
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("state switch: PAUSED --> %s\n"),
+                      ACE_TEXT (newStateString.c_str ())));
 
-          invokeCallback(newState);
+          invokeCallback (newState);
 
-          myState = newState;
+          state_ = newState;
 
           return true;
         }
         // error case
-        case RPG_Stream_StateMachine_Control::INIT:
-        case RPG_Stream_StateMachine_Control::FINISHED:
+        case Stream_StateMachine_Control::STATE_INIT:
+        case Stream_StateMachine_Control::STATE_FINISHED:
         default:
         {
           // what else can we do ?
@@ -169,28 +169,28 @@ RPG_Stream_StateMachine_Control::changeState(const Control_StateType& newState_i
 
       break;
     }
-    case RPG_Stream_StateMachine_Control::STOPPED:
+    case Stream_StateMachine_Control::STATE_STOPPED:
     {
       switch (newState_in)
       {
         // good cases
         // *NOTE*: we have to allow this...
         // (scenario: asynchronous user abort via stop())
-        case RPG_Stream_StateMachine_Control::FINISHED:
+        case Stream_StateMachine_Control::STATE_FINISHED:
         {
-//           ACE_DEBUG((LM_DEBUG,
-//                      ACE_TEXT("state switch: STOPPED --> FINISHED\n")));
+//           ACE_DEBUG ((LM_DEBUG,
+//                       ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
 
-          invokeCallback(newState_in);
+          invokeCallback (newState_in);
 
-          myState = newState_in;
+          state_ = newState_in;
 
           return true;
         }
         // error cases
-        case RPG_Stream_StateMachine_Control::INIT:
-        case RPG_Stream_StateMachine_Control::PAUSED:
-        case RPG_Stream_StateMachine_Control::RUNNING:
+        case Stream_StateMachine_Control::STATE_INIT:
+        case Stream_StateMachine_Control::STATE_PAUSED:
+        case Stream_StateMachine_Control::STATE_RUNNING:
         default:
         {
           // what else can we do ?
@@ -201,27 +201,27 @@ RPG_Stream_StateMachine_Control::changeState(const Control_StateType& newState_i
 
       break;
     }
-    case RPG_Stream_StateMachine_Control::FINISHED:
+    case Stream_StateMachine_Control::STATE_FINISHED:
     {
       switch (newState_in)
       {
         // *IMPORTANT NOTE*: the whole stream needs to re-initialize BEFORE this happens...
         // good case
-        case RPG_Stream_StateMachine_Control::RUNNING:
+        case Stream_StateMachine_Control::STATE_RUNNING:
         {
-          ACE_DEBUG((LM_DEBUG,
-                     ACE_TEXT("state switch: FINISHED --> RUNNING\n")));
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("state switch: FINISHED --> RUNNING\n")));
 
-          invokeCallback(newState_in);
+          invokeCallback (newState_in);
 
-          myState = newState_in;
+          state_ = newState_in;
 
           return true;
         }
         // error case
-        case RPG_Stream_StateMachine_Control::INIT:
-        case RPG_Stream_StateMachine_Control::PAUSED:
-        case RPG_Stream_StateMachine_Control::STOPPED:
+        case Stream_StateMachine_Control::STATE_INIT:
+        case Stream_StateMachine_Control::STATE_PAUSED:
+        case Stream_StateMachine_Control::STATE_STOPPED:
         default:
         {
           // what else can we do ?
@@ -243,90 +243,89 @@ RPG_Stream_StateMachine_Control::changeState(const Control_StateType& newState_i
   // Note: when we get here, an invalid state change happened... --> check implementation !!!!
   std::string currentStateString;
   std::string newStateString;
-  ControlState2String(myState,
-                      currentStateString);
-  ControlState2String(newState_in,
-                      newStateString);
+  ControlState2String (state_,
+                       currentStateString);
+  ControlState2String (newState_in,
+                       newStateString);
 
-  ACE_DEBUG((LM_ERROR,
-             ACE_TEXT("invalid state switch: \"%s\" --> \"%s\" --> check implementation !, returning\n"),
-             currentStateString.c_str(),
-             newStateString.c_str()));
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("invalid state switch: \"%s\" --> \"%s\" --> check implementation !, returning\n"),
+              ACE_TEXT (currentStateString.c_str ()),
+              ACE_TEXT (newStateString.c_str ())));
 
   return false;
 }
 
 void
-RPG_Stream_StateMachine_Control::invokeCallback(const Control_StateType& newState_in)
+Stream_StateMachine_Control::invokeCallback (Control_StateType newState_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_StateMachine_Control::invokeCallback"));
+  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::invokeCallback"));
 
   // invoke callback...
   try
   {
-    onStateChange(newState_in);
+    onStateChange (newState_in);
   }
   catch (...)
   {
     std::string currentStateString;
     std::string newStateString;
-    ControlState2String(myState,
-                        currentStateString);
-    ControlState2String(newState_in,
-                        newStateString);
-
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in RPG_Stream_StateMachine_Control::onStateChange: \"%s --> %s\", continuing\n"),
-               currentStateString.c_str(),
-               newStateString.c_str()));
+    ControlState2String (state_,
+                         currentStateString);
+    ControlState2String (newState_in,
+                         newStateString);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_StateMachine_Control::onStateChange: \"%s --> %s\", continuing\n"),
+                ACE_TEXT (currentStateString.c_str ()),
+                ACE_TEXT (newStateString.c_str ())));
   }
 }
 
 void
-RPG_Stream_StateMachine_Control::ControlState2String(const Control_StateType& state_in,
-                                                     std::string& stateString_out)
+Stream_StateMachine_Control::ControlState2String (Control_StateType state_in,
+                                                  std::string& stateString_out)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_StateMachine_Control::ControlState2String"));
+  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::ControlState2String"));
 
   // init return value(s)
-  stateString_out = ACE_TEXT("UNDEFINED_STATE");
+  stateString_out = ACE_TEXT ("UNDEFINED_STATE");
   switch (state_in)
   {
-    case RPG_Stream_StateMachine_Control::INIT:
+    case Stream_StateMachine_Control::STATE_INIT:
     {
-      stateString_out = ACE_TEXT("INIT");
+      stateString_out = ACE_TEXT ("INIT");
 
       break;
     }
-    case RPG_Stream_StateMachine_Control::RUNNING:
+    case Stream_StateMachine_Control::STATE_RUNNING:
     {
-      stateString_out = ACE_TEXT("RUNNING");
+      stateString_out = ACE_TEXT ("RUNNING");
 
       break;
     }
-    case RPG_Stream_StateMachine_Control::PAUSED:
+    case Stream_StateMachine_Control::STATE_PAUSED:
     {
-      stateString_out = ACE_TEXT("PAUSED");
+      stateString_out = ACE_TEXT ("PAUSED");
 
       break;
     }
-    case RPG_Stream_StateMachine_Control::STOPPED:
+    case Stream_StateMachine_Control::STATE_STOPPED:
     {
-      stateString_out = ACE_TEXT("STOPPED");
+      stateString_out = ACE_TEXT ("STOPPED");
 
       break;
     }
-    case RPG_Stream_StateMachine_Control::FINISHED:
+    case Stream_StateMachine_Control::STATE_FINISHED:
     {
-      stateString_out = ACE_TEXT("FINISHED");
+      stateString_out = ACE_TEXT ("FINISHED");
 
       break;
     }
     default:
     {
-      ACE_DEBUG((LM_ERROR,
-                 ACE_TEXT("invalid state: %d, aborting\n"),
-                 state_in));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid state: %d, aborting\n"),
+                  state_in));
 
       break;
     }

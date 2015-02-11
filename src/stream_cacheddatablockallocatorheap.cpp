@@ -19,39 +19,39 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_cacheddatablockallocatorheap.h"
+#include "stream_cacheddatablockallocatorheap.h"
 
-#include <rpg_common_macros.h>
+#include "stream_macros.h"
 
 // init statics
-RPG_Stream_CachedDataBlockAllocatorHeap::DATABLOCK_LOCK_TYPE RPG_Stream_CachedDataBlockAllocatorHeap::myReferenceCountLock;
+Stream_CachedDataBlockAllocatorHeap::DATABLOCK_LOCK_TYPE Stream_CachedDataBlockAllocatorHeap::referenceCountLock_;
 
-RPG_Stream_CachedDataBlockAllocatorHeap::RPG_Stream_CachedDataBlockAllocatorHeap(const unsigned long& chunks_in,
-                                                                                 ACE_Allocator* allocator_in)
- : inherited(chunks_in),
-   myHeapAllocator(allocator_in),
-   myPoolSize(chunks_in)
+Stream_CachedDataBlockAllocatorHeap::Stream_CachedDataBlockAllocatorHeap (unsigned int chunks_in,
+                                                                          ACE_Allocator* allocator_in)
+ : inherited (chunks_in)
+ , heapAllocator_ (allocator_in)
+ , poolSize_ (chunks_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedDataBlockAllocatorHeap::RPG_Stream_CachedDataBlockAllocatorHeap"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::Stream_CachedDataBlockAllocatorHeap"));
 
   // *NOTE*: NULL --> use heap (== default allocator !)
-  if (!myHeapAllocator)
+  if (!heapAllocator_)
   {
-    ACE_DEBUG((LM_DEBUG,
-               ACE_TEXT("using default (== heap) message buffer allocation strategy...\n")));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("using default (== heap) message buffer allocation strategy...\n")));
   } // end IF
 }
 
-RPG_Stream_CachedDataBlockAllocatorHeap::~RPG_Stream_CachedDataBlockAllocatorHeap()
+Stream_CachedDataBlockAllocatorHeap::~Stream_CachedDataBlockAllocatorHeap ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedDataBlockAllocatorHeap::~RPG_Stream_CachedDataBlockAllocatorHeap"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::~Stream_CachedDataBlockAllocatorHeap"));
 
 }
 
 void*
-RPG_Stream_CachedDataBlockAllocatorHeap::malloc(size_t bytes_in)
+Stream_CachedDataBlockAllocatorHeap::malloc (size_t bytes_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedDataBlockAllocatorHeap::malloc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::malloc"));
 
   ACE_Data_Block* data_block = NULL;
   try
@@ -59,23 +59,23 @@ RPG_Stream_CachedDataBlockAllocatorHeap::malloc(size_t bytes_in)
     // - delegate allocation to our base class and
     // - perform a placement new by invoking a ctor on the allocated space
     // --> perform necessary initialization...
-    ACE_NEW_MALLOC_RETURN(data_block,
-                          static_cast<ACE_Data_Block*>(inherited::malloc(sizeof(ACE_Data_Block))),
-                          ACE_Data_Block(bytes_in,                                 // size of data chunk
-                                         ACE_Message_Block::MB_DATA,               // message type
-                                         NULL,                                     // data --> use allocator !
-                                         myHeapAllocator,                          // allocator
-                                         //NULL,                                   // no allocator --> allocate this off the heap !
-                                         &RPG_Stream_CachedDataBlockAllocatorHeap::myReferenceCountLock, // reference count lock
-                                         0,                                        // flags: release our (heap) memory when we die
-                                         this),                                    // remember us upon destruction...
-                          NULL);
+    ACE_NEW_MALLOC_RETURN (data_block,
+                           static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
+                           ACE_Data_Block (bytes_in,                                 // size of data chunk
+                                           ACE_Message_Block::MB_DATA,               // message type
+                                           NULL,                                     // data --> use allocator !
+                                           heapAllocator_,                           // allocator
+                                           //NULL,                                   // no allocator --> allocate this off the heap !
+                                           &Stream_CachedDataBlockAllocatorHeap::referenceCountLock_, // reference count lock
+                                           0,                                        // flags: release our (heap) memory when we die
+                                           this),                                    // remember us upon destruction...
+                           NULL);
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in ACE_NEW_MALLOC_RETURN(ACE_Data_Block(%u)), aborting\n"),
-               bytes_in));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_RETURN(ACE_Data_Block(%u)), aborting\n"),
+                bytes_in));
 
     // *TODO*: what else can we do ?
     return NULL;
@@ -85,38 +85,37 @@ RPG_Stream_CachedDataBlockAllocatorHeap::malloc(size_t bytes_in)
 }
 
 void*
-RPG_Stream_CachedDataBlockAllocatorHeap::calloc(size_t bytes_in,
-                                                char initialValue_in)
+Stream_CachedDataBlockAllocatorHeap::calloc (size_t bytes_in,
+                                             char initialValue_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedDataBlockAllocatorHeap::calloc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::calloc"));
 
-  // ignore this
-  ACE_UNUSED_ARG(initialValue_in);
+  ACE_UNUSED_ARG (initialValue_in);
 
   // just delegate this (for now)...
-  return malloc(bytes_in);
+  return malloc (bytes_in);
 }
 
 void
-RPG_Stream_CachedDataBlockAllocatorHeap::free(void* handle_in)
+Stream_CachedDataBlockAllocatorHeap::free (void* handle_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedDataBlockAllocatorHeap::free"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::free"));
 
-  inherited::free(handle_in);
+  inherited::free (handle_in);
 }
 
 size_t
-RPG_Stream_CachedDataBlockAllocatorHeap::cache_depth() const
+Stream_CachedDataBlockAllocatorHeap::cache_depth () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedDataBlockAllocatorHeap::cache_depth"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::cache_depth"));
 
-  return const_cast<RPG_Stream_CachedDataBlockAllocatorHeap*>(this)->pool_depth();
+  return const_cast<Stream_CachedDataBlockAllocatorHeap*> (this)->pool_depth ();
 }
 
 size_t
-RPG_Stream_CachedDataBlockAllocatorHeap::cache_size() const
+Stream_CachedDataBlockAllocatorHeap::cache_size () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedDataBlockAllocatorHeap::cache_size"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::cache_size"));
 
-  return myPoolSize;
+  return poolSize_;
 }

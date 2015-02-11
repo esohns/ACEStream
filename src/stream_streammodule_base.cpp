@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_streammodule_base.h"
+#include "stream_streammodule_base.h"

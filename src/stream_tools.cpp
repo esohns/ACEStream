@@ -19,22 +19,22 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_tools.h"
+#include "stream_tools.h"
 
 #include <sstream>
 
-#include <ace/OS.h>
-#include <ace/Log_Msg.h>
+#include "ace/OS.h"
+#include "ace/Log_Msg.h"
 
-#include "rpg_common_macros.h"
-#include "rpg_common_defines.h"
+#include "common_defines.h"
 
-#include "rpg_stream_defines.h"
+#include "stream_macros.h"
+#include "stream_defines.h"
 
-const std::string
-RPG_Stream_Tools::timestamp2LocalString(const ACE_Time_Value& timestamp_in)
+std::string
+Stream_Tools::timestamp2LocalString (const ACE_Time_Value& timestamp_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_Tools::timestamp2LocalString"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::Stream_Tools"));
 
   // init return value(s)
   std::string result;
@@ -59,15 +59,14 @@ RPG_Stream_Tools::timestamp2LocalString(const ACE_Time_Value& timestamp_in)
 
   // step1: compute UTC representation
   time_t time_sec;
-  time_sec = timestamp_in.sec();
+  time_sec = timestamp_in.sec ();
   // *PORTABILITY*: man page says we should call this before...
-  ACE_OS::tzset();
-  if (ACE_OS::localtime_r(&time_sec,
-                          &time_local) == NULL)
+  ACE_OS::tzset ();
+  if (ACE_OS::localtime_r (&time_sec,
+                           &time_local) == NULL)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to ACE_OS::localtime_r(): \"%s\", aborting\n"),
-               ACE_OS::strerror(errno)));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_OS::localtime_r(): \"%m\", aborting\n")));
 
     return result;
   } // end IF
@@ -75,15 +74,14 @@ RPG_Stream_Tools::timestamp2LocalString(const ACE_Time_Value& timestamp_in)
   // step2: create string
   // Note: '\0' doesn't count: 4 + 2 + 2 + 2 + 2 + 2 + 5 blanks
   // *TODO*: rewrite this in C++...
-  char time_string[RPG_COMMON_BUFSIZE];
-  if (ACE_OS::strftime(time_string,
-                       sizeof(time_string),
-                       ACE_TEXT_ALWAYS_CHAR("%Y_%m_%d_%H_%M_%S"),
-                       &time_local) != 19)
+  char time_string[COMMON_BUFSIZE];
+  if (ACE_OS::strftime (time_string,
+                        sizeof (time_string),
+                        ACE_TEXT_ALWAYS_CHAR ("%Y_%m_%d_%H_%M_%S"),
+                        &time_local) != 19)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to ACE_OS::strftime(): \"%s\", aborting\n"),
-               ACE_OS::strerror(errno)));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_OS::strftime(): \"%m\", aborting\n")));
 
     return result;
   } // end IF
@@ -91,12 +89,12 @@ RPG_Stream_Tools::timestamp2LocalString(const ACE_Time_Value& timestamp_in)
   result = time_string;
 
   // OK: append any usecs
-  if (timestamp_in.usec())
+  if (timestamp_in.usec ())
   {
     std::ostringstream converter;
-    converter << timestamp_in.usec();
-    result += ACE_TEXT_ALWAYS_CHAR(".");
-    result += converter.str();
+    converter << timestamp_in.usec ();
+    result += ACE_TEXT_ALWAYS_CHAR (".");
+    result += converter.str ();
   } // end IF
 
   return result;

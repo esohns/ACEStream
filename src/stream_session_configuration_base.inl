@@ -18,67 +18,66 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "rpg_common_macros.h"
-
-#include "rpg_stream_tools.h"
+#include "stream_macros.h"
+#include "stream_tools.h"
 
 template <typename DataType>
-RPG_Stream_SessionConfigBase<DataType>::RPG_Stream_SessionConfigBase(const DataType& userData_in,
-                                                                     const ACE_Time_Value& startOfSession_in,
-                                                                     const bool& userAbort_in)
- : inherited(1,     // initial count
-             true), // delete on zero ?
-   myUserData(userData_in),
-   myStartOfSession(startOfSession_in),
-   myUserAbort(userAbort_in)
+Stream_SessionConfigurationBase_T<DataType>::Stream_SessionConfigurationBase_T (const DataType& userData_in,
+                                                                                const ACE_Time_Value& startOfSession_in,
+                                                                                bool userAbort_in)
+ : inherited (1,    // initial count
+              true) // delete on zero ?
+ , userData_ (userData_in)
+ , startOfSession_ (startOfSession_in)
+ , userAbort_ (userAbort_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfigBase::RPG_Stream_SessionConfigBase"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::Stream_SessionConfigurationBase_T"));
 
 }
 
 template <typename DataType>
-RPG_Stream_SessionConfigBase<DataType>::~RPG_Stream_SessionConfigBase()
+Stream_SessionConfigurationBase_T<DataType>::~Stream_SessionConfigurationBase_T ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfigBase::~RPG_Stream_SessionConfigBase"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::~Stream_SessionConfigurationBase_T"));
 
 }
 
 template <typename DataType>
 DataType
-RPG_Stream_SessionConfigBase<DataType>::getUserData() const
+Stream_SessionConfigurationBase_T<DataType>::getUserData () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfigBase::getUserData"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::getUserData"));
 
-  return myUserData;
+  return userData_;
 }
 
 template <typename DataType>
 ACE_Time_Value
-RPG_Stream_SessionConfigBase<DataType>::getStartOfSession() const
+Stream_SessionConfigurationBase_T<DataType>::getStartOfSession () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfigBase::getStartOfSession"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::getStartOfSession"));
 
-  return myStartOfSession;
+  return startOfSession_;
 }
 
 template <typename DataType>
 bool
-RPG_Stream_SessionConfigBase<DataType>::getUserAbort() const
+Stream_SessionConfigurationBase_T<DataType>::getUserAbort () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfigBase::getUserAbort"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::getUserAbort"));
 
-  return myUserAbort;
+  return userAbort_;
 }
 
 template <typename DataType>
 void
-RPG_Stream_SessionConfigBase<DataType>::dump_state() const
+Stream_SessionConfigurationBase_T<DataType>::dump_state () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfigBase::dump_state"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::dump_state"));
 
-  ACE_DEBUG((LM_DEBUG,
-             ACE_TEXT("start of session: %s%s\n"),
-             RPG_Stream_Tools::timestamp2LocalString(myStartOfSession).c_str(),
-             (myUserAbort ? ACE_TEXT(", [user abort !]")
-                          : ACE_TEXT(""))));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("start of session: %s%s\n"),
+              ACE_TEXT (Stream_Tools::timestamp2LocalString (startOfSession_).c_str ()),
+              (userAbort_ ? ACE_TEXT(", [user abort !]")
+                          : ACE_TEXT (""))));
 }

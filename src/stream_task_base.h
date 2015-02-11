@@ -28,7 +28,7 @@
 #include "stream_itask_base.h"
 
 // forward declaration(s)
-class RPG_Stream_MessageBase;
+class Stream_MessageBase;
 
 template <typename TaskSynchStrategyType,
           typename TimePolicyType,
@@ -36,8 +36,8 @@ template <typename TaskSynchStrategyType,
           typename ProtocolMessageType>
 class Stream_TaskBase_T
  : public Common_TaskBase_T<TaskSynchStrategyType,
-                            TimePolicyType>,
-   public Stream_ITaskBase_T<SessionMessageType,
+                            TimePolicyType>
+ , public Stream_ITaskBase_T<SessionMessageType,
                              ProtocolMessageType>
 {
  public:

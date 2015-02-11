@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_data_message_base.h"
+#include "stream_data_message_base.h"

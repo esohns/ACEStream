@@ -19,37 +19,37 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_cachedallocatorheap.h"
+#include "stream_cachedallocatorheap.h"
 
-#include <rpg_common_macros.h>
+#include "stream_macros.h"
 
-RPG_Stream_CachedAllocatorHeap::RPG_Stream_CachedAllocatorHeap(const unsigned long& poolSize_in,
-                                                               const unsigned long& chunkSize_in)
- : inherited(poolSize_in, chunkSize_in),
-   myPoolSize(poolSize_in * chunkSize_in)
+Stream_CachedAllocatorHeap::Stream_CachedAllocatorHeap (unsigned int poolSize_in,
+                                                        unsigned int chunkSize_in)
+ : inherited (poolSize_in, chunkSize_in)
+ , poolSize_ (poolSize_in * chunkSize_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedAllocatorHeap::RPG_Stream_CachedAllocatorHeap"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedAllocatorHeap::Stream_CachedAllocatorHeap"));
 
 }
 
-RPG_Stream_CachedAllocatorHeap::~RPG_Stream_CachedAllocatorHeap()
+Stream_CachedAllocatorHeap::~Stream_CachedAllocatorHeap ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedAllocatorHeap::~RPG_Stream_CachedAllocatorHeap"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedAllocatorHeap::~Stream_CachedAllocatorHeap"));
 
-}
-
-size_t
-RPG_Stream_CachedAllocatorHeap::cache_depth() const
-{
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedAllocatorHeap::cache_depth"));
-
-  return const_cast<RPG_Stream_CachedAllocatorHeap*>(this)->pool_depth();
 }
 
 size_t
-RPG_Stream_CachedAllocatorHeap::cache_size() const
+Stream_CachedAllocatorHeap::cache_depth () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedAllocatorHeap::cache_size"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedAllocatorHeap::cache_depth"));
 
-  return myPoolSize;
+  return const_cast<Stream_CachedAllocatorHeap*> (this)->pool_depth ();
+}
+
+size_t
+Stream_CachedAllocatorHeap::cache_size () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedAllocatorHeap::cache_size"));
+
+  return poolSize_;
 }

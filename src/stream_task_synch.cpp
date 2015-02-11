@@ -19,61 +19,60 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_task_synch.h"
+#include "stream_task_synch.h"
 
-#include <rpg_common_macros.h>
+#include "ace/Message_Block.h"
+#include "ace/Time_Value.h"
 
-#include <ace/Message_Block.h>
-#include <ace/Time_Value.h>
+#include "stream_macros.h"
 
-RPG_Stream_TaskSynch::RPG_Stream_TaskSynch()
+Stream_TaskSynch::Stream_TaskSynch ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskSynch::RPG_Stream_TaskSynch"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskSynch::Stream_TaskSynch"));
 
 }
 
-RPG_Stream_TaskSynch::~RPG_Stream_TaskSynch()
+Stream_TaskSynch::~Stream_TaskSynch ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskSynch::~RPG_Stream_TaskSynch"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskSynch::~Stream_TaskSynch"));
 
 }
 
 int
-RPG_Stream_TaskSynch::put(ACE_Message_Block* mb_in,
-                      ACE_Time_Value* tv_in)
+Stream_TaskSynch::put (ACE_Message_Block* mb_in,
+                       ACE_Time_Value* tv_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskSynch::put"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskSynch::put"));
 
-  ACE_UNUSED_ARG(tv_in);
+  ACE_UNUSED_ARG (tv_in);
 
   // NOTE: ignore this return value (it's only used in asynchronous mode...)
   bool stopProcessing = false;
 
   // "borrow" the calling thread to do our work...
-  inherited::handleMessage(mb_in,
-                           stopProcessing);
+  inherited::handleMessage (mb_in,
+                            stopProcessing);
 
   return 0;
 }
 
 int
-RPG_Stream_TaskSynch::open(void* args_in)
+Stream_TaskSynch::open(void* args_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskSynch::open"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskSynch::open"));
 
-  ACE_UNUSED_ARG(args_in);
+  ACE_UNUSED_ARG (args_in);
 
-//   // debug info
-//   if (module())
+//   if (inherited::module ())
 //   {
-//     ACE_DEBUG((LM_DEBUG,
-//                ACE_TEXT("module \"%s\" has no worker thread...\n"),
-//                ACE_TEXT_ALWAYS_CHAR(name())));
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("module \"%s\" has no worker thread...\n"),
+//                 ACE_TEXT (inherited::name ())));
 //   } // end IF
 //   else
 //   {
-//     ACE_DEBUG((LM_DEBUG,
-//                ACE_TEXT("no worker thread\n")));
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("no worker thread\n")));
 //   } // end ELSE
 
   // nothing to do...
@@ -81,20 +80,20 @@ RPG_Stream_TaskSynch::open(void* args_in)
 }
 
 int
-RPG_Stream_TaskSynch::close(u_long arg_in)
+Stream_TaskSynch::close (u_long arg_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskSynch::close"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskSynch::close"));
 
-  ACE_UNUSED_ARG(arg_in);
+  ACE_UNUSED_ARG (arg_in);
 
   // nothing to do...
   return 0;
 }
 
 int
-RPG_Stream_TaskSynch::module_closed(void)
+Stream_TaskSynch::module_closed (void)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskSynch::module_closed"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskSynch::module_closed"));
 
   // *NOTE*: this method is invoked by an external thread
   // either from the ACE_Module dtor or during explicit ACE_Module::close()
@@ -104,9 +103,9 @@ RPG_Stream_TaskSynch::module_closed(void)
 }
 
 void
-RPG_Stream_TaskSynch::waitForIdleState() const
+Stream_TaskSynch::waitForIdleState () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskSynch::waitForIdleState"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskSynch::waitForIdleState"));
 
   // just a stub, there's nothing to do...
 }

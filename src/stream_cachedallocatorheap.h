@@ -18,48 +18,47 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_CACHEDALLOCATORHEAP_H
-#define RPG_STREAM_CACHEDALLOCATORHEAP_H
+#ifndef STREAM_CACHEDALLOCATORHEAP_H
+#define STREAM_CACHEDALLOCATORHEAP_H
 
-#include "rpg_stream_exports.h"
-#include "rpg_stream_iallocator.h"
+#include "ace/Malloc_T.h"
+#include "ace/Synch.h"
+#include "ace/Atomic_Op.h"
 
-#include <ace/Malloc_T.h>
-#include <ace/Synch.h>
-#include <ace/Atomic_Op.h>
+#include "stream_exports.h"
+#include "stream_iallocator.h"
 
-class RPG_Stream_Export RPG_Stream_CachedAllocatorHeap
- : public RPG_Stream_IAllocator,
+class Stream_Export Stream_CachedAllocatorHeap
+ : public Stream_IAllocator,
    public ACE_Dynamic_Cached_Allocator<ACE_SYNCH_MUTEX>
 {
  public:
-  RPG_Stream_CachedAllocatorHeap(const unsigned long&,  // pool size
-                                 const unsigned long&); // chunk size
-  virtual ~RPG_Stream_CachedAllocatorHeap();
+  Stream_CachedAllocatorHeap (unsigned int,  // pool size
+                              unsigned int); // chunk size
+  virtual ~Stream_CachedAllocatorHeap ();
 
   // *IMPORTANT NOTE*: need to implement these as ACE_Dynamic_Cached_Allocator
   // doesn't implement them as virtual (BUG)
-  inline virtual void* malloc(size_t numBytes_in)
+  inline virtual void* malloc (size_t numBytes_in)
   {
-    return inherited::malloc(numBytes_in);
+    return inherited::malloc (numBytes_in);
   };
-  inline virtual void free(void* pointer_in)
+  inline virtual void free (void* pointer_in)
   {
-    return inherited::free(pointer_in);
+    return inherited::free (pointer_in);
   };
 
   // *NOTE*: these return the amount of allocated (heap) memory...
-  virtual size_t cache_depth() const;
-  virtual size_t cache_size() const;
+  virtual size_t cache_depth () const;
+  virtual size_t cache_size () const;
 
  private:
   typedef ACE_Dynamic_Cached_Allocator<ACE_SYNCH_MUTEX> inherited;
 
-  // safety measures
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_CachedAllocatorHeap(const RPG_Stream_CachedAllocatorHeap&));
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_CachedAllocatorHeap& operator=(const RPG_Stream_CachedAllocatorHeap&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedAllocatorHeap (const Stream_CachedAllocatorHeap&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedAllocatorHeap& operator= (const Stream_CachedAllocatorHeap&));
 
-  unsigned long myPoolSize;
+  unsigned long poolSize_;
 };
 
 #endif

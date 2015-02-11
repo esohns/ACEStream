@@ -67,7 +67,7 @@ class Stream_HeadModuleTask
   virtual void pause ();
   virtual void rewind ();
   virtual void waitForCompletion ();
-  virtual const bool isRunning ();
+  virtual bool isRunning ();
 
  protected:
   Stream_HeadModuleTask (bool); // auto-start ?

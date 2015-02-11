@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_task_base.h"
+#include "stream_task_base.h"

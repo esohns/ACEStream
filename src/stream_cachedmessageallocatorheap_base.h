@@ -18,65 +18,64 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_CACHEDMESSAGEALLOCATORHEAP_BASE_H
-#define RPG_STREAM_CACHEDMESSAGEALLOCATORHEAP_BASE_H
+#ifndef STREAM_CACHEDMESSAGEALLOCATORHEAP_BASE_H
+#define STREAM_CACHEDMESSAGEALLOCATORHEAP_BASE_H
 
-#include "rpg_stream_iallocator.h"
-#include "rpg_stream_cacheddatablockallocatorheap.h"
+#include "ace/Malloc_T.h"
+#include "ace/Message_Block.h"
+#include "ace/Synch.h"
 
-#include <ace/Malloc_T.h>
-#include <ace/Message_Block.h>
-#include <ace/Synch.h>
+#include "stream_iallocator.h"
+#include "stream_cacheddatablockallocatorheap.h"
 
 template <typename MessageType,
           typename SessionMessageType>
-class RPG_Stream_CachedMessageAllocatorHeapBase
- : public RPG_Stream_IAllocator
+class Stream_CachedMessageAllocatorHeapBase_T
+ : public Stream_IAllocator
 {
  public:
-  RPG_Stream_CachedMessageAllocatorHeapBase(const unsigned long&, // total number of concurrent messages
-                                            ACE_Allocator*);      // (heap) memory allocator...
-  virtual ~RPG_Stream_CachedMessageAllocatorHeapBase();
+  Stream_CachedMessageAllocatorHeapBase_T (unsigned int,    // total number of concurrent messages
+                                           ACE_Allocator*); // (heap) memory allocator...
+  virtual ~Stream_CachedMessageAllocatorHeapBase_T ();
 
-  // overload these to do what we want
+  // overload ACE_Allocator
   // *NOTE*: returns a pointer to <MessageType>...
   // *NOTE: passing a value of 0 will return a <SessionMessageType>
   // *TODO*: the way message IDs are implemented, they can be truly unique
   // only IF allocation is synchronized...
-  virtual void* malloc(size_t); // bytes
+  virtual void* malloc (size_t); // bytes
 
   // *NOTE*: returns a pointer to <MessageType>/<SessionMessageType>
   // --> see above
-  virtual void* calloc(size_t,       // bytes
-                       char = '\0'); // initial value
+  virtual void* calloc (size_t,       // bytes
+                        char = '\0'); // initial value
 
   // *NOTE*: frees an <MessageType>/<SessionMessageType>...
-  virtual void free(void*); // element handle
+  virtual void free (void*); // element handle
 
   // *NOTE*: these return the # of online ACE_Data_Blocks...
-  virtual size_t cache_depth() const;
-  virtual size_t cache_size() const;
+  virtual size_t cache_depth () const;
+  virtual size_t cache_size  () const;
 
  private:
-  typedef RPG_Stream_IAllocator inherited;
+  typedef Stream_IAllocator inherited;
 
-  // safety measures
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_CachedMessageAllocatorHeapBase(const RPG_Stream_CachedMessageAllocatorHeapBase<MessageType, SessionMessageType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T (const Stream_CachedMessageAllocatorHeapBase_T<MessageType, SessionMessageType>&));
   // *NOTE*: apparently, ACE_UNIMPLEMENTED_FUNC gets confused with more than one template parameter...
-//   ACE_UNIMPLEMENTED_FUNC(RPG_Stream_CachedMessageAllocatorHeapBase<MessageType,
-//                                                          SessionMessageType>& operator=(const RPG_Stream_CachedMessageAllocatorHeapBase<MessageType,
+//   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+//                                                          SessionMessageType>& operator= (const Stream_CachedMessageAllocatorHeapBase_T<MessageType,
 //                                                                                          SessionMessageType>&));
 
   // message allocator
   ACE_Cached_Allocator<MessageType,
-                       ACE_SYNCH_MUTEX>   myMessageAllocator;
+                       ACE_SYNCH_MUTEX>   messageAllocator_;
   ACE_Cached_Allocator<SessionMessageType,
-                       ACE_SYNCH_MUTEX>   mySessionMessageAllocator;
+                       ACE_SYNCH_MUTEX>   sessionMessageAllocator_;
   // data block allocator
-  RPG_Stream_CachedDataBlockAllocatorHeap myDataBlockAllocator;
+  Stream_CachedDataBlockAllocatorHeap     dataBlockAllocator_;
 };
 
 // include template implementation
-#include "rpg_stream_cachedmessageallocatorheap_base.inl"
+#include "stream_cachedmessageallocatorheap_base.inl"
 
 #endif

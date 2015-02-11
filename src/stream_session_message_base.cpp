@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_session_message_base.h"
+#include "stream_session_message_base.h"

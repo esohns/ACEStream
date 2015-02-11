@@ -18,45 +18,45 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_SESSION_CONFIG_BASE_H
-#define RPG_STREAM_SESSION_CONFIG_BASE_H
-
-#include "rpg_common_referencecounter_base.h"
+#ifndef STREAM_SESSION_CONFIGURATION_BASE_H
+#define STREAM_SESSION_CONFIGURATION_BASE_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Time_Value.h"
 
+#include "common_referencecounter_base.h"
+
 template <typename DataType>
-class RPG_Stream_SessionConfigBase
- : public RPG_Common_ReferenceCounterBase
+class Stream_SessionConfigurationBase_T
+ : public Common_ReferenceCounterBase
 {
  public:
-  RPG_Stream_SessionConfigBase(const DataType&,                              // user data
-                               const ACE_Time_Value& = ACE_Time_Value::zero, // "official" start of session
-                               const bool& = false);                         // session ended because of user abort ?
-  virtual ~RPG_Stream_SessionConfigBase();
+  Stream_SessionConfigurationBase_T (const DataType&,                              // user data
+                                     const ACE_Time_Value& = ACE_Time_Value::zero, // "official" start of session
+                                     bool = false);                                // session ended because of user abort ?
+  virtual ~Stream_SessionConfigurationBase_T ();
 
   // info
-  DataType getUserData() const;
-  ACE_Time_Value getStartOfSession() const;
-  bool getUserAbort() const;
+  DataType getUserData () const;
+  ACE_Time_Value getStartOfSession () const;
+  bool getUserAbort () const;
 
-  // implement RPG_Common_IDumpState
-  virtual void dump_state() const;
+  // implement Common_IDumpState
+  virtual void dump_state () const;
 
  private:
-  typedef RPG_Common_ReferenceCounterBase inherited;
+  typedef Common_ReferenceCounterBase inherited;
 
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_SessionConfigBase());
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_SessionConfigBase(const RPG_Stream_SessionConfigBase<DataType>&));
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_SessionConfigBase<DataType>& operator=(const RPG_Stream_SessionConfigBase<DataType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionConfigurationBase_T ());
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionConfigurationBase_T (const Stream_SessionConfigurationBase_T<DataType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionConfigurationBase_T<DataType>& operator=(const Stream_SessionConfigurationBase_T<DataType>&));
 
-  DataType       myUserData;
-  ACE_Time_Value myStartOfSession;
-  bool           myUserAbort;
+  DataType       userData_;
+  ACE_Time_Value startOfSession_;
+  bool           userAbort_;
 };
 
 // include template implementation
-#include "rpg_stream_session_config_base.inl"
+#include "stream_session_configuration_base.inl"
 
 #endif

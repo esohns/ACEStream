@@ -19,67 +19,66 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_session_config.h"
+#include "stream_session_configuration.h"
 
-#include <ace/Guard_T.h>
-#include <ace/Synch.h>
+#include "ace/Guard_T.h"
+#include "ace/Synch.h"
 
-#include "rpg_common_macros.h"
+#include "stream_macros.h"
+#include "stream_tools.h"
 
-#include "rpg_stream_tools.h"
-
-RPG_Stream_SessionConfig::RPG_Stream_SessionConfig(const void* data_in,
-																									 const ACE_Time_Value& startOfSession_in,
-																									 const bool& userAbort_in)
- : inherited(1,     // initial count
-             true), // delete on zero ?
-   myUserData(data_in),
-   myStartOfSession(startOfSession_in),
-   myUserAbort(userAbort_in)
+Stream_SessionConfiguration::Stream_SessionConfiguration(const void* data_in,
+                                                         const ACE_Time_Value& startOfSession_in,
+                                                         bool userAbort_in)
+ : inherited (1,    // initial count
+              true) // delete on zero ?
+ , userData_ (data_in)
+ , startOfSession_ (startOfSession_in)
+ , userAbort_ (userAbort_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfig::RPG_Stream_SessionConfig"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::Stream_SessionConfiguration"));
 
 }
 
-RPG_Stream_SessionConfig::~RPG_Stream_SessionConfig()
+Stream_SessionConfiguration::~Stream_SessionConfiguration ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfig::~RPG_Stream_SessionConfig"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::~Stream_SessionConfiguration"));
 
 }
 
 const void*
-RPG_Stream_SessionConfig::getUserData() const
+Stream_SessionConfiguration::getUserData () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfig::getUserData"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::getUserData"));
 
-  return myUserData;
+  return userData_;
 }
 
 ACE_Time_Value
-RPG_Stream_SessionConfig::getStartOfSession() const
+Stream_SessionConfiguration::getStartOfSession () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfig::getStartOfSession"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::getStartOfSession"));
 
-  return myStartOfSession;
+  return startOfSession_;
 }
 
 bool
-RPG_Stream_SessionConfig::getUserAbort() const
+Stream_SessionConfiguration::getUserAbort () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfig::getUserAbort"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::getUserAbort"));
 
-  return myUserAbort;
+  return userAbort_;
 }
 
 void
-RPG_Stream_SessionConfig::dump_state() const
+Stream_SessionConfiguration::dump_state () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_SessionConfig::dump_state"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::dump_state"));
 
-  ACE_DEBUG((LM_DEBUG,
-             ACE_TEXT("user data: %@, start of session: %s%s\n"),
-             myUserData,
-             RPG_Stream_Tools::timestamp2LocalString(myStartOfSession).c_str(),
-             (myUserAbort ? ACE_TEXT(" [user abort !]")
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("user data: %@, start of session: %s%s\n"),
+              userData_,
+              ACE_TEXT (Stream_Tools::timestamp2LocalString (startOfSession_).c_str()),
+              (userAbort_ ? ACE_TEXT(" [user abort !]")
                           : ACE_TEXT(""))));
 }

@@ -19,40 +19,40 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_messagequeue.h"
+#include "stream_messagequeue.h"
 
-#include <rpg_common_macros.h>
+#include "ace/Time_Value.h"
 
-#include <ace/Time_Value.h>
+#include "stream_macros.h"
 
-RPG_Stream_MessageQueue::RPG_Stream_MessageQueue(const unsigned long& maxMessages_in)
- : inherited(maxMessages_in)
+Stream_MessageQueue::Stream_MessageQueue (unsigned int maxMessages_in)
+ : inherited (maxMessages_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_MessageQueue::RPG_Stream_MessageQueue"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue::Stream_MessageQueue"));
 
 }
 
-RPG_Stream_MessageQueue::~RPG_Stream_MessageQueue()
+Stream_MessageQueue::~Stream_MessageQueue ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_MessageQueue::~RPG_Stream_MessageQueue"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue::~Stream_MessageQueue"));
 
 }
 
-void RPG_Stream_MessageQueue::waitForIdleState() const
+void Stream_MessageQueue::waitForIdleState () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_MessageQueue::waitForIdleState"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue::waitForIdleState"));
 
   // *TODO*: find a better way to do this
-  ACE_Time_Value one_second(1, 0);
+  ACE_Time_Value one_second (1, 0);
 
   do
   {
-    if (const_cast<RPG_Stream_MessageQueue*> (this)->message_count() > 0)
+    if (const_cast<Stream_MessageQueue*> (this)->message_count () > 0)
     {
-      ACE_DEBUG((LM_DEBUG,
-                 ACE_TEXT("waiting...\n")));
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("waiting...\n")));
 
-      ACE_OS::sleep(one_second);
+      ACE_OS::sleep (one_second);
 
       continue;
     } // end IF

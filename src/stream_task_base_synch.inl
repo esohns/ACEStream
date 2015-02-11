@@ -18,29 +18,29 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <ace/Message_Block.h>
-#include <ace/Time_Value.h>
+#include "ace/Message_Block.h"
+#include "ace/Time_Value.h"
 
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-RPG_Stream_TaskBaseSynch<TimePolicyType,
-                         SessionMessageType,
-                         ProtocolMessageType>::RPG_Stream_TaskBaseSynch()
- : inherited()
+Stream_TaskBaseSynch_T<TimePolicyType,
+                       SessionMessageType,
+                       ProtocolMessageType>::Stream_TaskBaseSynch_T ()
+// : inherited ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskBaseSynch::RPG_Stream_TaskBaseSynch"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::Stream_TaskBaseSynch_T"));
 
 }
 
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-RPG_Stream_TaskBaseSynch<TimePolicyType,
-                         SessionMessageType,
-                         ProtocolMessageType>::~RPG_Stream_TaskBaseSynch()
+Stream_TaskBaseSynch_T<TimePolicyType,
+                       SessionMessageType,
+                       ProtocolMessageType>::~Stream_TaskBaseSynch_T ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskBaseSynch::~RPG_Stream_TaskBaseSynch"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::~Stream_TaskBaseSynch_T"));
 
 }
 
@@ -48,21 +48,21 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 int
-RPG_Stream_TaskBaseSynch<TimePolicyType,
-                         SessionMessageType,
-                         ProtocolMessageType>::put(ACE_Message_Block* mb_in,
-                                                   ACE_Time_Value* tv_in)
+Stream_TaskBaseSynch_T<TimePolicyType,
+                       SessionMessageType,
+                       ProtocolMessageType>::put (ACE_Message_Block* mb_in,
+                                                  ACE_Time_Value* tv_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskBaseSynch::put"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::put"));
 
-  ACE_UNUSED_ARG(tv_in);
+  ACE_UNUSED_ARG (tv_in);
 
   // NOTE: ignore this return value (it's only used in asynchronous mode...)
   bool stopProcessing = false;
 
   // "borrow" the calling thread to do the work...
-  inherited::handleMessage(mb_in,
-                           stopProcessing);
+  inherited::handleMessage (mb_in,
+                            stopProcessing);
 
   return 0;
 }
@@ -71,25 +71,24 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 int
-RPG_Stream_TaskBaseSynch<TimePolicyType,
-                         SessionMessageType,
-                         ProtocolMessageType>::open(void* args_in)
+Stream_TaskBaseSynch_T<TimePolicyType,
+                       SessionMessageType,
+                       ProtocolMessageType>::open (void* args_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskBaseSynch::open"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::open"));
 
-  ACE_UNUSED_ARG(args_in);
+  ACE_UNUSED_ARG (args_in);
 
-//   // debug info
-//   if (inherited::module())
+//   if (inherited::module ())
 //   {
-//     ACE_DEBUG((LM_DEBUG,
-//                ACE_TEXT("module \"%s\" has no worker thread...\n"),
-//                ACE_TEXT_ALWAYS_CHAR(inherited::name())));
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("module \"%s\" has no worker thread...\n"),
+//                 ACE_TEXT (inherited::name ())));
 //   } // end IF
 //   else
 //   {
-//     ACE_DEBUG((LM_DEBUG,
-//                ACE_TEXT("no worker thread\n")));
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("no worker thread\n")));
 //   } // end ELSE
 
   // nothing to do...
@@ -100,13 +99,13 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 int
-RPG_Stream_TaskBaseSynch<TimePolicyType,
-                         SessionMessageType,
-                         ProtocolMessageType>::close(u_long arg_in)
+Stream_TaskBaseSynch_T<TimePolicyType,
+                       SessionMessageType,
+                       ProtocolMessageType>::close (u_long arg_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskBaseSynch::close"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::close"));
 
-  ACE_UNUSED_ARG(arg_in);
+  ACE_UNUSED_ARG (arg_in);
 
   // nothing to do...
   return 0;
@@ -116,11 +115,11 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 int
-RPG_Stream_TaskBaseSynch<TimePolicyType,
-                         SessionMessageType,
-                         ProtocolMessageType>::module_closed(void)
+Stream_TaskBaseSynch_T<TimePolicyType,
+                       SessionMessageType,
+                       ProtocolMessageType>::module_closed (void)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskBaseSynch::module_closed"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::module_closed"));
 
   // *NOTE*: this method is invoked by an external thread
   // either from the ACE_Module dtor or during explicit ACE_Module::close()
@@ -133,11 +132,11 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-RPG_Stream_TaskBaseSynch<TimePolicyType,
-                         SessionMessageType,
-                         ProtocolMessageType>::waitForIdleState() const
+Stream_TaskBaseSynch_T<TimePolicyType,
+                       SessionMessageType,
+                       ProtocolMessageType>::waitForIdleState () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_TaskBaseSynch::waitForIdleState"));
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::waitForIdleState"));
 
   // *NOTE*: just a stub, there's nothing to do...
 }

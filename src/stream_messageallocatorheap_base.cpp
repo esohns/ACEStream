@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream_messageallocatorheap_base.h"
+#include "stream_messageallocatorheap_base.h"

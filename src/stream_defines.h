@@ -18,20 +18,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_DEFINES_H
-#define RPG_STREAM_DEFINES_H
+#ifndef STREAM_DEFINES_H
+#define STREAM_DEFINES_H
 
 // queue / task / buffers
-#define RPG_STREAM_TASK_GROUP_ID               1000
+#define STREAM_TASK_GROUP_ID               1000
 // *IMPORTANT NOTE*: any of these COULD seriously affect performance
-#define RPG_STREAM_MAX_QUEUE_SLOTS             10000
+#define STREAM_MAX_QUEUE_SLOTS             10000
 // *IMPORTANT NOTE*: static heap memory consumption can probably be approximated
-// as RPG_STREAM_DEF_MAX_MESSAGES * sizeof(stream-message-type) bytes
-#define RPG_STREAM_MAX_MESSAGES                1000
+// as STREAM_DEF_MAX_MESSAGES * sizeof(stream-message-type) bytes
+#define STREAM_MAX_MESSAGES                1000
 
-#define RPG_STREAM_BUFFER_SIZE                 1024 // 1 kB
+#define STREAM_BUFFER_SIZE                 1024 // 1 kB
 
-#define RPG_STREAM_DEF_NUM_STREAM_HEAD_THREADS 1
-#define RPG_STREAM_DEF_HANDLER_THREAD_NAME     "RPG stream dispatch"
+#define STREAM_DEF_NUM_STREAM_HEAD_THREADS 1
+#define STREAM_DEF_HANDLER_THREAD_NAME     "stream dispatch"
 
 #endif

@@ -18,68 +18,68 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_DATA_MESSAGE_BASE_H
-#define RPG_STREAM_DATA_MESSAGE_BASE_H
+#ifndef STREAM_DATA_MESSAGE_BASE_H
+#define STREAM_DATA_MESSAGE_BASE_H
 
-#include "rpg_stream_message_base.h"
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
 
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
+#include "stream_message_base.h"
 
 // forward declarations
 class ACE_Allocator;
 
 template <typename DataType,
           typename CommandType>
-class RPG_Stream_DataMessageBase
- : public RPG_Stream_MessageBase
+class Stream_DataMessageBase_T
+ : public Stream_MessageBase
 {
  public:
-  virtual ~RPG_Stream_DataMessageBase();
+  virtual ~Stream_DataMessageBase_T ();
 
   // initialization-after-construction
   // *NOTE*: assumes lifecycle responsibility for the first argument
-  void init(DataType*&,              // data handle
-            ACE_Data_Block* = NULL); // buffer
+  void init (DataType*&,              // data handle
+             ACE_Data_Block* = NULL); // buffer
 
   // *TODO*: clean this up !
-  const DataType* const getData() const;
-  virtual CommandType getCommand() const = 0; // return value: message type
+  const DataType* const getData () const;
+  virtual CommandType getCommand () const = 0; // return value: message type
 
-  // implement RPG_Common_IDumpState
-  virtual void dump_state() const;
+  // implement Common_IDumpState
+  virtual void dump_state () const;
 
  protected:
   // *NOTE*: assume lifetime responsibility for the argument !
   // *WARNING*: this ctor doesn't allocate a buffer off the heap...
-  RPG_Stream_DataMessageBase(DataType*&); // data handle
+  Stream_DataMessageBase_T (DataType*&); // data handle
   // copy ctor, to be used by derived::duplicate()
   // *WARNING*: while the clone inherits a "shallow copy" of the referenced
   // data block, it will NOT inherit the attached data --> use init()...
-  RPG_Stream_DataMessageBase(const RPG_Stream_DataMessageBase&);
+  Stream_DataMessageBase_T (const Stream_DataMessageBase_T&);
 
   // *NOTE*: to be used by message allocators...
   // *TODO*: these ctors are NOT threadsafe...
-  RPG_Stream_DataMessageBase(ACE_Allocator*); // message allocator
-  RPG_Stream_DataMessageBase(ACE_Data_Block*, // data block
-                             ACE_Allocator*); // message allocator
+  Stream_DataMessageBase_T (ACE_Allocator*); // message allocator
+  Stream_DataMessageBase_T (ACE_Data_Block*, // data block
+                            ACE_Allocator*); // message allocator
 
  private:
-  typedef RPG_Stream_MessageBase inherited;
-  typedef RPG_Stream_DataMessageBase<DataType,
-                                     CommandType> own_type;
+  typedef Stream_MessageBase inherited;
+  typedef Stream_DataMessageBase_T<DataType,
+                                   CommandType> own_type;
 
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_DataMessageBase());
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_DataMessageBase& operator=(const RPG_Stream_DataMessageBase&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T ());
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T& operator= (const Stream_DataMessageBase_T&));
 
   // overriden from ACE_Message_Block
-  virtual ACE_Message_Block* duplicate(void) const = 0;
+  virtual ACE_Message_Block* duplicate (void) const = 0;
 
-  DataType* myData;
-  bool      myIsInitialized;
+  DataType* data_;
+  bool      isInitialized_;
 };
 
 // include template implementation
-#include "rpg_stream_data_message_base.inl"
+#include "stream_data_message_base.inl"
 
 #endif

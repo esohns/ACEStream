@@ -41,7 +41,7 @@ class Stream_IAllocator;
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigType,
+          typename SessionConfigurationType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 class Stream_HeadModuleTaskBase_T
@@ -80,8 +80,8 @@ class Stream_HeadModuleTaskBase_T
   virtual bool isRunning () const;
 
  protected:
-  Stream_HeadModuleTaskBase (bool = false,  // active object ?
-                             bool = false); // auto-start ?
+  Stream_HeadModuleTaskBase_T (bool = false,  // active object ?
+                               bool = false); // auto-start ?
 
   // override: handle MB_STOP control messages to trigger shutdown
   // of the worker thread...
@@ -100,7 +100,7 @@ class Stream_HeadModuleTaskBase_T
   // --> method implements a "fire-and-forget" strategy !
   bool putSessionMessage (unsigned int,                     // session ID
                           const Stream_SessionMessageType&, // session message type
-                          SessionConfigType*&,              // config data
+                          SessionConfigurationType*&,       // configuration data
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
 
   // implement state machine callback
@@ -127,7 +127,7 @@ class Stream_HeadModuleTaskBase_T
   typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
                                       TimePolicyType,
                                       DataType,
-                                      SessionConfigType,
+                                      SessionConfigurationType,
                                       SessionMessageType,
                                       ProtocolMessageType> own_type;
 

@@ -18,53 +18,53 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <rpg_common_macros.h>
+#include "stream_macros.h"
 
 template <typename MessageType,
           typename SessionMessageType>
-RPG_Stream_CachedMessageAllocatorHeapBase<MessageType,
-                                          SessionMessageType>::RPG_Stream_CachedMessageAllocatorHeapBase(const unsigned long& maxNumMessages_in,
-                                                                                                         ACE_Allocator* allocator_in)
+Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+                                        SessionMessageType>::Stream_CachedMessageAllocatorHeapBase_T (unsigned int maxNumMessages_in,
+                                                                                                      ACE_Allocator* allocator_in)
  : //inherited(),
-   myMessageAllocator(maxNumMessages_in),
-   mySessionMessageAllocator(maxNumMessages_in),
-   myDataBlockAllocator(maxNumMessages_in,
+   messageAllocator_ (maxNumMessages_in)
+ , sessionMessageAllocator_ (maxNumMessages_in)
+ , dataBlockAllocator_ (maxNumMessages_in,
                         allocator_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedMessageAllocatorHeapBase::RPG_Stream_CachedMessageAllocatorHeapBase"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::Stream_CachedMessageAllocatorHeapBase_T"));
 
 }
 
 template <typename MessageType,
           typename SessionMessageType>
-RPG_Stream_CachedMessageAllocatorHeapBase<MessageType,
-                                          SessionMessageType>::~RPG_Stream_CachedMessageAllocatorHeapBase()
+Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+                                        SessionMessageType>::~Stream_CachedMessageAllocatorHeapBase_T ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedMessageAllocatorHeapBase::~RPG_Stream_CachedMessageAllocatorHeapBase"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::~Stream_CachedMessageAllocatorHeapBase_T"));
 
 }
 
 template <typename MessageType,
           typename SessionMessageType>
 void*
-RPG_Stream_CachedMessageAllocatorHeapBase<MessageType,
-                                          SessionMessageType>::malloc(size_t bytes_in)
+Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+                                        SessionMessageType>::malloc (size_t bytes_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedMessageAllocatorHeapBase::malloc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::malloc"));
 
   // step1: get free data block
   ACE_Data_Block* data_block = NULL;
   try
   {
-    ACE_ALLOCATOR_RETURN(data_block,
-                         static_cast<ACE_Data_Block*>(myDataBlockAllocator.malloc(bytes_in)),
-                         NULL);
+    ACE_ALLOCATOR_RETURN (data_block,
+                          static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (bytes_in)),
+                          NULL);
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in ACE_ALLOCATOR_RETURN(%u), aborting\n"),
-               bytes_in));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in ACE_ALLOCATOR_RETURN(%u), aborting\n"),
+                bytes_in));
 
     // *TODO*: what else can we do ?
     return NULL;
@@ -79,36 +79,36 @@ RPG_Stream_CachedMessageAllocatorHeapBase<MessageType,
     // allocate memory and perform a placement new by invoking a ctor
     // on the allocated space
     if (bytes_in)
-      ACE_NEW_MALLOC_NORETURN(message,
-                              static_cast<MessageType*>(myMessageAllocator.malloc(sizeof(MessageType))),
-                              MessageType(data_block,            // use the data block we just allocated
-                                          &myMessageAllocator)); // remember allocator upon destruction...
+      ACE_NEW_MALLOC_NORETURN (message,
+                               static_cast<MessageType*> (messageAllocator_.malloc (sizeof (MessageType))),
+                               MessageType (data_block,           // use the data block we just allocated
+                                            &messageAllocator_)); // remember allocator upon destruction...
     else
-      ACE_NEW_MALLOC_NORETURN(message,
-                              static_cast<SessionMessageType*>(mySessionMessageAllocator.malloc(sizeof(SessionMessageType))),
-                              SessionMessageType(data_block,                   // use the data block we just allocated
-                                                 &mySessionMessageAllocator)); // remember allocator upon destruction...
+      ACE_NEW_MALLOC_NORETURN (message,
+                               static_cast<SessionMessageType*> (sessionMessageAllocator_.malloc (sizeof (SessionMessageType))),
+                               SessionMessageType (data_block,                  // use the data block we just allocated
+                                                   &sessionMessageAllocator_)); // remember allocator upon destruction...
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in ACE_NEW_MALLOC_NORETURN([Session]MessageType(%u), aborting\n"),
-               bytes_in));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN([Session]MessageType(%u), aborting\n"),
+                bytes_in));
 
     // clean up
-    data_block->release();
+    data_block->release ();
 
     // *TODO*: what else can we do ?
     return NULL;
   }
   if (!message)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("unable to allocate [Session]MessageType(%u), aborting\n"),
-               bytes_in));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("unable to allocate [Session]MessageType(%u), aborting\n"),
+                bytes_in));
 
     // clean up
-    data_block->release();
+    data_block->release ();
 
     // *TODO*: what else can we do ?
     return NULL;
@@ -122,49 +122,49 @@ RPG_Stream_CachedMessageAllocatorHeapBase<MessageType,
 template <typename MessageType,
           typename SessionMessageType>
 void*
-RPG_Stream_CachedMessageAllocatorHeapBase<MessageType,
-                                          SessionMessageType>::calloc(size_t bytes_in,
-                                                                      char initialValue_in)
+Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+                                        SessionMessageType>::calloc (size_t bytes_in,
+                                                                     char initialValue_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedMessageAllocatorHeapBase::calloc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::calloc"));
 
   // ignore this
-  ACE_UNUSED_ARG(initialValue_in);
+  ACE_UNUSED_ARG (initialValue_in);
 
   // just delegate this...
-  return malloc(bytes_in);
+  return malloc (bytes_in);
 }
 
 template <typename MessageType,
           typename SessionMessageType>
 void
-RPG_Stream_CachedMessageAllocatorHeapBase<MessageType,
-                                          SessionMessageType>::free(void* handle_in)
+Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+                                        SessionMessageType>::free (void* handle_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedMessageAllocatorHeapBase::free"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::free"));
 
   // *NOTE*: messages should contact their individual allocators !!!
-  ACE_ASSERT(false);
+  ACE_ASSERT (false);
 }
 
 template <typename MessageType,
           typename SessionMessageType>
 size_t
-RPG_Stream_CachedMessageAllocatorHeapBase<MessageType,
-                                          SessionMessageType>::cache_depth() const
+Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+                                        SessionMessageType>::cache_depth () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedMessageAllocatorHeapBase::cache_depth"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::cache_depth"));
 
-  return myDataBlockAllocator.cache_depth();
+  return dataBlockAllocator_.cache_depth ();
 }
 
 template <typename MessageType,
           typename SessionMessageType>
 size_t
-RPG_Stream_CachedMessageAllocatorHeapBase<MessageType,
-                                          SessionMessageType>::cache_size() const
+Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+                                        SessionMessageType>::cache_size () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_CachedMessageAllocatorHeapBase::cache_size"));
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::cache_size"));
 
-  return myDataBlockAllocator.cache_size();
+  return dataBlockAllocator_.cache_size ();
 }

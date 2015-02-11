@@ -100,7 +100,7 @@ class Stream_Export Stream_SessionMessage
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessage ());
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessage& operator= (const Stream_SessionMessage&));
 
-  unsigned int                 ID_;
+  unsigned int                 sessionID_;
   SessionMessageType           messageType_;
   Stream_SessionConfiguration* configuration_;
   bool                         isInitialized_;

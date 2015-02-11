@@ -18,28 +18,27 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_TOOLS_H
-#define RPG_STREAM_TOOLS_H
-
-#include "rpg_stream_exports.h"
-
-#include <ace/Global_Macros.h>
-#include <ace/Time_Value.h>
+#ifndef STREAM_TOOLS_H
+#define STREAM_TOOLS_H
 
 #include <string>
 
-class RPG_Stream_Export RPG_Stream_Tools
+#include "ace/Global_Macros.h"
+#include "ace/Time_Value.h"
+
+#include "stream_exports.h"
+
+class Stream_Export Stream_Tools
 {
  public:
   // *WARNING*: beware, this uses localtime_r internally, so you should probably pass in a local time
   // - uses strftime internally: "%Y_%m_%d_%H_%M_%S" (see manpage)
-  static const std::string timestamp2LocalString(const ACE_Time_Value&); // timestamp
+  static std::string timestamp2LocalString (const ACE_Time_Value&); // timestamp
 
  private:
-  // safety measures
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_Tools());
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_Tools(const RPG_Stream_Tools&));
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_Tools& operator=(const RPG_Stream_Tools&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_Tools ());
+  ACE_UNIMPLEMENTED_FUNC (Stream_Tools (const Stream_Tools&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_Tools& operator= (const Stream_Tools&));
 };
 
 #endif
