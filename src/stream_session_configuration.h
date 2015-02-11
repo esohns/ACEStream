@@ -18,42 +18,41 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_SESSION_CONFIG_H
-#define RPG_STREAM_SESSION_CONFIG_H
+#ifndef STREAM_SESSION_CONFIGURATION_H
+#define STREAM_SESSION_CONFIGURATION_H
 
-#include "rpg_common_referencecounter_base.h"
+#include "ace/Global_Macros.h"
+#include "ace/Time_Value.h"
 
-#include <ace/Global_Macros.h>
-#include <ace/Time_Value.h>
+#include "common_referencecounter_base.h"
 
-class RPG_Stream_SessionConfig
- : public RPG_Common_ReferenceCounterBase
+class Stream_SessionConfiguration
+ : public Common_ReferenceCounterBase
 {
  public:
-  RPG_Stream_SessionConfig(const void*,                                  // user data
-                           const ACE_Time_Value& = ACE_Time_Value::zero, // "official" start of session
-                           const bool& = false);                         // session ended because of user abort ?
+  Stream_SessionConfiguration(const void*,                                  // user data
+                              const ACE_Time_Value& = ACE_Time_Value::zero, // "official" start of session
+                              bool = false);                                // session ended because of user abort ?
 
   // info
-  const void* getUserData() const;
-  ACE_Time_Value getStartOfSession() const;
-  bool getUserAbort() const;
+  const void* getUserData () const;
+  ACE_Time_Value getStartOfSession () const;
+  bool getUserAbort () const;
 
-  // implement RPG_Common_IDumpState
-  virtual void dump_state() const;
+  // implement Common_IDumpState
+  virtual void dump_state () const;
 
  private:
-  typedef RPG_Common_ReferenceCounterBase inherited;
+  typedef Common_ReferenceCounterBase inherited;
 
-  // safety measures
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_SessionConfig());
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_SessionConfig(const RPG_Stream_SessionConfig&));
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_SessionConfig& operator=(const RPG_Stream_SessionConfig&));
-  virtual ~RPG_Stream_SessionConfig();
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionConfiguration ());
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionConfiguration (const Stream_SessionConfiguration&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionConfiguration& operator= (const Stream_SessionConfiguration&));
+  virtual ~Stream_SessionConfiguration ();
 
-  const void*    myUserData;
-  ACE_Time_Value myStartOfSession;
-  bool           myUserAbort;
+  const void*    userData_;
+  ACE_Time_Value startOfSession_;
+  bool           userAbort_;
 };
 
 #endif

@@ -18,77 +18,76 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_SESSION_MESSAGE_BASE_H
-#define RPG_STREAM_SESSION_MESSAGE_BASE_H
-
-#include "rpg_stream_session_message.h"
-
-#include <rpg_common_idumpstate.h>
-
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
+#ifndef STREAM_SESSION_MESSAGE_BASE_H
+#define STREAM_SESSION_MESSAGE_BASE_H
 
 #include <string>
+
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
+
+#include "common_idumpstate.h"
+
+#include "stream_session_message.h"
 
 // forward declarations
 class ACE_Allocator;
 
-template <typename ConfigType>
-class RPG_Stream_SessionMessageBase
+template <typename ConfigurationType>
+class Stream_SessionMessageBase_T
  : public ACE_Message_Block,
-   public RPG_Common_IDumpState
+   public Common_IDumpState
 {
  public:
-  // *NOTE*: assume lifetime responsibility for the second argument !
-  RPG_Stream_SessionMessageBase(const unsigned long&,             // session ID
-                            const RPG_Stream_SessionMessageType&, // session message type
-                            ConfigType*&);                    // config handle
-  virtual ~RPG_Stream_SessionMessageBase();
+  // *NOTE*: assumes lifetime responsibility for the third argument !
+  Stream_SessionMessageBase_T (unsigned int,               // session ID
+                               Stream_SessionMessageType&, // session message type
+                               ConfigurationType*&);       // handle
+  virtual ~Stream_SessionMessageBase_T ();
 
   // initialization-after-construction
-  // *NOTE*: assume lifetime responsibility for the second argument !
-  void init(const unsigned long&,             // session ID
-            const RPG_Stream_SessionMessageType&, // session message type
-            ConfigType*&);                    // config handle
+  // *NOTE*: assumes lifetime responsibility for the third argument !
+  void init (unsigned int,               // session ID
+             Stream_SessionMessageType&, // session message type
+             ConfigurationType*&);       // handle
 
   // info
-  const unsigned long getID() const;
-  const RPG_Stream_SessionMessageType getType() const;
+  unsigned int getID () const;
+  Stream_SessionMessageType getType () const;
   // *TODO*: clean this up !
-  const ConfigType* const getConfig() const;
+  const ConfigurationType* const getConfiguration () const;
 
-  // implement RPG_Common_IDumpState
-  virtual void dump_state() const;
+  // implement Common_IDumpState
+  virtual void dump_state () const;
 
  protected:
   // copy ctor to be used by duplicate()
-  RPG_Stream_SessionMessageBase(const RPG_Stream_SessionMessageBase<ConfigType>&);
+  Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<ConfigurationType>&);
 
   // *NOTE*: these may be used by message allocators...
   // *WARNING*: these ctors are NOT threadsafe...
-  RPG_Stream_SessionMessageBase(ACE_Allocator*); // message allocator
-  RPG_Stream_SessionMessageBase(ACE_Data_Block*, // data block
-                            ACE_Allocator*); // message allocator
+  Stream_SessionMessageBase_T (ACE_Allocator*); // message allocator
+  Stream_SessionMessageBase_T (ACE_Data_Block*, // data block
+                               ACE_Allocator*); // message allocator
 
-  ConfigType*                   myConfig;
+  ConfigurationType*            configuration_;
 
  private:
   typedef ACE_Message_Block inherited;
 
-  // safety measures
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_SessionMessageBase());
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_SessionMessageBase<ConfigType>& operator=(const RPG_Stream_SessionMessageBase<ConfigType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T ());
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T<ConfigurationType>& operator= (const Stream_SessionMessageBase_T<ConfigurationType>&));
 
   // overloaded from ACE_Message_Block
   // *WARNING*: any children need to override this too !
-  virtual ACE_Message_Block* duplicate(void) const;
+  virtual ACE_Message_Block* duplicate (void) const;
 
-  unsigned long                 myID;
-  RPG_Stream_SessionMessageType myMessageType;
-  bool                          myIsInitialized;
+  unsigned int                  sessionID_;
+  Stream_SessionMessageType     messageType_;
+  bool                          isInitialized_;
 };
 
 // include template implementation
-#include "rpg_stream_session_message_base.inl"
+#include "stream_session_message_base.inl"
 
 #endif

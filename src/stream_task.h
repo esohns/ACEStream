@@ -18,78 +18,78 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_TASK_H
-#define RPG_STREAM_TASK_H
+#ifndef STREAM_TASK_H
+#define STREAM_TASK_H
 
-#include "rpg_stream_itask.h"
+#include "stream_itask.h"
 
-#include "rpg_common_idumpstate.h"
+#include "common_idumpstate.h"
 
-#include <ace/Global_Macros.h>
-#include <ace/Task.h>
+#include "ace/Global_Macros.h"
+#include "ace/Task.h"
 
 // forward declaration(s)
-class RPG_Stream_MessageBase;
-class RPG_Stream_SessionMessage;
+class Stream_MessageBase;
+class Stream_SessionMessage;
 class ACE_Message_Block;
 class ACE_Time_Value;
 
 template <typename TaskSynchStrategyType,
           typename TimePolicyType>
-class RPG_Stream_Task
+class Stream_Task_T
  : public ACE_Task<TaskSynchStrategyType,
                    TimePolicyType>,
-   public RPG_Stream_ITask<RPG_Stream_MessageBase,
-                           RPG_Stream_SessionMessage>,
-   public RPG_Common_IDumpState
+   public Stream_ITask_T<Stream_MessageBase,
+                         Stream_SessionMessage>,
+   public Common_IDumpState
 {
  public:
-  virtual ~RPG_Stream_Task();
+  virtual ~Stream_Task_T ();
 
   // override task-based members
   // *NOTE*: can't "hide" these in C++ :-(
   // --> we implement dummy stubs which SHALL be overridden...
-  virtual int put(ACE_Message_Block*,
-                  ACE_Time_Value*);
-  virtual int open(void* = NULL);
-  virtual int close(u_long = 0);
-  virtual int module_closed(void);
-  virtual int svc(void);
+  virtual int put (ACE_Message_Block*,
+                   ACE_Time_Value*);
+  virtual int open (void* = NULL);
+  virtual int close (u_long = 0);
+  virtual int module_closed (void);
+  virtual int svc (void);
 
-  // implement (part of) RPG_Stream_ITask
+  // implement (part of) Stream_ITask_T
   // *NOTE*: these are just default NOP implementations...
-//   virtual void handleDataMessage(RPG_Stream_MessageBase*&, // data message handle
+//   virtual void handleDataMessage(Stream_MessageBase*&, // data message handle
 //                                  bool&);               // return value: pass this message downstream ?
-  virtual void handleSessionMessage(RPG_Stream_SessionMessage*&, // session message handle
-                                    bool&);                      // return value: pass this message downstream ?
-  virtual void handleProcessingError(const ACE_Message_Block* const); // message handle
+  virtual void handleSessionMessage (Stream_SessionMessage*&, // session message handle
+                                     bool&);                  // return value: pass this message downstream ?
+  virtual void handleProcessingError (const ACE_Message_Block* const); // message handle
 
-  // implement RPG_Common_IDumpState
+  // implement Common_IDumpState
   // *NOTE*: just a default implementation...
-  virtual void dump_state() const;
+  virtual void dump_state () const;
 
  protected:
-  RPG_Stream_Task();
+  Stream_Task_T ();
 
   // helper methods
   // standard message handling (to be used by both asynch/synch children)
-  void handleMessage(ACE_Message_Block*, // message handle
-                     bool&);             // return value: stop processing ?
+  void handleMessage (ACE_Message_Block*, // message handle
+                      bool&);             // return value: stop processing ?
 
   // default implementation to handle control messages
-  virtual void handleControlMessage(ACE_Message_Block*, // control message
-                                    bool&,              // return value: stop processing ?
-                                    bool&);             // return value: pass message downstream ?
+  virtual void handleControlMessage (ACE_Message_Block*, // control message
+                                     bool&,              // return value: stop processing ?
+                                     bool&);             // return value: pass message downstream ?
 
  private:
   typedef ACE_Task<TaskSynchStrategyType,
                    TimePolicyType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_Task(const RPG_Stream_Task&));
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_Task& operator=(const RPG_Stream_Task&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_Task_T (const Stream_Task_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_Task_T& operator= (const Stream_Task_T&));
 };
 
 // include template implementation
-#include "rpg_stream_task.inl"
+#include "stream_task.inl"
 
 #endif

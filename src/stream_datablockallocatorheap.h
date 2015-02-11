@@ -18,45 +18,45 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_DATABLOCKALLOCATORHEAP_H
-#define RPG_STREAM_DATABLOCKALLOCATORHEAP_H
+#ifndef STREAM_DATABLOCKALLOCATORHEAP_H
+#define STREAM_DATABLOCKALLOCATORHEAP_H
 
-#include "rpg_stream_exports.h"
-#include "rpg_stream_iallocator.h"
+#include "stream_exports.h"
+#include "stream_iallocator.h"
 
-#include <ace/Malloc_Allocator.h>
-#include <ace/Synch.h>
-#include <ace/Lock_Adapter_T.h>
-#include <ace/Atomic_Op.h>
+#include "ace/Atomic_Op.h"
+#include "ace/Lock_Adapter_T.h"
+#include "ace/Malloc_Allocator.h"
+#include "ace/Synch.h"
 
 // forward declarations
-class RPG_Stream_AllocatorHeap;
+class Stream_AllocatorHeap;
 
-class RPG_Stream_Export RPG_Stream_DataBlockAllocatorHeap
+class Stream_Export Stream_DataBlockAllocatorHeap
  : public ACE_New_Allocator,
-   public RPG_Stream_IAllocator
+   public Stream_IAllocator
 {
  public:
-   RPG_Stream_DataBlockAllocatorHeap(RPG_Stream_AllocatorHeap*); // (heap) memory allocator...
-  virtual ~RPG_Stream_DataBlockAllocatorHeap();
+  Stream_DataBlockAllocatorHeap (Stream_AllocatorHeap*); // (heap) memory allocator...
+  virtual ~Stream_DataBlockAllocatorHeap ();
 
   // overload these to do what we want
   // *NOTE*: returns a pointer to ACE_Data_Block...
-  virtual void* malloc(size_t); // bytes
+  virtual void* malloc (size_t); // bytes
 
   // *NOTE*: returns a pointer to ACE_Data_Block...
-  virtual void* calloc(size_t,       // bytes
-                       char = '\0'); // initial value (not used)
+  virtual void* calloc (size_t,       // bytes
+                        char = '\0'); // initial value (not used)
 
   // *NOTE*: frees an ACE_Data_Block...
-  virtual void free(void*); // element handle
+  virtual void free (void*); // element handle
 
   // *NOTE*: these return the # of online ACE_Data_Blocks...
-  virtual size_t cache_depth() const;
-  virtual size_t cache_size() const;
+  virtual size_t cache_depth () const;
+  virtual size_t cache_size () const;
 
   // dump current state
-  virtual void dump() const;
+  virtual void dump () const;
 
   // some convenience typedefs --> save us some typing...
   // *NOTE*: serialize access to ACE_Data_Block reference count which may
@@ -66,49 +66,48 @@ class RPG_Stream_Export RPG_Stream_DataBlockAllocatorHeap
   // locking
   // *NOTE*: currently, ALL data blocks use one static lock (OK for stream usage)...
   // *TODO*: consider using a lock-per-message strategy...
-  static DATABLOCK_LOCK_TYPE myReferenceCountLock;
+  static DATABLOCK_LOCK_TYPE referenceCountLock_;
 
  private:
   typedef ACE_New_Allocator inherited;
 
-  // safety measures
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_DataBlockAllocatorHeap(const RPG_Stream_DataBlockAllocatorHeap&));
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_DataBlockAllocatorHeap& operator=(const RPG_Stream_DataBlockAllocatorHeap&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap (const Stream_DataBlockAllocatorHeap&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap& operator= (const Stream_DataBlockAllocatorHeap&));
 
   // these methods are ALL no-ops and will FAIL !
   // *NOTE*: this method is a no-op and just returns NULL
   // since the free list only works with fixed sized entities
-  virtual void* calloc(size_t,       // # elements (not used)
-                       size_t,       // bytes/element (not used)
-                       char = '\0'); // initial value (not used)
-  virtual int remove(void);
-  virtual int bind(const char*, // name
-                   void*,       // pointer
-                   int = 0);    // duplicates
-  virtual int trybind(const char*, // name
+  virtual void* calloc (size_t,       // # elements (not used)
+                        size_t,       // bytes/element (not used)
+                        char = '\0'); // initial value (not used)
+  virtual int remove (void);
+  virtual int bind (const char*, // name
+                    void*,       // pointer
+                    int = 0);    // duplicates
+  virtual int trybind (const char*, // name
+                       void*&);     // pointer
+  virtual int find (const char*, // name
+                    void*&);     // pointer
+  virtual int find (const char*); // name
+  virtual int unbind (const char*); // name
+  virtual int unbind (const char*, // name
                       void*&);     // pointer
-  virtual int find(const char*, // name
-                   void*&);     // pointer
-  virtual int find(const char*); // name
-  virtual int unbind(const char*); // name
-  virtual int unbind(const char*, // name
-                     void*&);     // pointer
-  virtual int sync(ssize_t = -1,   // length
-                   int = MS_SYNC); // flags
-  virtual int sync(void*,          // address
-                   size_t,         // length
-                   int = MS_SYNC); // flags
-  virtual int protect(ssize_t = -1,     // length
-                      int = PROT_RDWR); // protection
-  virtual int protect(void*,            // address
-                      size_t,           // length
-                      int = PROT_RDWR); // protection
+  virtual int sync (ssize_t = -1,   // length
+                    int = MS_SYNC); // flags
+  virtual int sync (void*,          // address
+                    size_t,         // length
+                    int = MS_SYNC); // flags
+  virtual int protect (ssize_t = -1,     // length
+                       int = PROT_RDWR); // protection
+  virtual int protect (void*,            // address
+                       size_t,           // length
+                       int = PROT_RDWR); // protection
 
   ACE_Atomic_Op<ACE_Thread_Mutex,
-                unsigned long> myPoolSize;
+                unsigned int> poolSize_;
 
   // heap memory allocator
-  RPG_Stream_AllocatorHeap*    myHeapAllocator;
+  Stream_AllocatorHeap*       heapAllocator_;
 };
 
 #endif

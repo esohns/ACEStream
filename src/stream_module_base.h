@@ -18,63 +18,63 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_MODULE_BASE_H
-#define RPG_STREAM_MODULE_BASE_H
+#ifndef STREAM_MODULE_BASE_H
+#define STREAM_MODULE_BASE_H
 
-#include "rpg_stream_imodule.h"
+#include "stream_imodule.h"
 
-#include <ace/Global_Macros.h>
-#include <ace/Module.h>
+#include "ace/Global_Macros.h"
+#include "ace/Module.h"
 
 #include <string>
 
 // forward declaration(s)
-class RPG_Stream_IRefCount;
+class Common_IRefCount;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ReaderTaskType,
           typename WriterTaskType>
-class RPG_Stream_Module_Base_t
+class Stream_Module_Base_T
  : public ACE_Module<TaskSynchType,
                      TimePolicyType>,
-   public RPG_Stream_IModule<TaskSynchType,
-                             TimePolicyType>
+   public Stream_IModule<TaskSynchType,
+                         TimePolicyType>
 {
  public:
   // define convenient types
 //  typedef ReaderTaskType READER_TASK_TYPE;
 //  typedef WriterTaskType WRITER_TASK_TYPE;
-  typedef RPG_Stream_IModule<TaskSynchType,
-                             TimePolicyType> IMODULE_TYPE;
+  typedef Stream_IModule<TaskSynchType,
+                         TimePolicyType> IMODULE_TYPE;
 
-  virtual ~RPG_Stream_Module_Base_t();
+  virtual ~Stream_Module_Base_T ();
 
-  // implement (part of) RPG_Stream_IModule
-  virtual void reset();
+  // implement (part of) Stream_IModule
+  virtual void reset ();
 
  protected:
-  RPG_Stream_Module_Base_t(const std::string&,     // name
-                           WriterTaskType*,        // handle to writer task
-                           ReaderTaskType*,        // handle to reader task
-                           RPG_Stream_IRefCount*); // object counter
+  Stream_Module_Base_T (const std::string&, // name
+                        WriterTaskType*,    // handle to writer task
+                        ReaderTaskType*,    // handle to reader task
+                        Common_IRefCount*); // object counter
 
  private:
   typedef ACE_Module<TaskSynchType,
                      TimePolicyType> inherited;
 
-  // implement (part of) RPG_Stream_IModule
+  // implement (part of) Stream_IModule
   virtual ACE_Module<TaskSynchType,
-                     TimePolicyType>* clone();
+                     TimePolicyType>* clone ();
 
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_Module_Base_t());
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_Module_Base_t(const RPG_Stream_Module_Base_t&));
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_Module_Base_t& operator=(const RPG_Stream_Module_Base_t&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T ());
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T (const Stream_Module_Base_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T& operator= (const Stream_Module_Base_T&));
 
-  WriterTaskType* myWriter;
-  ReaderTaskType* myReader;
+  WriterTaskType* writer_;
+  ReaderTaskType* reader_;
 };
 
-#include "rpg_stream_module_base.inl"
+#include "stream_module_base.inl"
 
 #endif

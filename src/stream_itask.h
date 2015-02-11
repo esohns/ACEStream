@@ -18,28 +18,28 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_ITASK_H
-#define RPG_STREAM_ITASK_H
+#ifndef STREAM_ITASK_H
+#define STREAM_ITASK_H
 
 // forward declaration(s)
 class ACE_Message_Block;
 
-template <typename RPG_Stream_MessageBaseType,
-          typename RPG_Stream_SessionMessageType>
-class RPG_Stream_ITask
+template <typename MessageType,
+          typename SessionMessageType>
+class Stream_ITask_T
 {
  public:
-  virtual ~RPG_Stream_ITask() {}
+  virtual ~Stream_ITask_T () {}
 
   // *NOTE*: pipelined "stream tasks" generally need not worry about the lifecycle of the
   // messages passed to them; any filtering functionality however needs to set the second
   // parameter to false (--> default is "true" !), which makes the task assume lifecycle
   // responsibility for that message --> HANDLE WITH CARE !
-  virtual void handleDataMessage(RPG_Stream_MessageBaseType*&, // data message handle
-                                 bool&) = 0;                   // return value: pass this message downstream ?
-  virtual void handleSessionMessage(RPG_Stream_SessionMessageType*&, // session message handle
-                                    bool&) = 0;                      // return value: pass this message downstream ?
-  virtual void handleProcessingError(const ACE_Message_Block* const) = 0; // corresp. message
+  virtual void handleDataMessage (MessageType*&, // data message handle
+                                  bool&) = 0;    // return value: pass this message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&) = 0;           // return value: pass this message downstream ?
+  virtual void handleProcessingError (const ACE_Message_Block* const) = 0; // corresp. message
 };
 
 #endif

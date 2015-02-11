@@ -18,31 +18,31 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_MESSAGEQUEUE_BASE_H
-#define RPG_STREAM_MESSAGEQUEUE_BASE_H
+#ifndef STREAM_MESSAGEQUEUE_BASE_H
+#define STREAM_MESSAGEQUEUE_BASE_H
 
-#include "rpg_stream_imessagequeue.h"
+#include "ace/Global_Macros.h"
+#include "ace/Message_Queue.h"
 
-#include "rpg_common_idumpstate.h"
+#include "common_idumpstate.h"
 
-#include <ace/Global_Macros.h>
-#include <ace/Message_Queue.h>
+#include "stream_imessagequeue.h"
 
 template <typename TaskSynchType,
           typename TimePolicyType>
-class RPG_Stream_MessageQueueBase
+class Stream_MessageQueueBase_T
  : public ACE_Message_Queue<TaskSynchType,
                             TimePolicyType>,
-   public RPG_Stream_IMessageQueue,
-   public RPG_Common_IDumpState
+   public Stream_IMessageQueue,
+   public Common_IDumpState
 {
  public:
-  RPG_Stream_MessageQueueBase(const unsigned int&); // max number of queued items
-  virtual ~RPG_Stream_MessageQueueBase();
+  Stream_MessageQueueBase_T (unsigned int); // max number of queued items
+  virtual ~Stream_MessageQueueBase_T ();
 
-  // implement RPG_Common_IDumpState
+  // implement Common_IDumpState
   // *IMPORTANT NOTE*: children SHOULD override this...
-  virtual void dump_state() const;
+  virtual void dump_state () const;
 
  protected:
   // convenient types...
@@ -50,24 +50,24 @@ class RPG_Stream_MessageQueueBase
                             TimePolicyType> MESSAGEQUEUE_T;
   typedef ACE_Message_Queue_Iterator<TaskSynchType,
                                      TimePolicyType> MESSAGEQUEUEITERATOR_T;
-  typedef RPG_Stream_MessageQueueBase<TaskSynchType,
-                                      TimePolicyType> own_type;
+  typedef Stream_MessageQueueBase_T<TaskSynchType,
+                                    TimePolicyType> own_type;
 
   // *IMPORTANT NOTE*: override this so that the queue considers the number of
   // enqueued items (instead of the amount of enqueued bytes) to determine its
   // water mark...
-  virtual bool is_full_i(void);
+  virtual bool is_full_i (void);
 
  private:
   typedef ACE_Message_Queue<TaskSynchType,
                             TimePolicyType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_MessageQueueBase());
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_MessageQueueBase(const RPG_Stream_MessageQueueBase&));
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_MessageQueueBase& operator=(const RPG_Stream_MessageQueueBase&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T ());
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T (const Stream_MessageQueueBase_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T& operator= (const Stream_MessageQueueBase_T&));
 };
 
 // include template definition
-#include "rpg_stream_messagequeue_base.inl"
+#include "stream_messagequeue_base.inl"
 
 #endif

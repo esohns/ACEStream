@@ -18,66 +18,69 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_STATEMACHINE_CONTROL_H
-#define RPG_STREAM_STATEMACHINE_CONTROL_H
-
-#include "rpg_stream_exports.h"
-
-#include <ace/Global_Macros.h>
-#include <ace/Synch.h>
-#include <ace/Condition_T.h>
+#ifndef STREAM_STATEMACHINE_CONTROL_H
+#define STREAM_STATEMACHINE_CONTROL_H
 
 #include <string>
 
-class RPG_Stream_Export RPG_Stream_StateMachine_Control
+#include "ace/Global_Macros.h"
+#include "ace/Synch.h"
+#include "ace/Condition_T.h"
+
+#include "stream_exports.h"
+
+class Stream_Export Stream_StateMachine_Control
 {
  public:
   enum Control_StateType
   {
-    INIT = 0,
-    RUNNING,
-    PAUSED,
-    STOPPED,
-    FINISHED
+    STATE_INVALID = -1,
+    STATE_INIT,
+    STATE_RUNNING,
+    STATE_PAUSED,
+    STATE_STOPPED,
+    STATE_FINISHED,
+    /////////////////////////////////////
+    STATE_MAX
   };
 
-  RPG_Stream_StateMachine_Control();
-  virtual ~RPG_Stream_StateMachine_Control();
+  Stream_StateMachine_Control ();
+  virtual ~Stream_StateMachine_Control ();
 
   // info
-  static void ControlState2String(const Control_StateType&, // state
-                                  std::string&);            // return value: state string
+  static void ControlState2String (Control_StateType, // state
+                                   std::string&);     // return value: state string
 
  protected:
   // only children can retrieve state
-  const RPG_Stream_StateMachine_Control::Control_StateType getState() const;
+  const Stream_StateMachine_Control::Control_StateType getState () const;
 
   // only children can change state
   // *WARNING*: PAUSED --> PAUSED is silently remapped to PAUSED --> RUNNING
   // in order to resemble a traditional tape recorder...
   // --> children must implement the corresponding behavior !
-  bool changeState(const Control_StateType&); // new state
+  bool changeState (Control_StateType); // new state
 
   // callback invoked on change of state
   // *TODO*: make this an interface !
-  virtual void onStateChange(const Control_StateType&) = 0; // new state
+  virtual void onStateChange (Control_StateType) = 0; // new state
 
  private:
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_StateMachine_Control(const RPG_Stream_StateMachine_Control&));
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_StateMachine_Control& operator=(const RPG_Stream_StateMachine_Control&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control (const Stream_StateMachine_Control&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control& operator= (const Stream_StateMachine_Control&));
 
   // helper method
   // *IMPORTANT NOTE*: this method needs to be called with the lock held !
-  void invokeCallback(const Control_StateType&); // new state
+  void invokeCallback (const Control_StateType&); // new state
 
   // current state
-  Control_StateType                  myState;
+  Control_StateType                  state_;
   // *IMPORTANT NOTE*: this MUST be recursive, so children can retrieve current
   // state from within onStateChange without deadlocking !
   //ACE_Condition<ACE_Recursive_Thread_Mutex> myCondition;
-  mutable ACE_Recursive_Thread_Mutex myLock;
+  mutable ACE_Recursive_Thread_Mutex lock_;
 };
 
-typedef RPG_Stream_StateMachine_Control::Control_StateType RPG_Stream_Control_StateType;
+typedef Stream_StateMachine_Control::Control_StateType Stream_Control_StateType;
 
 #endif

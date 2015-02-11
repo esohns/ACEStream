@@ -1,8 +1,12 @@
-ACLOCAL_AMFLAGS = -I m4
-#  -I$(srcdir)/../../common
-AM_CPPFLAGS = \
+ACLOCAL_AMFLAGS = \
+  -I m4
+
+DEFS += \
   -DLIBACESTREAM_BUILD_DLL=1 \
   -DMETA_PACKAGE=\"@META_PACKAGE@\"
+
+AM_CPPFLAGS = \
+  -I$(top_srcdir)/../libCommon/src
 
 noinst_HEADERS = \
   stdafx.h
@@ -24,6 +28,7 @@ include_HEADERS = \
   stream_istreamcontrol.h \
   stream_itask.h \
   stream_itask_base.h \
+  stream_macros.h \
   stream_message_base.h \
   stream_messageallocatorheap.h \
   stream_messageallocatorheap_base.h \
@@ -33,9 +38,9 @@ include_HEADERS = \
   stream_messagequeue_base.inl \
   stream_module_base.h \
   stream_module_base.inl \
-  stream_session_config.h \
-  stream_session_config_base.h \
-  stream_session_config_base.inl \
+  stream_session_configuration.h \
+  stream_session_configuration_base.h \
+  stream_session_configuration_base.inl \
   stream_session_message.h \
   stream_session_message_base.h \
   stream_session_message_base.inl \
@@ -87,6 +92,7 @@ libACEStream_la_SOURCES = \
   stream_istreamcontrol.h \
   stream_itask.h \
   stream_itask_base.h \
+  stream_macros.h \
   stream_message_base.cpp \
   stream_message_base.h \
   stream_messageallocatorheap.cpp \
@@ -102,11 +108,11 @@ libACEStream_la_SOURCES = \
   stream_module_base.cpp \
   stream_module_base.inl \
   stream_module_base.h \
-  stream_session_config.cpp \
-  stream_session_config.h \
-  stream_session_config_base.cpp \
-  stream_session_config_base.h \
-  stream_session_config_base.inl \
+  stream_session_configuration.cpp \
+  stream_session_configuration.h \
+  stream_session_configuration_base.cpp \
+  stream_session_configuration_base.h \
+  stream_session_configuration_base.inl \
   stream_session_message.cpp \
   stream_session_message.h \
   stream_session_message_base.cpp \

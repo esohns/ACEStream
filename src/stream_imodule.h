@@ -18,25 +18,25 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_IMODULE_H
-#define RPG_STREAM_IMODULE_H
+#ifndef STREAM_IMODULE_H
+#define STREAM_IMODULE_H
 
-#include "rpg_common_iclone.h"
+#include "common_iclone.h"
 
-#include <ace/Module.h>
+#include "ace/Module.h"
 
 template <typename TaskSynchType,
           typename TimePolicyType>
-class RPG_Stream_IModule
- : public RPG_Common_IClone<ACE_Module<TaskSynchType,
-                                       TimePolicyType> >
+class Stream_IModule
+ : public Common_IClone_T<ACE_Module<TaskSynchType,
+                                     TimePolicyType> >
 {
  public:
-  virtual ~RPG_Stream_IModule() {}
+  virtual ~Stream_IModule() {}
 
   // convenient types
-  typedef RPG_Common_IClone<ACE_Module<TaskSynchType,
-                                       TimePolicyType> > ICLONE_TYPE;
+  typedef Common_IClone_T<ACE_Module<TaskSynchType,
+                                     TimePolicyType> > ICLONE_TYPE;
 
   // *NOTE*: streams may call this to reset writer/reader tasks and re-use
   // existing modules
@@ -44,7 +44,7 @@ class RPG_Stream_IModule
   // overriden (not "virtual")
   // *WARNING*: DON'T call this from within module_closed()
   // --> creates endless loops (and eventually, stack overflows)...
-  virtual void reset() = 0;
+  virtual void reset () = 0;
 };
 
 #endif

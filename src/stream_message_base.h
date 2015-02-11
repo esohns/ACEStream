@@ -18,31 +18,31 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_MESSAGE_BASE_H
-#define RPG_STREAM_MESSAGE_BASE_H
-
-#include "rpg_stream_exports.h"
-#include "rpg_stream_messageallocatorheap.h"
-
-#include "rpg_common_idumpstate.h"
-
-#include <ace/Global_Macros.h>
-#include <ace/Message_Block.h>
-#include <ace/Atomic_Op.h>
-#include <ace/Synch.h>
+#ifndef STREAM_MESSAGE_BASE_H
+#define STREAM_MESSAGE_BASE_H
 
 #include <string>
+
+#include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
+#include "ace/Atomic_Op.h"
+#include "ace/Synch.h"
+
+#include "common_idumpstate.h"
+
+#include "stream_exports.h"
+#include "stream_messageallocatorheap.h"
 
 // forward declaratation(s)
 class ACE_Allocator;
 
-class RPG_Stream_Export RPG_Stream_MessageBase
+class Stream_Export Stream_MessageBase
  : public ACE_Message_Block,
-   public RPG_Common_IDumpState
+   public Common_IDumpState
 {
   // need access to specific ctors
-  friend class RPG_Stream_MessageAllocatorHeap;
-//   friend class RPG_Stream_MessageAllocatorHeapBase<arg1, arg2>;
+  friend class Stream_MessageAllocatorHeap;
+//   friend class Stream_MessageAllocatorHeapBase<arg1, arg2>;
 
  public:
   // message types
@@ -61,58 +61,55 @@ class RPG_Stream_Export RPG_Stream_MessageBase
     MB_BEGIN_PROTOCOL_MAP = 0x400
   };
 
-  virtual ~RPG_Stream_MessageBase();
+  virtual ~Stream_MessageBase ();
 
   // info
-  unsigned int getID() const;
-  //virtual int getCommand() const; // return value: (protocol) message type
+  unsigned int getID () const;
 
-  // implement RPG_Common_IDumpState
-  virtual void dump_state() const;
+  // implement Common_IDumpState
+  virtual void dump_state () const;
 
   // reset atomic id generator
-  // *WARNING*: this NEEDS to be static, otherwise this clashes with inherited::reset() !!!
-  static void resetMessageIDGenerator();
+  static void resetMessageIDGenerator ();
 
   // helper methods
-  static void MessageType2String(const ACE_Message_Type&, // as returned by msg_type()
-                                 std::string&);           // return value: type string
+  static void MessageType2String (ACE_Message_Type, // as returned by msg_type()
+                                  std::string&);    // return value: type string
 
  protected:
 //   // ctor(s) for MB_STREAM_DATA
-//   RPG_Stream_MessageBase(const unsigned long&); // total size of message data (off-wire)
+//   Stream_MessageBase(const unsigned long&); // total size of message data (off-wire)
    // copy ctor, to be used by derivates
-   RPG_Stream_MessageBase(const RPG_Stream_MessageBase&);
+   Stream_MessageBase (const Stream_MessageBase&);
 
   // *NOTE*: to be used by message allocators...
-  RPG_Stream_MessageBase(ACE_Data_Block*,     // data block
-                         ACE_Allocator*,      // message allocator
-                         const bool& = true); // increment running message counter ?
-  RPG_Stream_MessageBase(ACE_Allocator*,      // message allocator
-                         const bool& = true); // increment running message counter ?
+  Stream_MessageBase (ACE_Data_Block*, // data block
+                      ACE_Allocator*,  // message allocator
+                      bool = true);    // increment running message counter ?
+  Stream_MessageBase (ACE_Allocator*); // message allocator
 
   // used for pre-allocated messages...
-  void init(ACE_Data_Block*          // data block to use
-            /*const ACE_Time_Value&*/); // scheduled execution time
+  void init (ACE_Data_Block*          // data block to use
+             /*const ACE_Time_Value&*/); // scheduled execution time
 
  private:
   typedef ACE_Message_Block inherited;
 
-  // safety measures
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_MessageBase());
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_MessageBase& operator=(const RPG_Stream_MessageBase&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase ());
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase& operator= (const Stream_MessageBase&));
 
   // overrides from ACE_Message_Block
   // *WARNING*: most probably, any children need to override this as well !
-  virtual ACE_Message_Block* duplicate(void) const;
+  virtual ACE_Message_Block* duplicate (void) const;
 
   // atomic ID generator
-  static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned int> myCurrentID;
+  static ACE_Atomic_Op<ACE_Thread_Mutex,
+                       unsigned int> currentID_;
 
-  unsigned int myMessageID;
+  unsigned int messageID_;
 };
 
 // convenient types
-typedef RPG_Stream_MessageBase::MessageType RPG_Stream_MessageType;
+typedef Stream_MessageBase::MessageType Stream_MessageType;
 
 #endif

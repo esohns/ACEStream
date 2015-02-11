@@ -18,101 +18,101 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_STREAMMODULE_BASE_H
-#define RPG_STREAM_STREAMMODULE_BASE_H
-
-#include "rpg_stream_module_base.h"
-
-#include <ace/Global_Macros.h>
-#include <ace/Stream_Modules.h>
+#ifndef STREAM_STREAMMODULE_BASE_H
+#define STREAM_STREAMMODULE_BASE_H
 
 #include <string>
 
+#include "ace/Global_Macros.h"
+#include "ace/Stream_Modules.h"
+
+#include "stream_module_base.h"
+
 // forward declaration(s)
-class RPG_Stream_IRefCount;
+class Common_IRefCount;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ReaderTaskType,
           typename WriterTaskType>
-class RPG_Stream_StreamModule_t
- : public RPG_Stream_Module_Base_t<TaskSynchType,
-                                   TimePolicyType,
-                                   ReaderTaskType,
-                                   WriterTaskType>
+class Stream_StreamModule_T
+ : public Stream_Module_Base_T<TaskSynchType,
+                               TimePolicyType,
+                               ReaderTaskType,
+                               WriterTaskType>
 {
  public:
-  RPG_Stream_StreamModule_t(const std::string&,     // name
-                            RPG_Stream_IRefCount*); // object counter
-  virtual ~RPG_Stream_StreamModule_t();
+  Stream_StreamModule_T (const std::string&, // name
+                         Common_IRefCount*); // object counter
+  virtual ~Stream_StreamModule_T ();
 
  protected:
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_StreamModule_t());
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_StreamModule_t(const RPG_Stream_StreamModule_t&));
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_StreamModule_t& operator=(const RPG_Stream_StreamModule_t&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T ());
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T (const Stream_StreamModule_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T& operator= (const Stream_StreamModule_T&));
 
  private:
-  typedef RPG_Stream_Module_Base_t<TaskSynchType,
-                                   TimePolicyType,
-                                   ReaderTaskType,
-                                   WriterTaskType> inherited;
+  typedef Stream_Module_Base_T<TaskSynchType,
+                               TimePolicyType,
+                               ReaderTaskType,
+                               WriterTaskType> inherited;
 
-  ReaderTaskType myReader;
-  WriterTaskType myWriter;
+  ReaderTaskType reader_;
+  WriterTaskType writer_;
 };
 
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename TaskType>
-class RPG_Stream_StreamModuleInputOnly_t
- : public RPG_Stream_StreamModule_t<TaskSynchType,
-                                    TimePolicyType,
-                                    ACE_Thru_Task<TaskSynchType,
-                                                  TimePolicyType>,
-                                    TaskType>
+class Stream_StreamModuleInputOnly_T
+ : public Stream_StreamModule_T<TaskSynchType,
+                                TimePolicyType,
+                                ACE_Thru_Task<TaskSynchType,
+                                              TimePolicyType>,
+                                TaskType>
 {
  public:
-  RPG_Stream_StreamModuleInputOnly_t(const std::string&,     // name
-                                     RPG_Stream_IRefCount*); // object counter
-  virtual ~RPG_Stream_StreamModuleInputOnly_t();
+  Stream_StreamModuleInputOnly_T (const std::string&, // name
+                                  Common_IRefCount*); // object counter
+  virtual ~Stream_StreamModuleInputOnly_T ();
 
  protected:
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_StreamModuleInputOnly_t());
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_StreamModuleInputOnly_t(const RPG_Stream_StreamModuleInputOnly_t&));
-  ACE_UNIMPLEMENTED_FUNC(RPG_Stream_StreamModuleInputOnly_t& operator=(const RPG_Stream_StreamModuleInputOnly_t&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnly_T ());
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnly_T (const Stream_StreamModuleInputOnly_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnly_T& operator= (const Stream_StreamModuleInputOnly_T&));
 
  private:
-  typedef RPG_Stream_StreamModule_t<TaskSynchType,
-                                    TimePolicyType,
-                                    ACE_Thru_Task<TaskSynchType,
-                                                  TimePolicyType>,
-                                    TaskType> inherited;
+  typedef Stream_StreamModule_T<TaskSynchType,
+                                TimePolicyType,
+                                ACE_Thru_Task<TaskSynchType,
+                                              TimePolicyType>,
+                                TaskType> inherited;
 };
 
 // include template implementation
-#include "rpg_stream_streammodule_base.inl"
+#include "stream_streammodule_base.inl"
 
 // *NOTE*: use this macro to instantiate the module definitions
 // *IMPORTANT NOTE*: TASK_SYNCH_TYPE is [ACE_MT_SYNCH | ACE_NULL_SYNCH] and must
 // correspond to the actual TASK_TYPE declaration !
 #define DATASTREAM_MODULE_INPUT_ONLY(TASK_SYNCH_TYPE,\
                                      TIME_POLICY_TYPE,\
-                                     TASK_TYPE) typedef RPG_Stream_StreamModuleInputOnly_t<TASK_SYNCH_TYPE,\
-                                                                                           TIME_POLICY_TYPE,\
-                                                                                           TASK_TYPE> TASK_TYPE##_Module
+                                     TASK_TYPE) typedef Stream_StreamModuleInputOnly_T<TASK_SYNCH_TYPE,\
+                                                                                       TIME_POLICY_TYPE,\
+                                                                                       TASK_TYPE> TASK_TYPE##_Module
 #define DATASTREAM_MODULE_INPUT_ONLY_T(TASK_SYNCH_TYPE,\
                                        TIME_POLICY_TYPE,\
                                        TASK_TYPE,\
-                                       NAME) typedef RPG_Stream_StreamModuleInputOnly_t<TASK_SYNCH_TYPE,\
-                                                                                        TIME_POLICY_TYPE,\
-                                                                                        TASK_TYPE> NAME##_Module
+                                       NAME) typedef Stream_StreamModuleInputOnly_T<TASK_SYNCH_TYPE,\
+                                                                                    TIME_POLICY_TYPE,\
+                                                                                    TASK_TYPE> NAME##_Module
 #define DATASTREAM_MODULE_DUPLEX(TASK_SYNCH_TYPE,\
                                  TIME_POLICY_TYPE,\
                                  READER_TYPE,\
                                  WRITER_TYPE,\
-                                 NAME) typedef RPG_Stream_StreamModule_t<TASK_SYNCH_TYPE,\
-                                                                         TIME_POLICY_TYPE,\
-                                                                         READER_TYPE,\
-                                                                         WRITER_TYPE> NAME##_Module
+                                 NAME) typedef Stream_StreamModule_T<TASK_SYNCH_TYPE,\
+                                                                     TIME_POLICY_TYPE,\
+                                                                     READER_TYPE,\
+                                                                     WRITER_TYPE> NAME##_Module
 
 #endif

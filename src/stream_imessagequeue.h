@@ -18,16 +18,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_IMESSAGEQUEUE_H
-#define RPG_STREAM_IMESSAGEQUEUE_H
+#ifndef STREAM_IMESSAGEQUEUE_H
+#define STREAM_IMESSAGEQUEUE_H
 
-class RPG_Stream_IMessageQueue
+class Stream_IMessageQueue
 {
  public:
-  virtual ~RPG_Stream_IMessageQueue() {}
+  virtual ~Stream_IMessageQueue () {}
 
   // exposed interface
-  virtual void waitForIdleState() const = 0;
+  virtual void waitForIdleState () const = 0;
 };
 
 #endif

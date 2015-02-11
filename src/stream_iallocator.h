@@ -18,26 +18,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_IALLOCATOR_H
-#define RPG_STREAM_IALLOCATOR_H
-
-// #include <ace/Malloc_Base.h>
+#ifndef STREAM_IALLOCATOR_H
+#define STREAM_IALLOCATOR_H
 
 #include <stddef.h>
 
-class RPG_Stream_IAllocator
-//  : public virtual ACE_Allocator
+class Stream_IAllocator
 {
  public:
-  virtual ~RPG_Stream_IAllocator() {}
+  virtual ~Stream_IAllocator () {}
 
-  virtual void* malloc(size_t) = 0; // bytes
-  virtual void free(void*) = 0; // handle
+  virtual void* malloc (size_t) = 0; // bytes
+  virtual void free (void*) = 0; // handle
 
   // *NOTE*: informational: current size (memory/chunk/...) of the cache
-  virtual size_t cache_depth(void) const = 0;
+  virtual size_t cache_depth (void) const = 0;
   // *NOTE*: informational: total size (memory/chunk/...) of the cache
-  virtual size_t cache_size(void) const = 0;
+  virtual size_t cache_size (void) const = 0;
 };
 
 #endif

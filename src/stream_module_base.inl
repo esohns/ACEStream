@@ -19,29 +19,29 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_common_macros.h"
-#include "rpg_common_iclone.h"
+#include "stream_macros.h"
+#include "common_irefcount.h"
 
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ReaderTaskType,
           typename WriterTaskType>
-RPG_Stream_Module_Base_t<TaskSynchType,
-                         TimePolicyType,
-                         ReaderTaskType,
-                         WriterTaskType>::RPG_Stream_Module_Base_t(const std::string& name_in,
-                                                                   WriterTaskType* writerTask_in,
-                                                                   ReaderTaskType* readerTask_in,
-                                                                   RPG_Stream_IRefCount* refCount_in)
- : inherited(ACE_TEXT_CHAR_TO_TCHAR(name_in.c_str()), // name
-             writerTask_in,                           // initialize writer side task
-             readerTask_in,                           // initialize reader side task
-             refCount_in,                             // arg passed to task open()
-             inherited::M_DELETE_NONE),               // don't "delete" ANYTHING during close()
-   myWriter(writerTask_in),
-   myReader(readerTask_in)
+Stream_Module_Base_T<TaskSynchType,
+                     TimePolicyType,
+                     ReaderTaskType,
+                     WriterTaskType>::Stream_Module_Base_T (const std::string& name_in,
+                                                            WriterTaskType* writerTask_in,
+                                                            ReaderTaskType* readerTask_in,
+                                                            Common_IRefCount* refCount_in)
+ : inherited (ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ()), // name
+              writerTask_in,                             // initialize writer side task
+              readerTask_in,                             // initialize reader side task
+              refCount_in,                               // arg passed to task open()
+              inherited::M_DELETE_NONE)                  // don't "delete" ANYTHING during close()
+ , writer_ (writerTask_in)
+ , reader_ (readerTask_in)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_Module_Base_t::RPG_Stream_Module_Base_t"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::Stream_Module_Base_T"));
 
   // *WARNING*: apparently, we cannot use "this" at this stage
   // --> children must do this...
@@ -61,12 +61,12 @@ template <typename TaskSynchType,
           typename TimePolicyType,
           typename ReaderTaskType,
           typename WriterTaskType>
-RPG_Stream_Module_Base_t<TaskSynchType,
-                         TimePolicyType,
-                         ReaderTaskType,
-                         WriterTaskType>::~RPG_Stream_Module_Base_t()
+Stream_Module_Base_T<TaskSynchType,
+                     TimePolicyType,
+                     ReaderTaskType,
+                     WriterTaskType>::~Stream_Module_Base_T ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_Module_Base_t::~RPG_Stream_Module_Base_t"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::~Stream_Module_Base_T"));
 
   // *NOTE*: the base class will invoke close() which will
   // invoke module_closed() and flush on every task...
@@ -79,18 +79,18 @@ template <typename TaskSynchType,
           typename ReaderTaskType,
           typename WriterTaskType>
 void
-RPG_Stream_Module_Base_t<TaskSynchType,
-                         TimePolicyType,
-                         ReaderTaskType,
-                         WriterTaskType>::reset()
+Stream_Module_Base_T<TaskSynchType,
+                     TimePolicyType,
+                     ReaderTaskType,
+                     WriterTaskType>::reset ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_Module_Base_t::reset"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::reset"));
 
   // OK: (re-)set our reader and writer tasks...
-  inherited::writer(myWriter,
+  inherited::writer(writer_,
                     inherited::M_DELETE_NONE);
 
-  inherited::reader(myReader,
+  inherited::reader(reader_,
                     inherited::M_DELETE_NONE);
 }
 
@@ -100,12 +100,12 @@ template <typename TaskSynchType,
           typename WriterTaskType>
 ACE_Module<TaskSynchType,
            TimePolicyType>*
-RPG_Stream_Module_Base_t<TaskSynchType,
-                         TimePolicyType,
-                         ReaderTaskType,
-                         WriterTaskType>::clone()
+Stream_Module_Base_T<TaskSynchType,
+                     TimePolicyType,
+                     ReaderTaskType,
+                     WriterTaskType>::clone ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream_Module_Base_t::clone"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::clone"));
 
   // init return value(s)
   ACE_Module<TaskSynchType,
@@ -113,33 +113,33 @@ RPG_Stream_Module_Base_t<TaskSynchType,
 
   // need a downcast...
   typename IMODULE_TYPE::ICLONE_TYPE* iclone_handle =
-      dynamic_cast<typename IMODULE_TYPE::ICLONE_TYPE*>(myWriter);
+      dynamic_cast<typename IMODULE_TYPE::ICLONE_TYPE*> (writer_);
   if (!iclone_handle)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("%s: dynamic_cast<RPG_Common_IClone> failed, aborting\n"),
-               ACE_TEXT_ALWAYS_CHAR(inherited::name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<RPG_Common_IClone> failed, aborting\n"),
+                ACE_TEXT_ALWAYS_CHAR (inherited::name ())));
 
     return NULL;
   } // end IF
 
   try
   {
-    result = iclone_handle->clone();
+    result = iclone_handle->clone ();
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("%s: caught exception in RPG_Common_IClone::clone(), aborting\n"),
-               ACE_TEXT_ALWAYS_CHAR(inherited::name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT("%s: caught exception in RPG_Common_IClone::clone(), aborting\n"),
+                ACE_TEXT_ALWAYS_CHAR (inherited::name ())));
 
     return NULL;
   }
   if (!result)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("%s: failed to RPG_Common_IClone::clone(), aborting\n"),
-               ACE_TEXT_ALWAYS_CHAR(inherited::name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to RPG_Common_IClone::clone(), aborting\n"),
+                ACE_TEXT_ALWAYS_CHAR (inherited::name ())));
 
     return NULL;
   } // end IF

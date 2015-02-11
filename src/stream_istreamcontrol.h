@@ -18,21 +18,21 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef RPG_STREAM_ISTREAMCONTROL_H
-#define RPG_STREAM_ISTREAMCONTROL_H
+#ifndef STREAM_ISTREAMCONTROL_H
+#define STREAM_ISTREAMCONTROL_H
 
-#include "rpg_common_icontrol.h"
+#include "common_icontrol.h"
 
-class RPG_Stream_IStreamControl
- : public RPG_Common_IControl
+class Stream_IStreamControl
+ : public Common_IControl
 {
  public:
-  virtual ~RPG_Stream_IStreamControl() {}
+  virtual ~Stream_IStreamControl() {}
 
   // exposed interface
-  virtual void pause() = 0;
-  virtual void rewind() = 0;
-  virtual void waitForCompletion() = 0;
+  virtual void pause () = 0;
+  virtual void rewind () = 0;
+  virtual void waitForCompletion () = 0;
 };
 
 #endif

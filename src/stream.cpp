@@ -19,94 +19,95 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "rpg_stream.h"
+#include "stream.h"
 
-#include "rpg_stream_module_base.h"
-#include "rpg_stream_headmoduletask.h"
-#include "rpg_stream_session_config.h"
-#include "rpg_stream_session_message.h"
-#include "rpg_stream_iallocator.h"
+#include "stream_module_base.h"
+#include "stream_headmoduletask.h"
+#include "stream_session_configuration.h"
+#include "stream_session_message.h"
+#include "stream_iallocator.h"
 
-RPG_Stream::RPG_Stream()
+Stream::Stream ()
 // *TODO*: use default ctor and rely on init/fini() ?
- : inherited(NULL,    // argument to module open()
-             NULL,    // no head module --> ACE_Stream_Head !
-             NULL),   // no tail module --> ACE_Stream_Tail !
-   myIsInitialized(false),
-   myAllocator(NULL)
+ : inherited (NULL, // argument to module open()
+              NULL, // no head module --> ACE_Stream_Head !
+              NULL) // no tail module --> ACE_Stream_Tail !
+ , isInitialized_ (false)
+// , availableModules_ ()
+ , allocator_ (NULL)
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::RPG_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream::Stream"));
 
 }
 
-RPG_Stream::~RPG_Stream()
+Stream::~Stream ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::~RPG_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream::~Stream"));
 
 }
 
 bool
-RPG_Stream::reset()
+Stream::reset ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::reset"));
+  STREAM_TRACE (ACE_TEXT ("Stream::reset"));
 
   // sanity check: is running ?
-  if (isRunning())
+  if (isRunning ())
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("cannot reset (currently running), aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("cannot reset (currently running), aborting\n")));
 
     return false;
   } // end IF
 
   // pop/close all modules
   // *NOTE*: will implicitly (blocking !) wait for any active worker threads
-  if (!fini())
+  if (!fini ())
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to fini(), aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to fini(), aborting\n")));
 
     return false;
   } // end IF
 
   // - reset reader/writers tasks for ALL modules
   // - reinit head/tail modules
-  return init();
+  return init ();
 }
 
 bool
-RPG_Stream::init()
+Stream::init ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::init"));
+  STREAM_TRACE (ACE_TEXT ("Stream::init"));
 
-  if (myIsInitialized)
+  if (isInitialized_)
   {
     // *NOTE*: fini() invokes close() which will reset the writer/reader tasks
     // of the enqueued modules --> reset this !
     IMODULE_TYPE* imodule_handle = NULL;
     // *NOTE*: cannot write this - it confuses gcc...
-    for (MODULE_CONTAINERITERATOR_TYPE iterator = myAvailableModules.begin();
-         iterator != myAvailableModules.end();
+    for (MODULE_CONTAINERITERATOR_TYPE iterator = availableModules_.begin ();
+         iterator != availableModules_.end ();
          iterator++)
     {
       // need a downcast...
-      imodule_handle = dynamic_cast<IMODULE_TYPE*>(*iterator);
+      imodule_handle = dynamic_cast<IMODULE_TYPE*> (*iterator);
       if (!imodule_handle)
       {
-        ACE_DEBUG((LM_ERROR,
-                   ACE_TEXT("%s: dynamic_cast<RPG_Stream_IModule> failed, aborting\n"),
-                   ACE_TEXT_ALWAYS_CHAR((*iterator)->name())));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
+                    ACE_TEXT ((*iterator)->name ())));
 
         return false;
       } // end IF
       try
       {
-        imodule_handle->reset();
+        imodule_handle->reset ();
       }
       catch (...)
       {
-        ACE_DEBUG((LM_ERROR,
-                   ACE_TEXT("caught exception in RPG_Stream_IModule::reset(), continuing\n")));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("caught exception in Stream_IModule::reset(), continuing\n")));
       }
     } // end FOR
   } // end IF
@@ -115,26 +116,26 @@ RPG_Stream::init()
   int result = -1;
   try
   {
-    result = inherited::open(NULL,  // argument to module open()
-                             NULL,  // no head module --> ACE_Stream_Head !
-                             NULL); // no tail module --> ACE_Stream_Tail !
+    result = inherited::open (NULL,  // argument to module open()
+                              NULL,  // no head module --> ACE_Stream_Head !
+                              NULL); // no tail module --> ACE_Stream_Tail !
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in ACE_Stream::open(), aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in ACE_Stream::open(), aborting\n")));
   }
   if (result == -1)
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to ACE_Stream::open(): \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", aborting\n")));
 
   return (result == 0);
 }
 
 bool
-RPG_Stream::fini()
+Stream::fini ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::fini"));
+  STREAM_TRACE (ACE_TEXT ("Stream::fini"));
 
   // OK: delegate this to base class close(ACE_Module_Base::M_DELETE_NONE)
   int result = -1;
@@ -146,265 +147,264 @@ RPG_Stream::fini()
     // --> close()ing a module will module_closed() and flush() the associated tasks
     // --> flush()ing a task will close() its queue
     // --> close()ing a queue will deactivate() and flush() it
-    result = inherited::close(ACE_Module_Base::M_DELETE_NONE);
+    result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in ACE_Stream::close(M_DELETE_NONE), aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in ACE_Stream::close(M_DELETE_NONE), aborting\n")));
   }
 
   // OK ?
   if (result == -1)
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to ACE_Stream::close(M_DELETE_NONE): \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::close(M_DELETE_NONE): \"%m\", aborting\n")));
 
   return (result == 0);
 }
 
 void
-RPG_Stream::start()
+Stream::start ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::start"));
+  STREAM_TRACE (ACE_TEXT ("Stream::start"));
 
   // sanity check: is initialized ?
-  if (!isInitialized())
+  if (!isInitialized ())
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("not initialized, aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("not initialized, aborting\n")));
 
     return;
   } // end IF
 
   // delegate to the head module
   MODULE_TYPE* module = NULL;
-  if (top(module) == -1)
+  if (inherited::top (module) == -1)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to ACE_Stream::top(): \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", aborting\n")));
 
     return;
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == tail())
+  if (module == inherited::tail ())
   {
-    ACE_DEBUG((LM_DEBUG,
-               ACE_TEXT("no modules have been enqueued yet --> nothing to do !, returning\n")));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
 
     return;
   } // end IF
 
-  RPG_Stream_IStreamControl* control_impl = NULL;
-  control_impl = dynamic_cast<RPG_Stream_IStreamControl*> (module->writer());
+  Stream_IStreamControl* control_impl = NULL;
+  control_impl = dynamic_cast<Stream_IStreamControl*> (module->writer ());
   if (!control_impl)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("%s: dynamic_cast<RPG_Stream_IStreamControl) failed> (returning\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl) failed> (returning\n"),
+                ACE_TEXT (module->name ())));
 
     return;
   } // end IF
 
   try
   {
-    control_impl->start();
+    control_impl->start ();
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in RPG_Stream_IStreamControl::start (module: \"%s\"), returning\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_IStreamControl::start (module: \"%s\"), returning\n"),
+                ACE_TEXT (module->name ())));
 
     return;
   }
 }
 
 void
-RPG_Stream::stop()
+Stream::stop ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::stop"));
+  STREAM_TRACE (ACE_TEXT ("Stream::stop"));
 
   // sanity check: is running ?
-  if (!isRunning())
+  if (!isRunning ())
   {
-//     ACE_DEBUG((LM_DEBUG,
-//                ACE_TEXT("not running --> nothing to do, returning\n")));
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("not running --> nothing to do, returning\n")));
 
     return;
   } // end IF
 
   // delegate to the head module
   MODULE_TYPE* module = NULL;
-  if (top(module) == -1)
+  if (inherited::top (module) == -1)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to ACE_Stream::top(): \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", aborting\n")));
 
     return;
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == tail())
+  if (module == inherited::tail ())
   {
-    ACE_DEBUG((LM_DEBUG,
-               ACE_TEXT("no modules have been enqueued yet --> nothing to do !, returning\n")));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
 
     return;
   } // end IF
 
-  RPG_Stream_IStreamControl* control_impl = NULL;
-  control_impl = dynamic_cast<RPG_Stream_IStreamControl*>(module->writer());
+  Stream_IStreamControl* control_impl = NULL;
+  control_impl = dynamic_cast<Stream_IStreamControl*> (module->writer ());
   if (!control_impl)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("%s: dynamic_cast<RPG_Stream_IStreamControl) failed> (returning\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl) failed> (returning\n"),
+                ACE_TEXT (module->name ())));
 
     return;
   } // end IF
 
   try
   {
-    control_impl->stop();
+    control_impl->stop ();
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in RPG_Stream_IStreamControl::stop (module: \"%s\"), returning\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_IStreamControl::stop (module: \"%s\"), returning\n"),
+                ACE_TEXT (module->name ())));
 
     return;
   }
 }
 
 void
-RPG_Stream::pause()
+Stream::pause ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::pause"));
+  STREAM_TRACE (ACE_TEXT ("Stream::pause"));
 
   // sanity check: is running ?
-  if (!isRunning())
+  if (!isRunning ())
   {
-//     ACE_DEBUG((LM_DEBUG,
-//                ACE_TEXT("not running --> nothing to do, returning\n")));
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("not running --> nothing to do, returning\n")));
 
     return;
   } // end IF
 
   // delegate to the head module
   MODULE_TYPE* module = NULL;
-  if (top(module) == -1)
+  if (inherited::top (module) == -1)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to ACE_Stream::top(): \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", aborting\n")));
 
     return;
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == tail())
+  if (module == inherited::tail ())
   {
-    // debug info
-    ACE_DEBUG((LM_DEBUG,
-               ACE_TEXT("no modules have been enqueued yet --> nothing to do !, returning\n")));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
 
     return;
   } // end IF
 
-  RPG_Stream_IStreamControl* control_impl = NULL;
-  control_impl = dynamic_cast<RPG_Stream_IStreamControl*>(module->writer());
+  Stream_IStreamControl* control_impl = NULL;
+  control_impl = dynamic_cast<Stream_IStreamControl*> (module->writer ());
   if (!control_impl)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("%s: dynamic_cast<RPG_Stream_IStreamControl) failed> (returning\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl) failed> (returning\n"),
+                ACE_TEXT (module->name ())));
 
     return;
   } // end IF
 
   try
   {
-    control_impl->pause();
+    control_impl->pause ();
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in RPG_Stream_IStreamControl::pause (module: \"%s\"), returning\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_IStreamControl::pause (module: \"%s\"), returning\n"),
+                ACE_TEXT (module->name ())));
 
     return;
   }
 }
 
 void
-RPG_Stream::rewind()
+Stream::rewind ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::rewind"));
+  STREAM_TRACE (ACE_TEXT ("Stream::rewind"));
 
   // sanity check: is running ?
-  if (isRunning())
+  if (isRunning ())
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("currently running, returning\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("currently running, returning\n")));
 
     return;
   } // end IF
 
   // delegate to the head module
   MODULE_TYPE* module = NULL;
-  if (top(module) == -1)
+  if (inherited::top (module) == -1)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to ACE_Stream::top(): \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", aborting\n")));
 
     return;
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == tail())
+  if (module == inherited::tail ())
   {
-    ACE_DEBUG((LM_DEBUG,
-               ACE_TEXT("no modules have been enqueued yet --> nothing to do !, returning\n")));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
 
     return;
   } // end IF
 
-  RPG_Stream_IStreamControl* control_impl = NULL;
-  control_impl = dynamic_cast<RPG_Stream_IStreamControl*>(module->writer());
+  Stream_IStreamControl* control_impl = NULL;
+  control_impl = dynamic_cast<Stream_IStreamControl*> (module->writer ());
   if (!control_impl)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("%s: dynamic_cast<RPG_Stream_IStreamControl) failed> (returning\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl) failed> (returning\n"),
+                ACE_TEXT (module->name ())));
 
     return;
   } // end IF
 
   try
   {
-    control_impl->rewind();
+    control_impl->rewind ();
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in RPG_Stream_IStreamControl::rewind (module: \"%s\"), returning\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_IStreamControl::rewind (module: \"%s\"), returning\n"),
+                ACE_TEXT (module->name ())));
 
     return;
   }
 }
 
 void
-RPG_Stream::waitForCompletion()
+Stream::waitForCompletion ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::waitForCompletion"));
+  STREAM_TRACE (ACE_TEXT ("Stream::waitForCompletion"));
 
   // sanity check: is initialized ?
-  if (!isInitialized())
+  if (!isInitialized ())
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("not initialized, aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("not initialized, aborting\n")));
 
     return;
   } // end IF
@@ -417,252 +417,252 @@ RPG_Stream::waitForCompletion()
   const MODULE_TYPE* module = NULL;
   STREAM_ITERATOR_TYPE iterator(*this);
   // skip over ACE_Stream_Head
-  if (iterator.advance())
+  if (iterator.advance ())
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("no ACE_Stream_Head module found: \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("no ACE_Stream_Head module found: \"%m\", aborting\n")));
 
     return;
   } // end IF
 
   // get head module
-  if (iterator.next(module))
+  if (iterator.next (module))
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("no head module found: \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("no head module found: \"%m\", aborting\n")));
 
     return;
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == tail())
+  if (module == inherited::tail ())
   {
-    ACE_DEBUG((LM_DEBUG,
-               ACE_TEXT("no modules have been enqueued yet --> nothing to do !, returning\n")));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
 
     return;
   } // end IF
 
   // need to downcast
-  RPG_Stream_HeadModuleTask* head_task = NULL;
-  head_task = dynamic_cast<RPG_Stream_HeadModuleTask*>(const_cast<MODULE_TYPE*>(module)->writer());
+  Stream_HeadModuleTask* head_task = NULL;
+  head_task = dynamic_cast<Stream_HeadModuleTask*> (const_cast<MODULE_TYPE*>(module)->writer ());
   if (!head_task)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("%s: dynamic_cast<RPG_Stream_HeadModuleTask) failed> (returning\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_HeadModuleTask) failed> (returning\n"),
+                ACE_TEXT (module->name ())));
 
     return;
   } // end IF
 
-//   ACE_DEBUG((LM_DEBUG,
-//              ACE_TEXT("waiting for module (\"%s\") to finish processing...\n"),
-//              ACE_TEXT_ALWAYS_CHAR(module->name())));
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("waiting for module (\"%s\") to finish processing...\n"),
+//               ACE_TEXT (module->name ())));
 
   // OK: now that we've got a handler... wait on it
   try
   {
     // step1: wait for state switch (xxx --> FINISHED)
-    head_task->waitForCompletion();
+    head_task->waitForCompletion ();
 
     // step2: wait for worker thread
-    head_task->wait();
+    head_task->wait ();
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in RPG_Stream_IStreamControl::waitForCompletion || wait (module: \"%s\"), returning\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_IStreamControl::waitForCompletion || wait (module: \"%s\"), returning\n"),
+                ACE_TEXT (module->name ())));
 
     return;
   }
 
-//   ACE_DEBUG((LM_DEBUG,
-//              ACE_TEXT("waiting for module (\"%s\") to finish processing...DONE\n"),
-//              ACE_TEXT_ALWAYS_CHAR(module->name())));
-//   ACE_DEBUG((LM_DEBUG,
-//              ACE_TEXT("waiting for stream to flush...\n")));
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("waiting for module (\"%s\") to finish processing...DONE\n"),
+//               ACE_TEXT (module->name ())));
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("waiting for stream to flush...\n")));
 
-  for (iterator.advance();
-       iterator.next(module);
-       iterator.advance())
+  for (iterator.advance ();
+       iterator.next (module);
+       iterator.advance ())
   {
     // skip stream tail (last module)
-    if (module == tail())
+    if (module == inherited::tail ())
     {
       // skip last module (stream tail)
       continue;
     } // end IF
 
-//     ACE_DEBUG((LM_DEBUG,
-//                ACE_TEXT("waiting for module (\"%s\") to finish processing...\n"),
-//                ACE_TEXT_ALWAYS_CHAR(module->name())));
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("waiting for module (\"%s\") to finish processing...\n"),
+//                 ACE_TEXT (module->name ())));
 
-    // OK: we've got a handle... wait
-    const_cast<MODULE_TYPE*>(module)->writer()->wait();
+    // OK: got a handle... wait
+    const_cast<MODULE_TYPE*> (module)->writer ()->wait ();
 
-//     ACE_DEBUG((LM_DEBUG,
-//                ACE_TEXT("waiting for module (\"%s\") to finish processing...DONE\n"),
-//                ACE_TEXT_ALWAYS_CHAR(module->name())));
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("waiting for module (\"%s\") to finish processing...DONE\n"),
+//                 ACE_TEXT (module->name ())));
 
     module = NULL;
   } // end FOR
 
-  // OK: IF no new messages have been enqueued IN THE MEANTIME, the queue should be empty...
-//   ACE_DEBUG((LM_DEBUG,
-//              ACE_TEXT("waiting for stream to flush...DONE\n")));
+  // OK: iff (!) no new messages have been enqueued IN THE MEANTIME, the queue should be empty...
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("waiting for stream to flush...DONE\n")));
 }
 
 bool
-RPG_Stream::isRunning() const
+Stream::isRunning () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::isRunning"));
+  STREAM_TRACE (ACE_TEXT ("Stream::isRunning"));
 
   // delegate to the head module
   MODULE_TYPE* module = NULL;
-  if (const_cast<RPG_Stream*>(this)->top(module))
+  if (const_cast<Stream*> (this)->top (module))
   {
-    //ACE_DEBUG((LM_ERROR,
-    //           ACE_TEXT("no head module found: \"%m\", aborting\n")));
+    //ACE_DEBUG ((LM_ERROR,
+    //            ACE_TEXT ("no head module found: \"%m\", aborting\n")));
 
     return false;
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == const_cast<RPG_Stream*>(this)->tail())
+  if (module == const_cast<Stream*> (this)->tail ())
   {
-//     ACE_DEBUG((LM_DEBUG,
-//                ACE_TEXT("no modules have been enqueued yet --> nothing to do !, returning\n")));
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
 
     return false;
   } // end IF
 
-  RPG_Stream_IStreamControl* control_impl = NULL;
-  control_impl = dynamic_cast<RPG_Stream_IStreamControl*>(module->writer());
+  Stream_IStreamControl* control_impl = NULL;
+  control_impl = dynamic_cast<Stream_IStreamControl*> (module->writer ());
   if (!control_impl)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("%s: dynamic_cast<RPG_Stream_IStreamControl) failed> (returning\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl) failed> (returning\n"),
+                ACE_TEXT (module->name ())));
 
     return false;
   } // end IF
 
   try
   {
-    return control_impl->isRunning();
+    return control_impl->isRunning ();
   }
   catch (...)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("caught exception in RPG_Stream_IStreamControl::isRunning (module: \"%s\"), aborting\n"),
-               ACE_TEXT_ALWAYS_CHAR(module->name())));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_IStreamControl::isRunning (module: \"%s\"), aborting\n"),
+                ACE_TEXT (module->name ())));
   }
 
   return false;
 }
 
 void
-RPG_Stream::dump_state() const
+Stream::dump_state () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::dump_state"));
+  STREAM_TRACE (ACE_TEXT ("Stream::dump_state"));
 
   std::string stream_layout;
   const MODULE_TYPE* module = NULL;
-  for (STREAM_ITERATOR_TYPE iterator(*this);
-       iterator.next(module);
-       iterator.advance())
+  for (STREAM_ITERATOR_TYPE iterator (*this);
+       iterator.next (module);
+       iterator.advance ())
   {
     // silently ignore ACE head/tail modules...
-    if ((module == const_cast<RPG_Stream*>(this)->tail()) ||
-        (module == const_cast<RPG_Stream*>(this)->head()))
+    if ((module == const_cast<Stream*>(this)->tail ()) ||
+        (module == const_cast<Stream*>(this)->head ()))
       continue;
 
-    stream_layout.append(ACE_TEXT_ALWAYS_CHAR(module->name()));
+    stream_layout.append (ACE_TEXT_ALWAYS_CHAR (module->name ()));
 
     // avoid trailing "-->"...
-    if (const_cast<MODULE_TYPE*>(module)->next() !=
-        const_cast<RPG_Stream*>(this)->tail())
-      stream_layout += ACE_TEXT_ALWAYS_CHAR(" --> ");
+    if (const_cast<MODULE_TYPE*> (module)->next () !=
+        const_cast<Stream*> (this)->tail ())
+      stream_layout += ACE_TEXT_ALWAYS_CHAR (" --> ");
 
     module = NULL;
   } // end FOR
 
-  ACE_DEBUG((LM_DEBUG,
-             ACE_TEXT("stream layout: \"%s\"\n"),
-             stream_layout.c_str()));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("stream layout: \"%s\"\n"),
+              ACE_TEXT (stream_layout.c_str())));
 }
 
 bool
-RPG_Stream::isInitialized() const
+Stream::isInitialized () const
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::isInitialized"));
+  STREAM_TRACE (ACE_TEXT ("Stream::isInitialized"));
 
-  return myIsInitialized;
+  return isInitialized_;
 }
 
 void
-RPG_Stream::shutdown()
+Stream::shutdown ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::shutdown"));
+  STREAM_TRACE (ACE_TEXT ("Stream::shutdown"));
 
-//   ACE_DEBUG((LM_DEBUG,
-//              ACE_TEXT("shutting down stream...\n")));
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("shutting down stream...\n")));
 
   // if we haven't properly initialized, we need to deactivate any hitherto enqueued
   // ACTIVE modules, or we will wait forever during closure...
   // --> possible scenarios:
   // - (re-)init() failed halfway through (i.e. MAYBE some modules push()ed correctly)
-  if (!myIsInitialized)
+  if (!isInitialized_)
   {
     // sanity check: have we actually successfully pushed() any modules ?
-    if (head()->next() != tail())
+    if (inherited::head ()->next () != inherited::tail ())
     {
-      ACE_DEBUG((LM_DEBUG,
-                 ACE_TEXT("not initialized - deactivating module(s)...\n")));
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("not initialized - deactivating module(s)...\n")));
 
-      deactivateModules();
+      deactivateModules ();
 
-//       ACE_DEBUG((LM_DEBUG,
-//                  ACE_TEXT("not initialized - deactivating module(s)...WAITING\n")));
+//       ACE_DEBUG ((LM_DEBUG,
+//                   ACE_TEXT ("not initialized - deactivating module(s)...WAITING\n")));
 
       // ...and wait for it to complete ?
       // *NOTE*: children can synchronize by calling waitForCompletion...
 
-      ACE_DEBUG((LM_DEBUG,
-                 ACE_TEXT("not initialized - deactivating module(s)...DONE\n")));
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("not initialized - deactivating module(s)...DONE\n")));
     } // end IF
   } // end IF
 
   // step1: retrieve a list of modules which are NOT on the stream
   // --> need to close() these manually (before they do so in their dtors...)
-//   ACE_DEBUG((LM_DEBUG,
-//              ACE_TEXT("deactivating offline module(s)...\n")));
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("deactivating offline module(s)...\n")));
 
-  for (MODULE_CONTAINERITERATOR_TYPE iter = myAvailableModules.begin();
-       iter != myAvailableModules.end();
+  for (MODULE_CONTAINERITERATOR_TYPE iter = availableModules_.begin ();
+       iter != availableModules_.end ();
        iter++)
   {
-    if ((*iter)->next() == NULL)
+    if ((*iter)->next () == NULL)
     {
-//       ACE_DEBUG((LM_DEBUG,
-//                  ACE_TEXT("manually closing module: \"%s\"\n"),
-//                  ACE_TEXT_ALWAYS_CHAR((*iter)->name())));
+//       ACE_DEBUG ((LM_DEBUG,
+//                   ACE_TEXT ("manually closing module: \"%s\"\n"),
+//                   ACE_TEXT ((*iter)->name ())));
 
       try
       {
-        (*iter)->close(ACE_Module_Base::M_DELETE_NONE);
+        (*iter)->close (ACE_Module_Base::M_DELETE_NONE);
       }
       catch (...)
       {
-        ACE_DEBUG((LM_ERROR,
-                   ACE_TEXT("caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n")));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n")));
       }
     } // end IF
   } // end FOR
 
-//   ACE_DEBUG((LM_DEBUG,
-//              ACE_TEXT("deactivating offline module(s)...DONE\n")));
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("deactivating offline module(s)...DONE\n")));
 
   // step2: shutdown stream
   // check the ACE documentation on ACE_Stream to see why this is needed !!!
@@ -672,92 +672,89 @@ RPG_Stream::shutdown()
   // objects in a different DLL where it was created...)
   // --> we need to do this ourselves !
   // all this does is call close() on each one (--> wait for the worker thread to return)
-//   ACE_DEBUG((LM_DEBUG,
-//              ACE_TEXT("deactivating module(s)...\n")));
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("deactivating module(s)...\n")));
 
-  fini();
+  fini ();
 
-//   ACE_DEBUG((LM_DEBUG,
-//              ACE_TEXT("deactivating module(s)...DONE\n")));
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("deactivating module(s)...DONE\n")));
 
   // *NOTE*: every ACTIVE module will join with its worker thread in close()
   // --> ALL stream-related threads should have returned by now !
 
-//   ACE_DEBUG((LM_DEBUG,
-//              ACE_TEXT("shutting down stream...FINISHED\n")));
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("shutting down stream...FINISHED\n")));
 }
 
 void
-RPG_Stream::deactivateModules()
+Stream::deactivateModules ()
 {
-  RPG_TRACE(ACE_TEXT("RPG_Stream::deactivateModules"));
+  STREAM_TRACE (ACE_TEXT ("Stream::deactivateModules"));
 
   // create session data
-  RPG_Stream_SessionConfig* session_config = NULL;
-  ACE_NEW_NORETURN(session_config,
-                   RPG_Stream_SessionConfig(NULL)); // NO user data...
-  if (!session_config)
+  Stream_SessionConfiguration* configuration_p = NULL;
+  ACE_NEW_NORETURN (configuration_p,
+                    Stream_SessionConfiguration (NULL)); // NO user data...
+  if (!configuration_p)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to allocate RPG_Stream_SessionConfig: \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to allocate Stream_SessionConfiguration: \"%m\", returning\n")));
 
     return;
   } // end IF
 
   // create MB_STREAM_SESSION_END session message
-  RPG_Stream_SessionMessage* message = NULL;
-  if (myAllocator)
+  Stream_SessionMessage* message_p = NULL;
+  if (allocator_)
   {
     try
     {
-      message = static_cast<RPG_Stream_SessionMessage*>(myAllocator->malloc(0)); // we want a session message !
+      message_p = static_cast<Stream_SessionMessage*> (allocator_->malloc (0)); // want a session message !
     }
     catch (...)
     {
       ACE_DEBUG((LM_ERROR,
-                ACE_TEXT("caught exception in RPG_Stream_IAllocator::malloc(0), aborting\n")));
+                ACE_TEXT("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 
       // clean up
-      session_config->decrease();
-      session_config = NULL;
+      configuration_p->decrease ();
 
       return;
     }
   } // end IF
   else
   { // *NOTE*: session message assumes responsibility for session_config !
-    ACE_NEW_NORETURN(message,
-                     RPG_Stream_SessionMessage(0, // N/A
-                                               RPG_Stream_SessionMessage::MB_STREAM_SESSION_END,
-                                               session_config));
+    ACE_NEW_NORETURN(message_p,
+                     Stream_SessionMessage(0, // N/A
+                                           Stream_SessionMessage::MB_STREAM_SESSION_END,
+                                           configuration_p));
   } // end ELSE
-
-  if (!message)
+  if (!message_p)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to allocate RPG_Stream_SessionMessage: \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to allocate Stream_SessionMessage: \"%m\", returning\n")));
 
     // clean up
-    session_config->decrease();
-    session_config = NULL;
+    configuration_p->decrease ();
 
     return;
   } // end IF
-  if (myAllocator)
-  { // *NOTE*: session message assumes responsibility for session_config !
-    message->init(0, // N/A
-                  RPG_Stream_SessionMessage::MB_STREAM_SESSION_END,
-                  session_config);
+  if (allocator_)
+  { // *NOTE*: session message assumes responsibility for configuration_p !
+    message_p->init (0, // N/A
+                     Stream_SessionMessage::MB_STREAM_SESSION_END,
+                     configuration_p);
   } // end IF
 
   // pass message downstream...
-  if (put(message, NULL) == -1)
+  if (inherited::put (message_p, NULL) == -1)
   {
-    ACE_DEBUG((LM_ERROR,
-               ACE_TEXT("failed to ACE_RPG_Stream::put(): \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::put(): \"%m\", returning\n")));
 
     // clean up
-    message->release();
+    message_p->release ();
 
     return;
   } // end IF

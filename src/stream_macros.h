@@ -18,35 +18,32 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MESSAGEQUEUE_H
-#define STREAM_MESSAGEQUEUE_H
+#ifndef STREAM_MACROS_H
+#define STREAM_MACROS_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+#define STREAM_TRACE_IMPL(X) ACE_Trace ____ (ACE_TEXT (X), __LINE__, ACE_TEXT (__FILE__))
 
-#include "common.h"
+// by default tracing is turned off
+#if !defined (STREAM_NTRACE)
+#  define STREAM_NTRACE 1
+#endif /* STREAM_NTRACE */
 
-#include "stream_exports.h"
-#include "stream_messagequeue_base.h"
+#if (STREAM_NTRACE == 1)
+#  define STREAM_TRACE(X)
+#else
+#  if !defined (STREAM_HAS_TRACE)
+#    define STREAM_HAS_TRACE
+#  endif /* STREAM_HAS_TRACE */
+#  define STREAM_TRACE(X) STREAM_TRACE_IMPL(X)
+#  include <ace/Trace.h>
+#endif /* STREAM_NTRACE */
 
-class Stream_Export Stream_MessageQueue
- : public Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                                    Common_TimePolicy_t>
-{
- public:
-  Stream_MessageQueue (unsigned int); // max number of queued buffers
-  virtual ~Stream_MessageQueue ();
+#ifdef __GNUC__
+#define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#endif
+#define COMPILER_NAME ACE::compiler_name()
+#define COMPILER_VERSION (ACE::compiler_major_version() * 10000 + ACE::compiler_minor_version() * 100 + ACE::compiler_beta_version())
 
-  // implement Stream_IMessageQueue
-  virtual void waitForIdleState () const;
-
- private:
-  typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                                    Common_TimePolicy_t> inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue (const Stream_MessageQueue&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue& operator= (const Stream_MessageQueue&));
-};
+#define STREAM_STRINGIZE(X) #X
 
 #endif
