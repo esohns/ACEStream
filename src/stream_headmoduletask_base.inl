@@ -662,7 +662,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         thread_handles[0] = 0;
         ACE_thread_t thread_ids[1];
         thread_ids[0] = 0;
-        char thread_name[COMMON_BUFSIZE];
+        char thread_name[BUFSIZ];
         ACE_OS::memset (thread_name, 0, sizeof (thread_name));
         ACE_OS::strcpy (thread_name, STREAM_DEF_HANDLER_THREAD_NAME);
         const char* thread_names[1];

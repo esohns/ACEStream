@@ -4,3 +4,4 @@ SUBDIRS = scripts src
 
 EXTRA_DIST = \
   autogen.sh
+

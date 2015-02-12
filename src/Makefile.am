@@ -45,6 +45,8 @@ include_HEADERS = \
   stream_session_message_base.h \
   stream_session_message_base.inl \
   stream_statemachine_control.h \
+  stream_statistichandler.h \
+  stream_statistichandler.inl \
   stream_streammodule_base.h \
   stream_streammodule_base.inl \
   stream_task.h \
@@ -120,6 +122,9 @@ libACEStream_la_SOURCES = \
   stream_session_message_base.inl \
   stream_statemachine_control.cpp \
   stream_statemachine_control.h \
+  stream_statistichandler.cpp \
+  stream_statistichandler.h \
+  stream_statistichandler.inl \
   stream_streammodule_base.cpp \
   stream_streammodule_base.h \
   stream_streammodule_base.inl \

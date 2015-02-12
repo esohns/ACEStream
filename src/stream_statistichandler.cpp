@@ -17,21 +17,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef STREAM_DEFINES_H
-#define STREAM_DEFINES_H
-
-// queue / task / buffers
-#define STREAM_TASK_GROUP_ID                   10
-// *IMPORTANT NOTE*: any of these COULD seriously affect performance
-#define STREAM_MAX_QUEUE_SLOTS                 10000
-// *IMPORTANT NOTE*: static heap memory consumption can probably be approximated
-// as STREAM_DEF_MAX_MESSAGES * sizeof(stream-message-type) bytes
-#define STREAM_MAX_MESSAGES                    1000
-
-#define STREAM_BUFFER_SIZE                     1024 // 1 kB
-
-#define STREAM_DEFAULT_NUM_STREAM_HEAD_THREADS 1
-#define STREAM_DEFAULT_HANDLER_THREAD_NAME     "stream dispatch"
-
-#endif
+#include "rpg_net_statistichandler.h"

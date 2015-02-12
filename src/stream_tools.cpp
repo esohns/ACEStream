@@ -74,7 +74,7 @@ Stream_Tools::timestamp2LocalString (const ACE_Time_Value& timestamp_in)
   // step2: create string
   // Note: '\0' doesn't count: 4 + 2 + 2 + 2 + 2 + 2 + 5 blanks
   // *TODO*: rewrite this in C++...
-  char time_string[COMMON_BUFSIZE];
+  char time_string[BUFSIZ];
   if (ACE_OS::strftime (time_string,
                         sizeof (time_string),
                         ACE_TEXT_ALWAYS_CHAR ("%Y_%m_%d_%H_%M_%S"),

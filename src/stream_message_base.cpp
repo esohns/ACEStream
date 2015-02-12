@@ -129,7 +129,7 @@ Stream_MessageBase::duplicate (void) const
 
   Stream_MessageBase* new_message = NULL;
 
-  // create a new RPG_Net_Message that contains unique copies of
+  // create a new Net_Message that contains unique copies of
   // the message block fields, but a (reference counted) shallow duplicate of
   // the ACE_Data_Block.
 
