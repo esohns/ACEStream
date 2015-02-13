@@ -22,11 +22,12 @@
 #include "ace/Message_Block.h"
 #include "ace/Time_Value.h"
 
+#include "stream_defines.h"
 #include "stream_macros.h"
 
 #include "stream_defines.h"
 #include "stream_message_base.h"
-#include "stream_session_message_base.h"
+#include "stream_session_message.h"
 
 template <typename TaskSynchStrategyType,
           typename TimePolicyType,
@@ -36,10 +37,10 @@ Stream_TaskBase_T<TaskSynchStrategyType,
                   TimePolicyType,
                   SessionMessageType,
                   ProtocolMessageType>::Stream_TaskBase_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_DEF_HANDLER_THREAD_NAME), // thread name
-              STREAM_TASK_GROUP_ID,                                  // group id
-              1,                                                     // # thread(s)
-              false)                                                 // auto-start ?
+ : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_DEFAULT_HANDLER_THREAD_NAME), // thread name
+              STREAM_TASK_GROUP_ID,                                      // group id
+              1,                                                         // # thread(s)
+              false)                                                     // auto-start ?
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
@@ -81,10 +82,10 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   // end of a session...
   switch (message_inout->getType ())
   {
-    case Stream_SessionMessage::MB_STREAM_SESSION_STEP:
-    case Stream_SessionMessage::MB_STREAM_SESSION_BEGIN:
+    case SESSION_BEGIN:
+    case SESSION_STEP:
       break;
-    case Stream_SessionMessage::MB_STREAM_SESSION_END:
+    case SESSION_END:
     {
       try
       {
@@ -104,7 +105,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
       break;
     }
-    case Stream_SessionMessage::MB_STREAM_SESSION_STATISTICS:
+    case SESSION_STATISTICS:
       break;
     default:
     {
@@ -188,8 +189,8 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   switch (mb_in->msg_type ())
   {
     // DATA handling
-    case Stream_MessageBase::MB_STREAM_DATA:
-    case Stream_MessageBase::MB_STREAM_OBJ:
+    case MESSAGE_DATA:
+    case MESSAGE_OBJECT:
     {
       ProtocolMessageType* message = NULL;
       // downcast message
@@ -227,10 +228,8 @@ Stream_TaskBase_T<TaskSynchStrategyType,
         // *WARNING*: need to invoke our OWN implementation here, otherwise, the
         // ld linker complains about a missing reference to
         // StreamITaskBase::handleDataMessage...
-//         inherited2::handleDataMessage(message,
-//                                       passMessageDownstream);
-        handleDataMessage (message,
-                           passMessageDownstream);
+        inherited2::handleDataMessage (message,
+                                       passMessageDownstream);
       }
       catch (...)
       {
@@ -324,7 +323,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   switch (controlMessage_in->msg_type ())
   {
     // currently, we only use these...
-    case Stream_MessageBase::MB_STREAM_SESSION:
+    case MESSAGE_SESSION:
     {
       SessionMessageType* sessionMessage = NULL;
       // downcast message
@@ -371,8 +370,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
       // *NOTE*: if this was a RPG_Stream_SessionMessage::SESSION_END, we need to
       // stop processing (see above) !
-      if (sessionMessage->getType () ==
-          Stream_SessionMessage::MB_STREAM_SESSION_END)
+      if (sessionMessage->getType () == SESSION_END)
       {
         // OK: tell our worker thread to stop whatever it's doing ASAP...
         stopProcessing_out = true;

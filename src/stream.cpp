@@ -698,7 +698,7 @@ Stream::deactivateModules ()
                     Stream_SessionConfiguration (NULL)); // NO user data...
   if (!configuration_p)
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate Stream_SessionConfiguration: \"%m\", returning\n")));
 
     return;
@@ -714,8 +714,8 @@ Stream::deactivateModules ()
     }
     catch (...)
     {
-      ACE_DEBUG((LM_ERROR,
-                ACE_TEXT("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
+      ACE_DEBUG ((LM_CRITICAL,
+                 ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 
       // clean up
       configuration_p->decrease ();
@@ -725,14 +725,14 @@ Stream::deactivateModules ()
   } // end IF
   else
   { // *NOTE*: session message assumes responsibility for session_config !
-    ACE_NEW_NORETURN(message_p,
-                     Stream_SessionMessage(0, // N/A
-                                           Stream_SessionMessage::MB_STREAM_SESSION_END,
-                                           configuration_p));
+    ACE_NEW_NORETURN (message_p,
+                      Stream_SessionMessage (0, // N/A
+                                             SESSION_END,
+                                             configuration_p));
   } // end ELSE
   if (!message_p)
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate Stream_SessionMessage: \"%m\", returning\n")));
 
     // clean up
@@ -743,7 +743,7 @@ Stream::deactivateModules ()
   if (allocator_)
   { // *NOTE*: session message assumes responsibility for configuration_p !
     message_p->init (0, // N/A
-                     Stream_SessionMessage::MB_STREAM_SESSION_END,
+                     SESSION_END,
                      configuration_p);
   } // end IF
 

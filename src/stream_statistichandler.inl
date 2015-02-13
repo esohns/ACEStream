@@ -26,7 +26,7 @@
 
 template <typename StatisticsContainerType>
 Stream_StatisticHandler_Reactor_T<StatisticsContainerType>::Stream_StatisticHandler_Reactor_T (const Stream_IStatistic_t* interfaceHandle_in,
-                                                                                               const ActionSpecifier_t& action_in)
+                                                                                               Stream_StatisticAction_t action_in)
  : inherited (NULL,                           // use default reactor
               ACE_Event_Handler::LO_PRIORITY) // priority
  , interfaceHandle_ (interfaceHandle_in)
@@ -106,7 +106,7 @@ Stream_StatisticHandler_Reactor_T<StatisticsContainerType>::handle_timeout (cons
 
 template <typename StatisticsContainerType>
 Stream_StatisticHandler_Proactor_T<StatisticsContainerType>::Stream_StatisticHandler_Proactor_T (const Stream_IStatistic_t* interfaceHandle_in,
-                                                                                                 const ActionSpecifier_t& action_in)
+                                                                                                 Stream_StatisticAction_t action_in)
  : inherited ()
  , interfaceHandle_ (interfaceHandle_in)
  , action_ (action_in)

@@ -92,20 +92,20 @@ class Stream_HeadModuleTaskBase_T
   // convenience methods to send (session-specific) notifications downstream
   // *WARNING*: - handle with care -
   bool putSessionMessage (unsigned int,                                 // session ID
-                          const Stream_SessionMessageType&,             // session message type
+                          Stream_SessionMessageType_t,                  // session message type
                           const DataType&,                              // data
                           const ACE_Time_Value& = ACE_Time_Value::zero, // start of session
                           bool = false) const;                          // user abort ?
   // *NOTE*: session message assumes lifetime responsibility for data
   // --> method implements a "fire-and-forget" strategy !
   bool putSessionMessage (unsigned int,                     // session ID
-                          const Stream_SessionMessageType&, // session message type
+                          Stream_SessionMessageType_t,      // session message type
                           SessionConfigurationType*&,       // configuration data
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
 
   // implement state machine callback
   // *NOTE*: this method is threadsafe
-  virtual void onStateChange (const Control_StateType&); // new state
+  virtual void onStateChange (Control_StateType); // new state
 
   // *NOTE*: functionally, this does the same as stop(), with the
   // difference that stop() will wait for any worker(s)
@@ -114,9 +114,9 @@ class Stream_HeadModuleTaskBase_T
   virtual void finished ();
 
   // *IMPORTANT NOTE*: children SHOULD set these during initialization !
-  Stream_IAllocator*                        allocator_;
-  unsigned int                              sessionID_;
-  bool                                      isActive_;
+  Stream_IAllocator*              allocator_;
+  unsigned int                    sessionID_;
+  bool                            isActive_;
 
  private:
   typedef Stream_TaskBase_T<TaskSynchType,
@@ -139,12 +139,12 @@ class Stream_HeadModuleTaskBase_T
   // allow blocking wait in waitForCompletion()
  // ACE_Recursive_Thread_Mutex                lock_;
   //ACE_Condition<ACE_Recursive_Thread_Mutex> condition_;
-  ACE_Thread_Mutex                          lock_;
-  ACE_Condition<ACE_Thread_Mutex>           condition_;
-  unsigned int                              currentNumThreads_;
-  Stream_MessageQueue                       queue_;
-  bool                                      autoStart_;
-  DataType                                  userData_;
+  ACE_Thread_Mutex                lock_;
+  ACE_Condition<ACE_Thread_Mutex> condition_;
+  unsigned int                    currentNumThreads_;
+  Stream_MessageQueue             queue_;
+  bool                            autoStart_;
+  DataType                        userData_;
 };
 
 // include template implementation

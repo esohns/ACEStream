@@ -30,63 +30,31 @@
 
 #include "stream_exports.h"
 #include "stream_messageallocatorheap.h"
-#include "stream_message_base.h"
+#include "stream_session_message_base.h"
+#include "stream_session_configuration.h"
 
 // forward declaratation(s)
-class Stream_SessionConfiguration;
 class ACE_Allocator;
 
 class Stream_Export Stream_SessionMessage
- : public ACE_Message_Block,
-   public Common_IDumpState
+ : public Stream_SessionMessageBase_T<Stream_SessionConfiguration>
 {
   // need access to specific ctors
   friend class Stream_MessageAllocatorHeap;
 //   friend class Stream_MessageAllocatorHeapBase<arg1, arg2>;
 
  public:
-  enum SessionMessageType
-  {
-    // *NOTE*: see <stream_message_base.h> for details...
-    MB_BEGIN_STREAM_SESSION_MAP = Stream_MessageBase::MB_STREAM_SESSION,
-    // *** STREAM CONTROL ***
-    MB_STREAM_SESSION_BEGIN,
-    MB_STREAM_SESSION_STEP,
-    MB_STREAM_SESSION_END,
-    MB_STREAM_SESSION_STATISTICS
-    // *** STREAM CONTROL - END ***
-  };
-
   // *NOTE*: assume lifetime responsibility for the second argument !
-  Stream_SessionMessage(unsigned int,                   // session ID
-                        const SessionMessageType&,      // session message type
-                        Stream_SessionConfiguration*&); // config handle
+  Stream_SessionMessage (unsigned int,                   // session ID
+                         Stream_SessionMessageType_t,    // session message type
+                         Stream_SessionConfiguration*&); // config handle
   virtual ~Stream_SessionMessage ();
-
-  // initialization-after-construction
-  // *NOTE*: assume lifetime responsibility for the second argument !
-  void init (unsigned int,                   // session ID
-             const SessionMessageType&,      // session message type
-             Stream_SessionConfiguration*&); // config handle
-
-  // info
-  unsigned int getID () const;
-  SessionMessageType getType () const;
-  // *TODO*: clean this up !
-  const Stream_SessionConfiguration* const getConfiguration () const;
-
-  // implement Common_IDumpState
-  virtual void dump_state () const;
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
-  // debug tools
-  static void SessionMessageType2String (SessionMessageType, // message type
-                                         std::string&);      // corresp. string
-
  private:
-  typedef ACE_Message_Block inherited;
+  typedef Stream_SessionMessageBase_T<Stream_SessionConfiguration> inherited;
 
   // copy ctor to be used by duplicate()
   Stream_SessionMessage (const Stream_SessionMessage&);
@@ -99,14 +67,6 @@ class Stream_Export Stream_SessionMessage
 
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessage ());
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessage& operator= (const Stream_SessionMessage&));
-
-  unsigned int                 sessionID_;
-  SessionMessageType           messageType_;
-  Stream_SessionConfiguration* configuration_;
-  bool                         isInitialized_;
 };
-
-// convenient types
-typedef Stream_SessionMessage::SessionMessageType Stream_SessionMessageType;
 
 #endif

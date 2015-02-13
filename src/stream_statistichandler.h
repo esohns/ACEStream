@@ -27,7 +27,7 @@
 
 #include "common_istatistic.h"
 
-enum ActionSpecifier_t
+enum Stream_StatisticAction_t
 {
   ACTION_INVALID = -1,
   ACTION_COLLECT,
@@ -44,7 +44,7 @@ class Stream_StatisticHandler_Reactor_T
   typedef Common_IStatistic_T<StatisticsContainerType> Stream_IStatistic_t;
 
   Stream_StatisticHandler_Reactor_T (const Stream_IStatistic_t*, // interface handle
-                                     const ActionSpecifier_t&);  // handler action
+                                     Stream_StatisticAction_t);  // handler action
   virtual ~Stream_StatisticHandler_Reactor_T ();
 
   // implement specific behaviour
@@ -59,7 +59,7 @@ class Stream_StatisticHandler_Reactor_T
   ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Reactor_T& operator= (const Stream_StatisticHandler_Reactor_T&));
 
   const Stream_IStatistic_t* interfaceHandle_;
-  ActionSpecifier_t          action_;
+  Stream_StatisticAction_t   action_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ class Stream_StatisticHandler_Proactor_T
   typedef Common_IStatistic_T<StatisticsContainerType> Stream_IStatistic_t;
 
   Stream_StatisticHandler_Proactor_T (const Stream_IStatistic_t*, // interface handle
-                                      const ActionSpecifier_t&);  // handler action
+                                      Stream_StatisticAction_t);  // handler action
   virtual ~Stream_StatisticHandler_Proactor_T ();
 
   // implement specific behaviour
@@ -87,7 +87,7 @@ class Stream_StatisticHandler_Proactor_T
   ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T& operator=(const Stream_StatisticHandler_Proactor_T&));
 
   const Stream_IStatistic_t* interfaceHandle_;
-  ActionSpecifier_t          action_;
+  Stream_StatisticAction_t   action_;
 };
 
 // include template implementation

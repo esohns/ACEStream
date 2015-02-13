@@ -79,17 +79,17 @@ class Stream_HeadModuleTask
 
   // convenience methods to send (session-specific) notifications downstream
   // *WARNING*: - handle with care -
-  bool putSessionMessage (unsigned int,                                     // session ID
-                          const Stream_SessionMessage::SessionMessageType&, // session message type
-                          Stream_SessionConfiguration*&,                    // data
-                          Stream_IAllocator* = NULL) const;                 // allocator (NULL ? --> use "new")
+  bool putSessionMessage (unsigned int,                     // session ID
+                          Stream_SessionMessageType_t,      // session message type
+                          Stream_SessionConfiguration*&,    // data
+                          Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
   // *NOTE*: session message assumes lifetime responsibility for data
   // --> method implements a "fire-and-forget" strategy !
-  bool putSessionMessage (unsigned int,                                     // session ID
-                          const Stream_SessionMessage::SessionMessageType&, // session message type
-                          const void* = NULL,                               // user data
-                          const ACE_Time_Value& = ACE_Time_Value::zero,     // start of session
-                          bool = false) const;                              // user abort ?
+  bool putSessionMessage (unsigned int,                                 // session ID
+                          Stream_SessionMessageType_t,                  // session message type
+                          const void* = NULL,                           // user data
+                          const ACE_Time_Value& = ACE_Time_Value::zero, // start of session
+                          bool = false) const;                          // user abort ?
 
   // implement state machine callback
   // *NOTE*: this method is threadsafe

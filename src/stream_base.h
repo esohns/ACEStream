@@ -76,13 +76,13 @@ class Stream_Base_T
 
  protected:
   typedef ACE_Module<TaskSynchType,
-                     TimePolicyType> MODULE_TYPE;
+                     TimePolicyType> Stream_Module_t;
   typedef ACE_Task<TaskSynchType,
-                   TimePolicyType> TASK_TYPE;
+                   TimePolicyType> Stream_Task_t;
   typedef Stream_IModule<TaskSynchType,
-                         TimePolicyType> IMODULE_TYPE;
+                         TimePolicyType> Stream_IModule_t;
   typedef ACE_Stream_Iterator<TaskSynchType,
-                              TimePolicyType> STREAM_ITERATOR_TYPE;
+                              TimePolicyType> Stream_StreamIterator_t;
 
   // *NOTE*: need to subclass this !
   Stream_Base_T ();
@@ -102,14 +102,14 @@ class Stream_Base_T
 
   // *NOTE*: children need to set this IF their initialization succeeded; otherwise,
   // the dtor will NOT stop all worker threads before close()ing the modules...
-  bool                    isInitialized_;
+  bool                        isInitialized_;
 
   // *NOTE*: children need to add handles to ALL of their modules to this container !
 //   MODULE_CONTAINER_TYPE myAvailableModules;
-  ACE_DLList<MODULE_TYPE> availableModules_;
+  ACE_DLList<Stream_Module_t> availableModules_;
 
   // *NOTE*: children need to set this during THEIR initialization !
-  Stream_IAllocator*      allocator_;
+  Stream_IAllocator*          allocator_;
 
  private:
   typedef ACE_Stream<TaskSynchType,
@@ -119,11 +119,11 @@ class Stream_Base_T
                                       DataType,
                                       SessionConfigurationType,
                                       SessionMessageType,
-                                      ProtocolMessageType> HEADMODULETASK_BASETYPE;
+                                      ProtocolMessageType> Stream_HeadModuleTask_t;
 
   // convenient types
-  typedef std::deque<MODULE_TYPE*> MODULE_STACK_T;
-  typedef typename MODULE_STACK_T::const_iterator MODULE_STACKITERATOR_T;
+  typedef std::deque<Stream_Module_t*> Stream_Modules_t;
+  typedef typename Stream_Modules_t::const_iterator Stream_ModulesIterator_t;
   typedef Stream_Base_T<TaskSynchType,
                         TimePolicyType,
                         DataType,

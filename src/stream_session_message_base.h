@@ -28,37 +28,53 @@
 
 #include "common_idumpstate.h"
 
-#include "stream_session_message.h"
+#include "stream_message_base.h"
+
+enum Stream_SessionMessageType_t
+{
+  // *NOTE*: see <stream_message_base.h> for details...
+  STREAM_SESSION_MAP = MESSAGE_SESSION_MAP,
+  // *** STREAM CONTROL ***
+  SESSION_BEGIN,
+  SESSION_STEP,
+  SESSION_END,
+  SESSION_STATISTICS
+  // *** STREAM CONTROL - END ***
+};
 
 // forward declarations
 class ACE_Allocator;
 
 template <typename ConfigurationType>
 class Stream_SessionMessageBase_T
- : public ACE_Message_Block,
-   public Common_IDumpState
+ : public ACE_Message_Block
+ , public Common_IDumpState
 {
  public:
   // *NOTE*: assumes lifetime responsibility for the third argument !
-  Stream_SessionMessageBase_T (unsigned int,               // session ID
-                               Stream_SessionMessageType&, // session message type
-                               ConfigurationType*&);       // handle
+  Stream_SessionMessageBase_T (unsigned int,                // session ID
+                               Stream_SessionMessageType_t, // session message type
+                               ConfigurationType*&);        // handle
   virtual ~Stream_SessionMessageBase_T ();
 
   // initialization-after-construction
   // *NOTE*: assumes lifetime responsibility for the third argument !
-  void init (unsigned int,               // session ID
-             Stream_SessionMessageType&, // session message type
-             ConfigurationType*&);       // handle
+  void init (unsigned int,                // session ID
+             Stream_SessionMessageType_t, // session message type
+             ConfigurationType*&);        // handle
 
   // info
   unsigned int getID () const;
-  Stream_SessionMessageType getType () const;
+  Stream_SessionMessageType_t getType () const;
   // *TODO*: clean this up !
   const ConfigurationType* const getConfiguration () const;
 
   // implement Common_IDumpState
   virtual void dump_state () const;
+
+  // debug tools
+  static void SessionMessageType2String (Stream_SessionMessageType_t, // message type
+                                         std::string&);               // corresp. string
 
  protected:
   // copy ctor to be used by duplicate()
@@ -70,7 +86,10 @@ class Stream_SessionMessageBase_T
   Stream_SessionMessageBase_T (ACE_Data_Block*, // data block
                                ACE_Allocator*); // message allocator
 
-  ConfigurationType*            configuration_;
+  ConfigurationType*          configuration_;
+  unsigned int                sessionID_;
+  Stream_SessionMessageType_t messageType_;
+  bool                        isInitialized_;
 
  private:
   typedef ACE_Message_Block inherited;
@@ -81,10 +100,6 @@ class Stream_SessionMessageBase_T
   // overloaded from ACE_Message_Block
   // *WARNING*: any children need to override this too !
   virtual ACE_Message_Block* duplicate (void) const;
-
-  unsigned int                  sessionID_;
-  Stream_SessionMessageType     messageType_;
-  bool                          isInitialized_;
 };
 
 // include template implementation

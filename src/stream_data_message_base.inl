@@ -23,13 +23,14 @@
 
 #include "stream_macros.h"
 #include "stream_defines.h"
+#include "stream_message_base.h"
 
 template <typename DataType,
           typename CommandType>
 Stream_DataMessageBase_T<DataType,
                          CommandType>::Stream_DataMessageBase_T (DataType*& data_inout)
  : inherited (0,                                  // size
-              Stream_MessageBase::MB_STREAM_OBJ,  // type
+              MESSAGE_OBJECT,                     // type
               NULL,                               // continuation
               NULL,                               // data
               NULL,                               // buffer allocator
@@ -78,7 +79,7 @@ Stream_DataMessageBase_T<DataType,
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
   // set correct message type
-  msg_type (Stream_MessageBase::MB_STREAM_OBJ);
+  msg_type (MESSAGE_OBJECT);
 
   // reset read/write pointers
   reset ();
@@ -97,7 +98,7 @@ Stream_DataMessageBase_T<DataType,
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
   // set correct message type
-  msg_type (Stream_MessageBase::MB_STREAM_OBJ);
+  msg_type (MESSAGE_OBJECT);
 
   // reset read/write pointers
   reset ();
@@ -152,7 +153,7 @@ Stream_DataMessageBase_T<DataType,
     inherited::init (dataBlock_in);
 
     // (re)set correct message type
-    msg_type (Stream_MessageBase::MB_STREAM_OBJ);
+    msg_type (MESSAGE_OBJECT);
   } // end IF
 
   isInitialized_ = true;

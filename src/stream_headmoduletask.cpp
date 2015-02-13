@@ -234,7 +234,7 @@ Stream_HeadModuleTask::svc (void)
 
   // step1: send initial session message downstream...
   if (!putSessionMessage (sessionID_,
-                          Stream_SessionMessage::MB_STREAM_SESSION_BEGIN,
+                          SESSION_BEGIN,
                           userData_,
                           COMMON_TIME_POLICY (), // start of session
                           false))                // N/A
@@ -268,7 +268,7 @@ Stream_HeadModuleTask::svc (void)
 
       // step3: send final session message downstream...
       if (!putSessionMessage (sessionID_,
-                              Stream_SessionMessage::MB_STREAM_SESSION_END,
+                              SESSION_END,
                               userData_,
                               ACE_Time_Value::zero, // N/A
                               true))                // ALWAYS a user abort...
@@ -297,7 +297,7 @@ Stream_HeadModuleTask::svc (void)
 
   // step3: send final session message downstream...
   if (!putSessionMessage (sessionID_,
-                          Stream_SessionMessage::MB_STREAM_SESSION_END,
+                          SESSION_END,
                           userData_,
                           ACE_Time_Value::zero, // N/A
                           false))               // N/A
@@ -614,7 +614,7 @@ Stream_HeadModuleTask::onStateChange (const Control_StateType& newState_in)
 
 bool
 Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
-                                          const Stream_SessionMessage::SessionMessageType& messageType_in,
+                                          Stream_SessionMessageType_t messageType_in,
                                           Stream_SessionConfiguration*& configuration_inout,
                                           Stream_IAllocator* allocator_in) const
 {
@@ -630,8 +630,8 @@ Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
     }
     catch (...)
     {
-      ACE_DEBUG ((LM_ERROR,
-                 ACE_TEXT ("caught exception in RPG_Stream_IAllocator::malloc(0), aborting\n")));
+      ACE_DEBUG ((LM_CRITICAL,
+                 ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 
       // clean up
       configuration_inout->decrease ();
@@ -650,8 +650,8 @@ Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
 
   if (!message)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to allocate RPG_Stream_SessionMessage: \"%m\", aborting\n")));
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate Stream_SessionMessage: \"%m\", aborting\n")));
 
     // clean up
     configuration_inout->decrease ();
@@ -686,7 +686,7 @@ Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
 
 bool
 Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
-                                          const Stream_SessionMessage::SessionMessageType& messageType_in,
+                                          Stream_SessionMessageType_t messageType_in,
                                           const void* userData_in,
                                           const ACE_Time_Value& startOfSession_in,
                                           bool userAbort_in) const
@@ -699,9 +699,9 @@ Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
   // switch
   switch (messageType_in)
   {
-    case Stream_SessionMessage::MB_STREAM_SESSION_BEGIN:
-    case Stream_SessionMessage::MB_STREAM_SESSION_STEP:
-    case Stream_SessionMessage::MB_STREAM_SESSION_END:
+    case SESSION_BEGIN:
+    case SESSION_STEP:
+    case SESSION_END:
     {
       ACE_NEW_NORETURN (configuration_p,
                         Stream_SessionConfiguration (userData_in,
@@ -709,15 +709,15 @@ Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
                                                      userAbort_in));
       if (!configuration_p)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to allocate RPG_Stream_SessionConfig: \"%m\", aborting\n")));
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate Stream_SessionConfiguration: \"%m\", aborting\n")));
 
         return false;
       } // end IF
 
       break;
     }
-    case Stream_SessionMessage::MB_STREAM_SESSION_STATISTICS:
+    case SESSION_STATISTICS:
     default:
     {
       ACE_DEBUG ((LM_ERROR,

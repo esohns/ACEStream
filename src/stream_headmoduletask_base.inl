@@ -25,6 +25,7 @@
 
 #include "stream_defines.h"
 #include "stream_iallocator.h"
+#include "stream_macros.h"
 
 template <typename TaskSynchType,
           typename TimePolicyType,
@@ -43,7 +44,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
  , sessionID_ (0)
  , isActive_ (isActive_in)
  , condition_ (lock_)
- , currentNumThreads_ (STREAM_DEF_NUM_STREAM_HEAD_THREADS)
+ , currentNumThreads_ (STREAM_DEFAULT_NUM_STREAM_HEAD_THREADS)
  , queue_ (STREAM_MAX_QUEUE_SLOTS)
  , autoStart_ (autoStart_in)
 // , userData_ ()
@@ -327,10 +328,10 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
   // step1: send initial session message downstream...
   if (!putSessionMessage (sessionID_,
-                          Stream_SessionMessage::MB_STREAM_SESSION_BEGIN,
+                          SESSION_BEGIN,
                           userData_,
-                          COMMON_TIME_POLICY(), // timestamp: start of session
-                          false))               // N/A
+                          COMMON_TIME_POLICY (), // timestamp: start of session
+                          false))                // N/A
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, aborting\n")));
@@ -361,7 +362,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
       // step3: send final session message downstream...
       if (!putSessionMessage (sessionID_,
-                              Stream_SessionMessage::MB_STREAM_SESSION_END,
+                              SESSION_END,
                               userData_,
                               ACE_Time_Value::zero, // N/A
                               true))                // ALWAYS a user abort...
@@ -391,7 +392,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
   // step3: send final session message downstream...
   if (!putSessionMessage (sessionID_,
-                          Stream_SessionMessage::MB_STREAM_SESSION_END,
+                          SESSION_END,
                           userData_,
                           ACE_Time_Value::zero, // N/A
                           false))               // N/A
@@ -625,7 +626,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             DataType,
                             SessionConfigurationType,
                             SessionMessageType,
-                            ProtocolMessageType>::onStateChange (const Control_StateType& newState_in)
+                            ProtocolMessageType>::onStateChange (Control_StateType newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onStateChange"));
 
@@ -664,7 +665,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         thread_ids[0] = 0;
         char thread_name[BUFSIZ];
         ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-        ACE_OS::strcpy (thread_name, STREAM_DEF_HANDLER_THREAD_NAME);
+        ACE_OS::strcpy (thread_name, STREAM_DEFAULT_HANDLER_THREAD_NAME);
         const char* thread_names[1];
         thread_names[0] = thread_name;
         if (inherited::activate ((THR_NEW_LWP      |
@@ -691,7 +692,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       {
         // send initial session message downstream...
         if (!putSessionMessage (sessionID_,
-                                Stream_SessionMessage::MB_STREAM_SESSION_BEGIN,
+                                SESSION_BEGIN,
                                 userData_,
                                 COMMON_TIME_POLICY (), // timestamp: start of session
                                 false))                // N/A
@@ -757,7 +758,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       {
         // send final session message downstream...
         if (!putSessionMessage (sessionID_,
-                                Stream_SessionMessage::MB_STREAM_SESSION_END,
+                                SESSION_END,
                                 userData_,
                                 ACE_Time_Value::zero, // N/A
                                 false))               // N/A
@@ -831,7 +832,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             SessionConfigurationType,
                             SessionMessageType,
                             ProtocolMessageType>::putSessionMessage (unsigned int sessionID_in,
-                                                                     const Stream_SessionMessageType& messageType_in,
+                                                                     Stream_SessionMessageType_t messageType_in,
                                                                      SessionConfigurationType*& configuration_inout,
                                                                      Stream_IAllocator* allocator_in) const
 {
@@ -913,7 +914,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             SessionConfigurationType,
                             SessionMessageType,
                             ProtocolMessageType>::putSessionMessage (unsigned int sessionID_in,
-                                                                     const Stream_SessionMessageType& messageType_in,
+                                                                     Stream_SessionMessageType_t messageType_in,
                                                                      const DataType& userData_in,
                                                                      const ACE_Time_Value& startOfSession_in,
                                                                      bool userAbort_in) const
@@ -926,14 +927,14 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   // switch
   switch (messageType_in)
   {
-    case Stream_SessionMessage::MB_STREAM_SESSION_BEGIN:
-    case Stream_SessionMessage::MB_STREAM_SESSION_STEP:
-    case Stream_SessionMessage::MB_STREAM_SESSION_END:
+    case SESSION_BEGIN:
+    case SESSION_STEP:
+    case SESSION_END:
     {
       ACE_NEW_NORETURN (configuration_p,
                         SessionConfigurationType (userData_in,
-                                           startOfSession_in,
-                                           userAbort_in));
+                                                  startOfSession_in,
+                                                  userAbort_in));
       if (!configuration_p)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -944,7 +945,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
       break;
     }
-    case Stream_SessionMessage::MB_STREAM_SESSION_STATISTICS:
+    case SESSION_STATISTICS:
     default:
     {
       ACE_DEBUG ((LM_ERROR,

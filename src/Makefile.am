@@ -38,6 +38,7 @@ include_HEADERS = \
   stream_messagequeue_base.inl \
   stream_module_base.h \
   stream_module_base.inl \
+  stream_resetcounterhandler.h \
   stream_session_configuration.h \
   stream_session_configuration_base.h \
   stream_session_configuration_base.inl \
@@ -110,6 +111,8 @@ libACEStream_la_SOURCES = \
   stream_module_base.cpp \
   stream_module_base.inl \
   stream_module_base.h \
+  stream_resetcounterhandler.cpp \
+  stream_resetcounterhandler.h \
   stream_session_configuration.cpp \
   stream_session_configuration.h \
   stream_session_configuration_base.cpp \

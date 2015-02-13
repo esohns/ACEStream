@@ -19,4 +19,49 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_statistichandler.h"
+#include "stream_resetcounterhandler.h"
+
+#include "ace/Log_Msg.h"
+
+#include "common_icounter.h"
+
+#include "stream_macros.h"
+
+Stream_ResetCounterHandler::Stream_ResetCounterHandler (Common_ICounter* counter_in)
+ : inherited (NULL,                           // no reactor
+              ACE_Event_Handler::LO_PRIORITY) // priority
+ , counter_ (counter_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_ResetCounterHandler::Stream_ResetCounterHandler"));
+
+}
+
+Stream_ResetCounterHandler::~Stream_ResetCounterHandler ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_ResetCounterHandler::~Stream_ResetCounterHandler"));
+
+}
+
+int
+Stream_ResetCounterHandler::handle_timeout (const ACE_Time_Value& tv_in,
+                                            const void* arg_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_ResetCounterHandler::handle_timeout"));
+
+  ACE_UNUSED_ARG (tv_in);
+  ACE_UNUSED_ARG (arg_in);
+
+  try
+  {
+    counter_->reset ();
+  }
+  catch (...)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught an exception in Common_ICounter::reset() --> check implementation !, continuing\n")));
+
+    // *TODO*: what else can we do ?
+  }
+
+  return 0;
+}

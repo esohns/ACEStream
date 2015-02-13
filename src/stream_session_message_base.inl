@@ -23,23 +23,21 @@
 
 #include "stream_macros.h"
 
-#include "stream_message_base.h"
-
 template <typename ConfigurationType>
 Stream_SessionMessageBase_T<ConfigurationType>::Stream_SessionMessageBase_T (unsigned int sessionID_in,
-                                                                             Stream_SessionMessageType& messageType_in,
+                                                                             Stream_SessionMessageType_t messageType_in,
                                                                              ConfigurationType*& configuration_inout)
- : inherited (0,                                     // size
-              Stream_MessageBase::MB_STREAM_SESSION, // type
-              NULL,                                  // continuation
-              NULL,                                  // data
-              NULL,                                  // buffer allocator
-              NULL,                                  // locking strategy
-              ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,    // priority
-              ACE_Time_Value::zero,                  // execution time
-              ACE_Time_Value::max_time,              // deadline time
-              NULL,                                  // data block allocator
-              NULL)                                  // message block allocator
+ : inherited (0,                                  // size
+              STREAM_SESSION_MAP,                 // type
+              NULL,                               // continuation
+              NULL,                               // data
+              NULL,                               // buffer allocator
+              NULL,                               // locking strategy
+              ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+              ACE_Time_Value::zero,               // execution time
+              ACE_Time_Value::max_time,           // deadline time
+              NULL,                               // data block allocator
+              NULL)                               // message block allocator
  , configuration_ (configuration_inout)
  , sessionID_ (sessionID_in)
  , messageType_ (messageType_in)
@@ -56,7 +54,7 @@ Stream_SessionMessageBase_T<ConfigurationType>::Stream_SessionMessageBase_T (ACE
  : inherited (messageAllocator_in) // message block allocator
  , configuration_ (NULL)
  , sessionID_ (0)
- , messageType_ (Stream_SessionMessage::MB_BEGIN_STREAM_SESSION_MAP) // == Stream_MessageBase::MB_STREAM_SESSION
+ , messageType_ (STREAM_SESSION_MAP)
  , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
@@ -78,14 +76,14 @@ Stream_SessionMessageBase_T<ConfigurationType>::Stream_SessionMessageBase_T (ACE
               messageAllocator_in) // re-use the same allocator
  , configuration_ (NULL)
  , sessionID_ (0)
- , messageType_ (Stream_SessionMessage::MB_BEGIN_STREAM_SESSION_MAP) // == Stream_MessageBase::MB_STREAM_SESSION
+ , messageType_ (STREAM_SESSION_MAP) // == Stream_MessageBase::MB_STREAM_SESSION
  , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
   // set correct message type
   // *WARNING*: need to finalize initialization through init() !
-  msg_type (Stream_MessageBase::MB_STREAM_SESSION);
+  msg_type (STREAM_SESSION_MAP);
 
   // reset read/write pointers
   reset ();
@@ -96,10 +94,10 @@ Stream_SessionMessageBase_T<ConfigurationType>::Stream_SessionMessageBase_T (con
  : inherited (message_in.data_block_->duplicate(), // make a "shallow" copy of the data block
               0,                                   // "own" the duplicate
               message_in.message_block_allocator_) // message allocator
- , configuration_ (message_in.myConfig)
- , sessionID_ (message_in.myID)
- , messageType_ (message_in.myMessageType)
- , isInitialized_ (message_in.myIsInitialized)
+ , configuration_ (message_in.configuration_)
+ , sessionID_ (message_in.sessionID_)
+ , messageType_ (message_in.messageType_)
+ , isInitialized_ (message_in.isInitialized_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
@@ -118,7 +116,7 @@ Stream_SessionMessageBase_T<ConfigurationType>::~Stream_SessionMessageBase_T ()
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::~Stream_SessionMessageBase_T"));
 
   sessionID_ = 0;
-  messageType_ = Stream_SessionMessage::MB_BEGIN_STREAM_SESSION_MAP; // == RPG_Stream_MessageBase::MB_STREAM_SESSION
+  messageType_ = STREAM_SESSION_MAP; // == Stream_MessageBase::MB_STREAM_SESSION
 
   // clean up
   if (configuration_)
@@ -137,7 +135,7 @@ Stream_SessionMessageBase_T<ConfigurationType>::getID () const
 }
 
 template <typename ConfigurationType>
-Stream_SessionMessageType
+Stream_SessionMessageType_t
 Stream_SessionMessageBase_T<ConfigurationType>::getType () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::getType"));
@@ -152,35 +150,6 @@ Stream_SessionMessageBase_T<ConfigurationType>::getConfiguration () const
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::getConfiguration"));
 
   return configuration_;
-}
-
-template <typename ConfigurationType>
-void
-Stream_SessionMessageBase_T<ConfigurationType>::dump_state () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::dump_state"));
-
-  std::string type_string;
-  Stream_SessionMessage::SessionMessageType2String(messageType_,
-                                                   type_string);
-
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("session (ID: %u) message type: \"%s\"\n"),
-              sessionID_,
-              ACE_TEXT (type_string.c_str ())));
-
-  if (configuration_)
-  {
-    try
-    {
-      configuration_->dump_state ();
-    }
-    catch (...)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_SessionConfigurationBase::dump_state(), continuing")));
-    }
-  } // end IF
 }
 
 template <typename ConfigurationType>
@@ -238,14 +207,14 @@ Stream_SessionMessageBase_T<ConfigurationType>::duplicate (void) const
 template <typename ConfigurationType>
 void
 Stream_SessionMessageBase_T<ConfigurationType>::init(unsigned int sessionID_in,
-                                                     Stream_SessionMessageType& messageType_in,
+                                                     Stream_SessionMessageType_t messageType_in,
                                                      ConfigurationType*& configuration_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::init"));
 
   ACE_ASSERT (!isInitialized_);
   ACE_ASSERT (sessionID_ == 0);
-  ACE_ASSERT (messageType_ == Stream_SessionMessage::MB_BEGIN_STREAM_SESSION_MAP), // == Stream_MessageBase::MB_STREAM_SESSION
+  ACE_ASSERT (messageType_ == STREAM_SESSION_MAP);
   ACE_ASSERT (configuration_ == NULL);
 
   sessionID_ = sessionID_in;
@@ -257,4 +226,80 @@ Stream_SessionMessageBase_T<ConfigurationType>::init(unsigned int sessionID_in,
 
   // OK !
   isInitialized_ = true;
+}
+
+template <typename ConfigurationType>
+void
+Stream_SessionMessageBase_T<ConfigurationType>::dump_state () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::dump_state"));
+
+  std::string type_string;
+  SessionMessageType2String (messageType_,
+                             type_string);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("session (ID: %u) message type: \"%s\"\n"),
+              sessionID_,
+              ACE_TEXT (type_string.c_str ())));
+
+  if (configuration_)
+  {
+    try
+    {
+      configuration_->dump_state ();
+    }
+    catch (...)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in SessionConfiguration::dump_state(), continuing")));
+    }
+  } // end IF
+}
+
+template <typename ConfigurationType>
+void
+Stream_SessionMessageBase_T<ConfigurationType>::SessionMessageType2String (Stream_SessionMessageType_t messageType_in,
+                                                                           std::string& string_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::SessionMessageType2String"));
+
+  // init return value(s)
+  string_out = ACE_TEXT ("INVALID_TYPE");
+
+  switch (messageType_in)
+  {
+    case SESSION_BEGIN:
+    {
+      string_out = ACE_TEXT ("SESSION_BEGIN");
+
+      break;
+    }
+    case SESSION_STEP:
+    {
+      string_out = ACE_TEXT ("SESSION_STEP");
+
+      break;
+    }
+    case SESSION_END:
+    {
+      string_out = ACE_TEXT ("SESSION_END");
+
+      break;
+    }
+    case SESSION_STATISTICS:
+    {
+      string_out = ACE_TEXT ("SESSION_STATISTICS");
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown message type: \"%u\", aborting\n"),
+                  messageType_in));
+
+      break;
+    }
+  } // end SWITCH
 }

@@ -33,6 +33,21 @@
 #include "stream_exports.h"
 #include "stream_messageallocatorheap.h"
 
+enum Stream_MessageType_t
+{
+  // *NOTE*: see <ace/Message_Block.h> for details...
+  MESSAGE_SESSION_MAP = ACE_Message_Block::MB_USER,
+  // *** STREAM CONTROL ***
+  MESSAGE_SESSION,
+  // *** STREAM CONTROL - END ***
+  MESSAGE_DATA_MAP = 0x300,
+  // *** STREAM DATA ***
+  MESSAGE_DATA,   // protocol data
+  MESSAGE_OBJECT, // OO type --> can be downcast dynamically
+  // *** STREAM DATA - END ***
+  MESSAGE_PROTOCOL_MAP = 0x400
+};
+
 // forward declaratation(s)
 class ACE_Allocator;
 
@@ -45,22 +60,6 @@ class Stream_Export Stream_MessageBase
 //   friend class Stream_MessageAllocatorHeapBase<arg1, arg2>;
 
  public:
-  // message types
-  enum MessageType
-  {
-    // *NOTE*: see <ace/Message_Block.h> for details...
-    MB_BEGIN_STREAM_SESSION_MAP = ACE_Message_Block::MB_USER,
-    // *** STREAM CONTROL ***
-    MB_STREAM_SESSION,
-    // *** STREAM CONTROL - END ***
-    MB_BEGIN_STREAM_DATA_MAP = 0x300,
-    // *** STREAM DATA ***
-    MB_STREAM_DATA, // protocol data
-    MB_STREAM_OBJ,  // OO type --> can be downcast dynamically
-    // *** STREAM DATA - END ***
-    MB_BEGIN_PROTOCOL_MAP = 0x400
-  };
-
   virtual ~Stream_MessageBase ();
 
   // info
@@ -108,8 +107,5 @@ class Stream_Export Stream_MessageBase
 
   unsigned int messageID_;
 };
-
-// convenient types
-typedef Stream_MessageBase::MessageType Stream_MessageType;
 
 #endif

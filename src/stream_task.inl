@@ -161,11 +161,11 @@ Stream_Task_T<TaskSynchStrategyType,
   // session...
   switch (message_inout->getType ())
   {
-    case Stream_SessionMessage::MB_STREAM_SESSION_STEP:
+    case SESSION_STEP:
       break;
-    case Stream_SessionMessage::MB_STREAM_SESSION_BEGIN:
+    case SESSION_BEGIN:
       break;
-    case Stream_SessionMessage::MB_STREAM_SESSION_END:
+    case SESSION_END:
     {
       try
       {
@@ -184,7 +184,7 @@ Stream_Task_T<TaskSynchStrategyType,
 
       break;
     }
-    case Stream_SessionMessage::MB_STREAM_SESSION_STATISTICS:
+    case SESSION_STATISTICS:
       break;
     default:
     {
@@ -257,8 +257,8 @@ Stream_Task_T<TaskSynchStrategyType,
   switch (mb_in->msg_type ())
   {
     // DATA handling
-    case Stream_MessageBase::MB_STREAM_DATA:
-    case Stream_MessageBase::MB_STREAM_OBJ:
+    case MESSAGE_DATA:
+    case MESSAGE_OBJECT:
     {
       Stream_MessageBase* message = NULL;
       // downcast message
@@ -382,7 +382,7 @@ Stream_Task_T<TaskSynchStrategyType,
   switch (controlMessage_in->msg_type ())
   {
     // currently, we only use these...
-    case Stream_MessageBase::MB_STREAM_SESSION:
+    case MESSAGE_SESSION:
     {
       Stream_SessionMessage* session_message = NULL;
       // downcast message
@@ -426,7 +426,7 @@ Stream_Task_T<TaskSynchStrategyType,
 
       // *NOTE*: if this was a RPG_Stream_SessionMessage::MB_STREAM_SESSION_END, we need to
       // stop processing (see above) !
-      if (session_message->getType () == Stream_SessionMessage::MB_STREAM_SESSION_END)
+      if (session_message->getType () == SESSION_END)
       {
         // OK: tell worker thread to stop whatever it's doing ASAP...
         stopProcessing_out = true;

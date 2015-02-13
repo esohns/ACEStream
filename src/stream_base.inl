@@ -126,20 +126,20 @@ Stream_Base_T<TaskSynchType,
   {
     // *NOTE*: fini() invokes close() which will reset the writer/reader tasks
     // of the enqueued modules --> reset this !
-    IMODULE_TYPE* imodule_handle = NULL;
-    MODULE_TYPE* module = NULL;
+    Stream_IModule_t* imodule_handle = NULL;
+    Stream_Module_t* module = NULL;
     // *NOTE*: cannot write this - it confuses gcc...
     //   for (MODULE_CONTAINER_TYPE::const_iterator iter = myAvailableModules.begin();
-    for (ACE_DLList_Iterator<MODULE_TYPE> iterator (availableModules_);
+    for (ACE_DLList_Iterator<Stream_Module_t> iterator (availableModules_);
          iterator.next (module);
          iterator.advance ())
     {
       // need a downcast...
-      imodule_handle = dynamic_cast<IMODULE_TYPE*> (module);
+      imodule_handle = dynamic_cast<Stream_IModule_t*> (module);
       if (!imodule_handle)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<RPG_Stream_IModule> failed, aborting\n"),
+                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
                     ACE_TEXT (module->name ())));
 
         return false;
@@ -151,7 +151,7 @@ Stream_Base_T<TaskSynchType,
       catch (...)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught exception in RPG_Stream_IModule::reset(), continuing\n")));
+                    ACE_TEXT ("caught exception in Stream_IModule::reset(), continuing\n")));
       }
     } // end FOR
   } // end IF
@@ -242,8 +242,7 @@ Stream_Base_T<TaskSynchType,
   } // end IF
 
   // delegate to the head module
-  MODULE_TYPE* module = NULL;
-  module = inherited::head ();
+  Stream_Module_t* module = inherited::head ();
   if (!module)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -324,8 +323,7 @@ Stream_Base_T<TaskSynchType,
   } // end IF
 
   // delegate to the head module, skip over ACE_Stream_Head...
-  MODULE_TYPE* module = NULL;
-  module = inherited::head ();
+  Stream_Module_t* module = inherited::head ();
   if (!module)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -407,8 +405,7 @@ Stream_Base_T<TaskSynchType,
   } // end IF
 
   // delegate to the head module
-  MODULE_TYPE* module = NULL;
-  module = inherited::head ();
+  Stream_Module_t* module = inherited::head ();
   if (!module)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -487,8 +484,7 @@ Stream_Base_T<TaskSynchType,
   } // end IF
 
   // delegate to the head module
-  MODULE_TYPE* module = NULL;
-  module = inherited::head ();
+  Stream_Module_t* module = inherited::head ();
   if (!module)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -564,7 +560,7 @@ Stream_Base_T<TaskSynchType,
   // step2: wait for any pipelined messages to flush...
 
   // step1: get head module, skip over ACE_Stream_Head
-  STREAM_ITERATOR_TYPE iterator (*this);
+  Stream_StreamIterator_t iterator (*this);
   if (iterator.advance () == 0)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -572,7 +568,7 @@ Stream_Base_T<TaskSynchType,
 
     return;
   } // end IF
-  const MODULE_TYPE* module = NULL;
+  const Stream_Module_t* module = NULL;
   if (iterator.next (module) == 0)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -588,15 +584,15 @@ Stream_Base_T<TaskSynchType,
   if (module == inherited::tail ())
     return;
 
-  MODULE_STACK_T module_stack;
-  module_stack.push_front (const_cast<MODULE_TYPE*> (module));
+  Stream_Modules_t modules;
+  modules.push_front (const_cast<Stream_Module_t*> (module));
   // need to downcast
-  HEADMODULETASK_BASETYPE* head_task = NULL;
-  head_task = dynamic_cast<HEADMODULETASK_BASETYPE*> (const_cast<MODULE_TYPE*> (module)->writer ());
+  Stream_HeadModuleTask_t* head_task = NULL;
+  head_task = dynamic_cast<Stream_HeadModuleTask_t*> (const_cast<Stream_Module_t*> (module)->writer ());
   if (!head_task)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<RPG_Stream_HeadModuleTaskBase> failed, returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_HeadModuleTask_t> failed, returning\n"),
                 ACE_TEXT (module->name ())));
 
     return;
@@ -610,7 +606,7 @@ Stream_Base_T<TaskSynchType,
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in RPG_Stream_IStreamControl::waitForCompletion (module: \"%s\"), returning\n"),
+                ACE_TEXT ("caught exception in Stream_IStreamControl::waitForCompletion (module: \"%s\"), returning\n"),
                 ACE_TEXT (module->name ())));
 
     return;
@@ -624,9 +620,9 @@ Stream_Base_T<TaskSynchType,
     if (module == inherited::tail ())
       continue;
 
-    module_stack.push_front (const_cast<MODULE_TYPE*> (module));
+    modules.push_front (const_cast<Stream_Module_t*> (module));
     // OK: got a handle... wait
-    if (const_cast<MODULE_TYPE*> (module)->writer ()->wait () == -1)
+    if (const_cast<Stream_Module_t*> (module)->writer ()->wait () == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
 
@@ -634,8 +630,8 @@ Stream_Base_T<TaskSynchType,
   } // end FOR
 
   // step2: wait for any pipelined messages to flush...
-  for (MODULE_STACKITERATOR_T iterator2 = module_stack.begin ();
-       iterator2 != module_stack.end ();
+  for (Stream_ModulesIterator_t iterator2 = modules.begin ();
+       iterator2 != modules.end ();
        iterator2++)
     if ((*iterator2)->reader ()->wait () == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -659,7 +655,7 @@ Stream_Base_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isRunning"));
 
   // delegate to the head module, skip over ACE_Stream_Head...
-  MODULE_TYPE* module = const_cast<own_type*> (this)->head ();
+  Stream_Module_t* module = const_cast<own_type*> (this)->head ();
   if (!module)
   {
     // *IMPORTANT NOTE*: this happens when no modules have been pushed onto the
@@ -730,10 +726,10 @@ Stream_Base_T<TaskSynchType,
 
   std::string stream_layout;
 
-  const MODULE_TYPE* module = NULL;
-  for (STREAM_ITERATOR_TYPE iter (*this);
-       (iter.next (module) != 0);
-       iter.advance ())
+  const Stream_Module_t* module = NULL;
+  for (Stream_StreamIterator_t iterator (*this);
+       (iterator.next (module) != 0);
+       iterator.advance ())
   {
     // silently ignore ACE head/tail modules...
     if ((module == const_cast<own_type*> (this)->tail ()) ||
@@ -743,7 +739,7 @@ Stream_Base_T<TaskSynchType,
     stream_layout.append (ACE_TEXT_ALWAYS_CHAR (module->name ()));
 
     // avoid trailing "-->"...
-    if (const_cast<MODULE_TYPE*> (module)->next () !=
+    if (const_cast<Stream_Module_t*> (module)->next () !=
         const_cast<own_type*> (this)->tail ())
       stream_layout += ACE_TEXT_ALWAYS_CHAR (" --> ");
 
@@ -795,7 +791,7 @@ Stream_Base_T<TaskSynchType,
   // --> possible scenarios:
   // - (re-)init() failed halfway through (i.e. MAYBE some modules push()ed
   //   correctly)
-  MODULE_TYPE* module = NULL;
+  Stream_Module_t* module = NULL;
   if (!isInitialized_)
   {
     // sanity check: successfully pushed() ANY modules ?
@@ -821,7 +817,7 @@ Stream_Base_T<TaskSynchType,
   //   ACE_DEBUG ((LM_DEBUG,
   //               ACE_TEXT ("deactivating offline module(s)...\n")));
 
-  for (ACE_DLList_Iterator<MODULE_TYPE> iterator (availableModules_);
+  for (ACE_DLList_Iterator<Stream_Module_t> iterator (availableModules_);
        (iterator.next (module) != 0);
        iterator.advance ())
   {
@@ -885,10 +881,10 @@ Stream_Base_T<TaskSynchType,
   ACE_OS::memset (&data, 0, sizeof (DataType));
 
   // create session config
-  SessionConfigurationType* session_config = NULL;
-  ACE_NEW_NORETURN (session_config,
+  SessionConfigurationType* configuration_p = NULL;
+  ACE_NEW_NORETURN (configuration_p,
                     SessionConfigurationType (data));
-  if (!session_config)
+  if (!configuration_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to allocate RPG_Stream_SessionConfig: \"%m\", returning\n")));
@@ -910,17 +906,17 @@ Stream_Base_T<TaskSynchType,
                   ACE_TEXT ("caught exception in RPG_Stream_IAllocator::malloc(0), returning\n")));
 
       // clean up
-      session_config->decrease ();
+      configuration_p->decrease ();
 
       return;
     }
   }
   else
-  { // *NOTE*: session message assumes responsibility for session_config !
+  { // *NOTE*: session message assumes responsibility for configuration_p !
     ACE_NEW_NORETURN (message,
                       SessionMessageType (0, // N/A
-                                          Stream_SessionMessage::MB_STREAM_SESSION_END,
-                                          session_config));
+                                          SESSION_END,
+                                          configuration_p));
   } // end ELSE
 
   if (!message)
@@ -929,15 +925,15 @@ Stream_Base_T<TaskSynchType,
                 ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", returning\n")));
 
     // clean up
-    session_config->decrease ();
+    configuration_p->decrease ();
 
     return;
   } // end IF
   if (allocator_)
   { // *NOTE*: session message assumes responsibility for session_config !
     message->init (0, // N/A
-                   Stream_SessionMessage::MB_STREAM_SESSION_END,
-                   session_config);
+                   SESSION_END,
+                   configuration_p);
   } // end IF
 
   // pass message downstream...
