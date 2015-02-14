@@ -31,13 +31,13 @@
 #include "stream_exports.h"
 #include "stream_messageallocatorheap.h"
 #include "stream_session_message_base.h"
-#include "stream_session_configuration.h"
+#include "stream_session_data.h"
 
 // forward declaratation(s)
 class ACE_Allocator;
 
 class Stream_Export Stream_SessionMessage
- : public Stream_SessionMessageBase_T<Stream_SessionConfiguration>
+ : public Stream_SessionMessageBase_T<Stream_SessionData>
 {
   // need access to specific ctors
   friend class Stream_MessageAllocatorHeap;
@@ -45,16 +45,16 @@ class Stream_Export Stream_SessionMessage
 
  public:
   // *NOTE*: assume lifetime responsibility for the second argument !
-  Stream_SessionMessage (unsigned int,                   // session ID
-                         Stream_SessionMessageType_t,    // session message type
-                         Stream_SessionConfiguration*&); // config handle
+  Stream_SessionMessage (unsigned int,                // session ID
+                         Stream_SessionMessageType_t, // session message type
+                         Stream_SessionData*&);       // session data handle
   virtual ~Stream_SessionMessage ();
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Stream_SessionConfiguration> inherited;
+  typedef Stream_SessionMessageBase_T<Stream_SessionData> inherited;
 
   // copy ctor to be used by duplicate()
   Stream_SessionMessage (const Stream_SessionMessage&);

@@ -40,7 +40,7 @@ class Stream_IAllocator;
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 class Stream_Base_T
@@ -117,7 +117,7 @@ class Stream_Base_T
   typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
                                       TimePolicyType,
                                       DataType,
-                                      SessionConfigurationType,
+                                      SessionDataType,
                                       SessionMessageType,
                                       ProtocolMessageType> Stream_HeadModuleTask_t;
 
@@ -127,7 +127,7 @@ class Stream_Base_T
   typedef Stream_Base_T<TaskSynchType,
                         TimePolicyType,
                         DataType,
-                        SessionConfigurationType,
+                        SessionDataType,
                         SessionMessageType,
                         ProtocolMessageType> own_type;
 

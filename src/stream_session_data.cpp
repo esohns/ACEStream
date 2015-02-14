@@ -27,53 +27,53 @@
 #include "stream_macros.h"
 #include "stream_tools.h"
 
-Stream_SessionConfiguration::Stream_SessionConfiguration(const void* data_in,
-                                                         const ACE_Time_Value& startOfSession_in,
-                                                         bool userAbort_in)
+Stream_SessionData::Stream_SessionData (const void* data_in,
+                                        const ACE_Time_Value& startOfSession_in,
+                                        bool userAbort_in)
  : inherited (1,    // initial count
               true) // delete on zero ?
- , userData_ (data_in)
  , startOfSession_ (startOfSession_in)
  , userAbort_ (userAbort_in)
+ , userData_ (data_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::Stream_SessionConfiguration"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData::Stream_SessionData"));
 
 }
 
-Stream_SessionConfiguration::~Stream_SessionConfiguration ()
+Stream_SessionData::~Stream_SessionData ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::~Stream_SessionConfiguration"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData::~Stream_SessionData"));
 
 }
 
 const void*
-Stream_SessionConfiguration::getUserData () const
+Stream_SessionData::getUserData () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::getUserData"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData::getUserData"));
 
   return userData_;
 }
 
 ACE_Time_Value
-Stream_SessionConfiguration::getStartOfSession () const
+Stream_SessionData::getStartOfSession () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::getStartOfSession"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData::getStartOfSession"));
 
   return startOfSession_;
 }
 
 bool
-Stream_SessionConfiguration::getUserAbort () const
+Stream_SessionData::getUserAbort () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::getUserAbort"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData::getUserAbort"));
 
   return userAbort_;
 }
 
 void
-Stream_SessionConfiguration::dump_state () const
+Stream_SessionData::dump_state () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfiguration::dump_state"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData::dump_state"));
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("user data: %@, start of session: %s%s\n"),

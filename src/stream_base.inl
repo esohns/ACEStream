@@ -22,20 +22,20 @@
 
 #include "stream_macros.h"
 
-#include "stream_session_configuration_base.h"
+#include "stream_session_data_base.h"
 #include "stream_session_message_base.h"
 #include "stream_iallocator.h"
 
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::Stream_Base_T ()
 // *TODO*: use default ctor and rely on init/fini() ?
@@ -52,13 +52,13 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::~Stream_Base_T ()
 {
@@ -69,14 +69,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::reset ()
 {
@@ -109,14 +109,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::init ()
 {
@@ -179,14 +179,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::fini ()
 {
@@ -219,14 +219,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::start ()
 {
@@ -275,7 +275,7 @@ Stream_Base_T<TaskSynchType,
   if (!control_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<RPG_Stream_IStreamControl> failed, returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
                 ACE_TEXT (module->name ())));
 
     return;
@@ -288,7 +288,7 @@ Stream_Base_T<TaskSynchType,
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in RPG_Stream_IStreamControl::start (module: \"%s\"), returning\n"),
+                ACE_TEXT ("caught exception in Stream_IStreamControl::start (module: \"%s\"), returning\n"),
                 ACE_TEXT (module->name ())));
 
     return;
@@ -298,14 +298,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::stop (bool lockedAccess_in)
 {
@@ -359,7 +359,7 @@ Stream_Base_T<TaskSynchType,
   if (!control_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<RPG_Stream_IStreamControl> failed, returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
                 ACE_TEXT (module->name ())));
 
     return;
@@ -372,7 +372,7 @@ Stream_Base_T<TaskSynchType,
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in RPG_Stream_IStreamControl::stop (module: \"%s\"), returning\n"),
+                ACE_TEXT ("caught exception in Stream_IStreamControl::stop (module: \"%s\"), returning\n"),
                 ACE_TEXT (module->name ())));
 
     return;
@@ -382,14 +382,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::pause ()
 {
@@ -438,7 +438,7 @@ Stream_Base_T<TaskSynchType,
   if (!control_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<RPG_Stream_IStreamControl> failed, returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
                 ACE_TEXT (module->name ())));
 
     return;
@@ -451,7 +451,7 @@ Stream_Base_T<TaskSynchType,
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in RPG_Stream_IStreamControl::pause (module: \"%s\"), returning\n"),
+                ACE_TEXT ("caught exception in Stream_IStreamControl::pause (module: \"%s\"), returning\n"),
                 ACE_TEXT (module->name ())));
 
     return;
@@ -461,14 +461,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::rewind ()
 {
@@ -542,14 +542,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::waitForCompletion ()
 {
@@ -587,9 +587,9 @@ Stream_Base_T<TaskSynchType,
   Stream_Modules_t modules;
   modules.push_front (const_cast<Stream_Module_t*> (module));
   // need to downcast
-  Stream_HeadModuleTask_t* head_task = NULL;
-  head_task = dynamic_cast<Stream_HeadModuleTask_t*> (const_cast<Stream_Module_t*> (module)->writer ());
-  if (!head_task)
+  Stream_HeadModuleTask_t* head_impl = NULL;
+  head_impl = dynamic_cast<Stream_HeadModuleTask_t*> (const_cast<Stream_Module_t*> (module)->writer ());
+  if (!head_impl)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_HeadModuleTask_t> failed, returning\n"),
@@ -601,7 +601,7 @@ Stream_Base_T<TaskSynchType,
   try
   {
     // wait for state switch (xxx --> FINISHED) / any worker(s)
-    head_task->waitForCompletion ();
+    head_impl->waitForCompletion ();
   }
   catch (...)
   {
@@ -641,14 +641,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::isRunning () const
 {
@@ -688,7 +688,7 @@ Stream_Base_T<TaskSynchType,
   if (!control_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<RPG_Stream_IStreamControl> failed, returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
                 ACE_TEXT (module->name ())));
 
     return false;
@@ -701,7 +701,7 @@ Stream_Base_T<TaskSynchType,
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in RPG_Stream_IStreamControl::isRunning (module: \"%s\"), aborting\n"),
+                ACE_TEXT ("caught exception in Stream_IStreamControl::isRunning (module: \"%s\"), aborting\n"),
                 ACE_TEXT (module->name ())));
   }
 
@@ -711,14 +711,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::dump_state () const
 {
@@ -754,14 +754,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::isInitialized () const
 {
@@ -773,14 +773,14 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::shutdown ()
 {
@@ -863,82 +863,62 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               DataType,
-              SessionConfigurationType,
+              SessionDataType,
               SessionMessageType,
               ProtocolMessageType>::deactivateModules ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::deactivateModules"));
 
-  // create (dummy) user data
-  DataType data;
-  ACE_OS::memset (&data, 0, sizeof (DataType));
-
-  // create session config
-  SessionConfigurationType* configuration_p = NULL;
-  ACE_NEW_NORETURN (configuration_p,
-                    SessionConfigurationType (data));
-  if (!configuration_p)
+  // delegate to the head module
+  Stream_Module_t* module = inherited::head ();
+  if (!module)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to allocate RPG_Stream_SessionConfig: \"%m\", returning\n")));
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("no head module found, returning\n")));
+
+    return;
+  } // end IF
+  // skip over ACE_Stream_Head...
+  module = module->next ();
+  if (!module)
+  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("no head module found, returning\n")));
 
     return;
   } // end IF
 
-  // create MB_STREAM_SESSION_END session message
-  SessionMessageType* message = NULL;
-  if (allocator_)
+  // sanity check: head == tail ? --> no modules have been push()ed (yet) !
+  if (module == const_cast<own_type*> (this)->tail ())
   {
-    try
-    {
-      message = static_cast<SessionMessageType*> (allocator_->malloc (0)); // want a session message !
-    }
-    catch (...)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in RPG_Stream_IAllocator::malloc(0), returning\n")));
-
-      // clean up
-      configuration_p->decrease ();
-
-      return;
-    }
-  }
-  else
-  { // *NOTE*: session message assumes responsibility for configuration_p !
-    ACE_NEW_NORETURN (message,
-                      SessionMessageType (0, // N/A
-                                          SESSION_END,
-                                          configuration_p));
-  } // end ELSE
-
-  if (!message)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", returning\n")));
-
-    // clean up
-    configuration_p->decrease ();
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
 
     return;
   } // end IF
-  if (allocator_)
-  { // *NOTE*: session message assumes responsibility for session_config !
-    message->init (0, // N/A
-                   SESSION_END,
-                   configuration_p);
+
+  Stream_HeadModuleTask_t* head_impl = NULL;
+  head_impl = dynamic_cast<Stream_HeadModuleTask_t*> (module->writer ());
+  if (!head_impl)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_HeadModuleTask_t> failed, returning\n"),
+                ACE_TEXT (module->name ())));
+
+    return false;
   } // end IF
 
   // pass message downstream...
-  if (inherited::put (message,
-                      NULL) == -1)
+  if (!head_impl->putSessionMessage (message,
+                                     SESSION_END,
+                                     head_impl->getUserData ()) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::put(): \"%m\", aborting\n")));

@@ -30,7 +30,6 @@
 #include "stream_statemachine_control.h"
 #include "stream_session_message.h"
 #include "stream_session_message_base.h"
-#include "stream_session_configuration_base.h"
 #include "stream_messagequeue.h"
 
 // forward declaration(s)
@@ -41,16 +40,16 @@ class Stream_IAllocator;
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename DataType,
-          typename SessionConfigurationType,
+          typename SessionDataType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 class Stream_HeadModuleTaskBase_T
  : public Stream_TaskBase_T<TaskSynchType,
                             TimePolicyType,
                             SessionMessageType,
-                            ProtocolMessageType>,
-   public Stream_IStreamControl,
-   public Stream_StateMachine_Control
+                            ProtocolMessageType>
+ , public Stream_IStreamControl
+ , public Stream_StateMachine_Control
 {
  public:
   virtual ~Stream_HeadModuleTaskBase_T ();
@@ -93,14 +92,14 @@ class Stream_HeadModuleTaskBase_T
   // *WARNING*: - handle with care -
   bool putSessionMessage (unsigned int,                                 // session ID
                           Stream_SessionMessageType_t,                  // session message type
-                          const DataType&,                              // data
+                          DataType*,                                    // data
                           const ACE_Time_Value& = ACE_Time_Value::zero, // start of session
                           bool = false) const;                          // user abort ?
   // *NOTE*: session message assumes lifetime responsibility for data
   // --> method implements a "fire-and-forget" strategy !
   bool putSessionMessage (unsigned int,                     // session ID
                           Stream_SessionMessageType_t,      // session message type
-                          SessionConfigurationType*&,       // configuration data
+                          SessionDataType*&,                // data
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
 
   // implement state machine callback
@@ -115,8 +114,8 @@ class Stream_HeadModuleTaskBase_T
 
   // *IMPORTANT NOTE*: children SHOULD set these during initialization !
   Stream_IAllocator*              allocator_;
-  unsigned int                    sessionID_;
   bool                            isActive_;
+  DataType*                       userData_;
 
  private:
   typedef Stream_TaskBase_T<TaskSynchType,
@@ -127,7 +126,7 @@ class Stream_HeadModuleTaskBase_T
   typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
                                       TimePolicyType,
                                       DataType,
-                                      SessionConfigurationType,
+                                      SessionDataType,
                                       SessionMessageType,
                                       ProtocolMessageType> own_type;
 
@@ -139,12 +138,11 @@ class Stream_HeadModuleTaskBase_T
   // allow blocking wait in waitForCompletion()
  // ACE_Recursive_Thread_Mutex                lock_;
   //ACE_Condition<ACE_Recursive_Thread_Mutex> condition_;
-  ACE_Thread_Mutex                lock_;
+  bool                            autoStart_;
   ACE_Condition<ACE_Thread_Mutex> condition_;
   unsigned int                    currentNumThreads_;
+  ACE_Thread_Mutex                lock_;
   Stream_MessageQueue             queue_;
-  bool                            autoStart_;
-  DataType                        userData_;
 };
 
 // include template implementation

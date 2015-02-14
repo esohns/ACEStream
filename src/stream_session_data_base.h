@@ -18,24 +18,26 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_SESSION_CONFIGURATION_H
-#define STREAM_SESSION_CONFIGURATION_H
+#ifndef STREAM_SESSION_DATA_BASE_H
+#define STREAM_SESSION_DATA_BASE_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Time_Value.h"
 
 #include "common_referencecounter_base.h"
 
-class Stream_SessionConfiguration
+template <typename DataType>
+class Stream_SessionDataBase_T
  : public Common_ReferenceCounterBase
 {
  public:
-  Stream_SessionConfiguration(const void*,                                  // user data
-                              const ACE_Time_Value& = ACE_Time_Value::zero, // "official" start of session
-                              bool = false);                                // session ended because of user abort ?
+  Stream_SessionDataBase_T (DataType*,                                    // user data
+                            const ACE_Time_Value& = ACE_Time_Value::zero, // "official" start of session
+                            bool = false);                                // session ended because of user abort ?
+  virtual ~Stream_SessionDataBase_T ();
 
   // info
-  const void* getUserData () const;
+  DataType* getUserData () const;
   ACE_Time_Value getStartOfSession () const;
   bool getUserAbort () const;
 
@@ -45,14 +47,16 @@ class Stream_SessionConfiguration
  private:
   typedef Common_ReferenceCounterBase inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionConfiguration ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionConfiguration (const Stream_SessionConfiguration&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionConfiguration& operator= (const Stream_SessionConfiguration&));
-  virtual ~Stream_SessionConfiguration ();
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T ());
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T (const Stream_SessionDataBase_T<DataType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T<DataType>& operator= (const Stream_SessionDataBase_T<DataType>&));
 
-  const void*    userData_;
   ACE_Time_Value startOfSession_;
   bool           userAbort_;
+  DataType*      userData_;
 };
+
+// include template implementation
+#include "stream_session_data_base.inl"
 
 #endif

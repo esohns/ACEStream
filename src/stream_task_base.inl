@@ -225,11 +225,11 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       try
       {
         // invoke specific implementation...
-        // *WARNING*: need to invoke our OWN implementation here, otherwise, the
+        // *IMPORTANT NOTE*: invoke OWN implementation here, otherwise, the
         // ld linker complains about a missing reference to
         // StreamITaskBase::handleDataMessage...
-        inherited2::handleDataMessage (message,
-                                       passMessageDownstream);
+        this->handleDataMessage (message,
+                                 passMessageDownstream);
       }
       catch (...)
       {

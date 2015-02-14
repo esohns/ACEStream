@@ -22,58 +22,58 @@
 #include "stream_tools.h"
 
 template <typename DataType>
-Stream_SessionConfigurationBase_T<DataType>::Stream_SessionConfigurationBase_T (const DataType& userData_in,
-                                                                                const ACE_Time_Value& startOfSession_in,
-                                                                                bool userAbort_in)
+Stream_SessionDataBase_T<DataType>::Stream_SessionDataBase_T (DataType* userData_in,
+                                                              const ACE_Time_Value& startOfSession_in,
+                                                              bool userAbort_in)
  : inherited (1,    // initial count
               true) // delete on zero ?
- , userData_ (userData_in)
  , startOfSession_ (startOfSession_in)
  , userAbort_ (userAbort_in)
+ , userData_ (userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::Stream_SessionConfigurationBase_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::Stream_SessionDataBase_T"));
 
 }
 
 template <typename DataType>
-Stream_SessionConfigurationBase_T<DataType>::~Stream_SessionConfigurationBase_T ()
+Stream_SessionDataBase_T<DataType>::~Stream_SessionDataBase_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::~Stream_SessionConfigurationBase_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::~Stream_SessionDataBase_T"));
 
 }
 
 template <typename DataType>
-DataType
-Stream_SessionConfigurationBase_T<DataType>::getUserData () const
+DataType*
+Stream_SessionDataBase_T<DataType>::getUserData () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::getUserData"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::getUserData"));
 
   return userData_;
 }
 
 template <typename DataType>
 ACE_Time_Value
-Stream_SessionConfigurationBase_T<DataType>::getStartOfSession () const
+Stream_SessionDataBase_T<DataType>::getStartOfSession () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::getStartOfSession"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::getStartOfSession"));
 
   return startOfSession_;
 }
 
 template <typename DataType>
 bool
-Stream_SessionConfigurationBase_T<DataType>::getUserAbort () const
+Stream_SessionDataBase_T<DataType>::getUserAbort () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::getUserAbort"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::getUserAbort"));
 
   return userAbort_;
 }
 
 template <typename DataType>
 void
-Stream_SessionConfigurationBase_T<DataType>::dump_state () const
+Stream_SessionDataBase_T<DataType>::dump_state () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionConfigurationBase_T::dump_state"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::dump_state"));
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("start of session: %s%s\n"),

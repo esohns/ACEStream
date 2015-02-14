@@ -2,7 +2,7 @@ ACLOCAL_AMFLAGS = \
   -I m4
 
 DEFS += \
-  -DLIBACESTREAM_BUILD_DLL=1 \
+  -DSTREAM_BUILD_DLL=1 \
   -DMETA_PACKAGE=\"@META_PACKAGE@\"
 
 AM_CPPFLAGS = \
@@ -15,10 +15,17 @@ include_HEADERS = \
   stream_allocatorheap.h \
   stream_base.h \
   stream_base.inl \
+  stream_cachedmessageallocatorheap_base.h \
+  stream_cachedmessageallocatorheap_base.inl \
+  stream_cachedmessageallocatorheap.h \
+  stream_cacheddatablockallocatorheap.h \
+  stream_cachedallocatorheap.h \
+  stream_common.h \
   stream_data_message_base.h \
   stream_data_message_base.inl \
   stream_datablockallocatorheap.h \
   stream_defines.h \
+  stream_exports.h \
   stream_headmoduletask.h \
   stream_headmoduletask_base.h \
   stream_headmoduletask_base.inl \
@@ -39,9 +46,9 @@ include_HEADERS = \
   stream_module_base.h \
   stream_module_base.inl \
   stream_resetcounterhandler.h \
-  stream_session_configuration.h \
-  stream_session_configuration_base.h \
-  stream_session_configuration_base.inl \
+  stream_session_data.h \
+  stream_session_data_base.h \
+  stream_session_data_base.inl \
   stream_session_message.h \
   stream_session_message_base.h \
   stream_session_message_base.inl \
@@ -60,13 +67,7 @@ include_HEADERS = \
   stream_task_base_synch.h \
   stream_task_base_synch.inl \
   stream_task_synch.h \
-  stream_tools.h \
-  stream_exports.h \
-  stream_cachedmessageallocatorheap_base.h \
-  stream_cachedmessageallocatorheap_base.inl \
-  stream_cachedmessageallocatorheap.h \
-  stream_cacheddatablockallocatorheap.h \
-  stream_cachedallocatorheap.h
+  stream_tools.h
 
 lib_LTLIBRARIES = libACEStream.la
 
@@ -78,12 +79,23 @@ libACEStream_la_SOURCES = \
   stream_base.cpp \
   stream_base.h \
   stream_base.inl \
+  stream_cachedmessageallocatorheap_base.h \
+  stream_cachedmessageallocatorheap_base.inl \
+  stream_cachedmessageallocatorheap_base.cpp \
+  stream_cachedmessageallocatorheap.h \
+  stream_cachedmessageallocatorheap.cpp \
+  stream_cacheddatablockallocatorheap.h \
+  stream_cacheddatablockallocatorheap.cpp \
+  stream_cachedallocatorheap.h \
+  stream_cachedallocatorheap.cpp \
+  stream_common.h \
   stream_data_message_base.cpp \
   stream_data_message_base.h \
   stream_data_message_base.inl \
   stream_datablockallocatorheap.cpp \
   stream_datablockallocatorheap.h \
   stream_defines.h \
+  stream_exports.h \
   stream_headmoduletask.cpp \
   stream_headmoduletask.h \
   stream_headmoduletask_base.cpp \
@@ -113,11 +125,11 @@ libACEStream_la_SOURCES = \
   stream_module_base.h \
   stream_resetcounterhandler.cpp \
   stream_resetcounterhandler.h \
-  stream_session_configuration.cpp \
-  stream_session_configuration.h \
-  stream_session_configuration_base.cpp \
-  stream_session_configuration_base.h \
-  stream_session_configuration_base.inl \
+  stream_session_data.cpp \
+  stream_session_data.h \
+  stream_session_data_base.cpp \
+  stream_session_data_base.h \
+  stream_session_data_base.inl \
   stream_session_message.cpp \
   stream_session_message.h \
   stream_session_message_base.cpp \
@@ -148,14 +160,4 @@ libACEStream_la_SOURCES = \
   stream_task_synch.cpp \
   stream_task_synch.h \
   stream_tools.cpp \
-  stream_tools.h \
-  stream_exports.h \
-  stream_cachedmessageallocatorheap_base.h \
-  stream_cachedmessageallocatorheap_base.inl \
-  stream_cachedmessageallocatorheap_base.cpp \
-  stream_cachedmessageallocatorheap.h \
-  stream_cachedmessageallocatorheap.cpp \
-  stream_cacheddatablockallocatorheap.h \
-  stream_cacheddatablockallocatorheap.cpp \
-  stream_cachedallocatorheap.h \
-  stream_cachedallocatorheap.cpp
+  stream_tools.h

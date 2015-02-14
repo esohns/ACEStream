@@ -36,7 +36,7 @@
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_MessageBase;
-class Stream_SessionConfiguration;
+class Stream_SessionData_t;
 class Stream_IAllocator;
 
 class Stream_HeadModuleTask
@@ -81,7 +81,7 @@ class Stream_HeadModuleTask
   // *WARNING*: - handle with care -
   bool putSessionMessage (unsigned int,                     // session ID
                           Stream_SessionMessageType_t,      // session message type
-                          Stream_SessionConfiguration*&,    // data
+                          Stream_SessionData_t*&,           // data
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
   // *NOTE*: session message assumes lifetime responsibility for data
   // --> method implements a "fire-and-forget" strategy !
@@ -106,7 +106,6 @@ class Stream_HeadModuleTask
 
   // *WARNING*: children need to set this during initialization !
   Stream_IAllocator*                        allocator_;
-  unsigned int                              sessionID_;
 
  private:
   typedef Stream_Task_T<ACE_MT_SYNCH,
