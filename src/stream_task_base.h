@@ -25,10 +25,7 @@
 
 #include "common_task_base.h"
 
-#include "stream_itask_base.h"
-
-// forward declaration(s)
-class Stream_MessageBase;
+#include "stream_itask.h"
 
 template <typename TaskSynchStrategyType,
           typename TimePolicyType,
@@ -37,24 +34,21 @@ template <typename TaskSynchStrategyType,
 class Stream_TaskBase_T
  : public Common_TaskBase_T<TaskSynchStrategyType,
                             TimePolicyType>
- , public Stream_ITaskBase_T<SessionMessageType,
-                             ProtocolMessageType>
+ , public Stream_ITask_T<SessionMessageType,
+                         ProtocolMessageType>
 {
  public:
   virtual ~Stream_TaskBase_T ();
 
-  // implement Stream_ITaskBase<SessionMessageType>
-  // *NOTE*: these are just default NOP implementations...
-  // *WARNING*: need to implement this one to shut up the compiler/linker about
-  // missing template declarations/instantiations...
-//   virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-//                                   bool&);                // return value: pass message downstream ?
+  // implement (part of) Stream_ITaskBase_T
+  // *NOTE*: these are just default (essentially NOP) implementations...
+  virtual bool initialize (const void*); // configuration handle
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass this message downstream ?
   virtual void handleProcessingError (const ACE_Message_Block* const); // message handle
 
   // implement Common_IDumpState
-  // *NOTE*: this is just a default stub...
+  // *NOTE*: this is just a stub implementation...
   virtual void dump_state () const;
 
  protected:
@@ -73,11 +67,11 @@ class Stream_TaskBase_T
  private:
   typedef Common_TaskBase_T<TaskSynchStrategyType,
                             TimePolicyType> inherited;
-  typedef Stream_ITaskBase_T<SessionMessageType,
-                             ProtocolMessageType> inherited2;
+  typedef Stream_ITask_T<SessionMessageType,
+                         ProtocolMessageType> inherited2;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T (const Stream_TaskBase_T&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator=(const Stream_TaskBase_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator= (const Stream_TaskBase_T&));
 };
 
 // include template implementation

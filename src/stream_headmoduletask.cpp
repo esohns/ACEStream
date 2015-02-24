@@ -28,16 +28,16 @@
 #include "stream_macros.h"
 #include "stream_defines.h"
 #include "stream_message_base.h"
-#include "stream_session_configuration.h"
+#include "stream_session_message.h"
 #include "stream_iallocator.h"
 
 Stream_HeadModuleTask::Stream_HeadModuleTask (bool autoStart_in)
  : allocator_ (NULL)
+ , autoStart_ (autoStart_in)
  , condition_ (lock_)
  , isFinished_ (true)
  , queue_ (STREAM_MAX_QUEUE_SLOTS)
- , autoStart_ (autoStart_in)
- , userData_ (NULL)
+ , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::Stream_HeadModuleTask"));
 
@@ -85,7 +85,7 @@ Stream_HeadModuleTask::open (void* args_in)
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::open"));
 
   // step0: init user data
-  userData_ = args_in;
+  sessionData_ = reinterpret_cast<Stream_SessionData_t*> (args_in);
 
   // step1: (re-)activate() our queue
   // *NOTE*: the first time around, our queue will have been open()ed
@@ -232,9 +232,8 @@ Stream_HeadModuleTask::svc (void)
   bool               stop_processing = false;
 
   // step1: send initial session message downstream...
-  if (!putSessionMessage (sessionID_,
-                          SESSION_BEGIN,
-                          userData_,
+  if (!putSessionMessage (SESSION_BEGIN,
+                          sessionData_,
                           COMMON_TIME_POLICY (), // start of session
                           false))                // N/A
   {
@@ -266,9 +265,8 @@ Stream_HeadModuleTask::svc (void)
 //                   ACE_TEXT ("leaving processing loop...\n")));
 
       // step3: send final session message downstream...
-      if (!putSessionMessage (sessionID_,
-                              SESSION_END,
-                              userData_,
+      if (!putSessionMessage (SESSION_END,
+                              sessionData_,
                               ACE_Time_Value::zero, // N/A
                               true))                // ALWAYS a user abort...
       {
@@ -295,9 +293,8 @@ Stream_HeadModuleTask::svc (void)
               ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
   // step3: send final session message downstream...
-  if (!putSessionMessage (sessionID_,
-                          SESSION_END,
-                          userData_,
+  if (!putSessionMessage (SESSION_END,
+                          sessionData_,
                           ACE_Time_Value::zero, // N/A
                           false))               // N/A
     ACE_DEBUG ((LM_ERROR,
@@ -445,13 +442,13 @@ Stream_HeadModuleTask::finished ()
 }
 
 void
-Stream_HeadModuleTask::onStateChange (const Control_StateType& newState_in)
+Stream_HeadModuleTask::onStateChange (const Stream_StateType_t& newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::onStateChange"));
 
   switch (newState_in)
   {
-    case inherited2::STATE_INIT:
+    case inherited2::STATE_INITIALIZED:
     {
       // OK: (re-)initialized
       ACE_DEBUG ((LM_DEBUG,
@@ -603,8 +600,8 @@ Stream_HeadModuleTask::onStateChange (const Control_StateType& newState_in)
                            newStateString);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid state switch: \"%s\" --> \"%s\", continuing\n"),
-                  ACE_TEXT (currentStateString.c_str()),
-                  ACE_TEXT (newStateString.c_str())));
+                  ACE_TEXT (currentStateString.c_str ()),
+                  ACE_TEXT (newStateString.c_str ())));
 
       break;
     }
@@ -612,9 +609,8 @@ Stream_HeadModuleTask::onStateChange (const Control_StateType& newState_in)
 }
 
 bool
-Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
-                                          Stream_SessionMessageType_t messageType_in,
-                                          Stream_SessionData_t*& sessionData_inout,
+Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType_t messageType_in,
+                                          Stream_SessionData_t* sessionData_in,
                                           Stream_IAllocator* allocator_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::putSessionMessage"));
@@ -625,7 +621,7 @@ Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
   {
     try
     {
-      message = static_cast<Stream_SessionMessage*> (allocator_in->malloc (0)); // we want a session message !
+      message = static_cast<Stream_SessionMessage*> (allocator_in->malloc (0));
     }
     catch (...)
     {
@@ -633,18 +629,18 @@ Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 
       // clean up
-      configuration_inout->decrease ();
-      configuration_inout = NULL;
+      sessionData_in->decrease ();
 
       return false;
     }
   } // end IF
   else
-  { // *NOTE*: session message assumes responsibility for session_config !
+  {
+//    Stream_SessionData_t* session_data_p = sessionData_in;
+    // *NOTE*: session message assumes responsibility for sessionData_in !
     ACE_NEW_NORETURN (message,
-                      Stream_SessionMessage (sessionID_in,
-                                             messageType_in,
-                                             sessionData_inout));
+                      Stream_SessionMessage (messageType_in,
+                                             sessionData_in));
   } // end ELSE
 
   if (!message)
@@ -653,16 +649,14 @@ Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
                 ACE_TEXT ("failed to allocate Stream_SessionMessage: \"%m\", aborting\n")));
 
     // clean up
-    sessionData_inout->decrease ();
-    sessionData_inout = NULL;
+    sessionData_in->decrease ();
 
     return false;
   } // end IF
   if (allocator_in)
-  { // *NOTE*: session message assumes responsibility for session_config !
-    message->init (sessionID_in,
-                   messageType_in,
-                   sessionData_inout);
+  { // *NOTE*: session message assumes responsibility for sessionData_inout !
+    message->init (messageType_in,
+                   sessionData_in);
   } // end IF
 
   // pass message downstream...
@@ -684,16 +678,12 @@ Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
 }
 
 bool
-Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
-                                          Stream_SessionMessageType_t messageType_in,
-                                          const void* userData_in,
+Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType_t messageType_in,
+                                          Stream_SessionData_t* sessionData_in,
                                           const ACE_Time_Value& startOfSession_in,
                                           bool userAbort_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::putSessionMessage"));
-
-  // create/collect session data
-  Stream_SessionData_t* session_data_p = NULL;
 
   // switch
   switch (messageType_in)
@@ -701,21 +691,7 @@ Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
     case SESSION_BEGIN:
     case SESSION_STEP:
     case SESSION_END:
-    {
-      ACE_NEW_NORETURN (session_data_p,
-                        Stream_SessionData_t (userData_in,
-                                              startOfSession_in,
-                                              userAbort_in));
-      if (!session_data_p)
-      {
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate Stream_SessionData_t: \"%m\", aborting\n")));
-
-        return false;
-      } // end IF
-
       break;
-    }
     case SESSION_STATISTICS:
     default:
     {
@@ -727,9 +703,8 @@ Stream_HeadModuleTask::putSessionMessage (unsigned int sessionID_in,
     }
   } // end SWITCH
 
-  // *NOTE*: this API is a "fire-and-forget" for session_configuration
-  return putSessionMessage (sessionID_in,
-                            messageType_in,
-                            session_data_p,
+  // *NOTE*: this API is a "fire-and-forget" for sessionData_in
+  return putSessionMessage (messageType_in,
+                            sessionData_in,
                             allocator_);
 }

@@ -34,7 +34,6 @@ include_HEADERS = \
   stream_imodule.h \
   stream_istreamcontrol.h \
   stream_itask.h \
-  stream_itask_base.h \
   stream_macros.h \
   stream_message_base.h \
   stream_messageallocatorheap.h \
@@ -106,7 +105,6 @@ libACEStream_la_SOURCES = \
   stream_imodule.h \
   stream_istreamcontrol.h \
   stream_itask.h \
-  stream_itask_base.h \
   stream_macros.h \
   stream_message_base.cpp \
   stream_message_base.h \

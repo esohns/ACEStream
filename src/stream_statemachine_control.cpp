@@ -27,7 +27,7 @@
 #include "stream_macros.h"
 
 Stream_StateMachine_Control::Stream_StateMachine_Control ()
- : state_ (Stream_StateMachine_Control::STATE_INIT)
+ : state_ (Stream_StateMachine_Control::STATE_INITIALIZED)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::Stream_StateMachine_Control"));
 
@@ -39,7 +39,7 @@ Stream_StateMachine_Control::~Stream_StateMachine_Control ()
 
 }
 
-Stream_StateMachine_Control::Control_StateType
+Stream_StateMachine_Control::StateMachine_State_t
 Stream_StateMachine_Control::getState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::getState"));
@@ -50,7 +50,7 @@ Stream_StateMachine_Control::getState () const
 }
 
 bool
-Stream_StateMachine_Control::changeState (Control_StateType newState_in)
+Stream_StateMachine_Control::changeState (StateMachine_State_t newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::changeState"));
 
@@ -59,7 +59,7 @@ Stream_StateMachine_Control::changeState (Control_StateType newState_in)
 
   switch (state_)
   {
-    case Stream_StateMachine_Control::STATE_INIT:
+    case Stream_StateMachine_Control::STATE_INITIALIZED:
     {
       switch (newState_in)
       {
@@ -76,7 +76,7 @@ Stream_StateMachine_Control::changeState (Control_StateType newState_in)
           return true;
         }
         // error case
-        case Stream_StateMachine_Control::STATE_INIT:
+        case Stream_StateMachine_Control::STATE_INITIALIZED:
         case Stream_StateMachine_Control::STATE_PAUSED:
         case Stream_StateMachine_Control::STATE_STOPPED:
         case Stream_StateMachine_Control::STATE_FINISHED:
@@ -116,7 +116,7 @@ Stream_StateMachine_Control::changeState (Control_StateType newState_in)
           return true;
         }
         // error case
-        case Stream_StateMachine_Control::STATE_INIT:
+        case Stream_StateMachine_Control::STATE_INITIALIZED:
         default:
         {
           // what else can we do ?
@@ -139,9 +139,9 @@ Stream_StateMachine_Control::changeState (Control_StateType newState_in)
           // need to handle a special case: PAUSED --> PAUSED is logically mapped to
           // PAUSED --> RUNNING, just like a tape recorder...
           // *IMPORTANT NOTE*: make sure our children are aware of this behaviour !!!
-          Control_StateType newState = (newState_in == Stream_StateMachine_Control::STATE_PAUSED) ?
-                                                       Stream_StateMachine_Control::STATE_RUNNING :
-                                                       newState_in;
+          StateMachine_State_t newState =
+           ((newState_in == Stream_StateMachine_Control::STATE_PAUSED) ? Stream_StateMachine_Control::STATE_RUNNING
+                                                                       : newState_in);
 
           std::string newStateString;
           ControlState2String (newState,
@@ -157,7 +157,7 @@ Stream_StateMachine_Control::changeState (Control_StateType newState_in)
           return true;
         }
         // error case
-        case Stream_StateMachine_Control::STATE_INIT:
+        case Stream_StateMachine_Control::STATE_INITIALIZED:
         case Stream_StateMachine_Control::STATE_FINISHED:
         default:
         {
@@ -188,7 +188,7 @@ Stream_StateMachine_Control::changeState (Control_StateType newState_in)
           return true;
         }
         // error cases
-        case Stream_StateMachine_Control::STATE_INIT:
+        case Stream_StateMachine_Control::STATE_INITIALIZED:
         case Stream_StateMachine_Control::STATE_PAUSED:
         case Stream_StateMachine_Control::STATE_RUNNING:
         default:
@@ -219,7 +219,7 @@ Stream_StateMachine_Control::changeState (Control_StateType newState_in)
           return true;
         }
         // error case
-        case Stream_StateMachine_Control::STATE_INIT:
+        case Stream_StateMachine_Control::STATE_INITIALIZED:
         case Stream_StateMachine_Control::STATE_PAUSED:
         case Stream_StateMachine_Control::STATE_STOPPED:
         default:
@@ -257,7 +257,7 @@ Stream_StateMachine_Control::changeState (Control_StateType newState_in)
 }
 
 void
-Stream_StateMachine_Control::invokeCallback (Control_StateType newState_in)
+Stream_StateMachine_Control::invokeCallback (StateMachine_State_t newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::invokeCallback"));
 
@@ -282,7 +282,7 @@ Stream_StateMachine_Control::invokeCallback (Control_StateType newState_in)
 }
 
 void
-Stream_StateMachine_Control::ControlState2String (Control_StateType state_in,
+Stream_StateMachine_Control::ControlState2String (StateMachine_State_t state_in,
                                                   std::string& stateString_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::ControlState2String"));
@@ -291,9 +291,9 @@ Stream_StateMachine_Control::ControlState2String (Control_StateType state_in,
   stateString_out = ACE_TEXT ("UNDEFINED_STATE");
   switch (state_in)
   {
-    case Stream_StateMachine_Control::STATE_INIT:
+    case Stream_StateMachine_Control::STATE_INITIALIZED:
     {
-      stateString_out = ACE_TEXT ("INIT");
+      stateString_out = ACE_TEXT ("INITIALIZED");
 
       break;
     }

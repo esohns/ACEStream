@@ -21,12 +21,12 @@
 #ifndef STREAM_TASK_H
 #define STREAM_TASK_H
 
-#include "stream_itask.h"
+#include "ace/Global_Macros.h"
+#include "ace/Task.h"
 
 #include "common_idumpstate.h"
 
-#include "ace/Global_Macros.h"
-#include "ace/Task.h"
+#include "stream_itask.h"
 
 // forward declaration(s)
 class Stream_MessageBase;
@@ -39,16 +39,14 @@ template <typename TaskSynchStrategyType,
 class Stream_Task_T
  : public ACE_Task<TaskSynchStrategyType,
                    TimePolicyType>,
-   public Stream_ITask_T<Stream_MessageBase,
-                         Stream_SessionMessage>,
+   public Stream_ITask_T<Stream_SessionMessage,
+                         Stream_MessageBase>,
    public Common_IDumpState
 {
  public:
   virtual ~Stream_Task_T ();
 
   // override task-based members
-  // *NOTE*: can't "hide" these in C++ :-(
-  // --> we implement dummy stubs which SHALL be overridden...
   virtual int put (ACE_Message_Block*,
                    ACE_Time_Value*);
   virtual int open (void* = NULL);
@@ -58,8 +56,6 @@ class Stream_Task_T
 
   // implement (part of) Stream_ITask_T
   // *NOTE*: these are just default NOP implementations...
-//   virtual void handleDataMessage(Stream_MessageBase*&, // data message handle
-//                                  bool&);               // return value: pass this message downstream ?
   virtual void handleSessionMessage (Stream_SessionMessage*&, // session message handle
                                      bool&);                  // return value: pass this message downstream ?
   virtual void handleProcessingError (const ACE_Message_Block* const); // message handle

@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_session_configuration.h"
+#include "stream_session_data.h"
 
 #include "ace/Guard_T.h"
 #include "ace/Synch.h"

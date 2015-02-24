@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_session_configuration_base.h"
+#include "stream_session_data_base.h"

@@ -21,6 +21,8 @@
 #include "ace/Message_Block.h"
 #include "ace/Time_Value.h"
 
+#include "stream_macros.h"
+
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>

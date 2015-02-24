@@ -22,25 +22,26 @@
 #define STREAM_HEADMODULETASK_BASE_H
 
 #include "ace/Global_Macros.h"
-#include "ace/Time_Value.h"
 #include "ace/Synch.h"
+#include "ace/Time_Value.h"
 
-#include "stream_task_base.h"
 #include "stream_istreamcontrol.h"
-#include "stream_statemachine_control.h"
+#include "stream_messagequeue.h"
 #include "stream_session_message.h"
 #include "stream_session_message_base.h"
-#include "stream_messagequeue.h"
+#include "stream_statemachine_control.h"
+#include "stream_task_base.h"
 
 // forward declaration(s)
 class ACE_Message_Block;
-class Stream_MessageBase;
 class Stream_IAllocator;
+class Stream_MessageBase;
+struct Stream_State_t;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename DataType,
-          typename SessionDataType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // (reference counted)
           typename SessionMessageType,
           typename ProtocolMessageType>
 class Stream_HeadModuleTaskBase_T
@@ -88,23 +89,23 @@ class Stream_HeadModuleTaskBase_T
                                      bool&,              // return value: stop processing ?
                                      bool&);             // return value: pass message downstream ?
 
+  // *TODO*: clean this API
   // convenience methods to send (session-specific) notifications downstream
   // *WARNING*: - handle with care -
-  bool putSessionMessage (unsigned int,                                 // session ID
-                          Stream_SessionMessageType_t,                  // session message type
-                          DataType*,                                    // data
+  bool putSessionMessage (Stream_SessionMessageType_t,                  // session message type
+                          SessionDataType*,                             // data
+                          bool = false,                                 // delete session data ?
                           const ACE_Time_Value& = ACE_Time_Value::zero, // start of session
                           bool = false) const;                          // user abort ?
   // *NOTE*: session message assumes lifetime responsibility for data
   // --> method implements a "fire-and-forget" strategy !
-  bool putSessionMessage (unsigned int,                     // session ID
-                          Stream_SessionMessageType_t,      // session message type
-                          SessionDataType*&,                // data
+  bool putSessionMessage (Stream_SessionMessageType_t,      // session message type
+                          SessionDataContainerType*,        // data container
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
 
   // implement state machine callback
   // *NOTE*: this method is threadsafe
-  virtual void onStateChange (Control_StateType); // new state
+  virtual void onStateChange (Stream_StateType_t); // new state
 
   // *NOTE*: functionally, this does the same as stop(), with the
   // difference that stop() will wait for any worker(s)
@@ -115,7 +116,11 @@ class Stream_HeadModuleTaskBase_T
   // *IMPORTANT NOTE*: children SHOULD set these during initialization !
   Stream_IAllocator*              allocator_;
   bool                            isActive_;
-  DataType*                       userData_;
+  // *NOTE*: iff the head module is asynchronous, the worker thread initializes
+  //         the session. This is a handle to the session/user data to send
+  //         along to the modules downstream
+  SessionDataType*                sessionData_;
+  Stream_State_t*                 state_;
 
  private:
   typedef Stream_TaskBase_T<TaskSynchType,
@@ -125,8 +130,8 @@ class Stream_HeadModuleTaskBase_T
   typedef Stream_StateMachine_Control inherited2;
   typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
                                       TimePolicyType,
-                                      DataType,
                                       SessionDataType,
+                                      SessionDataContainerType,
                                       SessionMessageType,
                                       ProtocolMessageType> own_type;
 
@@ -134,6 +139,10 @@ class Stream_HeadModuleTaskBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T (const Stream_HeadModuleTaskBase_T&));
   // *TODO*: apparently, ACE_UNIMPLEMENTED_FUNC gets confused by template arguments...
 //   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T<DataType,SessionConfigType,SessionMessageType>& operator=(const Stream_HeadModuleTaskBase_T<DataType,SessionConfigType,SessionMessageType>&));
+
+//  // *TODO*: remove this API ASAP
+//  // send SESSION_END message
+//  bool putSessionMessage () const;
 
   // allow blocking wait in waitForCompletion()
  // ACE_Recursive_Thread_Mutex                lock_;

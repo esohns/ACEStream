@@ -29,6 +29,7 @@
 #include "common.h"
 #include "common_idumpstate.h"
 
+#include "stream_common.h"
 #include "stream_istreamcontrol.h"
 #include "stream_imodule.h"
 
@@ -37,9 +38,9 @@ class Stream_IAllocator;
 
 class Stream
  : public ACE_Stream<ACE_MT_SYNCH,
-                     Common_TimePolicy_t>,
-   public Stream_IStreamControl,
-   public Common_IDumpState
+                     Common_TimePolicy_t>
+ , public Stream_IStreamControl
+ , public Common_IDumpState
 {
  public:
   // define convenient (iterator) types
@@ -95,15 +96,17 @@ class Stream
   // *NOTE*: children MUST call this in their dtor !
   void shutdown ();
 
-  // *NOTE*: children need to set this IF their initialization succeeded; otherwise,
-  // the dtor will NOT stop all worker threads before close()ing the modules...
-  bool                  isInitialized_;
+  // *NOTE*: children need to set this during THEIR initialization !
+  Stream_IAllocator*    allocator_;
 
   // *NOTE*: children need to add handles to ALL of their modules to this container !
   MODULE_CONTAINER_TYPE availableModules_;
 
-  // *NOTE*: children need to set this during THEIR initialization !
-  Stream_IAllocator*    allocator_;
+  // *NOTE*: children need to set this IF their initialization succeeded; otherwise,
+  // the dtor will NOT stop all worker threads before close()ing the modules...
+  bool                  isInitialized_;
+
+  Stream_State_t        state_;
 
  private:
   typedef ACE_Stream<ACE_MT_SYNCH,
