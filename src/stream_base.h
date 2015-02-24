@@ -23,24 +23,25 @@
 
 #include <deque>
 
-#include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
 #include "ace/Containers_T.h"
+#include "ace/Global_Macros.h"
 #include "ace/Stream.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_idumpstate.h"
 
+#include "stream_common.h"
+#include "stream_headmoduletask_base.h"
 #include "stream_istreamcontrol.h"
 #include "stream_streammodule_base.h"
-#include "stream_headmoduletask_base.h"
 
 // forward declaration(s)
 class Stream_IAllocator;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename DataType,
-          typename SessionDataType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // (reference counted)
           typename SessionMessageType,
           typename ProtocolMessageType>
 class Stream_Base_T
@@ -100,24 +101,25 @@ class Stream_Base_T
   // *NOTE*: children MUST call this in their dtor !
   void shutdown ();
 
-  // *NOTE*: children need to set this IF their initialization succeeded; otherwise,
-  // the dtor will NOT stop all worker threads before close()ing the modules...
-  bool                        isInitialized_;
-
   // *NOTE*: children need to add handles to ALL of their modules to this container !
-//   MODULE_CONTAINER_TYPE myAvailableModules;
   ACE_DLList<Stream_Module_t> availableModules_;
 
-  // *NOTE*: children need to set this during THEIR initialization !
+  // *NOTE*: children need to set this IF their initialization succeeded;
+  //         otherwise, the dtor will NOT stop all worker threads before
+  //         close()ing the modules...
+  bool                        isInitialized_;
+
+  // *NOTE*: children need to initialize these !
   Stream_IAllocator*          allocator_;
+  Stream_State_t              state_;
 
  private:
   typedef ACE_Stream<TaskSynchType,
                      TimePolicyType> inherited;
   typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
                                       TimePolicyType,
-                                      DataType,
-                                      SessionDataType,
+                                      SessionDataType,          // session data
+                                      SessionDataContainerType, // (reference counted)
                                       SessionMessageType,
                                       ProtocolMessageType> Stream_HeadModuleTask_t;
 
@@ -126,8 +128,8 @@ class Stream_Base_T
   typedef typename Stream_Modules_t::const_iterator Stream_ModulesIterator_t;
   typedef Stream_Base_T<TaskSynchType,
                         TimePolicyType,
-                        DataType,
                         SessionDataType,
+                        SessionDataContainerType,
                         SessionMessageType,
                         ProtocolMessageType> own_type;
 

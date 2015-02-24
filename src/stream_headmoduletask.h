@@ -27,23 +27,23 @@
 
 #include "common.h"
 
-#include "stream_task.h"
+#include "stream_common.h"
 #include "stream_istreamcontrol.h"
 #include "stream_statemachine_control.h"
 #include "stream_session_message.h"
+#include "stream_task.h"
 #include "stream_messagequeue.h"
 
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_MessageBase;
-class Stream_SessionData_t;
 class Stream_IAllocator;
 
 class Stream_HeadModuleTask
  : public Stream_Task_T<ACE_MT_SYNCH,
-                        Common_TimePolicy_t>,
-   public Stream_IStreamControl,
-   public Stream_StateMachine_Control
+                        Common_TimePolicy_t>
+ , public Stream_IStreamControl
+ , public Stream_StateMachine_Control
 {
  public:
   virtual ~Stream_HeadModuleTask ();
@@ -77,31 +77,27 @@ class Stream_HeadModuleTask
                                      bool&,              // return value: stop processing ?
                                      bool&);             // return value: pass message downstream ?
 
-  // convenience methods to send (session-specific) notifications downstream
-  // *WARNING*: - handle with care -
-  bool putSessionMessage (unsigned int,                     // session ID
-                          Stream_SessionMessageType_t,      // session message type
-                          Stream_SessionData_t*&,           // data
+  // convenience method: send (session-specific) notifications downstream
+  bool putSessionMessage (Stream_SessionMessageType_t,      // session message type
+                          Stream_SessionData_t*,            // session data
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
   // *NOTE*: session message assumes lifetime responsibility for data
-  // --> method implements a "fire-and-forget" strategy !
-  bool putSessionMessage (unsigned int,                                 // session ID
-                          Stream_SessionMessageType_t,                  // session message type
-                          const void* = NULL,                           // user data
+  // --> method implements a "fire-and-forget" strategy
+  bool putSessionMessage (Stream_SessionMessageType_t,                  // session message type
+                          Stream_SessionData_t*,                        // session data
                           const ACE_Time_Value& = ACE_Time_Value::zero, // start of session
                           bool = false) const;                          // user abort ?
 
   // implement state machine callback
   // *NOTE*: this method is threadsafe
-  virtual void onStateChange (const Control_StateType&); // new state
+  virtual void onStateChange (const Stream_StateType_t&); // new state
 
-  // *TODO*: try to remove this !
-  // functionally, this does the same as stop(), with the
-  // difference, that stop() will blocking wait for our worker
-  // thread to die...
-  // --> i.e. stop() MUST NOT be called from WITHIN the worker thread !
-  // but what if we need to do exactly that ?
-  // That's right --> use this !
+  // *TODO*: remove this ASAP
+  // *NOTE*: functionally, this does the same as stop(), with the
+  // difference, that stop() will blocking wait for the worker
+  // thread to finish...
+  // --> i.e. stop() MUST NOT be called from WITHIN the worker thread
+  // --> workers call this function to signal task completion
   virtual void finished ();
 
   // *WARNING*: children need to set this during initialization !
@@ -117,12 +113,13 @@ class Stream_HeadModuleTask
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTask& operator= (const Stream_HeadModuleTask&));
 
   // allow blocking wait in waitForCompletion()
-  ACE_Condition<ACE_Recursive_Thread_Mutex> condition_;
-  ACE_Recursive_Thread_Mutex                lock_;
-  bool                                      isFinished_;
-  Stream_MessageQueue                       queue_;
   bool                                      autoStart_;
-  const void*                               userData_;
+  ACE_Condition<ACE_Recursive_Thread_Mutex> condition_;
+  bool                                      isFinished_;
+  ACE_Recursive_Thread_Mutex                lock_;
+  Stream_MessageQueue                       queue_;
+  Stream_SessionData_t*                     sessionData_;
+  Stream_State_t*                           state_;
 };
 
 #endif

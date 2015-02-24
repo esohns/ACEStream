@@ -18,18 +18,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "stream_common.h"
 #include "stream_macros.h"
 #include "stream_tools.h"
 
 template <typename DataType>
-Stream_SessionDataBase_T<DataType>::Stream_SessionDataBase_T (DataType* userData_in,
+Stream_SessionDataBase_T<DataType>::Stream_SessionDataBase_T (DataType* data_in,
+                                                              bool deleteData_in,
+                                                              Stream_State_t* state_in,
                                                               const ACE_Time_Value& startOfSession_in,
                                                               bool userAbort_in)
  : inherited (1,    // initial count
               true) // delete on zero ?
+ , deleteData_ (deleteData_in)
  , startOfSession_ (startOfSession_in)
+ , state_ (state_in)
  , userAbort_ (userAbort_in)
- , userData_ (userData_in)
+ , data_ (data_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::Stream_SessionDataBase_T"));
 
@@ -40,15 +45,26 @@ Stream_SessionDataBase_T<DataType>::~Stream_SessionDataBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::~Stream_SessionDataBase_T"));
 
+  if (deleteData_)
+    delete data_;
 }
 
 template <typename DataType>
 DataType*
-Stream_SessionDataBase_T<DataType>::getUserData () const
+Stream_SessionDataBase_T<DataType>::getData () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::getUserData"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::getData"));
 
-  return userData_;
+  return data_;
+}
+
+template <typename DataType>
+Stream_State_t*
+Stream_SessionDataBase_T<DataType>::getState () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::getState"));
+
+  return state_;
 }
 
 template <typename DataType>

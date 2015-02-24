@@ -26,6 +26,7 @@
 #include "ace/Time_Value.h"
 
 #include "stream_defines.h"
+#include "stream_macros.h"
 
 template <typename TaskSynchType,
           typename TimePolicyType,
@@ -360,7 +361,7 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
                                        NULL));                             // message allocator)
   if (!stop_mb)
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
 
     // what else can we do ?

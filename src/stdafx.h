@@ -32,4 +32,4 @@
 #include <algorithm>
 
 // Local Header Files
-#include "common_macros.h"
+#include "stream_macros.h"

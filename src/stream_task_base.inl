@@ -63,6 +63,23 @@ template <typename TaskSynchStrategyType,
           typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
+bool
+Stream_TaskBase_T<TaskSynchStrategyType,
+                  TimePolicyType,
+                  SessionMessageType,
+                  ProtocolMessageType>::initialize (const void* configuration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::initialize"));
+
+  ACE_UNUSED_ARG (configuration_in);
+
+  return true;
+}
+
+template <typename TaskSynchStrategyType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
 void
 Stream_TaskBase_T<TaskSynchStrategyType,
                   TimePolicyType,
@@ -78,7 +95,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   // sanity check(s)
   ACE_ASSERT (message_inout);
 
-  // *NOTE*: the default behavior is to simply dump our state at the
+  // *NOTE*: the default behavior is to simply dump the state at the
   // end of a session...
   switch (message_inout->getType ())
   {
@@ -133,15 +150,15 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleProcessingError"));
 
-  ACE_UNUSED_ARG (message_in);
-
   if (inherited::module ())
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("module: \"%s\": failed to process message, continuing\n"),
-                ACE_TEXT (inherited::name ())));
+                ACE_TEXT ("module: \"%s\": failed to process message %@, continuing\n"),
+                ACE_TEXT (inherited::name ()),
+                message_in));
   else
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to process message, continuing\n")));
+                ACE_TEXT ("failed to process message %@, continuing\n"),
+                message_in));
 }
 
 template <typename TaskSynchStrategyType,
@@ -156,7 +173,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::dump_state"));
 
-//   if (module ())
+//   if (inherited::module ())
 //     ACE_DEBUG ((LM_WARNING,
 //                 ACE_TEXT (" ***** MODULE: \"%s\" has not implemented the dump_state() API *****\n"),
 //                 ACE_TEXT (inherited::name ())));

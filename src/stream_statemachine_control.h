@@ -32,10 +32,10 @@
 class Stream_Export Stream_StateMachine_Control
 {
  public:
-  enum Control_StateType
+  enum StateMachine_State_t
   {
     STATE_INVALID = -1,
-    STATE_INIT,
+    STATE_INITIALIZED,
     STATE_RUNNING,
     STATE_PAUSED,
     STATE_STOPPED,
@@ -48,22 +48,22 @@ class Stream_Export Stream_StateMachine_Control
   virtual ~Stream_StateMachine_Control ();
 
   // info
-  static void ControlState2String (Control_StateType, // state
+  static void ControlState2String (StateMachine_State_t, // state
                                    std::string&);     // return value: state string
 
  protected:
   // only children can retrieve state
-  Stream_StateMachine_Control::Control_StateType getState () const;
+  StateMachine_State_t getState () const;
 
   // only children can change state
   // *WARNING*: PAUSED --> PAUSED is silently remapped to PAUSED --> RUNNING
   // in order to resemble a traditional tape recorder...
   // --> children must implement the corresponding behavior !
-  bool changeState (Control_StateType); // new state
+  bool changeState (StateMachine_State_t); // new state
 
   // callback invoked on change of state
   // *TODO*: make this an interface !
-  virtual void onStateChange (Control_StateType) = 0; // new state
+  virtual void onStateChange (StateMachine_State_t) = 0; // new state
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control (const Stream_StateMachine_Control&));
@@ -71,16 +71,17 @@ class Stream_Export Stream_StateMachine_Control
 
   // helper method
   // *IMPORTANT NOTE*: this method needs to be called with the lock held !
-  void invokeCallback (Control_StateType); // new state
+  void invokeCallback (StateMachine_State_t); // new state
 
   // current state
-  Control_StateType                  state_;
+  StateMachine_State_t               state_;
   // *IMPORTANT NOTE*: this MUST be recursive, so children can retrieve current
   // state from within onStateChange without deadlocking !
   //ACE_Condition<ACE_Recursive_Thread_Mutex> myCondition;
   mutable ACE_Recursive_Thread_Mutex lock_;
 };
 
-typedef Stream_StateMachine_Control::Control_StateType Stream_Control_StateType;
+// convenience types
+typedef Stream_StateMachine_Control::StateMachine_State_t Stream_StateType_t;
 
 #endif
