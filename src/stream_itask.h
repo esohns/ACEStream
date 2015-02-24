@@ -21,12 +21,15 @@
 #ifndef STREAM_ITASK_H
 #define STREAM_ITASK_H
 
+#include "common_iinitialize.h"
+
 // forward declaration(s)
 class ACE_Message_Block;
 
-template <typename MessageType,
-          typename SessionMessageType>
+template <typename SessionMessageType,
+          typename ProtocolMessageType>
 class Stream_ITask_T
+ : public Common_IInitialize
 {
  public:
   virtual ~Stream_ITask_T () {}
@@ -34,11 +37,11 @@ class Stream_ITask_T
   // *NOTE*: pipelined "stream tasks" generally need not worry about the lifecycle of the
   // messages passed to them; any filtering functionality however needs to set the second
   // parameter to false (--> default is "true" !), which makes the task assume lifecycle
-  // responsibility for that message --> HANDLE WITH CARE !
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&) = 0;    // return value: pass this message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&) = 0;           // return value: pass this message downstream ?
+  // responsibility for the first argument --> HANDLE WITH CARE !
+  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
+                                  bool&) = 0;            // return value: pass this message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&,                 // session message handle
+                                     bool&) = 0;                           // return value: pass this message downstream ?
   virtual void handleProcessingError (const ACE_Message_Block* const) = 0; // corresp. message
 };
 

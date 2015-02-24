@@ -28,16 +28,17 @@
 
 #include "common_idumpstate.h"
 
+#include "stream_common.h"
 #include "stream_exports.h"
 #include "stream_messageallocatorheap.h"
-#include "stream_session_message_base.h"
 #include "stream_session_data.h"
+#include "stream_session_message_base.h"
 
 // forward declaratation(s)
 class ACE_Allocator;
 
 class Stream_Export Stream_SessionMessage
- : public Stream_SessionMessageBase_T<Stream_SessionData>
+ : public Stream_SessionMessageBase_T<Stream_SessionData_t>
 {
   // need access to specific ctors
   friend class Stream_MessageAllocatorHeap;
@@ -45,16 +46,16 @@ class Stream_Export Stream_SessionMessage
 
  public:
   // *NOTE*: assume lifetime responsibility for the second argument !
-  Stream_SessionMessage (unsigned int,                // session ID
-                         Stream_SessionMessageType_t, // session message type
-                         Stream_SessionData*&);       // session data handle
+  // *TODO*: (using gcc) cannot pass reference to pointer for some reason...
+  Stream_SessionMessage (Stream_SessionMessageType_t, // session message type
+                         Stream_SessionData_t*);      // session data handle
   virtual ~Stream_SessionMessage ();
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Stream_SessionData> inherited;
+  typedef Stream_SessionMessageBase_T<Stream_SessionData_t> inherited;
 
   // copy ctor to be used by duplicate()
   Stream_SessionMessage (const Stream_SessionMessage&);

@@ -57,7 +57,7 @@ Stream_TaskSynch::put (ACE_Message_Block* mb_in,
 }
 
 int
-Stream_TaskSynch::open(void* args_in)
+Stream_TaskSynch::open (void* args_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskSynch::open"));
 

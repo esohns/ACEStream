@@ -25,14 +25,11 @@
 
 #include "stream_macros.h"
 #include "stream_message_base.h"
-#include "stream_session_configuration.h"
 
-Stream_SessionMessage::Stream_SessionMessage (unsigned int sessionID_in,
-                                              Stream_SessionMessageType_t messageType_in,
-                                              Stream_SessionConfiguration*& sessionConfiguration_inout)
- : inherited (sessionID_in,
-              messageType_in,
-              sessionConfiguration_inout)
+Stream_SessionMessage::Stream_SessionMessage (Stream_SessionMessageType_t messageType_in,
+                                              Stream_SessionData_t* sessionData_in)
+ : inherited (messageType_in,
+              sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessage::Stream_SessionMessage"));
 

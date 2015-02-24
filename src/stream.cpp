@@ -21,23 +21,25 @@
 
 #include "stream.h"
 
-#include "stream_module_base.h"
+#include "stream_common.h"
 #include "stream_headmoduletask.h"
-#include "stream_session_configuration.h"
-#include "stream_session_message.h"
 #include "stream_iallocator.h"
+#include "stream_module_base.h"
+#include "stream_session_message.h"
 
 Stream::Stream ()
 // *TODO*: use default ctor and rely on init/fini() ?
  : inherited (NULL, // argument to module open()
               NULL, // no head module --> ACE_Stream_Head !
               NULL) // no tail module --> ACE_Stream_Tail !
- , isInitialized_ (false)
-// , availableModules_ ()
  , allocator_ (NULL)
+// , availableModules_ ()
+ , isInitialized_ (false)
+// , state_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream::Stream"));
 
+  ACE_OS::memset (&state_, 0, sizeof (state_));
 }
 
 Stream::~Stream ()
@@ -144,7 +146,8 @@ Stream::fini ()
     // *NOTE*: this will implicitly:
     // - unwind the stream, which pop()s all (pushed) modules
     // --> pop()ing a module will close() it
-    // --> close()ing a module will module_closed() and flush() the associated tasks
+    // --> close()ing a module will module_closed() and flush() the associated
+    //     tasks
     // --> flush()ing a task will close() its queue
     // --> close()ing a queue will deactivate() and flush() it
     result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
@@ -445,7 +448,8 @@ Stream::waitForCompletion ()
 
   // need to downcast
   Stream_HeadModuleTask* head_task = NULL;
-  head_task = dynamic_cast<Stream_HeadModuleTask*> (const_cast<MODULE_TYPE*>(module)->writer ());
+  head_task =
+      dynamic_cast<Stream_HeadModuleTask*> (const_cast<MODULE_TYPE*>(module)->writer ());
   if (!head_task)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -542,7 +546,7 @@ Stream::isRunning () const
   if (!control_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl) failed> (returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
                 ACE_TEXT (module->name ())));
 
     return false;
@@ -692,19 +696,23 @@ Stream::deactivateModules ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream::deactivateModules"));
 
-  // create session data
-  Stream_SessionConfiguration* configuration_p = NULL;
-  ACE_NEW_NORETURN (configuration_p,
-                    Stream_SessionConfiguration (NULL)); // NO user data...
-  if (!configuration_p)
+  // allocate session data
+  Stream_SessionData_t* session_data_p = NULL;
+  ACE_NEW_NORETURN (session_data_p,
+                    Stream_SessionData_t (NULL,
+                                          false,
+                                          &state_,
+                                          ACE_Time_Value::zero,
+                                          false));
+  if (!session_data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate Stream_SessionConfiguration: \"%m\", returning\n")));
+                ACE_TEXT ("failed to allocate Stream_SessionData_t: \"%m\", returning\n")));
 
     return;
   } // end IF
 
-  // create MB_STREAM_SESSION_END session message
+  // allocate SESSION_END session message
   Stream_SessionMessage* message_p = NULL;
   if (allocator_)
   {
@@ -718,17 +726,16 @@ Stream::deactivateModules ()
                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 
       // clean up
-      configuration_p->decrease ();
+      delete session_data_p;
 
       return;
     }
   } // end IF
   else
-  { // *NOTE*: session message assumes responsibility for session_config !
+  { // *NOTE*: session message assumes responsibility for session_data_container_p !
     ACE_NEW_NORETURN (message_p,
-                      Stream_SessionMessage (0, // N/A
-                                             SESSION_END,
-                                             configuration_p));
+                      Stream_SessionMessage (SESSION_END,
+                                             session_data_p));
   } // end ELSE
   if (!message_p)
   {
@@ -736,18 +743,17 @@ Stream::deactivateModules ()
                 ACE_TEXT ("failed to allocate Stream_SessionMessage: \"%m\", returning\n")));
 
     // clean up
-    configuration_p->decrease ();
+    delete session_data_p;
 
     return;
   } // end IF
   if (allocator_)
-  { // *NOTE*: session message assumes responsibility for configuration_p !
-    message_p->init (0, // N/A
-                     SESSION_END,
-                     configuration_p);
+  { // *NOTE*: session message assumes responsibility for session_data_p !
+    message_p->init (SESSION_END,
+                     session_data_p);
   } // end IF
 
-  // pass message downstream...
+  // send message downstream...
   if (inherited::put (message_p, NULL) == -1)
   {
     ACE_DEBUG ((LM_ERROR,

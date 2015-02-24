@@ -45,29 +45,26 @@ enum Stream_SessionMessageType_t
 // forward declarations
 class ACE_Allocator;
 
-template <typename DataType>
+template <typename SessionDataType>
 class Stream_SessionMessageBase_T
  : public ACE_Message_Block
  , public Common_IDumpState
 {
  public:
-  // *NOTE*: assumes lifetime responsibility for the third argument !
-  Stream_SessionMessageBase_T (unsigned int,                // session ID
-                               Stream_SessionMessageType_t, // session message type
-                               DataType*&);                 // handle
+  // *NOTE*: assumes lifetime responsibility for the second argument !
+  Stream_SessionMessageBase_T (Stream_SessionMessageType_t,
+                               SessionDataType*);
   virtual ~Stream_SessionMessageBase_T ();
 
   // initialization-after-construction
-  // *NOTE*: assumes lifetime responsibility for the third argument !
-  void init (unsigned int,                // session ID
-             Stream_SessionMessageType_t, // session message type
-             DataType*&);                 // handle
+  // *NOTE*: assumes lifetime responsibility for the second argument !
+  void init (Stream_SessionMessageType_t,
+             SessionDataType*);
 
   // info
-  unsigned int getID () const;
   Stream_SessionMessageType_t getType () const;
   // *TODO*: clean this up !
-  const DataType* getData () const;
+  const SessionDataType* getData () const;
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -78,7 +75,7 @@ class Stream_SessionMessageBase_T
 
  protected:
   // (copy) ctor to be used by duplicate()
-  Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<DataType>&);
+  Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<SessionDataType>&);
 
   // *NOTE*: these may be used by message allocators...
   // *WARNING*: these ctors are NOT threadsafe...
@@ -88,14 +85,13 @@ class Stream_SessionMessageBase_T
 
   bool                        isInitialized_;
   Stream_SessionMessageType_t messageType_;
-  unsigned int                sessionID_;
-  DataType*                   data_;
+  SessionDataType*            sessionData_;
 
  private:
   typedef ACE_Message_Block inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T<DataType>& operator= (const Stream_SessionMessageBase_T<DataType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T<SessionDataType>& operator= (const Stream_SessionMessageBase_T<SessionDataType>&));
 
   // overloaded from ACE_Message_Block
   // *WARNING*: any children need to override this too !
