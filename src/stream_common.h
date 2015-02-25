@@ -23,6 +23,7 @@
 
 #include "ace/Notification_Strategy.h"
 #include "ace/Stream.h"
+#include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
 #include "common.h"

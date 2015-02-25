@@ -18,14 +18,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "stream_common.h"
+//#include "stream_common.h"
 #include "stream_macros.h"
 #include "stream_tools.h"
 
 template <typename DataType>
 Stream_SessionDataBase_T<DataType>::Stream_SessionDataBase_T ()
- : inherited (1,    // initial count
-              true) // delete on zero ?
+ //: inherited (1,    // initial count
+ //             true) // delete on zero ?
+ : inherited ()
  , data_ (NULL)
  , deleteData_ (false)
  , startOfSession_ (ACE_Time_Value::zero)

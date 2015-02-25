@@ -5,7 +5,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>D:\projects\yarp\modules\libACEStream\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\projects\olinuxino\modules\libACEStream\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup />

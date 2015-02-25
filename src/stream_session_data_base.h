@@ -26,6 +26,8 @@
 
 #include "common_referencecounter_base.h"
 
+//#include "stream_common.h"
+
 // forward declarations
 struct Stream_State_t;
 
