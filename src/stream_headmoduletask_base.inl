@@ -223,7 +223,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     // called from ACE_Task_Base on clean-up
     case 0:
     {
-//       // debug info
 //       if (inherited::module ())
 //       {
 //         ACE_DEBUG ((LM_DEBUG,
@@ -538,7 +537,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   ACE_ASSERT (false);
   ACE_NOTSUP;
 
+#if defined (_MSC_VER)
   ACE_NOTREACHED (true);
+#endif
 }
 
 template <typename TaskSynchType,

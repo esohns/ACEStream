@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-//#include "stream_common.h"
 #include "stream_macros.h"
 #include "stream_tools.h"
 
@@ -45,11 +44,11 @@ Stream_SessionDataBase_T<DataType>::Stream_SessionDataBase_T (DataType* data_in,
                                                               bool userAbort_in)
  : inherited (1,    // initial count
               true) // delete on zero ?
+ , data_ (data_in)
  , deleteData_ (deleteData_in)
  , startOfSession_ (startOfSession_in)
  , state_ (state_in)
  , userAbort_ (userAbort_in)
- , data_ (data_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::Stream_SessionDataBase_T"));
 
