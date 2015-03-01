@@ -190,10 +190,10 @@ Stream_SessionMessageBase_T<SessionDataType>::duplicate (void) const
 
 template <typename SessionDataType>
 void
-Stream_SessionMessageBase_T<SessionDataType>::init (Stream_SessionMessageType_t messageType_in,
-                                                    SessionDataType* sessionData_in)
+Stream_SessionMessageBase_T<SessionDataType>::initialize (Stream_SessionMessageType_t messageType_in,
+                                                          SessionDataType* sessionData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::init"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::initialize"));
 
   ACE_ASSERT (!isInitialized_);
   ACE_ASSERT (messageType_ == STREAM_SESSION_MAP);

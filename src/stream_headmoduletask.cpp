@@ -616,12 +616,13 @@ Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType_t messageTyp
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::putSessionMessage"));
 
   // create session message
-  Stream_SessionMessage* message = NULL;
+  Stream_SessionMessage* message_p = NULL;
   if (allocator_in)
   {
     try
     {
-      message = static_cast<Stream_SessionMessage*> (allocator_in->malloc (0));
+      message_p =
+          static_cast<Stream_SessionMessage*> (allocator_in->malloc (0));
     }
     catch (...)
     {
@@ -638,12 +639,12 @@ Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType_t messageTyp
   {
 //    Stream_SessionData_t* session_data_p = sessionData_in;
     // *NOTE*: session message assumes responsibility for sessionData_in !
-    ACE_NEW_NORETURN (message,
+    ACE_NEW_NORETURN (message_p,
                       Stream_SessionMessage (messageType_in,
                                              sessionData_in));
   } // end ELSE
 
-  if (!message)
+  if (!message_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate Stream_SessionMessage: \"%m\", aborting\n")));
@@ -655,18 +656,20 @@ Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType_t messageTyp
   } // end IF
   if (allocator_in)
   { // *NOTE*: session message assumes responsibility for sessionData_inout !
-    message->init (messageType_in,
-                   sessionData_in);
+    message_p->initialize (messageType_in,
+                           sessionData_in);
   } // end IF
 
   // pass message downstream...
-  if (const_cast<Stream_HeadModuleTask*> (this)->put_next (message, NULL) == -1)
+  int result =
+      const_cast<Stream_HeadModuleTask*> (this)->put_next (message_p, NULL);
+  if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to put_next(): \"%m\", aborting\n")));
 
     // clean up
-    message->release ();
+    message_p->release ();
 
     return false;
   } // end IF
