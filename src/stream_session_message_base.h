@@ -58,12 +58,11 @@ class Stream_SessionMessageBase_T
 
   // initialization-after-construction
   // *NOTE*: assumes lifetime responsibility for the second argument !
-  void init (Stream_SessionMessageType_t,
-             SessionDataType*);
+  void initialize (Stream_SessionMessageType_t,
+                   SessionDataType*);
 
   // info
   Stream_SessionMessageType_t getType () const;
-  // *TODO*: clean this up !
   const SessionDataType* getData () const;
 
   // implement Common_IDumpState

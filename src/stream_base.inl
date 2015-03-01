@@ -933,8 +933,8 @@ Stream_Base_T<TaskSynchType,
   } // end IF
   if (allocator_)
   { // *NOTE*: session message assumes responsibility for session_data_container_p !
-    message_p->init (SESSION_END,
-                     session_data_container_p);
+    message_p->initialize (SESSION_END,
+                           session_data_container_p);
   } // end IF
 
   // send message downstream...
