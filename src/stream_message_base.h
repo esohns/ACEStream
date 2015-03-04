@@ -88,8 +88,8 @@ class Stream_Export Stream_MessageBase
   Stream_MessageBase (ACE_Allocator*); // message allocator
 
   // used for pre-allocated messages...
-  void init (ACE_Data_Block*          // data block to use
-             /*const ACE_Time_Value&*/); // scheduled execution time
+  void initialize (ACE_Data_Block*          // data block to use
+                   /*const ACE_Time_Value&*/); // scheduled execution time
 
  private:
   typedef ACE_Message_Block inherited;

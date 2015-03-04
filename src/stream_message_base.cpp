@@ -92,9 +92,9 @@ Stream_MessageBase::~Stream_MessageBase ()
 }
 
 void
-Stream_MessageBase::init (ACE_Data_Block* dataBlock_in)
+Stream_MessageBase::initialize (ACE_Data_Block* dataBlock_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase::init"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase::initialize"));
 
   // set data block
   data_block (dataBlock_in);

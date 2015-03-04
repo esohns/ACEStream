@@ -18,16 +18,17 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/Malloc_Base.h"
 #include "ace/Log_Msg.h"
+#include "ace/Malloc_Base.h"
 
 #include "stream_macros.h"
+#include "stream_message_base.h"
 
 template <typename SessionDataType>
 Stream_SessionMessageBase_T<SessionDataType>::Stream_SessionMessageBase_T (Stream_SessionMessageType_t messageType_in,
                                                                            SessionDataType* sessionData_in)
  : inherited (0,                                  // size
-              STREAM_SESSION_MAP,                 // type
+              MESSAGE_SESSION,                    // type
               NULL,                               // continuation
               NULL,                               // data
               NULL,                               // buffer allocator
@@ -77,7 +78,7 @@ Stream_SessionMessageBase_T<SessionDataType>::Stream_SessionMessageBase_T (ACE_D
 
   // set correct message type
   // *WARNING*: need to finalize initialization through init() !
-  msg_type (STREAM_SESSION_MAP);
+  msg_type (MESSAGE_SESSION);
 
   // reset read/write pointers
   reset ();

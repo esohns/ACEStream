@@ -302,8 +302,8 @@ Stream_TaskBase_T<TaskSynchStrategyType,
     // this concept, so we decide for them...
     if (!inherited::module ())
     {
-//       ACE_DEBUG ((LM_DEBUG,
-//                   ACE_TEXT ("cannot put_next(): not a module, continuing\n")));
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("cannot put_next(): not a module, continuing\n")));
 
       // clean up
       mb_in->release ();
@@ -339,13 +339,12 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
   switch (controlMessage_in->msg_type ())
   {
-    // currently, we only use these...
     case MESSAGE_SESSION:
     {
-      SessionMessageType* sessionMessage = NULL;
+      SessionMessageType* session_message_p = NULL;
       // downcast message
-      sessionMessage = dynamic_cast<SessionMessageType*> (controlMessage_in);
-      if (!sessionMessage)
+      session_message_p = dynamic_cast<SessionMessageType*> (controlMessage_in);
+      if (!session_message_p)
       {
         if (inherited::module ())
           ACE_DEBUG ((LM_ERROR,
@@ -363,7 +362,6 @@ Stream_TaskBase_T<TaskSynchStrategyType,
         passMessageDownstream_out = false;
         controlMessage_in->release ();
 
-        // what else can we do ?
         break;
       } // end IF
 
@@ -371,7 +369,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       try
       {
         // invoke specific implementation...
-        handleSessionMessage (sessionMessage,
+        handleSessionMessage (session_message_p,
                               passMessageDownstream_out);
       }
       catch (...)
@@ -385,11 +383,11 @@ Stream_TaskBase_T<TaskSynchStrategyType,
                       ACE_TEXT ("caught an exception in handleSessionMessage(), continuing\n")));
       }
 
-      // *NOTE*: if this was a RPG_Stream_SessionMessage::SESSION_END, we need to
-      // stop processing (see above) !
-      if (sessionMessage->getType () == SESSION_END)
+      // *NOTE*: if this was a Stream_SessionMessage::SESSION_END, stop
+      //         processing (see above) !
+      if (session_message_p->getType () == SESSION_END)
       {
-        // OK: tell our worker thread to stop whatever it's doing ASAP...
+        // OK: tell any worker thread to stop whatever it's doing ASAP...
         stopProcessing_out = true;
       } // end IF
 
@@ -397,8 +395,9 @@ Stream_TaskBase_T<TaskSynchStrategyType,
     }
     default:
     {
-      // *NOTE*: if someone defines their own control message type and enqueues it
-      // on the stream, it will land here (this is just a sanity check warning...)
+      // *NOTE*: if someone defines their own control message type and enqueues
+      //         it on the stream, it will land here (this is just a sanity
+      //         check warning...)
       if (inherited::module ())
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("module \"%s\": received an unknown control message (type: %d), continuing\n"),

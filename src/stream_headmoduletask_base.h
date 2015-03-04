@@ -25,6 +25,8 @@
 #include "ace/Synch.h"
 #include "ace/Time_Value.h"
 
+#include "common_iinitialize.h"
+
 #include "stream_istreamcontrol.h"
 #include "stream_messagequeue.h"
 #include "stream_session_message.h"
@@ -40,6 +42,7 @@ struct Stream_State_t;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StreamStateType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // (reference counted)
           typename SessionMessageType,
@@ -49,7 +52,8 @@ class Stream_HeadModuleTaskBase_T
                             TimePolicyType,
                             SessionMessageType,
                             ProtocolMessageType>
- , public Stream_IStreamControl
+ , public Stream_IStreamControl_T<StreamStateType>
+ , public Common_IInitialize_T<StreamStateType>
  , public Stream_StateMachine_Control
 {
  public:
@@ -70,14 +74,19 @@ class Stream_HeadModuleTaskBase_T
 //   virtual void handleDataMessage (Stream_MessageBase*&, // data message handle
 //                                   bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IStreamControl
+  // implement Stream_IStreamControl_T
   virtual void start ();
   virtual void stop (bool = true); // locked access ?
+  virtual bool isRunning () const;
   virtual void pause ();
   virtual void rewind ();
   // *NOTE*: for the time being, this simply waits for any worker threads to join
   virtual void waitForCompletion ();
-  virtual bool isRunning () const;
+  // *NOTE*: this is just a stub
+  virtual const StreamStateType* getState () const;
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const StreamStateType&);
 
  protected:
   Stream_HeadModuleTaskBase_T (bool = false,  // active object ?
@@ -120,7 +129,7 @@ class Stream_HeadModuleTaskBase_T
   //         the session. This is a handle to the session/user data to send
   //         along to the modules downstream
   SessionDataType*                sessionData_;
-  Stream_State_t*                 state_;
+  StreamStateType*                state_;
 
  private:
   typedef Stream_TaskBase_T<TaskSynchType,
@@ -128,12 +137,15 @@ class Stream_HeadModuleTaskBase_T
                             SessionMessageType,
                             ProtocolMessageType> inherited;
   typedef Stream_StateMachine_Control inherited2;
+
+  // convenient types
   typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
                                       TimePolicyType,
+                                      StreamStateType,
                                       SessionDataType,
                                       SessionDataContainerType,
                                       SessionMessageType,
-                                      ProtocolMessageType> own_type;
+                                      ProtocolMessageType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T ());
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T (const Stream_HeadModuleTaskBase_T&));

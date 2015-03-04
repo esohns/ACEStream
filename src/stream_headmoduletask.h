@@ -42,7 +42,7 @@ class Stream_IAllocator;
 class Stream_HeadModuleTask
  : public Stream_Task_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t>
- , public Stream_IStreamControl
+ , public Stream_IStreamControl_T<Stream_State_t>
  , public Stream_StateMachine_Control
 {
  public:
@@ -64,10 +64,12 @@ class Stream_HeadModuleTask
   // implement Stream_IStreamControl
   virtual void start ();
   virtual void stop ();
+  virtual bool isRunning ();
   virtual void pause ();
   virtual void rewind ();
   virtual void waitForCompletion ();
-  virtual bool isRunning ();
+  // *NOTE*: this is just a stub
+  virtual const Stream_State_t* getState () const;
 
  protected:
   Stream_HeadModuleTask (bool); // auto-start ?

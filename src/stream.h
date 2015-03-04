@@ -21,7 +21,7 @@
 #ifndef STREAM_H
 #define STREAM_H
 
-#include <vector>
+#include <deque>
 
 #include "ace/Global_Macros.h"
 #include "ace/Stream.h"
@@ -30,8 +30,8 @@
 #include "common_idumpstate.h"
 
 #include "stream_common.h"
+#include "stream_iallocator.h"
 #include "stream_istreamcontrol.h"
-#include "stream_imodule.h"
 
 // forward declarations
 class Stream_IAllocator;
@@ -39,17 +39,22 @@ class Stream_IAllocator;
 class Stream
  : public ACE_Stream<ACE_MT_SYNCH,
                      Common_TimePolicy_t>
- , public Stream_IStreamControl
+ , public Stream_IStreamControl_T<Stream_State_t>
  , public Common_IDumpState
 {
  public:
-  // define convenient (iterator) types
+  // convenient types
   typedef ACE_Module<ACE_MT_SYNCH,
-                     Common_TimePolicy_t> MODULE_TYPE;
+                     Common_TimePolicy_t> MODULE_T;
+  typedef ACE_Task<ACE_MT_SYNCH,
+                   Common_TimePolicy_t> TASK_T;
   typedef Stream_IModule<ACE_MT_SYNCH,
-                         Common_TimePolicy_t> IMODULE_TYPE;
+                         Common_TimePolicy_t> IMODULE_T;
   typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
-                              Common_TimePolicy_t> STREAM_ITERATOR_TYPE;
+                              Common_TimePolicy_t> ITERATOR_T;
+  typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;
+  typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
+  typedef Stream_IStreamControl_T<Stream_State_t> ISTREAM_CONTROL_T;
 
   // *NOTE*: this will try to sanely close down the stream:
   // 1: tell all worker threads to exit gracefully
@@ -61,7 +66,7 @@ class Stream
   // open() method...
   //virtual int push(ACE_Module<ACE_MT_SYNCH>*); // handle to module
 
-  // implement Stream_IStreamControl
+  // implement Stream_IStreamControl_T
   // *NOTE*: delegate these calls to the head module which also implements that API...
   virtual void start ();
   virtual void stop ();
@@ -69,6 +74,7 @@ class Stream
   virtual void pause ();
   virtual void rewind ();
   virtual void waitForCompletion ();
+  virtual const Stream_State_t* getState () const;
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -76,10 +82,6 @@ class Stream
   bool isInitialized () const;
 
  protected:
-  // define convenient (iterator) types
-  typedef std::vector<MODULE_TYPE*> MODULE_CONTAINER_TYPE;
-  typedef std::vector<MODULE_TYPE*>::iterator MODULE_CONTAINERITERATOR_TYPE;
-
   // *NOTE*: need to subclass this !
   Stream ();
 
@@ -97,16 +99,16 @@ class Stream
   void shutdown ();
 
   // *NOTE*: children need to set this during THEIR initialization !
-  Stream_IAllocator*    allocator_;
+  Stream_IAllocator* allocator_;
 
   // *NOTE*: children need to add handles to ALL of their modules to this container !
-  MODULE_CONTAINER_TYPE availableModules_;
+  MODULE_CONTAINER_T availableModules_;
 
   // *NOTE*: children need to set this IF their initialization succeeded; otherwise,
   // the dtor will NOT stop all worker threads before close()ing the modules...
-  bool                  isInitialized_;
+  bool               isInitialized_;
 
-  Stream_State_t        state_;
+  Stream_State_t     state_;
 
  private:
   typedef ACE_Stream<ACE_MT_SYNCH,
@@ -118,8 +120,8 @@ class Stream
 
   // helper methods
   // wrap inherited::open/close() calls
-  bool init ();
-  bool fini ();
+  bool initialize ();
+  bool finalize ();
   void deactivateModules ();
 };
 

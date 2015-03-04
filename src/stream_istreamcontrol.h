@@ -23,16 +23,18 @@
 
 #include "common_icontrol.h"
 
-class Stream_IStreamControl
+template <typename StreamStateType>
+class Stream_IStreamControl_T
  : public Common_IControl
 {
  public:
-  virtual ~Stream_IStreamControl() {}
+  virtual ~Stream_IStreamControl_T () {}
 
-  // exposed interface
   virtual void pause () = 0;
   virtual void rewind () = 0;
   virtual void waitForCompletion () = 0;
+
+  virtual const StreamStateType* getState () const = 0;
 };
 
 #endif

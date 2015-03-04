@@ -64,36 +64,36 @@ Stream::reset ()
 
   // pop/close all modules
   // *NOTE*: will implicitly (blocking !) wait for any active worker threads
-  if (!fini ())
+  if (!finalize ())
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to fini(), aborting\n")));
+                ACE_TEXT ("failed to finalize(), aborting\n")));
 
     return false;
   } // end IF
 
   // - reset reader/writers tasks for ALL modules
   // - reinit head/tail modules
-  return init ();
+  return initialize ();
 }
 
 bool
-Stream::init ()
+Stream::initialize ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream::init"));
+  STREAM_TRACE (ACE_TEXT ("Stream::initialize"));
 
   if (isInitialized_)
   {
     // *NOTE*: fini() invokes close() which will reset the writer/reader tasks
     // of the enqueued modules --> reset this !
-    IMODULE_TYPE* imodule_handle = NULL;
+    IMODULE_T* imodule_handle = NULL;
     // *NOTE*: cannot write this - it confuses gcc...
-    for (MODULE_CONTAINERITERATOR_TYPE iterator = availableModules_.begin ();
+    for (MODULE_CONTAINER_ITERATOR_T iterator = availableModules_.begin ();
          iterator != availableModules_.end ();
          iterator++)
     {
       // need a downcast...
-      imodule_handle = dynamic_cast<IMODULE_TYPE*> (*iterator);
+      imodule_handle = dynamic_cast<IMODULE_T*> (*iterator);
       if (!imodule_handle)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -135,9 +135,9 @@ Stream::init ()
 }
 
 bool
-Stream::fini ()
+Stream::finalize ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream::fini"));
+  STREAM_TRACE (ACE_TEXT ("Stream::finalize"));
 
   // OK: delegate this to base class close(ACE_Module_Base::M_DELETE_NONE)
   int result = -1;
@@ -181,7 +181,7 @@ Stream::start ()
   } // end IF
 
   // delegate to the head module
-  MODULE_TYPE* module = NULL;
+  MODULE_T* module = NULL;
   if (inherited::top (module) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -199,8 +199,8 @@ Stream::start ()
     return;
   } // end IF
 
-  Stream_IStreamControl* control_impl = NULL;
-  control_impl = dynamic_cast<Stream_IStreamControl*> (module->writer ());
+  ISTREAM_CONTROL_T* control_impl = NULL;
+  control_impl = dynamic_cast<ISTREAM_CONTROL_T*> (module->writer ());
   if (!control_impl)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -239,7 +239,7 @@ Stream::stop ()
   } // end IF
 
   // delegate to the head module
-  MODULE_TYPE* module = NULL;
+  MODULE_T* module = NULL;
   if (inherited::top (module) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -257,8 +257,8 @@ Stream::stop ()
     return;
   } // end IF
 
-  Stream_IStreamControl* control_impl = NULL;
-  control_impl = dynamic_cast<Stream_IStreamControl*> (module->writer ());
+  ISTREAM_CONTROL_T* control_impl = NULL;
+  control_impl = dynamic_cast<ISTREAM_CONTROL_T*> (module->writer ());
   if (!control_impl)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -282,6 +282,55 @@ Stream::stop ()
   }
 }
 
+bool
+Stream::isRunning () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream::isRunning"));
+
+  // delegate to the head module
+  MODULE_T* module = NULL;
+  if (const_cast<Stream*> (this)->top (module))
+  {
+    //ACE_DEBUG ((LM_ERROR,
+    //            ACE_TEXT ("no head module found: \"%m\", aborting\n")));
+
+    return false;
+  } // end IF
+
+  // sanity check: head == tail ? --> no modules have been push()ed (yet) !
+  if (module == const_cast<Stream*> (this)->tail ())
+  {
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
+
+    return false;
+  } // end IF
+
+  ISTREAM_CONTROL_T* control_impl = NULL;
+  control_impl = dynamic_cast<ISTREAM_CONTROL_T*> (module->writer ());
+  if (!control_impl)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
+                ACE_TEXT (module->name ())));
+
+    return false;
+  } // end IF
+
+  try
+  {
+    return control_impl->isRunning ();
+  }
+  catch (...)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_IStreamControl::isRunning (module: \"%s\"), aborting\n"),
+                ACE_TEXT (module->name ())));
+  }
+
+  return false;
+}
+
 void
 Stream::pause ()
 {
@@ -297,7 +346,7 @@ Stream::pause ()
   } // end IF
 
   // delegate to the head module
-  MODULE_TYPE* module = NULL;
+  MODULE_T* module = NULL;
   if (inherited::top (module) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -315,8 +364,8 @@ Stream::pause ()
     return;
   } // end IF
 
-  Stream_IStreamControl* control_impl = NULL;
-  control_impl = dynamic_cast<Stream_IStreamControl*> (module->writer ());
+  ISTREAM_CONTROL_T* control_impl = NULL;
+  control_impl = dynamic_cast<ISTREAM_CONTROL_T*> (module->writer ());
   if (!control_impl)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -355,7 +404,7 @@ Stream::rewind ()
   } // end IF
 
   // delegate to the head module
-  MODULE_TYPE* module = NULL;
+  MODULE_T* module = NULL;
   if (inherited::top (module) == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -373,8 +422,8 @@ Stream::rewind ()
     return;
   } // end IF
 
-  Stream_IStreamControl* control_impl = NULL;
-  control_impl = dynamic_cast<Stream_IStreamControl*> (module->writer ());
+  ISTREAM_CONTROL_T* control_impl = NULL;
+  control_impl = dynamic_cast<ISTREAM_CONTROL_T*> (module->writer ());
   if (!control_impl)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -417,8 +466,8 @@ Stream::waitForCompletion ()
   // step2: wait for the pipelined messages to flush...
 
   // iterate over modules...
-  const MODULE_TYPE* module = NULL;
-  STREAM_ITERATOR_TYPE iterator(*this);
+  const MODULE_T* module = NULL;
+  ITERATOR_T iterator(*this);
   // skip over ACE_Stream_Head
   if (iterator.advance ())
   {
@@ -449,7 +498,7 @@ Stream::waitForCompletion ()
   // need to downcast
   Stream_HeadModuleTask* head_task = NULL;
   head_task =
-      dynamic_cast<Stream_HeadModuleTask*> (const_cast<MODULE_TYPE*>(module)->writer ());
+      dynamic_cast<Stream_HeadModuleTask*> (const_cast<MODULE_T*>(module)->writer ());
   if (!head_task)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -503,7 +552,7 @@ Stream::waitForCompletion ()
 //                 ACE_TEXT (module->name ())));
 
     // OK: got a handle... wait
-    const_cast<MODULE_TYPE*> (module)->writer ()->wait ();
+    const_cast<MODULE_T*> (module)->writer ()->wait ();
 
 //     ACE_DEBUG ((LM_DEBUG,
 //                 ACE_TEXT ("waiting for module (\"%s\") to finish processing...DONE\n"),
@@ -517,53 +566,12 @@ Stream::waitForCompletion ()
 //               ACE_TEXT ("waiting for stream to flush...DONE\n")));
 }
 
-bool
-Stream::isRunning () const
+const Stream_State_t*
+Stream::getState () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream::isRunning"));
+  STREAM_TRACE (ACE_TEXT ("Stream::getState"));
 
-  // delegate to the head module
-  MODULE_TYPE* module = NULL;
-  if (const_cast<Stream*> (this)->top (module))
-  {
-    //ACE_DEBUG ((LM_ERROR,
-    //            ACE_TEXT ("no head module found: \"%m\", aborting\n")));
-
-    return false;
-  } // end IF
-
-  // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == const_cast<Stream*> (this)->tail ())
-  {
-//     ACE_DEBUG ((LM_DEBUG,
-//                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
-
-    return false;
-  } // end IF
-
-  Stream_IStreamControl* control_impl = NULL;
-  control_impl = dynamic_cast<Stream_IStreamControl*> (module->writer ());
-  if (!control_impl)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
-                ACE_TEXT (module->name ())));
-
-    return false;
-  } // end IF
-
-  try
-  {
-    return control_impl->isRunning ();
-  }
-  catch (...)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Stream_IStreamControl::isRunning (module: \"%s\"), aborting\n"),
-                ACE_TEXT (module->name ())));
-  }
-
-  return false;
+  return &state_;
 }
 
 void
@@ -572,8 +580,8 @@ Stream::dump_state () const
   STREAM_TRACE (ACE_TEXT ("Stream::dump_state"));
 
   std::string stream_layout;
-  const MODULE_TYPE* module = NULL;
-  for (STREAM_ITERATOR_TYPE iterator (*this);
+  const MODULE_T* module = NULL;
+  for (ITERATOR_T iterator (*this);
        iterator.next (module);
        iterator.advance ())
   {
@@ -585,7 +593,7 @@ Stream::dump_state () const
     stream_layout.append (ACE_TEXT_ALWAYS_CHAR (module->name ()));
 
     // avoid trailing "-->"...
-    if (const_cast<MODULE_TYPE*> (module)->next () !=
+    if (const_cast<MODULE_T*> (module)->next () !=
         const_cast<Stream*> (this)->tail ())
       stream_layout += ACE_TEXT_ALWAYS_CHAR (" --> ");
 
@@ -643,7 +651,7 @@ Stream::shutdown ()
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("deactivating offline module(s)...\n")));
 
-  for (MODULE_CONTAINERITERATOR_TYPE iter = availableModules_.begin ();
+  for (MODULE_CONTAINER_ITERATOR_T iter = availableModules_.begin ();
        iter != availableModules_.end ();
        iter++)
   {
@@ -679,7 +687,7 @@ Stream::shutdown ()
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("deactivating module(s)...\n")));
 
-  fini ();
+  finalize ();
 
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("deactivating module(s)...DONE\n")));

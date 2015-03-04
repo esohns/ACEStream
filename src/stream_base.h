@@ -40,6 +40,7 @@ class Stream_IAllocator;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StreamStateType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // (reference counted)
           typename SessionMessageType,
@@ -47,7 +48,7 @@ template <typename TaskSynchType,
 class Stream_Base_T
  : public ACE_Stream<TaskSynchType,
                      TimePolicyType>
- , public Stream_IStreamControl
+ , public Stream_IStreamControl_T<StreamStateType>
  , public Common_IDumpState
 {
  public:
@@ -61,7 +62,7 @@ class Stream_Base_T
   // open() method...
   //virtual int push(ACE_Module<ACE_MT_SYNCH>*); // handle to module
 
-  // implement Stream_IStreamControl
+  // implement Stream_IStreamControl_T
   // *NOTE*: delegate these calls to the head module which also implements that API...
   virtual void start ();
   virtual void stop (bool = true); // locked access ?
@@ -69,6 +70,7 @@ class Stream_Base_T
   virtual void pause ();
   virtual void rewind ();
   virtual void waitForCompletion ();
+  virtual const StreamStateType* getState () const;
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -76,14 +78,18 @@ class Stream_Base_T
   bool isInitialized () const;
 
  protected:
+  // convenient types
   typedef ACE_Module<TaskSynchType,
-                     TimePolicyType> Stream_Module_t;
+                     TimePolicyType> MODULE_T;
   typedef ACE_Task<TaskSynchType,
-                   TimePolicyType> Stream_Task_t;
+                   TimePolicyType> TASK_T;
   typedef Stream_IModule<TaskSynchType,
-                         TimePolicyType> Stream_IModule_t;
+                         TimePolicyType> IMODULE_T;
   typedef ACE_Stream_Iterator<TaskSynchType,
-                              TimePolicyType> Stream_StreamIterator_t;
+                              TimePolicyType> ITERATOR_T;
+  typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;
+  typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
+  typedef Stream_IStreamControl_T<StreamStateType> ISTREAM_CONTROL_T;
 
   // *NOTE*: need to subclass this !
   Stream_Base_T ();
@@ -102,36 +108,36 @@ class Stream_Base_T
   void shutdown ();
 
   // *NOTE*: children need to add handles to ALL of their modules to this container !
-  ACE_DLList<Stream_Module_t> availableModules_;
+  ACE_DLList<MODULE_T> availableModules_;
 
   // *NOTE*: children need to set this IF their initialization succeeded;
   //         otherwise, the dtor will NOT stop all worker threads before
   //         close()ing the modules...
-  bool                        isInitialized_;
+  bool                 isInitialized_;
 
   // *NOTE*: children need to initialize these !
-  Stream_IAllocator*          allocator_;
-  Stream_State_t              state_;
+  Stream_IAllocator*   allocator_;
+  StreamStateType      state_;
 
  private:
   typedef ACE_Stream<TaskSynchType,
                      TimePolicyType> inherited;
   typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
                                       TimePolicyType,
+                                      StreamStateType,
                                       SessionDataType,          // session data
                                       SessionDataContainerType, // (reference counted)
                                       SessionMessageType,
-                                      ProtocolMessageType> Stream_HeadModuleTask_t;
+                                      ProtocolMessageType> HEADMODULE_TASK_T;
 
   // convenient types
-  typedef std::deque<Stream_Module_t*> Stream_Modules_t;
-  typedef typename Stream_Modules_t::const_iterator Stream_ModulesIterator_t;
   typedef Stream_Base_T<TaskSynchType,
                         TimePolicyType,
+                        StreamStateType,
                         SessionDataType,
                         SessionDataContainerType,
                         SessionMessageType,
-                        ProtocolMessageType> own_type;
+                        ProtocolMessageType> OWN_TYPE_T;
 
 //   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T ());
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&));
@@ -140,8 +146,8 @@ class Stream_Base_T
 
   // helper methods
   // wrap inherited::open/close() calls
-  bool init ();
-  bool fini ();
+  bool initialize ();
+  bool finalize ();
   void deactivateModules ();
 };
 

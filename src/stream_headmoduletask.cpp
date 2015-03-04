@@ -387,6 +387,14 @@ Stream_HeadModuleTask::stop ()
   //wait ();
 }
 
+bool
+Stream_HeadModuleTask::isRunning ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::isRunning"));
+
+  return (inherited2::getState () == inherited2::STATE_RUNNING);
+}
+
 void
 Stream_HeadModuleTask::pause ()
 {
@@ -421,12 +429,15 @@ Stream_HeadModuleTask::waitForCompletion ()
 //               ACE_TEXT ("leaving...\n")));
 }
 
-bool
-Stream_HeadModuleTask::isRunning ()
+const Stream_State_t*
+Stream_HeadModuleTask::getState () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::isRunning"));
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::getState"));
 
-  return (inherited2::getState () == inherited2::STATE_RUNNING);
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (NULL);
+
+  ACE_NOTREACHED (return NULL);
 }
 
 void
