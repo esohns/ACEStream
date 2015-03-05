@@ -32,7 +32,7 @@ Stream_MessageBase::Stream_MessageBase (const Stream_MessageBase& message_in)
  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of the data block
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
-// , messageID_ (++currentID) // *WARNING*: DON'T change (it's already been set !)
+ , messageID_ (message_in.messageID_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase::Stream_MessageBase"));
 

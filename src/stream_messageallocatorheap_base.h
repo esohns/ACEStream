@@ -21,10 +21,10 @@
 #ifndef STREAM_MESSAGEALLOCATORHEAP_BASE_H
 #define STREAM_MESSAGEALLOCATORHEAP_BASE_H
 
+#include "ace/Atomic_Op.h"
 #include "ace/Malloc_Allocator.h"
 #include "ace/Thread_Semaphore.h"
 #include "ace/Synch.h"
-#include "ace/Atomic_Op.h"
 
 #include "stream_datablockallocatorheap.h"
 
@@ -44,13 +44,12 @@ class Stream_MessageAllocatorHeapBase_T
 
   // implement ACE_Allocator
   // *NOTE*: returns a pointer to <MessageType>...
-  // *NOTE: passing a value of 0 will return a <SessionMessageType>
-  // *TODO*: the way message IDs are implemented, they can be truly unique
-  // only IF allocation is synchronized...
+  // *NOTE: passing a value of 0 will return a (pointer to) <SessionMessageType>
   virtual void* malloc (size_t); // bytes
 
-  // *NOTE*: returns a pointer to <MessageType>/<SessionMessageType>
-  // --> see above
+  // *NOTE*: returns a pointer to raw memory (!) of size <MessageType>/
+  //         <SessionMessageType> --> see above
+  // *NOTE*: no data block is allocated
   virtual void* calloc (size_t,       // bytes
                         char = '\0'); // initial value (not used)
 

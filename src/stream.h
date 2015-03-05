@@ -53,7 +53,7 @@ class Stream
   typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
                               Common_TimePolicy_t> ITERATOR_T;
   typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;
-  typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
+  typedef MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
   typedef Stream_IStreamControl_T<Stream_State_t> ISTREAM_CONTROL_T;
 
   // *NOTE*: this will try to sanely close down the stream:

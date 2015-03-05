@@ -80,7 +80,6 @@ class Stream_Export Stream_MessageBase
 //   Stream_MessageBase(const unsigned long&); // total size of message data (off-wire)
    // copy ctor, to be used by derivates
    Stream_MessageBase (const Stream_MessageBase&);
-
   // *NOTE*: to be used by message allocators...
   Stream_MessageBase (ACE_Data_Block*, // data block
                       ACE_Allocator*,  // message allocator

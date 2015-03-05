@@ -60,32 +60,33 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::malloc"));
 
   // step0: wait for an empty slot...
-  // *NOTE*: we don't really ever want to actually block here...
-  // *WARNING*: the fact that we do this outside of the lock scope
+  // *NOTE*: don't really ever actually block here...
+  // *WARNING*: the fact that this is done outside of the lock scope
   // leads to a temporal inconsistency between the state of the counter
-  // and our pool ! In order to keep lock scope as small as possible,
-  // and maximizing parallelism, we'll live with this for now.
+  // and the message pool ! In order to keep lock scope as small as possible,
+  // and maximizing parallelism, live with this for now.
+  // *TODO*: find a better way to do this
   freeMessageCounter_.acquire ();
   poolSize_++;
 
   // step1: get free data block
-  ACE_Data_Block* data_block = NULL;
+  ACE_Data_Block* data_block_p = NULL;
   try
   {
-    ACE_ALLOCATOR_NORETURN (data_block,
+    ACE_ALLOCATOR_NORETURN (data_block_p,
                             static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (bytes_in)));
   }
   catch (...)
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block(%u)), aborting\n"),
                 bytes_in));
 
     return NULL;
   }
-  if (!data_block)
+  if (!data_block_p)
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("unable to allocate ACE_Data_Block(%u), aborting\n"),
                 bytes_in));
 
@@ -95,52 +96,53 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   // *NOTE*: must clean up data block beyond this point !
 
   // step2: get free message...
-  ACE_Message_Block* message = NULL;
+  ACE_Message_Block* message_p = NULL;
   try
   {
     // allocate memory and perform a placement new by invoking a ctor
     // on the allocated space
     if (bytes_in)
-      ACE_NEW_MALLOC_NORETURN (message,
+      ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<MessageType*> (inherited::malloc (sizeof (MessageType))),
-                               MessageType (data_block, // use the data block we just allocated
-                                            this));     // remember us upon destruction...
+                               MessageType (data_block_p, // use the newly allocated data block
+                                            this));       // remember us upon destruction...
     else
-      ACE_NEW_MALLOC_NORETURN (message,
+      ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<SessionMessageType*> (inherited::malloc (sizeof (SessionMessageType))),
-                               SessionMessageType (data_block, // use the data block we just allocated
-                                                   this));     // remember us upon destruction...
+                               SessionMessageType (data_block_p, // use the newly allocated data block
+                                                   this));       // remember us upon destruction...
   }
   catch (...)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN([Session]MessageType(%u), aborting\n"),
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN((Session)MessageType(%u), aborting\n"),
                 bytes_in));
 
     // clean up
-    data_block->release ();
+    data_block_p->release ();
 
     return NULL;
   }
-  if (!message)
+  if (!message_p)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("unable to allocate [Session]MessageType(%u), aborting\n"),
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("unable to allocate (Session)MessageType(%u), aborting\n"),
                 bytes_in));
 
     // clean up
-    data_block->release ();
+    data_block_p->release ();
 
     return NULL;
   } // end IF
 
-  // *NOTE*: now we do this directly, via the ctor !
-//   // step3: attach data block to message...
-//   message->data_block(data_block);
+//  // step3: attach data block to message...
+//  // *NOTE*: this is done explicitly, via the ctor !
+//  message_p->data_block (data_block_p);
 
   // ... and return the result
-  // *NOTE*: the caller knows what to expect (either MessageType || SessionMessageType)
-  return message;
+  // *NOTE*: the caller knows what to expect (either MessageType ||
+  //         SessionMessageType)
+  return message_p;
 }
 
 template <typename MessageType,
@@ -154,8 +156,44 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
 
   ACE_UNUSED_ARG (initialValue_in);
 
-  // just delegate this...
-  return malloc (bytes_in);
+  // step0: wait for an empty slot...
+  // *NOTE*: don't really ever actually block here...
+  // *WARNING*: the fact that this is done outside of the lock scope
+  // leads to a temporal inconsistency between the state of the counter
+  // and the message pool ! In order to keep lock scope as small as possible,
+  // and maximizing parallelism, live with this for now.
+  // *TODO*: find a better way to do this
+  freeMessageCounter_.acquire ();
+  poolSize_++;
+
+  // step1: allocate free message...
+  void* message_p = NULL;
+  try
+  {
+    message_p = inherited::malloc ((bytes_in ? sizeof (MessageType)
+                                             : sizeof (SessionMessageType)));
+  }
+  catch (...)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("caught exception in ACE_New_Allocator::malloc(%u), aborting\n"),
+                (bytes_in ? sizeof (MessageType)
+                          : sizeof (SessionMessageType))));
+    return NULL;
+  }
+  if (!message_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("unable to allocate (Session)MessageType(%u), aborting\n"),
+                (bytes_in ? sizeof (MessageType)
+                          : sizeof (SessionMessageType))));
+    return NULL;
+  } // end IF
+
+  // ... and return the result
+  // *NOTE*: the caller knows what to expect (either MessageType ||
+  //         SessionMessageType)
+  return message_p;
 }
 
 template <typename MessageType,
