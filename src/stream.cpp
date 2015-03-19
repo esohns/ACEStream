@@ -204,7 +204,7 @@ Stream::start ()
   if (!control_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl) failed> (returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
                 ACE_TEXT (module->name ())));
 
     return;
@@ -602,7 +602,7 @@ Stream::dump_state () const
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("stream layout: \"%s\"\n"),
-              ACE_TEXT (stream_layout.c_str())));
+              ACE_TEXT (stream_layout.c_str ())));
 }
 
 bool
