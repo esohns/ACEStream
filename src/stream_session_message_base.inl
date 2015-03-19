@@ -157,8 +157,8 @@ Stream_SessionMessageBase_T<SessionDataType>::duplicate (void) const
   } // end IF
   else
   {
-    // *WARNING*:we tell the allocator to return a Stream_SessionMessageBase_T<SessionDataType>
-    // by passing a 0 as argument to malloc()...
+    // *NOTE*: instruct the allocator to return a session message by passing 0
+    //         as argument to malloc()...
     ACE_NEW_MALLOC_NORETURN (nb,
                              static_cast<Stream_SessionMessageBase_T<SessionDataType>*> (message_block_allocator_->malloc (0)),
                              Stream_SessionMessageBase_T<SessionDataType> (*this));
@@ -176,7 +176,7 @@ Stream_SessionMessageBase_T<SessionDataType>::duplicate (void) const
   {
     nb->cont_ = cont_->duplicate ();
 
-    // If things go wrong, release all of our resources and return
+    // clean up
     if (nb->cont_ == 0)
     {
       nb->release ();
