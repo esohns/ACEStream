@@ -26,8 +26,8 @@
 #include "stream_macros.h"
 
 Stream_AllocatorHeap::Stream_AllocatorHeap ()
- : //inherited (),
-   poolSize_ (0)
+ : inherited ()
+ , poolSize_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::Stream_AllocatorHeap"));
 
@@ -40,45 +40,62 @@ Stream_AllocatorHeap::~Stream_AllocatorHeap ()
 }
 
 void*
+Stream_AllocatorHeap::calloc (size_t bytes_in,
+                              char initialValue_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::calloc"));
+
+  // delegate to base class
+  void* result = inherited::calloc (bytes_in,
+                                    initialValue_in);
+
+  // update allocation counter ?
+  if (result)
+    poolSize_ += bytes_in;
+
+  return result;
+}
+
+void*
+Stream_AllocatorHeap::calloc (size_t numElements_in,
+                              size_t sizePerElement_in,
+                              char initialValue_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::calloc"));
+
+  // delegate to base class
+  void* result = inherited::calloc (numElements_in,
+                                    sizePerElement_in,
+                                    initialValue_in);
+
+  // update allocation counter ?
+  if (result)
+    poolSize_ += (numElements_in * sizePerElement_in);
+
+  return result;
+}
+
+bool
+Stream_AllocatorHeap::block ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::block"));
+
+  return false;
+}
+
+void*
 Stream_AllocatorHeap::malloc (size_t bytes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::malloc"));
 
-  // update allocation counter
-  poolSize_ += bytes_in;
+  // delegate to base class
+  void* result = inherited::malloc (bytes_in);
 
-  // just delegate...
-  return inherited::malloc (bytes_in);
-}
+  // update allocation counter ?
+  if (result)
+    poolSize_ += bytes_in;
 
-void*
-Stream_AllocatorHeap::calloc(size_t bytes_in,
-                             char initialValue_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::calloc"));
-
-  // update allocation counter
-  poolSize_ += bytes_in;
-
-  // just delegate...
-  return inherited::calloc (bytes_in,
-                            initialValue_in);
-}
-
-void*
-Stream_AllocatorHeap::calloc(size_t numElements_in,
-                             size_t sizePerElement_in,
-                             char initialValue_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::calloc"));
-
-  // update allocation counter
-  poolSize_ += (numElements_in * sizePerElement_in);
-
-  // just delegate...
-  return inherited::calloc (numElements_in,
-                            sizePerElement_in,
-                            initialValue_in);
+  return result;
 }
 
 void
@@ -86,12 +103,12 @@ Stream_AllocatorHeap::free (void* handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::free"));
 
-  // *TODO*: how can we update our counter ???
-//   // update allocation counter
-//   poolSize_ -= bytes_in;
-
-  // just delegate...
+  // delegate to base class
   return inherited::free (handle_in);
+
+  // *TODO*: how can this counter update ???
+  // update allocation counter
+//   poolSize_ -= bytes_in;
 }
 
 size_t
@@ -99,7 +116,8 @@ Stream_AllocatorHeap::cache_depth () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::cache_depth"));
 
-  return cache_size ();
+  // *TODO*: specify a maximum size
+  return -1;
 }
 
 size_t
@@ -107,17 +125,17 @@ Stream_AllocatorHeap::cache_size () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::cache_size"));
 
-  // *TODO*: how can we update our counter (see free()) ???
+  // *TODO*: how can this counter update (see free()) ???
   return poolSize_.value ();
 }
 
 void
-Stream_AllocatorHeap::dump (void) const
+Stream_AllocatorHeap::dump_state () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::dump"));
+  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::dump_state"));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("allocated heap space: %u\n"),
+              ACE_TEXT ("allocated heap space: %u byte(s)\n"),
               poolSize_.value ()));
 }
 

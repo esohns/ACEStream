@@ -29,14 +29,16 @@ template <typename MessageType,
           typename SessionMessageType>
 Stream_MessageAllocatorHeapBase_T<MessageType,
                                   SessionMessageType>::Stream_MessageAllocatorHeapBase_T (unsigned int maxNumMessages_in,
-                                                                                          Stream_AllocatorHeap* allocator_in)
- : //inherited(),
-   freeMessageCounter_ (maxNumMessages_in,
+                                                                                          Stream_AllocatorHeap* allocator_in,
+                                                                                          bool block_in)
+ : inherited ()
+ , block_ (block_in)
+ , dataBlockAllocator_ (allocator_in)
+ , freeMessageCounter_ (maxNumMessages_in,
                         NULL,
                         NULL,
                         maxNumMessages_in)
  , poolSize_ (0)
- , dataBlockAllocator_ (allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::Stream_MessageAllocatorHeapBase_T"));
 
@@ -53,20 +55,36 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
 
 template <typename MessageType,
           typename SessionMessageType>
+bool
+Stream_MessageAllocatorHeapBase_T<MessageType,
+                                  SessionMessageType > ::block ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::block"));
+
+  return block_;
+}
+
+template <typename MessageType,
+          typename SessionMessageType>
 void*
 Stream_MessageAllocatorHeapBase_T<MessageType,
                                   SessionMessageType>::malloc (size_t bytes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::malloc"));
 
-  // step0: wait for an empty slot...
-  // *NOTE*: don't really ever actually block here...
-  // *WARNING*: the fact that this is done outside of the lock scope
-  // leads to a temporal inconsistency between the state of the counter
-  // and the message pool ! In order to keep lock scope as small as possible,
-  // and maximizing parallelism, live with this for now.
-  // *TODO*: find a better way to do this
-  freeMessageCounter_.acquire ();
+  int result = -1;
+  // step0: wait for an empty slot ?
+  if (block_)
+    result = freeMessageCounter_.acquire ();
+  else
+    result = freeMessageCounter_.tryacquire ();
+  if (result == -1)
+  {
+    if (block_)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Thread_Semaphore::acquire(): \"%m\", aborting\n")));
+    return NULL;
+  } // end IF
   poolSize_++;
 
   // step1: get free data block
@@ -81,7 +99,6 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block(%u)), aborting\n"),
                 bytes_in));
-
     return NULL;
   }
   if (!data_block_p)
@@ -89,7 +106,6 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("unable to allocate ACE_Data_Block(%u), aborting\n"),
                 bytes_in));
-
     return NULL;
   } // end IF
 
@@ -105,12 +121,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
       ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<MessageType*> (inherited::malloc (sizeof (MessageType))),
                                MessageType (data_block_p, // use the newly allocated data block
-                                            this));       // remember us upon destruction...
+                                            this));       // message allocator
     else
       ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<SessionMessageType*> (inherited::malloc (sizeof (SessionMessageType))),
                                SessionMessageType (data_block_p, // use the newly allocated data block
-                                                   this));       // remember us upon destruction...
+                                                   this));       // message allocator
   }
   catch (...)
   {
@@ -156,14 +172,19 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
 
   ACE_UNUSED_ARG (initialValue_in);
 
-  // step0: wait for an empty slot...
-  // *NOTE*: don't really ever actually block here...
-  // *WARNING*: the fact that this is done outside of the lock scope
-  // leads to a temporal inconsistency between the state of the counter
-  // and the message pool ! In order to keep lock scope as small as possible,
-  // and maximizing parallelism, live with this for now.
-  // *TODO*: find a better way to do this
-  freeMessageCounter_.acquire ();
+  int result = -1;
+  // step0: wait for an empty slot ?
+  if (block_)
+    result = freeMessageCounter_.acquire ();
+  else
+    result = freeMessageCounter_.tryacquire ();
+  if (result == -1)
+  {
+    if (block_)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Thread_Semaphore::acquire(): \"%m\", aborting\n")));
+    return NULL;
+  } // end IF
   poolSize_++;
 
   // step1: allocate free message...
@@ -204,7 +225,7 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::free"));
 
-  // just delegate to base class...
+  // delegate to base class...
   inherited::free (handle_in);
 
   // OK: one slot just emptied...
@@ -220,7 +241,7 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::cache_depth"));
 
-  return poolSize_.value ();
+  return dataBlockAllocator_.cache_depth ();
 }
 
 template <typename MessageType,
@@ -231,18 +252,18 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::cache_size"));
 
-  return dataBlockAllocator_.cache_size ();
+  return poolSize_.value ();
 }
 
 template <typename MessageType,
           typename SessionMessageType>
 void
 Stream_MessageAllocatorHeapBase_T<MessageType,
-                                  SessionMessageType>::dump (void) const
+                                  SessionMessageType>::dump_state () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::dump"));
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::dump_state"));
 
-  return dataBlockAllocator_.dump ();
+  return dataBlockAllocator_.dump_state ();
 }
 
 template <typename MessageType,

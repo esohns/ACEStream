@@ -41,14 +41,16 @@ typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
 
 struct Stream_Statistic_t
 {
-  unsigned int numDataMessages; // (protocol) messages
-  double       numBytes;        // amount of processed data
+  unsigned int numDataMessages;    // (protocol) messages
+  unsigned int numDroppedMessages; // dropped messages
+  double       numBytes;           // amount of processed data
 
   // convenience
-  inline Stream_Statistic_t operator+= (const Stream_Statistic_t& rhs)
+  inline Stream_Statistic_t operator+= (const Stream_Statistic_t& rhs_in)
   {
-    numDataMessages += rhs.numDataMessages;
-    numBytes += rhs.numBytes;
+    numDataMessages += rhs_in.numDataMessages;
+    numDroppedMessages += rhs_in.numDroppedMessages;
+    numBytes += rhs_in.numBytes;
 
     return *this;
   };
@@ -57,8 +59,10 @@ struct Stream_Statistic_t
 struct Stream_State_t
 {
   unsigned int       sessionID; // (== socket handle !)
+  ACE_Time_Value     startOfSession;
   Stream_Statistic_t currentStatistics;
   ACE_Time_Value     lastCollectionTimestamp;
+  bool               userAborted;
 };
 
 struct Stream_Configuration_t
@@ -73,7 +77,7 @@ struct Stream_Configuration_t
   ACE_Notification_Strategy* notificationStrategy;
   Common_Module_t*           module;
   bool                       deleteModule;
-  unsigned int               statisticsReportingInterval;
+  unsigned int               statisticsReportingInterval; // 0: don't report
   bool                       printFinalReport;
 };
 

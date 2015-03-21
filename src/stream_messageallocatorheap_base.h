@@ -26,6 +26,8 @@
 #include "ace/Thread_Semaphore.h"
 #include "ace/Synch.h"
 
+#include "common_idumpstate.h"
+
 #include "stream_datablockallocatorheap.h"
 
 // forward declarations
@@ -34,34 +36,35 @@ class Stream_AllocatorHeap;
 template <typename MessageType,
           typename SessionMessageType>
 class Stream_MessageAllocatorHeapBase_T
- : public ACE_New_Allocator,
-   public Stream_IAllocator
+ : public ACE_New_Allocator
+ , public Stream_IAllocator
+ , public Common_IDumpState
 {
  public:
-  Stream_MessageAllocatorHeapBase_T (unsigned int,           // total number of concurrent messages
-                                     Stream_AllocatorHeap*); // (heap) memory allocator...
+  Stream_MessageAllocatorHeapBase_T (unsigned int,          // total number of concurrent messages
+                                     Stream_AllocatorHeap*, // (heap) memory allocator...
+                                     bool = true);          // block until a buffer is available ?
   virtual ~Stream_MessageAllocatorHeapBase_T ();
 
-  // implement ACE_Allocator
+  // implement Stream_IAllocator
+  virtual bool block (); // return value: block when full ?
   // *NOTE*: returns a pointer to <MessageType>...
   // *NOTE: passing a value of 0 will return a (pointer to) <SessionMessageType>
   virtual void* malloc (size_t); // bytes
+  // *NOTE*: frees an <MessageType>/<SessionMessageType>...
+  virtual void free (void*); // element handle
+  virtual size_t cache_depth () const; // return value: #bytes allocated
+  virtual size_t cache_size () const;  // return value: #inflight ACE_Message_Blocks
 
+  // implement (part of) ACE_Allocator
   // *NOTE*: returns a pointer to raw memory (!) of size <MessageType>/
   //         <SessionMessageType> --> see above
   // *NOTE*: no data block is allocated
   virtual void* calloc (size_t,       // bytes
                         char = '\0'); // initial value (not used)
 
-  // *NOTE*: frees an <MessageType>/<SessionMessageType>...
-  virtual void free (void*); // element handle
-
-  // *NOTE*: these return the # of online ACE_Data_Blocks...
-  virtual size_t cache_depth () const;
-  virtual size_t cache_size () const;
-
-  // dump current state
-  virtual void dump () const;
+  // implement Common_IDumpState
+  virtual void dump_state () const;
 
  private:
   typedef ACE_New_Allocator inherited;
@@ -101,13 +104,11 @@ class Stream_MessageAllocatorHeapBase_T
                        size_t,           // length
                        int = PROT_RDWR); // protection
 
-  // blocking counter condition...
+  bool                            block_;
+  Stream_DataBlockAllocatorHeap   dataBlockAllocator_;
   ACE_Thread_Semaphore            freeMessageCounter_;
   ACE_Atomic_Op<ACE_Thread_Mutex,
                 unsigned int>     poolSize_;
-
-  // data block allocator
-  Stream_DataBlockAllocatorHeap   dataBlockAllocator_;
 };
 
 // include template implementation

@@ -947,6 +947,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     //                   sessionData_inout
     ACE_NEW_NORETURN (session_message_p,
                       SessionMessageType (messageType_in,
+                                          state_,
                                           sessionData_inout));
   } // end ELSE
   if (!session_message_p)
@@ -964,11 +965,15 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   { // *IMPORTANT NOTE*: session message assumes responsibility for
     //                   sessionData_inout
     session_message_p->initialize (messageType_in,
+                                   state_,
                                    sessionData_inout);
   } // end IF
 
   // pass message downstream...
-  if (const_cast<OWN_TYPE_T*> (this)->put_next (session_message_p, NULL) == -1)
+  int result =
+   const_cast<OWN_TYPE_T*> (this)->put_next (session_message_p,
+                                             NULL);
+  if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to put_next(): \"%m\", aborting\n")));
@@ -1008,7 +1013,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putSessionMessage"));
 
   // create session data
-  SessionDataContainerType* session_data_container_p = NULL;
+  SessionDataContainerType* session_data_p = NULL;
 
   // switch
   switch (messageType_in)
@@ -1017,17 +1022,13 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     case SESSION_STEP:
     case SESSION_END:
     {
-      ACE_NEW_NORETURN (session_data_container_p,
+      ACE_NEW_NORETURN (session_data_p,
                         SessionDataContainerType (sessionData_in,
-                                                  deleteSessionData_in,
-                                                  state_,
-                                                  startOfSession_in,
-                                                  userAbort_in));
-      if (!session_data_container_p)
+                                                  deleteSessionData_in));
+      if (!session_data_p)
       {
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-
         return false;
       } // end IF
 
@@ -1039,13 +1040,12 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown message type: %d, aborting\n"),
                   messageType_in));
-
       return false;
     }
   } // end SWITCH
 
-  // *IMPORTANT NOTE*: "fire-and-forget"-API for session_data_container_p
+  // *IMPORTANT NOTE*: "fire-and-forget"-API for session_data_p
   return putSessionMessage (messageType_in,
-                            session_data_container_p,
+                            session_data_p,
                             allocator_);
 }

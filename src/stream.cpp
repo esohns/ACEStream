@@ -566,8 +566,8 @@ Stream::waitForCompletion ()
 //               ACE_TEXT ("waiting for stream to flush...DONE\n")));
 }
 
-const Stream_State_t*
-Stream::getState () const
+Stream_State_t*
+Stream::getState ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream::getState"));
 
@@ -708,9 +708,6 @@ Stream::deactivateModules ()
   Stream_SessionData_t* session_data_p = NULL;
   ACE_NEW_NORETURN (session_data_p,
                     Stream_SessionData_t (NULL,
-                                          false,
-                                          &state_,
-                                          ACE_Time_Value::zero,
                                           false));
   if (!session_data_p)
   {
@@ -740,10 +737,10 @@ Stream::deactivateModules ()
     }
   } // end IF
   else
-  { // *NOTE*: session message assumes responsibility for
-    //         session_data_container_p
+  { // *NOTE*: session message assumes responsibility for session_data_p
     ACE_NEW_NORETURN (message_p,
                       Stream_SessionMessage (SESSION_END,
+                                             &state_,
                                              session_data_p));
   } // end ELSE
   if (!message_p)
@@ -759,6 +756,7 @@ Stream::deactivateModules ()
   if (allocator_)
   { // *NOTE*: session message assumes responsibility for session_data_p
     message_p->initialize (SESSION_END,
+                           &state_,
                            session_data_p);
   } // end IF
 

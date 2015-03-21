@@ -23,9 +23,9 @@
 
 #include <string>
 
+#include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
-#include "ace/Atomic_Op.h"
 #include "ace/Synch.h"
 
 #include "common_idumpstate.h"
@@ -78,8 +78,8 @@ class Stream_Export Stream_MessageBase
  protected:
 //   // ctor(s) for MB_STREAM_DATA
 //   Stream_MessageBase(const unsigned long&); // total size of message data (off-wire)
-   // copy ctor, to be used by derivates
-   Stream_MessageBase (const Stream_MessageBase&);
+  // copy ctor, to be used by derivates
+  Stream_MessageBase (const Stream_MessageBase&);
   // *NOTE*: to be used by message allocators...
   Stream_MessageBase (ACE_Data_Block*, // data block
                       ACE_Allocator*,  // message allocator

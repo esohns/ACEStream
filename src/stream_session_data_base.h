@@ -26,29 +26,18 @@
 
 #include "common_referencecounter_base.h"
 
-//#include "stream_common.h"
-
-// forward declarations
-struct Stream_State_t;
-
 template <typename DataType>
 class Stream_SessionDataBase_T
  : public Common_ReferenceCounterBase
 {
  public:
   Stream_SessionDataBase_T ();
-  Stream_SessionDataBase_T (DataType*,                                    // (session) data
-                            bool,                                         // delete on destruction ?
-                            Stream_State_t*,                              // stream state handle
-                            const ACE_Time_Value& = ACE_Time_Value::zero, // "official" start of session
-                            bool = false);                                // session ended because of user abort ?
+  Stream_SessionDataBase_T (DataType*,     // (session) data
+                            bool = false); // delete in dtor ?
   virtual ~Stream_SessionDataBase_T ();
 
   // info
   DataType* getData () const;
-  ACE_Time_Value getStartOfSession () const;
-  Stream_State_t* getState () const;
-  bool getUserAbort () const;
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -56,15 +45,11 @@ class Stream_SessionDataBase_T
  private:
   typedef Common_ReferenceCounterBase inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T (const Stream_SessionDataBase_T<DataType>&));
-//  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T<DataType>& operator= (const Stream_SessionDataBase_T<DataType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T<DataType> (const Stream_SessionDataBase_T<DataType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T<DataType>& operator= (const Stream_SessionDataBase_T<DataType>&));
 
-  // *TODO*: this needs more thought...
-  DataType*       data_;
-  bool            deleteData_;
-  ACE_Time_Value  startOfSession_;
-  Stream_State_t* state_;
-  bool            userAbort_;
+  DataType* sessionData_;
+  bool      deleteSessionData_;
 };
 
 // include template implementation

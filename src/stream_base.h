@@ -29,6 +29,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_idumpstate.h"
+#include "common_istatistic.h"
 
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
@@ -41,6 +42,7 @@ class Stream_IAllocator;
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // (reference counted)
           typename SessionMessageType,
@@ -49,9 +51,12 @@ class Stream_Base_T
  : public ACE_Stream<TaskSynchType,
                      TimePolicyType>
  , public Stream_IStreamControl_T<StreamStateType>
+ , public Common_IStatistic_T<StreamStatisticContainerType>
  , public Common_IDumpState
 {
  public:
+  typedef StreamStateType STATE_T;
+
   // *NOTE*: this will try to sanely close down the stream:
   // 1: tell all worker threads to exit gracefully
   // 2: close() all modules which have not been enqueued onto the stream (next() == NULL)
@@ -122,6 +127,8 @@ class Stream_Base_T
  private:
   typedef ACE_Stream<TaskSynchType,
                      TimePolicyType> inherited;
+
+  // convenient types
   typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
                                       TimePolicyType,
                                       StreamStateType,
@@ -129,15 +136,14 @@ class Stream_Base_T
                                       SessionDataContainerType, // (reference counted)
                                       SessionMessageType,
                                       ProtocolMessageType> HEADMODULE_TASK_T;
-
-  // convenient types
   typedef Stream_Base_T<TaskSynchType,
                         TimePolicyType,
                         StreamStateType,
+                        StreamStatisticContainerType,
                         SessionDataType,
                         SessionDataContainerType,
                         SessionMessageType,
-                        ProtocolMessageType> OWN_TYPE_T;
+                        ProtocolMessageType> SELF_T;
 
 //   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T ());
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&));

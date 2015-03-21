@@ -30,13 +30,14 @@
 #include "common_idumpstate.h"
 
 #include "stream_common.h"
+#include "stream_exports.h"
 #include "stream_iallocator.h"
 #include "stream_istreamcontrol.h"
 
 // forward declarations
 class Stream_IAllocator;
 
-class Stream
+class Stream_Export Stream
  : public ACE_Stream<ACE_MT_SYNCH,
                      Common_TimePolicy_t>
  , public Stream_IStreamControl_T<Stream_State_t>
@@ -74,7 +75,7 @@ class Stream
   virtual void pause ();
   virtual void rewind ();
   virtual void waitForCompletion ();
-  virtual const Stream_State_t* getState () const;
+  virtual Stream_State_t* getState ();
 
   // implement Common_IDumpState
   virtual void dump_state () const;

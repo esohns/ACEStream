@@ -19,9 +19,11 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "stream_iallocator.h"
 #include "stream_message_base.h"
 
 #include "ace/Log_Msg.h"
+#include "ace/Malloc_Base.h"
 
 #include "stream_macros.h"
 
@@ -127,45 +129,57 @@ Stream_MessageBase::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase::duplicate"));
 
-  Stream_MessageBase* new_message = NULL;
+  Stream_MessageBase* message_p = NULL;
 
   // create a new Net_Message that contains unique copies of
   // the message block fields, but a (reference counted) shallow duplicate of
   // the ACE_Data_Block.
 
   // if there is no allocator, use the standard new and delete calls.
-  if (message_block_allocator_ == NULL)
+  if (inherited::message_block_allocator_ == NULL)
   {
-    ACE_NEW_RETURN (new_message,
-                    Stream_MessageBase (*this),
-                    NULL);
+    ACE_NEW_NORETURN (message_p,
+                      Stream_MessageBase (*this));
   } // end IF
   else // otherwise, use the existing message_block_allocator
   {
     // *NOTE*: the argument to malloc SHOULDN'T really matter, as this will be
     // a "shallow" copy which just references our data block...
-    ACE_NEW_MALLOC_RETURN (new_message,
-                           static_cast<Stream_MessageBase*> (message_block_allocator_->malloc (inherited::capacity ())),
-                           Stream_MessageBase (*this),
-                           NULL);
+    ACE_NEW_MALLOC_NORETURN (message_p,
+                             static_cast<Stream_MessageBase*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                                                                                                            '\0')),
+                             Stream_MessageBase (*this));
   } // end ELSE
-
-  // increment the reference counts of all the continuation messages
-  if (cont_)
+  if (!message_p)
   {
-    new_message->cont_ = cont_->duplicate ();
+    Stream_IAllocator* allocator_p =
+      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
+    ACE_ASSERT (allocator_p);
+    if (allocator_p->block ())
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate Stream_MessageBase: \"%m\", aborting\n")));
+    return NULL;
+  } // end IF
 
-    // If things go wrong, release all of our resources and return
-    if (new_message->cont_ == NULL)
+  // increment the reference counts of any continuation messages
+  if (inherited::cont_)
+  {
+    message_p->cont_ = inherited::cont_->duplicate ();
+    if (!message_p->cont_)
     {
-      new_message->release ();
-      new_message = NULL;
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MessageBase::duplicate(): \"%m\", aborting\n")));
+
+      // clean up
+      message_p->release ();
+
+      return NULL;
     } // end IF
   } // end IF
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
-  return new_message;
+  return message_p;
 }
 
 void

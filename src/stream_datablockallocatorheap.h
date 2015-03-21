@@ -21,42 +21,43 @@
 #ifndef STREAM_DATABLOCKALLOCATORHEAP_H
 #define STREAM_DATABLOCKALLOCATORHEAP_H
 
-#include "stream_exports.h"
-#include "stream_iallocator.h"
-
 #include "ace/Atomic_Op.h"
 #include "ace/Lock_Adapter_T.h"
 #include "ace/Malloc_Allocator.h"
 #include "ace/Synch.h"
 
+#include "common_idumpstate.h"
+
+#include "stream_exports.h"
+#include "stream_iallocator.h"
+
 // forward declarations
 class Stream_AllocatorHeap;
 
 class Stream_Export Stream_DataBlockAllocatorHeap
- : public ACE_New_Allocator,
-   public Stream_IAllocator
+ : public ACE_New_Allocator
+ , public Stream_IAllocator
+ , public Common_IDumpState
 {
  public:
   Stream_DataBlockAllocatorHeap (Stream_AllocatorHeap*); // (heap) memory allocator...
   virtual ~Stream_DataBlockAllocatorHeap ();
 
-  // overload these to do what we want
+  // implement Stream_IAllocator
+  virtual bool block (); // return value: block when full ?
   // *NOTE*: returns a pointer to ACE_Data_Block...
   virtual void* malloc (size_t); // bytes
+  // *NOTE*: frees an ACE_Data_Block...
+  virtual void free (void*); // element handle
+  virtual size_t cache_depth () const; // return value: #bytes allocated
+  virtual size_t cache_size () const;  // return value: #inflight ACE_Data_Blocks
 
-  // *NOTE*: returns a pointer to ACE_Data_Block...
+  // implement (part of) ACE_Allocator
   virtual void* calloc (size_t,       // bytes
                         char = '\0'); // initial value (not used)
 
-  // *NOTE*: frees an ACE_Data_Block...
-  virtual void free (void*); // element handle
-
-  // *NOTE*: these return the # of online ACE_Data_Blocks...
-  virtual size_t cache_depth () const;
-  virtual size_t cache_size () const;
-
-  // dump current state
-  virtual void dump () const;
+  // implement Common_IDumpState
+  virtual void dump_state () const;
 
   // some convenience typedefs --> save us some typing...
   // *NOTE*: serialize access to ACE_Data_Block reference count which may
@@ -103,11 +104,9 @@ class Stream_Export Stream_DataBlockAllocatorHeap
                        size_t,           // length
                        int = PROT_RDWR); // protection
 
+  Stream_AllocatorHeap*       heapAllocator_;
   ACE_Atomic_Op<ACE_Thread_Mutex,
                 unsigned int> poolSize_;
-
-  // heap memory allocator
-  Stream_AllocatorHeap*       heapAllocator_;
 };
 
 #endif

@@ -652,6 +652,7 @@ Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType_t messageTyp
     // *NOTE*: session message assumes responsibility for sessionData_in !
     ACE_NEW_NORETURN (message_p,
                       Stream_SessionMessage (messageType_in,
+                                             state_,
                                              sessionData_in));
   } // end ELSE
 
@@ -668,6 +669,7 @@ Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType_t messageTyp
   if (allocator_in)
   { // *NOTE*: session message assumes responsibility for sessionData_inout !
     message_p->initialize (messageType_in,
+                           state_,
                            sessionData_in);
   } // end IF
 

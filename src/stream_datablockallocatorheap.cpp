@@ -19,8 +19,8 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "ace/Message_Block.h"
 #include "ace/Log_Msg.h"
+#include "ace/Message_Block.h"
 
 #include "stream_datablockallocatorheap.h"
 
@@ -31,9 +31,9 @@
 Stream_DataBlockAllocatorHeap::DATABLOCK_LOCK_TYPE Stream_DataBlockAllocatorHeap::referenceCountLock_;
 
 Stream_DataBlockAllocatorHeap::Stream_DataBlockAllocatorHeap (Stream_AllocatorHeap* allocator_in)
- : //inherited(),
-   poolSize_ (0)
+ : inherited ()
  , heapAllocator_ (allocator_in)
+ , poolSize_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap::Stream_DataBlockAllocatorHeap"));
 
@@ -51,46 +51,50 @@ Stream_DataBlockAllocatorHeap::~Stream_DataBlockAllocatorHeap ()
 
 }
 
+bool
+Stream_DataBlockAllocatorHeap::block ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap::block"));
+
+  return true;
+}
+
 void*
 Stream_DataBlockAllocatorHeap::malloc (size_t bytes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap::malloc"));
 
-  ACE_Data_Block* data_block = NULL;
+  ACE_Data_Block* data_block_p = NULL;
   try
   {
-    // - delegate allocation to our base class and
-    // - perform a placement new by invoking a ctor on the allocated space
-    // --> perform necessary initialization...
-    ACE_NEW_MALLOC_NORETURN (data_block,
+    // - delegate allocation to base class and
+    // - use placement new by invoking a ctor on the allocated space and
+    // - perform necessary initialization...
+    ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (bytes_in,                                 // size of data chunk
                                              // *TODO*: make this configurable ?
                                              (bytes_in ? ACE_Message_Block::MB_DATA    // message type
                                                        : ACE_Message_Block::MB_PROTO),
                                              NULL,                                     // data --> use allocator !
-                                             heapAllocator_,                           // allocator
-                                             //NULL,                                   // no allocator --> allocate this off the heap !
+                                             heapAllocator_,                           // heap allocator
+                                             //NULL,                                   // no allocator --> allocate off the heap
                                              &Stream_DataBlockAllocatorHeap::referenceCountLock_, // reference count lock
-                                             0,                                        // flags: release our (heap) memory when we die
-                                             this));                                   // remember us upon destruction...
+                                             0,                                        // flags: release (heap) memory in dtor
+                                             this));                                   // data block allocator
   }
   catch (...)
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)), aborting\n"),
                 bytes_in));
-
-    // *TODO*: what else can we do ?
     return NULL;
   }
-  if (!data_block)
+  if (!data_block_p)
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("unable to allocate ACE_Data_Block(%u), aborting\n"),
                 bytes_in));
-
-    // *TODO*: what else can we do ?
     return NULL;
   } // end IF
 
@@ -98,7 +102,7 @@ Stream_DataBlockAllocatorHeap::malloc (size_t bytes_in)
 //   poolSize_ += data_block->capacity ();
   poolSize_++;
 
-  return data_block;
+  return data_block_p;
 }
 
 void*
@@ -107,10 +111,8 @@ Stream_DataBlockAllocatorHeap::calloc (size_t bytes_in,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap::calloc"));
 
-  // ignore this
   ACE_UNUSED_ARG (initialValue_in);
 
-  // just delegate this (for now)...
   return malloc (bytes_in);
 }
 
@@ -119,16 +121,17 @@ Stream_DataBlockAllocatorHeap::free (void* handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap::free"));
 
-  // *NOTE*: handle_in SHOULD really be a ACE_Data_Block*...
+  // delegate to base class...
+  inherited::free (handle_in);
+
+  // *NOTE*: handle_in really is a ACE_Data_Block*...
 //   ACE_Data_Block* data_block = NULL;
-//   data_block = static_cast<ACE_Data_Block*> (//                                handle_in);
+//   data_block = static_cast<ACE_Data_Block*> (handle_in);
 //   ACE_ASSERT (data_block);
-//
-//   // update allocation counter
+
+  // update allocation counter
 //   poolSize_ -= data_block->capacity ();
   poolSize_--;
-
-  inherited::free (handle_in);
 }
 
 size_t
@@ -136,7 +139,10 @@ Stream_DataBlockAllocatorHeap::cache_depth () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap::cache_depth"));
 
-  return poolSize_.value ();
+  if (heapAllocator_)
+    return heapAllocator_->cache_size ();
+
+  return -1;
 }
 
 size_t
@@ -144,20 +150,16 @@ Stream_DataBlockAllocatorHeap::cache_size () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap::cache_size"));
 
-  if (heapAllocator_)
-    return heapAllocator_->cache_size ();
-
-  // *TODO*: what should we do ?
-  return -1;
+  return poolSize_.value ();
 }
 
 void
-Stream_DataBlockAllocatorHeap::dump (void) const
+Stream_DataBlockAllocatorHeap::dump_state (void) const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap::dump"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap::dump_state"));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("# ACE_Data_Blocks online: %u\n"),
+              ACE_TEXT ("# ACE_Data_Blocks in flight: %u\n"),
               poolSize_.value ()));
 }
 

@@ -209,12 +209,12 @@ Stream_TaskBase_T<TaskSynchStrategyType,
     case MESSAGE_DATA:
     case MESSAGE_OBJECT:
     {
-      ProtocolMessageType* message = NULL;
+      ProtocolMessageType* message_p = NULL;
       // downcast message
-      message = dynamic_cast<ProtocolMessageType*> (mb_in);
+      message_p = dynamic_cast<ProtocolMessageType*> (mb_in);
 //       // *OPTIMIZATION*: not as safe, but (arguably) a lot faster !...
 //       message = static_cast<RPG_Stream_MessageBase*>(mb_in);
-      if (!message)
+      if (!message_p)
       {
         std::string type;
         Stream_MessageBase::MessageType2String (mb_in->msg_type (),
@@ -245,7 +245,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
         // *IMPORTANT NOTE*: invoke OWN implementation here, otherwise, the
         // ld linker complains about a missing reference to
         // StreamITaskBase::handleDataMessage...
-        this->handleDataMessage (message,
+        this->handleDataMessage (message_p,
                                  passMessageDownstream);
       }
       catch (...)
@@ -254,11 +254,11 @@ Stream_TaskBase_T<TaskSynchStrategyType,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": caught an exception in handleDataMessage() (message ID: %u), continuing\n"),
                       ACE_TEXT (inherited::name ()),
-                      message->getID ()));
+                      message_p->getID ()));
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught an exception in handleDataMessage() (message ID: %u), continuing\n"),
-                      message->getID ()));
+                      message_p->getID ()));
       }
 
       break;

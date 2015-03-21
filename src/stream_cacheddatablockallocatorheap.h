@@ -38,22 +38,20 @@ class Stream_Export Stream_CachedDataBlockAllocatorHeap
                                        ACE_Allocator*); // (heap) memory allocator...
   virtual ~Stream_CachedDataBlockAllocatorHeap ();
 
-  // overload ACE_Allocator
+  // implement Stream_IAllocator
+  virtual bool block (); // return value: block when full ?
   // *NOTE*: returns a pointer to ACE_Data_Block...
   virtual void* malloc (size_t); // bytes
+  // *NOTE*: frees an ACE_Data_Block...
+  virtual void free (void*); // element handle
+  virtual size_t cache_depth () const; // return value: #bytes allocated
+  virtual size_t cache_size () const;  // return value: #inflight ACE_Data_Blocks
 
   // *NOTE*: returns a pointer to ACE_Data_Block...
   virtual void* calloc (size_t,       // bytes
                         char = '\0'); // initial value
 
-  // *NOTE*: frees an ACE_Data_Block...
-  virtual void free (void*); // element handle
-
-  // *NOTE*: these return the # of online ACE_Data_Blocks...
-  virtual size_t cache_depth () const;
-  virtual size_t cache_size () const;
-
-  // some convenience typedefs --> save us some typing...
+  // convenience types
   // *NOTE*: serialize access to ACE_Data_Block reference count which may
   // be decremented from multiple threads...
   typedef ACE_Lock_Adapter<ACE_Thread_Mutex> DATABLOCK_LOCK_TYPE;
@@ -69,9 +67,7 @@ class Stream_Export Stream_CachedDataBlockAllocatorHeap
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap (const Stream_CachedDataBlockAllocatorHeap&));
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap& operator= (const Stream_CachedDataBlockAllocatorHeap&));
 
-  // heap memory allocator
   ACE_Allocator*             heapAllocator_;
-
   unsigned int               poolSize_;
 };
 

@@ -25,11 +25,10 @@ template <typename MessageType,
 Stream_CachedMessageAllocatorHeapBase_T<MessageType,
                                         SessionMessageType>::Stream_CachedMessageAllocatorHeapBase_T (unsigned int maxNumMessages_in,
                                                                                                       ACE_Allocator* allocator_in)
- : //inherited(),
-   messageAllocator_ (maxNumMessages_in)
- , sessionMessageAllocator_ (maxNumMessages_in)
- , dataBlockAllocator_ (maxNumMessages_in,
+ : dataBlockAllocator_ (maxNumMessages_in,
                         allocator_in)
+ , messageAllocator_ (maxNumMessages_in)
+ , sessionMessageAllocator_ (maxNumMessages_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::Stream_CachedMessageAllocatorHeapBase_T"));
 
@@ -46,6 +45,17 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType,
 
 template <typename MessageType,
           typename SessionMessageType>
+bool
+Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+                                        SessionMessageType>::block ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::block"));
+
+  return dataBlockAllocator_.block ();
+}
+
+template <typename MessageType,
+          typename SessionMessageType>
 void*
 Stream_CachedMessageAllocatorHeapBase_T<MessageType,
                                         SessionMessageType>::malloc (size_t bytes_in)
@@ -53,38 +63,42 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType,
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::malloc"));
 
   // step1: get free data block
-  ACE_Data_Block* data_block = NULL;
+  ACE_Data_Block* data_block_p = NULL;
   try
   {
-    ACE_ALLOCATOR_RETURN (data_block,
-                          static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (bytes_in)),
-                          NULL);
+    ACE_ALLOCATOR_NORETURN (data_block_p,
+                            static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (bytes_in)));
   }
   catch (...)
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_RETURN(%u), aborting\n"),
                 bytes_in));
-
-    // *TODO*: what else can we do ?
+    return NULL;
+  }
+  if (!data_block_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("unable to allocate ACE_Data_Block(%u), aborting\n"),
+                bytes_in));
     return NULL;
   }
 
   // *NOTE*: must clean up data block beyond this point !
 
   // step2: get free message...
-  ACE_Message_Block* message = NULL;
+  ACE_Message_Block* message_p = NULL;
   try
   {
     // allocate memory and perform a placement new by invoking a ctor
     // on the allocated space
     if (bytes_in)
-      ACE_NEW_MALLOC_NORETURN (message,
+      ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<MessageType*> (messageAllocator_.malloc (sizeof (MessageType))),
                                MessageType (data_block,           // use the data block we just allocated
                                             &messageAllocator_)); // remember allocator upon destruction...
     else
-      ACE_NEW_MALLOC_NORETURN (message,
+      ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<SessionMessageType*> (sessionMessageAllocator_.malloc (sizeof (SessionMessageType))),
                                SessionMessageType (data_block,                  // use the data block we just allocated
                                                    &sessionMessageAllocator_)); // remember allocator upon destruction...
@@ -98,10 +112,9 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType,
     // clean up
     data_block->release ();
 
-    // *TODO*: what else can we do ?
     return NULL;
   }
-  if (!message)
+  if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("unable to allocate [Session]MessageType(%u), aborting\n"),
@@ -110,13 +123,12 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType,
     // clean up
     data_block->release ();
 
-    // *TODO*: what else can we do ?
     return NULL;
   } // end IF
 
   // ... and return the result
   // *NOTE*: the caller knows what to expect (either MessageType || SessionMessageType)
-  return message;
+  return message_p;
 }
 
 template <typename MessageType,

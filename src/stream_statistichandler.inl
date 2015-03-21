@@ -24,29 +24,31 @@
 
 #include "stream_macros.h"
 
-template <typename StatisticsContainerType>
-Stream_StatisticHandler_Reactor_T<StatisticsContainerType>::Stream_StatisticHandler_Reactor_T (const Stream_IStatistic_t* interfaceHandle_in,
-                                                                                               Stream_StatisticAction_t action_in)
+template <typename StatisticContainerType>
+Stream_StatisticHandler_Reactor_T<StatisticContainerType>::Stream_StatisticHandler_Reactor_T (Stream_StatisticAction_t action_in,
+                                                                                              Stream_IStatistic_t* interfaceHandle_in,
+                                                                                              bool reportOnCollect_in)
  : inherited (NULL,                           // use default reactor
               ACE_Event_Handler::LO_PRIORITY) // priority
- , interfaceHandle_ (interfaceHandle_in)
  , action_ (action_in)
+ , interfaceHandle_ (interfaceHandle_in)
+ , reportOnCollect_ (reportOnCollect_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StatisticHandler_Reactor_T::Stream_StatisticHandler_Reactor_T"));
 
 }
 
-template <typename StatisticsContainerType>
-Stream_StatisticHandler_Reactor_T<StatisticsContainerType>::~Stream_StatisticHandler_Reactor_T ()
+template <typename StatisticContainerType>
+Stream_StatisticHandler_Reactor_T<StatisticContainerType>::~Stream_StatisticHandler_Reactor_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StatisticHandler_Reactor_T::~Stream_StatisticHandler_Reactor_T"));
 
 }
 
-template <typename StatisticsContainerType>
+template <typename StatisticContainerType>
 int
-Stream_StatisticHandler_Reactor_T<StatisticsContainerType>::handle_timeout (const ACE_Time_Value& tv_in,
-                                                                            const void* arg_in)
+Stream_StatisticHandler_Reactor_T<StatisticContainerType>::handle_timeout (const ACE_Time_Value& tv_in,
+                                                                           const void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StatisticHandler_Reactor_T::handle_timeout"));
 
@@ -57,23 +59,24 @@ Stream_StatisticHandler_Reactor_T<StatisticsContainerType>::handle_timeout (cons
   {
     case ACTION_COLLECT:
     {
-      StatisticsContainerType result;
-      ACE_OS::memset (&result, 0, sizeof (StatisticsContainerType));
+      StatisticContainerType result;
+      ACE_OS::memset (&result, 0, sizeof (StatisticContainerType));
 
       try
       {
         if (!interfaceHandle_->collect (result))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to RPG_Common_IStatistic::collect(), continuing\n")));
+                      ACE_TEXT ("failed to Common_IStatistic::collect(), continuing\n")));
       }
       catch (...)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught an exception in RPG_Common_IStatistic::collect(), continuing\n")));
+                    ACE_TEXT ("caught an exception in Common_IStatistic::collect(), continuing\n")));
       }
 
-      // *TODO*: what else can we do, dump the result somehow ?
-      break;
+      if (!reportOnCollect_)
+        break;
+      // *WARNING*: falls through !
     }
     case ACTION_REPORT:
     {
@@ -84,7 +87,7 @@ Stream_StatisticHandler_Reactor_T<StatisticsContainerType>::handle_timeout (cons
       catch (...)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught an exception in RPG_Common_IStatistic::report(), continuing\n")));
+                    ACE_TEXT ("caught an exception in Common_IStatistic::report(), continuing\n")));
       }
 
       break;
@@ -104,28 +107,30 @@ Stream_StatisticHandler_Reactor_T<StatisticsContainerType>::handle_timeout (cons
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename StatisticsContainerType>
-Stream_StatisticHandler_Proactor_T<StatisticsContainerType>::Stream_StatisticHandler_Proactor_T (const Stream_IStatistic_t* interfaceHandle_in,
-                                                                                                 Stream_StatisticAction_t action_in)
+template <typename StatisticContainerType>
+Stream_StatisticHandler_Proactor_T<StatisticContainerType>::Stream_StatisticHandler_Proactor_T (Stream_StatisticAction_t action_in,
+                                                                                                Stream_IStatistic_t* interfaceHandle_in,
+                                                                                                bool reportOnCollect_in)
  : inherited ()
- , interfaceHandle_ (interfaceHandle_in)
  , action_ (action_in)
+ , interfaceHandle_ (interfaceHandle_in)
+ , reportOnCollect_ (reportOnCollect_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StatisticHandler_Proactor_T::Stream_StatisticHandler_Proactor_T"));
 
 }
 
-template <typename StatisticsContainerType>
-Stream_StatisticHandler_Proactor_T<StatisticsContainerType>::~Stream_StatisticHandler_Proactor_T ()
+template <typename StatisticContainerType>
+Stream_StatisticHandler_Proactor_T<StatisticContainerType>::~Stream_StatisticHandler_Proactor_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StatisticHandler_Proactor_T::~Stream_StatisticHandler_Proactor_T"));
 
 }
 
-template <typename StatisticsContainerType>
+template <typename StatisticContainerType>
 void
-Stream_StatisticHandler_Proactor_T<StatisticsContainerType>::handle_time_out (const ACE_Time_Value& tv_in,
-                                                                              const void* arg_in)
+Stream_StatisticHandler_Proactor_T<StatisticContainerType>::handle_time_out (const ACE_Time_Value& tv_in,
+                                                                             const void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StatisticHandler_Proactor_T::handle_time_out"));
 
@@ -136,23 +141,24 @@ Stream_StatisticHandler_Proactor_T<StatisticsContainerType>::handle_time_out (co
   {
     case ACTION_COLLECT:
     {
-      StatisticsContainerType result;
-      ACE_OS::memset (&result, 0, sizeof (StatisticsContainerType));
+      StatisticContainerType result;
+      ACE_OS::memset (&result, 0, sizeof (StatisticContainerType));
 
       try
       {
         if (!interfaceHandle_->collect (result))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to RPG_Common_IStatistic::collect(), continuing\n")));
+                      ACE_TEXT ("failed to Common_IStatistic::collect(), continuing\n")));
       }
       catch (...)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught an exception in RPG_Common_IStatistic::collect(), continuing\n")));
+                    ACE_TEXT ("caught an exception in Common_IStatistic::collect(), continuing\n")));
       }
 
-      // *TODO*: what else can we do, dump the result somehow ?
-      break;
+      if (!reportOnCollect_)
+        break;
+      // *WARNING*: falls through !
     }
     case ACTION_REPORT:
     {
@@ -163,7 +169,7 @@ Stream_StatisticHandler_Proactor_T<StatisticsContainerType>::handle_time_out (co
       catch (...)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught an exception in RPG_Common_IStatistic::report(), continuing\n")));
+                    ACE_TEXT ("caught an exception in Common_IStatistic::report(), continuing\n")));
       }
 
       break;

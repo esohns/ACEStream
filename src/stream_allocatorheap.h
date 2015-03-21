@@ -25,32 +25,36 @@
 #include "ace/Malloc_Allocator.h"
 #include "ace/Synch.h"
 
+#include "common_idumpstate.h"
+
 #include "stream_exports.h"
 #include "stream_iallocator.h"
 
 class Stream_Export Stream_AllocatorHeap
- : public ACE_New_Allocator,
-   public Stream_IAllocator
+ : public ACE_New_Allocator
+ , public Stream_IAllocator
+ , public Common_IDumpState
 {
  public:
   Stream_AllocatorHeap ();
   virtual ~Stream_AllocatorHeap ();
 
-  // overloads from ACE_Allocator
-  virtual void* malloc (size_t); // bytes
+  // override (part of) ACE_Allocator
   virtual void* calloc (size_t,       // bytes
                         char = '\0'); // initial value
   virtual void* calloc (size_t,       // # elements
                         size_t,       // bytes/element
                         char = '\0'); // initial value
+
+  // implement Stream_IAllocator
+  virtual bool block (); // return value: block when full ?
+  virtual void* malloc (size_t); // bytes
   virtual void free (void*); // element handle
+  virtual size_t cache_depth () const; // dummy
+  virtual size_t cache_size () const; // return value: #bytes allocated
 
-  // *NOTE*: these return the amount of allocated (heap) memory...
-  virtual size_t cache_depth () const;
-  virtual size_t cache_size () const;
-
-  // dump current state
-  virtual void dump () const;
+  // implement Common_IDumpState
+  virtual void dump_state () const;
 
  private:
   typedef ACE_New_Allocator inherited;

@@ -29,6 +29,7 @@
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -36,6 +37,7 @@ template <typename TaskSynchType,
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -57,6 +59,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -64,6 +67,7 @@ template <typename TaskSynchType,
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -76,6 +80,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -84,6 +89,7 @@ bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -118,6 +124,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -126,6 +133,7 @@ bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -191,6 +199,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -199,6 +208,7 @@ bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -233,6 +243,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -241,6 +252,7 @@ void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -314,6 +326,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -322,6 +335,7 @@ void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -400,6 +414,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -408,6 +423,7 @@ bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -416,7 +432,7 @@ Stream_Base_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isRunning"));
 
   // delegate to the head module, skip over ACE_Stream_Head...
-  MODULE_T* module = const_cast<OWN_TYPE_T*> (this)->head ();
+  MODULE_T* module = const_cast<SELF_T*> (this)->head ();
   if (!module)
   {
     // *IMPORTANT NOTE*: this happens when no modules have been pushed onto the
@@ -436,7 +452,7 @@ Stream_Base_T<TaskSynchType,
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == const_cast<OWN_TYPE_T*> (this)->tail ())
+  if (module == const_cast<SELF_T*> (this)->tail ())
   {
 //     ACE_DEBUG ((LM_DEBUG,
 //                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
@@ -472,6 +488,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -480,6 +497,7 @@ void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -553,6 +571,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -561,6 +580,7 @@ void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -636,6 +656,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -644,6 +665,7 @@ void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -738,6 +760,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -746,6 +769,7 @@ const StreamStateType*
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -759,6 +783,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -767,6 +792,7 @@ void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -782,15 +808,15 @@ Stream_Base_T<TaskSynchType,
        iterator.advance ())
   {
     // silently ignore ACE head/tail modules...
-    if ((module == const_cast<OWN_TYPE_T*> (this)->tail ()) ||
-        (module == const_cast<OWN_TYPE_T*> (this)->head ()))
+    if ((module == const_cast<SELF_T*> (this)->tail ()) ||
+        (module == const_cast<SELF_T*> (this)->head ()))
       continue;
 
     stream_layout.append (ACE_TEXT_ALWAYS_CHAR (module->name ()));
 
     // avoid trailing "-->"...
     if (const_cast<MODULE_T*> (module)->next () !=
-        const_cast<OWN_TYPE_T*> (this)->tail ())
+        const_cast<SELF_T*> (this)->tail ())
       stream_layout += ACE_TEXT_ALWAYS_CHAR (" --> ");
 
     module = NULL;
@@ -804,6 +830,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -812,6 +839,7 @@ bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -825,6 +853,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -833,6 +862,7 @@ void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -917,6 +947,7 @@ Stream_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
+          typename StreamStatisticContainerType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -925,6 +956,7 @@ void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StreamStateType,
+              StreamStatisticContainerType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -933,14 +965,11 @@ Stream_Base_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::deactivateModules"));
 
   // allocate session data
-  SessionDataContainerType* session_data_container_p = NULL;
-  ACE_NEW_NORETURN (session_data_container_p,
+  SessionDataContainerType* session_data_p = NULL;
+  ACE_NEW_NORETURN (session_data_p,
                     SessionDataContainerType (NULL,
-                                              false,
-                                              &state_,
-                                              ACE_Time_Value::zero,
                                               false));
-  if (!session_data_container_p)
+  if (!session_data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", returning\n")));
@@ -962,16 +991,17 @@ Stream_Base_T<TaskSynchType,
                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 
       // clean up
-      session_data_container_p->decrease ();
+      session_data_p->decrease ();
 
       return;
     }
   } // end IF
   else
-  { // *NOTE*: session message assumes responsibility for session_data_container_p !
+  { // *NOTE*: session message assumes responsibility for session_data_p
     ACE_NEW_NORETURN (message_p,
                       SessionMessageType (SESSION_END,
-                                          session_data_container_p));
+                                          &state_,
+                                          session_data_p));
   } // end ELSE
   if (!message_p)
   {
@@ -979,14 +1009,15 @@ Stream_Base_T<TaskSynchType,
                 ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", returning\n")));
 
     // clean up
-    session_data_container_p->decrease ();
+    session_data_p->decrease ();
 
     return;
   } // end IF
   if (allocator_)
   { // *NOTE*: session message assumes responsibility for session_data_container_p !
     message_p->initialize (SESSION_END,
-                           session_data_container_p);
+                           &state_,
+                           session_data_p);
   } // end IF
 
   // send message downstream...

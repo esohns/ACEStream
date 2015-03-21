@@ -38,41 +38,35 @@ class Stream_CachedMessageAllocatorHeapBase_T
                                            ACE_Allocator*); // (heap) memory allocator...
   virtual ~Stream_CachedMessageAllocatorHeapBase_T ();
 
-  // overload ACE_Allocator
+  // implement Stream_IAllocator
+  virtual bool block (); // return value: block when full ?
   // *NOTE*: returns a pointer to <MessageType>...
   // *NOTE: passing a value of 0 will return a <SessionMessageType>
   // *TODO*: the way message IDs are implemented, they can be truly unique
   // only IF allocation is synchronized...
   virtual void* malloc (size_t); // bytes
+  // *NOTE*: frees an <MessageType>/<SessionMessageType>...
+  virtual void free (void*); // element handle
+  virtual size_t cache_depth () const; // return value: #bytes allocated
+  virtual size_t cache_size  () const; // return value: #inflight ACE_Message_Blocks
 
   // *NOTE*: returns a pointer to <MessageType>/<SessionMessageType>
   // --> see above
   virtual void* calloc (size_t,       // bytes
                         char = '\0'); // initial value
 
-  // *NOTE*: frees an <MessageType>/<SessionMessageType>...
-  virtual void free (void*); // element handle
-
-  // *NOTE*: these return the # of online ACE_Data_Blocks...
-  virtual size_t cache_depth () const;
-  virtual size_t cache_size  () const;
-
  private:
-  typedef Stream_IAllocator inherited;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T (const Stream_CachedMessageAllocatorHeapBase_T<MessageType, SessionMessageType>&));
   // *NOTE*: apparently, ACE_UNIMPLEMENTED_FUNC gets confused with more than one template parameter...
 //   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T<MessageType,
 //                                                          SessionMessageType>& operator= (const Stream_CachedMessageAllocatorHeapBase_T<MessageType,
 //                                                                                          SessionMessageType>&));
 
-  // message allocator
+  Stream_CachedDataBlockAllocatorHeap     dataBlockAllocator_;
   ACE_Cached_Allocator<MessageType,
                        ACE_SYNCH_MUTEX>   messageAllocator_;
   ACE_Cached_Allocator<SessionMessageType,
                        ACE_SYNCH_MUTEX>   sessionMessageAllocator_;
-  // data block allocator
-  Stream_CachedDataBlockAllocatorHeap     dataBlockAllocator_;
 };
 
 // include template implementation
