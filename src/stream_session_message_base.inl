@@ -62,11 +62,6 @@ Stream_SessionMessageBase_T<StreamStateType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
-  // set correct message type
-  // *WARNING*: this doesn't work, as we're assigned a (different) data block later...
-  // --> do it in init(STREAM_SESSION_MAP)
-//   msg_type ();
-
   // reset read/write pointers
   reset ();
 }
@@ -76,8 +71,8 @@ template <typename StreamStateType,
 Stream_SessionMessageBase_T<StreamStateType,
                             SessionDataType>::Stream_SessionMessageBase_T (ACE_Data_Block* dataBlock_in,
                                                                            ACE_Allocator* messageAllocator_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              0,                   // flags --> also "free" our data block upon destruction !
+ : inherited (dataBlock_in,        // use (don't own (!) memory of-) data block
+              0,                   // flags --> also "free" data block in dtor
               messageAllocator_in) // re-use the same allocator
  , isInitialized_ (false)
  , messageType_ (STREAM_SESSION_MAP) // == Stream_MessageBase::MB_STREAM_SESSION
@@ -87,7 +82,7 @@ Stream_SessionMessageBase_T<StreamStateType,
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
   // set correct message type
-  // *WARNING*: need to finalize initialization through init() !
+  // *WARNING*: need to finalize initialization through initialize()
   msg_type (MESSAGE_SESSION);
 
   // reset read/write pointers

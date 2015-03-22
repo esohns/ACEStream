@@ -298,8 +298,8 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   // pass message downstream (if there IS a stream)...
   if (passMessageDownstream)
   {
-    // *NOTE*: tasks that are not part of a stream have no notion of
-    // this concept, so we decide for them...
+    // *NOTE*: tasks that are not part of a stream have no notion of this
+    //         concept, so decide for them...
     if (!inherited::module ())
     {
 //      ACE_DEBUG ((LM_DEBUG,

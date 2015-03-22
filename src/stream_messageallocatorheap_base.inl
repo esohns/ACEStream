@@ -151,11 +151,6 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
     return NULL;
   } // end IF
 
-//  // step3: attach data block to message...
-//  // *NOTE*: this is done explicitly, via the ctor !
-//  message_p->data_block (data_block_p);
-
-  // ... and return the result
   // *NOTE*: the caller knows what to expect (either MessageType ||
   //         SessionMessageType)
   return message_p;

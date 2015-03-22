@@ -95,33 +95,33 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType,
     if (bytes_in)
       ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<MessageType*> (messageAllocator_.malloc (sizeof (MessageType))),
-                               MessageType (data_block,           // use the data block we just allocated
+                               MessageType (data_block_p,         // use the data block we just allocated
                                             &messageAllocator_)); // remember allocator upon destruction...
     else
       ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<SessionMessageType*> (sessionMessageAllocator_.malloc (sizeof (SessionMessageType))),
-                               SessionMessageType (data_block,                  // use the data block we just allocated
+                               SessionMessageType (data_block_p,                // use the data block we just allocated
                                                    &sessionMessageAllocator_)); // remember allocator upon destruction...
   }
   catch (...)
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN([Session]MessageType(%u), aborting\n"),
                 bytes_in));
 
     // clean up
-    data_block->release ();
+    data_block_p->release ();
 
     return NULL;
   }
   if (!message_p)
   {
-    ACE_DEBUG ((LM_ERROR,
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("unable to allocate [Session]MessageType(%u), aborting\n"),
                 bytes_in));
 
     // clean up
-    data_block->release ();
+    data_block_p->release ();
 
     return NULL;
   } // end IF

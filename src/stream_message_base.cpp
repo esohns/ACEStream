@@ -30,16 +30,15 @@
 // init statics
 ACE_Atomic_Op<ACE_Thread_Mutex, unsigned int> Stream_MessageBase::currentID = 0;
 
+// *NOTE*: this is implicitly invoked by duplicate() as well...
 Stream_MessageBase::Stream_MessageBase (const Stream_MessageBase& message_in)
- : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of the data block
+ : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of
+                                                    // the data block
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
  , messageID_ (message_in.messageID_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase::Stream_MessageBase"));
-
-  // set correct message type
-//   msg_type (MB_STREAM_OBJ);
 
   // set read/write pointers
   rd_ptr (message_in.rd_ptr ());
@@ -49,15 +48,15 @@ Stream_MessageBase::Stream_MessageBase (const Stream_MessageBase& message_in)
 Stream_MessageBase::Stream_MessageBase (ACE_Data_Block* dataBlock_in,
                                         ACE_Allocator* messageAllocator_in,
                                         bool incrementMessageCounter_in)
- : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
-              0,                   // flags --> also "free" our data block upon destruction !
+ : inherited (dataBlock_in,        // use (don't own (!) memory of-) data block
+              0,                   // flags --> also "free" data block in dtor
               messageAllocator_in) // re-use the same allocator
 // , messageID_ (++currentID.value ())
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase::Stream_MessageBase"));
 
   if (incrementMessageCounter_in)
-    currentID++;
+    ++currentID;
   messageID_ = currentID.value ();
 
   // set correct message type
@@ -73,11 +72,6 @@ Stream_MessageBase::Stream_MessageBase (ACE_Allocator* messageAllocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase::Stream_MessageBase"));
 
-  // *WARNING*: this wouldn't work, as we're assigned a different data block later...
-  // --> do it in init()
-//   // set correct message type
-//   msg_type (MB_STREAM_DATA);
-
   // reset read/write pointers
   reset ();
 }
@@ -86,7 +80,7 @@ Stream_MessageBase::~Stream_MessageBase ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase::~Stream_MessageBase"));
 
-  // *NOTE*: will be called BEFORE we're passed back to the allocator
+  // *NOTE*: will be called BEFORE this is passed back to the allocator
 
 //   ACE_DEBUG((LM_DEBUG,
 //              ACE_TEXT ("freeing message (ID: %d)...\n"),

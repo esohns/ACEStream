@@ -45,8 +45,8 @@ class Stream_SessionDataBase_T
  private:
   typedef Common_ReferenceCounterBase inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T<DataType> (const Stream_SessionDataBase_T<DataType>&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T<DataType>& operator= (const Stream_SessionDataBase_T<DataType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T (const Stream_SessionDataBase_T&));
+//  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T& operator= (const Stream_SessionDataBase_T&));
 
   DataType* sessionData_;
   bool      deleteSessionData_;
