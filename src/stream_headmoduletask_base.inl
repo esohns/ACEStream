@@ -344,7 +344,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   if (!putSessionMessage (SESSION_BEGIN,
                           sessionData_,
                           false,
-                          COMMON_TIME_POLICY (), // timestamp: start of session
+                          COMMON_TIME_NOW, // timestamp: start of session
                           false))                // N/A
   {
     ACE_DEBUG ((LM_ERROR,
@@ -776,7 +776,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         if (!putSessionMessage (SESSION_BEGIN,
                                 sessionData_,
                                 false,
-                                COMMON_TIME_POLICY (), // timestamp: start of session
+                                COMMON_TIME_NOW, // timestamp: start of session
                                 false))                // N/A
         {
           ACE_DEBUG ((LM_ERROR,

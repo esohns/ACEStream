@@ -234,7 +234,7 @@ Stream_HeadModuleTask::svc (void)
   // step1: send initial session message downstream...
   if (!putSessionMessage (SESSION_BEGIN,
                           sessionData_,
-                          COMMON_TIME_POLICY (), // start of session
+                          COMMON_TIME_NOW, // start of session
                           false))                // N/A
   {
     ACE_DEBUG ((LM_ERROR,
