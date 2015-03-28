@@ -50,7 +50,8 @@ class Stream_Export Stream
   typedef ACE_Task<ACE_MT_SYNCH,
                    Common_TimePolicy_t> TASK_T;
   typedef Stream_IModule<ACE_MT_SYNCH,
-                         Common_TimePolicy_t> IMODULE_T;
+                         Common_TimePolicy_t,
+                         Stream_ModuleConfiguration_t> IMODULE_T;
   typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
                               Common_TimePolicy_t> ITERATOR_T;
   typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;

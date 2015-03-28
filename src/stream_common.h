@@ -33,12 +33,6 @@
 #include "stream_session_data_base.h"
 #include "stream_statistichandler.h"
 
-//typedef Common_Module_t Stream_Module_t;
-typedef Stream_IModule<ACE_MT_SYNCH,
-                       Common_TimePolicy_t> Stream_IModule_t;
-typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
-                            Common_TimePolicy_t> Stream_Iterator_t;
-
 struct Stream_Statistic_t
 {
   unsigned int numDataMessages;    // (protocol) messages
@@ -65,20 +59,34 @@ struct Stream_State_t
   bool               userAborted;
 };
 
+struct Stream_ModuleConfiguration_t
+{
+  Stream_State_t* streamState;
+  void*           userData;
+};
+
+//typedef Common_Module_t Stream_Module_t;
+typedef Stream_IModule<ACE_MT_SYNCH,
+                       Common_TimePolicy_t,
+                       Stream_ModuleConfiguration_t> Stream_IModule_t;
+typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
+                            Common_TimePolicy_t> Stream_Iterator_t;
+
 struct Stream_Configuration_t
 {
-  Stream_IAllocator*         messageAllocator;
-  unsigned int               bufferSize;
-  bool                       useThreadPerConnection;
+  Stream_IAllocator*           messageAllocator;
+  unsigned int                 bufferSize;
+  bool                         useThreadPerConnection;
   // *IMPORTANT NOTE*: in a threaded environment, workers MAY be
   // dispatching the reactor notification queue concurrently (most notably,
   // ACE_TP_Reactor) --> enforce proper serialization
-  bool                       serializeOutput;
-  ACE_Notification_Strategy* notificationStrategy;
-  Common_Module_t*           module;
-  bool                       deleteModule;
-  unsigned int               statisticsReportingInterval; // 0: don't report
-  bool                       printFinalReport;
+  bool                         serializeOutput;
+  ACE_Notification_Strategy*   notificationStrategy;
+  Common_Module_t*             module;
+  bool                         deleteModule;
+  Stream_ModuleConfiguration_t moduleConfiguration;
+  unsigned int                 statisticReportingInterval; // 0: don't report
+  bool                         printFinalReport;
 };
 
 typedef Stream_SessionDataBase_T<Stream_State_t> Stream_SessionData_t;

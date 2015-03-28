@@ -89,7 +89,8 @@ class Stream_Base_T
   typedef ACE_Task<TaskSynchType,
                    TimePolicyType> TASK_T;
   typedef Stream_IModule<TaskSynchType,
-                         TimePolicyType> IMODULE_T;
+                         TimePolicyType,
+                         Stream_ModuleConfiguration_t> IMODULE_T;
   typedef ACE_Stream_Iterator<TaskSynchType,
                               TimePolicyType> ITERATOR_T;
   typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;

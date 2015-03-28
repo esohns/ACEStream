@@ -22,10 +22,12 @@
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename ConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_StreamModule_T<TaskSynchType,
                       TimePolicyType,
+                      ConfigurationType,
                       ReaderTaskType,
                       WriterTaskType>::Stream_StreamModule_T (const std::string& name_in,
                                                               Common_IRefCount* refCount_in)
@@ -45,10 +47,12 @@ Stream_StreamModule_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename ConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_StreamModule_T<TaskSynchType,
                       TimePolicyType,
+                      ConfigurationType,
                       ReaderTaskType,
                       WriterTaskType>::~Stream_StreamModule_T ()
 {
@@ -88,9 +92,11 @@ Stream_StreamModule_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename ConfigurationType,
           typename TaskType>
 Stream_StreamModuleInputOnly_T<TaskSynchType,
                                TimePolicyType,
+                               ConfigurationType,
                                TaskType>::Stream_StreamModuleInputOnly_T(const std::string& name_in,
                                                                          Common_IRefCount* refCount_in)
  : inherited (name_in,     // name
@@ -102,9 +108,11 @@ Stream_StreamModuleInputOnly_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename ConfigurationType,
           typename TaskType>
 Stream_StreamModuleInputOnly_T<TaskSynchType,
                                TimePolicyType,
+                               ConfigurationType,
                                TaskType>::~Stream_StreamModuleInputOnly_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModuleInputOnly_T::~Stream_StreamModuleInputOnly_T"));

@@ -24,10 +24,12 @@
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename ConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
+                     ConfigurationType,
                      ReaderTaskType,
                      WriterTaskType>::Stream_Module_Base_T (const std::string& name_in,
                                                             WriterTaskType* writerTask_in,
@@ -38,8 +40,9 @@ Stream_Module_Base_T<TaskSynchType,
               readerTask_in,                             // initialize reader side task
               refCount_in,                               // arg passed to task open()
               inherited::M_DELETE_NONE)                  // don't "delete" ANYTHING during close()
- , writer_ (writerTask_in)
+ , configuration_ (NULL)
  , reader_ (readerTask_in)
+ , writer_ (writerTask_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::Stream_Module_Base_T"));
 
@@ -59,10 +62,12 @@ Stream_Module_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename ConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
+                     ConfigurationType,
                      ReaderTaskType,
                      WriterTaskType>::~Stream_Module_Base_T ()
 {
@@ -76,11 +81,49 @@ Stream_Module_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename ConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 void
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
+                     ConfigurationType,
+                     ReaderTaskType,
+                     WriterTaskType>::get (ConfigurationType*& configuration_out) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::get"));
+
+  configuration_out = const_cast<ConfigurationType*> (configuration_);
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ReaderTaskType,
+          typename WriterTaskType>
+bool
+Stream_Module_Base_T<TaskSynchType,
+                     TimePolicyType,
+                     ConfigurationType,
+                     ReaderTaskType,
+                     WriterTaskType>::initialize (const ConfigurationType& configuration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::initialize"));
+
+  configuration_ = &configuration_in;
+
+  return true;
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ReaderTaskType,
+          typename WriterTaskType>
+void
+Stream_Module_Base_T<TaskSynchType,
+                     TimePolicyType,
+                     ConfigurationType,
                      ReaderTaskType,
                      WriterTaskType>::reset ()
 {
@@ -96,12 +139,14 @@ Stream_Module_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename ConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 ACE_Module<TaskSynchType,
            TimePolicyType>*
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
+                     ConfigurationType,
                      ReaderTaskType,
                      WriterTaskType>::clone ()
 {

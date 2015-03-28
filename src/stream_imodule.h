@@ -22,14 +22,20 @@
 #define STREAM_IMODULE_H
 
 #include "common_iclone.h"
+#include "common_iget.h"
+#include "common_iinitialize.h"
 
 #include "ace/Module.h"
 
 template <typename TaskSynchType,
-          typename TimePolicyType>
+          typename TimePolicyType,
+          typename ConfigurationType>
 class Stream_IModule
  : public Common_IClone_T<ACE_Module<TaskSynchType,
                                      TimePolicyType> >
+   // *TODO*: this clearly is bad design...
+ , public Common_IGet_T <ConfigurationType*>
+ , public Common_IInitialize_T<ConfigurationType>
 {
  public:
   virtual ~Stream_IModule() {}
@@ -38,6 +44,7 @@ class Stream_IModule
   typedef Common_IClone_T<ACE_Module<TaskSynchType,
                                      TimePolicyType> > ICLONE_TYPE;
 
+  // API
   // *NOTE*: streams may call this to reset writer/reader tasks and re-use
   // existing modules
   // --> needed after call to MODULE_TYPE::close(), which cannot be

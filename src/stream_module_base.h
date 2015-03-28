@@ -33,24 +33,30 @@ class Common_IRefCount;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename ConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 class Stream_Module_Base_T
  : public ACE_Module<TaskSynchType,
                      TimePolicyType>,
    public Stream_IModule<TaskSynchType,
-                         TimePolicyType>
+                         TimePolicyType,
+                         ConfigurationType>
 {
  public:
   // define convenient types
-//  typedef ReaderTaskType READER_TASK_TYPE;
-//  typedef WriterTaskType WRITER_TASK_TYPE;
+  //  typedef ReaderTaskType READER_TASK_TYPE;
+  //  typedef WriterTaskType WRITER_TASK_TYPE;
   typedef Stream_IModule<TaskSynchType,
-                         TimePolicyType> IMODULE_TYPE;
+                         TimePolicyType,
+                         ConfigurationType> IMODULE_TYPE;
 
   virtual ~Stream_Module_Base_T ();
 
   // implement (part of) Stream_IModule
+  // *TODO*: this clearly is bad design...
+  virtual void get (ConfigurationType*&) const;
+  virtual bool initialize (const ConfigurationType&);
   virtual void reset ();
 
  protected:
@@ -58,6 +64,8 @@ class Stream_Module_Base_T
                         WriterTaskType*,    // handle to writer task
                         ReaderTaskType*,    // handle to reader task
                         Common_IRefCount*); // object counter
+
+  const ConfigurationType* configuration_;
 
  private:
   typedef ACE_Module<TaskSynchType,
@@ -71,8 +79,8 @@ class Stream_Module_Base_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T (const Stream_Module_Base_T&));
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T& operator= (const Stream_Module_Base_T&));
 
-  WriterTaskType* writer_;
-  ReaderTaskType* reader_;
+  ReaderTaskType*    reader_;
+  WriterTaskType*    writer_;
 };
 
 #include "stream_module_base.inl"

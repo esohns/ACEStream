@@ -33,11 +33,13 @@ class Common_IRefCount;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename ConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 class Stream_StreamModule_T
  : public Stream_Module_Base_T<TaskSynchType,
                                TimePolicyType,
+                               ConfigurationType,
                                ReaderTaskType,
                                WriterTaskType>
 {
@@ -47,6 +49,13 @@ class Stream_StreamModule_T
   virtual ~Stream_StreamModule_T ();
 
  protected:
+//  // define convenient types
+//  typedef Stream_Module_Base_T<TaskSynchType,
+//                               TimePolicyType,
+//                               ConfigurationType,
+//                               ReaderTaskType,
+//                               WriterTaskType> STREAM_MODULE_T;
+
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T ());
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T (const Stream_StreamModule_T&));
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T& operator= (const Stream_StreamModule_T&));
@@ -54,6 +63,7 @@ class Stream_StreamModule_T
  private:
   typedef Stream_Module_Base_T<TaskSynchType,
                                TimePolicyType,
+                               ConfigurationType,
                                ReaderTaskType,
                                WriterTaskType> inherited;
 
@@ -63,10 +73,12 @@ class Stream_StreamModule_T
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename ConfigurationType,
           typename TaskType>
 class Stream_StreamModuleInputOnly_T
  : public Stream_StreamModule_T<TaskSynchType,
                                 TimePolicyType,
+                                ConfigurationType,
                                 ACE_Thru_Task<TaskSynchType,
                                               TimePolicyType>,
                                 TaskType>
@@ -84,6 +96,7 @@ class Stream_StreamModuleInputOnly_T
  private:
   typedef Stream_StreamModule_T<TaskSynchType,
                                 TimePolicyType,
+                                ConfigurationType,
                                 ACE_Thru_Task<TaskSynchType,
                                               TimePolicyType>,
                                 TaskType> inherited;
@@ -97,21 +110,27 @@ class Stream_StreamModuleInputOnly_T
 // correspond to the actual TASK_TYPE declaration !
 #define DATASTREAM_MODULE_INPUT_ONLY(TASK_SYNCH_TYPE,\
                                      TIME_POLICY_TYPE,\
+                                     CONFIGURATION_TYPE,\
                                      TASK_TYPE) typedef Stream_StreamModuleInputOnly_T<TASK_SYNCH_TYPE,\
                                                                                        TIME_POLICY_TYPE,\
+                                                                                       CONFIGURATION_TYPE,\
                                                                                        TASK_TYPE> TASK_TYPE##_Module
 #define DATASTREAM_MODULE_INPUT_ONLY_T(TASK_SYNCH_TYPE,\
                                        TIME_POLICY_TYPE,\
+                                       CONFIGURATION_TYPE,\
                                        TASK_TYPE,\
                                        NAME) typedef Stream_StreamModuleInputOnly_T<TASK_SYNCH_TYPE,\
                                                                                     TIME_POLICY_TYPE,\
+                                                                                    CONFIGURATION_TYPE,\
                                                                                     TASK_TYPE> NAME##_Module
 #define DATASTREAM_MODULE_DUPLEX(TASK_SYNCH_TYPE,\
                                  TIME_POLICY_TYPE,\
+                                 CONFIGURATION_TYPE,\
                                  READER_TYPE,\
                                  WRITER_TYPE,\
                                  NAME) typedef Stream_StreamModule_T<TASK_SYNCH_TYPE,\
                                                                      TIME_POLICY_TYPE,\
+                                                                     CONFIGURATION_TYPE,\
                                                                      READER_TYPE,\
                                                                      WRITER_TYPE> NAME##_Module
 
