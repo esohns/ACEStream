@@ -973,7 +973,6 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", returning\n")));
-
     return;
   } // end IF
 
@@ -983,7 +982,8 @@ Stream_Base_T<TaskSynchType,
   {
     try
     {
-      message_p = static_cast<SessionMessageType*> (allocator_->malloc (0)); // want a session message !
+      message_p =
+       static_cast<SessionMessageType*> (allocator_->malloc (0)); // want a session message !
     }
     catch (...)
     {

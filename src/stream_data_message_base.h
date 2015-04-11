@@ -39,8 +39,8 @@ class Stream_DataMessageBase_T
 
   // initialization-after-construction
   // *NOTE*: assumes lifecycle responsibility for the first argument
-  void init (DataType*&,              // data handle
-             ACE_Data_Block* = NULL); // buffer
+  void initialize (DataType*&,              // data handle
+                   ACE_Data_Block* = NULL); // buffer
 
   // *TODO*: clean this up !
   const DataType* const getData () const;

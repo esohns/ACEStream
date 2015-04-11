@@ -134,10 +134,10 @@ template <typename DataType,
           typename CommandType>
 void
 Stream_DataMessageBase_T<DataType,
-                         CommandType>::init (DataType*& data_inout,
-                                             ACE_Data_Block* dataBlock_in)
+                         CommandType>::initialize (DataType*& data_inout,
+                                                   ACE_Data_Block* dataBlock_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::init"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::initialize"));
 
   ACE_ASSERT (!isInitialized_);
   ACE_ASSERT (data_inout);
@@ -150,7 +150,7 @@ Stream_DataMessageBase_T<DataType,
   // set our data block (if any)
   if (dataBlock_in)
   {
-    inherited::init (dataBlock_in);
+    inherited::initialize (dataBlock_in);
 
     // (re)set correct message type
     msg_type (MESSAGE_OBJECT);
