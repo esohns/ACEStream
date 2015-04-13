@@ -21,9 +21,9 @@
 #ifndef STREAM_CACHEDALLOCATORHEAP_H
 #define STREAM_CACHEDALLOCATORHEAP_H
 
+#include "ace/Global_Macros.h"
 #include "ace/Malloc_T.h"
-#include "ace/Synch.h"
-#include "ace/Atomic_Op.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_exports.h"
 #include "stream_iallocator.h"
@@ -36,6 +36,9 @@ class Stream_Export Stream_CachedAllocatorHeap
   Stream_CachedAllocatorHeap (unsigned int,  // pool size
                               unsigned int); // chunk size
   virtual ~Stream_CachedAllocatorHeap ();
+
+  // implement Stream_IAllocator
+  virtual bool block (); // return value: block when full ?
 
   // *IMPORTANT NOTE*: need to implement these as ACE_Dynamic_Cached_Allocator
   // doesn't implement them as virtual (BUG)

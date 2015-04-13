@@ -38,6 +38,14 @@ Stream_CachedAllocatorHeap::~Stream_CachedAllocatorHeap ()
 
 }
 
+bool
+Stream_CachedAllocatorHeap::block ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedAllocatorHeap::block"));
+
+  return true;
+}
+
 size_t
 Stream_CachedAllocatorHeap::cache_depth () const
 {

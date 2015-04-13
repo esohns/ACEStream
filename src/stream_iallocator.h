@@ -21,7 +21,7 @@
 #ifndef STREAM_IALLOCATOR_H
 #define STREAM_IALLOCATOR_H
 
-#include <stddef.h>
+#include <cstddef>
 
 //#include "ace/Malloc_Base.h"
 
@@ -40,9 +40,9 @@ class Stream_IAllocator
   virtual void free (void*) = 0; // handle
 
   // *NOTE*: informational: total size (memory/chunk/...) of the cache (i.e. when empty)
-  virtual size_t cache_depth (void) const = 0;
+  virtual size_t cache_depth () const = 0;
   // *NOTE*: informational: current size (memory/chunk/...) of the cache
-  virtual size_t cache_size (void) const = 0;
+  virtual size_t cache_size () const = 0;
 };
 
 #endif
