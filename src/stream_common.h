@@ -74,19 +74,19 @@ typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
 
 struct Stream_Configuration_t
 {
-  Stream_IAllocator*           messageAllocator;
-  unsigned int                 bufferSize;
-  bool                         useThreadPerConnection;
+  unsigned int                  bufferSize;
+  bool                          deleteModule;
+  Stream_IAllocator*            messageAllocator;
+  Common_Module_t*              module;
+  Stream_ModuleConfiguration_t* moduleConfiguration;
+  ACE_Notification_Strategy*    notificationStrategy;
+  bool                          printFinalReport;
   // *IMPORTANT NOTE*: in a threaded environment, workers MAY be
   // dispatching the reactor notification queue concurrently (most notably,
   // ACE_TP_Reactor) --> enforce proper serialization
-  bool                         serializeOutput;
-  ACE_Notification_Strategy*   notificationStrategy;
-  Common_Module_t*             module;
-  bool                         deleteModule;
-  Stream_ModuleConfiguration_t moduleConfiguration;
-  unsigned int                 statisticReportingInterval; // 0: don't report
-  bool                         printFinalReport;
+  bool                          serializeOutput;
+  unsigned int                  statisticReportingInterval; // 0: don't report
+  bool                          useThreadPerConnection;
 };
 
 typedef Stream_SessionDataBase_T<Stream_State_t> Stream_SessionData_t;
