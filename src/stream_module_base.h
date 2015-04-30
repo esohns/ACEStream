@@ -79,8 +79,8 @@ class Stream_Module_Base_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T (const Stream_Module_Base_T&));
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T& operator= (const Stream_Module_Base_T&));
 
-  ReaderTaskType*    reader_;
-  WriterTaskType*    writer_;
+  ReaderTaskType*          reader_;
+  WriterTaskType*          writer_;
 };
 
 #include "stream_module_base.inl"
