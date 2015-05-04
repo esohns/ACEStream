@@ -209,9 +209,8 @@ Stream_TaskBase_T<TaskSynchStrategyType,
     case MESSAGE_DATA:
     case MESSAGE_OBJECT:
     {
-      ProtocolMessageType* message_p = NULL;
-      // downcast message
-      message_p = dynamic_cast<ProtocolMessageType*> (mb_in);
+      ProtocolMessageType* message_p =
+        dynamic_cast<ProtocolMessageType*> (mb_in);
 //       // *OPTIMIZATION*: not as safe, but (arguably) a lot faster !...
 //       message = static_cast<RPG_Stream_MessageBase*>(mb_in);
       if (!message_p)
