@@ -915,25 +915,28 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             SessionDataContainerType,
                             SessionMessageType,
                             ProtocolMessageType>::putSessionMessage (Stream_SessionMessageType_t messageType_in,
-                                                                     SessionDataContainerType* sessionData_inout,
+                                                                     SessionDataContainerType*& sessionData_inout,
                                                                      Stream_IAllocator* allocator_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putSessionMessage"));
+
+  int result = -1;
 
   // create session message
   SessionMessageType* session_message_p = NULL;
   if (allocator_in)
   {
+allocate:
     try
     {
       // *IMPORTANT NOTE*: 0 --> session message !
       session_message_p =
-          static_cast<SessionMessageType*> (allocator_in->malloc (0));
+        static_cast<SessionMessageType*> (allocator_in->malloc (0));
     }
     catch (...)
     {
-      ACE_DEBUG ((LM_CRITICAL,
-                 ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 
       // clean up
       sessionData_inout->decrease ();
@@ -941,6 +944,11 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
       return false;
     }
+
+    // keep retrying ?
+    if (!session_message_p &&
+        !allocator_in->block ())
+      goto allocate;
   } // end IF
   else
   { // *IMPORTANT NOTE*: session message assumes responsibility for
@@ -952,8 +960,15 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   } // end ELSE
   if (!session_message_p)
   {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
+    if (allocator_in)
+    {
+      if (allocator_in->block ())
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
+    } // end IF
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
 
     // clean up
     sessionData_inout->decrease ();
@@ -970,9 +985,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   } // end IF
 
   // pass message downstream...
-  int result =
-   const_cast<OWN_TYPE_T*> (this)->put_next (session_message_p,
-                                             NULL);
+  result = const_cast<OWN_TYPE_T*> (this)->put_next (session_message_p,
+                                                     NULL);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,

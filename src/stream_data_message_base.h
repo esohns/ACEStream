@@ -50,6 +50,7 @@ class Stream_DataMessageBase_T
   virtual void dump_state () const;
 
  protected:
+  Stream_DataMessageBase_T (unsigned int); // size
   // *NOTE*: assume lifetime responsibility for the argument !
   // *WARNING*: this ctor doesn't allocate a buffer off the heap...
   Stream_DataMessageBase_T (DataType*&); // data handle

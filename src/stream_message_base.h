@@ -76,6 +76,8 @@ class Stream_Export Stream_MessageBase
                                   std::string&);    // return value: type string
 
  protected:
+  Stream_MessageBase (unsigned int); // size
+
 //   // ctor(s) for MB_STREAM_DATA
 //   Stream_MessageBase(const unsigned long&); // total size of message data (off-wire)
   // copy ctor, to be used by derivates

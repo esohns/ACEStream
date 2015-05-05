@@ -71,7 +71,7 @@ Stream_SessionMessage::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessage::duplicate"));
 
-  Stream_SessionMessage* nb = NULL;
+  Stream_SessionMessage* message_p = NULL;
 
   // create a new <Stream_SessionMessage> that contains unique copies of
   // the message block fields, but a reference counted duplicate of
@@ -80,14 +80,14 @@ Stream_SessionMessage::duplicate (void) const
   // if there is no allocator, use the standard new and delete calls.
   if (inherited::message_block_allocator_ == NULL)
   {
-    ACE_NEW_RETURN (nb,
+    ACE_NEW_RETURN (message_p,
                     Stream_SessionMessage (*this),
                     NULL);
   } // end IF
 
-  // *WARNING*: the allocator returns a Stream_SessionMessageBase<ConfigType>
+  // *WARNING*: the allocator returns a Stream_SessionMessageBase<ConfigurationType>
   // when passing 0 as argument to malloc()...
-  ACE_NEW_MALLOC_RETURN (nb,
+  ACE_NEW_MALLOC_RETURN (message_p,
                          static_cast<Stream_SessionMessage*> (inherited::message_block_allocator_->malloc (0)),
                          Stream_SessionMessage (*this),
                          NULL);
@@ -95,17 +95,17 @@ Stream_SessionMessage::duplicate (void) const
   // increment the reference counts of all the continuation messages
   if (inherited::cont_)
   {
-    nb->cont_ = inherited::cont_->duplicate ();
+    message_p->cont_ = inherited::cont_->duplicate ();
 
     // when things go wrong, release all resources and return
-    if (nb->cont_ == 0)
+    if (message_p->cont_ == 0)
     {
-      nb->release ();
-      nb = NULL;
+      message_p->release ();
+      message_p = NULL;
     } // end IF
   } // end IF
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
-  return nb;
+  return message_p;
 }

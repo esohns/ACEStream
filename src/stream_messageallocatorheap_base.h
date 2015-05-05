@@ -21,6 +21,8 @@
 #ifndef STREAM_MESSAGEALLOCATORHEAP_BASE_H
 #define STREAM_MESSAGEALLOCATORHEAP_BASE_H
 
+#include <limits>
+
 #include "ace/Atomic_Op.h"
 #include "ace/Malloc_Allocator.h"
 #include "ace/Thread_Semaphore.h"
@@ -41,9 +43,9 @@ class Stream_MessageAllocatorHeapBase_T
  , public Common_IDumpState
 {
  public:
-  Stream_MessageAllocatorHeapBase_T (unsigned int,          // total number of concurrent messages
-                                     Stream_AllocatorHeap*, // (heap) memory allocator...
-                                     bool = true);          // block until a buffer is available ?
+  Stream_MessageAllocatorHeapBase_T (unsigned int = std::numeric_limits<unsigned int>::max (), // total number of concurrent messages
+                                     Stream_AllocatorHeap* = NULL,                             // (heap) memory allocator...
+                                     bool = true);                                             // block until a buffer is available ?
   virtual ~Stream_MessageAllocatorHeapBase_T ();
 
   // implement Stream_IAllocator

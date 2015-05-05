@@ -27,8 +27,28 @@
 
 #include "stream_macros.h"
 
-// init statics
+// initialize statics
 ACE_Atomic_Op<ACE_Thread_Mutex, unsigned int> Stream_MessageBase::currentID = 0;
+
+Stream_MessageBase::Stream_MessageBase (unsigned int requestedSize_in)
+ : inherited (requestedSize_in,
+              ACE_Message_Block::MB_DATA,
+              NULL,
+              NULL,
+              NULL,
+              NULL,
+              ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
+              ACE_Time_Value::zero,
+              ACE_Time_Value::max_time,
+              NULL,
+              NULL)
+ , messageID_ (0)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase::Stream_MessageBase"));
+
+  ++currentID;
+  messageID_ = currentID.value ();
+}
 
 // *NOTE*: this is implicitly invoked by duplicate() as well...
 Stream_MessageBase::Stream_MessageBase (const Stream_MessageBase& message_in)
@@ -125,16 +145,14 @@ Stream_MessageBase::duplicate (void) const
 
   Stream_MessageBase* message_p = NULL;
 
-  // create a new Net_Message that contains unique copies of
+  // create a new Stream_MessageBase that contains unique copies of
   // the message block fields, but a (reference counted) shallow duplicate of
   // the ACE_Data_Block.
 
   // if there is no allocator, use the standard new and delete calls.
   if (inherited::message_block_allocator_ == NULL)
-  {
     ACE_NEW_NORETURN (message_p,
                       Stream_MessageBase (*this));
-  } // end IF
   else // otherwise, use the existing message_block_allocator
   {
     // *NOTE*: the argument to malloc SHOULDN'T really matter, as this will be

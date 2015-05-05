@@ -28,6 +28,18 @@
 template <typename DataType,
           typename CommandType>
 Stream_DataMessageBase_T<DataType,
+                         CommandType>::Stream_DataMessageBase_T (unsigned int requestedSize_in)
+ : inherited (requestedSize_in)
+ , data_ (NULL)
+ , isInitialized_ (false)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
+
+}
+
+template <typename DataType,
+          typename CommandType>
+Stream_DataMessageBase_T<DataType,
                          CommandType>::Stream_DataMessageBase_T (DataType*& data_inout)
  : inherited (0,                                  // size
               MESSAGE_OBJECT,                     // type

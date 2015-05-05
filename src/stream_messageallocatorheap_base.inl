@@ -220,12 +220,17 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::free"));
 
+  int result = -1;
+
   // delegate to base class...
   inherited::free (handle_in);
 
   // OK: one slot just emptied...
   poolSize_--;
-  freeMessageCounter_.release ();
+  result = freeMessageCounter_.release ();
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Thread_Semaphore::release(): \"%m\", continuing\n")));
 }
 
 template <typename MessageType,

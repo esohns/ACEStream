@@ -109,7 +109,7 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: session message assumes lifetime responsibility for data
   // --> method implements a "fire-and-forget" strategy !
   bool putSessionMessage (Stream_SessionMessageType_t,      // session message type
-                          SessionDataContainerType*,        // data container
+                          SessionDataContainerType*&,       // data container
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
 
   // implement state machine callback

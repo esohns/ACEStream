@@ -97,12 +97,11 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::reset"));
 
-  // sanity check: is running ?
+  // sanity check
   if (isRunning ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("cannot reset (currently running), aborting\n")));
-
     return false;
   } // end IF
 
@@ -112,7 +111,6 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to finalize(), aborting\n")));
-
     return false;
   } // end IF
 
@@ -145,27 +143,26 @@ Stream_Base_T<TaskSynchType,
   {
     // *NOTE*: fini() invokes close() which will reset the writer/reader tasks
     // of the enqueued modules --> reset this !
-    IMODULE_T* imodule_handle = NULL;
-    MODULE_T* module = NULL;
+    MODULE_T* module_p = NULL;
+    IMODULE_T* imodule_handle_p = NULL;
     // *NOTE*: cannot write this - it confuses gcc...
-    //   for (MODULE_CONTAINER_TYPE::const_iterator iter = myAvailableModules.begin();
+    //   for (MODULE_CONTAINER_TYPE::const_iterator iter = availableModules_.begin ();
     for (ACE_DLList_Iterator<MODULE_T> iterator (availableModules_);
-         iterator.next (module);
+         iterator.next (module_p);
          iterator.advance ())
     {
       // need a downcast...
-      imodule_handle = dynamic_cast<IMODULE_T*> (module);
-      if (!imodule_handle)
+      imodule_handle_p = dynamic_cast<IMODULE_T*> (module_p);
+      if (!imodule_handle_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
-                    ACE_TEXT (module->name ())));
-
+                    ACE_TEXT (module_p->name ())));
         return false;
       } // end IF
       try
       {
-        imodule_handle->reset ();
+        imodule_handle_p->reset ();
       }
       catch (...)
       {
@@ -186,7 +183,7 @@ Stream_Base_T<TaskSynchType,
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in ACE_Stream::open(), aborting\n")));
+                ACE_TEXT ("caught exception in ACE_Stream::open(), continuing\n")));
     result = -1;
   }
   if (result == -1)
@@ -216,8 +213,9 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::finalize"));
 
-  // OK: delegate this to base class close(ACE_Module_Base::M_DELETE_NONE)
   int result = -1;
+
+  // delegate this to base class close(ACE_Module_Base::M_DELETE_NONE)
   try
   {
     // *NOTE*: this will implicitly:
@@ -231,7 +229,8 @@ Stream_Base_T<TaskSynchType,
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in ACE_Stream::close(M_DELETE_NONE), aborting\n")));
+                ACE_TEXT ("caught exception in ACE_Stream::close(M_DELETE_NONE), continuing\n")));
+    result = -1;
   }
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
@@ -260,65 +259,57 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::start"));
 
-  // sanity check: is initialized ?
+  // sanity check(s)
   if (!isInitialized_)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("not initialized, returning\n")));
-
     return;
   } // end IF
 
   // delegate to the head module
-  MODULE_T* module = inherited::head ();
-  if (!module)
+  MODULE_T* module_p = inherited::head ();
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
-
     return;
   } // end IF
-
-  // skip over ACE_Stream_Head...
-  module = module->next ();
-  if (!module)
+  module_p = module_p->next ();
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
-
     return;
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == inherited::tail ())
+  if (module_p == inherited::tail ())
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
-
     return;
   } // end IF
 
-  ISTREAM_CONTROL_T* control_impl = NULL;
-  control_impl = dynamic_cast<ISTREAM_CONTROL_T*> (module->writer ());
-  if (!control_impl)
+  ISTREAM_CONTROL_T* control_impl_p =
+    dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
+  if (!control_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
-                ACE_TEXT (module->name ())));
-
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
+                ACE_TEXT (module_p->name ())));
     return;
   } // end IF
 
   try
   {
-    control_impl->start ();
+    control_impl_p->start ();
   }
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Stream_IStreamControl::start (module: \"%s\"), returning\n"),
-                ACE_TEXT (module->name ())));
-
+                ACE_TEXT ("%s: caught exception in Stream_IStreamControl::start(), returning\n"),
+                ACE_TEXT (module_p->name ())));
     return;
   }
 }
@@ -345,39 +336,30 @@ Stream_Base_T<TaskSynchType,
 
   ACE_UNUSED_ARG (lockedAccess_in);
 
-  // sanity check: is running ?
   if (!isRunning ())
-  {
-//     ACE_DEBUG ((LM_DEBUG,
-//                 ACE_TEXT ("not running --> nothing to do, returning\n")));
-
     return;
-  } // end IF
 
   // delegate to the head module, skip over ACE_Stream_Head...
-  MODULE_T* module = inherited::head ();
-  if (!module)
+  MODULE_T* module_p = inherited::head ();
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
-
     return;
   } // end IF
-  module = module->next ();
-  if (!module)
+  module_p = module_p->next ();
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
-
     return;
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == inherited::tail ())
+  if (module_p == inherited::tail ())
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
-
     return;
   } // end IF
 
@@ -386,27 +368,25 @@ Stream_Base_T<TaskSynchType,
   // *TODO*: consider optimizing this...
   //module->reader ()->flush ();
 
-  ISTREAM_CONTROL_T* control_impl = NULL;
-  control_impl = dynamic_cast<ISTREAM_CONTROL_T*> (module->writer ());
-  if (!control_impl)
+  ISTREAM_CONTROL_T* control_impl_p =
+    dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
+  if (!control_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
-                ACE_TEXT (module->name ())));
-
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
+                ACE_TEXT (module_p->name ())));
     return;
   } // end IF
 
   try
   {
-    control_impl->stop ();
+    control_impl_p->stop ();
   }
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Stream_IStreamControl::stop (module: \"%s\"), returning\n"),
-                ACE_TEXT (module->name ())));
-
+                ACE_TEXT ("%s: caught exception in Stream_IStreamControl::stop(), returning\n"),
+                ACE_TEXT (module_p->name ())));
     return;
   }
 }
@@ -432,54 +412,50 @@ Stream_Base_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isRunning"));
 
   // delegate to the head module, skip over ACE_Stream_Head...
-  MODULE_T* module = const_cast<SELF_T*> (this)->head ();
-  if (!module)
+  MODULE_T* module_p = const_cast<SELF_T*> (this)->head ();
+  if (!module_p)
   {
     // *IMPORTANT NOTE*: this happens when no modules have been pushed onto the
     // stream yet
     //ACE_DEBUG ((LM_ERROR,
     //            ACE_TEXT ("no head module found, aborting\n")));
-
     return false;
   } // end IF
-  module = module->next ();
-  if (!module)
+  module_p = module_p->next ();
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, aborting\n")));
-
     return false;
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == const_cast<SELF_T*> (this)->tail ())
+  if (module_p == const_cast<SELF_T*> (this)->tail ())
   {
 //     ACE_DEBUG ((LM_DEBUG,
-//                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
-
+//                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, aborting\n")));
     return false;
   } // end IF
 
-  ISTREAM_CONTROL_T* control_impl = NULL;
-  control_impl = dynamic_cast<ISTREAM_CONTROL_T*> (module->writer ());
-  if (!control_impl)
+  ISTREAM_CONTROL_T* control_impl_p = NULL;
+  control_impl_p = dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
+  if (!control_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
-                ACE_TEXT (module->name ())));
-
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, aborting\n"),
+                ACE_TEXT (module_p->name ())));
     return false;
   } // end IF
 
   try
   {
-    return control_impl->isRunning ();
+    return control_impl_p->isRunning ();
   }
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Stream_IStreamControl::isRunning (module: \"%s\"), aborting\n"),
-                ACE_TEXT (module->name ())));
+                ACE_TEXT ("%s: caught exception in Stream_IStreamControl::isRunning(), aborting\n"),
+                ACE_TEXT (module_p->name ())));
   }
 
   return false;
@@ -505,65 +481,57 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::pause"));
 
-  // sanity check: is running ?
+  // sanity check
   if (!isRunning ())
   {
 //     ACE_DEBUG ((LM_DEBUG,
 //                 ACE_TEXT ("not running --> nothing to do, returning\n")));
-
     return;
   } // end IF
 
   // delegate to the head module
-  MODULE_T* module = inherited::head ();
-  if (!module)
+  MODULE_T* module_p = inherited::head ();
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
-
     return;
   } // end IF
-
-  // skip over ACE_Stream_Head...
-  module = module->next ();
-  if (!module)
+  module_p = module_p->next ();
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
-
     return;
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == inherited::tail ())
+  if (module_p == inherited::tail ())
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
-
     return;
   } // end IF
 
-  ISTREAM_CONTROL_T* control_impl = NULL;
-  control_impl = dynamic_cast<ISTREAM_CONTROL_T*> (module->writer ());
-  if (!control_impl)
+  ISTREAM_CONTROL_T* control_impl_p = NULL;
+  control_impl_p = dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
+  if (!control_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
-                ACE_TEXT (module->name ())));
-
+                ACE_TEXT (module_p->name ())));
     return;
   } // end IF
 
   try
   {
-    control_impl->pause ();
+    control_impl_p->pause ();
   }
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Stream_IStreamControl::pause (module: \"%s\"), returning\n"),
-                ACE_TEXT (module->name ())));
-
+                ACE_TEXT ("%s: caught exception in Stream_IStreamControl::pause(), returning\n"),
+                ACE_TEXT (module_p->name ())));
     return;
   }
 }
@@ -588,67 +556,57 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::rewind"));
 
-  // sanity check: is running ?
+  // sanity check
   if (isRunning ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("currently running, returning\n")));
-
     return;
   } // end IF
 
   // delegate to the head module
-  MODULE_T* module = inherited::head ();
-  if (!module)
+  MODULE_T* module_p = inherited::head ();
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
-
-    // *NOTE*: what else can we do ?
     return;
   } // end IF
-
-  // skip over ACE_Stream_Head...
-  module = module->next ();
-  if (!module)
+  module_p = module_p->next ();
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
-
-    // *NOTE*: what else can we do ?
     return;
   } // end IF
 
   // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module == inherited::tail ())
+  if (module_p == inherited::tail ())
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
-
     return;
   } // end IF
 
-  ISTREAM_CONTROL_T* control_impl = NULL;
-  control_impl = dynamic_cast<ISTREAM_CONTROL_T*> (module->writer ());
-  if (!control_impl)
+  ISTREAM_CONTROL_T* control_impl_p = NULL;
+  control_impl_p = dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
+  if (!control_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<RPG_Stream_IStreamControl> failed, returning\n"),
-                ACE_TEXT (module->name ())));
-
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
+                ACE_TEXT (module_p->name ())));
     return;
   } // end IF
 
   try
   {
-    control_impl->rewind ();
+    control_impl_p->rewind ();
   }
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in RPG_Stream_IStreamControl::rewind (module: \"%s\"), returning\n"),
-                ACE_TEXT (module->name ())));
-
+                ACE_TEXT ("%s: caught exception in Stream_IStreamControl::rewind(), returning\n"),
+                ACE_TEXT (module_p->name ())));
     return;
   }
 }
@@ -683,15 +641,13 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
-
     return;
   } // end IF
-  const MODULE_T* module = NULL;
-  if (iterator.next (module) == 0)
+  const MODULE_T* module_p = NULL;
+  if (iterator.next (module_p) == 0)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
-
     return;
   } // end IF
 
@@ -699,53 +655,51 @@ Stream_Base_T<TaskSynchType,
   // --> reason: no modules have been push()ed (yet) !
   // --> stream hasn't been intialized (at all: too many connections ?)
   // --> nothing to do !
-  if (module == inherited::tail ())
+  if (module_p == inherited::tail ())
     return;
 
   MODULE_CONTAINER_T modules;
-  modules.push_front (const_cast<MODULE_T*> (module));
+  modules.push_front (const_cast<MODULE_T*> (module_p));
   // need to downcast
-  HEADMODULE_TASK_T* head_impl = NULL;
-  head_impl =
-      dynamic_cast<HEADMODULE_TASK_T*> (const_cast<MODULE_T*> (module)->writer ());
-  if (!head_impl)
+  HEADMODULE_TASK_T* head_impl_p = NULL;
+  head_impl_p =
+    dynamic_cast<HEADMODULE_TASK_T*> (const_cast<MODULE_T*> (module_p)->writer ());
+  if (!head_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_HeadModuleTask_t> failed, returning\n"),
-                ACE_TEXT (module->name ())));
-
+                ACE_TEXT (module_p->name ())));
     return;
   } // end IF
 
   try
   {
     // wait for state switch (xxx --> FINISHED) / any worker(s)
-    head_impl->waitForCompletion ();
+    head_impl_p->waitForCompletion ();
   }
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Stream_IStreamControl::waitForCompletion (module: \"%s\"), returning\n"),
-                ACE_TEXT (module->name ())));
-
+                ACE_TEXT ("%s: caught exception in Stream_IStreamControl::waitForCompletion (), returning\n"),
+                ACE_TEXT (module_p->name ())));
     return;
   }
 
   for (iterator.advance ();
-       (iterator.next (module) != 0);
+       (iterator.next (module_p) != 0);
        iterator.advance ())
   {
     // skip stream tail (last module)
-    if (module == inherited::tail ())
+    if (module_p == inherited::tail ())
       continue;
 
-    modules.push_front (const_cast<MODULE_T*> (module));
+    modules.push_front (const_cast<MODULE_T*> (module_p));
     // OK: got a handle... wait
-    if (const_cast<MODULE_T*> (module)->writer ()->wait () == -1)
+    if (const_cast<MODULE_T*> (module_p)->writer ()->wait () == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
 
-    module = NULL;
+    module_p = NULL;
   } // end FOR
 
   // step2: wait for any pipelined messages to flush...
@@ -802,24 +756,24 @@ Stream_Base_T<TaskSynchType,
 
   std::string stream_layout;
 
-  const MODULE_T* module = NULL;
+  const MODULE_T* module_p = NULL;
   for (ITERATOR_T iterator (*this);
-       (iterator.next (module) != 0);
+       (iterator.next (module_p) != 0);
        iterator.advance ())
   {
     // silently ignore ACE head/tail modules...
-    if ((module == const_cast<SELF_T*> (this)->tail ()) ||
-        (module == const_cast<SELF_T*> (this)->head ()))
+    if ((module_p == const_cast<SELF_T*> (this)->tail ()) ||
+        (module_p == const_cast<SELF_T*> (this)->head ()))
       continue;
 
-    stream_layout.append (ACE_TEXT_ALWAYS_CHAR (module->name ()));
+    stream_layout.append (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
 
     // avoid trailing "-->"...
-    if (const_cast<MODULE_T*> (module)->next () !=
+    if (const_cast<MODULE_T*> (module_p)->next () !=
         const_cast<SELF_T*> (this)->tail ())
       stream_layout += ACE_TEXT_ALWAYS_CHAR (" --> ");
 
-    module = NULL;
+    module_p = NULL;
   } // end FOR
 
   ACE_DEBUG ((LM_DEBUG,
@@ -875,15 +829,15 @@ Stream_Base_T<TaskSynchType,
   // --> possible scenarios:
   // - (re-)init() failed halfway through (i.e. MAYBE some modules push()ed
   //   correctly)
-  MODULE_T* module = NULL;
+  MODULE_T* module_p = NULL;
   if (!isInitialized_)
   {
     // sanity check: successfully pushed() ANY modules ?
-    module = inherited::head ();
-    if (module)
+    module_p = inherited::head ();
+    if (module_p)
     {
-      module = module->next ();
-      if (module && (module != inherited::tail ()))
+      module_p = module_p->next ();
+      if (module_p && (module_p != inherited::tail ()))
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("not initialized - deactivating module(s)...\n")));
@@ -902,11 +856,11 @@ Stream_Base_T<TaskSynchType,
   //               ACE_TEXT ("deactivating offline module(s)...\n")));
 
   for (ACE_DLList_Iterator<MODULE_T> iterator (availableModules_);
-       (iterator.next (module) != 0);
+       (iterator.next (module_p) != 0);
        iterator.advance ())
   {
     // sanity check: on the stream ?
-    if (module->next () == NULL)
+    if (module_p->next () == NULL)
     {
       //ACE_DEBUG ((LM_WARNING,
       //            ACE_TEXT ("manually closing module: \"%s\"\n"),
@@ -914,12 +868,13 @@ Stream_Base_T<TaskSynchType,
 
       try
       {
-        module->close (ACE_Module_Base::M_DELETE_NONE);
+        module_p->close (ACE_Module_Base::M_DELETE_NONE);
       }
       catch (...)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n")));
+                    ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
+                    ACE_TEXT (module_p->name ())));
       }
     } // end IF
   } // end FOR
@@ -988,7 +943,7 @@ Stream_Base_T<TaskSynchType,
     catch (...)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                 ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
+                 ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), returning\n")));
 
       // clean up
       session_data_p->decrease ();
@@ -1021,7 +976,8 @@ Stream_Base_T<TaskSynchType,
   } // end IF
 
   // send message downstream...
-  if (inherited::put (message_p, NULL) == -1)
+  int result = inherited::put (message_p, NULL);
+  if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::put(): \"%m\", returning\n")));

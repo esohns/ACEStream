@@ -178,10 +178,8 @@ Stream_SessionMessageBase_T<StreamStateType,
 
   // if there is no allocator, use the standard new and delete calls.
   if (!inherited::message_block_allocator_)
-  {
     ACE_NEW_NORETURN (message_p,
                       SELF_T (*this));
-  } // end IF
   else
   {
     // *NOTE*: instruct the allocator to return a session message by passing 0
