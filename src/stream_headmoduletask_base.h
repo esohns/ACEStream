@@ -101,11 +101,9 @@ class Stream_HeadModuleTaskBase_T
   // *TODO*: clean this API
   // convenience methods to send (session-specific) notifications downstream
   // *WARNING*: - handle with care -
-  bool putSessionMessage (Stream_SessionMessageType_t,                  // session message type
-                          SessionDataType*,                             // data
-                          bool = false,                                 // delete session data ?
-                          const ACE_Time_Value& = ACE_Time_Value::zero, // start of session
-                          bool = false) const;                          // user abort ?
+  bool putSessionMessage (Stream_SessionMessageType_t, // session message type
+                          SessionDataType*,            // data
+                          bool = false) const;         // delete session data ?
   // *NOTE*: session message assumes lifetime responsibility for data
   // --> method implements a "fire-and-forget" strategy !
   bool putSessionMessage (Stream_SessionMessageType_t,      // session message type

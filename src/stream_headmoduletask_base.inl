@@ -150,6 +150,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::open"));
 
+  int result = -1;
+
   // sanity check
   // *NOTE*: session/user data could be empty...
 //   ACE_ASSERT(args_in);
@@ -165,11 +167,11 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   // will have been deactivated in the process, and getq() (see svc()) will fail
   // miserably (ESHUTDOWN) --> (re-)activate() our queue !
   // step1: (re-)activate() our queue
-  if (queue_.activate () == -1)
+  result = queue_.activate ();
+  if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Message_Queue::activate(): \"%m\", aborting\n")));
-
     return -1;
   } // end IF
 
@@ -178,16 +180,12 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   if (autoStart_)
   {
     if (inherited::module ())
-    {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("auto-starting \"%s\"...\n"),
                   ACE_TEXT (inherited::name ())));
-    } // end IF
     else
-    {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("auto-starting...\n")));
-    } // end ELSE
 
     try
     {
@@ -197,7 +195,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in start() method, aborting\n")));
-
       return -1;
     }
   } // end IF
@@ -343,9 +340,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   // step1: send initial session message downstream...
   if (!putSessionMessage (SESSION_BEGIN,
                           sessionData_,
-                          false,
-                          COMMON_TIME_NOW, // timestamp: start of session
-                          false))                // N/A
+                          false))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, aborting\n")));
@@ -377,9 +372,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       // step3: send final session message downstream...
       if (!putSessionMessage (SESSION_END,
                               sessionData_,
-                              false,
-                              ACE_Time_Value::zero, // N/A
-                              true))                // ALWAYS a user abort...
+                              false))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("putSessionMessage(SESSION_END) failed, aborting\n")));
@@ -407,9 +400,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   // step3: send final session message downstream...
   if (!putSessionMessage (SESSION_END,
                           sessionData_,
-                          false,
-                          ACE_Time_Value::zero, // N/A
-                          false))               // N/A
+                          false))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("putSessionMessage(SESSION_END) failed, aborting\n")));
 
@@ -487,6 +478,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ProtocolMessageType>::start ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::start"));
+
+  if (state_)
+    state_->startOfSession = COMMON_TIME_NOW;
 
   // --> start a worker thread, if active
   changeState (inherited2::STATE_RUNNING);
@@ -775,9 +769,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         // send initial session message downstream...
         if (!putSessionMessage (SESSION_BEGIN,
                                 sessionData_,
-                                false,
-                                COMMON_TIME_NOW, // timestamp: start of session
-                                false))                // N/A
+                                false))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, aborting\n")));
@@ -841,9 +833,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         // send final session message downstream...
         if (!putSessionMessage (SESSION_END,
                                 sessionData_,
-                                false,
-                                ACE_Time_Value::zero, // N/A
-                                false))               // N/A
+                                false))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("putSessionMessage(SESSION_END) failed, aborting\n")));
 
@@ -1020,9 +1010,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             SessionMessageType,
                             ProtocolMessageType>::putSessionMessage (Stream_SessionMessageType_t messageType_in,
                                                                      SessionDataType* sessionData_in,
-                                                                     bool deleteSessionData_in,
-                                                                     const ACE_Time_Value& startOfSession_in,
-                                                                     bool userAbort_in) const
+                                                                     bool deleteSessionData_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putSessionMessage"));
 

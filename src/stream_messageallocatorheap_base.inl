@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+ #include <limits>
+
 #include "ace/Message_Block.h"
 #include "ace/Log_Msg.h"
 
@@ -34,10 +36,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
  : inherited ()
  , block_ (block_in)
  , dataBlockAllocator_ (allocator_in)
- , freeMessageCounter_ (maxNumMessages_in,
+ , freeMessageCounter_ ((maxNumMessages_in ? maxNumMessages_in
+                                           : std::numeric_limits<int>::max ()),
                         NULL,
                         NULL,
-                        maxNumMessages_in)
+                        (maxNumMessages_in ? maxNumMessages_in
+                                           : std::numeric_limits<int>::max ()))
  , poolSize_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::Stream_MessageAllocatorHeapBase_T"));
