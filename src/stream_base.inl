@@ -46,14 +46,14 @@ Stream_Base_T<TaskSynchType,
  : inherited (NULL, // argument to module open()
               NULL, // no head module --> allocate !
               NULL) // no tail module --> allocate !
-// , availableModules_ ()
+ , availableModules_ ()
  , isInitialized_ (false)
  , allocator_ (NULL)
-// , state_ ()
+ , state_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
-  ACE_OS::memset (&state_, 0, sizeof (state_));
+//  ACE_OS::memset (&state_, 0, sizeof (state_));
 }
 
 template <typename TaskSynchType,

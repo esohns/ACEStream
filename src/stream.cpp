@@ -33,13 +33,13 @@ Stream::Stream ()
               NULL, // no head module --> ACE_Stream_Head !
               NULL) // no tail module --> ACE_Stream_Tail !
  , allocator_ (NULL)
-// , availableModules_ ()
+ , availableModules_ ()
  , isInitialized_ (false)
-// , state_ ()
+ , state_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream::Stream"));
 
-  ACE_OS::memset (&state_, 0, sizeof (state_));
+//  ACE_OS::memset (&state_, 0, sizeof (state_));
 }
 
 Stream::~Stream ()

@@ -28,6 +28,7 @@
 
 #include "common.h"
 
+#include "stream_defines.h"
 #include "stream_iallocator.h"
 #include "stream_imodule.h"
 #include "stream_session_data_base.h"
@@ -52,6 +53,14 @@ struct Stream_Statistic_t
 
 struct Stream_State_t
 {
+  Stream_State_t ()
+   : sessionID (0)
+   , startOfSession (ACE_Time_Value::zero)
+   , currentStatistics ()
+   , lastCollectionTimestamp (ACE_Time_Value::zero)
+   , userAborted (false)
+  {};
+
   unsigned int       sessionID; // (== socket handle !)
   ACE_Time_Value     startOfSession;
   Stream_Statistic_t currentStatistics;
@@ -74,6 +83,19 @@ typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
 
 struct Stream_Configuration_t
 {
+  Stream_Configuration_t ()
+   : bufferSize (STREAM_BUFFER_SIZE)
+   , deleteModule (false)
+   , messageAllocator (NULL)
+   , module (NULL)
+   , moduleConfiguration (NULL)
+   , notificationStrategy (NULL)
+   , printFinalReport (false)
+   , serializeOutput (false)
+   , statisticReportingInterval (0)
+   , useThreadPerConnection (false)
+  {};
+
   unsigned int                  bufferSize;
   bool                          deleteModule;
   Stream_IAllocator*            messageAllocator;
