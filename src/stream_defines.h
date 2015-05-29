@@ -21,17 +21,23 @@
 #ifndef STREAM_DEFINES_H
 #define STREAM_DEFINES_H
 
-// queue / task / buffers
-#define STREAM_TASK_GROUP_ID                   10
+// message
+#define STREAM_MESSAGE_DATA_BUFFER_SIZE        1024 // 1 kB
+
+// queue
 // *IMPORTANT NOTE*: any of these COULD seriously affect performance
-#define STREAM_MAX_QUEUE_SLOTS                 10000
-// *IMPORTANT NOTE*: static heap memory consumption can probably be approximated
-// as STREAM_DEF_MAX_MESSAGES * sizeof(stream-message-type) bytes
-#define STREAM_MAX_MESSAGES                    1000
+#define STREAM_QUEUE_MAX_SLOTS                 10000
+// *IMPORTANT NOTE*: concurrent in-flight messages
+//                   static heap memory consumption may be approximated as
+//                   STREAM_DEF_MAX_MESSAGES * sizeof(stream-message-type)
+//                   bytes
+#define STREAM_QUEUE_MAX_MESSAGES              1000
+// *IMPORTANT NOTE*: pre-cached messages (cached allocators only)
+#define STREAM_QUEUE_DEFAULT_CACHED_MESSAGES   1000
 
-#define STREAM_BUFFER_SIZE                     1024 // 1 kB
-
-#define STREAM_DEFAULT_NUM_STREAM_HEAD_THREADS 1
-#define STREAM_DEFAULT_HANDLER_THREAD_NAME     "stream dispatch"
+// module
+#define STREAM_MODULE_TASK_GROUP_ID            10
+#define STREAM_MODULE_DEFAULT_HEAD_THREADS     1
+#define STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME "stream dispatch"
 
 #endif

@@ -36,7 +36,7 @@ Stream_HeadModuleTask::Stream_HeadModuleTask (bool autoStart_in)
  , autoStart_ (autoStart_in)
  , condition_ (lock_)
  , isFinished_ (true)
- , queue_ (STREAM_MAX_QUEUE_SLOTS)
+ , queue_ (STREAM_QUEUE_MAX_MESSAGES)
  , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::Stream_HeadModuleTask"));
@@ -45,7 +45,7 @@ Stream_HeadModuleTask::Stream_HeadModuleTask (bool autoStart_in)
   msg_queue (&queue_);
 
   // set group ID for worker thread(s)
-  grp_id (STREAM_TASK_GROUP_ID);
+  grp_id (STREAM_MODULE_TASK_GROUP_ID);
 }
 
 Stream_HeadModuleTask::~Stream_HeadModuleTask ()
@@ -74,7 +74,7 @@ Stream_HeadModuleTask::put (ACE_Message_Block* mb_in,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::put"));
 
-  // drop the message into our queue...
+  // drop the message into the queue...
   return inherited::putq (mb_in,
                           tv_in);
 }
@@ -84,7 +84,9 @@ Stream_HeadModuleTask::open (void* args_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::open"));
 
-  // step0: init user data
+  int result = -1;
+
+  // step0: initialize user data
   sessionData_ = reinterpret_cast<Stream_SessionData_t*> (args_in);
 
   // step1: (re-)activate() our queue
@@ -95,11 +97,11 @@ Stream_HeadModuleTask::open (void* args_in)
   // will have been deactivated in the process, and getq() (see svc()) will fail
   // miserably (ESHUTDOWN) --> (re-)activate() our queue !
   // step1: (re-)activate() our queue
-  if (queue_.activate () == -1)
+  result = queue_.activate ();
+  if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Message_Queue::activate(): \"%m\", aborting\n")));
-
     return -1;
   } // end IF
 
@@ -123,7 +125,6 @@ Stream_HeadModuleTask::open (void* args_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in start() method, aborting\n")));
-
       return -1;
     }
   } // end IF
@@ -165,7 +166,6 @@ Stream_HeadModuleTask::close (u_long arg_in)
       // *WARNING*: SHOULD NEVER GET HERE
       // --> module_closed() hook is implemented below !!!
       ACE_ASSERT (false);
-
       return -1;
     }
     default:
@@ -173,7 +173,6 @@ Stream_HeadModuleTask::close (u_long arg_in)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid argument: %u, aborting\n"),
                   arg_in));
-
       return -1;
     }
   } // end SWITCH
@@ -185,6 +184,8 @@ int
 Stream_HeadModuleTask::module_closed (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::module_closed"));
+
+  int result = -1;
 
   // *NOTE*: this will be a NOP IF the stream was
   // stop()ped BEFORE it is deleted !
@@ -209,18 +210,21 @@ Stream_HeadModuleTask::module_closed (void)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in stop(), aborting\n")));
-
       return -1;
     }
   } // end IF
 
-  // just wait for OUR worker thread to die
-  // *NOTE*: this works because we assume that by the time we get here,
-  // we're either stop()ed (see above) or otherwise finished with processing, i.e. our
-  // worker thread should be dying/dead by now...
-  inherited::wait ();
+  // wait for any worker thread(s) to join
+  // *NOTE*: this works based on the assumption that by the time the control
+  //         flow reaches here, the task is either stop()ed (see above) or
+  //         otherwise finished with processing, i.e. any worker thread(s)
+  //         should be dying/dead by now...
+  result = inherited::wait ();
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", aborting\n")));
 
-  return 0;
+  return result;
 }
 
 int
@@ -228,8 +232,8 @@ Stream_HeadModuleTask::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::svc"));
 
-  ACE_Message_Block* ace_mb          = NULL;
-  bool               stop_processing = false;
+  ACE_Message_Block* message_block_p = NULL;
+  bool stop_processing = false;
 
   // step1: send initial session message downstream...
   if (!putSessionMessage (SESSION_BEGIN,
@@ -250,10 +254,10 @@ Stream_HeadModuleTask::svc (void)
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("entering processing loop...\n")));
 
-  while (inherited::getq (ace_mb,
+  while (inherited::getq (message_block_p,
                           NULL) != -1)
   {
-    inherited::handleMessage (ace_mb,
+    inherited::handleMessage (message_block_p,
                               stop_processing);
 
     // finished ?
@@ -286,7 +290,7 @@ Stream_HeadModuleTask::svc (void)
     } // end IF
 
     // clean up
-    ace_mb = NULL;
+    message_block_p = NULL;
   } // end WHILE
 
   ACE_DEBUG ((LM_ERROR,

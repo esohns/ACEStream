@@ -21,12 +21,15 @@
 
 #include "stream_cachedallocatorheap.h"
 
+#include <limits>
+
 #include "stream_macros.h"
 
 Stream_CachedAllocatorHeap::Stream_CachedAllocatorHeap (unsigned int poolSize_in,
                                                         unsigned int chunkSize_in)
- : inherited (poolSize_in, chunkSize_in)
- , poolSize_ (poolSize_in * chunkSize_in)
+ : inherited (((poolSize_in == 0) ? 1 : poolSize_in), chunkSize_in)
+ , poolSize_ ((poolSize_in == 0) ? std::numeric_limits<unsigned int>::max ()
+                                 : (poolSize_in * chunkSize_in))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedAllocatorHeap::Stream_CachedAllocatorHeap"));
 

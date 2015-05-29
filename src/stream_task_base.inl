@@ -37,10 +37,10 @@ Stream_TaskBase_T<TaskSynchStrategyType,
                   TimePolicyType,
                   SessionMessageType,
                   ProtocolMessageType>::Stream_TaskBase_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_DEFAULT_HANDLER_THREAD_NAME), // thread name
-              STREAM_TASK_GROUP_ID,                                      // group id
-              1,                                                         // # thread(s)
-              false)                                                     // auto-start ?
+ : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME), // thread name
+              STREAM_MODULE_TASK_GROUP_ID,                                   // group id
+              1,                                                             // # thread(s)
+              false)                                                         // auto-start ?
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
@@ -195,10 +195,12 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleMessage"));
 
+  int result = -1;
+
   // sanity check
   ACE_ASSERT (mb_in);
 
-  // init return value(s)
+  // initialize return value(s)
   stopProcessing_out = false;
 
   // default behavior is to pass EVERYTHING downstream...
@@ -307,13 +309,17 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       // clean up
       mb_in->release ();
     } // end IF
-    else if (inherited::put_next (mb_in, NULL) == -1)
+    else
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to put_next(): \"%m\", continuing\n")));
+      result = inherited::put_next (mb_in, NULL);
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to put_next(): \"%m\", continuing\n")));
 
-      // clean up
-      mb_in->release ();
+        // clean up
+        mb_in->release ();
+      } // end IF
     } // end IF
   } // end IF
 }

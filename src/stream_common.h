@@ -95,7 +95,7 @@ typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
 struct Stream_Configuration_t
 {
   Stream_Configuration_t ()
-   : bufferSize (STREAM_BUFFER_SIZE)
+   : bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
    , deleteModule (false)
    , messageAllocator (NULL)
    , module (NULL)

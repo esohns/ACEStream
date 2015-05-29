@@ -61,7 +61,7 @@ class Stream_Export Stream_CachedAllocatorHeap
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedAllocatorHeap (const Stream_CachedAllocatorHeap&));
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedAllocatorHeap& operator= (const Stream_CachedAllocatorHeap&));
 
-  unsigned long poolSize_;
+  unsigned int poolSize_;
 };
 
 #endif

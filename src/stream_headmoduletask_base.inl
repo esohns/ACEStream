@@ -50,8 +50,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
  , state_ (NULL)
  , autoStart_ (autoStart_in)
  , condition_ (lock_)
- , currentNumThreads_ (STREAM_DEFAULT_NUM_STREAM_HEAD_THREADS)
- , queue_ (STREAM_MAX_QUEUE_SLOTS)
+ , currentNumThreads_ (0)
+ , queue_ (STREAM_QUEUE_MAX_SLOTS)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
@@ -59,7 +59,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   inherited::msg_queue (&queue_);
 
   // set group ID for worker thread(s)
-  inherited::grp_id (STREAM_TASK_GROUP_ID);
+  inherited::grp_id (STREAM_MODULE_TASK_GROUP_ID);
 }
 
 template <typename TaskSynchType,
@@ -711,6 +711,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onStateChange"));
 
+  int result = -1;
+
   switch (newState_in)
   {
     case inherited2::STATE_INITIALIZED:
@@ -718,7 +720,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       // OK: (re-)initialized
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("(re-)initialized...\n")));
-
       break;
     }
     case inherited2::STATE_RUNNING:
@@ -730,9 +731,12 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       {
         // resume worker ?
         if (isActive_)
-          if (inherited::resume () == -1)
+        {
+          result = inherited::resume ();
+          if (result == -1)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to resume(): \"%m\", continuing\n")));
+        } // end IF
 
         break;
       } // end IF
@@ -746,26 +750,27 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         thread_ids[0] = 0;
         char thread_name[BUFSIZ];
         ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-        ACE_OS::strcpy (thread_name, STREAM_DEFAULT_HANDLER_THREAD_NAME);
+        ACE_OS::strcpy (thread_name, STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME);
         const char* thread_names[1];
         thread_names[0] = thread_name;
-        if (inherited::activate ((THR_NEW_LWP      |
-                                  THR_JOINABLE     |
-                                  THR_INHERIT_SCHED),         // flags
-                                 1,                           // number of threads
-                                 0,                           // force spawning
-                                 ACE_DEFAULT_THREAD_PRIORITY, // priority
-                                 inherited::grp_id (),        // group id (see above)
-                                 NULL,                        // corresp. task --> use 'this'
-                                 thread_handles,              // thread handle(s)
-                                 NULL,                        // thread stack(s)
-                                 NULL,                        // thread stack size(s)
-                                 thread_ids,                  // thread id(s)
-                                 thread_names) == -1)         // thread name(s)
+        result =
+          inherited::activate ((THR_NEW_LWP |
+                                THR_JOINABLE |
+                                THR_INHERIT_SCHED),                // flags
+                               STREAM_MODULE_DEFAULT_HEAD_THREADS, // number of threads
+                               0,                                  // force spawning
+                               ACE_DEFAULT_THREAD_PRIORITY,        // priority
+                               inherited::grp_id (),               // group id (see above)
+                               NULL,                               // corresp. task --> use 'this'
+                               thread_handles,                     // thread handle(s)
+                               NULL,                               // thread stack(s)
+                               NULL,                               // thread stack size(s)
+                               thread_ids,                         // thread id(s)
+                               thread_names);                      // thread name(s)
+        if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", aborting\n")));
-
           break;
         } // end IF
       } // end IF
@@ -778,7 +783,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, aborting\n")));
-
           break;
         } // end IF
       } // end ELSE
@@ -820,14 +824,14 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
-
           break;
         } // end IF
 
-        if (inherited::putq (stop_mb, NULL) == -1)
+        result = inherited::putq (stop_mb, NULL);
+        if (result == -1)
         {
-          ACE_DEBUG((LM_ERROR,
-                     ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
 
           // clean up
           stop_mb->release ();
@@ -869,9 +873,12 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     {
       // suspend the worker ?
       if (isActive_)
-        if (inherited::suspend () == -1)
+      {
+        result = inherited::suspend ();
+        if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to suspend(): \"%m\", continuing\n")));
+      } // end IF
 
       break;
     }
@@ -889,7 +896,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                   ACE_TEXT ("invalid state switch: \"%s\" --> \"%s\", continuing\n"),
                   ACE_TEXT (currentStateString.c_str ()),
                   ACE_TEXT (newStateString.c_str ())));
-
       break;
     }
   } // end SWITCH
