@@ -156,7 +156,16 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   // *NOTE*: session/user data could be empty...
 //   ACE_ASSERT(args_in);
 
-  // step0: init this
+  //// step-1: *WORKAROUND*: for some odd reason, inherited::next_ is not updated
+  ////                       correctly
+  //if (inherited::mod_)
+  //{
+  //  Stream_Module_t* module_p = inherited::mod_->next ();
+  //  if (module_p)
+  //    inherited::next_ = module_p->writer ();
+  //} // end IF
+
+  // step0: initialize this
   sessionData_ = reinterpret_cast<SessionDataType*> (args_in);
 
   // step1: (re-)activate() our queue
@@ -323,8 +332,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ProtocolMessageType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
-
-  ACE_ASSERT (state_);
 
   ACE_Message_Block* ace_mb          = NULL;
   bool               stop_processing = false;
@@ -703,8 +710,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ProtocolMessageType>::onStateChange (Stream_StateType_t newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onStateChange"));
-
-  ACE_ASSERT (state_);
 
   switch (newState_in)
   {

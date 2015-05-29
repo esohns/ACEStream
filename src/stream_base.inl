@@ -221,7 +221,7 @@ Stream_Base_T<TaskSynchType,
     // *NOTE*: this will implicitly:
     // - unwind the stream, which pop()s all (pushed) modules
     // --> pop()ing a module will close() it
-    // --> close()ing a module will module_closed() and flush() the associated tasks
+    // --> close()ing a module will module_closed() and flush() its tasks
     // --> flush()ing a task will close() its queue
     // --> close()ing a queue will deactivate() and flush() it
     result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
@@ -259,6 +259,8 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::start"));
 
+  int result = -1;
+
   // sanity check(s)
   if (!isInitialized_)
   {
@@ -268,26 +270,12 @@ Stream_Base_T<TaskSynchType,
   } // end IF
 
   // delegate to the head module
-  MODULE_T* module_p = inherited::head ();
-  if (!module_p)
+  MODULE_T* module_p = NULL;
+  result = inherited::top (module_p);
+  if ((result == -1) || !module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no head module found, returning\n")));
-    return;
-  } // end IF
-  module_p = module_p->next ();
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no head module found, returning\n")));
-    return;
-  } // end IF
-
-  // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module_p == inherited::tail ())
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
+                ACE_TEXT ("no head module found: \"%m\", returning\n")));
     return;
   } // end IF
 
@@ -336,37 +324,25 @@ Stream_Base_T<TaskSynchType,
 
   ACE_UNUSED_ARG (lockedAccess_in);
 
+  int result = -1;
+
   if (!isRunning ())
     return;
 
   // delegate to the head module, skip over ACE_Stream_Head...
-  MODULE_T* module_p = inherited::head ();
-  if (!module_p)
+  MODULE_T* module_p = NULL;
+  result = inherited::top (module_p);
+  if ((result == -1) || !module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no head module found, returning\n")));
-    return;
-  } // end IF
-  module_p = module_p->next ();
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no head module found, returning\n")));
-    return;
-  } // end IF
-
-  // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module_p == inherited::tail ())
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
+                ACE_TEXT ("no head module found: \"%m\", returning\n")));
     return;
   } // end IF
 
   // *WARNING*: cannot flush(), as this deactivates() the queue as well,
-  // which causes mayhem for our (blocked) worker...
+  // which causes mayhem for (blocked) worker(s)...
   // *TODO*: consider optimizing this...
-  //module->reader ()->flush ();
+  //module->writer ()->flush ();
 
   ISTREAM_CONTROL_T* control_impl_p =
     dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
@@ -411,29 +387,15 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isRunning"));
 
-  // delegate to the head module, skip over ACE_Stream_Head...
-  MODULE_T* module_p = const_cast<SELF_T*> (this)->head ();
-  if (!module_p)
-  {
-    // *IMPORTANT NOTE*: this happens when no modules have been pushed onto the
-    // stream yet
-    //ACE_DEBUG ((LM_ERROR,
-    //            ACE_TEXT ("no head module found, aborting\n")));
-    return false;
-  } // end IF
-  module_p = module_p->next ();
-  if (!module_p)
+  int result = -1;
+
+  // delegate to the head module
+  MODULE_T* module_p = NULL;
+  result = const_cast<SELF_T*> (this)->top (module_p);
+  if ((result == -1) || !module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no head module found, aborting\n")));
-    return false;
-  } // end IF
-
-  // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module_p == const_cast<SELF_T*> (this)->tail ())
-  {
-//     ACE_DEBUG ((LM_DEBUG,
-//                 ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, aborting\n")));
+                ACE_TEXT ("no head module found: \"%m\", aborting\n")));
     return false;
   } // end IF
 
@@ -481,6 +443,8 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::pause"));
 
+  int result = -1;
+
   // sanity check
   if (!isRunning ())
   {
@@ -490,26 +454,12 @@ Stream_Base_T<TaskSynchType,
   } // end IF
 
   // delegate to the head module
-  MODULE_T* module_p = inherited::head ();
-  if (!module_p)
+  MODULE_T* module_p = NULL;
+  result = inherited::top (module_p);
+  if ((result == -1) || !module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no head module found, returning\n")));
-    return;
-  } // end IF
-  module_p = module_p->next ();
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no head module found, returning\n")));
-    return;
-  } // end IF
-
-  // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module_p == inherited::tail ())
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
+                ACE_TEXT ("no head module found: \"%m\", returning\n")));
     return;
   } // end IF
 
@@ -556,7 +506,10 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::rewind"));
 
+  int result = -1;
+
   // sanity check
+  // *TODO*
   if (isRunning ())
   {
     ACE_DEBUG ((LM_ERROR,
@@ -565,26 +518,12 @@ Stream_Base_T<TaskSynchType,
   } // end IF
 
   // delegate to the head module
-  MODULE_T* module_p = inherited::head ();
-  if (!module_p)
+  MODULE_T* module_p = NULL;
+  result = inherited::top (module_p);
+  if ((result == -1) || !module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no head module found, returning\n")));
-    return;
-  } // end IF
-  module_p = module_p->next ();
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no head module found, returning\n")));
-    return;
-  } // end IF
-
-  // sanity check: head == tail ? --> no modules have been push()ed (yet) !
-  if (module_p == inherited::tail ())
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("no modules have been enqueued yet --> nothing to do !, returning\n")));
+                ACE_TEXT ("no head module found: \"%m\", returning\n")));
     return;
   } // end IF
 
@@ -631,20 +570,24 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::waitForCompletion"));
 
-  // OK: the logic here is this...
+  int result = -1;
+
+  // *NOTE*: the logic here is this...
   // step1: wait for processing to finish
   // step2: wait for any pipelined messages to flush...
 
   // step1: get head module, skip over ACE_Stream_Head
   ITERATOR_T iterator (*this);
-  if (iterator.advance () == 0)
+  result = iterator.advance ();
+  if (result == 0)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
     return;
   } // end IF
   const MODULE_T* module_p = NULL;
-  if (iterator.next (module_p) == 0)
+  result = iterator.next (module_p);
+  if (result == 0)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no head module found, returning\n")));
@@ -685,6 +628,7 @@ Stream_Base_T<TaskSynchType,
     return;
   }
 
+  Stream_Task_t* task_p = NULL;
   for (iterator.advance ();
        (iterator.next (module_p) != 0);
        iterator.advance ())
@@ -695,7 +639,10 @@ Stream_Base_T<TaskSynchType,
 
     modules.push_front (const_cast<MODULE_T*> (module_p));
     // OK: got a handle... wait
-    if (const_cast<MODULE_T*> (module_p)->writer ()->wait () == -1)
+    task_p = const_cast<MODULE_T*> (module_p)->writer ();
+    ACE_ASSERT (task_p);
+    result = task_p->wait ();
+    if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
 
@@ -706,9 +653,14 @@ Stream_Base_T<TaskSynchType,
   for (MODULE_CONTAINER_ITERATOR_T iterator2 = modules.begin ();
        iterator2 != modules.end ();
        iterator2++)
-    if ((*iterator2)->reader ()->wait () == -1)
+  {
+    task_p = (*iterator2)->writer ();
+    ACE_ASSERT (task_p);
+    result = task_p->wait ();
+    if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
+  } // end FOR
 }
 
 template <typename TaskSynchType,
