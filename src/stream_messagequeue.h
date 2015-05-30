@@ -24,7 +24,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common.h"
+#include "common_time_common.h"
 
 #include "stream_exports.h"
 #include "stream_messagequeue_base.h"

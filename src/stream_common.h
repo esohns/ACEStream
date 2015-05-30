@@ -21,13 +21,16 @@
 #ifndef STREAM_COMMON_H
 #define STREAM_COMMON_H
 
+#include "ace/Module.h"
 #include "ace/Notification_Strategy.h"
 #include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
+#include "ace/Task.h"
 #include "ace/Time_Value.h"
 
-#include "common.h"
+#include "common_time_common.h"
 
+#include "stream_defines.h"
 #include "stream_iallocator.h"
 #include "stream_imodule.h"
 #include "stream_session_data_base.h"
@@ -35,11 +38,12 @@
 
 struct Stream_Statistic_t
 {
-  unsigned int numDataMessages;    // (protocol) messages
-  unsigned int numDroppedMessages; // dropped messages
-  double       numBytes;           // amount of processed data
+  inline Stream_Statistic_t ()
+   : numDataMessages (0)
+   , numDroppedMessages (0)
+   , numBytes (0.0)
+  {};
 
-  // convenience
   inline Stream_Statistic_t operator+= (const Stream_Statistic_t& rhs_in)
   {
     numDataMessages += rhs_in.numDataMessages;
@@ -48,10 +52,22 @@ struct Stream_Statistic_t
 
     return *this;
   };
+
+  unsigned int numDataMessages;    // (protocol) messages
+  unsigned int numDroppedMessages; // dropped messages
+  double       numBytes;           // amount of processed data
 };
 
 struct Stream_State_t
 {
+  inline Stream_State_t ()
+   : sessionID (0)
+   , startOfSession (ACE_Time_Value::zero)
+   , currentStatistics ()
+   , lastCollectionTimestamp (ACE_Time_Value::zero)
+   , userAborted (false)
+  {};
+
   unsigned int       sessionID; // (== socket handle !)
   ACE_Time_Value     startOfSession;
   Stream_Statistic_t currentStatistics;
@@ -61,11 +77,19 @@ struct Stream_State_t
 
 struct Stream_ModuleConfiguration_t
 {
+  inline Stream_ModuleConfiguration_t ()
+   : streamState (NULL)
+   , userData (NULL)
+  {};
+
   Stream_State_t* streamState;
   void*           userData;
 };
 
-//typedef Common_Module_t Stream_Module_t;
+typedef ACE_Task<ACE_MT_SYNCH,
+                 Common_TimePolicy_t> Stream_Task_t;
+typedef ACE_Module<ACE_MT_SYNCH,
+                   Common_TimePolicy_t> Stream_Module_t;
 typedef Stream_IModule<ACE_MT_SYNCH,
                        Common_TimePolicy_t,
                        Stream_ModuleConfiguration_t> Stream_IModule_t;
@@ -74,10 +98,23 @@ typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
 
 struct Stream_Configuration_t
 {
+  Stream_Configuration_t ()
+   : bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
+   , deleteModule (false)
+   , messageAllocator (NULL)
+   , module (NULL)
+   , moduleConfiguration (NULL)
+   , notificationStrategy (NULL)
+   , printFinalReport (false)
+   , serializeOutput (false)
+   , statisticReportingInterval (0)
+   , useThreadPerConnection (false)
+  {};
+
   unsigned int                  bufferSize;
   bool                          deleteModule;
   Stream_IAllocator*            messageAllocator;
-  Common_Module_t*              module;
+  Stream_Module_t*              module;
   Stream_ModuleConfiguration_t* moduleConfiguration;
   ACE_Notification_Strategy*    notificationStrategy;
   bool                          printFinalReport;

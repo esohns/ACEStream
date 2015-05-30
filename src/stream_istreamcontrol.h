@@ -28,7 +28,7 @@ class Stream_IStreamControl_T
  : public Common_IControl
 {
  public:
-  virtual ~Stream_IStreamControl_T () {}
+  inline virtual ~Stream_IStreamControl_T () {};
 
   virtual void pause () = 0;
   virtual void rewind () = 0;

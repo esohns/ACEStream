@@ -38,9 +38,9 @@ Stream_Module_Base_T<TaskSynchType,
  : inherited (ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ()), // name
               writerTask_in,                             // initialize writer side task
               readerTask_in,                             // initialize reader side task
-              refCount_in,                               // arg passed to task open()
+              refCount_in,                               // argument passed to task open()
               inherited::M_DELETE_NONE)                  // don't "delete" ANYTHING during close()
- , configuration_ (NULL)
+ , configuration_ ()
  , reader_ (readerTask_in)
  , writer_ (writerTask_in)
 {
@@ -84,16 +84,16 @@ template <typename TaskSynchType,
           typename ConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
-void
+const ConfigurationType&
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
                      ConfigurationType,
                      ReaderTaskType,
-                     WriterTaskType>::get (ConfigurationType*& configuration_out) const
+                     WriterTaskType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::get"));
 
-  configuration_out = const_cast<ConfigurationType*> (configuration_);
+  return configuration_;
 }
 
 template <typename TaskSynchType,
@@ -110,7 +110,7 @@ Stream_Module_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::initialize"));
 
-  configuration_ = &configuration_in;
+  configuration_ = configuration_in;
 
   return true;
 }
@@ -152,42 +152,38 @@ Stream_Module_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::clone"));
 
-  // init return value(s)
+  // initialize return value(s)
   ACE_Module<TaskSynchType,
-             TimePolicyType>* result = NULL;
+             TimePolicyType>* module_p = NULL;
 
   // need a downcast...
-  typename IMODULE_TYPE::ICLONE_TYPE* iclone_handle =
+  typename IMODULE_TYPE::ICLONE_TYPE* iclone_p =
       dynamic_cast<typename IMODULE_TYPE::ICLONE_TYPE*> (writer_);
-  if (!iclone_handle)
+  if (!iclone_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<RPG_Common_IClone> failed, aborting\n"),
-                ACE_TEXT_ALWAYS_CHAR (inherited::name ())));
-
+                ACE_TEXT ("%s: dynamic_cast<Common_IClone> failed, aborting\n"),
+                ACE_TEXT (inherited::name ())));
     return NULL;
   } // end IF
 
   try
   {
-    result = iclone_handle->clone ();
+    module_p = iclone_p->clone ();
   }
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT("%s: caught exception in RPG_Common_IClone::clone(), aborting\n"),
-                ACE_TEXT_ALWAYS_CHAR (inherited::name ())));
-
-    return NULL;
+                ACE_TEXT ("%s: caught exception in Common_IClone::clone(), continuing\n"),
+                ACE_TEXT (inherited::name ())));
   }
-  if (!result)
+  if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to RPG_Common_IClone::clone(), aborting\n"),
-                ACE_TEXT_ALWAYS_CHAR (inherited::name ())));
-
+                ACE_TEXT ("%s: failed to Common_IClone::clone(), aborting\n"),
+                ACE_TEXT (inherited::name ())));
     return NULL;
   } // end IF
 
-  return result;
+  return module_p;
 }

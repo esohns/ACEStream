@@ -32,7 +32,7 @@ class Stream_ITask_T
  : public Common_IInitialize
 {
  public:
-  virtual ~Stream_ITask_T () {}
+  inline virtual ~Stream_ITask_T () {};
 
   // *NOTE*: pipelined "stream tasks" generally need not worry about the lifecycle of the
   // messages passed to them; any filtering functionality however needs to set the second

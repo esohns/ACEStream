@@ -76,6 +76,9 @@ class Stream_SessionMessageBase_T
   static void SessionMessageType2String (Stream_SessionMessageType_t, // message type
                                          std::string&);               // corresp. string
 
+  // convenience types
+  typedef StreamStateType STREAM_STATE_TYPE;
+
  protected:
   // (copy) ctor to be used by duplicate()
    Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<StreamStateType,

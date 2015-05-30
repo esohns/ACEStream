@@ -32,7 +32,7 @@
 
 Stream_TaskAsynch::Stream_TaskAsynch ()
  : threadID_ (0)
- , queue_ (STREAM_MAX_QUEUE_SLOTS)
+ , queue_ (STREAM_QUEUE_MAX_SLOTS)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskAsynch::Stream_TaskAsynch"));
 
@@ -40,7 +40,7 @@ Stream_TaskAsynch::Stream_TaskAsynch ()
   msg_queue (&queue_);
 
   // set group ID for worker thread(s)
-  inherited::grp_id (STREAM_TASK_GROUP_ID);
+  inherited::grp_id (STREAM_MODULE_TASK_GROUP_ID);
 }
 
 Stream_TaskAsynch::~Stream_TaskAsynch ()
@@ -70,6 +70,8 @@ Stream_TaskAsynch::open (void* args_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskAsynch::open"));
 
+  int result = -1;
+
   ACE_UNUSED_ARG (args_in);
 
   // step1: (re-)activate() our queue
@@ -79,11 +81,11 @@ Stream_TaskAsynch::open (void* args_in)
   // If we come here a second time (i.e. we have been stopped/started, our queue
   // will have been deactivated in the process, and getq() (see svc()) will fail
   // miserably (ESHUTDOWN) --> (re-)activate() our queue
-  if (queue_.activate () == -1)
+  result = queue_.activate ();
+  if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Message_Queue::activate(): \"%m\", aborting\n")));
-
     return -1;
   } // end IF
 
@@ -94,20 +96,20 @@ Stream_TaskAsynch::open (void* args_in)
   thread_handles[0] = 0;
 
   // *IMPORTANT NOTE*: MUST be THR_JOINABLE !!!
-  int ret = 0;
-  ret = activate ((THR_NEW_LWP      |
-                   THR_JOINABLE     |
-                   THR_INHERIT_SCHED),         // flags
-                  1,                           // number of threads
-                  0,                           // force spawning
-                  ACE_DEFAULT_THREAD_PRIORITY, // priority
-                  inherited::grp_id (),        // group id --> should have been set by now !
-                  NULL,                        // corresp. task --> use 'this'
-                  thread_handles,              // thread handle(s)
-                  NULL,                        // thread stack(s)
-                  NULL,                        // thread stack size(s)
-                  thread_ids);                 // thread id(s)
-  if (ret == -1)
+  result =
+    activate ((THR_NEW_LWP |
+               THR_JOINABLE |
+               THR_INHERIT_SCHED),         // flags
+              1,                           // number of threads
+              0,                           // force spawning
+              ACE_DEFAULT_THREAD_PRIORITY, // priority
+              inherited::grp_id (),        // group id --> should have been set by now !
+              NULL,                        // corresp. task --> use 'this'
+              thread_handles,              // thread handle(s)
+              NULL,                        // thread stack(s)
+              NULL,                        // thread stack size(s)
+              thread_ids);                 // thread id(s)
+  if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", aborting\n")));

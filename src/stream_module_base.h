@@ -54,8 +54,7 @@ class Stream_Module_Base_T
   virtual ~Stream_Module_Base_T ();
 
   // implement (part of) Stream_IModule
-  // *TODO*: this clearly is bad design...
-  virtual void get (ConfigurationType*&) const;
+  virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&);
   virtual void reset ();
 
@@ -65,7 +64,9 @@ class Stream_Module_Base_T
                         ReaderTaskType*,    // handle to reader task
                         Common_IRefCount*); // object counter
 
-  const ConfigurationType* configuration_;
+  // *TODO*: consider moving this to the stream, and have the modules refer to
+  //         a single instance...
+  ConfigurationType configuration_;
 
  private:
   typedef ACE_Module<TaskSynchType,

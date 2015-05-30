@@ -33,12 +33,11 @@ template <typename TaskSynchType,
 class Stream_IModule
  : public Common_IClone_T<ACE_Module<TaskSynchType,
                                      TimePolicyType> >
-   // *TODO*: this clearly is bad design...
- , public Common_IGet_T <ConfigurationType*>
+ , public Common_IGet_T<ConfigurationType>
  , public Common_IInitialize_T<ConfigurationType>
 {
  public:
-  virtual ~Stream_IModule() {}
+  inline virtual ~Stream_IModule() {};
 
   // convenient types
   typedef Common_IClone_T<ACE_Module<TaskSynchType,

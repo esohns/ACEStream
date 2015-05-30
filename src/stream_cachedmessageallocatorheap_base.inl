@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "stream_defines.h"
 #include "stream_macros.h"
 
 template <typename MessageType,
@@ -25,13 +26,21 @@ template <typename MessageType,
 Stream_CachedMessageAllocatorHeapBase_T<MessageType,
                                         SessionMessageType>::Stream_CachedMessageAllocatorHeapBase_T (unsigned int maxNumMessages_in,
                                                                                                       ACE_Allocator* allocator_in)
- : dataBlockAllocator_ (maxNumMessages_in,
+ : dataBlockAllocator_ (((maxNumMessages_in == 0) ? STREAM_QUEUE_DEFAULT_CACHED_MESSAGES
+                                                  : maxNumMessages_in),
                         allocator_in)
- , messageAllocator_ (maxNumMessages_in)
- , sessionMessageAllocator_ (maxNumMessages_in)
+ , messageAllocator_ ((maxNumMessages_in == 0) ? STREAM_QUEUE_DEFAULT_CACHED_MESSAGES
+                                               : maxNumMessages_in)
+ , sessionMessageAllocator_ ((maxNumMessages_in == 0) ? STREAM_QUEUE_DEFAULT_CACHED_MESSAGES
+                                                      : maxNumMessages_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::Stream_CachedMessageAllocatorHeapBase_T"));
 
+  // sanity check(s)
+  if (!maxNumMessages_in)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("cannot allocate unlimited memory, caching %d buffers...\n"),
+                STREAM_QUEUE_DEFAULT_CACHED_MESSAGES));
 }
 
 template <typename MessageType,

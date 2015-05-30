@@ -37,7 +37,7 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
                         SessionMessageType,
                         ProtocolMessageType>::Stream_TaskBaseAsynch_T ()
  : threadID_ (0)
- , queue_ (STREAM_MAX_QUEUE_SLOTS)
+ , queue_ (STREAM_QUEUE_MAX_SLOTS)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::Stream_TaskBaseAsynch_T"));
 
@@ -46,7 +46,7 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
 
   // set group ID for worker thread(s)
   // *TODO*: pass this in from outside...
-  inherited::grp_id (STREAM_TASK_GROUP_ID);
+  inherited::grp_id (STREAM_MODULE_TASK_GROUP_ID);
 }
 
 template <typename TaskSynchType,

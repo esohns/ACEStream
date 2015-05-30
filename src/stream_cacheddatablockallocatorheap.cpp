@@ -21,25 +21,30 @@
 
 #include "stream_cacheddatablockallocatorheap.h"
 
+#include "stream_defines.h"
 #include "stream_macros.h"
 
-// init statics
+// initialize statics
 Stream_CachedDataBlockAllocatorHeap::DATABLOCK_LOCK_TYPE Stream_CachedDataBlockAllocatorHeap::referenceCountLock_;
 
 Stream_CachedDataBlockAllocatorHeap::Stream_CachedDataBlockAllocatorHeap (unsigned int chunks_in,
                                                                           ACE_Allocator* allocator_in)
- : inherited (chunks_in)
+ : inherited ((chunks_in == 0) ? STREAM_QUEUE_DEFAULT_CACHED_MESSAGES : chunks_in)
  , heapAllocator_ (allocator_in)
- , poolSize_ (chunks_in)
+ , poolSize_ ((chunks_in == 0) ? STREAM_QUEUE_DEFAULT_CACHED_MESSAGES : chunks_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::Stream_CachedDataBlockAllocatorHeap"));
 
+  // sanity check(s)
+  if (!chunks_in)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("cannot allocate unlimited memory, caching %d buffers...\n"),
+                STREAM_QUEUE_DEFAULT_CACHED_MESSAGES));
+
   // *NOTE*: NULL --> use heap (== default allocator !)
   if (!heapAllocator_)
-  {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("using default (== heap) message buffer allocation strategy...\n")));
-  } // end IF
 }
 
 Stream_CachedDataBlockAllocatorHeap::~Stream_CachedDataBlockAllocatorHeap ()

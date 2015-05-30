@@ -30,8 +30,8 @@
 
 Stream_MessageAllocatorHeap::Stream_MessageAllocatorHeap (unsigned int maxNumMessages_in,
                                                           Stream_AllocatorHeap* allocator_in)
- : //inherited(),
-   freeMessageCounter_ (maxNumMessages_in,
+ : inherited ()
+ , freeMessageCounter_ (maxNumMessages_in,
                         NULL,
                         NULL,
                         maxNumMessages_in)

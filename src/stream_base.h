@@ -29,6 +29,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_idumpstate.h"
+#include "common_iinitialize.h"
 #include "common_istatistic.h"
 
 #include "stream_common.h"
@@ -43,6 +44,7 @@ template <typename TaskSynchType,
           typename TimePolicyType,
           typename StreamStateType,
           typename StreamStatisticContainerType,
+          typename StreamConfigurationType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // (reference counted)
           typename SessionMessageType,
@@ -51,6 +53,7 @@ class Stream_Base_T
  : public ACE_Stream<TaskSynchType,
                      TimePolicyType>
  , public Stream_IStreamControl_T<StreamStateType>
+ , public Common_IInitialize_T<StreamConfigurationType>
  , public Common_IStatistic_T<StreamStatisticContainerType>
  , public Common_IDumpState
 {
@@ -88,6 +91,8 @@ class Stream_Base_T
                      TimePolicyType> MODULE_T;
   typedef ACE_Task<TaskSynchType,
                    TimePolicyType> TASK_T;
+  typedef ACE_Message_Queue<TaskSynchType,
+                            TimePolicyType> QUEUE_T;
   typedef Stream_IModule<TaskSynchType,
                          TimePolicyType,
                          Stream_ModuleConfiguration_t> IMODULE_T;
@@ -141,6 +146,7 @@ class Stream_Base_T
                         TimePolicyType,
                         StreamStateType,
                         StreamStatisticContainerType,
+                        StreamConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
                         SessionMessageType,
