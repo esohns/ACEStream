@@ -38,7 +38,6 @@
 
 struct Stream_Statistic_t
 {
-  // convenience
   inline Stream_Statistic_t ()
    : numDataMessages (0)
    , numDroppedMessages (0)
@@ -61,7 +60,7 @@ struct Stream_Statistic_t
 
 struct Stream_State_t
 {
-  Stream_State_t ()
+  inline Stream_State_t ()
    : sessionID (0)
    , startOfSession (ACE_Time_Value::zero)
    , currentStatistics ()
@@ -78,6 +77,11 @@ struct Stream_State_t
 
 struct Stream_ModuleConfiguration_t
 {
+  inline Stream_ModuleConfiguration_t ()
+   : streamState (NULL)
+   , userData (NULL)
+  {};
+
   Stream_State_t* streamState;
   void*           userData;
 };

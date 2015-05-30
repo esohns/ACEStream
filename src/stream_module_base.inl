@@ -40,7 +40,7 @@ Stream_Module_Base_T<TaskSynchType,
               readerTask_in,                             // initialize reader side task
               refCount_in,                               // argument passed to task open()
               inherited::M_DELETE_NONE)                  // don't "delete" ANYTHING during close()
- , configuration_ (NULL)
+ , configuration_ ()
  , reader_ (readerTask_in)
  , writer_ (writerTask_in)
 {
@@ -84,16 +84,16 @@ template <typename TaskSynchType,
           typename ConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
-void
+const ConfigurationType&
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
                      ConfigurationType,
                      ReaderTaskType,
-                     WriterTaskType>::get (ConfigurationType*& configuration_out) const
+                     WriterTaskType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::get"));
 
-  configuration_out = const_cast<ConfigurationType*> (configuration_);
+  return configuration_;
 }
 
 template <typename TaskSynchType,
@@ -110,7 +110,7 @@ Stream_Module_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::initialize"));
 
-  configuration_ = &configuration_in;
+  configuration_ = configuration_in;
 
   return true;
 }
