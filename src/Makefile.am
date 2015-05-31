@@ -16,6 +16,8 @@ include_HEADERS = \
   stream_allocatorheap.h \
   stream_base.h \
   stream_base.inl \
+  stream_cachedmessageallocator.h \
+  stream_cachedmessageallocator.inl \
   stream_cachedmessageallocatorheap_base.h \
   stream_cachedmessageallocatorheap_base.inl \
   stream_cachedmessageallocatorheap.h \
@@ -79,15 +81,18 @@ libACEStream_la_SOURCES = \
   stream_base.cpp \
   stream_base.h \
   stream_base.inl \
+  stream_cachedmessageallocator.cpp \
+  stream_cachedmessageallocator.h \
+  stream_cachedmessageallocator.inl \
+  stream_cachedmessageallocatorheap_base.cpp \
   stream_cachedmessageallocatorheap_base.h \
   stream_cachedmessageallocatorheap_base.inl \
-  stream_cachedmessageallocatorheap_base.cpp \
-  stream_cachedmessageallocatorheap.h \
   stream_cachedmessageallocatorheap.cpp \
-  stream_cacheddatablockallocatorheap.h \
+  stream_cachedmessageallocatorheap.h \
   stream_cacheddatablockallocatorheap.cpp \
-  stream_cachedallocatorheap.h \
+  stream_cacheddatablockallocatorheap.h \
   stream_cachedallocatorheap.cpp \
+  stream_cachedallocatorheap.h \
   stream_common.h \
   stream_data_message_base.cpp \
   stream_data_message_base.h \
@@ -160,3 +165,4 @@ libACEStream_la_SOURCES = \
   stream_task_synch.h \
   stream_tools.cpp \
   stream_tools.h
+

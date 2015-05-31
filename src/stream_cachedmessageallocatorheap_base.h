@@ -21,21 +21,21 @@
 #ifndef STREAM_CACHEDMESSAGEALLOCATORHEAP_BASE_H
 #define STREAM_CACHEDMESSAGEALLOCATORHEAP_BASE_H
 
+#include "ace/Global_Macros.h"
 #include "ace/Malloc_T.h"
-#include "ace/Message_Block.h"
-#include "ace/Synch.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_iallocator.h"
 #include "stream_cacheddatablockallocatorheap.h"
 
-template <typename MessageType,
-          typename SessionMessageType>
+template <typename MessageType>
 class Stream_CachedMessageAllocatorHeapBase_T
- : public Stream_IAllocator
+ : public ACE_Cached_Allocator<MessageType,
+                               ACE_SYNCH_MUTEX>
+ , public Stream_IAllocator
 {
  public:
-  Stream_CachedMessageAllocatorHeapBase_T (unsigned int,    // total number of concurrent messages
-                                           ACE_Allocator*); // (heap) memory allocator...
+  Stream_CachedMessageAllocatorHeapBase_T (unsigned int); // total number of concurrent messages
   virtual ~Stream_CachedMessageAllocatorHeapBase_T ();
 
   // implement Stream_IAllocator
@@ -45,8 +45,6 @@ class Stream_CachedMessageAllocatorHeapBase_T
   // *TODO*: the way message IDs are implemented, they can be truly unique
   // only IF allocation is synchronized...
   virtual void* malloc (size_t); // bytes
-  // *NOTE*: frees an <MessageType>/<SessionMessageType>...
-  virtual void free (void*); // element handle
   virtual size_t cache_depth () const; // return value: #bytes allocated
   virtual size_t cache_size  () const; // return value: #inflight ACE_Message_Blocks
 
@@ -56,17 +54,39 @@ class Stream_CachedMessageAllocatorHeapBase_T
                         char = '\0'); // initial value
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T (const Stream_CachedMessageAllocatorHeapBase_T<MessageType, SessionMessageType>&));
+  typedef ACE_Cached_Allocator<MessageType,
+                               ACE_SYNCH_MUTEX> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T (const Stream_CachedMessageAllocatorHeapBase_T&));
   // *NOTE*: apparently, ACE_UNIMPLEMENTED_FUNC gets confused with more than one template parameter...
 //   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T<MessageType,
 //                                                          SessionMessageType>& operator= (const Stream_CachedMessageAllocatorHeapBase_T<MessageType,
 //                                                                                          SessionMessageType>&));
 
-  Stream_CachedDataBlockAllocatorHeap     dataBlockAllocator_;
-  ACE_Cached_Allocator<MessageType,
-                       ACE_SYNCH_MUTEX>   messageAllocator_;
-  ACE_Cached_Allocator<SessionMessageType,
-                       ACE_SYNCH_MUTEX>   sessionMessageAllocator_;
+  virtual void* calloc (size_t,
+                        size_t,
+                        char = '\0');
+  virtual void free (void*); // element handle
+  virtual int remove (void);
+
+  virtual int bind (const char*, void*, int = 0);
+  virtual int trybind (const char*, void*&);
+  virtual int find (const char*, void*&);
+  virtual int find (const char*);
+  virtual int unbind (const char*);
+  virtual int unbind (const char*, void*&);
+
+  virtual int sync (ssize_t = -1, int = MS_SYNC);
+  virtual int sync (void*, size_t, int = MS_SYNC);
+
+  virtual int protect (ssize_t = -1, int = PROT_RDWR);
+  virtual int protect (void*, size_t, int = PROT_RDWR);
+
+#if defined (ACE_HAS_MALLOC_STATS)
+  virtual void print_stats (void) const;
+#endif /* ACE_HAS_MALLOC_STATS */
+
+  virtual void dump (void) const;
 };
 
 // include template implementation

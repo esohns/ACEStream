@@ -64,7 +64,8 @@ Stream_StreamModule_T<TaskSynchType,
   // --> close() all modules in advance so it doesn't happen here !!!
 
   // sanity check: on the stream ?
-  if (inherited::next () == NULL)
+  Stream_Module_t* module_p = inherited::next ();
+  if (!module_p)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("manually closing module: \"%s\"\n"),
