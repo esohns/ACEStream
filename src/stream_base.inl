@@ -151,21 +151,26 @@ Stream_Base_T<TaskSynchType,
   {
     // *NOTE*: fini() invokes close() which will reset the writer/reader tasks
     // of the enqueued modules --> reset this !
-    MODULE_T* module_p = NULL;
+    //MODULE_T* module_p = NULL;
     IMODULE_T* imodule_handle_p = NULL;
     // *NOTE*: cannot write this - it confuses gcc...
     //   for (MODULE_CONTAINER_TYPE::const_iterator iter = availableModules_.begin ();
-    for (ACE_DLList_Iterator<MODULE_T> iterator (availableModules_);
-         iterator.next (module_p);
-         iterator.advance ())
+    //for (ACE_DLList_Iterator<MODULE_T> iterator (availableModules_);
+    //     iterator.next (module_p);
+    //     iterator.advance ())
+    for (MODULE_CONTAINER_ITERATOR_T iterator = availableModules_.begin ();
+         iterator != availableModules_.end ();
+         iterator++)
     {
       // need a downcast...
-      imodule_handle_p = dynamic_cast<IMODULE_T*> (module_p);
+      //imodule_handle_p = dynamic_cast<IMODULE_T*> (module_p);
+      imodule_handle_p = dynamic_cast<IMODULE_T*> (*iterator);
       if (!imodule_handle_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
-                    ACE_TEXT (module_p->name ())));
+                    //ACE_TEXT (module_p->name ())));
+                    ACE_TEXT ((*iterator)->name ())));
         return false;
       } // end IF
       try
@@ -626,13 +631,13 @@ Stream_Base_T<TaskSynchType,
   MODULE_CONTAINER_T modules;
   modules.push_front (const_cast<MODULE_T*> (module_p));
   // need to downcast
-  HEADMODULE_TASK_T* head_impl_p = NULL;
-  head_impl_p =
-    dynamic_cast<HEADMODULE_TASK_T*> (const_cast<MODULE_T*> (module_p)->writer ());
-  if (!head_impl_p)
+  ISTREAM_CONTROL_T* control_impl_p = NULL;
+  control_impl_p =
+      dynamic_cast<ISTREAM_CONTROL_T*> (const_cast<MODULE_T*> (module_p)->writer ());
+  if (!control_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_HeadModuleTask_t> failed, returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
                 ACE_TEXT (module_p->name ())));
     return;
   } // end IF
@@ -640,7 +645,7 @@ Stream_Base_T<TaskSynchType,
   try
   {
     // wait for state switch (xxx --> FINISHED) / any worker(s)
-    head_impl_p->waitForCompletion ();
+    control_impl_p->waitForCompletion ();
   }
   catch (...)
   {
@@ -837,12 +842,16 @@ Stream_Base_T<TaskSynchType,
   //   ACE_DEBUG ((LM_DEBUG,
   //               ACE_TEXT ("deactivating offline module(s)...\n")));
 
-  for (ACE_DLList_Iterator<MODULE_T> iterator (availableModules_);
-       (iterator.next (module_p) != 0);
-       iterator.advance ())
+  //for (ACE_DLList_Iterator<MODULE_T> iterator (availableModules_);
+  //     (iterator.next (module_p) != 0);
+  //     iterator.advance ())
+  for (MODULE_CONTAINER_ITERATOR_T iterator = availableModules_.begin ();
+       iterator != availableModules_.end ();
+       iterator++)
   {
     // sanity check: on the stream ?
-    if (module_p->next () == NULL)
+    //if (module_p->next () == NULL)
+    if ((*iterator)->next () == NULL)
     {
       //ACE_DEBUG ((LM_WARNING,
       //            ACE_TEXT ("manually closing module: \"%s\"\n"),
@@ -850,13 +859,15 @@ Stream_Base_T<TaskSynchType,
 
       try
       {
-        module_p->close (ACE_Module_Base::M_DELETE_NONE);
+        //module_p->close (ACE_Module_Base::M_DELETE_NONE);
+        (*iterator)->close (ACE_Module_Base::M_DELETE_NONE);
       }
       catch (...)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
-                    ACE_TEXT (module_p->name ())));
+                    //ACE_TEXT (module_p->name ())));
+                    ACE_TEXT ((*iterator)->name ())));
       }
     } // end IF
   } // end FOR

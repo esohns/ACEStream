@@ -38,7 +38,7 @@
 class ACE_Allocator;
 
 class Stream_Export Stream_SessionMessage
- : public Stream_SessionMessageBase_T<Stream_State_t,
+ : public Stream_SessionMessageBase_T<Stream_State,
                                       Stream_SessionData_t>
 {
   // need access to specific ctors
@@ -48,16 +48,16 @@ class Stream_Export Stream_SessionMessage
  public:
   // *NOTE*: assume lifetime responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason...
-  Stream_SessionMessage (Stream_SessionMessageType_t, // session message type
-                         Stream_State_t*,             // stream state handle
-                         Stream_SessionData_t*);      // session data handle
+  Stream_SessionMessage (Stream_SessionMessageType, // session message type
+                         Stream_State*,             // stream state handle
+                         Stream_SessionData_t*);    // session data handle
   virtual ~Stream_SessionMessage ();
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Stream_State_t,
+  typedef Stream_SessionMessageBase_T<Stream_State,
                                       Stream_SessionData_t> inherited;
 
   // copy ctor to be used by duplicate()

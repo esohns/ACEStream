@@ -42,7 +42,7 @@ class Stream_IAllocator;
 class Stream_HeadModuleTask
  : public Stream_Task_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t>
- , public Stream_IStreamControl_T<Stream_State_t>
+ , public Stream_IStreamControl_T<Stream_State>
  , public Stream_StateMachine_Control
 {
  public:
@@ -69,7 +69,7 @@ class Stream_HeadModuleTask
   virtual void rewind ();
   virtual void waitForCompletion ();
   // *NOTE*: this is just a stub
-  virtual const Stream_State_t* getState () const;
+  virtual const Stream_State* getState () const;
 
  protected:
   Stream_HeadModuleTask (bool); // auto-start ?
@@ -80,12 +80,12 @@ class Stream_HeadModuleTask
                                      bool&);             // return value: pass message downstream ?
 
   // convenience method: send (session-specific) notifications downstream
-  bool putSessionMessage (Stream_SessionMessageType_t,      // session message type
+  bool putSessionMessage (Stream_SessionMessageType,        // session message type
                           Stream_SessionData_t*,            // session data
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
   // *NOTE*: session message assumes lifetime responsibility for data
   // --> method implements a "fire-and-forget" strategy
-  bool putSessionMessage (Stream_SessionMessageType_t,                  // session message type
+  bool putSessionMessage (Stream_SessionMessageType,                    // session message type
                           Stream_SessionData_t*,                        // session data
                           const ACE_Time_Value& = ACE_Time_Value::zero, // start of session
                           bool = false) const;                          // user abort ?
@@ -121,7 +121,7 @@ class Stream_HeadModuleTask
   ACE_Recursive_Thread_Mutex                lock_;
   Stream_MessageQueue                       queue_;
   Stream_SessionData_t*                     sessionData_;
-  Stream_State_t*                           state_;
+  Stream_State*                             state_;
 };
 
 #endif

@@ -527,7 +527,7 @@ Stream::waitForCompletion ()
 //               ACE_TEXT ("waiting for stream to flush...DONE\n")));
 }
 
-Stream_State_t*
+Stream_State*
 Stream::getState ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream::getState"));

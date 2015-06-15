@@ -26,8 +26,8 @@
 #include "stream_macros.h"
 #include "stream_message_base.h"
 
-Stream_SessionMessage::Stream_SessionMessage (Stream_SessionMessageType_t messageType_in,
-                                              Stream_State_t* streamState_in,
+Stream_SessionMessage::Stream_SessionMessage (Stream_SessionMessageType messageType_in,
+                                              Stream_State* streamState_in,
                                               Stream_SessionData_t* sessionData_in)
  : inherited (messageType_in,
               streamState_in,

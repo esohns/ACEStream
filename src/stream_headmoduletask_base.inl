@@ -915,7 +915,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             SessionDataType,
                             SessionDataContainerType,
                             SessionMessageType,
-                            ProtocolMessageType>::putSessionMessage (Stream_SessionMessageType_t messageType_in,
+                            ProtocolMessageType>::putSessionMessage (Stream_SessionMessageType messageType_in,
                                                                      SessionDataContainerType*& sessionData_inout,
                                                                      Stream_IAllocator* allocator_in) const
 {
@@ -1019,7 +1019,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             SessionDataType,
                             SessionDataContainerType,
                             SessionMessageType,
-                            ProtocolMessageType>::putSessionMessage (Stream_SessionMessageType_t messageType_in,
+                            ProtocolMessageType>::putSessionMessage (Stream_SessionMessageType messageType_in,
                                                                      SessionDataType* sessionData_in,
                                                                      bool deleteSessionData_in) const
 {

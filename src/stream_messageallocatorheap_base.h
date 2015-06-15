@@ -25,8 +25,9 @@
 
 #include "ace/Atomic_Op.h"
 #include "ace/Malloc_Allocator.h"
+//#include "ace/Synch.h"
+#include "ace/Synch_Traits.h"
 #include "ace/Thread_Semaphore.h"
-#include "ace/Synch.h"
 
 #include "common_idumpstate.h"
 
@@ -109,7 +110,7 @@ class Stream_MessageAllocatorHeapBase_T
   bool                            block_;
   Stream_DataBlockAllocatorHeap   dataBlockAllocator_;
   ACE_Thread_Semaphore            freeMessageCounter_;
-  ACE_Atomic_Op<ACE_Thread_Mutex,
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX,
                 unsigned int>     poolSize_;
 };
 

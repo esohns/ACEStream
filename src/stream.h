@@ -40,7 +40,7 @@ class Stream_IAllocator;
 class Stream_Export Stream
  : public ACE_Stream<ACE_MT_SYNCH,
                      Common_TimePolicy_t>
- , public Stream_IStreamControl_T<Stream_State_t>
+ , public Stream_IStreamControl_T<Stream_State>
  , public Common_IDumpState
 {
  public:
@@ -51,12 +51,12 @@ class Stream_Export Stream
                    Common_TimePolicy_t> TASK_T;
   typedef Stream_IModule<ACE_MT_SYNCH,
                          Common_TimePolicy_t,
-                         Stream_ModuleConfiguration_t> IMODULE_T;
+                         Stream_ModuleConfiguration> IMODULE_T;
   typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
                               Common_TimePolicy_t> ITERATOR_T;
   typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;
   typedef MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
-  typedef Stream_IStreamControl_T<Stream_State_t> ISTREAM_CONTROL_T;
+  typedef Stream_IStreamControl_T<Stream_State> ISTREAM_CONTROL_T;
 
   // *NOTE*: this will try to sanely close down the stream:
   // 1: tell all worker threads to exit gracefully
@@ -76,7 +76,7 @@ class Stream_Export Stream
   virtual void pause ();
   virtual void rewind ();
   virtual void waitForCompletion ();
-  virtual Stream_State_t* getState ();
+  virtual Stream_State* getState ();
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -110,13 +110,12 @@ class Stream_Export Stream
   // the dtor will NOT stop all worker threads before close()ing the modules...
   bool               isInitialized_;
 
-  Stream_State_t     state_;
+  Stream_State       state_;
 
  private:
   typedef ACE_Stream<ACE_MT_SYNCH,
                      Common_TimePolicy_t> inherited;
 
-//   ACE_UNIMPLEMENTED_FUNC (Stream ());
   ACE_UNIMPLEMENTED_FUNC (Stream (const Stream&));
   ACE_UNIMPLEMENTED_FUNC (Stream& operator= (const Stream&));
 

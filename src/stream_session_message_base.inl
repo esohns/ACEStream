@@ -27,7 +27,7 @@
 template <typename StreamStateType,
           typename SessionDataType>
 Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::Stream_SessionMessageBase_T (Stream_SessionMessageType_t messageType_in,
+                            SessionDataType>::Stream_SessionMessageBase_T (Stream_SessionMessageType messageType_in,
                                                                            StreamStateType* streamState_in,
                                                                            SessionDataType* sessionData_in)
  : inherited (0,                                  // size
@@ -131,7 +131,7 @@ Stream_SessionMessageBase_T<StreamStateType,
 
 template <typename StreamStateType,
           typename SessionDataType>
-Stream_SessionMessageType_t
+Stream_SessionMessageType
 Stream_SessionMessageBase_T<StreamStateType,
                             SessionDataType>::getType () const
 {
@@ -208,7 +208,7 @@ template <typename StreamStateType,
           typename SessionDataType>
 void
 Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::initialize (Stream_SessionMessageType_t messageType_in,
+                            SessionDataType>::initialize (Stream_SessionMessageType messageType_in,
                                                           StreamStateType* streamState_in,
                                                           SessionDataType* sessionData_in)
 {
@@ -261,7 +261,7 @@ template <typename StreamStateType,
           typename SessionDataType>
 void
 Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::SessionMessageType2String (Stream_SessionMessageType_t messageType_in,
+                            SessionDataType>::SessionMessageType2String (Stream_SessionMessageType messageType_in,
                                                                          std::string& string_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::SessionMessageType2String"));
@@ -274,25 +274,21 @@ Stream_SessionMessageBase_T<StreamStateType,
     case SESSION_BEGIN:
     {
       string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_BEGIN");
-
       break;
     }
     case SESSION_STEP:
     {
       string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_STEP");
-
       break;
     }
     case SESSION_END:
     {
       string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_END");
-
       break;
     }
     case SESSION_STATISTICS:
     {
       string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_STATISTICS");
-
       break;
     }
     default:
@@ -300,7 +296,6 @@ Stream_SessionMessageBase_T<StreamStateType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown message type: \"%u\", aborting\n"),
                   messageType_in));
-
       break;
     }
   } // end SWITCH

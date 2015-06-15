@@ -433,7 +433,7 @@ Stream_HeadModuleTask::waitForCompletion ()
 //               ACE_TEXT ("leaving...\n")));
 }
 
-const Stream_State_t*
+const Stream_State*
 Stream_HeadModuleTask::getState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::getState"));
@@ -624,7 +624,7 @@ Stream_HeadModuleTask::onStateChange (const Stream_StateType_t& newState_in)
 }
 
 bool
-Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType_t messageType_in,
+Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType messageType_in,
                                           Stream_SessionData_t* sessionData_in,
                                           Stream_IAllocator* allocator_in) const
 {
@@ -698,7 +698,7 @@ Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType_t messageTyp
 }
 
 bool
-Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType_t messageType_in,
+Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType messageType_in,
                                           Stream_SessionData_t* sessionData_in,
                                           const ACE_Time_Value& startOfSession_in,
                                           bool userAbort_in) const

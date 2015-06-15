@@ -24,12 +24,15 @@
 #include <string>
 
 #include "ace/Global_Macros.h"
-#include "ace/Stream_Modules.h"
+//#include "ace/Stream_Modules.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_module_base.h"
 
 // forward declaration(s)
 class Common_IRefCount;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Thru_Task;
 
 template <typename TaskSynchType,
           typename TimePolicyType,

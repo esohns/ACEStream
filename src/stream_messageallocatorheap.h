@@ -24,10 +24,11 @@
 #include "stream_iallocator.h"
 #include "stream_datablockallocatorheap.h"
 
-#include "ace/Malloc_Allocator.h"
-#include "ace/Thread_Semaphore.h"
-#include "ace/Synch.h"
 #include "ace/Atomic_Op.h"
+#include "ace/Malloc_Allocator.h"
+#include "ace/Thread_Mutex.h"
+#include "ace/Thread_Semaphore.h"
+//#include "ace/Synch.h"
 
 // forward declarations
 class Stream_AllocatorHeap;

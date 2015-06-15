@@ -21,9 +21,10 @@
 #ifndef STREAM_STATISTICHANDLER_H
 #define STREAM_STATISTICHANDLER_H
 
-#include "ace/Global_Macros.h"
-#include "ace/Event_Handler.h"
 #include "ace/Asynch_IO.h"
+#include "ace/Event_Handler.h"
+#include "ace/Global_Macros.h"
+#include "ace/Time_Value.h"
 
 #include "common_istatistic.h"
 
@@ -87,7 +88,7 @@ class Stream_StatisticHandler_Proactor_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T ());
   ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T (const Stream_StatisticHandler_Proactor_T&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T& operator=(const Stream_StatisticHandler_Proactor_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T& operator= (const Stream_StatisticHandler_Proactor_T&));
 
   Stream_StatisticAction_t action_;
   Stream_IStatistic_t*     interfaceHandle_;

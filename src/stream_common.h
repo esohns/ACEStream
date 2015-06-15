@@ -21,11 +21,11 @@
 #ifndef STREAM_COMMON_H
 #define STREAM_COMMON_H
 
-#include "ace/Module.h"
+//#include "ace/Module.h"
 #include "ace/Notification_Strategy.h"
-#include "ace/Stream.h"
+//#include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
-#include "ace/Task.h"
+//#include "ace/Task.h"
 #include "ace/Time_Value.h"
 
 #include "common_time_common.h"
@@ -36,15 +36,15 @@
 #include "stream_session_data_base.h"
 #include "stream_statistichandler.h"
 
-struct Stream_Statistic_t
+struct Stream_Statistic
 {
-  inline Stream_Statistic_t ()
+  inline Stream_Statistic ()
    : numDataMessages (0)
    , numDroppedMessages (0)
    , numBytes (0.0)
   {};
 
-  inline Stream_Statistic_t operator+= (const Stream_Statistic_t& rhs_in)
+  inline Stream_Statistic operator+= (const Stream_Statistic& rhs_in)
   {
     numDataMessages += rhs_in.numDataMessages;
     numDroppedMessages += rhs_in.numDroppedMessages;
@@ -58,33 +58,41 @@ struct Stream_Statistic_t
   double       numBytes;           // amount of processed data
 };
 
-struct Stream_State_t
+struct Stream_State
 {
-  inline Stream_State_t ()
-   : sessionID (0)
-   , startOfSession (ACE_Time_Value::zero)
-   , currentStatistics ()
+  inline Stream_State ()
+   : currentStatistics ()
    , lastCollectionTimestamp (ACE_Time_Value::zero)
+   , startOfSession (ACE_Time_Value::zero)
+   , sessionID (0)
    , userAborted (false)
   {};
 
-  unsigned int       sessionID; // (== socket handle !)
-  ACE_Time_Value     startOfSession;
-  Stream_Statistic_t currentStatistics;
-  ACE_Time_Value     lastCollectionTimestamp;
-  bool               userAborted;
+  Stream_Statistic currentStatistics;
+  ACE_Time_Value   lastCollectionTimestamp;
+  ACE_Time_Value   startOfSession;
+  unsigned int     sessionID; // (== socket handle !)
+  bool             userAborted;
 };
 
-struct Stream_ModuleConfiguration_t
+struct Stream_ModuleConfiguration
 {
-  inline Stream_ModuleConfiguration_t ()
+  inline Stream_ModuleConfiguration ()
    : streamState (NULL)
    , userData (NULL)
   {};
 
-  Stream_State_t* streamState;
-  void*           userData;
+  Stream_State* streamState;
+  void*         userData;
 };
+
+// forward declarations
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Task;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Module;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Stream_Iterator;
 
 typedef ACE_Task<ACE_MT_SYNCH,
                  Common_TimePolicy_t> Stream_Task_t;
@@ -92,13 +100,13 @@ typedef ACE_Module<ACE_MT_SYNCH,
                    Common_TimePolicy_t> Stream_Module_t;
 typedef Stream_IModule<ACE_MT_SYNCH,
                        Common_TimePolicy_t,
-                       Stream_ModuleConfiguration_t> Stream_IModule_t;
+                       Stream_ModuleConfiguration> Stream_IModule_t;
 typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
                             Common_TimePolicy_t> Stream_Iterator_t;
 
-struct Stream_Configuration_t
+struct Stream_Configuration
 {
-  Stream_Configuration_t ()
+  Stream_Configuration ()
    : bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
    , deleteModule (false)
    , messageAllocator (NULL)
@@ -111,24 +119,24 @@ struct Stream_Configuration_t
    , useThreadPerConnection (false)
   {};
 
-  unsigned int                  bufferSize;
-  bool                          deleteModule;
-  Stream_IAllocator*            messageAllocator;
-  Stream_Module_t*              module;
-  Stream_ModuleConfiguration_t* moduleConfiguration;
-  ACE_Notification_Strategy*    notificationStrategy;
-  bool                          printFinalReport;
+  unsigned int                bufferSize;
+  bool                        deleteModule;
+  Stream_IAllocator*          messageAllocator;
+  Stream_Module_t*            module;
+  Stream_ModuleConfiguration* moduleConfiguration;
+  ACE_Notification_Strategy*  notificationStrategy;
+  bool                        printFinalReport;
   // *IMPORTANT NOTE*: in a threaded environment, workers MAY be
   // dispatching the reactor notification queue concurrently (most notably,
   // ACE_TP_Reactor) --> enforce proper serialization
-  bool                          serializeOutput;
-  unsigned int                  statisticReportingInterval; // 0: don't report
-  bool                          useThreadPerConnection;
+  bool                        serializeOutput;
+  unsigned int                statisticReportingInterval; // 0: don't report
+  bool                        useThreadPerConnection;
 };
 
-typedef Stream_SessionDataBase_T<Stream_State_t> Stream_SessionData_t;
+typedef Stream_SessionDataBase_T<Stream_State> Stream_SessionData_t;
 
-typedef Stream_StatisticHandler_Reactor_T<Stream_Statistic_t> Stream_StatisticHandler_Reactor_t;
-typedef Stream_StatisticHandler_Proactor_T<Stream_Statistic_t> Stream_StatisticHandler_Proactor_t;
+typedef Stream_StatisticHandler_Reactor_T<Stream_Statistic> Stream_StatisticHandler_Reactor_t;
+typedef Stream_StatisticHandler_Proactor_T<Stream_Statistic> Stream_StatisticHandler_Proactor_t;
 
 #endif

@@ -22,6 +22,7 @@
 #define STREAM_MESSAGEQUEUE_BASE_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch.h"
 #include "ace/Message_Queue.h"
 
 #include "common_idumpstate.h"

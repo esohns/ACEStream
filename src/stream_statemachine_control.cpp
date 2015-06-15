@@ -39,7 +39,7 @@ Stream_StateMachine_Control::~Stream_StateMachine_Control ()
 
 }
 
-Stream_StateMachine_Control::StateMachine_State_t
+Stream_StateMachine_Control::StateMachine_State
 Stream_StateMachine_Control::getState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::getState"));
@@ -50,7 +50,7 @@ Stream_StateMachine_Control::getState () const
 }
 
 bool
-Stream_StateMachine_Control::changeState (StateMachine_State_t newState_in)
+Stream_StateMachine_Control::changeState (StateMachine_State newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::changeState"));
 
@@ -139,9 +139,9 @@ Stream_StateMachine_Control::changeState (StateMachine_State_t newState_in)
           // need to handle a special case: PAUSED --> PAUSED is logically mapped to
           // PAUSED --> RUNNING, just like a tape recorder...
           // *IMPORTANT NOTE*: make sure our children are aware of this behaviour !!!
-          StateMachine_State_t newState =
-           ((newState_in == Stream_StateMachine_Control::STATE_PAUSED) ? Stream_StateMachine_Control::STATE_RUNNING
-                                                                       : newState_in);
+          StateMachine_State newState =
+            ((newState_in == Stream_StateMachine_Control::STATE_PAUSED) ? Stream_StateMachine_Control::STATE_RUNNING
+                                                                        : newState_in);
 
           std::string newStateString;
           ControlState2String (newState,
@@ -257,7 +257,7 @@ Stream_StateMachine_Control::changeState (StateMachine_State_t newState_in)
 }
 
 void
-Stream_StateMachine_Control::invokeCallback (StateMachine_State_t newState_in)
+Stream_StateMachine_Control::invokeCallback (StateMachine_State newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::invokeCallback"));
 
@@ -282,43 +282,39 @@ Stream_StateMachine_Control::invokeCallback (StateMachine_State_t newState_in)
 }
 
 void
-Stream_StateMachine_Control::ControlState2String (StateMachine_State_t state_in,
+Stream_StateMachine_Control::ControlState2String (StateMachine_State state_in,
                                                   std::string& stateString_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::ControlState2String"));
 
-  // init return value(s)
+  // initialize return value(s)
   stateString_out = ACE_TEXT ("UNDEFINED_STATE");
+
   switch (state_in)
   {
     case Stream_StateMachine_Control::STATE_INITIALIZED:
     {
       stateString_out = ACE_TEXT ("INITIALIZED");
-
       break;
     }
     case Stream_StateMachine_Control::STATE_RUNNING:
     {
       stateString_out = ACE_TEXT ("RUNNING");
-
       break;
     }
     case Stream_StateMachine_Control::STATE_PAUSED:
     {
       stateString_out = ACE_TEXT ("PAUSED");
-
       break;
     }
     case Stream_StateMachine_Control::STATE_STOPPED:
     {
       stateString_out = ACE_TEXT ("STOPPED");
-
       break;
     }
     case Stream_StateMachine_Control::STATE_FINISHED:
     {
       stateString_out = ACE_TEXT ("FINISHED");
-
       break;
     }
     default:
@@ -326,7 +322,6 @@ Stream_StateMachine_Control::ControlState2String (StateMachine_State_t state_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid state: %d, aborting\n"),
                   state_in));
-
       break;
     }
   } // end SWITCH

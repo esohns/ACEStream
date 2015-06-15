@@ -21,8 +21,11 @@
 #ifndef STREAM_HEADMODULETASK_BASE_H
 #define STREAM_HEADMODULETASK_BASE_H
 
+//#include "ace/Condition_T.h"
 #include "ace/Global_Macros.h"
-#include "ace/Synch.h"
+//#include "ace/Recursive_Thread_Mutex.h"
+#include "ace/Synch_Traits.h"
+//#include "ace/Thread_Mutex.h"
 #include "ace/Time_Value.h"
 
 #include "common_iinitialize.h"
@@ -38,7 +41,7 @@
 class ACE_Message_Block;
 class Stream_IAllocator;
 class Stream_MessageBase;
-struct Stream_State_t;
+struct Stream_State;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
@@ -70,7 +73,7 @@ class Stream_HeadModuleTaskBase_T
   // implement (part of) Stream_ITaskBase
   // *NOTE*: these are just default NOP implementations...
   // *WARNING*: need to implement this in the base class to shut up the linker
-  // about missing template instantiations...
+  //            about missing template instantiations...
 //   virtual void handleDataMessage (Stream_MessageBase*&, // data message handle
 //                                   bool&);               // return value: pass message downstream ?
 
@@ -80,7 +83,8 @@ class Stream_HeadModuleTaskBase_T
   virtual bool isRunning () const;
   virtual void pause ();
   virtual void rewind ();
-  // *NOTE*: for the time being, this simply waits for any worker threads to join
+  // *NOTE*: for the time being, this simply waits for any worker threads to
+  //         join
   virtual void waitForCompletion ();
   // *NOTE*: this is just a stub
   virtual const StreamStateType* getState () const;
@@ -101,12 +105,12 @@ class Stream_HeadModuleTaskBase_T
   // *TODO*: clean this API
   // convenience methods to send (session-specific) notifications downstream
   // *WARNING*: - handle with care -
-  bool putSessionMessage (Stream_SessionMessageType_t, // session message type
-                          SessionDataType*,            // data
-                          bool = false) const;         // delete session data ?
+  bool putSessionMessage (Stream_SessionMessageType, // session message type
+                          SessionDataType*,          // data
+                          bool = false) const;       // delete session data ?
   // *NOTE*: session message assumes lifetime responsibility for data
-  // --> method implements a "fire-and-forget" strategy !
-  bool putSessionMessage (Stream_SessionMessageType_t,      // session message type
+  //         --> method implements a "fire-and-forget" strategy !
+  bool putSessionMessage (Stream_SessionMessageType,        // session message type
                           SessionDataContainerType*&,       // data container
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
 
@@ -115,9 +119,9 @@ class Stream_HeadModuleTaskBase_T
   virtual void onStateChange (Stream_StateType_t); // new state
 
   // *NOTE*: functionally, this does the same as stop(), with the
-  // difference that stop() will wait for any worker(s)
-  // --> i.e. stop() MUST NOT be called within a worker thread itself
-  // so it calls this to signal an end
+  //         difference that stop() will wait for any worker(s)
+  //         --> i.e. stop() MUST NOT be called within a worker thread itself
+  //             so it calls this to signal an end
   virtual void finished ();
 
   // *IMPORTANT NOTE*: children SHOULD set these during initialization !
@@ -147,20 +151,21 @@ class Stream_HeadModuleTaskBase_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T ());
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T (const Stream_HeadModuleTaskBase_T&));
-  // *TODO*: apparently, ACE_UNIMPLEMENTED_FUNC gets confused by template arguments...
-//   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T<DataType,SessionConfigType,SessionMessageType>& operator=(const Stream_HeadModuleTaskBase_T<DataType,SessionConfigType,SessionMessageType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T& operator= (const Stream_HeadModuleTaskBase_T&));
 
 //  // *TODO*: remove this API ASAP
 //  // send SESSION_END message
 //  bool putSessionMessage () const;
 
-  // allow blocking wait in waitForCompletion()
- // ACE_Recursive_Thread_Mutex                lock_;
-  //ACE_Condition<ACE_Recursive_Thread_Mutex> condition_;
+//  // allow blocking wait in waitForCompletion()
+//  ACE_Recursive_Thread_Mutex                lock_;
+//  ACE_Condition<ACE_Recursive_Thread_Mutex> condition_;
   bool                            autoStart_;
-  ACE_Condition<ACE_Thread_Mutex> condition_;
+//  ACE_Condition<ACE_Thread_Mutex> condition_;
+  ACE_SYNCH_CONDITION             condition_;
   unsigned int                    currentNumThreads_;
-  ACE_Thread_Mutex                lock_;
+  ACE_SYNCH_MUTEX                 lock_;
+//  ACE_Thread_Mutex                lock_;
   Stream_MessageQueue             queue_;
 };
 

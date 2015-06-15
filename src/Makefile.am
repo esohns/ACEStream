@@ -165,4 +165,5 @@ libACEStream_la_SOURCES = \
   stream_task_synch.h \
   stream_tools.cpp \
   stream_tools.h
-
+#  stdafx.cpp \
+#  stdafx.h

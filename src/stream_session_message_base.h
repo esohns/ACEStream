@@ -30,7 +30,7 @@
 
 #include "stream_message_base.h"
 
-enum Stream_SessionMessageType_t
+enum Stream_SessionMessageType
 {
   // *NOTE*: see <stream_message_base.h> for details...
   STREAM_SESSION_MAP = MESSAGE_SESSION_MAP,
@@ -53,19 +53,19 @@ class Stream_SessionMessageBase_T
 {
  public:
   // *NOTE*: assumes lifetime responsibility for the second argument !
-  Stream_SessionMessageBase_T (Stream_SessionMessageType_t,
+  Stream_SessionMessageBase_T (Stream_SessionMessageType,
                                StreamStateType*,
                                SessionDataType*);
   virtual ~Stream_SessionMessageBase_T ();
 
   // initialization-after-construction
   // *NOTE*: assumes lifetime responsibility for the second argument !
-  void initialize (Stream_SessionMessageType_t,
+  void initialize (Stream_SessionMessageType,
                    StreamStateType*,
                    SessionDataType*);
 
   // info
-  Stream_SessionMessageType_t getType () const;
+  Stream_SessionMessageType getType () const;
   const StreamStateType* getState () const;
   const SessionDataType* getData () const;
 
@@ -73,8 +73,8 @@ class Stream_SessionMessageBase_T
   virtual void dump_state () const;
 
   // debug tools
-  static void SessionMessageType2String (Stream_SessionMessageType_t, // message type
-                                         std::string&);               // corresp. string
+  static void SessionMessageType2String (Stream_SessionMessageType, // message type
+                                         std::string&);             // corresp. string
 
   // convenience types
   typedef StreamStateType STREAM_STATE_TYPE;
@@ -90,10 +90,10 @@ class Stream_SessionMessageBase_T
   Stream_SessionMessageBase_T (ACE_Data_Block*, // data block
                                ACE_Allocator*); // message allocator
 
-  bool                        isInitialized_;
-  Stream_SessionMessageType_t messageType_;
-  StreamStateType*            streamState_;
-  SessionDataType*            sessionData_;
+  bool                      isInitialized_;
+  Stream_SessionMessageType messageType_;
+  StreamStateType*          streamState_;
+  SessionDataType*          sessionData_;
 
  private:
   typedef ACE_Message_Block inherited;

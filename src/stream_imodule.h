@@ -21,11 +21,16 @@
 #ifndef STREAM_IMODULE_H
 #define STREAM_IMODULE_H
 
+//#include "ace/Module.h"
+#include "ace/Synch_Traits.h"
+
 #include "common_iclone.h"
 #include "common_iget.h"
 #include "common_iinitialize.h"
 
-#include "ace/Module.h"
+// forward declarations
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Module;
 
 template <typename TaskSynchType,
           typename TimePolicyType,

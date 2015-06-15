@@ -24,7 +24,8 @@
 #include "ace/Atomic_Op.h"
 #include "ace/Lock_Adapter_T.h"
 #include "ace/Malloc_Allocator.h"
-#include "ace/Synch.h"
+#include "ace/Thread_Mutex.h"
+//#include "ace/Synch.h"
 
 #include "common_idumpstate.h"
 

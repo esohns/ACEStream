@@ -21,14 +21,16 @@
 #ifndef STREAM_MODULE_BASE_H
 #define STREAM_MODULE_BASE_H
 
-#include "stream_imodule.h"
-
-#include "ace/Global_Macros.h"
-#include "ace/Module.h"
-
 #include <string>
 
+#include "ace/Global_Macros.h"
+//#include "ace/Module.h"
+
+#include "stream_imodule.h"
+
 // forward declaration(s)
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Module;
 class Common_IRefCount;
 
 template <typename TaskSynchType,

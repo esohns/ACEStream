@@ -23,7 +23,7 @@
 
 #include <deque>
 
-#include "ace/Containers_T.h"
+//#include "ace/Containers_T.h"
 #include "ace/Global_Macros.h"
 #include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
@@ -33,7 +33,7 @@
 #include "common_istatistic.h"
 
 #include "stream_common.h"
-#include "stream_headmoduletask_base.h"
+//#include "stream_headmoduletask_base.h"
 #include "stream_istreamcontrol.h"
 #include "stream_streammodule_base.h"
 
@@ -58,8 +58,6 @@ class Stream_Base_T
  , public Common_IDumpState
 {
  public:
-  typedef StreamStateType STATE_T;
-
   // *NOTE*: this will try to sanely close down the stream:
   // 1: tell all worker threads to exit gracefully
   // 2: close() all modules which have not been enqueued onto the stream (next() == NULL)
@@ -85,19 +83,22 @@ class Stream_Base_T
 
   bool isInitialized () const;
 
- protected:
   // convenient types
   typedef ACE_Module<TaskSynchType,
                      TimePolicyType> MODULE_T;
+  typedef ACE_Stream_Iterator<TaskSynchType,
+                              TimePolicyType> ITERATOR_T;
+  typedef StreamStateType STATE_T;
+
+ protected:
+  // convenient types
   typedef ACE_Task<TaskSynchType,
                    TimePolicyType> TASK_T;
   typedef ACE_Message_Queue<TaskSynchType,
                             TimePolicyType> QUEUE_T;
   typedef Stream_IModule<TaskSynchType,
                          TimePolicyType,
-                         Stream_ModuleConfiguration_t> IMODULE_T;
-  typedef ACE_Stream_Iterator<TaskSynchType,
-                              TimePolicyType> ITERATOR_T;
+                         Stream_ModuleConfiguration> IMODULE_T;
   typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;
   typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
   typedef Stream_IStreamControl_T<StreamStateType> ISTREAM_CONTROL_T;
@@ -119,7 +120,8 @@ class Stream_Base_T
   void shutdown ();
 
   // *NOTE*: children need to add handles to ALL of their modules to this container !
-  ACE_DLList<MODULE_T> availableModules_;
+  //ACE_DLList<MODULE_T> availableModules_;
+  MODULE_CONTAINER_T   availableModules_;
 
   // *NOTE*: children need to set this IF their initialization succeeded;
   //         otherwise, the dtor will NOT stop all worker threads before
@@ -135,13 +137,13 @@ class Stream_Base_T
                      TimePolicyType> inherited;
 
   // convenient types
-  typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
-                                      TimePolicyType,
-                                      StreamStateType,
-                                      SessionDataType,          // session data
-                                      SessionDataContainerType, // (reference counted)
-                                      SessionMessageType,
-                                      ProtocolMessageType> HEADMODULE_TASK_T;
+//  typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
+//                                      TimePolicyType,
+//                                      StreamStateType,
+//                                      SessionDataType,          // session data
+//                                      SessionDataContainerType, // (reference counted)
+//                                      SessionMessageType,
+//                                      ProtocolMessageType> HEADMODULE_TASK_T;
   typedef Stream_Base_T<TaskSynchType,
                         TimePolicyType,
                         StreamStateType,
@@ -152,10 +154,8 @@ class Stream_Base_T
                         SessionMessageType,
                         ProtocolMessageType> SELF_T;
 
-//   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T ());
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&));
-  // *TODO*: apparently, ACE_UNIMPLEMENTED_FUNC gets confused by template arguments...
-//   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&));
 
   // helper methods
   // wrap inherited::open/close() calls

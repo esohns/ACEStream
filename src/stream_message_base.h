@@ -26,7 +26,8 @@
 #include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
-#include "ace/Synch.h"
+#include "ace/Thread_Mutex.h"
+//#include "ace/Synch.h"
 
 #include "common_idumpstate.h"
 
