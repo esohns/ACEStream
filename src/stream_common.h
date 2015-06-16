@@ -98,9 +98,9 @@ typedef ACE_Task<ACE_MT_SYNCH,
                  Common_TimePolicy_t> Stream_Task_t;
 typedef ACE_Module<ACE_MT_SYNCH,
                    Common_TimePolicy_t> Stream_Module_t;
-typedef Stream_IModule<ACE_MT_SYNCH,
-                       Common_TimePolicy_t,
-                       Stream_ModuleConfiguration> Stream_IModule_t;
+typedef Stream_IModule_T<ACE_MT_SYNCH,
+                         Common_TimePolicy_t,
+                         Stream_ModuleConfiguration> Stream_IModule_t;
 typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
                             Common_TimePolicy_t> Stream_Iterator_t;
 

@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "ace/Log_Msg.h"
+
 #include "common_irefcount.h"
 
 #include "stream_macros.h"
@@ -153,16 +155,15 @@ Stream_Module_Base_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::clone"));
 
   // initialize return value(s)
-  ACE_Module<TaskSynchType,
-             TimePolicyType>* module_p = NULL;
+  MODULE_T* module_p = NULL;
 
   // need a downcast...
-  typename IMODULE_TYPE::ICLONE_TYPE* iclone_p =
-      dynamic_cast<typename IMODULE_TYPE::ICLONE_TYPE*> (writer_);
+  typename IMODULE_T::ICLONE_T* iclone_p =
+      dynamic_cast<typename IMODULE_T::ICLONE_T*> (writer_);
   if (!iclone_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Common_IClone> failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Common_IClone_T> failed, aborting\n"),
                 ACE_TEXT (inherited::name ())));
     return NULL;
   } // end IF
@@ -174,13 +175,13 @@ Stream_Module_Base_T<TaskSynchType,
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Common_IClone::clone(), continuing\n"),
+                ACE_TEXT ("%s: caught exception in Common_IClone_T::clone(), continuing\n"),
                 ACE_TEXT (inherited::name ())));
   }
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Common_IClone::clone(), aborting\n"),
+                ACE_TEXT ("%s: failed to Common_IClone_T::clone(), aborting\n"),
                 ACE_TEXT (inherited::name ())));
     return NULL;
   } // end IF

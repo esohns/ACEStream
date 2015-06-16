@@ -41,21 +41,21 @@ template <typename TaskSynchType,
 class Stream_Module_Base_T
  : public ACE_Module<TaskSynchType,
                      TimePolicyType>,
-   public Stream_IModule<TaskSynchType,
-                         TimePolicyType,
-                         ConfigurationType>
+   public Stream_IModule_T<TaskSynchType,
+                           TimePolicyType,
+                           ConfigurationType>
 {
  public:
-  // define convenient types
-  //  typedef ReaderTaskType READER_TASK_TYPE;
-  //  typedef WriterTaskType WRITER_TASK_TYPE;
-  typedef Stream_IModule<TaskSynchType,
-                         TimePolicyType,
-                         ConfigurationType> IMODULE_TYPE;
+  // convenient types
+  //  typedef ReaderTaskType READER_TASK_T;
+  //  typedef WriterTaskType WRITER_TASK_T;
+  typedef Stream_IModule_T<TaskSynchType,
+                           TimePolicyType,
+                           ConfigurationType> IMODULE_T;
 
   virtual ~Stream_Module_Base_T ();
 
-  // implement (part of) Stream_IModule
+  // implement (part of) Stream_IModule_T
   virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&);
   virtual void reset ();
@@ -74,6 +74,10 @@ class Stream_Module_Base_T
   typedef ACE_Module<TaskSynchType,
                      TimePolicyType> inherited;
 
+  // convenient types
+  typedef ACE_Module<TaskSynchType,
+                     TimePolicyType> MODULE_T;
+
   // implement (part of) Stream_IModule
   virtual ACE_Module<TaskSynchType,
                      TimePolicyType>* clone ();
@@ -82,8 +86,8 @@ class Stream_Module_Base_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T (const Stream_Module_Base_T&));
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T& operator= (const Stream_Module_Base_T&));
 
-  ReaderTaskType*          reader_;
-  WriterTaskType*          writer_;
+  ReaderTaskType*   reader_;
+  WriterTaskType*   writer_;
 };
 
 #include "stream_module_base.inl"

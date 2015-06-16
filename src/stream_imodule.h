@@ -35,18 +35,19 @@ class ACE_Module;
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ConfigurationType>
-class Stream_IModule
+class Stream_IModule_T
  : public Common_IClone_T<ACE_Module<TaskSynchType,
                                      TimePolicyType> >
  , public Common_IGet_T<ConfigurationType>
  , public Common_IInitialize_T<ConfigurationType>
 {
  public:
-  inline virtual ~Stream_IModule() {};
+  inline virtual ~Stream_IModule_T () {};
 
   // convenient types
-  typedef Common_IClone_T<ACE_Module<TaskSynchType,
-                                     TimePolicyType> > ICLONE_TYPE;
+  typedef ACE_Module<TaskSynchType,
+                     TimePolicyType> MODULE_T;
+  typedef Common_IClone_T<MODULE_T> ICLONE_T;
 
   // API
   // *NOTE*: streams may call this to reset writer/reader tasks and re-use

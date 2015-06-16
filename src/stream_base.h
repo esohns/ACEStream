@@ -45,6 +45,7 @@ template <typename TaskSynchType,
           typename StreamStateType,
           typename StreamStatisticContainerType,
           typename StreamConfigurationType,
+          typename StreamModuleConfigurationType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // (reference counted)
           typename SessionMessageType,
@@ -96,9 +97,9 @@ class Stream_Base_T
                    TimePolicyType> TASK_T;
   typedef ACE_Message_Queue<TaskSynchType,
                             TimePolicyType> QUEUE_T;
-  typedef Stream_IModule<TaskSynchType,
-                         TimePolicyType,
-                         Stream_ModuleConfiguration> IMODULE_T;
+  typedef Stream_IModule_T<TaskSynchType,
+                           TimePolicyType,
+                           StreamModuleConfigurationType> IMODULE_T;
   typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;
   typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
   typedef Stream_IStreamControl_T<StreamStateType> ISTREAM_CONTROL_T;
@@ -149,10 +150,11 @@ class Stream_Base_T
                         StreamStateType,
                         StreamStatisticContainerType,
                         StreamConfigurationType,
+                        StreamModuleConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
                         SessionMessageType,
-                        ProtocolMessageType> SELF_T;
+                        ProtocolMessageType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&));
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&));
