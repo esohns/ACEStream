@@ -375,7 +375,7 @@ Stream_HeadModuleTask::start ()
 
   // (try to) change state
   // --> start a worker thread
-  changeState (inherited2::STATE_RUNNING);
+  inherited2::change (STREAM_STATE_RUNNING);
 }
 
 void
@@ -385,7 +385,7 @@ Stream_HeadModuleTask::stop ()
 
   // (try to) change state
   // --> tell the worker thread to die
-  changeState (inherited2::STATE_STOPPED);
+  inherited2::change (STREAM_STATE_STOPPED);
 
   // ...and wait for it to happen
   //wait ();
@@ -396,7 +396,7 @@ Stream_HeadModuleTask::isRunning ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::isRunning"));
 
-  return (inherited2::getState () == inherited2::STATE_RUNNING);
+  return (inherited2::current () == STREAM_STATE_RUNNING);
 }
 
 void
@@ -405,7 +405,7 @@ Stream_HeadModuleTask::pause ()
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::pause"));
 
   // (try to) change state
-  changeState (inherited2::STATE_PAUSED);
+  inherited2::change (STREAM_STATE_PAUSED);
 }
 
 void
@@ -413,8 +413,10 @@ Stream_HeadModuleTask::rewind ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::rewind"));
 
-  // *TODO*: implement this !
   ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return);
 }
 
 void
@@ -422,11 +424,18 @@ Stream_HeadModuleTask::waitForCompletion ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::waitForCompletion"));
 
+  int result = -1;
+
   {
-    ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard (lock_);
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (lock_);
 
     while (!isFinished_)
-      condition_.wait ();
+    {
+      result = condition_.wait ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Condition::wait(): \"%m\", continuing\n")));
+    } // end WHILE
   } // end lock scope
 
 //   ACE_DEBUG ((LM_DEBUG,
@@ -450,42 +459,40 @@ Stream_HeadModuleTask::finished ()
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::finished"));
 
   // (try to) set new state
-  changeState (inherited2::STATE_FINISHED);
+  inherited2::change (STREAM_STATE_FINISHED);
 
 //  ACE_DEBUG ((LM_DEBUG,
 //              ACE_TEXT ("leaving finished()...\n")));
 }
 
 void
-Stream_HeadModuleTask::onStateChange (const Stream_StateType_t& newState_in)
+Stream_HeadModuleTask::onChange (Stream_StateType_t newState_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::onStateChange"));
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::onChange"));
+
+  int result = -1;
 
   switch (newState_in)
   {
-    case inherited2::STATE_INITIALIZED:
+    case STREAM_STATE_INITIALIZED:
     {
       // OK: (re-)initialized
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("(re-)initialized...\n")));
-
       break;
     }
-    case inherited2::STATE_RUNNING:
+    case STREAM_STATE_RUNNING:
     {
       // *NOTE*: we want to implement tape-recorder logic:
       // PAUSED --> PAUSED is mapped to PAUSED --> RUNNING
       // --> check for this condition before we do anything else...
-      if (inherited2::getState () == inherited2::STATE_PAUSED)
+      if (inherited2::current () == STREAM_STATE_PAUSED)
       {
         // resume our worker thread
-        if (inherited::resume () == -1)
-        {
+        result = inherited::resume ();
+        if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to resume(): \"%m\", continuing\n")));
-        } // end IF
-
-        // finished !
+                      ACE_TEXT ("failed to ACE_Task::resume(): \"%m\", continuing\n")));
         break;
       } // end IF
 
@@ -496,7 +503,6 @@ Stream_HeadModuleTask::onStateChange (const Stream_StateType_t& newState_in)
       thread_handles[0] = 0;
 
       // *IMPORTANT NOTE*: MUST be THR_JOINABLE !!!
-      int result = 0;
       result = inherited::activate ((THR_NEW_LWP      |
                                      THR_JOINABLE     |
                                      THR_INHERIT_SCHED),         // flags
@@ -512,16 +518,14 @@ Stream_HeadModuleTask::onStateChange (const Stream_StateType_t& newState_in)
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to activate(): \"%m\", aborting\n")));
-
-        // finished !
+                    ACE_TEXT ("failed to ACE_Task::activate(): \"%m\", continuing\n")));
         break;
       } // end IF
 
       {
         // synchronize access to myIsFinished
         // *TODO*: synchronize access to state logic to make the API re-entrant...
-        ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard (lock_);
+        ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (lock_);
 
         isFinished_ = false;
       } // end lock scope
@@ -540,12 +544,12 @@ Stream_HeadModuleTask::onStateChange (const Stream_StateType_t& newState_in)
 
       break;
     }
-    case inherited2::STATE_STOPPED:
+    case STREAM_STATE_STOPPED:
     {
       // OK: drop control message into stream...
       // *TODO*: use ACE_Stream::control() instead ?
-      ACE_Message_Block* stop_mb = NULL;
-      ACE_NEW_NORETURN (stop_mb,
+      ACE_Message_Block* message_block_p = NULL;
+      ACE_NEW_NORETURN (message_block_p,
                         ACE_Message_Block (0,                                  // size
                                            ACE_Message_Block::MB_STOP,         // type
                                            NULL,                               // continuation
@@ -557,35 +561,38 @@ Stream_HeadModuleTask::onStateChange (const Stream_StateType_t& newState_in)
                                            ACE_Time_Value::max_time,           // deadline time
                                            NULL,                               // data block allocator
                                            NULL));                             // message allocator)
-      if (!stop_mb)
+      if (!message_block_p)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
-
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate memory: \"%m\", continuing\n")));
         break;
       } // end IF
 
-      if (inherited::putq (stop_mb, NULL) == -1)
+      result = inherited::putq (message_block_p, NULL);
+      if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to putq(): \"%m\", continuing\n")));
+                    ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
 
         // clean up
-        stop_mb->release ();
+        message_block_p->release ();
       } // end IF
 
       break;
     }
-    case inherited2::STATE_FINISHED:
+    case STREAM_STATE_FINISHED:
     {
       // signal waiting thread(s)
       {
         // grab condition lock...
-        ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard (lock_);
+        ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (lock_);
 
         isFinished_ = true;
 
-        condition_.broadcast ();
+        result = condition_.broadcast ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", continuing\n")));
       } // end lock scope
 
       // OK: (re-)initialized
@@ -594,30 +601,22 @@ Stream_HeadModuleTask::onStateChange (const Stream_StateType_t& newState_in)
 
       break;
     }
-    case inherited2::STATE_PAUSED:
+    case STREAM_STATE_PAUSED:
     {
       // suspend our worker thread
-      if (inherited::suspend () == -1)
+      result = inherited::suspend ();
+      if (result == -1)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to suspend(): \"%m\", continuing\n")));
-
+                    ACE_TEXT ("failed to ACE_Task::suspend(): \"%m\", continuing\n")));
       break;
     }
     default:
     {
-      // *NOTE*: if we get here, an invalid/unknown state change happened...
-
-      std::string currentStateString;
-      std::string newStateString;
-      ControlState2String (inherited2::getState (),
-                           currentStateString);
-      ControlState2String (newState_in,
-                           newStateString);
+      // *NOTE*: an invalid/unknown state change happened...
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid state switch: \"%s\" --> \"%s\", continuing\n"),
-                  ACE_TEXT (currentStateString.c_str ()),
-                  ACE_TEXT (newStateString.c_str ())));
-
+                  ACE_TEXT ("unknown/invalid state switch: \"%s\" --> \"%s\", continuing\n"),
+                  ACE_TEXT (inherited2::state2String (inherited2::current ()).c_str ()),
+                  ACE_TEXT (inherited2::state2String (newState_in).c_str ())));
       break;
     }
   } // end SWITCH
@@ -637,12 +636,12 @@ Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType messageType_
     try
     {
       message_p =
-          static_cast<Stream_SessionMessage*> (allocator_in->malloc (0));
+        static_cast<Stream_SessionMessage*> (allocator_in->malloc (0));
     }
     catch (...)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                 ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
+                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 
       // clean up
       sessionData_in->decrease ();

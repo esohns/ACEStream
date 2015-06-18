@@ -470,7 +470,9 @@ Stream::waitForCompletion ()
     head_task_p->waitForCompletion ();
 
     // step2: wait for worker thread
-    result = head_task_p->wait ();
+    ACE_Task_Base* task_base_p = head_task_p;
+    ACE_ASSERT (task_base_p);
+    result = task_base_p->wait ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),

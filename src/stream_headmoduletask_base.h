@@ -25,7 +25,6 @@
 #include "ace/Global_Macros.h"
 //#include "ace/Recursive_Thread_Mutex.h"
 #include "ace/Synch_Traits.h"
-//#include "ace/Thread_Mutex.h"
 #include "ace/Time_Value.h"
 
 #include "common_iinitialize.h"
@@ -116,7 +115,7 @@ class Stream_HeadModuleTaskBase_T
 
   // implement state machine callback
   // *NOTE*: this method is threadsafe
-  virtual void onStateChange (Stream_StateType_t); // new state
+  virtual void onChange (Stream_StateType_t); // new state
 
   // *NOTE*: functionally, this does the same as stop(), with the
   //         difference that stop() will wait for any worker(s)
@@ -161,7 +160,6 @@ class Stream_HeadModuleTaskBase_T
 //  ACE_Recursive_Thread_Mutex                lock_;
 //  ACE_Condition<ACE_Recursive_Thread_Mutex> condition_;
   bool                            autoStart_;
-//  ACE_Condition<ACE_Thread_Mutex> condition_;
   ACE_SYNCH_CONDITION             condition_;
   unsigned int                    currentNumThreads_;
   ACE_SYNCH_MUTEX                 lock_;

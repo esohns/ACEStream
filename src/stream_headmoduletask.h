@@ -90,9 +90,9 @@ class Stream_HeadModuleTask
                           const ACE_Time_Value& = ACE_Time_Value::zero, // start of session
                           bool = false) const;                          // user abort ?
 
-  // implement state machine callback
+  // implement (part of) Common_IStateMachine_T
   // *NOTE*: this method is threadsafe
-  virtual void onStateChange (const Stream_StateType_t&); // new state
+  virtual void onChange (Stream_StateType_t); // new state
 
   // *TODO*: remove this ASAP
   // *NOTE*: functionally, this does the same as stop(), with the
@@ -115,13 +115,13 @@ class Stream_HeadModuleTask
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTask& operator= (const Stream_HeadModuleTask&));
 
   // allow blocking wait in waitForCompletion()
-  bool                                      autoStart_;
-  ACE_Condition<ACE_Recursive_Thread_Mutex> condition_;
-  bool                                      isFinished_;
-  ACE_Recursive_Thread_Mutex                lock_;
-  Stream_MessageQueue                       queue_;
-  Stream_SessionData_t*                     sessionData_;
-  Stream_State*                             state_;
+  bool                          autoStart_;
+  ACE_SYNCH_RECURSIVE_CONDITION condition_;
+  bool                          isFinished_;
+  ACE_SYNCH_RECURSIVE_MUTEX     lock_;
+  Stream_MessageQueue           queue_;
+  Stream_SessionData_t*         sessionData_;
+  Stream_State*                 state_;
 };
 
 #endif

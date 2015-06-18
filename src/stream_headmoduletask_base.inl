@@ -80,9 +80,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::~Stream_HeadModuleTaskBase_T"));
 
   // flush/deactivate our queue (check whether it was empty...)
-  int flushed_messages = 0;
-  flushed_messages = queue_.flush ();
-
+  int flushed_messages = queue_.flush ();
   if (flushed_messages)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("flushed %d message(s)...\n"),
@@ -112,9 +110,17 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::put"));
 
+  int result = 0;
+
   // if active, simply drop the message into the queue...
   if (isActive_)
-    return inherited::putq (mb_in, tv_in);
+  {
+    result = inherited::putq (mb_in, tv_in);
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", aborting\n")));
+    return result;
+  } // end IF
 
   // otherwise, process manually...
   bool stop_processing = false;
@@ -129,7 +135,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     stop ();
   } // end IF
 
-  return 0;
+  return result;
 }
 
 template <typename TaskSynchType,
@@ -266,7 +272,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid argument: %u, aborting\n"),
                   arg_in));
-
       return -1;
     }
   } // end SWITCH
@@ -339,7 +344,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   // step0: increment thread count
   {
 //    ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(myLock);
-    ACE_Guard<ACE_Thread_Mutex> aGuard (lock_);
+    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
     currentNumThreads_++;
   } // end IF
@@ -490,7 +495,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     state_->startOfSession = COMMON_TIME_NOW;
 
   // --> start a worker thread, if active
-  changeState (inherited2::STATE_RUNNING);
+  inherited2::change (STREAM_STATE_RUNNING);
 }
 
 template <typename TaskSynchType,
@@ -514,7 +519,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   ACE_UNUSED_ARG (lockedAccess_in);
 
   // (try to) change state
-  changeState (inherited2::STATE_STOPPED);
+  inherited2::change (STREAM_STATE_STOPPED);
 
   waitForCompletion ();
 }
@@ -537,7 +542,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::isRunning"));
 
-  return (inherited2::getState () == inherited2::STATE_RUNNING);
+  return (inherited2::current () == STREAM_STATE_RUNNING);
 }
 
 template <typename TaskSynchType,
@@ -559,7 +564,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::pause"));
 
   // (try to) change state
-  changeState (inherited2::STATE_PAUSED);
+  inherited2::change (STREAM_STATE_PAUSED);
 }
 
 template <typename TaskSynchType,
@@ -606,19 +611,27 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::waitForCompletion"));
 
+  int result = -1;
+
   if (isActive_)
   {
     // step1: wait for workers to finish
     {
 //    ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(myLock);
-      ACE_Guard<ACE_Thread_Mutex> aGuard (lock_);
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
       while (currentNumThreads_)
-        condition_.wait ();
+      {
+        result = condition_.wait ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Condition::wait(): \"%m\", continuing\n")));
+      } // end WHILE
     } // end IF
 
     // step2: wait for workers to join
-    if (inherited::wait () == -1)
+    result = inherited::wait ();
+    if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
   } // end IF
@@ -690,7 +703,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::finished"));
 
   // (try to) set new state
-  changeState (inherited2::STATE_FINISHED);
+  inherited2::change (STREAM_STATE_FINISHED);
 }
 
 template <typename TaskSynchType,
@@ -707,27 +720,27 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             SessionDataType,
                             SessionDataContainerType,
                             SessionMessageType,
-                            ProtocolMessageType>::onStateChange (Stream_StateType_t newState_in)
+                            ProtocolMessageType>::onChange (Stream_StateType_t newState_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onStateChange"));
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onChange"));
 
   int result = -1;
 
   switch (newState_in)
   {
-    case inherited2::STATE_INITIALIZED:
+    case STREAM_STATE_INITIALIZED:
     {
       // OK: (re-)initialized
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("(re-)initialized...\n")));
       break;
     }
-    case inherited2::STATE_RUNNING:
+    case STREAM_STATE_RUNNING:
     {
       // *NOTE*: we want to implement tape-recorder logic:
       // PAUSED --> PAUSED is mapped to PAUSED --> RUNNING
       // --> check for this condition before we do anything else...
-      if (inherited2::getState () == inherited2::STATE_PAUSED)
+      if (inherited2::current () == STREAM_STATE_PAUSED)
       {
         // resume worker ?
         if (isActive_)
@@ -735,7 +748,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
           result = inherited::resume ();
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to resume(): \"%m\", continuing\n")));
+                        ACE_TEXT ("failed to ACE_Task::resume(): \"%m\", continuing\n")));
         } // end IF
 
         break;
@@ -754,8 +767,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         const char* thread_names[1];
         thread_names[0] = thread_name;
         result =
-          inherited::activate ((THR_NEW_LWP |
-                                THR_JOINABLE |
+          inherited::activate ((THR_NEW_LWP      |
+                                THR_JOINABLE     |
                                 THR_INHERIT_SCHED),                // flags
                                STREAM_MODULE_DEFAULT_HEAD_THREADS, // number of threads
                                0,                                  // force spawning
@@ -770,7 +783,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", aborting\n")));
+                      ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", continuing\n")));
           break;
         } // end IF
       } // end IF
@@ -782,7 +795,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                                 false))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, aborting\n")));
+                      ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
           break;
         } // end IF
       } // end ELSE
@@ -801,14 +814,14 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
       break;
     }
-    case inherited2::STATE_STOPPED:
+    case STREAM_STATE_STOPPED:
     {
       if (isActive_)
       {
         // OK: drop a control message into the queue...
         // *TODO*: use ACE_Stream::control() instead ?
-        ACE_Message_Block* stop_mb = NULL;
-        ACE_NEW_NORETURN (stop_mb,
+        ACE_Message_Block* message_block_p = NULL;
+        ACE_NEW_NORETURN (message_block_p,
                           ACE_Message_Block (0,                                  // size
                                              ACE_Message_Block::MB_STOP,         // type
                                              NULL,                               // continuation
@@ -820,21 +833,21 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                                              ACE_Time_Value::max_time,           // deadline time
                                              NULL,                               // data block allocator
                                              NULL));                             // message allocator
-        if (!stop_mb)
+        if (!message_block_p)
         {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("failed to allocate memory: \"%m\", continuing\n")));
           break;
         } // end IF
 
-        result = inherited::putq (stop_mb, NULL);
+        result = inherited::putq (message_block_p, NULL);
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
 
           // clean up
-          stop_mb->release ();
+          message_block_p->release ();
         } // end IF
       } // end IF
       else
@@ -844,7 +857,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                                 sessionData_,
                                 false))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, aborting\n")));
+                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
 
         // signal the controller
         finished ();
@@ -852,16 +865,19 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
       break;
     }
-    case inherited2::STATE_FINISHED:
+    case STREAM_STATE_FINISHED:
     {
       // signal waiting thread(s)
       {
 //        ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard (lock_);
-        ACE_Guard<ACE_Thread_Mutex> aGuard (lock_);
+        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
         currentNumThreads_--;
 
-        condition_.broadcast ();
+        result = condition_.broadcast ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Condition::broadcast(): \"%m\", continuing\n")));
       } // end lock scope
 
 //       ACE_DEBUG ((LM_DEBUG,
@@ -869,7 +885,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
       break;
     }
-    case inherited2::STATE_PAUSED:
+    case STREAM_STATE_PAUSED:
     {
       // suspend the worker ?
       if (isActive_)
@@ -877,7 +893,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         result = inherited::suspend ();
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to suspend(): \"%m\", continuing\n")));
+                      ACE_TEXT ("failed to ACE_Task::suspend(): \"%m\", continuing\n")));
       } // end IF
 
       break;
@@ -885,17 +901,10 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     default:
     {
       // *NOTE*: an invalid/unknown state transition occurred...
-
-      std::string currentStateString;
-      std::string newStateString;
-      ControlState2String (inherited2::getState (),
-                           currentStateString);
-      ControlState2String (newState_in,
-                           newStateString);
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid state switch: \"%s\" --> \"%s\", continuing\n"),
-                  ACE_TEXT (currentStateString.c_str ()),
-                  ACE_TEXT (newStateString.c_str ())));
+                  ACE_TEXT ("unknown/invalid state switch: \"%s\" --> \"%s\", continuing\n"),
+                  ACE_TEXT (inherited2::state2String (inherited2::current ()).c_str ()),
+                  ACE_TEXT (inherited2::state2String (newState_in).c_str ())));
       break;
     }
   } // end SWITCH
@@ -991,7 +1000,7 @@ allocate:
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to put_next(): \"%m\", aborting\n")));
+                ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));
 
     // clean up
     session_message_p->release ();
