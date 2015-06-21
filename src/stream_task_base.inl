@@ -89,7 +89,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleSessionMessage"));
 
-  // init return value(s)
+  // initialize return value(s)
   passMessageDownstream_out = true;
 
   // sanity check(s)
@@ -338,7 +338,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleControlMessage"));
 
-  // init return value(s)
+  // initialize return value(s)
   stopProcessing_out = false;
   passMessageDownstream_out = true;
 
