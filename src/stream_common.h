@@ -108,6 +108,7 @@ struct Stream_Configuration
 {
   Stream_Configuration ()
    : bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
+   , cloneModule (false) // *NOTE*: cloneModule ==> deleteModule
    , deleteModule (false)
    , messageAllocator (NULL)
    , module (NULL)
@@ -120,15 +121,17 @@ struct Stream_Configuration
   {};
 
   unsigned int                bufferSize;
+  bool                        cloneModule;
   bool                        deleteModule;
   Stream_IAllocator*          messageAllocator;
   Stream_Module_t*            module;
   Stream_ModuleConfiguration* moduleConfiguration;
   ACE_Notification_Strategy*  notificationStrategy;
   bool                        printFinalReport;
-  // *IMPORTANT NOTE*: in a threaded environment, workers MAY be
-  // dispatching the reactor notification queue concurrently (most notably,
-  // ACE_TP_Reactor) --> enforce proper serialization
+  // *IMPORTANT NOTE*: in a multi-threaded environment, threads MAY be
+  //                   dispatching the reactor notification queue concurrently
+  //                   (most notably, ACE_TP_Reactor)
+  //                   --> enforce proper serialization
   bool                        serializeOutput;
   unsigned int                statisticReportingInterval; // 0: don't report
   bool                        useThreadPerConnection;

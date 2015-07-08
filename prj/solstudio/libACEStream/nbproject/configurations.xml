@@ -1,0 +1,910 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="95">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>../../../src/stdafx.h</itemPath>
+      <itemPath>../../../src/stream.h</itemPath>
+      <itemPath>../../../src/stream_allocatorheap.h</itemPath>
+      <itemPath>../../../src/stream_base.h</itemPath>
+      <itemPath>../../../src/stream_base.inl</itemPath>
+      <itemPath>../../../src/stream_cachedallocatorheap.h</itemPath>
+      <itemPath>../../../src/stream_cacheddatablockallocatorheap.h</itemPath>
+      <itemPath>../../../src/stream_cachedmessageallocator.h</itemPath>
+      <itemPath>../../../src/stream_cachedmessageallocator.inl</itemPath>
+      <itemPath>../../../src/stream_cachedmessageallocatorheap.h</itemPath>
+      <itemPath>../../../src/stream_cachedmessageallocatorheap_base.h</itemPath>
+      <itemPath>../../../src/stream_cachedmessageallocatorheap_base.inl</itemPath>
+      <itemPath>../../../src/stream_common.h</itemPath>
+      <itemPath>../../../src/stream_data_message_base.h</itemPath>
+      <itemPath>../../../src/stream_data_message_base.inl</itemPath>
+      <itemPath>../../../src/stream_datablockallocatorheap.h</itemPath>
+      <itemPath>../../../src/stream_defines.h</itemPath>
+      <itemPath>../../../src/stream_exports.h</itemPath>
+      <itemPath>../../../src/stream_headmoduletask.h</itemPath>
+      <itemPath>../../../src/stream_headmoduletask_base.h</itemPath>
+      <itemPath>../../../src/stream_headmoduletask_base.inl</itemPath>
+      <itemPath>../../../src/stream_iallocator.h</itemPath>
+      <itemPath>../../../src/stream_imessagequeue.h</itemPath>
+      <itemPath>../../../src/stream_imodule.h</itemPath>
+      <itemPath>../../../src/stream_istreamcontrol.h</itemPath>
+      <itemPath>../../../src/stream_itask.h</itemPath>
+      <itemPath>../../../src/stream_macros.h</itemPath>
+      <itemPath>../../../src/stream_message_base.h</itemPath>
+      <itemPath>../../../src/stream_messageallocatorheap.h</itemPath>
+      <itemPath>../../../src/stream_messageallocatorheap_base.h</itemPath>
+      <itemPath>../../../src/stream_messageallocatorheap_base.inl</itemPath>
+      <itemPath>../../../src/stream_messagequeue.h</itemPath>
+      <itemPath>../../../src/stream_messagequeue_base.h</itemPath>
+      <itemPath>../../../src/stream_messagequeue_base.inl</itemPath>
+      <itemPath>../../../src/stream_module_base.h</itemPath>
+      <itemPath>../../../src/stream_module_base.inl</itemPath>
+      <itemPath>../../../src/stream_resetcounterhandler.h</itemPath>
+      <itemPath>../../../src/stream_session_data.h</itemPath>
+      <itemPath>../../../src/stream_session_data_base.h</itemPath>
+      <itemPath>../../../src/stream_session_data_base.inl</itemPath>
+      <itemPath>../../../src/stream_session_message.h</itemPath>
+      <itemPath>../../../src/stream_session_message_base.h</itemPath>
+      <itemPath>../../../src/stream_session_message_base.inl</itemPath>
+      <itemPath>../../../src/stream_statemachine_control.h</itemPath>
+      <itemPath>../../../src/stream_statistichandler.h</itemPath>
+      <itemPath>../../../src/stream_statistichandler.inl</itemPath>
+      <itemPath>../../../src/stream_streammodule_base.h</itemPath>
+      <itemPath>../../../src/stream_streammodule_base.inl</itemPath>
+      <itemPath>../../../src/stream_task.h</itemPath>
+      <itemPath>../../../src/stream_task.inl</itemPath>
+      <itemPath>../../../src/stream_task_asynch.h</itemPath>
+      <itemPath>../../../src/stream_task_base.h</itemPath>
+      <itemPath>../../../src/stream_task_base.inl</itemPath>
+      <itemPath>../../../src/stream_task_base_asynch.h</itemPath>
+      <itemPath>../../../src/stream_task_base_asynch.inl</itemPath>
+      <itemPath>../../../src/stream_task_base_synch.h</itemPath>
+      <itemPath>../../../src/stream_task_base_synch.inl</itemPath>
+      <itemPath>../../../src/stream_task_synch.h</itemPath>
+      <itemPath>../../../src/stream_tools.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>../../../src/stdafx.cpp</itemPath>
+      <itemPath>../../../src/stream.cpp</itemPath>
+      <itemPath>../../../src/stream_allocatorheap.cpp</itemPath>
+      <itemPath>../../../src/stream_base.cpp</itemPath>
+      <itemPath>../../../src/stream_cachedallocatorheap.cpp</itemPath>
+      <itemPath>../../../src/stream_cacheddatablockallocatorheap.cpp</itemPath>
+      <itemPath>../../../src/stream_cachedmessageallocator.cpp</itemPath>
+      <itemPath>../../../src/stream_cachedmessageallocatorheap.cpp</itemPath>
+      <itemPath>../../../src/stream_cachedmessageallocatorheap_base.cpp</itemPath>
+      <itemPath>../../../src/stream_data_message_base.cpp</itemPath>
+      <itemPath>../../../src/stream_datablockallocatorheap.cpp</itemPath>
+      <itemPath>../../../src/stream_headmoduletask.cpp</itemPath>
+      <itemPath>../../../src/stream_headmoduletask_base.cpp</itemPath>
+      <itemPath>../../../src/stream_message_base.cpp</itemPath>
+      <itemPath>../../../src/stream_messageallocatorheap.cpp</itemPath>
+      <itemPath>../../../src/stream_messageallocatorheap_base.cpp</itemPath>
+      <itemPath>../../../src/stream_messagequeue.cpp</itemPath>
+      <itemPath>../../../src/stream_messagequeue_base.cpp</itemPath>
+      <itemPath>../../../src/stream_module_base.cpp</itemPath>
+      <itemPath>../../../src/stream_resetcounterhandler.cpp</itemPath>
+      <itemPath>../../../src/stream_session_data.cpp</itemPath>
+      <itemPath>../../../src/stream_session_data_base.cpp</itemPath>
+      <itemPath>../../../src/stream_session_message.cpp</itemPath>
+      <itemPath>../../../src/stream_session_message_base.cpp</itemPath>
+      <itemPath>../../../src/stream_statemachine_control.cpp</itemPath>
+      <itemPath>../../../src/stream_statistichandler.cpp</itemPath>
+      <itemPath>../../../src/stream_streammodule_base.cpp</itemPath>
+      <itemPath>../../../src/stream_task.cpp</itemPath>
+      <itemPath>../../../src/stream_task_asynch.cpp</itemPath>
+      <itemPath>../../../src/stream_task_base.cpp</itemPath>
+      <itemPath>../../../src/stream_task_base_asynch.cpp</itemPath>
+      <itemPath>../../../src/stream_task_base_synch.cpp</itemPath>
+      <itemPath>../../../src/stream_task_synch.cpp</itemPath>
+      <itemPath>../../../src/stream_tools.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="2">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+      </compileType>
+      <item path="../../../src/stdafx.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stdafx.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_allocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_allocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_base.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream_base.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_base.inl" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedallocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedallocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cacheddatablockallocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cacheddatablockallocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocator.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocatorheap_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocatorheap_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocatorheap_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_common.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_data_message_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_data_message_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_data_message_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_datablockallocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_datablockallocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_defines.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_exports.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_headmoduletask.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_headmoduletask.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_headmoduletask_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_headmoduletask_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_headmoduletask_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_iallocator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_imessagequeue.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_imodule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_istreamcontrol.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_itask.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_macros.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_message_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_message_base.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_messageallocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messageallocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messageallocatorheap_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messageallocatorheap_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messageallocatorheap_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messagequeue.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messagequeue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_messagequeue_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messagequeue_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messagequeue_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_module_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_module_base.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_module_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_resetcounterhandler.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_resetcounterhandler.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_data.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_data.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_data_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_data_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_data_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_message.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_message.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_message_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_message_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_message_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_statemachine_control.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_statemachine_control.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_statistichandler.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_statistichandler.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_statistichandler.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_streammodule_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_streammodule_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_streammodule_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task.inl" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_asynch.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_asynch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base.inl" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_asynch.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_asynch.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_asynch.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_synch.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_synch.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_synch.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_synch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_synch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_tools.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream_tools.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+      </compileType>
+      <item path="../../../src/stdafx.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stdafx.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_allocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_allocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_base.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream_base.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_base.inl" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedallocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedallocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cacheddatablockallocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cacheddatablockallocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocator.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocator.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocatorheap_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocatorheap_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_cachedmessageallocatorheap_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_common.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_data_message_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_data_message_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_data_message_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_datablockallocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_datablockallocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_defines.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_exports.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_headmoduletask.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_headmoduletask.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_headmoduletask_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_headmoduletask_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_headmoduletask_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_iallocator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_imessagequeue.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_imodule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_istreamcontrol.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_itask.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_macros.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_message_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_message_base.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_messageallocatorheap.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messageallocatorheap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messageallocatorheap_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messageallocatorheap_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messageallocatorheap_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messagequeue.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messagequeue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_messagequeue_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messagequeue_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_messagequeue_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_module_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_module_base.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_module_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_resetcounterhandler.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_resetcounterhandler.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_data.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_data.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_data_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_data_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_data_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_message.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_message.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_message_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_message_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_session_message_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_statemachine_control.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_statemachine_control.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_statistichandler.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_statistichandler.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_statistichandler.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_streammodule_base.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_streammodule_base.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_streammodule_base.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task.inl" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_asynch.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_asynch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base.inl" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_asynch.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_asynch.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_asynch.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_synch.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_synch.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_base_synch.inl"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_synch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream_task_synch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/stream_tools.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/stream_tools.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

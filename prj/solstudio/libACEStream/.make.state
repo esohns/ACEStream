@@ -1,0 +1,27 @@
+.MAKE_VERSION:	VERSION-1.0
+.BUILT_LAST_MAKE_RUN:
+.depcheck-impl:
+	echo "# This code depends on make tool being used" >.dep.inc
+	if [ -n "" ]; then \
+	    echo "DEPFILES=\$(wildcard \$(addsuffix .d, \${OBJECTFILES}))" >>.dep.inc; \
+	    echo "ifneq (\${DEPFILES},)" >>.dep.inc; \
+	    echo "include \${DEPFILES}" >>.dep.inc; \
+	    echo "endif" >>.dep.inc; \
+	else \
+	    echo ".KEEP_STATE:" >>.dep.inc; \
+	    echo ".KEEP_STATE_FILE:.make.state.\${CONF}" >>.dep.inc; \
+	fi
+.BUILT_LAST_MAKE_RUN:
+.validate-impl:
+	if [ ! -f nbproject/Makefile-Debug.mk ]; \
+	then \
+	    echo ""; \
+	    echo "Error: can not find the makefile for configuration 'Debug' in project libACEStream"; \
+	    echo "See 'make help' for details."; \
+	    echo "Current directory: " `pwd`; \
+	    echo ""; \
+	fi
+	if [ ! -f nbproject/Makefile-Debug.mk ]; \
+	then \
+	    exit 1; \
+	fi
