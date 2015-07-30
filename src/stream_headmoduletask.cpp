@@ -629,6 +629,9 @@ Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType messageType_
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTask::putSessionMessage"));
 
+  // sanity check(s)
+  ACE_ASSERT (state_);
+
   // create session message
   Stream_SessionMessage* message_p = NULL;
   if (allocator_in)
@@ -651,12 +654,11 @@ Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType messageType_
   } // end IF
   else
   {
-//    Stream_SessionData_t* session_data_p = sessionData_in;
     // *NOTE*: session message assumes responsibility for sessionData_in !
     ACE_NEW_NORETURN (message_p,
                       Stream_SessionMessage (messageType_in,
-                                             state_,
-                                             sessionData_in));
+                                             sessionData_in,
+                                             state_->userData));
   } // end ELSE
 
   if (!message_p)
@@ -672,8 +674,8 @@ Stream_HeadModuleTask::putSessionMessage (Stream_SessionMessageType messageType_
   if (allocator_in)
   { // *NOTE*: session message assumes responsibility for sessionData_inout !
     message_p->initialize (messageType_in,
-                           state_,
-                           sessionData_in);
+                           sessionData_in,
+                           state_->userData);
   } // end IF
 
   // pass message downstream...

@@ -21,17 +21,14 @@
 #ifndef STREAM_HEADMODULETASK_BASE_H
 #define STREAM_HEADMODULETASK_BASE_H
 
-//#include "ace/Condition_T.h"
 #include "ace/Global_Macros.h"
-//#include "ace/Recursive_Thread_Mutex.h"
 #include "ace/Synch_Traits.h"
-#include "ace/Time_Value.h"
 
 #include "common_iinitialize.h"
 
+#include "stream_imodule.h"
 #include "stream_istreamcontrol.h"
 #include "stream_messagequeue.h"
-#include "stream_session_message.h"
 #include "stream_session_message_base.h"
 #include "stream_statemachine_control.h"
 #include "stream_task_base.h"
@@ -39,24 +36,27 @@
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_IAllocator;
-class Stream_MessageBase;
-struct Stream_State;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType, // (reference counted)
           typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ProtocolMessageType,
+          ///////////////////////////////
+          typename ConfigurationType,
+          ///////////////////////////////
+          typename StreamStateType,
+          ///////////////////////////////
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_HeadModuleTaskBase_T
- : public Stream_TaskBase_T<TaskSynchType,
+ : public Stream_StateMachine_Control
+ , public Stream_TaskBase_T<TaskSynchType,
                             TimePolicyType,
                             SessionMessageType,
                             ProtocolMessageType>
+ , public Stream_IModuleHandler_T<ConfigurationType>
  , public Stream_IStreamControl_T<StreamStateType>
  , public Common_IInitialize_T<StreamStateType>
- , public Stream_StateMachine_Control
 {
  public:
   virtual ~Stream_HeadModuleTaskBase_T ();
@@ -64,29 +64,35 @@ class Stream_HeadModuleTaskBase_T
   // override some task-based members
   virtual int put (ACE_Message_Block*, // data chunk
                    ACE_Time_Value*);   // timeout value
+  // *IMPORTANT NOTE*: (if any,) the argument is assumed to be of type
+  //                   SessionDataType* !
   virtual int open (void* = NULL);
   virtual int close (u_long = 0);
   virtual int module_closed (void);
   virtual int svc (void);
 
   // implement (part of) Stream_ITaskBase
-  // *NOTE*: these are just default NOP implementations...
-  // *WARNING*: need to implement this in the base class to shut up the linker
-  //            about missing template instantiations...
+  // *NOTE*: this is just a stub
+  // *WARNING*: needed to implement this in the base class to please linker
+  //            errors about missing template instantiations
 //   virtual void handleDataMessage (Stream_MessageBase*&, // data message handle
 //                                   bool&);               // return value: pass message downstream ?
 
+  // implement Stream_IModuleHandler_T
+  virtual const ConfigurationType& get () const;
+  virtual bool initialize (const ConfigurationType&);
+
   // implement Stream_IStreamControl_T
   virtual void start ();
-  virtual void stop (bool = true); // locked access ?
+  virtual void stop (bool = true,  // wait for completion ?
+                     bool = true); // locked access ?
   virtual bool isRunning () const;
   virtual void pause ();
   virtual void rewind ();
-  // *NOTE*: for the time being, this simply waits for any worker threads to
-  //         join
+  // *NOTE*: this implementation simply waits for any worker threads to join
   virtual void waitForCompletion ();
   // *NOTE*: this is just a stub
-  virtual const StreamStateType* getState () const;
+  virtual const StreamStateType& state () const;
 
   // implement Common_IInitialize_T
   virtual bool initialize (const StreamStateType&);
@@ -95,8 +101,8 @@ class Stream_HeadModuleTaskBase_T
   Stream_HeadModuleTaskBase_T (bool = false,  // active object ?
                                bool = false); // auto-start ?
 
-  // override: handle MB_STOP control messages to trigger shutdown
-  // of the worker thread...
+  // *NOTE*: override: handle MB_STOP control messages to trigger shutdown of
+  //         the worker thread
   virtual void handleControlMessage (ACE_Message_Block*, // control message
                                      bool&,              // return value: stop processing ?
                                      bool&);             // return value: pass message downstream ?
@@ -107,8 +113,8 @@ class Stream_HeadModuleTaskBase_T
   bool putSessionMessage (Stream_SessionMessageType, // session message type
                           SessionDataType*,          // data
                           bool = false) const;       // delete session data ?
-  // *NOTE*: session message assumes lifetime responsibility for data
-  //         --> method implements a "fire-and-forget" strategy !
+  // *NOTE*: message assumes responsibility for the payload data container
+  //         --> "fire-and-forget" SessionDataContainerType
   bool putSessionMessage (Stream_SessionMessageType,        // session message type
                           SessionDataContainerType*&,       // data container
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
@@ -123,48 +129,41 @@ class Stream_HeadModuleTaskBase_T
   //             so it calls this to signal an end
   virtual void finished ();
 
-  // *IMPORTANT NOTE*: children SHOULD set these during initialization !
-  Stream_IAllocator*              allocator_;
+  ConfigurationType               configuration_;
   bool                            isActive_;
-  // *NOTE*: iff the head module is asynchronous, the worker thread initializes
-  //         the session. This is a handle to the session/user data to send
-  //         along to the modules downstream
   SessionDataType*                sessionData_;
   StreamStateType*                state_;
 
  private:
+  typedef Stream_StateMachine_Control inherited;
   typedef Stream_TaskBase_T<TaskSynchType,
                             TimePolicyType,
                             SessionMessageType,
-                            ProtocolMessageType> inherited;
-  typedef Stream_StateMachine_Control inherited2;
+                            ProtocolMessageType> inherited2;
 
   // convenient types
   typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
                                       TimePolicyType,
-                                      StreamStateType,
-                                      SessionDataType,
-                                      SessionDataContainerType,
                                       SessionMessageType,
-                                      ProtocolMessageType> OWN_TYPE_T;
+                                      ProtocolMessageType,
+                                      ///
+                                      ConfigurationType,
+                                      ///
+                                      StreamStateType,
+                                      ///
+                                      SessionDataType,
+                                      SessionDataContainerType> OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T (const Stream_HeadModuleTaskBase_T&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T& operator= (const Stream_HeadModuleTaskBase_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T (const Stream_HeadModuleTaskBase_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T& operator= (const Stream_HeadModuleTaskBase_T&))
 
-//  // *TODO*: remove this API ASAP
-//  // send SESSION_END message
-//  bool putSessionMessage () const;
-
-//  // allow blocking wait in waitForCompletion()
-//  ACE_Recursive_Thread_Mutex                lock_;
-//  ACE_Condition<ACE_Recursive_Thread_Mutex> condition_;
+  // allow blocking wait in waitForCompletion()
   bool                            autoStart_;
   ACE_SYNCH_CONDITION             condition_;
-  unsigned int                    currentNumThreads_;
   ACE_SYNCH_MUTEX                 lock_;
-//  ACE_Thread_Mutex                lock_;
   Stream_MessageQueue             queue_;
+  unsigned int                    threadCount_;
 };
 
 // include template implementation

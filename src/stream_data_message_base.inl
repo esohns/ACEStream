@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <limits>
+
 #include "ace/Malloc_Base.h"
 #include "ace/Log_Msg.h"
 
@@ -122,6 +124,10 @@ Stream_DataMessageBase_T<DataType,
                          CommandType>::~Stream_DataMessageBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::~Stream_DataMessageBase_T"));
+
+  // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
+  //                   (see e.g. stream_cachedmessageallocator.cpp:172)
+  inherited::priority_ = std::numeric_limits<unsigned long>::max ();
 
   // clean up
   if (data_)

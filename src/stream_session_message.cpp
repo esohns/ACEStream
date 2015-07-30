@@ -27,11 +27,11 @@
 #include "stream_message_base.h"
 
 Stream_SessionMessage::Stream_SessionMessage (Stream_SessionMessageType messageType_in,
-                                              Stream_State* streamState_in,
-                                              Stream_SessionData_t* sessionData_in)
+                                              Stream_SessionData_t*& sessionData_in,
+                                              Stream_UserData* userData_in)
  : inherited (messageType_in,
-              streamState_in,
-              sessionData_in)
+              sessionData_in,
+              userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessage::Stream_SessionMessage"));
 

@@ -27,6 +27,7 @@
 #include "ace/Message_Block.h"
 
 #include "common_idumpstate.h"
+#include "common_iget.h"
 
 #include "stream_message_base.h"
 
@@ -45,29 +46,32 @@ enum Stream_SessionMessageType
 // forward declarations
 class ACE_Allocator;
 
-template <typename StreamStateType,
-          typename SessionDataType>
+template <typename SessionDataType,
+          typename UserDataType>
 class Stream_SessionMessageBase_T
  : public ACE_Message_Block
  , public Common_IDumpState
+ , public Common_IGet_T<SessionDataType>
+    // , public Common_IGet_T<UserDataType>
 {
  public:
-  // *NOTE*: assumes lifetime responsibility for the second argument !
+  // *NOTE*: assumes responsibility for the second argument !
   Stream_SessionMessageBase_T (Stream_SessionMessageType,
-                               StreamStateType*,
-                               SessionDataType*);
+                               SessionDataType*&, // in/out
+                               UserDataType*);
   virtual ~Stream_SessionMessageBase_T ();
 
   // initialization-after-construction
-  // *NOTE*: assumes lifetime responsibility for the second argument !
+  // *NOTE*: assumes responsibility for the second argument !
   void initialize (Stream_SessionMessageType,
-                   StreamStateType*,
-                   SessionDataType*);
+                   SessionDataType*&, // in/out
+                   UserDataType*);
 
   // info
-  Stream_SessionMessageType getType () const;
-  const StreamStateType* getState () const;
-  const SessionDataType* getData () const;
+  Stream_SessionMessageType type () const;
+  // implement Common_IGet_T
+  virtual const SessionDataType& get () const;
+  const UserDataType& data () const;
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -77,12 +81,13 @@ class Stream_SessionMessageBase_T
                                          std::string&);             // corresp. string
 
   // convenience types
-  typedef StreamStateType STREAM_STATE_TYPE;
+  typedef SessionDataType SESSION_DATA_TYPE;
+  typedef UserDataType USER_DATA_TYPE;
 
  protected:
   // (copy) ctor to be used by duplicate()
-   Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<StreamStateType,
-                                                                  SessionDataType>&);
+   Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<SessionDataType,
+                                                                  UserDataType>&);
 
   // *NOTE*: these may be used by message allocators...
   // *WARNING*: these ctors are NOT threadsafe...
@@ -92,20 +97,20 @@ class Stream_SessionMessageBase_T
 
   bool                      isInitialized_;
   Stream_SessionMessageType messageType_;
-  StreamStateType*          streamState_;
   SessionDataType*          sessionData_;
+  UserDataType*             userData_;
 
  private:
   typedef ACE_Message_Block inherited;
 
   // convenient types
-  typedef Stream_SessionMessageBase_T<StreamStateType,
-                                      SessionDataType> SELF_T;
+  typedef Stream_SessionMessageBase_T<SessionDataType,
+                                      UserDataType> SELF_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T& operator= (const Stream_SessionMessageBase_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T& operator= (const Stream_SessionMessageBase_T&))
 
-  // overloaded from ACE_Message_Block
+  // override from ACE_Message_Block
   // *WARNING*: any children need to override this too !
   virtual ACE_Message_Block* duplicate (void) const;
 };

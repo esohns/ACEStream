@@ -22,37 +22,34 @@
 #define STREAM_SESSION_DATA_H
 
 #include "ace/Global_Macros.h"
-#include "ace/Time_Value.h"
 
-#include "common_referencecounter_base.h"
+#include "common_iget.h"
 
-class Stream_SessionData
- : public Common_ReferenceCounterBase
+#include "stream_session_data_base.h"
+
+template <typename SessionDataType>
+class Stream_SessionData_T
+ : public Stream_SessionDataBase_T<SessionDataType>
+ , public Common_IGet_T<SessionDataType>
 {
  public:
-  Stream_SessionData (const void*,                                  // user data
-                      const ACE_Time_Value& = ACE_Time_Value::zero, // "official" start of session
-                      bool = false);                                // session ended because of user abort ?
-
-  // info
-  const void* getUserData () const;
-  ACE_Time_Value getStartOfSession () const;
-  bool getUserAbort () const;
+  Stream_SessionData_T (const SessionDataType&);
 
   // implement Common_IDumpState
   virtual void dump_state () const;
 
+  // implement Common_IGet_T
+  virtual const SessionDataType& get () const;
+
  private:
-  typedef Common_ReferenceCounterBase inherited;
+  typedef Stream_SessionDataBase_T<SessionDataType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionData ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionData (const Stream_SessionData&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionData& operator= (const Stream_SessionData&));
-  virtual ~Stream_SessionData ();
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T (const Stream_SessionData_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T& operator= (const Stream_SessionData_T&))
+  virtual ~Stream_SessionData_T ();
 
-  ACE_Time_Value startOfSession_;
-  bool           userAbort_;
-  const void*    userData_;
+  SessionDataType sessionData_;
 };
 
 #endif

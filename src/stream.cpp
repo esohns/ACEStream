@@ -700,11 +700,12 @@ Stream::deactivateModules ()
     }
   } // end IF
   else
-  { // *NOTE*: session message assumes responsibility for session_data_p
+  {
+    // *NOTE*: session message assumes responsibility for session_data_p
     ACE_NEW_NORETURN (message_p,
                       Stream_SessionMessage (SESSION_END,
-                                             &state_,
-                                             session_data_p));
+                                             session_data_p,
+                                             state_.userData));
   } // end ELSE
   if (!message_p)
   {
@@ -717,10 +718,11 @@ Stream::deactivateModules ()
     return;
   } // end IF
   if (allocator_)
-  { // *NOTE*: session message assumes responsibility for session_data_p
+  {
+    // *NOTE*: session message assumes responsibility for session_data_p
     message_p->initialize (SESSION_END,
-                           &state_,
-                           session_data_p);
+                           session_data_p,
+                           state_.userData);
   } // end IF
 
   // send message downstream...

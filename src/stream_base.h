@@ -29,6 +29,7 @@
 #include "ace/Synch_Traits.h"
 
 #include "common_idumpstate.h"
+//#include "common_iget.h"
 #include "common_iinitialize.h"
 #include "common_istatistic.h"
 
@@ -42,10 +43,16 @@ class Stream_IAllocator;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          ///////////////////////////////
+          typename StateType,
+          ///////////////////////////////
+          typename ConfigurationType,
+          ///////////////////////////////
+          typename StatisticContainerType,
+          ///////////////////////////////
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          ///////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // (reference counted)
           typename SessionMessageType,
@@ -53,10 +60,11 @@ template <typename TaskSynchType,
 class Stream_Base_T
  : public ACE_Stream<TaskSynchType,
                      TimePolicyType>
- , public Stream_IStreamControl_T<StreamStateType>
- , public Common_IInitialize_T<StreamConfigurationType>
- , public Common_IStatistic_T<StreamStatisticContainerType>
+ , public Stream_IStreamControl_T<StateType>
  , public Common_IDumpState
+// , public Common_IGet_T<SessionDataType>
+ , public Common_IInitialize_T<ConfigurationType>
+ , public Common_IStatistic_T<StatisticContainerType>
 {
  public:
   // *NOTE*: this will try to sanely close down the stream:
@@ -70,17 +78,23 @@ class Stream_Base_T
   //virtual int push(ACE_Module<ACE_MT_SYNCH>*); // handle to module
 
   // implement Stream_IStreamControl_T
-  // *NOTE*: delegate these calls to the head module which also implements that API...
+  // *NOTE*: delegate these calls to the head module (which also implements that
+  //         API)
   virtual void start ();
-  virtual void stop (bool = true); // locked access ?
+  virtual void stop (bool = true,  // wait for completion ?
+                     bool = true); // locked access ?
   virtual bool isRunning () const;
   virtual void pause ();
   virtual void rewind ();
   virtual void waitForCompletion ();
-  virtual const StreamStateType* getState () const;
+  virtual const StateType& state () const;
 
   // implement Common_IDumpState
   virtual void dump_state () const;
+
+//  // implement Common_IGet_T
+//  virtual const SessionDataType& get () const;
+  const SessionDataType& sessionData () const;
 
   bool isInitialized () const;
 
@@ -89,7 +103,8 @@ class Stream_Base_T
                      TimePolicyType> MODULE_T;
   typedef ACE_Stream_Iterator<TaskSynchType,
                               TimePolicyType> ITERATOR_T;
-  typedef StreamStateType STATE_T;
+  typedef StateType STATE_T;
+  typedef SessionDataType SESSION_DATA_T;
 
  protected:
   // convenient types
@@ -99,13 +114,17 @@ class Stream_Base_T
                             TimePolicyType> QUEUE_T;
   typedef Stream_IModule_T<TaskSynchType,
                            TimePolicyType,
-                           StreamModuleConfigurationType> IMODULE_T;
+                           ModuleConfigurationType,
+                           HandlerConfigurationType> IMODULE_T;
+  typedef Common_IInitialize_T<HandlerConfigurationType> IMODULEHANDLER_T;
   typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;
   typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
-  typedef Stream_IStreamControl_T<StreamStateType> ISTREAM_CONTROL_T;
+  typedef Stream_IStreamControl_T<StateType> ISTREAM_CONTROL_T;
 
   // *NOTE*: need to subclass this !
   Stream_Base_T ();
+
+  bool initialize ();
 
   // *NOTE*: children need to call this PRIOR to module RE-initialization
   // (i.e. in their own init()); this will:
@@ -122,16 +141,17 @@ class Stream_Base_T
 
   // *NOTE*: children need to add handles to ALL of their modules to this container !
   //ACE_DLList<MODULE_T> availableModules_;
-  MODULE_CONTAINER_T   availableModules_;
+  MODULE_CONTAINER_T availableModules_;
 
   // *NOTE*: children need to set this IF their initialization succeeded;
   //         otherwise, the dtor will NOT stop all worker threads before
   //         close()ing the modules...
-  bool                 isInitialized_;
+  bool               isInitialized_;
 
   // *NOTE*: children need to initialize these !
-  Stream_IAllocator*   allocator_;
-  StreamStateType      state_;
+  Stream_IAllocator* allocator_;
+  SessionDataType*   sessionData_;
+  StateType          state_;
 
  private:
   typedef ACE_Stream<TaskSynchType,
@@ -147,21 +167,21 @@ class Stream_Base_T
 //                                      ProtocolMessageType> HEADMODULE_TASK_T;
   typedef Stream_Base_T<TaskSynchType,
                         TimePolicyType,
-                        StreamStateType,
-                        StreamStatisticContainerType,
-                        StreamConfigurationType,
-                        StreamModuleConfigurationType,
+                        StateType,
+                        ConfigurationType,
+                        StatisticContainerType,
+                        ModuleConfigurationType,
+                        HandlerConfigurationType,
                         SessionDataType,
                         SessionDataContainerType,
                         SessionMessageType,
                         ProtocolMessageType> OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&))
 
   // helper methods
   // wrap inherited::open/close() calls
-  bool initialize ();
   bool finalize ();
   void deactivateModules ();
 };

@@ -22,16 +22,19 @@
 
 #include "common_irefcount.h"
 
+#include "stream_common.h"
 #include "stream_macros.h"
 
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
                      ConfigurationType,
+                     HandlerConfigurationType,
                      ReaderTaskType,
                      WriterTaskType>::Stream_Module_Base_T (const std::string& name_in,
                                                             WriterTaskType* writerTask_in,
@@ -65,11 +68,13 @@ Stream_Module_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
                      ConfigurationType,
+                     HandlerConfigurationType,
                      ReaderTaskType,
                      WriterTaskType>::~Stream_Module_Base_T ()
 {
@@ -84,12 +89,14 @@ Stream_Module_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 const ConfigurationType&
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
                      ConfigurationType,
+                     HandlerConfigurationType,
                      ReaderTaskType,
                      WriterTaskType>::get () const
 {
@@ -101,12 +108,14 @@ Stream_Module_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 bool
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
                      ConfigurationType,
+                     HandlerConfigurationType,
                      ReaderTaskType,
                      WriterTaskType>::initialize (const ConfigurationType& configuration_in)
 {
@@ -120,28 +129,64 @@ Stream_Module_Base_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename ReaderTaskType,
+          typename WriterTaskType>
+const HandlerConfigurationType&
+Stream_Module_Base_T<TaskSynchType,
+                     TimePolicyType,
+                     ConfigurationType,
+                     HandlerConfigurationType,
+                     ReaderTaskType,
+                     WriterTaskType>::get ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::get"));
+
+  // need a downcast...
+  Stream_Task_t* task_p = writer_;
+  ACE_ASSERT (task_p);
+  IMODULEHANDLER_T* imodule_handler_p =
+      dynamic_cast<IMODULEHANDLER_T*> (task_p);
+  if (!imodule_handler_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IModuleHandler_T*>(%@) failed, aborting\n"),
+                ACE_TEXT (inherited::name ()),
+                task_p));
+    return HandlerConfigurationType ();
+  } // end IF
+
+  return imodule_handler_p->get ();
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 void
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
                      ConfigurationType,
+                     HandlerConfigurationType,
                      ReaderTaskType,
                      WriterTaskType>::reset ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::reset"));
 
   // OK: (re-)set our reader and writer tasks...
-  inherited::writer(writer_,
-                    inherited::M_DELETE_NONE);
+  inherited::writer (writer_,
+                     inherited::M_DELETE_NONE);
 
-  inherited::reader(reader_,
-                    inherited::M_DELETE_NONE);
+  inherited::reader (reader_,
+                     inherited::M_DELETE_NONE);
 }
 
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 ACE_Module<TaskSynchType,
@@ -149,6 +194,7 @@ ACE_Module<TaskSynchType,
 Stream_Module_Base_T<TaskSynchType,
                      TimePolicyType,
                      ConfigurationType,
+                     HandlerConfigurationType,
                      ReaderTaskType,
                      WriterTaskType>::clone ()
 {

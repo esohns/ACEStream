@@ -27,20 +27,22 @@
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -52,29 +54,31 @@ Stream_Base_T<TaskSynchType,
  , availableModules_ ()
  , isInitialized_ (false)
  , allocator_ (NULL)
+ , sessionData_ (NULL)
  , state_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
-//  ACE_OS::memset (&state_, 0, sizeof (state_));
 }
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -82,14 +86,18 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::~Stream_Base_T"));
 
+  // clean up
+  if (sessionData_)
+    delete sessionData_;
 }
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -97,10 +105,11 @@ template <typename TaskSynchType,
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -132,10 +141,11 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -143,10 +153,11 @@ template <typename TaskSynchType,
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -154,12 +165,15 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
+  // sanity check(s)
+  ACE_ASSERT (!isRunning ());
+
   if (isInitialized_)
   {
-    // *NOTE*: fini() invokes close() which will reset the writer/reader tasks
+    // *NOTE*: fini() invokes close(), which will reset the writer/reader tasks
     // of the enqueued modules --> reset this !
     IMODULE_T* imodule_handle_p = NULL;
-    // *NOTE*: cannot write this - it confuses gcc...
+    // *TODO*: cannot write this - it confuses gcc...
     //   for (MODULE_CONTAINER_TYPE::const_iterator iter = availableModules_.begin ();
     //for (ACE_DLList_Iterator<MODULE_T> iterator (availableModules_);
     //     iterator.next (module_p);
@@ -189,6 +203,23 @@ Stream_Base_T<TaskSynchType,
     } // end FOR
   } // end IF
 
+  // allocate session data
+  if (sessionData_)
+  {
+    delete sessionData_;
+    sessionData_ = NULL;
+  } // end IF
+  ACE_NEW_NORETURN (sessionData_,
+                    SessionDataType ());
+  if (!sessionData_)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    return false;
+  } // end IF
+  // *TODO*: remove type inference
+  state_.currentSessionData = sessionData_;
+
   // delegate this to base class open()
   int result = -1;
   try
@@ -212,10 +243,11 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -223,10 +255,11 @@ template <typename TaskSynchType,
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -262,10 +295,11 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -273,10 +307,11 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -293,6 +328,8 @@ Stream_Base_T<TaskSynchType,
                 ACE_TEXT ("not initialized, returning\n")));
     return;
   } // end IF
+  if (isRunning ())
+    return; // nothing to do
 
   // delegate to the head module
   MODULE_T* module_p = NULL;
@@ -329,10 +366,11 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -340,14 +378,16 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
-              ProtocolMessageType>::stop (bool lockedAccess_in)
+              ProtocolMessageType>::stop (bool waitForCompletion_in,
+                                          bool lockedAccess_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::stop"));
 
@@ -394,14 +434,18 @@ Stream_Base_T<TaskSynchType,
                 ACE_TEXT (module_p->name ())));
     return;
   }
+
+  if (waitForCompletion_in)
+    waitForCompletion ();
 }
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -409,10 +453,11 @@ template <typename TaskSynchType,
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -458,10 +503,11 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -469,10 +515,11 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -525,10 +572,11 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -536,10 +584,11 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -593,10 +642,11 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -604,10 +654,11 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -617,9 +668,9 @@ Stream_Base_T<TaskSynchType,
 
   int result = -1;
 
-  // *NOTE*: the logic here is this...
-  // step1: wait for processing to finish
-  // step2: wait for any pipelined messages to flush...
+  // *NOTE*: the logic here is this:
+  //         step1: wait for processing (message generation) to finish
+  //         step2: wait for any pipelined messages to flush...
 
   // step1: get head module, skip over ACE_Stream_Head
   ITERATOR_T iterator (*this);
@@ -662,7 +713,7 @@ Stream_Base_T<TaskSynchType,
 
   try
   {
-    // wait for state switch (xxx --> FINISHED) / any worker(s)
+    // wait for state switch (xxx --> FINISHED) / any head module threads
     control_impl_p->waitForCompletion ();
   }
   catch (...)
@@ -710,37 +761,40 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-const StreamStateType*
+const StateType&
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
-              ProtocolMessageType>::getState () const
+              ProtocolMessageType>::state () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getState"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::state"));
 
-  return &state_;
+  return state_;
 }
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -748,10 +802,11 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -788,10 +843,45 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+const SessionDataType&
+Stream_Base_T<TaskSynchType,
+              TimePolicyType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+//              ProtocolMessageType>::get () const
+              ProtocolMessageType>::sessionData () const
+{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::get"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::sessionData"));
+
+  // sanity check(s)
+  ACE_ASSERT (sessionData_);
+
+  return *sessionData_;
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -799,10 +889,11 @@ template <typename TaskSynchType,
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -815,10 +906,11 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -826,16 +918,19 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
               ProtocolMessageType>::shutdown ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::shutdown"));
+
+  int result = -1;
 
   // step0: if not properly initialized, this needs to deactivate any hitherto
   // enqueued ACTIVE modules, or the stream will wait forever during closure...
@@ -886,7 +981,7 @@ Stream_Base_T<TaskSynchType,
       try
       {
         //module_p->close (ACE_Module_Base::M_DELETE_NONE);
-        (*iterator)->close (ACE_Module_Base::M_DELETE_NONE);
+        result = (*iterator)->close (ACE_Module_Base::M_DELETE_NONE);
       }
       catch (...)
       {
@@ -894,7 +989,13 @@ Stream_Base_T<TaskSynchType,
                     ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
                     //ACE_TEXT (module_p->name ())));
                     ACE_TEXT ((*iterator)->name ())));
+        result = -1;
       }
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", continuing\n"),
+                    //ACE_TEXT (module_p->name ())));
+                    ACE_TEXT ((*iterator)->name ())));
     } // end IF
   } // end FOR
 
@@ -903,27 +1004,28 @@ Stream_Base_T<TaskSynchType,
 
   // step2: shutdown stream
   // check the ACE documentation on ACE_Stream to see why this is needed !!!
-  // Note: ONLY do this if stream_head != 0 !!! (warning: obsolete ?)
-  // *NOTE*: this will NOT destroy all modules in the current stream
-  // as this leads to exceptions in debug builds under windows (can't delete
-  // objects in a different DLL where it was created...)
-  // --> we need to do this ourselves !
-  // all this does is call close() on each one (--> wait for any worker
-  // thread(s) to return)
+  // *TODO*: ONLY do this if stream_head != 0 !!! (warning: obsolete ?)
+  // *NOTE*: will NOT destroy all modules in the current stream as this leads to
+  //         exceptions in debug builds under MS Windows (can't delete objects
+  //         in a different DLL where it was created...)
+  //         --> do this manually !
+  //         all this does is call close() on each one (waits for any worker
+  //         thread(s) to return)
   if (!finalize ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Base_T::finalize(): \"%m\", continuing\n")));
 
   // *NOTE*: every ACTIVE module will join with its worker thread in close()
-  // --> ALL stream-related threads should have returned by now !
+  //         --> ALL stream-related threads should have returned by now !
 }
 
 template <typename TaskSynchType,
           typename TimePolicyType,
-          typename StreamStateType,
-          typename StreamStatisticContainerType,
-          typename StreamConfigurationType,
-          typename StreamModuleConfigurationType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename SessionMessageType,
@@ -931,10 +1033,11 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
-              StreamStateType,
-              StreamStatisticContainerType,
-              StreamConfigurationType,
-              StreamModuleConfigurationType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
@@ -942,12 +1045,14 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::deactivateModules"));
 
-  // allocate session data
-  SessionDataContainerType* session_data_p = NULL;
-  ACE_NEW_NORETURN (session_data_p,
-                    SessionDataContainerType (NULL,
+  // *TODO*: remove type inferences
+
+  // allocate session data container
+  SessionDataContainerType* session_data_container_p = NULL;
+  ACE_NEW_NORETURN (session_data_container_p,
+                    SessionDataContainerType (sessionData_,
                                               false));
-  if (!session_data_p)
+  if (!session_data_container_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", returning\n")));
@@ -959,9 +1064,9 @@ Stream_Base_T<TaskSynchType,
   if (allocator_)
   {
     try
-    {
+    { // *NOTE*: 0 --> session message
       message_p =
-       static_cast<SessionMessageType*> (allocator_->malloc (0)); // want a session message !
+       static_cast<SessionMessageType*> (allocator_->malloc (0));
     }
     catch (...)
     {
@@ -969,17 +1074,20 @@ Stream_Base_T<TaskSynchType,
                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), returning\n")));
 
       // clean up
-      session_data_p->decrease ();
+      session_data_container_p->decrease ();
 
       return;
     }
   } // end IF
   else
-  { // *NOTE*: session message assumes responsibility for session_data_p
+  {
+    // *NOTE*: session message assumes responsibility for
+    //         session_data_container_p
+    // *TODO*: remove type inference
     ACE_NEW_NORETURN (message_p,
                       SessionMessageType (SESSION_END,
-                                          &state_,
-                                          session_data_p));
+                                          session_data_container_p,
+                                          state_.userData));
   } // end ELSE
   if (!message_p)
   {
@@ -987,15 +1095,18 @@ Stream_Base_T<TaskSynchType,
                 ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", returning\n")));
 
     // clean up
-    session_data_p->decrease ();
+    session_data_container_p->decrease ();
 
     return;
   } // end IF
   if (allocator_)
-  { // *NOTE*: session message assumes responsibility for session_data_container_p !
+  {
+    // *NOTE*: session message assumes responsibility for
+    //         session_data_container_p
+    // *TODO*: remove type inference
     message_p->initialize (SESSION_END,
-                           &state_,
-                           session_data_p);
+                           session_data_container_p,
+                           state_.userData);
   } // end IF
 
   // send message downstream...

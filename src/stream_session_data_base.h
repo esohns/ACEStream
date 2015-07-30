@@ -22,7 +22,6 @@
 #define STREAM_SESSION_DATA_BASE_H
 
 #include "ace/Global_Macros.h"
-#include "ace/Time_Value.h"
 
 #include "common_referencecounter_base.h"
 
@@ -42,11 +41,14 @@ class Stream_SessionDataBase_T
   // implement Common_IDumpState
   virtual void dump_state () const;
 
+  // convenience types
+  typedef DataType SESSION_DATA_TYPE;
+
  private:
   typedef Common_ReferenceCounterBase inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T (const Stream_SessionDataBase_T&));
-//  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T& operator= (const Stream_SessionDataBase_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T (const Stream_SessionDataBase_T&))
+//  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T& operator= (const Stream_SessionDataBase_T&))
 
   DataType* sessionData_;
   bool      deleteSessionData_;

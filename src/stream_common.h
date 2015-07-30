@@ -39,51 +39,65 @@
 struct Stream_Statistic
 {
   inline Stream_Statistic ()
-   : numDataMessages (0)
-   , numDroppedMessages (0)
-   , numBytes (0.0)
+   : bytes (0.0)
+   , dataMessages (0)
+   , droppedMessages (0)
+   , timestamp (ACE_Time_Value::zero)
   {};
 
   inline Stream_Statistic operator+= (const Stream_Statistic& rhs_in)
   {
-    numDataMessages += rhs_in.numDataMessages;
-    numDroppedMessages += rhs_in.numDroppedMessages;
-    numBytes += rhs_in.numBytes;
+    bytes += rhs_in.bytes;
+    dataMessages += rhs_in.dataMessages;
+    droppedMessages += rhs_in.droppedMessages;
 
     return *this;
   };
 
-  unsigned int numDataMessages;    // (protocol) messages
-  unsigned int numDroppedMessages; // dropped messages
-  double       numBytes;           // amount of processed data
+  double         bytes;           // amount of processed data
+  unsigned int   dataMessages;    // (protocol) messages
+  unsigned int   droppedMessages; // dropped messages
+
+  ACE_Time_Value timestamp;
+};
+
+struct Stream_SessionData
+{
+  inline Stream_SessionData ()
+   : aborted (false)
+   , currentStatistic ()
+   , lock (NULL)
+   , sessionID (0)
+   , startOfSession (ACE_Time_Value::zero)
+  {};
+
+  bool             aborted;
+
+  Stream_Statistic currentStatistic;
+  ACE_SYNCH_MUTEX* lock;
+
+  unsigned int     sessionID; // (== socket handle !)
+  ACE_Time_Value   startOfSession;
+};
+
+struct Stream_UserData
+{
+  inline Stream_UserData ()
+   : userData (NULL)
+  {};
+
+  void* userData;
 };
 
 struct Stream_State
 {
   inline Stream_State ()
-   : currentStatistics ()
-   , lastCollectionTimestamp (ACE_Time_Value::zero)
-   , startOfSession (ACE_Time_Value::zero)
-   , sessionID (0)
-   , userAborted (false)
-  {};
-
-  Stream_Statistic currentStatistics;
-  ACE_Time_Value   lastCollectionTimestamp;
-  ACE_Time_Value   startOfSession;
-  unsigned int     sessionID; // (== socket handle !)
-  bool             userAborted;
-};
-
-struct Stream_ModuleConfiguration
-{
-  inline Stream_ModuleConfiguration ()
-   : streamState (NULL)
+   : currentSessionData (NULL)
    , userData (NULL)
   {};
 
-  Stream_State* streamState;
-  void*         userData;
+  Stream_SessionData* currentSessionData;
+  Stream_UserData*    userData;
 };
 
 // forward declarations
@@ -98,21 +112,25 @@ typedef ACE_Task<ACE_MT_SYNCH,
                  Common_TimePolicy_t> Stream_Task_t;
 typedef ACE_Module<ACE_MT_SYNCH,
                    Common_TimePolicy_t> Stream_Module_t;
+struct Stream_ModuleConfiguration;
+struct Stream_ModuleHandlerConfiguration;
 typedef Stream_IModule_T<ACE_MT_SYNCH,
                          Common_TimePolicy_t,
-                         Stream_ModuleConfiguration> Stream_IModule_t;
+                         Stream_ModuleConfiguration,
+                         Stream_ModuleHandlerConfiguration> Stream_IModule_t;
 typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
                             Common_TimePolicy_t> Stream_Iterator_t;
 
 struct Stream_Configuration
 {
-  Stream_Configuration ()
+  inline Stream_Configuration ()
    : bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
    , cloneModule (false) // *NOTE*: cloneModule ==> deleteModule
    , deleteModule (false)
    , messageAllocator (NULL)
    , module (NULL)
    , moduleConfiguration (NULL)
+   , moduleHandlerConfiguration (NULL)
    , notificationStrategy (NULL)
    , printFinalReport (false)
    , serializeOutput (false)
@@ -120,24 +138,45 @@ struct Stream_Configuration
    , useThreadPerConnection (false)
   {};
 
-  unsigned int                bufferSize;
-  bool                        cloneModule;
-  bool                        deleteModule;
-  Stream_IAllocator*          messageAllocator;
-  Stream_Module_t*            module;
-  Stream_ModuleConfiguration* moduleConfiguration;
-  ACE_Notification_Strategy*  notificationStrategy;
-  bool                        printFinalReport;
+  unsigned int                       bufferSize;
+  bool                               cloneModule;
+  bool                               deleteModule;
+  Stream_IAllocator*                 messageAllocator;
+  Stream_Module_t*                   module;
+  Stream_ModuleConfiguration*        moduleConfiguration;
+  Stream_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  ACE_Notification_Strategy*         notificationStrategy;
+  bool                               printFinalReport;
   // *IMPORTANT NOTE*: in a multi-threaded environment, threads MAY be
   //                   dispatching the reactor notification queue concurrently
   //                   (most notably, ACE_TP_Reactor)
   //                   --> enforce proper serialization
-  bool                        serializeOutput;
-  unsigned int                statisticReportingInterval; // 0: don't report
-  bool                        useThreadPerConnection;
+  bool                               serializeOutput;
+  unsigned int                       statisticReportingInterval; // 0: don't report
+  bool                               useThreadPerConnection;
 };
 
-typedef Stream_SessionDataBase_T<Stream_State> Stream_SessionData_t;
+struct Stream_ModuleConfiguration
+{
+  inline Stream_ModuleConfiguration ()
+   : streamConfiguration (NULL)
+  {};
+
+//  // *TODO*: consider moving this somewhere else
+//  Stream_State* streamState;
+  Stream_Configuration* streamConfiguration;
+};
+
+struct Stream_ModuleHandlerConfiguration
+{
+  inline Stream_ModuleHandlerConfiguration ()
+   : streamConfiguration (NULL)
+  {};
+
+  Stream_Configuration* streamConfiguration;
+};
+
+typedef Stream_SessionDataBase_T<Stream_SessionData> Stream_SessionData_t;
 
 typedef Stream_StatisticHandler_Reactor_T<Stream_Statistic> Stream_StatisticHandler_Reactor_t;
 typedef Stream_StatisticHandler_Proactor_T<Stream_Statistic> Stream_StatisticHandler_Proactor_t;

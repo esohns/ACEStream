@@ -26,8 +26,7 @@
 #include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
-#include "ace/Thread_Mutex.h"
-//#include "ace/Synch.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_idumpstate.h"
 
@@ -37,14 +36,14 @@
 enum Stream_MessageType_t
 {
   // *NOTE*: see <ace/Message_Block.h> for details...
-  MESSAGE_SESSION_MAP = ACE_Message_Block::MB_USER,
+  MESSAGE_SESSION_MAP  = ACE_Message_Block::MB_USER,
   // *** STREAM CONTROL ***
   MESSAGE_SESSION,
   // *** STREAM CONTROL - END ***
-  MESSAGE_DATA_MAP = 0x300,
+  MESSAGE_DATA_MAP     = 0x300,
   // *** STREAM DATA ***
   MESSAGE_DATA,   // protocol data
-  MESSAGE_OBJECT, // OO type --> can be downcast dynamically
+  MESSAGE_OBJECT, // (OO) message object type (--> can be downcast dynamically)
   // *** STREAM DATA - END ***
   MESSAGE_PROTOCOL_MAP = 0x400
 };
@@ -96,15 +95,15 @@ class Stream_Export Stream_MessageBase
  private:
   typedef ACE_Message_Block inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase& operator= (const Stream_MessageBase&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase& operator= (const Stream_MessageBase&))
 
   // overrides from ACE_Message_Block
-  // *WARNING*: most probably, any children need to override this as well !
+  // *IMPORTANT NOTE*: children ALWAYS need to override this too !
   virtual ACE_Message_Block* duplicate (void) const;
 
   // atomic ID generator
-  static ACE_Atomic_Op<ACE_Thread_Mutex,
+  static ACE_Atomic_Op<ACE_SYNCH_MUTEX,
                        unsigned int> currentID;
 
   unsigned int messageID_;

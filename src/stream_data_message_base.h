@@ -22,12 +22,13 @@
 #define STREAM_DATA_MESSAGE_BASE_H
 
 #include "ace/Global_Macros.h"
-#include "ace/Message_Block.h"
 
 #include "stream_message_base.h"
 
 // forward declarations
 class ACE_Allocator;
+class ACE_Data_Block;
+class ACE_Message_Block;
 
 template <typename DataType,
           typename CommandType>
@@ -67,11 +68,13 @@ class Stream_DataMessageBase_T
 
  private:
   typedef Stream_MessageBase inherited;
-  typedef Stream_DataMessageBase_T<DataType,
-                                   CommandType> own_type;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T& operator= (const Stream_DataMessageBase_T&));
+  // convenient typedefs
+  typedef Stream_DataMessageBase_T<DataType,
+                                   CommandType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T& operator= (const Stream_DataMessageBase_T&))
 
   // overriden from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const = 0;

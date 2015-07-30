@@ -27,23 +27,26 @@
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_StreamModule_T<TaskSynchType,
                       TimePolicyType,
                       ConfigurationType,
+                      HandlerConfigurationType,
                       ReaderTaskType,
                       WriterTaskType>::Stream_StreamModule_T (const std::string& name_in,
                                                               Common_IRefCount* refCount_in)
  : inherited (name_in,
               &writer_,    // initialize writer side task
               &reader_,    // initialize reader side task
-              refCount_in) // arg passed to task open()
+              refCount_in) // argument passed to task open()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModule_T::Stream_StreamModule_T"));
 
-  // set task links to the module...
-  // *NOTE*: essential for dereferencing (name-lookups, controlled shutdown, etc)
+  // set task links to the module
+  // *NOTE*: essential for dereferencing (name-lookups, controlled shutdown,
+  //         etc)
   writer_.mod_ = this;
   reader_.mod_ = this;
   //reader_.flags_ |= ACE_Task_Flags::ACE_READER;
@@ -52,20 +55,22 @@ Stream_StreamModule_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_StreamModule_T<TaskSynchType,
                       TimePolicyType,
                       ConfigurationType,
+                      HandlerConfigurationType,
                       ReaderTaskType,
                       WriterTaskType>::~Stream_StreamModule_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModule_T::~Stream_StreamModule_T"));
 
-  // *NOTE*: the base class will invoke close() which will
-  // invoke module_closed() and flush on every task...
+  // *NOTE*: the base class invokes close(), which invokes module_closed()
+  //         and flush() on every task...
   // *WARNING*: all member tasks will be destroyed by the time that happens...
-  // --> close() all modules in advance so it doesn't happen here !!!
+  //            --> close() all modules in advance so it doesn't happen here !!!
 
   // sanity check: on the stream ?
   Stream_Module_t* module_p = inherited::next ();
@@ -98,10 +103,12 @@ Stream_StreamModule_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename HandlerConfigurationType,
           typename TaskType>
 Stream_StreamModuleInputOnly_T<TaskSynchType,
                                TimePolicyType,
                                ConfigurationType,
+                               HandlerConfigurationType,
                                TaskType>::Stream_StreamModuleInputOnly_T(const std::string& name_in,
                                                                          Common_IRefCount* refCount_in)
  : inherited (name_in,     // name
@@ -114,21 +121,24 @@ Stream_StreamModuleInputOnly_T<TaskSynchType,
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename ConfigurationType,
+          typename HandlerConfigurationType,
           typename TaskType>
 Stream_StreamModuleInputOnly_T<TaskSynchType,
                                TimePolicyType,
                                ConfigurationType,
+                               HandlerConfigurationType,
                                TaskType>::~Stream_StreamModuleInputOnly_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModuleInputOnly_T::~Stream_StreamModuleInputOnly_T"));
 
-  // *NOTE*: the base class will invoke close() which will
-  // invoke module_closed() and flush on every task...
+  // *NOTE*: the base class invokes close(), which invokes module_closed()
+  //         and flush() on every task...
   // *WARNING*: all member tasks will be destroyed by the time that happens...
-  // --> close() all modules in advance so it doesn't happen here !!!
+  //            --> close() all modules in advance so it doesn't happen here !!!
 
   // sanity check: on the stream ?
-  if (inherited::next () == NULL)
+  Stream_Module_t* module_p = inherited::next ();
+  if (!module_p)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("manually closing module: \"%s\"\n"),

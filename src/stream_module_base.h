@@ -35,7 +35,10 @@ class Common_IRefCount;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          ///////////////////////////////
           typename ConfigurationType,
+          typename HandlerConfigurationType,
+          ///////////////////////////////
           typename ReaderTaskType,
           typename WriterTaskType>
 class Stream_Module_Base_T
@@ -43,7 +46,8 @@ class Stream_Module_Base_T
                      TimePolicyType>,
    public Stream_IModule_T<TaskSynchType,
                            TimePolicyType,
-                           ConfigurationType>
+                           ConfigurationType,
+                           HandlerConfigurationType>
 {
  public:
   // convenient types
@@ -51,13 +55,15 @@ class Stream_Module_Base_T
   //  typedef WriterTaskType WRITER_TASK_T;
   typedef Stream_IModule_T<TaskSynchType,
                            TimePolicyType,
-                           ConfigurationType> IMODULE_T;
+                           ConfigurationType,
+                           HandlerConfigurationType> IMODULE_T;
 
   virtual ~Stream_Module_Base_T ();
 
   // implement (part of) Stream_IModule_T
   virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&);
+  virtual const HandlerConfigurationType& get ();
   virtual void reset ();
 
  protected:
@@ -77,14 +83,15 @@ class Stream_Module_Base_T
   // convenient types
   typedef ACE_Module<TaskSynchType,
                      TimePolicyType> MODULE_T;
+  typedef Stream_IModuleHandler_T<HandlerConfigurationType> IMODULEHANDLER_T;
 
   // implement (part of) Stream_IModule
   virtual ACE_Module<TaskSynchType,
                      TimePolicyType>* clone ();
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T (const Stream_Module_Base_T&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T& operator= (const Stream_Module_Base_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T (const Stream_Module_Base_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T& operator= (const Stream_Module_Base_T&))
 
   ReaderTaskType*   reader_;
   WriterTaskType*   writer_;

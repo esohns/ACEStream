@@ -165,7 +165,7 @@ Stream_Task_T<TaskSynchStrategyType,
 
   // *NOTE*: the default behavior is to simply dump state at the end of a
   // session...
-  switch (message_inout->getType ())
+  switch (message_inout->type ())
   {
     case SESSION_STEP:
       break;
@@ -195,8 +195,8 @@ Stream_Task_T<TaskSynchStrategyType,
     default:
     {
       std::string type_string;
-      Stream_SessionMessage::SessionMessageType2String(message_inout->getType (),
-                                                       type_string);
+      Stream_SessionMessage::SessionMessageType2String (message_inout->type (),
+                                                        type_string);
 
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("invalid/unknown session message (type: \"%s\")\n"),
@@ -430,9 +430,9 @@ Stream_Task_T<TaskSynchStrategyType,
                       ACE_TEXT ("caught an exception in handleSessionMessage(), continuing\n")));
       }
 
-      // *NOTE*: if this was a RPG_Stream_SessionMessage::MB_STREAM_SESSION_END, we need to
-      // stop processing (see above) !
-      if (session_message->getType () == SESSION_END)
+      // *NOTE*: if this was a Stream_SessionMessage::MB_STREAM_SESSION_END,
+      //         stop processing (see above) !
+      if (session_message->type () == SESSION_END)
       {
         // OK: tell worker thread to stop whatever it's doing ASAP...
         stopProcessing_out = true;
@@ -442,8 +442,9 @@ Stream_Task_T<TaskSynchStrategyType,
     }
     default:
     {
-      // *NOTE*: if someone defines his own control message type and enqueues it
-      // on the stream, it will land here (this is just a sanity check warning...)
+      // *NOTE*: if someone defines their own control message type and enqueues
+      //         it on the stream, it will land here (this is just a sanity
+      //         check warning...)
       if (inherited::module ())
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("module \"%s\": received an unknown control message (type: %d), continuing\n"),

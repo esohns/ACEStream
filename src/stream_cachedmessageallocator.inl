@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <limits>
+
 #include "stream_defines.h"
 #include "stream_macros.h"
 
@@ -126,7 +128,7 @@ Stream_CachedMessageAllocator_T<MessageType,
   if (!message_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("unable to allocate [Session]MessageType(%u), aborting\n"),
+                ACE_TEXT ("unable to allocate [Session]MessageType(%u): \"%m\", aborting\n"),
                 bytes_in));
 
     // clean up
@@ -136,7 +138,8 @@ Stream_CachedMessageAllocator_T<MessageType,
   } // end IF
 
   // ... and return the result
-  // *NOTE*: the caller knows what to expect (either MessageType || SessionMessageType)
+  // *NOTE*: the caller knows what to expect (either MessageType ||
+  //         SessionMessageType)
   return message_p;
 }
 
@@ -163,6 +166,18 @@ Stream_CachedMessageAllocator_T<MessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::free"));
 
+  // *IMPORTANT NOTE*: need to distinguish between MessageType and
+  //                   SessionMessageType here...
+  ACE_Message_Block* message_block_p =
+      static_cast<ACE_Message_Block*> (handle_in);
+  ACE_ASSERT (message_block_p);
+  // *IMPORTANT NOTE*: this is an ugly hack
+  //                   (see stream_data_message_base.inl:130 and
+  //                        stream_session_message_base.inl:130)
+  if (message_block_p->msg_priority () == std::numeric_limits<unsigned long>::max ())
+    messageAllocator_.free (handle_in);
+  else
+    sessionMessageAllocator_.free (handle_in);
 }
 
 template <typename MessageType,

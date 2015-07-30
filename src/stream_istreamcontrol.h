@@ -22,10 +22,12 @@
 #define STREAM_ISTREAMCONTROL_H
 
 #include "common_icontrol.h"
+//#include "common_iget.h"
 
-template <typename StreamStateType>
+template <typename StateType>
 class Stream_IStreamControl_T
  : public Common_IControl
+// , public Common_IGet_T<StateType>
 {
  public:
   inline virtual ~Stream_IStreamControl_T () {};
@@ -34,7 +36,7 @@ class Stream_IStreamControl_T
   virtual void rewind () = 0;
   virtual void waitForCompletion () = 0;
 
-  virtual const StreamStateType* getState () const = 0;
+  virtual const StateType& state () const = 0;
 };
 
 #endif

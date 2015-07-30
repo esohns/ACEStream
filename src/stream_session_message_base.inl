@@ -18,18 +18,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <limits>
+
 #include "ace/Log_Msg.h"
 #include "ace/Malloc_Base.h"
 
 #include "stream_macros.h"
 #include "stream_message_base.h"
 
-template <typename StreamStateType,
-          typename SessionDataType>
-Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::Stream_SessionMessageBase_T (Stream_SessionMessageType messageType_in,
-                                                                           StreamStateType* streamState_in,
-                                                                           SessionDataType* sessionData_in)
+template <typename SessionDataType,
+          typename UserDataType>
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::Stream_SessionMessageBase_T (Stream_SessionMessageType messageType_in,
+                                                                        SessionDataType*& sessionData_inout,
+                                                                        UserDataType* userData_in)
  : inherited (0,                                  // size
               MESSAGE_SESSION,                    // type
               NULL,                               // continuation
@@ -43,64 +45,66 @@ Stream_SessionMessageBase_T<StreamStateType,
               NULL)                               // message block allocator
  , isInitialized_ (true)
  , messageType_ (messageType_in)
- , streamState_ (streamState_in)
- , sessionData_ (sessionData_in)
+ , sessionData_ (sessionData_inout)
+ , userData_ (userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
+  // *NOTE*: assumes responsibility for the handle !
+  sessionData_inout = NULL;
 }
 
-template <typename StreamStateType,
-          typename SessionDataType>
-Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::Stream_SessionMessageBase_T (ACE_Allocator* messageAllocator_in)
+template <typename SessionDataType,
+          typename UserDataType>
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::Stream_SessionMessageBase_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
  , isInitialized_ (false)
  , messageType_ (STREAM_SESSION_MAP)
- , streamState_ (NULL)
  , sessionData_ (NULL)
+ , userData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
   // reset read/write pointers
-  reset ();
+  inherited::reset ();
 }
 
-template <typename StreamStateType,
-          typename SessionDataType>
-Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::Stream_SessionMessageBase_T (ACE_Data_Block* dataBlock_in,
-                                                                           ACE_Allocator* messageAllocator_in)
+template <typename SessionDataType,
+          typename UserDataType>
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::Stream_SessionMessageBase_T (ACE_Data_Block* dataBlock_in,
+                                                                        ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) data block
               0,                   // flags --> also "free" data block in dtor
               messageAllocator_in) // re-use the same allocator
  , isInitialized_ (false)
  , messageType_ (STREAM_SESSION_MAP) // == Stream_MessageBase::MB_STREAM_SESSION
- , streamState_ (NULL)
  , sessionData_ (NULL)
+ , userData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
   // set correct message type
   // *WARNING*: need to finalize initialization through initialize()
-  msg_type (MESSAGE_SESSION);
+  inherited::msg_type (MESSAGE_SESSION);
 
   // reset read/write pointers
-  reset ();
+  inherited::reset ();
 }
 
-template <typename StreamStateType,
-          typename SessionDataType>
-Stream_SessionMessageBase_T<StreamStateType,
-SessionDataType>::Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<StreamStateType,
-                                                                                 SessionDataType>& message_in)
+template <typename SessionDataType,
+          typename UserDataType>
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<SessionDataType,
+                                                                                                          UserDataType>& message_in)
  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of the data block
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
  , isInitialized_ (message_in.isInitialized_)
  , messageType_ (message_in.messageType_)
- , streamState_ (message_in.streamState_)
  , sessionData_ (message_in.sessionData_)
+ , userData_ (message_in.userData_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
@@ -110,16 +114,20 @@ SessionDataType>::Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T
     sessionData_->increase ();
 
   // set read/write pointers
-  rd_ptr (message_in.rd_ptr ());
-  wr_ptr (message_in.wr_ptr ());
+  inherited::rd_ptr (message_in.rd_ptr ());
+  inherited::wr_ptr (message_in.wr_ptr ());
 }
 
-template <typename StreamStateType,
-          typename SessionDataType>
-Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::~Stream_SessionMessageBase_T ()
+template <typename SessionDataType,
+          typename UserDataType>
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::~Stream_SessionMessageBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::~Stream_SessionMessageBase_T"));
+
+  // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
+  //                   (see e.g. stream_cachedmessageallocator.cpp:172)
+  inherited::priority_ = std::numeric_limits<unsigned long>::min ();
 
   messageType_ = STREAM_SESSION_MAP; // == Stream_MessageBase::MB_STREAM_SESSION
 
@@ -129,44 +137,50 @@ Stream_SessionMessageBase_T<StreamStateType,
   isInitialized_ = false;
 }
 
-template <typename StreamStateType,
-          typename SessionDataType>
+template <typename SessionDataType,
+          typename UserDataType>
 Stream_SessionMessageType
-Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::getType () const
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::type () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::getType"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::type"));
 
   return messageType_;
 }
 
-template <typename StreamStateType,
-          typename SessionDataType>
-const StreamStateType*
-Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::getState () const
+template <typename SessionDataType,
+          typename UserDataType>
+const SessionDataType&
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::get () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::getState"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::get"));
 
-  return streamState_;
+  if (sessionData_)
+    return *sessionData_;
+
+  return SessionDataType ();
 }
 
-template <typename StreamStateType,
-          typename SessionDataType>
-const SessionDataType*
-Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::getData () const
+template <typename SessionDataType,
+          typename UserDataType>
+const UserDataType&
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::data () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::getData"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::data"));
 
-  return sessionData_;
+  if (userData_)
+    return *userData_;
+
+  return UserDataType ();
 }
 
-template <typename StreamStateType,
-          typename SessionDataType>
+template <typename SessionDataType,
+          typename UserDataType>
 ACE_Message_Block*
-Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::duplicate (void) const
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::duplicate"));
 
@@ -204,34 +218,35 @@ Stream_SessionMessageBase_T<StreamStateType,
   return message_p;
 }
 
-template <typename StreamStateType,
-          typename SessionDataType>
+template <typename SessionDataType,
+          typename UserDataType>
 void
-Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::initialize (Stream_SessionMessageType messageType_in,
-                                                          StreamStateType* streamState_in,
-                                                          SessionDataType* sessionData_in)
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::initialize (Stream_SessionMessageType messageType_in,
+                                                       SessionDataType*& sessionData_inout,
+                                                       UserDataType* userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::initialize"));
 
   ACE_ASSERT (!isInitialized_);
   ACE_ASSERT (messageType_ == STREAM_SESSION_MAP);
-  ACE_ASSERT (!streamState_);
   ACE_ASSERT (!sessionData_);
+  ACE_ASSERT (!userData_);
 
   messageType_ = messageType_in;
-  streamState_ = streamState_in;
-  // *NOTE*: assumes lifetime responsibility for the handle !
-  sessionData_ = sessionData_in;
+  // *NOTE*: assumes responsibility for the handle !
+  sessionData_ = sessionData_inout;
+  sessionData_inout = NULL;
+  userData_ = userData_in;
 
   isInitialized_ = true;
 }
 
-template <typename StreamStateType,
-          typename SessionDataType>
+template <typename SessionDataType,
+          typename UserDataType>
 void
-Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::dump_state () const
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::dump_state"));
 
@@ -257,16 +272,16 @@ Stream_SessionMessageBase_T<StreamStateType,
   } // end IF
 }
 
-template <typename StreamStateType,
-          typename SessionDataType>
+template <typename SessionDataType,
+          typename UserDataType>
 void
-Stream_SessionMessageBase_T<StreamStateType,
-                            SessionDataType>::SessionMessageType2String (Stream_SessionMessageType messageType_in,
-                                                                         std::string& string_out)
+Stream_SessionMessageBase_T<SessionDataType,
+                            UserDataType>::SessionMessageType2String (Stream_SessionMessageType messageType_in,
+                                                                      std::string& string_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::SessionMessageType2String"));
 
-  // init return value(s)
+  // initialize return value(s)
   string_out = ACE_TEXT_ALWAYS_CHAR ("INVALID_TYPE");
 
   switch (messageType_in)

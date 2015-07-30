@@ -97,7 +97,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
   // *NOTE*: the default behavior is to simply dump the state at the
   // end of a session...
-  switch (message_inout->getType ())
+  switch (message_inout->type ())
   {
     case SESSION_BEGIN:
     case SESSION_STEP:
@@ -127,7 +127,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
     default:
     {
       std::string type_string;
-      Stream_SessionMessage::SessionMessageType2String (message_inout->getType (),
+      Stream_SessionMessage::SessionMessageType2String (message_inout->type (),
                                                         type_string);
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("invalid/unknown session message (type: \"%s\")\n"),
@@ -390,7 +390,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
       // *NOTE*: if this was a Stream_SessionMessage::SESSION_END, stop
       //         processing (see above) !
-      if (session_message_p->getType () == SESSION_END)
+      if (session_message_p->type () == SESSION_END)
       {
         // OK: tell any worker thread to stop whatever it's doing ASAP...
         stopProcessing_out = true;
