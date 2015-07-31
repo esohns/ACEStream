@@ -80,10 +80,10 @@ Stream_Module_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::~Stream_Module_Base_T"));
 
-  // *NOTE*: the base class will invoke close() which will
-  // invoke module_closed() and flush on every task...
-  // *WARNING*: all member tasks will be destroyed by the time that happens...
-  // --> close() all modules in advance so it doesn't happen here !!!
+  // *WARNING*: the ACE_Module dtor calls close() on the tasks, implicitly
+  //            calling module_closed() and flush() on every task. However, all
+  //            member tasks have been destroyed by the time that happens
+  //            --> close() module in advance so it doesn't happen here !
 }
 
 template <typename TaskSynchType,

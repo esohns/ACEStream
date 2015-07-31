@@ -1,1 +1,2 @@
 - move src/stream.cpp/h to test_u
+- move src/stream_session_message.cpp/h to test_u

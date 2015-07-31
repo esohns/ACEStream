@@ -220,11 +220,11 @@ Stream_TaskBase_T<TaskSynchStrategyType,
         std::string type;
         Stream_MessageBase::MessageType2String (mb_in->msg_type (),
                                                 type);
-
-        if (inherited::module ())
+        Stream_Module_t* module_p = inherited::module ();
+        if (module_p)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": dynamic_cast<ProtocolMessageType*>(%@) failed (type was: \"%s\"), aborting\n"),
-                      ACE_TEXT (inherited::module ()->name ()),
+                      module_p->name (),
                       mb_in,
                       ACE_TEXT (type.c_str ())));
         else
@@ -243,9 +243,9 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       try
       {
         // invoke specific implementation...
-        // *IMPORTANT NOTE*: invoke OWN implementation here, otherwise, the
-        // ld linker complains about a missing reference to
-        // StreamITaskBase::handleDataMessage...
+        // *IMPORTANT NOTE*: invoke OWN implementation here, otherwise, the (ld)
+        //                   linker complains about a missing reference to
+        //                   StreamITaskBase::handleDataMessage...
         this->handleDataMessage (message_p,
                                  passMessageDownstream);
       }

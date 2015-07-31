@@ -101,8 +101,8 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_Message_Block* message_p = NULL;
   try
   {
-    // allocate memory and perform a placement new by invoking a ctor
-    // on the allocated space
+    // allocate memory and perform a placement new by invoking a ctor on the
+    // allocated space
     if (bytes_in)
       ACE_NEW_MALLOC_NORETURN (message_p,
                                static_cast<MessageType*> (messageAllocator_.malloc (sizeof (MessageType))),
@@ -152,10 +152,32 @@ Stream_CachedMessageAllocator_T<MessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::calloc"));
 
-  ACE_UNUSED_ARG (initialValue_in);
+  void* result_p = NULL;
+  try
+  {
+    // allocate memory only
+    if (bytes_in)
+      ACE_ALLOCATOR_NORETURN (result_p,
+                              messageAllocator_.calloc (sizeof (MessageType),
+                                                        initialValue_in));
+    else
+      ACE_ALLOCATOR_NORETURN (result_p,
+                              sessionMessageAllocator_.calloc (sizeof (SessionMessageType),
+                                                               initialValue_in));
+  }
+  catch (...)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN([Session]MessageType(%u), continuing\n"),
+                bytes_in));
+    result_p = NULL;
+  }
+  if (!result_p)
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate [Session]MessageType(%u): \"%m\", aborting\n"),
+                bytes_in));
 
-  // just delegate this...
-  return malloc (bytes_in);
+  return result_p;
 }
 
 template <typename MessageType,

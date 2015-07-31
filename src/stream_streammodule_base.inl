@@ -67,10 +67,10 @@ Stream_StreamModule_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModule_T::~Stream_StreamModule_T"));
 
-  // *NOTE*: the base class invokes close(), which invokes module_closed()
-  //         and flush() on every task...
-  // *WARNING*: all member tasks will be destroyed by the time that happens...
-  //            --> close() all modules in advance so it doesn't happen here !!!
+  // *WARNING*: the ACE_Module dtor calls close() on the tasks, implicitly
+  //            calling module_closed() and flush() on every task. However, all
+  //            member tasks have been destroyed by the time that happens
+  //            --> close() module in advance so it doesn't happen here !
 
   // sanity check: on the stream ?
   Stream_Module_t* module_p = inherited::next ();
@@ -131,10 +131,10 @@ Stream_StreamModuleInputOnly_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModuleInputOnly_T::~Stream_StreamModuleInputOnly_T"));
 
-  // *NOTE*: the base class invokes close(), which invokes module_closed()
-  //         and flush() on every task...
-  // *WARNING*: all member tasks will be destroyed by the time that happens...
-  //            --> close() all modules in advance so it doesn't happen here !!!
+  // *WARNING*: the ACE_Module dtor calls close() on the tasks, implicitly
+  //            calling module_closed() and flush() on every task. However, all
+  //            member tasks have been destroyed by the time that happens
+  //            --> close() module in advance so it doesn't happen here !
 
   // sanity check: on the stream ?
   Stream_Module_t* module_p = inherited::next ();

@@ -131,7 +131,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   // otherwise, process manually...
   bool stop_processing = false;
   inherited2::handleMessage (mb_in,
-                            stop_processing);
+                             stop_processing);
 
   // finished ?
   if (stop_processing)
