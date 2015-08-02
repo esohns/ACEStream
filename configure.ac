@@ -92,10 +92,11 @@ AC_ARG_ENABLE([debug],
               [debug=$debug_default])
 AM_CONDITIONAL([DEBUG], [test x$debug = xyes])
 if test x$debug = xyes; then
-  CXXFLAGS_DEBUG="-g -O0 -fno-inline -D_DEBUG"
+  CXXFLAGS_DEBUG="-g -O0 -fno-inline -Wall -D_DEBUG"
   AC_MSG_RESULT([yes])
 else
-  CXXFLAGS_DEBUG="-O3 -Werror -DACE_NDEBUG"
+#  CXXFLAGS_DEBUG="-O3 -Werror -DACE_NDEBUG"
+  CXXFLAGS_DEBUG="-O3 -Wall -DACE_NDEBUG"
   AC_MSG_RESULT([no])
 fi
 
