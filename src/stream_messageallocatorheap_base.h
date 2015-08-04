@@ -25,7 +25,6 @@
 
 #include "ace/Atomic_Op.h"
 #include "ace/Malloc_Allocator.h"
-//#include "ace/Synch.h"
 #include "ace/Synch_Traits.h"
 #include "ace/Thread_Semaphore.h"
 
@@ -72,11 +71,8 @@ class Stream_MessageAllocatorHeapBase_T
  private:
   typedef ACE_New_Allocator inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageAllocatorHeapBase_T (const Stream_MessageAllocatorHeapBase_T<MessageType, SessionMessageType>&));
-  // *NOTE*: apparently, ACE_UNIMPLEMENTED_FUNC gets confused with more than one template parameter...
-//   ACE_UNIMPLEMENTED_FUNC (Stream_MessageAllocatorHeapBase_T<MessageType,
-//                                                             SessionMessageType>& operator= (const Stream_MessageAllocatorHeapBase_T<MessageType,
-//                                                                                          SessionMessageType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageAllocatorHeapBase_T (const Stream_MessageAllocatorHeapBase_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageAllocatorHeapBase_T& operator= (const Stream_MessageAllocatorHeapBase_T&))
 
   // these methods are ALL no-ops and will FAIL !
   // *NOTE*: this method is a no-op and just returns NULL

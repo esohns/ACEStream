@@ -29,12 +29,17 @@
 #include "common_idumpstate.h"
 #include "common_iget.h"
 
-#include "stream_message_base.h"
+#include "stream_common.h"
+#include "stream_messageallocatorheap_base.h"
+
+// forward declarations
+class ACE_Allocator;
+class Stream_MessageBase;
 
 enum Stream_SessionMessageType
 {
   // *NOTE*: see <stream_message_base.h> for details...
-  STREAM_SESSION_MAP = MESSAGE_SESSION_MAP,
+  STREAM_SESSION_MAP = ACE_Message_Block::MB_USER,
   // *** STREAM CONTROL ***
   SESSION_BEGIN,
   SESSION_STEP,
@@ -42,9 +47,6 @@ enum Stream_SessionMessageType
   SESSION_STATISTICS
   // *** STREAM CONTROL - END ***
 };
-
-// forward declarations
-class ACE_Allocator;
 
 template <typename SessionDataType,
           typename UserDataType>
@@ -54,6 +56,11 @@ class Stream_SessionMessageBase_T
  , public Common_IGet_T<SessionDataType>
     // , public Common_IGet_T<UserDataType>
 {
+  // grant access to specific ctors
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_MessageBase,
+                                                 Stream_SessionMessageBase_T<Stream_SessionData,
+                                                                             Stream_UserData> >;
+
  public:
   // *NOTE*: assumes responsibility for the second argument !
   Stream_SessionMessageBase_T (Stream_SessionMessageType,

@@ -70,7 +70,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>STREAM_BUILD_DLL;LIBACESTREAM_EXPORTS;WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\3rd_party\msvc;D:\projects\yarp\modules\libACENetwork\3rd_party\msvc;$(ProjectDir)..\..\..\libCommon\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\projects\ATCD\ACE;$(ProjectDir)..\..\3rd_party\msvc;D:\projects\yarp\modules\libACENetwork\3rd_party\msvc;$(ProjectDir)..\..\..\libCommon\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <BrowseInformation>false</BrowseInformation>
       <MinimalRebuild>false</MinimalRebuild>
@@ -80,7 +80,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\projects\ATCD\ACE\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -92,7 +92,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>STREAM_BUILD_DLL;LIBACESTREAM_EXPORTS;NDEBUG;WIN32;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\3rd_party\msvc;$(ProjectDir)..\..\..\libCommon\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\projects\ATCD\ACE;$(ProjectDir)..\..\3rd_party\msvc;$(ProjectDir)..\..\..\libCommon\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -101,17 +101,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\projects\ATCD\ACE\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\src\stream_allocatorheap.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
@@ -145,15 +141,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\src\stream_headmoduletask.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\src\stream_headmoduletask_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_messageallocatorheap.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
@@ -189,13 +177,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\src\stream_session_message.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\src\stream_session_message_base.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ShowIncludes>
+      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ShowIncludes>
     </ClCompile>
     <ClCompile Include="..\..\src\stream_statemachine_control.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
@@ -206,14 +194,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\src\stream_streammodule_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_task.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_task_asynch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
@@ -229,10 +209,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\src\stream_task_synch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\src\stream_tools.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
@@ -240,7 +216,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\stdafx.h" />
-    <ClInclude Include="..\..\src\stream.h" />
     <ClInclude Include="..\..\src\stream_allocatorheap.h" />
     <ClInclude Include="..\..\src\stream_base.h" />
     <ClInclude Include="..\..\src\stream_cachedallocatorheap.h" />
@@ -252,7 +227,6 @@
     <ClInclude Include="..\..\src\stream_data_message_base.h" />
     <ClInclude Include="..\..\src\stream_defines.h" />
     <ClInclude Include="..\..\src\stream_exports.h" />
-    <ClInclude Include="..\..\src\stream_headmoduletask.h" />
     <ClInclude Include="..\..\src\stream_headmoduletask_base.h" />
     <ClInclude Include="..\..\src\stream_iallocator.h" />
     <ClInclude Include="..\..\src\stream_imessagequeue.h" />
@@ -260,7 +234,6 @@
     <ClInclude Include="..\..\src\stream_istreamcontrol.h" />
     <ClInclude Include="..\..\src\stream_itask.h" />
     <ClInclude Include="..\..\src\stream_macros.h" />
-    <ClInclude Include="..\..\src\stream_messageallocatorheap.h" />
     <ClInclude Include="..\..\src\stream_messageallocatorheap_base.h" />
     <ClInclude Include="..\..\src\stream_messagequeue.h" />
     <ClInclude Include="..\..\src\stream_messagequeue_base.h" />
@@ -269,17 +242,13 @@
     <ClInclude Include="..\..\src\stream_resetcounterhandler.h" />
     <ClInclude Include="..\..\src\stream_session_data.h" />
     <ClInclude Include="..\..\src\stream_session_data_base.h" />
-    <ClInclude Include="..\..\src\stream_session_message.h" />
     <ClInclude Include="..\..\src\stream_session_message_base.h" />
     <ClInclude Include="..\..\src\stream_statemachine_control.h" />
     <ClInclude Include="..\..\src\stream_statistichandler.h" />
     <ClInclude Include="..\..\src\stream_streammodule_base.h" />
-    <ClInclude Include="..\..\src\stream_task.h" />
-    <ClInclude Include="..\..\src\stream_task_asynch.h" />
     <ClInclude Include="..\..\src\stream_task_base.h" />
     <ClInclude Include="..\..\src\stream_task_base_asynch.h" />
     <ClInclude Include="..\..\src\stream_task_base_synch.h" />
-    <ClInclude Include="..\..\src\stream_task_synch.h" />
     <ClInclude Include="..\..\src\stream_tools.h" />
   </ItemGroup>
   <ItemGroup>
@@ -294,7 +263,6 @@
     <None Include="..\..\src\stream_session_message_base.inl" />
     <None Include="..\..\src\stream_statistichandler.inl" />
     <None Include="..\..\src\stream_streammodule_base.inl" />
-    <None Include="..\..\src\stream_task.inl" />
     <None Include="..\..\src\stream_task_base.inl" />
     <None Include="..\..\src\stream_task_base_asynch.inl" />
     <None Include="..\..\src\stream_task_base_synch.inl" />

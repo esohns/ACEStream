@@ -30,8 +30,10 @@
 
 #include "common_idumpstate.h"
 
+#include "stream_common.h"
 #include "stream_exports.h"
-#include "stream_messageallocatorheap.h"
+#include "stream_messageallocatorheap_base.h"
+#include "stream_session_message_base.h"
 
 enum Stream_MessageType_t
 {
@@ -50,14 +52,16 @@ enum Stream_MessageType_t
 
 // forward declaratation(s)
 class ACE_Allocator;
+//template <> class Stream_SessionMessageBase_T<Stream_SessionData, Stream_UserData>;
 
 class Stream_Export Stream_MessageBase
  : public ACE_Message_Block,
    public Common_IDumpState
 {
-  // need access to specific ctors
-  friend class Stream_MessageAllocatorHeap;
-//   friend class Stream_MessageAllocatorHeapBase<arg1, arg2>;
+  // grant access to specific ctors
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_MessageBase,
+                                                 Stream_SessionMessageBase_T<Stream_SessionData,
+                                                                             Stream_UserData> >;
 
  public:
   virtual ~Stream_MessageBase ();

@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\test_u\filecopy\ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\test_u\filecopy\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\test_u\filecopy\stream_callbacks.cpp" />
+    <ClCompile Include="..\..\test_u\filecopy\stream_eventhandler.cpp" />
+    <ClCompile Include="..\..\test_u\filecopy\stream_module_eventhandler.cpp" />
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy.cpp" />
+    <ClCompile Include="..\..\test_u\filecopy\test_u_signalhandler.cpp" />
+    <ClCompile Include="..\..\test_u\stream_module_messagehandler.cpp" />
+    <ClCompile Include="..\..\test_u\stream_module_runtimestatistic.cpp" />
+    <ClCompile Include="..\..\test_u\stream_session_message.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\test_u\filecopy\stdafx.h" />
+    <ClInclude Include="..\..\test_u\filecopy\stream_callbacks.h" />
+    <ClInclude Include="..\..\test_u\filecopy\stream_eventhandler.h" />
+    <ClInclude Include="..\..\test_u\filecopy\stream_module_eventhandler.h" />
+    <ClInclude Include="..\..\test_u\filecopy\targetver.h" />
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_common.h" />
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_defines.h" />
+    <ClInclude Include="..\..\test_u\filecopy\test_u_signalhandler.h" />
+    <ClInclude Include="..\..\test_u\stream_module_messagehandler.h" />
+    <ClInclude Include="..\..\test_u\stream_module_runtimestatistic.h" />
+    <ClInclude Include="..\..\test_u\stream_session_message.h" />
+    <ClInclude Include="..\..\test_u\test_u_common.h" />
+    <ClInclude Include="..\..\test_u\test_u_defines.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\test_u\stream_module_messagehandler.inl" />
+    <None Include="..\..\test_u\stream_module_runtimestatistic.inl" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CFDA594B-A63B-4139-9205-5B2F4850D330}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>test_u_filecopy</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="VS_ProjectPropertySheet_ACEd.props" />
+    <Import Project="VS_ProjectPropertySheet_png_gtk_gnome.props" />
+    <Import Project="VS_ProjectPropertySheet_glade.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="VS_ProjectPropertySheet_ACE.props" />
+    <Import Project="VS_ProjectPropertySheet_png_gtk_gnome.props" />
+    <Import Project="VS_ProjectPropertySheet_glade.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>DEBUG_DEBUGGER;HAVE_CONFIG_H;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>D:\projects\ATCD\ACE;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src;$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src\ui;$(ProjectDir)..\..\..\libCommon\src\ui;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\test_u;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>D:\projects\ATCD\ACE\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>D:\projects\ATCD\ACE;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src;$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src\ui;$(ProjectDir)..\..\..\libCommon\src\ui;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\test_u;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>D:\projects\ATCD\ACE\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -25,7 +25,6 @@
 
 #include "stream_macros.h"
 #include "stream_allocatorheap.h"
-#include "stream_message_base.h"
 
 template <typename MessageType,
           typename SessionMessageType>

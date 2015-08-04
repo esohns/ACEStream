@@ -5,10 +5,10 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>D:\projects\ATCD\ACE</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\modules\ATCD\ACE</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>D:\projects\ATCD\ACE\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\modules\ATCD\ACE\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>ACEd.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

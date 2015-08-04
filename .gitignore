@@ -45,3 +45,5 @@ m4/lt~obsolete.m4
 build/
 Debug/
 Release
+Debug_obj
+ipch

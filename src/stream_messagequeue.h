@@ -44,9 +44,9 @@ class Stream_Export Stream_MessageQueue
   typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue (const Stream_MessageQueue&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue& operator= (const Stream_MessageQueue&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue (const Stream_MessageQueue&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue& operator= (const Stream_MessageQueue&))
 };
 
 #endif

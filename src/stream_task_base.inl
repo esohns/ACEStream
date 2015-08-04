@@ -27,7 +27,6 @@
 
 #include "stream_defines.h"
 #include "stream_message_base.h"
-#include "stream_session_message.h"
 
 template <typename TaskSynchStrategyType,
           typename TimePolicyType,
