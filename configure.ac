@@ -35,7 +35,6 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([config.h.in])
 dnl AC_CONFIG_SUBDIRS([modules/ATCD
 dnl                    modules/libCommon])
-AC_CONFIG_SUBDIRS([modules/libCommon])
 
 LIBACESTREAM_VERSION_API=M4_LIBACESTREAM_VERSION_API
 AC_SUBST([LIBACESTREAM_VERSION_API])
@@ -65,7 +64,7 @@ AC_PROG_RANLIB
 AM_PROG_AR
 
 # initialize other tools
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
 # build time sanity check...
 AM_SANITY_CHECK
 LT_INIT
@@ -147,6 +146,37 @@ CXXFLAGS_BASE="-ansi -std=c++11 -Wall -D_GNU_SOURCE"
 CXXFLAGS="${CXXFLAGS_BASE} ${CXXFLAGS_DEBUG} ${CXXFLAGS_TRACING} ${CXXFLAGS_VALGRIND}"
 AC_SUBST(CXXFLAGS)
 
+# build modules ?
+AC_MSG_CHECKING([enable module support])
+module_support_default="yes"
+AC_ARG_ENABLE([module-support],
+              [AS_HELP_STRING([--enable-module_support], [compile submodules [default="$module_support_default"]])],
+              [case "${enableval}" in
+                 yes) module_support=yes ;;
+                 no)  module_support=no  ;;
+                 *) AC_MSG_ERROR([bad value ${enableval} for --enable-module-support]) ;;
+               esac],
+              [module_support=$module_support_default])
+AM_CONDITIONAL([BUILD_MODULES], [test x$module_support = xyes])
+if test x$module_support = xyes; then
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
+AM_COND_IF([BUILD_MODULES],
+           [AC_CONFIG_SUBDIRS([modules/libCommon])])
+dnl AC_CONFIG_SUBDIRS([modules/ATCD
+dnl                    modules/libCommon])
+#AM_COND_IF([BUILD_MODULES],
+#           [AC_CONFIG_FILES([modules/Makefile])])
+
+# pkgconfig directory (.pc file location)
+AC_ARG_WITH([pkgconfigdir],
+  [AS_HELP_STRING([--with-pkgconfigdir=DIR], [pkgconfig files])],
+  [pkgconfigdir=$withval],
+  [pkgconfigdir="\${libdir}/pkgconfig"])
+AC_SUBST([pkgconfigdir], [$pkgconfigdir])
+
 # checks for typedefs, structures, and compiler characteristics
 AC_C_INLINE
 AC_STRUCT_TIMEZONE
@@ -169,6 +199,10 @@ AC_FUNC_MALLOC
 # checks for libraries
 AM_COND_IF([VALGRIND_SUPPORT],
            [PKG_CHECK_MODULES([PKGVALGRIND], [valgrind])])
+#PKG_CHECK_MODULES([PKGCURSES], [ncurses panel])
+#PKG_CHECK_MODULES([PKGSDL], [sdl SDL_mixer])
+dnl libgnomeui-2.0 >= 1.110.0
+PKG_CHECK_MODULES([PKGGTK], [libpng gmodule-export-2.0 gthread-2.0 gtk+-2.0 libglade-2.0])
 
 # checks for other libraries (non-pkg-config)
 # FIXME: Replace `main' with a function in `-lpthread':
@@ -183,11 +217,20 @@ AC_SEARCH_LIBS([pthread_create], [pthread], , AC_MSG_ERROR([unable to find pthre
 AC_CONFIG_HEADERS([config.h])
 
 AC_CONFIG_FILES([Makefile
+                 3rd_party/Makefile
+                 3rd_party/ACE_wrappers/Makefile
+                 3rd_party/ACE_wrappers/ace/Makefile
+                 3rd_party/ACE_wrappers/include/Makefile
+                 3rd_party/ACE_wrappers/include/makeinclude/Makefile
+                 3rd_party/bison/Makefile
+                 3rd_party/msvc/Makefile
                  m4/Makefile
                  modules/Makefile
                  scripts/Makefile
                  scripts/libACEStream.pc
-                 src/Makefile])
+                 src/Makefile
+                 test_u/Makefile
+                 test_u/filecopy/Makefile
+                 test_u/filecopy/etc/Makefile])
 
 AC_OUTPUT
-

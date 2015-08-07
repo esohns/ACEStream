@@ -190,7 +190,7 @@ Stream_Task_T<TaskSynchStrategyType,
 
       break;
     }
-    case SESSION_STATISTICS:
+    case SESSION_STATISTIC:
       break;
     default:
     {

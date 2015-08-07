@@ -92,6 +92,8 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
 
   ACE_UNUSED_ARG (args_in);
 
+  int result = -1;
+
   // step1: (re-)activate() our queue
   // *NOTE*: the first time around, our queue will have been open()ed
   // from within the default ctor; this sets it into an ACTIVATED state
@@ -99,11 +101,11 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
   // If we come here a second time (i.e. we have been stopped/started, our queue
   // will have been deactivated in the process, and getq() (see svc()) will fail
   // miserably (ESHUTDOWN) --> (re-)activate() our queue
-  if (queue_.activate () == -1)
+  result = queue_.activate ();
+  if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Message_Queue::activate(): \"%m\", aborting\n")));
-
     return -1;
   } // end IF
 
@@ -114,24 +116,23 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
   thread_handles[0] = 0;
 
   // *NOTE*: MUST be THR_JOINABLE
-  int ret = 0;
-  ret = activate ((THR_NEW_LWP      |
-                   THR_JOINABLE     |
-                   THR_INHERIT_SCHED),         // flags
-                  1,                           // number of threads
-                  0,                           // force spawning
-                  ACE_DEFAULT_THREAD_PRIORITY, // priority
-                  inherited::grp_id(),         // group id --> should have been set by now !
-                  NULL,                        // corresp. task --> use 'this'
-                  thread_handles,              // thread handle(s)
-                  NULL,                        // thread stack(s)
-                  NULL,                        // thread stack size(s)
-                  thread_ids);                 // thread id(s)
-  if (ret == -1)
+  result =
+      inherited::activate ((THR_NEW_LWP      |
+                            THR_JOINABLE     |
+                            THR_INHERIT_SCHED),         // flags
+                           1,                           // number of threads
+                           0,                           // force spawning
+                           ACE_DEFAULT_THREAD_PRIORITY, // priority
+                           inherited::grp_id (),        // group id --> should have been set by now !
+                           NULL,                        // corresp. task --> use 'this'
+                           thread_handles,              // thread handle(s)
+                           NULL,                        // thread stack(s)
+                           NULL,                        // thread stack size(s)
+                           thread_ids);                 // thread id(s)
+  if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Task::activate(): \"%m\", aborting\n")));
-
     return -1;
   } // end IF
 
@@ -201,7 +202,6 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
       // --> module_closed() hook is implemented below !!!
       ACE_ASSERT (false);
 
-      // what else can we do ?
       return -1;
     }
     default:
@@ -209,8 +209,6 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid argument: %u, aborting\n"),
                   arg_in));
-
-      // what else can we do ?
       return -1;
     }
   } // end SWITCH
@@ -269,33 +267,30 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::svc"));
 
-  ACE_Message_Block* ace_mb          = NULL;
+  ACE_Message_Block* message_block_p = NULL;
   bool               stop_processing = false;
 
-  while (inherited::getq (ace_mb,
-                          NULL) != -1)
+  while (inherited::getq (message_block_p, NULL) != -1)
   {
-    inherited::handleMessage (ace_mb,
+    inherited::handleMessage (message_block_p,
                               stop_processing);
 
     // finished ?
     if (stop_processing)
     {
-      // *WARNING*: ace_mb has already been released() at this point !
+      // *WARNING*: message_block_p has already been released() at this point !
 
-      // leave loop, we're finished !
       return 0;
     } // end IF
 
-    // init
-    ace_mb = NULL;
+    // initialize
+    message_block_p = NULL;
   } // end WHILE
 
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
-  ACE_ASSERT (false);
-  ACE_NOTREACHED (return -1;)
+  return -1;
 }
 
 template <typename TaskSynchType,
@@ -334,11 +329,13 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::shutdown"));
 
+  int result = -1;
+
 //   if (inherited::module ())
 //   {
 //     ACE_DEBUG ((LM_DEBUG,
 //                 ACE_TEXT ("initiating shutdown of worker thread(s) for module \"%s\"...\n"),
-//                 ACE_TEXT (inherited::name ())));
+//                 inherited::name ()));
 //   } // end IF
 //   else
 //   {
@@ -346,8 +343,8 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
 //                 ACE_TEXT ("initiating shutdown of worker thread(s)...\n")));
 //   } // end ELSE
 
-  ACE_Message_Block* stop_mb = NULL;
-  ACE_NEW_NORETURN (stop_mb,
+  ACE_Message_Block* message_block_p = NULL;
+  ACE_NEW_NORETURN (message_block_p,
                     ACE_Message_Block (0,                                  // size
                                        ACE_Message_Block::MB_STOP,         // type
                                        NULL,                               // continuation
@@ -359,22 +356,21 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
                                        ACE_Time_Value::max_time,           // deadline time
                                        NULL,                               // data block allocator
                                        NULL));                             // message allocator)
-  if (!stop_mb)
+  if (!message_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
-
-    // what else can we do ?
     return;
   } // end IF
 
-  if (put (stop_mb, NULL) == -1)
+  result = put (message_block_p, NULL);
+  if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Task::put(): \"%m\", continuing\n")));
 
     // clean up
-    stop_mb->release ();
+    message_block_p->release ();
   } // end IF
 
 //   if (inherited::module ())

@@ -33,7 +33,7 @@ Stream_SessionMessageBase_T<SessionDataType,
                                                                         SessionDataType*& sessionData_inout,
                                                                         UserDataType* userData_in)
  : inherited (0,                                  // size
-              MESSAGE_SESSION,                    // type
+              STREAM_SESSION_MESSAGE_MAP,         // type
               NULL,                               // continuation
               NULL,                               // data
               NULL,                               // buffer allocator
@@ -44,8 +44,8 @@ Stream_SessionMessageBase_T<SessionDataType,
               NULL,                               // data block allocator
               NULL)                               // message block allocator
  , isInitialized_ (true)
- , messageType_ (messageType_in)
  , sessionData_ (sessionData_inout)
+ , type_ (messageType_in)
  , userData_ (userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
@@ -60,11 +60,15 @@ Stream_SessionMessageBase_T<SessionDataType,
                             UserDataType>::Stream_SessionMessageBase_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
  , isInitialized_ (false)
- , messageType_ (STREAM_SESSION_MAP)
  , sessionData_ (NULL)
+ , type_ (STREAM_SESSION_INVALID)
  , userData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
+
+  // set correct message type
+  // *WARNING*: need to finalize initialization through initialize()
+  inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
 
   // reset read/write pointers
   inherited::reset ();
@@ -79,15 +83,15 @@ Stream_SessionMessageBase_T<SessionDataType,
               0,                   // flags --> also "free" data block in dtor
               messageAllocator_in) // re-use the same allocator
  , isInitialized_ (false)
- , messageType_ (STREAM_SESSION_MAP) // == Stream_MessageBase::MB_STREAM_SESSION
  , sessionData_ (NULL)
+ , type_ (STREAM_SESSION_INVALID)
  , userData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
   // set correct message type
   // *WARNING*: need to finalize initialization through initialize()
-  inherited::msg_type (MESSAGE_SESSION);
+  inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
 
   // reset read/write pointers
   inherited::reset ();
@@ -102,8 +106,8 @@ Stream_SessionMessageBase_T<SessionDataType,
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
  , isInitialized_ (message_in.isInitialized_)
- , messageType_ (message_in.messageType_)
  , sessionData_ (message_in.sessionData_)
+ , type_ (message_in.type_)
  , userData_ (message_in.userData_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
@@ -112,6 +116,8 @@ Stream_SessionMessageBase_T<SessionDataType,
   // *TODO*: clean this up !
   if (sessionData_)
     sessionData_->increase ();
+
+  inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
 
   // set read/write pointers
   inherited::rd_ptr (message_in.rd_ptr ());
@@ -125,16 +131,21 @@ Stream_SessionMessageBase_T<SessionDataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::~Stream_SessionMessageBase_T"));
 
+  isInitialized_ = false;
+  if (sessionData_)
+  {
+    sessionData_->decrease ();
+    sessionData_ = NULL;
+  } // end IF
+  type_ = STREAM_SESSION_INVALID;
+  userData_ = NULL;
+
+//  // *WARNING*: cannot do that anymore (data block has already gone away)...
+//  inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
+
   // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
   //                   (see e.g. stream_cachedmessageallocator.cpp:172)
   inherited::priority_ = std::numeric_limits<unsigned long>::min ();
-
-  messageType_ = STREAM_SESSION_MAP; // == Stream_MessageBase::MB_STREAM_SESSION
-
-  if (sessionData_)
-    sessionData_->decrease ();
-
-  isInitialized_ = false;
 }
 
 template <typename SessionDataType,
@@ -145,7 +156,7 @@ Stream_SessionMessageBase_T<SessionDataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::type"));
 
-  return messageType_;
+  return type_;
 }
 
 template <typename SessionDataType,
@@ -159,6 +170,7 @@ Stream_SessionMessageBase_T<SessionDataType,
   if (sessionData_)
     return *sessionData_;
 
+  ACE_ASSERT (false);
   return SessionDataType ();
 }
 
@@ -173,6 +185,7 @@ Stream_SessionMessageBase_T<SessionDataType,
   if (userData_)
     return *userData_;
 
+  ACE_ASSERT (false);
   return UserDataType ();
 }
 
@@ -184,7 +197,7 @@ Stream_SessionMessageBase_T<SessionDataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::duplicate"));
 
-  SELF_T* message_p = NULL;
+  OWN_TYPE_T* message_p = NULL;
 
   // create a new <Stream_SessionMessageBase_T> that contains unique copies of
   // the message block fields, but a reference counted duplicate of
@@ -193,14 +206,14 @@ Stream_SessionMessageBase_T<SessionDataType,
   // if there is no allocator, use the standard new and delete calls.
   if (!inherited::message_block_allocator_)
     ACE_NEW_NORETURN (message_p,
-                      SELF_T (*this));
+                      OWN_TYPE_T (*this));
   else
   {
     // *NOTE*: instruct the allocator to return a session message by passing 0
     //         as argument to malloc()...
     ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<SELF_T*> (inherited::message_block_allocator_->malloc (0)),
-                             SELF_T (*this));
+                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->malloc (0)),
+                             OWN_TYPE_T (*this));
   }
   if (!message_p)
   {
@@ -229,17 +242,17 @@ Stream_SessionMessageBase_T<SessionDataType,
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::initialize"));
 
   ACE_ASSERT (!isInitialized_);
-  ACE_ASSERT (messageType_ == STREAM_SESSION_MAP);
   ACE_ASSERT (!sessionData_);
   ACE_ASSERT (!userData_);
 
-  messageType_ = messageType_in;
+  isInitialized_ = true;
   // *NOTE*: assumes responsibility for the handle !
   sessionData_ = sessionData_inout;
   sessionData_inout = NULL;
+  type_ = messageType_in;
   userData_ = userData_in;
 
-  isInitialized_ = true;
+  inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
 }
 
 template <typename SessionDataType,
@@ -251,9 +264,8 @@ Stream_SessionMessageBase_T<SessionDataType,
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::dump_state"));
 
   std::string type_string;
-  SessionMessageType2String (messageType_,
+  SessionMessageType2String (type_,
                              type_string);
-
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("session message type: \"%s\"\n"),
               ACE_TEXT (type_string.c_str ())));
@@ -276,7 +288,7 @@ template <typename SessionDataType,
           typename UserDataType>
 void
 Stream_SessionMessageBase_T<SessionDataType,
-                            UserDataType>::SessionMessageType2String (Stream_SessionMessageType messageType_in,
+                            UserDataType>::SessionMessageType2String (ACE_Message_Type messageType_in,
                                                                       std::string& string_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::SessionMessageType2String"));
@@ -286,24 +298,26 @@ Stream_SessionMessageBase_T<SessionDataType,
 
   switch (messageType_in)
   {
-    case SESSION_BEGIN:
+    // *** control ***
+    case STREAM_SESSION_BEGIN:
     {
       string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_BEGIN");
       break;
     }
-    case SESSION_STEP:
+    case STREAM_SESSION_STEP:
     {
       string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_STEP");
       break;
     }
-    case SESSION_END:
+    case STREAM_SESSION_END:
     {
       string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_END");
       break;
     }
-    case SESSION_STATISTICS:
+    // *** data ***
+    case STREAM_SESSION_STATISTIC:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_STATISTICS");
+      string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_STATISTIC");
       break;
     }
     default:

@@ -54,12 +54,13 @@
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
-#include "stream_eventhandler.h"
-#include "stream_module_eventhandler.h"
 
-#include "stream_callbacks.h"
+#include "test_u_filecopy_callbacks.h"
 #include "test_u_filecopy_defines.h"
-#include "test_u_signalhandler.h"
+#include "test_u_filecopy_eventhandler.h"
+#include "test_u_filecopy_module_eventhandler.h"
+#include "test_u_filecopy_signalhandler.h"
+#include "test_u_filecopy_stream.h"
 
 void
 do_printUsage (const std::string& programName_in)
@@ -73,17 +74,29 @@ do_printUsage (const std::string& programName_in)
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
   configuration_path = Common_File_Tools::getWorkingDirectory ();
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
 #endif // #ifdef DEBUG_DEBUGGER
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
-    << programName_in
-    << ACE_TEXT_ALWAYS_CHAR (" [OPTIONS]")
-    << std::endl
-    << std::endl;
+            << programName_in
+            << ACE_TEXT_ALWAYS_CHAR (" [OPTIONS]")
+            << std::endl
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
-    << std::endl;
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [VALUE]  : buffer size (byte(s)) [")
+            << STREAM_MESSAGE_DATA_BUFFER_SIZE
+            << ACE_TEXT ("])")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : filename")
-    << std::endl;
+            << std::endl;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
@@ -91,28 +104,32 @@ do_printUsage (const std::string& programName_in)
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_UI);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
-    << UI_file
-    << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
-    << std::endl;
+            << UI_file
+            << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
-    << false
-    << ACE_TEXT_ALWAYS_CHAR ("]")
-    << std::endl;
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  std::cout << ACE_TEXT ("-s [VALUE]   : statistics reporting interval (second(s)) [")
+            << STREAM_DEFAULT_STATISTIC_REPORTING
+            << ACE_TEXT ("] {0 --> OFF})")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
-    << false
-    << ACE_TEXT_ALWAYS_CHAR ("]")
-    << std::endl;
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-v          : print version information and exit [")
-    << false
-    << ACE_TEXT_ALWAYS_CHAR ("]")
-    << std::endl;
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   path = Common_File_Tools::getDumpDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x[[STRING]]: target filename [")
-    << path
-    << ACE_TEXT_ALWAYS_CHAR ("]")
-    << std::endl;
+            << path
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   //std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : run stress-test [")
   //  << false
   //  << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -122,9 +139,11 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
+                     unsigned int& bufferSize_out,
                      std::string& filename_out,
                      std::string& UIFile_out,
                      bool& logToFile_out,
+                     unsigned int& statisticsReportingInterval_out,
                      bool& traceInformation_out,
                      bool& printVersionAndExit_out,
                      std::string& targetFilename_out)
@@ -136,17 +155,27 @@ do_processArguments (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
   configuration_path = Common_File_Tools::getWorkingDirectory ();
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
+  bufferSize_out = STREAM_MESSAGE_DATA_BUFFER_SIZE;
   filename_out.clear ();
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_UI);
   logToFile_out = false;
+  statisticsReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING;
   traceInformation_out = false;
   printVersionAndExit_out = false;
   path = Common_File_Tools::getDumpDirectory ();
@@ -157,7 +186,7 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("f:g::hi:ltvx::"),
+                              ACE_TEXT ("b:f:g::hi:ls:tvx::"),
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -169,6 +198,14 @@ do_processArguments (int argc_in,
   {
     switch (option)
     {
+      case 'b':
+      {
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argumentParser.opt_arg ();
+        converter >> bufferSize_out;
+        break;
+      }
       case 'f':
       {
         filename_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
@@ -186,6 +223,14 @@ do_processArguments (int argc_in,
       case 'l':
       {
         logToFile_out = true;
+        break;
+      }
+      case 's':
+      {
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argumentParser.opt_arg ();
+        converter >> statisticsReportingInterval_out;
         break;
       }
       case 't':
@@ -309,7 +354,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
   // *NOTE* don't care about SIGPIPE
   signals_out.sig_del (SIGPIPE);           // 12      /* Broken pipe: write to pipe with no readers */
 
-#ifdef RPG_ENABLE_VALGRIND_SUPPORT
+#ifdef ENABLE_VALGRIND_SUPPORT
   // *NOTE*: valgrind uses SIGRT32 (--> SIGRTMAX ?) and apparently will not work
   // if the application installs its own handler (see documentation)
   if (RUNNING_ON_VALGRIND)
@@ -319,32 +364,32 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 }
 
 void
-do_work (const std::string& filename_in,
+do_work (unsigned int bufferSize_in,
+         const std::string& filename_in,
          const std::string& UIDefinitionFile_in,
+         unsigned int statisticReportingInterval_in,
          const std::string& targetFilename_in,
-         Stream_GTK_CBData& CBData_in,
+         Stream_Filecopy_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
-         Stream_SignalHandler& signalHandler_in)
+         Stream_Filecopy_SignalHandler& signalHandler_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
-
-  int result = -1;
 
   // step0a: initialize configuration
   Stream_Filecopy_Configuration configuration;
   CBData_in.configuration = &configuration;
 
-  Stream_EventHandler ui_event_handler (&CBData_in);
-  Stream_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                   NULL);
-  Stream_Module_EventHandler* event_handler_p =
-    dynamic_cast<Stream_Module_EventHandler*> (event_handler.writer ());
+  Stream_Filecopy_EventHandler ui_event_handler (&CBData_in);
+  Stream_Filecopy_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+                                                            NULL);
+  Stream_Filecopy_Module_EventHandler* event_handler_p =
+    dynamic_cast<Stream_Filecopy_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Module_EventHandler> failed, returning\n")));
+                ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_EventHandler> failed, returning\n")));
     return;
   } // end IF
   event_handler_p->initialize (&CBData_in.subscribers,
@@ -352,82 +397,36 @@ do_work (const std::string& filename_in,
   event_handler_p->subscribe (&ui_event_handler);
 
   Stream_AllocatorHeap heap_allocator;
-  Stream_MessageAllocator_t message_allocator (TEST_U_STREAM_FILECOPY_MAX_MESSAGES, // maximum #buffers
-                                               &heap_allocator,                     // heap allocator handle
-                                               true);                               // block ?
+  Stream_Filecopy_MessageAllocator_t message_allocator (TEST_U_STREAM_FILECOPY_MAX_MESSAGES, // maximum #buffers
+                                                        &heap_allocator,                     // heap allocator handle
+                                                        true);                               // block ?
+  // ********************** module configuration data **************************
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.active =
+      !UIDefinitionFile_in.empty ();
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.printProgressDot =
+      UIDefinitionFile_in.empty ();
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.sourceFilename =
+      filename_in;
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.targetFilename =
+      targetFilename_in;
   // ********************** stream configuration data **************************
+  if (bufferSize_in)
+    configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
   configuration.streamConfiguration.moduleConfiguration =
-    &configuration.moduleConfiguration_2;
-  configuration.moduleConfiguration_2.streamConfiguration =
+    &configuration.streamConfiguration.moduleConfiguration_2;
+  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
     &configuration.streamConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.moduleHandlerConfiguration_2;
-  configuration.moduleHandlerConfiguration_2.streamConfiguration =
+    &configuration.streamConfiguration.moduleHandlerConfiguration_2;
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.streamConfiguration =
     &configuration.streamConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
-
-  //  config.delete_module = false;
-  // *WARNING*: set at runtime, by the appropriate connection handler
-  //  config.sessionID = 0; // (== socket handle !)
-  //  config.statisticsReportingInterval = 0; // == off
-  //	config.printFinalReport = false;
-  // ************ runtime data ************
-  //	config.currentStatistics = {};
-  //	config.lastCollectionTimestamp = ACE_Time_Value::zero;
-
-  //// step0e: initialize action timer
-  //configuration.signalHandlerConfiguration.connector = connector_p;
-  //result =
-  //  configuration.signalHandlerConfiguration.peerAddress.set (serverPortNumber_in,
-  //  serverHostname_in.c_str (),
-  //  1,
-  //  ACE_ADDRESS_FAMILY_INET);
-  //if (result == -1)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //    ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", aborting\n")));
-  //  return;
-  //} // end IF
-
-  //Net_Client_TimeoutHandler timeout_handler (actionMode_in,
-  //                                           maxNumConnections_in,
-  //                                           configuration.signalHandlerConfiguration.peerAddress,
-  //                                           connector_p);
-  //configuration.timeoutHandler = &timeout_handler;
-  //Common_Timer_Manager_t* timer_manager_p =
-  //  COMMON_TIMERMANAGER_SINGLETON::instance ();
-  //ACE_ASSERT (timer_manager_p);
-  //Common_TimerConfiguration timer_configuration;
-  //timer_manager_p->initialize (timer_configuration);
-  //timer_manager_p->start ();
-  //if (UIDefinitionFile_in.empty ())
-  //{
-  //  // schedule action interval timer
-  //  ACE_Event_Handler* handler_p = &timeout_handler;
-  //  ACE_Time_Value interval (((actionMode_in == Net_Client_TimeoutHandler::ACTION_STRESS) ? (NET_CLIENT_DEF_SERVER_STRESS_INTERVAL / 1000)
-  //    : connectionInterval_in),
-  //    ((actionMode_in == Net_Client_TimeoutHandler::ACTION_STRESS) ? ((NET_CLIENT_DEF_SERVER_STRESS_INTERVAL % 1000) * 1000)
-  //    : 0));
-  //  configuration.signalHandlerConfiguration.actionTimerId =
-  //    timer_manager_p->schedule_timer (handler_p,                  // event handler
-  //    NULL,                       // ACT
-  //    COMMON_TIME_NOW + interval, // first wakeup time
-  //    interval);                  // interval
-  //  if (configuration.signalHandlerConfiguration.actionTimerId == -1)
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //      ACE_TEXT ("failed to schedule action timer: \"%m\", aborting\n")));
-
-  //    // clean up
-  //    timer_manager_p->stop ();
-
-  //    return;
-  //  } // end IF
-  //} // end IF
+  configuration.streamConfiguration.statisticReportingInterval =
+      statisticReportingInterval_in;
 
   // step0e: initialize signal handling
   configuration.signalHandlerConfiguration.messageAllocator =
@@ -440,6 +439,19 @@ do_work (const std::string& filename_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
+
+    // clean up
+    //timer_manager_p->stop ();
+
+    return;
+  } // end IF
+
+  // step0f: initialize processing stream
+  Stream_Filecopy_Stream stream;
+  if (!stream.initialize (configuration.streamConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize stream, aborting\n")));
 
     // clean up
     //timer_manager_p->stop ();
@@ -460,6 +472,7 @@ do_work (const std::string& filename_in,
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     CBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
+    CBData_in.stream = &stream;
     CBData_in.userData = &CBData_in;
 
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
@@ -474,55 +487,22 @@ do_work (const std::string& filename_in,
       return;
     } // end IF
   } // end IF
+  else
+  {
+    // *NOTE*: this will block until the file has been copied...
+    stream.start ();
+//    if (!stream.isRunning ())
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to start stream, aborting\n")));
 
-  //// step1c: connect immediately ?
-  //bool result_2 =
-  //  connector_p->connect (configuration.signalHandlerConfiguration.peerAddress);
-  //  if (!useReactor_in)
-  //  {
-  //    ACE_Time_Value delay (1, 0);
-  //    ACE_OS::sleep (delay);
-  //    if (NET_CONNECTIONMANAGER_SINGLETON::instance ()->numConnections () != 1)
-  //      result_2 = false;
-  //  } // end IF
+//      // clean up
+//      //timer_manager_p->stop ();
 
-  //  if (!result_2)
-  //  {
-  //    char buffer[BUFSIZ];
-  //    ACE_OS::memset (buffer, 0, sizeof (buffer));
-  //    result =
-  //      configuration.signalHandlerConfiguration.peerAddress.addr_to_string (buffer,
-  //      sizeof (buffer));
-  //    if (result == -1)
-  //      ACE_DEBUG ((LM_ERROR,
-  //      ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
-  //    ACE_DEBUG ((LM_ERROR,
-  //      ACE_TEXT ("failed to connect to \"%s\", returning\n"),
-  //      ACE_TEXT (buffer)));
-
-  //    // clean up
-  //    if (useThreadPool_in &&
-  //        (numDispatchThreads_in > 1))
-  //        Common_Tools::finalizeEventDispatch (useReactor_in,
-  //        !useReactor_in,
-  //        group_id);
-  //    //		{ // synch access
-  //    //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-  //    //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //    //					 iterator != CBData_in.event_source_ids.end();
-  //    //					 iterator++)
-  //    //				g_source_remove(*iterator);
-  //    //		} // end lock scope
-  //    timer_manager_p->stop ();
-  //    connector_p->abort ();
-
-  //    return;
-  //  } // end IF
-  //} // end IF
-
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("finished event dispatch...\n")));
+//      return;
+//    } // end IF
+    stream.stop (true, true);
+  } // end ELSE
 
   // step3: clean up
   if (!UIDefinitionFile_in.empty ())
@@ -627,17 +607,28 @@ ACE_TMAIN (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
   configuration_path = Common_File_Tools::getWorkingDirectory ();
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
+  unsigned int buffer_size = STREAM_MESSAGE_DATA_BUFFER_SIZE;
   std::string filename;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
-  std::string UI_file = path;
-  UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_UI);
+  std::string UI_definition_file = path;
+  UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_UI);
   bool log_to_file = false;
+  unsigned int statistic_reporting_interval =
+    STREAM_DEFAULT_STATISTIC_REPORTING;
   bool trace_information = false;
   bool print_version_and_exit = false;
   path = Common_File_Tools::getDumpDirectory ();
@@ -649,9 +640,11 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
+                            buffer_size,
                             filename,
-                            UI_file,
+                            UI_definition_file,
                             log_to_file,
+                            statistic_reporting_interval,
                             trace_information,
                             print_version_and_exit,
                             target_filename))//,
@@ -678,8 +671,11 @@ ACE_TMAIN (int argc_in,
   //                   free slots
   if (TEST_U_STREAM_FILECOPY_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("limiting the number of message buffers could lead to deadlocks...\n")));
-  if (!Common_File_Tools::isReadable (filename))
+                ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
+  if ((UI_definition_file.empty () &&
+       !Common_File_Tools::isReadable (filename)) ||
+      (!UI_definition_file.empty () &&
+       !Common_File_Tools::isReadable (UI_definition_file)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -696,40 +692,24 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  if (!UI_file.empty () &&
-      !Common_File_Tools::isReadable (UI_file))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid UI definition file (was: %s), aborting\n"),
-                ACE_TEXT (UI_file.c_str ())));
-
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
-
-    return EXIT_FAILURE;
-  } // end IF
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
-  Stream_GTK_CBData gtk_cb_user_data;
+  Stream_Filecopy_GTK_CBData gtk_cb_user_data;
+  gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
   // step1d: initialize logging and/or tracing
   Common_Logger logger (&gtk_cb_user_data.logStack,
                         &gtk_cb_user_data.stackLock);
   std::string log_file;
   if (log_to_file)
     log_file = Common_File_Tools::getLogFilename (ACE::basename (argv_in[0]));
-  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),    // program name
-                                        log_file,                      // logfile
-                                        false,                         // log to syslog ?
-                                        false,                         // trace messages ?
-                                        trace_information,             // debug messages ?
-                                        (UI_file.empty () ? NULL
-                                                          : &logger))) // logger ?
+  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
+                                        log_file,                                 // log file
+                                        false,                                    // log to syslog ?
+                                        false,                                    // trace messages ?
+                                        trace_information,                        // debug messages ?
+                                        (UI_definition_file.empty () ? NULL
+                                                                     : &logger))) // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
@@ -789,7 +769,7 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_SignalHandler signal_handler;
+  Stream_Filecopy_SignalHandler signal_handler;
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
@@ -841,22 +821,24 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
-  //// step1h: init GLIB / G(D|T)K[+] / GNOME ?
-  ////Common_UI_GladeDefinition ui_definition (argc_in,
-  ////                                         argv_in);
-  //Common_UI_GtkBuilderDefinition ui_definition (argc_in,
-  //                                              argv_in);
-  //if (!UI_file.empty ())
-  //  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-  //                                                            argv_in,
-  //                                                            &gtk_cb_user_data,
-  //                                                            &ui_definition);
+  // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
+  //Common_UI_GladeDefinition ui_definition (argc_in,
+  //                                         argv_in);
+  Common_UI_GtkBuilderDefinition ui_definition (argc_in,
+                                                argv_in);
+  if (!UI_definition_file.empty ())
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                              argv_in,
+                                                              &gtk_cb_user_data,
+                                                              &ui_definition);
 
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (filename,
-           UI_file,
+  do_work (buffer_size,
+           filename,
+           UI_definition_file,
+           statistic_reporting_interval,
            target_filename,
            gtk_cb_user_data,
            signal_set,

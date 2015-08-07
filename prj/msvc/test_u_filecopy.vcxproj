@@ -18,33 +18,45 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\test_u\filecopy\stream_callbacks.cpp" />
-    <ClCompile Include="..\..\test_u\filecopy\stream_eventhandler.cpp" />
-    <ClCompile Include="..\..\test_u\filecopy\stream_module_eventhandler.cpp" />
     <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy.cpp" />
-    <ClCompile Include="..\..\test_u\filecopy\test_u_signalhandler.cpp" />
-    <ClCompile Include="..\..\test_u\stream_module_messagehandler.cpp" />
-    <ClCompile Include="..\..\test_u\stream_module_runtimestatistic.cpp" />
-    <ClCompile Include="..\..\test_u\stream_session_message.cpp" />
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_callbacks.cpp" />
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_eventhandler.cpp" />
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_message.cpp" />
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_module_eventhandler.cpp" />
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_session_message.cpp" />
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_signalhandler.cpp" />
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_stream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\test_u\filecopy\stdafx.h" />
-    <ClInclude Include="..\..\test_u\filecopy\stream_callbacks.h" />
-    <ClInclude Include="..\..\test_u\filecopy\stream_eventhandler.h" />
-    <ClInclude Include="..\..\test_u\filecopy\stream_module_eventhandler.h" />
     <ClInclude Include="..\..\test_u\filecopy\targetver.h" />
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_callbacks.h" />
     <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_common.h" />
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_common_modules.h" />
     <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_defines.h" />
-    <ClInclude Include="..\..\test_u\filecopy\test_u_signalhandler.h" />
-    <ClInclude Include="..\..\test_u\stream_module_messagehandler.h" />
-    <ClInclude Include="..\..\test_u\stream_module_runtimestatistic.h" />
-    <ClInclude Include="..\..\test_u\stream_session_message.h" />
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_eventhandler.h" />
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_message.h" />
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_module_eventhandler.h" />
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_session_message.h" />
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_signalhandler.h" />
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_stream.h" />
     <ClInclude Include="..\..\test_u\test_u_common.h" />
+    <ClInclude Include="..\..\test_u\test_u_common_modules.h" />
     <ClInclude Include="..\..\test_u\test_u_defines.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\test_u\stream_module_messagehandler.inl" />
-    <None Include="..\..\test_u\stream_module_runtimestatistic.inl" />
+    <None Include="..\..\test_u\filecopy\etc\filecopy.glade" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\libCommon\prj\msvc\libCommon.vcxproj">
+      <Project>{78a90d08-4e40-4ed4-8f75-393ac6526158}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\libCommon\prj\msvc\libCommon_UI.vcxproj">
+      <Project>{06296185-3e70-472e-8b65-6f552ab1e283}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libACEStream.vcxproj">
+      <Project>{c7a3ee44-14f9-413a-b311-5a77ba5a4edd}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CFDA594B-A63B-4139-9205-5B2F4850D330}</ProjectGuid>
@@ -73,12 +85,14 @@
     <Import Project="VS_ProjectPropertySheet_ACEd.props" />
     <Import Project="VS_ProjectPropertySheet_png_gtk_gnome.props" />
     <Import Project="VS_ProjectPropertySheet_glade.props" />
+    <Import Project="VS_ProjectPropertySheet_SDL.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="VS_ProjectPropertySheet_ACE.props" />
     <Import Project="VS_ProjectPropertySheet_png_gtk_gnome.props" />
     <Import Project="VS_ProjectPropertySheet_glade.props" />
+    <Import Project="VS_ProjectPropertySheet_SDL.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -97,9 +111,11 @@
       <AdditionalIncludeDirectories>D:\projects\ATCD\ACE;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src;$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src\ui;$(ProjectDir)..\..\..\libCommon\src\ui;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\test_u;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>D:\projects\ATCD\ACE\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
+      <IgnoreSpecificDefaultLibraries>msvcrt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,11 +130,12 @@
       <AdditionalIncludeDirectories>D:\projects\ATCD\ACE;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src;$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src\ui;$(ProjectDir)..\..\..\libCommon\src\ui;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\test_u;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>D:\projects\ATCD\ACE\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

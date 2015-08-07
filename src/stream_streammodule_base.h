@@ -52,7 +52,8 @@ class Stream_StreamModule_T
 {
  public:
   Stream_StreamModule_T (const std::string&, // name
-                         Common_IRefCount*); // object counter
+                         Common_IRefCount*,  // object counter
+                         bool);              // final module ?
   virtual ~Stream_StreamModule_T ();
 
  protected:
@@ -98,7 +99,8 @@ class Stream_StreamModuleInputOnly_T
 {
  public:
   Stream_StreamModuleInputOnly_T (const std::string&, // name
-                                  Common_IRefCount*); // object counter
+                                  Common_IRefCount*,  // object counter
+                                  bool);              // final module ?
   virtual ~Stream_StreamModuleInputOnly_T ();
 
  protected:

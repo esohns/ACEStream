@@ -24,25 +24,25 @@
     <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_u\filecopy\test_u_signalhandler.cpp">
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_callbacks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_u\filecopy\stream_module_eventhandler.cpp">
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_eventhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_u\stream_session_message.cpp">
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_message.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_u\stream_module_messagehandler.cpp">
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_module_eventhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_u\stream_module_runtimestatistic.cpp">
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_session_message.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_u\filecopy\stream_eventhandler.cpp">
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_signalhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_u\filecopy\stream_callbacks.cpp">
+    <ClCompile Include="..\..\test_u\filecopy\test_u_filecopy_stream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,46 +53,49 @@
     <ClInclude Include="..\..\test_u\filecopy\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_u\test_u_common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\test_u\test_u_defines.h">
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_callbacks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_common_modules.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_u\filecopy\test_u_signalhandler.h">
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_eventhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_u\filecopy\stream_module_eventhandler.h">
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_message.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_u\stream_session_message.h">
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_module_eventhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_u\stream_module_messagehandler.h">
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_session_message.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_u\stream_module_runtimestatistic.h">
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_signalhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_u\filecopy\stream_eventhandler.h">
+    <ClInclude Include="..\..\test_u\filecopy\test_u_filecopy_stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_u\filecopy\stream_callbacks.h">
+    <ClInclude Include="..\..\test_u\test_u_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test_u\test_u_common_modules.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test_u\test_u_defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\test_u\stream_module_messagehandler.inl">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\test_u\stream_module_runtimestatistic.inl">
-      <Filter>Header Files</Filter>
+    <None Include="..\..\test_u\filecopy\etc\filecopy.glade">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
 </Project>

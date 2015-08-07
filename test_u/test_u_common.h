@@ -22,22 +22,20 @@
 #define TEST_U_STREAM_COMMON_H
 
 #include <deque>
-#include <list>
+#include <string>
+
+#include "gtk/gtk.h"
 
 #include "common.h"
 
 #include "ace/Synch_Traits.h"
 
-#include "common_inotify.h"
-#include "common_isubscribe.h"
-
 #include "common_ui_common.h"
 
 #include "stream_common.h"
-#include "stream_messageallocatorheap_base.h"
-#include "stream_session_message.h"
 
 // forward declarations
+class ACE_Message_Queue_Base;
 struct Stream_Test_U_Configuration;
 
 enum Stream_GTK_Event
@@ -46,31 +44,23 @@ enum Stream_GTK_Event
   STREAM_GTKEVENT_DATA,
   STREAM_GTKEVENT_END,
   STREAM_GTKEVENT_STATISTICS,
-  // ----------------------
+  // ------------------------------------
   STREAM_GTKEVENT_MAX,
   STREAM_GKTEVENT_INVALID
 };
 typedef std::deque<Stream_GTK_Event> Stream_GTK_Events_t;
 typedef Stream_GTK_Events_t::const_iterator Stream_GTK_EventsIterator_t;
 
-//struct Stream_Test_U_SessionData
-//{
-//  inline Stream_SessionData ()
-//   : aborted (false)
-//   , currentStatistic ()
-//   , lock (NULL)
-//   , sessionID (0)
-//   , startOfSession (ACE_Time_Value::zero)
-//  {};
-//
-//  bool             aborted;
-//
-//  Stream_Statistic currentStatistic;
-//  ACE_SYNCH_MUTEX* lock;
-//
-//  unsigned int     sessionID; // (== socket handle !)
-//  ACE_Time_Value   startOfSession;
-//};
+struct Stream_Test_U_SessionData
+ : Stream_SessionData
+{
+  inline Stream_Test_U_SessionData ()
+   : Stream_SessionData ()
+   , filename ()
+  {};
+
+  std::string filename;
+};
 
 //struct Stream_Test_U_UserData
 //{
@@ -92,46 +82,66 @@ typedef Stream_GTK_Events_t::const_iterator Stream_GTK_EventsIterator_t;
 //  Stream_Test_U_UserData*    userData;
 //};
 
-typedef Stream_MessageBase Stream_Message_t;
-typedef Stream_MessageAllocatorHeapBase_T<Stream_Message_t,
-                                          Stream_SessionMessage> Stream_MessageAllocator_t;
+typedef int Stream_HeaderType_t;
+typedef int Stream_CommandType_t;
 
-typedef Stream_SessionDataBase_T<Stream_SessionData> Stream_SessionData_t;
+typedef Stream_SessionDataBase_T<Stream_Test_U_SessionData> Stream_Test_U_SessionData_t;
 
-typedef Common_INotify_T<Stream_SessionData,
-                         Stream_Message_t> Stream_IStreamNotify_t;
-typedef std::list<Stream_IStreamNotify_t*> Stream_Subscribers_t;
-typedef Stream_Subscribers_t::iterator Net_SubscribersIterator_t;
+struct Stream_Test_U_ModuleHandlerConfiguration
+ : Stream_ModuleHandlerConfiguration
+{
+  inline Stream_Test_U_ModuleHandlerConfiguration ()
+   : Stream_ModuleHandlerConfiguration ()
+   , active (false)
+   , contextID (0)
+   , printProgressDot (false)
+   , queue (NULL)
+   , sourceFilename ()
+   , targetFilename ()
+  {};
 
-typedef Common_ISubscribe_T<Stream_IStreamNotify_t> Stream_ISubscribe_t;
+  bool                    active;
+  guint                   contextID;
+  bool                    printProgressDot;
+  ACE_Message_Queue_Base* queue;
+  std::string             sourceFilename;
+  std::string             targetFilename;
+};
+
+struct Stream_Test_U_StreamConfiguration
+ : Stream_Configuration
+{
+  inline Stream_Test_U_StreamConfiguration ()
+   : Stream_Configuration ()
+   , moduleConfiguration_2 ()
+   , moduleHandlerConfiguration_2 ()
+  {};
+
+  Stream_ModuleConfiguration               moduleConfiguration_2;
+  Stream_Test_U_ModuleHandlerConfiguration moduleHandlerConfiguration_2;
+};
 
 struct Stream_Test_U_Configuration
 {
   inline Stream_Test_U_Configuration ()
-   : moduleConfiguration_2 ()
-   , moduleHandlerConfiguration_2 ()
-   , streamConfiguration ()
+   : streamConfiguration ()
    , streamUserData ()
   {};
 
-  Stream_ModuleConfiguration        moduleConfiguration_2;
-  Stream_ModuleHandlerConfiguration moduleHandlerConfiguration_2;
-  Stream_Configuration              streamConfiguration;
+  Stream_Test_U_StreamConfiguration streamConfiguration;
   Stream_UserData                   streamUserData;
 };
 
-struct Stream_GTK_CBData
+struct Stream_Test_U_GTK_CBData
  : Common_UI_GTKState
 {
-  inline Stream_GTK_CBData ()
+  inline Stream_Test_U_GTK_CBData ()
    : Common_UI_GTKState ()
    , allowUserRuntimeStatistic (true)
    , configuration (NULL)
    , eventStack ()
    , logStack ()
    , stackLock ()
-   , subscribers ()
-   , subscribersLock ()
   {};
 
   bool                         allowUserRuntimeStatistic;
@@ -139,8 +149,6 @@ struct Stream_GTK_CBData
   Stream_GTK_Events_t          eventStack;
   Common_MessageStack_t        logStack;
   ACE_SYNCH_RECURSIVE_MUTEX    stackLock;
-  Stream_Subscribers_t         subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX    subscribersLock;
 };
 
 #endif

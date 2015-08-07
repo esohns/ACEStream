@@ -41,6 +41,7 @@
 #define STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME "stream dispatch"
 
 // stream
-#define STREAM_DEFAULT_STATISTICS_REPORTING    0  // second(s) [0: off]
+#define STREAM_STATISTIC_COLLECTION            60 // second(s) [0: off]
+#define STREAM_DEFAULT_STATISTIC_REPORTING     0  // second(s) [0: off]
 
 #endif

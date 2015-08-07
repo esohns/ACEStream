@@ -105,114 +105,46 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\libCommon\prj\msvc\libCommon.vcxproj">
+      <Project>{78a90d08-4e40-4ed4-8f75-393ac6526158}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="..\..\src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\src\stream_allocatorheap.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_cachedallocatorheap.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_cacheddatablockallocatorheap.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_cachedmessageallocatorheap.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_cachedmessageallocatorheap_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_datablockallocatorheap.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_data_message_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_headmoduletask_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_messageallocatorheap_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_messagequeue.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_messagequeue_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_message_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_module_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_resetcounterhandler.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_session_data.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_session_data_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_session_message_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ShowIncludes>
-      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ShowIncludes>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_statemachine_control.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_statistichandler.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_streammodule_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_task_base.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_task_base_asynch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_task_base_synch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_tools.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="..\..\src\stream_allocatorheap.cpp" />
+    <ClCompile Include="..\..\src\stream_base.cpp" />
+    <ClCompile Include="..\..\src\stream_cachedallocatorheap.cpp" />
+    <ClCompile Include="..\..\src\stream_cacheddatablockallocatorheap.cpp" />
+    <ClCompile Include="..\..\src\stream_cachedmessageallocator.cpp" />
+    <ClCompile Include="..\..\src\stream_cachedmessageallocatorheap.cpp" />
+    <ClCompile Include="..\..\src\stream_cachedmessageallocatorheap_base.cpp" />
+    <ClCompile Include="..\..\src\stream_datablockallocatorheap.cpp" />
+    <ClCompile Include="..\..\src\stream_data_message_base.cpp" />
+    <ClCompile Include="..\..\src\stream_headmoduletask_base.cpp" />
+    <ClCompile Include="..\..\src\stream_messageallocatorheap_base.cpp" />
+    <ClCompile Include="..\..\src\stream_messagequeue.cpp" />
+    <ClCompile Include="..\..\src\stream_messagequeue_base.cpp" />
+    <ClCompile Include="..\..\src\stream_message_base.cpp" />
+    <ClCompile Include="..\..\src\stream_module_base.cpp" />
+    <ClCompile Include="..\..\src\stream_module_filereader.cpp" />
+    <ClCompile Include="..\..\src\stream_module_filewriter.cpp" />
+    <ClCompile Include="..\..\src\stream_module_messagehandler.cpp" />
+    <ClCompile Include="..\..\src\stream_module_queuereader.cpp" />
+    <ClCompile Include="..\..\src\stream_module_runtimestatistic.cpp" />
+    <ClCompile Include="..\..\src\stream_resetcounterhandler.cpp" />
+    <ClCompile Include="..\..\src\stream_session_data.cpp" />
+    <ClCompile Include="..\..\src\stream_session_data_base.cpp" />
+    <ClCompile Include="..\..\src\stream_session_message_base.cpp" />
+    <ClCompile Include="..\..\src\stream_statemachine_control.cpp" />
+    <ClCompile Include="..\..\src\stream_statistichandler.cpp" />
+    <ClCompile Include="..\..\src\stream_streammodule_base.cpp" />
+    <ClCompile Include="..\..\src\stream_task_base.cpp" />
+    <ClCompile Include="..\..\src\stream_task_base_asynch.cpp" />
+    <ClCompile Include="..\..\src\stream_task_base_synch.cpp" />
+    <ClCompile Include="..\..\src\stream_tools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\stdafx.h" />
@@ -220,6 +152,7 @@
     <ClInclude Include="..\..\src\stream_base.h" />
     <ClInclude Include="..\..\src\stream_cachedallocatorheap.h" />
     <ClInclude Include="..\..\src\stream_cacheddatablockallocatorheap.h" />
+    <ClInclude Include="..\..\src\stream_cachedmessageallocator.h" />
     <ClInclude Include="..\..\src\stream_cachedmessageallocatorheap.h" />
     <ClInclude Include="..\..\src\stream_cachedmessageallocatorheap_base.h" />
     <ClInclude Include="..\..\src\stream_common.h" />
@@ -239,6 +172,11 @@
     <ClInclude Include="..\..\src\stream_messagequeue_base.h" />
     <ClInclude Include="..\..\src\stream_message_base.h" />
     <ClInclude Include="..\..\src\stream_module_base.h" />
+    <ClInclude Include="..\..\src\stream_module_filereader.h" />
+    <ClInclude Include="..\..\src\stream_module_filewriter.h" />
+    <ClInclude Include="..\..\src\stream_module_messagehandler.h" />
+    <ClInclude Include="..\..\src\stream_module_queuereader.h" />
+    <ClInclude Include="..\..\src\stream_module_runtimestatistic.h" />
     <ClInclude Include="..\..\src\stream_resetcounterhandler.h" />
     <ClInclude Include="..\..\src\stream_session_data.h" />
     <ClInclude Include="..\..\src\stream_session_data_base.h" />
@@ -253,12 +191,20 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\stream_base.inl" />
+    <None Include="..\..\src\stream_cachedmessageallocator.inl" />
     <None Include="..\..\src\stream_cachedmessageallocatorheap_base.inl" />
     <None Include="..\..\src\stream_data_message_base.inl" />
     <None Include="..\..\src\stream_headmoduletask_base.inl" />
     <None Include="..\..\src\stream_messageallocatorheap_base.inl" />
     <None Include="..\..\src\stream_messagequeue_base.inl" />
+    <None Include="..\..\src\stream_message_base.inl" />
     <None Include="..\..\src\stream_module_base.inl" />
+    <None Include="..\..\src\stream_module_filereader.inl" />
+    <None Include="..\..\src\stream_module_filewriter.inl" />
+    <None Include="..\..\src\stream_module_messagehandler.inl" />
+    <None Include="..\..\src\stream_module_queuereader.inl" />
+    <None Include="..\..\src\stream_module_runtimestatistic.inl" />
+    <None Include="..\..\src\stream_session_data.inl" />
     <None Include="..\..\src\stream_session_data_base.inl" />
     <None Include="..\..\src\stream_session_message_base.inl" />
     <None Include="..\..\src\stream_statistichandler.inl" />
@@ -266,11 +212,6 @@
     <None Include="..\..\src\stream_task_base.inl" />
     <None Include="..\..\src\stream_task_base_asynch.inl" />
     <None Include="..\..\src\stream_task_base_synch.inl" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\libCommon\prj\msvc\libCommon.vcxproj">
-      <Project>{78a90d08-4e40-4ed4-8f75-393ac6526158}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

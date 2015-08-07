@@ -22,6 +22,7 @@
 #define STREAM_TASK_BASE_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
 
 #include "common_task_base.h"
 
@@ -70,8 +71,8 @@ class Stream_TaskBase_T
   typedef Stream_ITask_T<SessionMessageType,
                          ProtocolMessageType> inherited2;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T (const Stream_TaskBase_T&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator= (const Stream_TaskBase_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T (const Stream_TaskBase_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator= (const Stream_TaskBase_T&))
 };
 
 // include template implementation

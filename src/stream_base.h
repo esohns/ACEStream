@@ -96,6 +96,14 @@ class Stream_Base_T
 //  virtual const SessionDataType& get () const;
   const SessionDataType& sessionData () const;
 
+  //// override ACE_Stream method(s)
+  //// *NOTE*: the default implementation close(s) the removed module. This is not
+  ////         the intended behavior when the module is being used by several
+  ////         streams at once
+  //// *TODO*: this needs more work...
+  //virtual int remove (const ACE_TCHAR*, // name
+  //                    int = M_DELETE);  // flags
+
   bool isInitialized () const;
 
   // convenient types

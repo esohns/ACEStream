@@ -80,7 +80,7 @@ Stream_MessageBase::Stream_MessageBase (ACE_Data_Block* dataBlock_in,
   messageID_ = currentID.value ();
 
   // set correct message type
-  msg_type (MESSAGE_DATA);
+  inherited::msg_type (STREAM_MESSAGE_DATA);
 
   // reset read/write pointers
   reset ();
@@ -116,7 +116,7 @@ Stream_MessageBase::initialize (ACE_Data_Block* dataBlock_in)
   data_block (dataBlock_in);
 
   // set correct (?) message type
-  msg_type (MESSAGE_DATA);
+  inherited::msg_type (STREAM_MESSAGE_DATA);
 
   // set scheduled execution time
   //msg_execution_time ();
@@ -226,19 +226,19 @@ Stream_MessageBase::MessageType2String (ACE_Message_Type type_in,
 
   switch (type_in)
   {
-    case MESSAGE_SESSION:
+    case STREAM_MESSAGE_SESSION:
     {
       typeString_out = ACE_TEXT ("MESSAGE_SESSION");
 
       break;
     }
-    case MESSAGE_DATA:
+    case STREAM_MESSAGE_DATA:
     {
       typeString_out = ACE_TEXT ("MESSAGE_DATA");
 
       break;
     }
-    case MESSAGE_OBJECT:
+    case STREAM_MESSAGE_OBJECT:
     {
       typeString_out = ACE_TEXT ("MESSAGE_OBJECT");
 

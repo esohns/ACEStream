@@ -39,13 +39,15 @@ Stream_Module_Base_T<TaskSynchType,
                      WriterTaskType>::Stream_Module_Base_T (const std::string& name_in,
                                                             WriterTaskType* writerTask_in,
                                                             ReaderTaskType* readerTask_in,
-                                                            Common_IRefCount* refCount_in)
+                                                            Common_IRefCount* refCount_in,
+                                                            bool isFinal_in)
  : inherited (ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ()), // name
               writerTask_in,                             // initialize writer side task
               readerTask_in,                             // initialize reader side task
               refCount_in,                               // argument passed to task open()
               inherited::M_DELETE_NONE)                  // don't "delete" ANYTHING during close()
  , configuration_ ()
+ , isFinal_ (isFinal_in)
  , reader_ (readerTask_in)
  , writer_ (writerTask_in)
 {
@@ -153,10 +155,31 @@ Stream_Module_Base_T<TaskSynchType,
                 ACE_TEXT ("%s: dynamic_cast<Stream_IModuleHandler_T*>(%@) failed, aborting\n"),
                 ACE_TEXT (inherited::name ()),
                 task_p));
+
+    ACE_ASSERT (false);
     return HandlerConfigurationType ();
   } // end IF
 
   return imodule_handler_p->get ();
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename ReaderTaskType,
+          typename WriterTaskType>
+bool
+Stream_Module_Base_T<TaskSynchType,
+                     TimePolicyType,
+                     ConfigurationType,
+                     HandlerConfigurationType,
+                     ReaderTaskType,
+                     WriterTaskType>::isFinal () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::isFinal"));
+
+  return isFinal_;
 }
 
 template <typename TaskSynchType,

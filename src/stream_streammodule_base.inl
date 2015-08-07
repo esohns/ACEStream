@@ -36,11 +36,13 @@ Stream_StreamModule_T<TaskSynchType,
                       HandlerConfigurationType,
                       ReaderTaskType,
                       WriterTaskType>::Stream_StreamModule_T (const std::string& name_in,
-                                                              Common_IRefCount* refCount_in)
+                                                              Common_IRefCount* refCount_in,
+                                                              bool finalModule_in)
  : inherited (name_in,
-              &writer_,    // initialize writer side task
-              &reader_,    // initialize reader side task
-              refCount_in) // argument passed to task open()
+              &writer_,       // initialize writer side task
+              &reader_,       // initialize reader side task
+              refCount_in,    // argument passed to task open()
+              finalModule_in) // final module ?
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModule_T::Stream_StreamModule_T"));
 
@@ -89,12 +91,12 @@ Stream_StreamModule_T<TaskSynchType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
-                  ACE_TEXT (inherited::name ())));
+                  inherited::name ()));
     }
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%s\", continuing\n"),
-                  ACE_TEXT (inherited::name ())));
+                  inherited::name ()));
   } // end IF
 }
 
@@ -110,9 +112,11 @@ Stream_StreamModuleInputOnly_T<TaskSynchType,
                                ConfigurationType,
                                HandlerConfigurationType,
                                TaskType>::Stream_StreamModuleInputOnly_T(const std::string& name_in,
-                                                                         Common_IRefCount* refCount_in)
- : inherited (name_in,     // name
-              refCount_in) // arg passed to task open()
+                                                                         Common_IRefCount* refCount_in,
+                                                                         bool finalModule_in)
+ : inherited (name_in,
+              refCount_in,    // arg passed to task open()
+              finalModule_in) // final module ?
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModuleInputOnly_T::Stream_StreamModuleInputOnly_T"));
 
@@ -153,11 +157,11 @@ Stream_StreamModuleInputOnly_T<TaskSynchType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
-                  ACE_TEXT (inherited::name ())));
+                  inherited::name ()));
     }
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%s\", continuing\n"),
-                  ACE_TEXT (inherited::name ())));
+                  inherited::name ()));
   } // end IF
 }

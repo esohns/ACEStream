@@ -17,59 +17,38 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "stdafx.h"
 
-#include "stream_eventhandler.h"
+#ifndef TEST_U_FILECOPY_EVENTHANDLER_H
+#define STREAM_EVENTHANDLER_H
 
-#include "ace/Guard_T.h"
-#include "ace/Synch_Traits.h"
+#include "ace/Global_Macros.h"
+
+#include "common_inotify.h"
 
 #include "stream_common.h"
-#include "stream_macros.h"
 
-#include "test_u_common.h"
+#include "test_u_filecopy_common.h"
+#include "test_u_filecopy_message.h"
 
-Stream_EventHandler::Stream_EventHandler (Stream_GTK_CBData* CBData_in)
- : CBData_ (CBData_in)
+class Stream_Filecopy_EventHandler
+ : public Common_INotify_T<Stream_SessionData,
+                           Stream_Filecopy_Message>
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_EventHandler::Stream_EventHandler"));
+ public:
+  Stream_Filecopy_EventHandler (Stream_Filecopy_GTK_CBData*); // GTK state
+  virtual ~Stream_Filecopy_EventHandler ();
 
-}
+  // implement Common_INotify_T
+  virtual void start (const Stream_SessionData&);
+  virtual void notify (const Stream_Filecopy_Message&);
+  virtual void end ();
 
-Stream_EventHandler::~Stream_EventHandler ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_EventHandler::~Stream_EventHandler"));
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler (const Stream_Filecopy_EventHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler& operator=(const Stream_Filecopy_EventHandler&))
 
-}
+  Stream_Filecopy_GTK_CBData* CBData_;
+};
 
-void
-Stream_EventHandler::start (const Stream_SessionData& sessionData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_EventHandler::start"));
-
-  ACE_UNUSED_ARG (sessionData_in);
-
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->stackLock);
-
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
-}
-
-void
-Stream_EventHandler::notify (const Stream_Message_t& message_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_EventHandler::notify"));
-
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->stackLock);
-
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
-}
-
-void
-Stream_EventHandler::end ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_EventHandler::end"));
-
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->stackLock);
-
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
-}
+#endif

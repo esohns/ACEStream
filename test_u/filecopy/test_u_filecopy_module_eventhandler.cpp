@@ -19,46 +19,46 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_module_eventhandler.h"
+#include "test_u_filecopy_module_eventhandler.h"
 
 #include "stream_macros.h"
 
-Stream_Module_EventHandler::Stream_Module_EventHandler ()
+Stream_Filecopy_Module_EventHandler::Stream_Filecopy_Module_EventHandler ()
  : inherited ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_EventHandler::Stream_Module_EventHandler"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Module_EventHandler::Stream_Filecopy_Module_EventHandler"));
 
 }
 
-Stream_Module_EventHandler::~Stream_Module_EventHandler ()
+Stream_Filecopy_Module_EventHandler::~Stream_Filecopy_Module_EventHandler ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_EventHandler::~Stream_Module_EventHandler"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Module_EventHandler::~Stream_Filecopy_Module_EventHandler"));
 
 }
 
 Stream_Module_t*
-Stream_Module_EventHandler::clone ()
+Stream_Filecopy_Module_EventHandler::clone ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_EventHandler::clone"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Module_EventHandler::clone"));
 
   // initialize return value(s)
   Stream_Module_t* module_p = NULL;
 
   ACE_NEW_NORETURN (module_p,
-                    Stream_Module_EventHandler_Module (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
+                    Stream_Filecopy_Module_EventHandler_Module (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
                     NULL));
   if (!module_p)
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
   else
   {
-    Stream_Module_EventHandler* eventHandler_impl = NULL;
+    Stream_Filecopy_Module_EventHandler* eventHandler_impl = NULL;
     eventHandler_impl =
-      dynamic_cast<Stream_Module_EventHandler*> (module_p->writer ());
+      dynamic_cast<Stream_Filecopy_Module_EventHandler*> (module_p->writer ());
     if (!eventHandler_impl)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Stream_Module_EventHandler> failed, aborting\n")));
+                  ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_EventHandler> failed, aborting\n")));
 
       // clean up
       delete module_p;

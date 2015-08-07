@@ -875,6 +875,86 @@ Stream_Base_T<TaskSynchType,
   return *sessionData_;
 }
 
+//template <typename TaskSynchType,
+//          typename TimePolicyType,
+//          typename StateType,
+//          typename ConfigurationType,
+//          typename StatisticContainerType,
+//          typename ModuleConfigurationType,
+//          typename HandlerConfigurationType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType>
+//int
+//Stream_Base_T<TaskSynchType,
+//              TimePolicyType,
+//              StateType,
+//              ConfigurationType,
+//              StatisticContainerType,
+//              ModuleConfigurationType,
+//              HandlerConfigurationType,
+//              SessionDataType,
+//              SessionDataContainerType,
+//              SessionMessageType,
+//              ProtocolMessageType>::remove (const ACE_TCHAR* name_in,
+//                                            int flags_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::remove"));
+//
+//  MODULE_T* previous_p = NULL;
+//  MODULE_T* head_p = inherited::head ();
+//  for (MODULE_T* module_p = head_p;
+//       module_p;
+//       module_p = module_p->next ())
+//  {
+//    if (!ACE_OS::strcmp (module_p->name (), name_in))
+//    {
+//      // *NOTE*: (final) modules may be push()ed to several streams
+//      //         concurrently. Push()ing a module always sets its "next_"-
+//      //         member to the "tail" module. I.e., all traffic is forthwith
+//      //         routed to the same "tail" module. This is not really a problem,
+//      //         as long as the "tail" is replaced with a valid "tail" (--> the
+//      //         available one) on removal (see below)
+//      // *TODO*: this is quite a fragile workaround; find a better way to handle
+//      //         this (e.g. override push())
+//      IMODULE_T* imodule_p = dynamic_cast<IMODULE_T*> (module_p);
+//      if (!imodule_p)
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to dynamic_cast<Stream_IModule_T*> (%@), aborting\n"),
+//                    module_p));
+//        return -1;
+//      } // end IF
+//
+//      MODULE_T* tail_p = inherited::tail ();
+//      if (!previous_p) // head ?
+//        head_p->link (module_p->next ());
+//      else
+//        previous_p->link (imodule_p->isFinal () ? tail_p
+//                                                : module_p->next ());
+//
+//      // *NOTE*: do NOT close the module; it may be in use elsewhere
+//      //module_p->close (flags_in);
+//      // *TODO*: this does not work...
+//      module_p->next (tail_p);
+//
+//      if (flags_in != MODULE_T::M_DELETE_NONE)
+//        delete module_p;
+//
+//      return 0;
+//    } // end IF
+//    else
+//      previous_p = module_p;
+//  } // end FOR
+//
+//  ACE_DEBUG ((LM_ERROR,
+//              ACE_TEXT ("%s: not found, aborting\n"),
+//              name_in));
+//
+//  return -1;
+//}
+
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename StateType,
@@ -1085,7 +1165,7 @@ Stream_Base_T<TaskSynchType,
     //         session_data_container_p
     // *TODO*: remove type inference
     ACE_NEW_NORETURN (message_p,
-                      SessionMessageType (SESSION_END,
+                      SessionMessageType (STREAM_SESSION_END,
                                           session_data_container_p,
                                           state_.userData));
   } // end ELSE
@@ -1104,7 +1184,7 @@ Stream_Base_T<TaskSynchType,
     // *NOTE*: session message assumes responsibility for
     //         session_data_container_p
     // *TODO*: remove type inference
-    message_p->initialize (SESSION_END,
+    message_p->initialize (STREAM_SESSION_END,
                            session_data_container_p,
                            state_.userData);
   } // end IF

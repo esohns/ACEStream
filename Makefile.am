@@ -1,6 +1,4 @@
-#ACLOCAL_AMFLAGS = -I m4
-
-SUBDIRS = scripts modules src
+SUBDIRS = scripts modules src test_u
 
 EXTRA_DIST = \
   autogen.sh

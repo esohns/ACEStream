@@ -24,7 +24,6 @@
 #include <string>
 
 #include "ace/Global_Macros.h"
-//#include "ace/Module.h"
 
 #include "stream_imodule.h"
 
@@ -64,13 +63,15 @@ class Stream_Module_Base_T
   virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&);
   virtual const HandlerConfigurationType& get ();
+  virtual bool isFinal () const;
   virtual void reset ();
 
  protected:
   Stream_Module_Base_T (const std::string&, // name
                         WriterTaskType*,    // handle to writer task
                         ReaderTaskType*,    // handle to reader task
-                        Common_IRefCount*); // object counter
+                        Common_IRefCount*,  // object counter
+                        bool);              // final module ?
 
   // *TODO*: consider moving this to the stream, and have the modules refer to
   //         a single instance...
@@ -93,6 +94,7 @@ class Stream_Module_Base_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T (const Stream_Module_Base_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T& operator= (const Stream_Module_Base_T&))
 
+  bool              isFinal_;
   ReaderTaskType*   reader_;
   WriterTaskType*   writer_;
 };

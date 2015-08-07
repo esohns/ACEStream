@@ -21,7 +21,6 @@
 #ifndef STREAM_IMODULE_H
 #define STREAM_IMODULE_H
 
-//#include "ace/Module.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_iclone.h"
@@ -74,6 +73,8 @@ class Stream_IModule_T
 
   // *TODO*: see above
   virtual const HandlerConfigurationType& get () = 0;
+
+  virtual bool isFinal () const = 0;
 
   // *NOTE*: streams may call this to reset writer/reader tasks and re-use
   //         existing modules [needed after call to MODULE_TYPE::close(), which

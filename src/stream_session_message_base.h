@@ -38,14 +38,19 @@ class Stream_MessageBase;
 
 enum Stream_SessionMessageType
 {
-  // *NOTE*: see <stream_message_base.h> for details...
-  STREAM_SESSION_MAP = ACE_Message_Block::MB_USER,
-  // *** STREAM CONTROL ***
-  SESSION_BEGIN,
-  SESSION_STEP,
-  SESSION_END,
-  SESSION_STATISTICS
-  // *** STREAM CONTROL - END ***
+  // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
+  STREAM_SESSION_MESSAGE_MAP = ACE_Message_Block::MB_USER + 1,
+  // *** control ***
+  STREAM_SESSION_BEGIN,
+  STREAM_SESSION_STEP,
+  STREAM_SESSION_END,
+  // *** control - END ***
+  // *** data ***
+  STREAM_SESSION_STATISTIC,
+  // *** data - END ***
+  ///////////////////////////////////////
+  STREAM_SESSION_MAX,
+  STREAM_SESSION_INVALID
 };
 
 template <typename SessionDataType,
@@ -84,8 +89,8 @@ class Stream_SessionMessageBase_T
   virtual void dump_state () const;
 
   // debug tools
-  static void SessionMessageType2String (Stream_SessionMessageType, // message type
-                                         std::string&);             // corresp. string
+  static void SessionMessageType2String (ACE_Message_Type, // message type
+                                         std::string&);    // corresp. string
 
   // convenience types
   typedef SessionDataType SESSION_DATA_TYPE;
@@ -103,8 +108,8 @@ class Stream_SessionMessageBase_T
                                ACE_Allocator*); // message allocator
 
   bool                      isInitialized_;
-  Stream_SessionMessageType messageType_;
   SessionDataType*          sessionData_;
+  Stream_SessionMessageType type_;
   UserDataType*             userData_;
 
  private:
@@ -112,7 +117,7 @@ class Stream_SessionMessageBase_T
 
   // convenient types
   typedef Stream_SessionMessageBase_T<SessionDataType,
-                                      UserDataType> SELF_T;
+                                      UserDataType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T& operator= (const Stream_SessionMessageBase_T&))

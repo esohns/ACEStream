@@ -205,14 +205,13 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case SESSION_BEGIN:
+    case STREAM_SESSION_BEGIN:
     {
       // refer the session data back to any subscriber(s)
       // *TODO*: remove type inferences
       const typename SessionMessageType::SESSION_DATA_TYPE& session_data_container_r =
           message_inout->get ();
-      const typename SessionMessageType::SESSION_DATA_TYPE::SESSION_DATA_TYPE* session_data_p =
-          session_data_container_r.getData ();
+      const SessionDataType* session_data_p = session_data_container_r.getData ();
       ACE_ASSERT (session_data_p);
 
       // synch access
@@ -242,7 +241,7 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 
       break;
     }
-    case SESSION_END:
+    case STREAM_SESSION_END:
     {
       // refer the data back to any subscriber(s)
 

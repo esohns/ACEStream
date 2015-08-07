@@ -17,43 +17,56 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef STREAM_TEST_U_SIGNALHANDLER_H
-#define STREAM_TEST_U_SIGNALHANDLER_H
+#include "test_u_filecopy_eventhandler.h"
 
-#include "ace/Global_Macros.h"
+#include "ace/Guard_T.h"
+#include "ace/Synch_Traits.h"
 
-#include "common_iinitialize.h"
-#include "common_isignal.h"
-#include "common_signalhandler.h"
+#include "stream_macros.h"
 
-#include "test_u_common.h"
-
-#include "test_u_filecopy_common.h"
-
-class Stream_SignalHandler
- : public Common_SignalHandler
- , public Common_IInitialize_T<Stream_SignalHandlerConfiguration>
- , public Common_ISignal
+Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler (Stream_Filecopy_GTK_CBData* CBData_in)
+ : CBData_ (CBData_in)
 {
- public:
-  Stream_SignalHandler ();
-  virtual ~Stream_SignalHandler ();
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler"));
 
-  // implement Common_IInitialize_T
-  virtual bool initialize (const Stream_SignalHandlerConfiguration&); // configuration
+}
 
-  // implement Common_ISignal
-  virtual bool handleSignal (int); // signal
+Stream_Filecopy_EventHandler::~Stream_Filecopy_EventHandler ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::~Stream_Filecopy_EventHandler"));
 
- private:
-  typedef Common_SignalHandler inherited;
+}
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_SignalHandler ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_SignalHandler (const Stream_SignalHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_SignalHandler& operator= (const Stream_SignalHandler&))
+void
+Stream_Filecopy_EventHandler::start (const Stream_SessionData& sessionData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::start"));
 
-  Stream_SignalHandlerConfiguration configuration_;
-};
+  ACE_UNUSED_ARG (sessionData_in);
 
-#endif
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->stackLock);
+
+  CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
+}
+
+void
+Stream_Filecopy_EventHandler::notify (const Stream_Filecopy_Message& message_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::notify"));
+
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->stackLock);
+
+  CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
+}
+
+void
+Stream_Filecopy_EventHandler::end ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::end"));
+
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->stackLock);
+
+  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+}

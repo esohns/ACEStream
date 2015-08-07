@@ -45,7 +45,7 @@ class Stream_DataMessageBase_T
 
   // *TODO*: clean this up !
   const DataType* const getData () const;
-  virtual CommandType getCommand () const = 0; // return value: message type
+  virtual const CommandType& command () const = 0; // return value: message type
 
   // implement Common_IDumpState
   virtual void dump_state () const;

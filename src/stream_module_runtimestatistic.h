@@ -106,9 +106,9 @@ class Stream_Module_Statistic_WriterTask_T
   virtual ~Stream_Module_Statistic_WriterTask_T ();
 
   // initialization
-  bool initialize (unsigned int = STREAM_DEFAULT_STATISTICS_REPORTING, // (local) reporting interval (second(s)) [0: off]
-                   bool = false,                                       // print final report ?
-                   const Stream_IAllocator* = NULL);                   // report cache usage ?
+  bool initialize (unsigned int = STREAM_DEFAULT_STATISTIC_REPORTING, // (local) reporting interval (second(s)) [0: off]
+                   bool = false,                                      // print final report ?
+                   const Stream_IAllocator* = NULL);                  // report cache usage ?
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (ProtocolMessageType*&, // data message handle

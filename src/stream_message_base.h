@@ -35,24 +35,29 @@
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_message_base.h"
 
+// forward declaration(s)
+class ACE_Data_Block;
+class ACE_Allocator;
+
 enum Stream_MessageType_t
 {
-  // *NOTE*: see <ace/Message_Block.h> for details...
-  MESSAGE_SESSION_MAP  = ACE_Message_Block::MB_USER,
-  // *** STREAM CONTROL ***
-  MESSAGE_SESSION,
-  // *** STREAM CONTROL - END ***
-  MESSAGE_DATA_MAP     = 0x300,
-  // *** STREAM DATA ***
-  MESSAGE_DATA,   // protocol data
-  MESSAGE_OBJECT, // (OO) message object type (--> can be downcast dynamically)
-  // *** STREAM DATA - END ***
-  MESSAGE_PROTOCOL_MAP = 0x400
+  // *NOTE*: see "ace/Message_Block.h" for details
+  STREAM_MESSAGE_MAP   = ACE_Message_Block::MB_USER, // session (== 0x200)
+  // *** control ***
+  STREAM_MESSAGE_SESSION,
+  // *** control - END ***
+  STREAM_MESSAGE_MAP_2 = 0x300,                      // data
+  // *** data ***
+  STREAM_MESSAGE_DATA,   // protocol data
+  STREAM_MESSAGE_OBJECT, // (OO) message object type (--> can be downcast dynamically)
+  // *** data - END ***
+  STREAM_MESSAGE_MAP_3 = 0x400,                      // protocol
+  // *** protocol ***
+  // *** protocol - END ***
+  ///////////////////////////////////////
+  STREAM_MESSAGE_MAX,
+  STREAM_MESSAGE_INVALID
 };
-
-// forward declaratation(s)
-class ACE_Allocator;
-//template <> class Stream_SessionMessageBase_T<Stream_SessionData, Stream_UserData>;
 
 class Stream_Export Stream_MessageBase
  : public ACE_Message_Block,
@@ -112,5 +117,55 @@ class Stream_Export Stream_MessageBase
 
   unsigned int messageID_;
 };
+
+/////////////////////////////////////////
+
+#include "common_iget.h"
+
+template <typename HeaderType,
+          typename ProtocolCommandType>
+class Stream_MessageBase_T
+ : public Stream_MessageBase
+ , public Common_IGet_T<HeaderType>
+// , public Common_IGet_T<ProtocolCommandType>
+{
+  // grant access to specific ctors
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_MessageBase_T<HeaderType,
+                                                                      ProtocolCommandType>,
+                                                 Stream_SessionMessageBase_T<Stream_SessionData,
+                                                                             Stream_UserData> >;
+
+ public:
+  virtual ~Stream_MessageBase_T ();
+
+  // used for pre-allocated messages...
+  virtual void initialize (// Stream_MessageBase members
+                           ACE_Data_Block*); // data block to use
+
+  // implement Common_IGet_T
+  virtual const HeaderType& get () const;
+  virtual const ProtocolCommandType& command () const = 0; // return value: message type
+//  static std::string CommandType2String (ProtocolCommandType);
+
+ protected:
+  Stream_MessageBase_T (unsigned int); // size
+
+  // copy ctor to be used by duplicate() and child classes
+  // --> uses an (incremented refcount of) the same datablock ("shallow copy")
+  Stream_MessageBase_T (const Stream_MessageBase_T&);
+  // *NOTE*: to be used by allocators...
+  Stream_MessageBase_T (ACE_Data_Block*, // data block to use
+                        ACE_Allocator*); // message allocator
+
+ private:
+  typedef Stream_MessageBase inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_T& operator= (const Stream_MessageBase_T&))
+
+  bool isInitialized_;
+};
+
+#include "stream_message_base.inl"
 
 #endif

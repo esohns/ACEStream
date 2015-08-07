@@ -71,13 +71,6 @@ class Stream_HeadModuleTaskBase_T
   virtual int module_closed (void);
   virtual int svc (void);
 
-  // implement (part of) Stream_ITaskBase
-  // *NOTE*: this is just a stub
-  // *WARNING*: needed to implement this in the base class to please linker
-  //            errors about missing template instantiations
-//   virtual void handleDataMessage (Stream_MessageBase*&, // data message handle
-//                                   bool&);               // return value: pass message downstream ?
-
   // implement Stream_IModuleHandler_T
   virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&);
@@ -98,8 +91,9 @@ class Stream_HeadModuleTaskBase_T
   virtual bool initialize (const StreamStateType&);
 
  protected:
-  Stream_HeadModuleTaskBase_T (bool = false,  // active object ?
-                               bool = false); // auto-start ?
+  Stream_HeadModuleTaskBase_T (bool = false, // active object ?
+                               bool = false, // auto-start ?
+                               bool = true); // run svc() routine on start ? (passive only)
 
   // *NOTE*: override: handle MB_STOP control messages to trigger shutdown of
   //         the worker thread
@@ -129,10 +123,13 @@ class Stream_HeadModuleTaskBase_T
   //             so it calls this to signal an end
   virtual void finished ();
 
-  ConfigurationType               configuration_;
-  bool                            isActive_;
-  SessionDataType*                sessionData_;
-  StreamStateType*                state_;
+  ConfigurationType   configuration_;
+//  bool                isActive_;
+  SessionDataType*    sessionData_;
+  StreamStateType*    state_;
+
+  ACE_SYNCH_MUTEX     lock_;
+  Stream_MessageQueue queue_;
 
  private:
   typedef Stream_StateMachine_Control inherited;
@@ -158,12 +155,17 @@ class Stream_HeadModuleTaskBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T (const Stream_HeadModuleTaskBase_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T& operator= (const Stream_HeadModuleTaskBase_T&))
 
+  // implement (part of) Stream_ITaskBase
+  // *NOTE*: this is just a stub
+  // *WARNING*: needed to implement this in the base class to please linker
+  //            errors about missing template instantiations
+  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
+                                  bool&);                // return value: pass message downstream ?
+
   // allow blocking wait in waitForCompletion()
-  bool                            autoStart_;
-  ACE_SYNCH_CONDITION             condition_;
-  ACE_SYNCH_MUTEX                 lock_;
-  Stream_MessageQueue             queue_;
-  unsigned int                    threadCount_;
+  bool                autoStart_;
+  ACE_SYNCH_CONDITION condition_;
+  bool                runSvcRoutineOnStart_;
 };
 
 // include template implementation

@@ -44,7 +44,7 @@ template <typename DataType,
 Stream_DataMessageBase_T<DataType,
                          CommandType>::Stream_DataMessageBase_T (DataType*& data_inout)
  : inherited (0,                                  // size
-              MESSAGE_OBJECT,                     // type
+              STREAM_MESSAGE_OBJECT,              // type
               NULL,                               // continuation
               NULL,                               // data
               NULL,                               // buffer allocator
@@ -93,7 +93,7 @@ Stream_DataMessageBase_T<DataType,
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
   // set correct message type
-  msg_type (MESSAGE_OBJECT);
+  inherited::msg_type (STREAM_MESSAGE_OBJECT);
 
   // reset read/write pointers
   reset ();
@@ -112,7 +112,7 @@ Stream_DataMessageBase_T<DataType,
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
   // set correct message type
-  msg_type (MESSAGE_OBJECT);
+  inherited::msg_type (STREAM_MESSAGE_OBJECT);
 
   // reset read/write pointers
   reset ();
@@ -171,7 +171,7 @@ Stream_DataMessageBase_T<DataType,
     inherited::initialize (dataBlock_in);
 
     // (re)set correct message type
-    msg_type (MESSAGE_OBJECT);
+    inherited::msg_type (STREAM_MESSAGE_OBJECT);
   } // end IF
 
   isInitialized_ = true;

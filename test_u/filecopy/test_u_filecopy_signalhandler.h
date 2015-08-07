@@ -18,34 +18,39 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_EVENTHANDLER_H
-#define STREAM_EVENTHANDLER_H
+#ifndef TEST_U_FILECOPY_SIGNALHANDLER_H
+#define TEST_U_FILECOPY_SIGNALHANDLER_H
 
 #include "ace/Global_Macros.h"
 
-#include "common_inotify.h"
+#include "common_iinitialize.h"
+#include "common_isignal.h"
+#include "common_signalhandler.h"
 
-#include "test_u_common.h"
+#include "test_u_filecopy_common.h"
 
-class Stream_EventHandler
- : public Common_INotify_T<Stream_SessionData,
-                           Stream_Message_t>
+class Stream_Filecopy_SignalHandler
+ : public Common_SignalHandler
+ , public Common_IInitialize_T<Stream_Filecopy_SignalHandlerConfiguration>
+ , public Common_ISignal
 {
  public:
-  Stream_EventHandler (Stream_GTK_CBData*); // GTK state
-  virtual ~Stream_EventHandler ();
+  Stream_Filecopy_SignalHandler ();
+  virtual ~Stream_Filecopy_SignalHandler ();
 
-  // implement Common_INotify_T
-  virtual void start (const Stream_SessionData&);
-  virtual void notify (const Stream_Message_t&);
-  virtual void end ();
+  // implement Common_IInitialize_T
+  virtual bool initialize (const Stream_Filecopy_SignalHandlerConfiguration&); // configuration
+
+  // implement Common_ISignal
+  virtual bool handleSignal (int); // signal
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_EventHandler ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_EventHandler (const Stream_EventHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_EventHandler& operator=(const Stream_EventHandler&))
+  typedef Common_SignalHandler inherited;
 
-  Stream_GTK_CBData* CBData_;
+  ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_SignalHandler (const Stream_Filecopy_SignalHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_SignalHandler& operator= (const Stream_Filecopy_SignalHandler&))
+
+  Stream_Filecopy_SignalHandlerConfiguration configuration_;
 };
 
 #endif

@@ -45,17 +45,22 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType>::Stream_HeadModuleTaskBase_T (bool isActive_in,
-                                                                                    bool autoStart_in)
+                                                                                    bool autoStart_in,
+                                                                                    bool runSvcRoutineOnStart_in)
  : configuration_ ()
- , isActive_ (isActive_in)
+// , isActive_ (isActive_in)
  , sessionData_ (NULL)
  , state_ (NULL)
+ , lock_ ()
+ , queue_ (STREAM_QUEUE_MAX_SLOTS)
  , autoStart_ (autoStart_in)
  , condition_ (lock_)
- , queue_ (STREAM_QUEUE_MAX_SLOTS)
- , threadCount_ (0)
+ , runSvcRoutineOnStart_ (runSvcRoutineOnStart_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
+
+  // *TODO*: remove type inference
+  configuration_.active = isActive_in;
 
   // tell the task to use our message queue...
   inherited2::msg_queue (&queue_);
@@ -111,17 +116,18 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::put (ACE_Message_Block* mb_in,
-                                                            ACE_Time_Value* tv_in)
+                            SessionDataContainerType>::put (ACE_Message_Block* messageBlock_in,
+                                                            ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::put"));
 
-  int result = 0;
+  int result = -1;
 
   // if active, simply drop the message into the queue...
-  if (isActive_)
+  // *TODO*: remove type inference
+  if (configuration_.active)
   {
-    result = inherited2::putq (mb_in, tv_in);
+    result = inherited2::putq (messageBlock_in, timeout_in);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", aborting\n")));
@@ -130,7 +136,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
   // otherwise, process manually...
   bool stop_processing = false;
-  inherited2::handleMessage (mb_in,
+  inherited2::handleMessage (messageBlock_in,
                              stop_processing);
 
   // finished ?
@@ -141,7 +147,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     stop ();
   } // end IF
 
-  return result;
+  return 0;
 }
 
 template <typename TaskSynchType,
@@ -350,6 +356,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
+  int result = -1;
   ACE_Message_Block* message_block_p = NULL;
   bool               stop_processing = false;
 
@@ -357,24 +364,10 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   {
     ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-    threadCount_++;
+    inherited2::threadCount_++;
   } // end IF
 
-  // step1: send initial session message downstream...
-  if (!putSessionMessage (SESSION_BEGIN,
-                          sessionData_,
-                          false))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, aborting\n")));
-
-    // signal the controller
-    finished ();
-
-    return -1;
-  } // end IF
-
-  // step2: start processing incoming data...
+  // step1: start processing incoming data...
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("entering processing loop...\n")));
 
@@ -392,36 +385,22 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 //       ACE_DEBUG ((LM_DEBUG,
 //                   ACE_TEXT ("leaving processing loop...\n")));
 
-      // step3: send final session message downstream...
-      if (!putSessionMessage (SESSION_END,
-                              sessionData_,
-                              false))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("putSessionMessage(SESSION_END) failed, aborting\n")));
+      result = 0;
 
-        // signal the controller
-        finished ();
-
-        return -1;
-      } // end IF
-
-      // signal the controller
-      finished ();
-
-      // done
-      return 0;
+      goto session_finished;
     } // end IF
 
     // clean up
     message_block_p = NULL;
   } // end WHILE
+  result = -1;
 
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
-  // step3: send final session message downstream...
-  if (!putSessionMessage (SESSION_END,
+session_finished:
+  // step2: send final session message downstream...
+  if (!putSessionMessage (STREAM_SESSION_END,
                           sessionData_,
                           false))
     ACE_DEBUG ((LM_ERROR,
@@ -430,7 +409,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   // signal the controller
   finished ();
 
-  return -1;
+  return result;
 }
 
 template <typename TaskSynchType,
@@ -465,7 +444,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 //      ACE_DEBUG ((LM_DEBUG,
 //                  ACE_TEXT ("received MB_STOP message, shutting down...\n")));
 
-      // clean up --> we DON'T pass these along...
+      // clean up
       passMessageDownstream_out = false;
       controlMessage_in->release ();
 
@@ -484,6 +463,33 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       break;
     }
   } // end SWITCH
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+void
+Stream_HeadModuleTaskBase_T<TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType>::handleDataMessage (ProtocolMessageType*& message_inout,
+                                                                          bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::handleDataMessage"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
 }
 
 template <typename TaskSynchType,
@@ -688,13 +694,14 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
   int result = -1;
 
-  if (isActive_)
+  // *TODO*: remove type inference
+  if (configuration_.active)
   {
     // step1: wait for workers to finish
     {
       ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-      while (threadCount_)
+      while (inherited2::threadCount_)
       {
         result = condition_.wait ();
         if (result == -1)
@@ -826,7 +833,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       if (inherited::current () == STREAM_STATE_PAUSED)
       {
         // resume worker ?
-        if (isActive_)
+        // *TODO*: remove type inference
+        if (configuration_.active)
         {
           result = inherited2::resume ();
           if (result == -1)
@@ -837,7 +845,18 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         break;
       } // end IF
 
-      if (isActive_)
+      // send initial session message downstream...
+      if (!putSessionMessage (STREAM_SESSION_BEGIN,
+                              sessionData_,
+                              false))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
+        break;
+      } // end IF
+
+      // *TODO*: remove type inference
+      if (configuration_.active)
       {
         // OK: start worker
         ACE_hthread_t thread_handles[1];
@@ -869,37 +888,43 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                       ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", continuing\n")));
           break;
         } // end IF
-      } // end IF
-      else
-      {
-        // send initial session message downstream...
-        if (!putSessionMessage (SESSION_BEGIN,
-                                sessionData_,
-                                false))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
-          break;
-        } // end IF
-      } // end ELSE
 
-//       if (inherited::module ())
-//         ACE_DEBUG ((LM_DEBUG,
-//                     ACE_TEXT ("module \"%s\" started worker thread (group: %d, id: %u)...\n"),
-//                     ACE_TEXT (inherited::name ()),
-//                     inherited::grp_id (),
-//                     thread_ids[0]));
-//       else
-//         ACE_DEBUG ((LM_DEBUG,
-//                     ACE_TEXT ("started worker thread (group: %d, id: %u)...\n"),
-//                     inherited::grp_id (),
-//                     thread_ids[0]));
+        //       if (inherited::module ())
+        //         ACE_DEBUG ((LM_DEBUG,
+        //                     ACE_TEXT ("module \"%s\" started worker thread (group: %d, id: %u)...\n"),
+        //                     ACE_TEXT (inherited::name ()),
+        //                     inherited::grp_id (),
+        //                     thread_ids[0]));
+        //       else
+        //         ACE_DEBUG ((LM_DEBUG,
+        //                     ACE_TEXT ("started worker thread (group: %d, id: %u)...\n"),
+        //                     inherited::grp_id (),
+        //                     thread_ids[0]));
+      } // end IF
+      else if (runSvcRoutineOnStart_)
+      {
+        result = svc ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
+
+//        // send initial session message downstream...
+//        if (!putSessionMessage (STREAM_SESSION_END,
+//                                sessionData_,
+//                                false))
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
+//          break;
+//        } // end IF
+      } // end IF
 
       break;
     }
     case STREAM_STATE_STOPPED:
     {
-      if (isActive_)
+      // *TODO*: remove type inference
+      if (configuration_.active)
       {
         // OK: drop a control message into the queue...
         // *TODO*: use ACE_Stream::control() instead ?
@@ -936,7 +961,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       else
       {
         // send final session message downstream...
-        if (!putSessionMessage (SESSION_END,
+        if (!putSessionMessage (STREAM_SESSION_END,
                                 sessionData_,
                                 false))
           ACE_DEBUG ((LM_ERROR,
@@ -954,7 +979,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       {
         ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-        threadCount_--;
+        inherited2::threadCount_--;
 
         result = condition_.broadcast ();
         if (result == -1)
@@ -970,7 +995,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     case STREAM_STATE_PAUSED:
     {
       // suspend the worker(s) ?
-      if (isActive_)
+      // *TODO*: remove type inference
+      if (configuration_.active)
       {
         result = inherited2::suspend ();
         if (result == -1)
@@ -1134,9 +1160,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   SessionDataContainerType* session_data_p = NULL;
   switch (messageType_in)
   {
-    case SESSION_BEGIN:
-    case SESSION_STEP:
-    case SESSION_END:
+    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_STEP:
+    case STREAM_SESSION_END:
     {
       ACE_NEW_NORETURN (session_data_p,
                         SessionDataContainerType (sessionData_in,
@@ -1150,7 +1176,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
       break;
     }
-    case SESSION_STATISTICS:
+    case STREAM_SESSION_STATISTIC:
     default:
     {
       ACE_DEBUG ((LM_ERROR,

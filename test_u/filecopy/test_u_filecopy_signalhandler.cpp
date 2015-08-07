@@ -19,34 +19,34 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_u_signalhandler.h"
+#include "test_u_filecopy_signalhandler.h"
 
 #include "ace/Log_Msg.h"
 
-#include "common_timer_manager.h"
-#include "common_tools.h"
+//#include "common_timer_manager.h"
+//#include "common_tools.h"
 
 #include "stream_macros.h"
 
-Stream_SignalHandler::Stream_SignalHandler ()
+Stream_Filecopy_SignalHandler::Stream_Filecopy_SignalHandler ()
  : inherited (this, // event handler handle
               true) // use reactor ?
  , configuration_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SignalHandler::Stream_SignalHandler"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::Stream_Filecopy_SignalHandler"));
 
 }
 
-Stream_SignalHandler::~Stream_SignalHandler ()
+Stream_Filecopy_SignalHandler::~Stream_Filecopy_SignalHandler ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SignalHandler::~Stream_SignalHandler"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::~Stream_Filecopy_SignalHandler"));
 
 }
 
 bool
-Stream_SignalHandler::initialize (const Stream_SignalHandlerConfiguration& configuration_in)
+Stream_Filecopy_SignalHandler::initialize (const Stream_Filecopy_SignalHandlerConfiguration& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SignalHandler::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::initialize"));
 
   configuration_ = configuration_in;
 
@@ -54,11 +54,11 @@ Stream_SignalHandler::initialize (const Stream_SignalHandlerConfiguration& confi
 }
 
 bool
-Stream_SignalHandler::handleSignal (int signal_in)
+Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SignalHandler::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::handleSignal"));
 
-  int result = -1;
+//  int result = -1;
 
   bool statistics = false;
   bool shutdown = false;

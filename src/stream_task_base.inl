@@ -26,7 +26,7 @@
 #include "stream_macros.h"
 
 #include "stream_defines.h"
-#include "stream_message_base.h"
+#include "stream_session_message_base.h"
 
 template <typename TaskSynchStrategyType,
           typename TimePolicyType,
@@ -98,10 +98,10 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   // end of a session...
   switch (message_inout->type ())
   {
-    case SESSION_BEGIN:
-    case SESSION_STEP:
+    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_STEP:
       break;
-    case SESSION_END:
+    case STREAM_SESSION_END:
     {
       try
       {
@@ -113,7 +113,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
         if (inherited::module ())
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": caught exception in dump_state(), continuing\n"),
-                      ACE_TEXT (inherited::name ())));
+                      inherited::name ()));
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught exception in dump_state(), continuing\n")));
@@ -121,17 +121,13 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
       break;
     }
-    case SESSION_STATISTICS:
+    case STREAM_SESSION_STATISTIC:
       break;
     default:
     {
-      std::string type_string;
-      Stream_SessionMessage::SessionMessageType2String (message_inout->type (),
-                                                        type_string);
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("invalid/unknown session message (type: \"%s\")\n"),
-                  ACE_TEXT (type_string.c_str ())));
-
+                  ACE_TEXT ("invalid/unknown session message type (was: %d)\n"),
+                  message_inout->type ()));
       break;
     }
   } // end SWITCH
@@ -152,7 +148,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   if (inherited::module ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("module: \"%s\": failed to process message %@, continuing\n"),
-                ACE_TEXT (inherited::name ()),
+                inherited::name (),
                 message_in));
   else
     ACE_DEBUG ((LM_ERROR,
@@ -189,7 +185,7 @@ void
 Stream_TaskBase_T<TaskSynchStrategyType,
                   TimePolicyType,
                   SessionMessageType,
-                  ProtocolMessageType>::handleMessage (ACE_Message_Block* mb_in,
+                  ProtocolMessageType>::handleMessage (ACE_Message_Block* messageBlock_in,
                                                        bool& stopProcessing_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleMessage"));
@@ -197,43 +193,43 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   int result = -1;
 
   // sanity check
-  ACE_ASSERT (mb_in);
+  ACE_ASSERT (messageBlock_in);
 
   // initialize return value(s)
   stopProcessing_out = false;
 
   // default behavior is to pass EVERYTHING downstream...
   bool passMessageDownstream = true;
-  switch (mb_in->msg_type ())
+  switch (messageBlock_in->msg_type ())
   {
     // DATA handling
-    case MESSAGE_DATA:
-    case MESSAGE_OBJECT:
+    case STREAM_MESSAGE_DATA:
+    case STREAM_MESSAGE_OBJECT:
     {
       ProtocolMessageType* message_p =
-        dynamic_cast<ProtocolMessageType*> (mb_in);
+        dynamic_cast<ProtocolMessageType*> (messageBlock_in);
 //       // *OPTIMIZATION*: not as safe, but (arguably) a lot faster !...
 //       message = static_cast<RPG_Stream_MessageBase*>(mb_in);
       if (!message_p)
       {
-        std::string type;
-        Stream_MessageBase::MessageType2String (mb_in->msg_type (),
-                                                type);
+        std::string type_string;
+        Stream_MessageBase::MessageType2String (messageBlock_in->msg_type (),
+                                                type_string);
         Stream_Module_t* module_p = inherited::module ();
         if (module_p)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": dynamic_cast<ProtocolMessageType*>(%@) failed (type was: \"%s\"), aborting\n"),
                       module_p->name (),
-                      mb_in,
-                      ACE_TEXT (type.c_str ())));
+                      messageBlock_in,
+                      ACE_TEXT (type_string.c_str ())));
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("dynamic_cast<ProtocolMessageType*>(%@) failed (type was: \"%s\"), aborting\n"),
-                      mb_in,
-                      ACE_TEXT (type.c_str ())));
+                      messageBlock_in,
+                      ACE_TEXT (type_string.c_str ())));
 
         // clean up
-        mb_in->release ();
+        messageBlock_in->release ();
 
         return;
       } // end IF
@@ -270,25 +266,25 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       try
       {
         // invoke specific implementation...
-        handleControlMessage (mb_in,
+        handleControlMessage (messageBlock_in,
                               stopProcessing_out,
                               passMessageDownstream);
       }
       catch (...)
       {
-        std::string type;
-        Stream_MessageBase::MessageType2String (mb_in->msg_type (),
-                                                type);
+        std::string type_string;
+        Stream_MessageBase::MessageType2String (messageBlock_in->msg_type (),
+                                                type_string);
 
         if (inherited::module ())
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": caught an exception in handleControlMessage() (type was: \"%s\"), continuing\n"),
-                      ACE_TEXT (inherited::name ()),
-                      ACE_TEXT (type.c_str ())));
+                      inherited::name (),
+                      ACE_TEXT (type_string.c_str ())));
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught an exception in handleControlMessage() (type: \"%s\"), continuing\n"),
-                      ACE_TEXT (type.c_str ())));
+                      ACE_TEXT (type_string.c_str ())));
       }
 
       break;
@@ -306,18 +302,18 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 //                  ACE_TEXT ("cannot put_next(): not a module, continuing\n")));
 
       // clean up
-      mb_in->release ();
+      messageBlock_in->release ();
     } // end IF
     else
     {
-      result = inherited::put_next (mb_in, NULL);
+      result = inherited::put_next (messageBlock_in, NULL);
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to put_next(): \"%m\", continuing\n")));
 
         // clean up
-        mb_in->release ();
+        messageBlock_in->release ();
       } // end IF
     } // end IF
   } // end IF
@@ -343,7 +339,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
   switch (controlMessage_in->msg_type ())
   {
-    case MESSAGE_SESSION:
+    case STREAM_MESSAGE_SESSION:
     {
       SessionMessageType* session_message_p = NULL;
       // downcast message
@@ -381,7 +377,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
         if (inherited::module ())
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": caught an exception in handleSessionMessage(), continuing\n"),
-                      ACE_TEXT (inherited::name ())));
+                      inherited::name ()));
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught an exception in handleSessionMessage(), continuing\n")));
@@ -389,7 +385,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
       // *NOTE*: if this was a Stream_SessionMessage::SESSION_END, stop
       //         processing (see above) !
-      if (session_message_p->type () == SESSION_END)
+      if (session_message_p->type () == STREAM_SESSION_END)
       {
         // OK: tell any worker thread to stop whatever it's doing ASAP...
         stopProcessing_out = true;
@@ -405,13 +401,12 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       if (inherited::module ())
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("module \"%s\": received an unknown control message (type: %d), continuing\n"),
-                    ACE_TEXT (inherited::name ()),
+                    inherited::name (),
                     controlMessage_in->msg_type ()));
       else
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("received an unknown control message (type: %d), continuing\n"),
                     controlMessage_in->msg_type ()));
-
       break;
     }
   } // end SWITCH
