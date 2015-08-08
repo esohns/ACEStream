@@ -30,8 +30,8 @@
 class ACE_Message_Block;
 class ACE_Time_Value;
 
-// *NOTE*: the message queue needs to be synched so that shutdown can be
-// asynchronous...
+// *IMPORTANT NOTE*: the message queue needs to be synchronized so that shutdown
+//                   can be asynchronous
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename SessionMessageType,
@@ -46,8 +46,8 @@ class Stream_TaskBaseAsynch_T
   virtual ~Stream_TaskBaseAsynch_T ();
 
   // override task-based members
-  virtual int put (ACE_Message_Block*, // data chunk
-                   ACE_Time_Value*);   // timeout value
+  //virtual int put (ACE_Message_Block*, // data chunk
+  //                 ACE_Time_Value*);   // timeout value
   virtual int open (void* = NULL);
   virtual int close (u_long = 0);
   virtual int module_closed (void);
@@ -58,7 +58,7 @@ class Stream_TaskBaseAsynch_T
  protected:
   Stream_TaskBaseAsynch_T ();
 
-  ACE_thread_t            threadID_;
+  ACE_thread_t        threadID_;
 
  private:
   typedef Stream_TaskBase_T<TaskSynchType,
@@ -66,14 +66,12 @@ class Stream_TaskBaseAsynch_T
                             SessionMessageType,
                             ProtocolMessageType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T (const Stream_TaskBaseAsynch_T&));
-//   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T (const Stream_TaskBaseAsynch_T&))
+//   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&))
 
   // helper methods
-  // enqueue MB_STOP --> stop worker thread
-  // *WARNING*: handle with EXTREME care, you should NEVER use this directly
-  // if in stream context (i.e. task/module is part of a stream)
-  void shutdown ();
+  //// enqueue MB_STOP --> stop worker thread(s)
+  //void shutdown ();
 
   Stream_MessageQueue queue_;
 };

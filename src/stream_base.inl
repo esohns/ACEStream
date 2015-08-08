@@ -27,6 +27,7 @@
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -38,6 +39,7 @@ template <typename TaskSynchType,
           typename ProtocolMessageType>
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -63,6 +65,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -74,6 +77,7 @@ template <typename TaskSynchType,
           typename ProtocolMessageType>
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -93,6 +97,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -105,6 +110,7 @@ template <typename TaskSynchType,
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -141,6 +147,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -153,6 +160,7 @@ template <typename TaskSynchType,
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -172,28 +180,23 @@ Stream_Base_T<TaskSynchType,
   {
     // *NOTE*: fini() invokes close(), which will reset the writer/reader tasks
     // of the enqueued modules --> reset this !
-    IMODULE_T* imodule_handle_p = NULL;
-    // *TODO*: cannot write this - it confuses gcc...
-    //   for (MODULE_CONTAINER_TYPE::const_iterator iter = availableModules_.begin ();
-    //for (ACE_DLList_Iterator<MODULE_T> iterator (availableModules_);
-    //     iterator.next (module_p);
-    //     iterator.advance ())
+    IMODULE_T* imodule_p = NULL;
     for (MODULE_CONTAINER_ITERATOR_T iterator = availableModules_.begin ();
          iterator != availableModules_.end ();
          iterator++)
     {
       // need a downcast...
-      imodule_handle_p = dynamic_cast<IMODULE_T*> (*iterator);
-      if (!imodule_handle_p)
+      imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
+      if (!imodule_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
-                    ACE_TEXT ((*iterator)->name ())));
+                    (*iterator)->name ()));
         return false;
       } // end IF
       try
       {
-        imodule_handle_p->reset ();
+        imodule_p->reset ();
       }
       catch (...)
       {
@@ -243,6 +246,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -255,6 +259,7 @@ template <typename TaskSynchType,
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -295,6 +300,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -307,6 +313,7 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -366,6 +373,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -378,6 +386,7 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -425,7 +434,7 @@ Stream_Base_T<TaskSynchType,
 
   try
   {
-    control_impl_p->stop ();
+    control_impl_p->stop (waitForCompletion_in);
   }
   catch (...)
   {
@@ -441,6 +450,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -453,6 +463,7 @@ template <typename TaskSynchType,
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -503,6 +514,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -515,6 +527,7 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -529,13 +542,8 @@ Stream_Base_T<TaskSynchType,
 
   int result = -1;
 
-  // sanity check
-  if (!isRunning ())
-  {
-//     ACE_DEBUG ((LM_DEBUG,
-//                 ACE_TEXT ("not running --> nothing to do, returning\n")));
-    return;
-  } // end IF
+  //// sanity check
+  //ACE_ASSERT (isRunning ());
 
   // delegate to the head module
   MODULE_T* module_p = NULL;
@@ -572,6 +580,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -584,6 +593,7 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -642,6 +652,70 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+const StatusType&
+Stream_Base_T<TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+              ProtocolMessageType>::status () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::status"));
+
+  int result = -1;
+
+  // delegate to the head module
+  MODULE_T* module_p = NULL;
+  result = const_cast<OWN_TYPE_T*> (this)->top (module_p);
+  if ((result == -1) || !module_p)
+  {
+    //ACE_DEBUG ((LM_ERROR,
+    //            ACE_TEXT ("no head module found: \"%m\", returning\n")));
+    return StatusType ();
+  } // end IF
+
+  ISTREAM_CONTROL_T* control_impl_p = NULL;
+  control_impl_p = dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
+  if (!control_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
+                module_p->name ()));
+    return StatusType ();
+  } // end IF
+
+  try
+  {
+    return control_impl_p->status ();
+  }
+  catch (...)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Stream_IStreamControl::status(), returning\n"),
+                module_p->name ()));
+    return StatusType ();
+  }
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -654,6 +728,7 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -761,6 +836,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -773,6 +849,7 @@ template <typename TaskSynchType,
 const StateType&
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -790,6 +867,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -802,6 +880,7 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -843,6 +922,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -855,6 +935,7 @@ template <typename TaskSynchType,
 const SessionDataType&
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -957,6 +1038,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -969,6 +1051,7 @@ template <typename TaskSynchType,
 bool
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -986,6 +1069,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -998,6 +1082,7 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,
@@ -1101,6 +1186,7 @@ Stream_Base_T<TaskSynchType,
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename StatusType,
           typename StateType,
           typename ConfigurationType,
           typename StatisticContainerType,
@@ -1113,6 +1199,7 @@ template <typename TaskSynchType,
 void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
+              StatusType,
               StateType,
               ConfigurationType,
               StatisticContainerType,

@@ -29,27 +29,33 @@
 
 //---------------------------------------
 
-#define TEST_U_STREAM_UI_GTKEVENT_RESOLUTION              200 // ms --> 5 FPS
-#define TEST_U_STREAM_UI_GTK_SPINBUTTON_NUMMESSAGES_NAME  "spinbutton_messages"
-#define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                "textview"
-#define TEST_U_STREAM_UI_GTK_ADJUSTMENT_NAME              "scrolledwindow_vadjustment"
-#define TEST_U_STREAM_UI_GTK_SCROLLMARK_NAME              "insert"
-#define TEST_U_STREAM_UI_GTK_BUTTONBOX_ACTIONS_NAME       "vbuttonbox"
-#define TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME            "about"
-#define TEST_U_STREAM_UI_GTK_BUTTON_CLEAR_NAME            "clear"
-#define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME           "report"
-#define TEST_U_STREAM_UI_GTK_BUTTON_START_NAME            "start"
-#define TEST_U_STREAM_UI_GTK_BUTTON_STOP_NAME             "stop"
-#define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME             "quit"
-#define TEST_U_STREAM_UI_GTK_DIALOG_ABOUT_NAME            "dialog_about"
-#define TEST_U_STREAM_UI_GTK_DIALOG_MAIN_NAME             "dialog_main"
-#define TEST_U_STREAM_UI_GTK_IMAGE_START_NAME             "image_start"
-#define TEST_U_STREAM_UI_GTK_IMAGE_STOP_NAME              "image_stop"
-#define TEST_U_STREAM_UI_GTK_PANGO_LOG_FONT_DESCRIPTION   "Monospace 8"
-#define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_BASE         "#FFFFFF" // white
-#define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_TEXT         "#000000" // green
-#define TEST_USTREAM_UI_GTK_PROGRESSBAR_NAME              "progressbar"
-#define TEST_USTREAM_UI_GTK_STATUSBAR_NAME                "statusbar"
+#define TEST_U_STREAM_UI_GTKEVENT_RESOLUTION                 200 // ms --> 5 FPS
+#define TEST_U_STREAM_UI_GTK_ACTION_START_NAME               "action_start"
+#define TEST_U_STREAM_UI_GTK_ACTION_STOP_NAME                "action_stop"
+#define TEST_U_STREAM_UI_GTK_ADJUSTMENT_NAME                 "scrolledwindow_vadjustment"
+#define TEST_U_STREAM_UI_GTK_BUTTONBOX_ACTIONS_NAME          "vbuttonbox"
+#define TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME               "about"
+#define TEST_U_STREAM_UI_GTK_BUTTON_CLEAR_NAME               "clear"
+#define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME              "report"
+#define TEST_U_STREAM_UI_GTK_BUTTON_START_NAME               "start"
+#define TEST_U_STREAM_UI_GTK_BUTTON_STOP_NAME                "stop"
+#define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME                "quit"
+#define TEST_U_STREAM_UI_GTK_DIALOG_ABOUT_NAME               "dialog_about"
+#define TEST_U_STREAM_UI_GTK_DIALOG_MAIN_NAME                "dialog_main"
+#define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME     "filechooserbutton_source"
+#define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
+#define TEST_U_STREAM_UI_GTK_HBOX_OPTIONS_NAME               "hbox_options"
+//#define TEST_U_STREAM_UI_GTK_IMAGE_PLAY_NAME                 "image_play"
+//#define TEST_U_STREAM_UI_GTK_IMAGE_PAUSE_NAME                "image_pause"
+#define TEST_U_STREAM_UI_GTK_PANGO_LOG_FONT_DESCRIPTION      "Monospace 8"
+#define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_BASE            "#FFFFFF" // white
+#define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_TEXT            "#000000" // green
+#define TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME                "progressbar"
+#define TEST_U_STREAM_UI_GTK_SCROLLMARK_NAME                 "insert"
+#define TEST_U_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME    "spinbutton_data_messages"
+#define TEST_U_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME "spinbutton_session_messages"
+#define TEST_U_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
+#define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
 
 // GTK progress/status-bar
 #define TEST_USTREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL   27 // ms (?)

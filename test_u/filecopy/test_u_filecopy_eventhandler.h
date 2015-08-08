@@ -29,26 +29,30 @@
 
 #include "test_u_filecopy_common.h"
 #include "test_u_filecopy_message.h"
+#include "test_u_filecopy_session_message.h"
 
 class Stream_Filecopy_EventHandler
- : public Common_INotify_T<Stream_SessionData,
-                           Stream_Filecopy_Message>
+ : public Common_INotify_T<Stream_Filecopy_SessionData,
+                           Stream_Filecopy_Message,
+                           Stream_Filecopy_SessionMessage>
 {
  public:
   Stream_Filecopy_EventHandler (Stream_Filecopy_GTK_CBData*); // GTK state
   virtual ~Stream_Filecopy_EventHandler ();
 
   // implement Common_INotify_T
-  virtual void start (const Stream_SessionData&);
+  virtual void start (const Stream_Filecopy_SessionData&);
   virtual void notify (const Stream_Filecopy_Message&);
+  virtual void notify (const Stream_Filecopy_SessionMessage&);
   virtual void end ();
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler (const Stream_Filecopy_EventHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler& operator=(const Stream_Filecopy_EventHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler& operator= (const Stream_Filecopy_EventHandler&))
 
-  Stream_Filecopy_GTK_CBData* CBData_;
+  Stream_Filecopy_GTK_CBData*        CBData_;
+  const Stream_Filecopy_SessionData* sessionData_;
 };
 
 #endif

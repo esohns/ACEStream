@@ -106,8 +106,8 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   // sanity check(s)
   if (isInitialized_)
   {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("re-initializing...\n")));
+    //ACE_DEBUG ((LM_WARNING,
+    //            ACE_TEXT ("re-initializing...\n")));
 
     // stop timers
     fini_timers (true);

@@ -71,7 +71,7 @@ class Stream_Module_Base_T
                         WriterTaskType*,    // handle to writer task
                         ReaderTaskType*,    // handle to reader task
                         Common_IRefCount*,  // object counter
-                        bool);              // final module ?
+                        bool = false);      // final module ?
 
   // *TODO*: consider moving this to the stream, and have the modules refer to
   //         a single instance...

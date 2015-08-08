@@ -39,7 +39,7 @@ class Stream_Filecopy_Module_EventHandler
                                          
                                          Stream_ModuleHandlerConfiguration,
                                          
-                                         Stream_SessionData>
+                                         Stream_Filecopy_SessionData>
 {
  public:
   Stream_Filecopy_Module_EventHandler ();
@@ -54,7 +54,7 @@ class Stream_Filecopy_Module_EventHandler
                                          
                                          Stream_ModuleHandlerConfiguration,
                                          
-                                         Stream_SessionData> inherited;
+                                         Stream_Filecopy_SessionData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler (const Stream_Filecopy_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler& operator= (const Stream_Filecopy_Module_EventHandler&))

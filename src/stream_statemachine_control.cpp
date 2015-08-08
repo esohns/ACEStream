@@ -23,7 +23,6 @@
 
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
-//#include "ace/Synch_Traits.h"
 
 #include "stream_macros.h"
 
@@ -116,19 +115,19 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
       {
         // good case
         case STREAM_STATE_PAUSED: // just like a tape-recorder...
-        case STREAM_STATE_RUNNING: // ...but we also allow this to resume
+        case STREAM_STATE_RUNNING: // ...but also allow this to resume
         case STREAM_STATE_STOPPED:
         {
-          // need to handle a special case: PAUSED --> PAUSED is logically mapped to
+          // handle a special case: PAUSED --> PAUSED is logically mapped to
           // PAUSED --> RUNNING, just like a tape recorder...
-          // *IMPORTANT NOTE*: make sure our children are aware of this behaviour !!!
+          // *IMPORTANT NOTE*: make sure children are aware of this behaviour
           Stream_StateMachine_ControlState new_state =
             ((newState_in == STREAM_STATE_PAUSED) ? STREAM_STATE_RUNNING
                                                   : newState_in);
 
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("state switch: PAUSED --> %s\n"),
-                      ACE_TEXT (state2String (new_state).c_str ())));
+          //ACE_DEBUG ((LM_DEBUG,
+          //            ACE_TEXT ("state switch: PAUSED --> %s\n"),
+          //            ACE_TEXT (state2String (new_state).c_str ())));
 
           inherited::change (new_state);
 
@@ -148,7 +147,7 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
       switch (newState_in)
       {
         // good cases
-        // *NOTE*: we have to allow this...
+        // *NOTE*: have to allow this...
         // (scenario: asynchronous user abort via stop())
         case STREAM_STATE_FINISHED:
         {
@@ -173,13 +172,12 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
     {
       switch (newState_in)
       {
-        // *IMPORTANT NOTE*: the whole stream needs to re-initialize BEFORE this
-        //                   happens...
+        // *NOTE*: the whole stream needs to re-initialize BEFORE this happens
         // good case
         case STREAM_STATE_RUNNING:
         {
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("state switch: FINISHED --> RUNNING\n")));
+          //ACE_DEBUG ((LM_DEBUG,
+          //            ACE_TEXT ("state switch: FINISHED --> RUNNING\n")));
 
           inherited::change (newState_in);
 

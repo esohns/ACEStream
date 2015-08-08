@@ -47,3 +47,5 @@ Debug/
 Release
 Debug_obj
 ipch
+*.sdf
+*.suo

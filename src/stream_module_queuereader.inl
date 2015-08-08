@@ -112,8 +112,8 @@ Stream_Module_QueueReader_T<SessionMessageType,
 
   if (isInitialized_)
   {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("re-initializing...\n")));
+    //ACE_DEBUG ((LM_WARNING,
+    //            ACE_TEXT ("re-initializing...\n")));
 
     // clean up
     if (timerID_ != -1)

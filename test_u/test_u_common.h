@@ -40,27 +40,28 @@ struct Stream_Test_U_Configuration;
 
 enum Stream_GTK_Event
 {
+  STREAM_GKTEVENT_INVALID = -1,
+  // ------------------------------------
   STREAM_GTKEVENT_START = 0,
   STREAM_GTKEVENT_DATA,
   STREAM_GTKEVENT_END,
-  STREAM_GTKEVENT_STATISTICS,
+  STREAM_GTKEVENT_STATISTIC,
   // ------------------------------------
-  STREAM_GTKEVENT_MAX,
-  STREAM_GKTEVENT_INVALID
+  STREAM_GTKEVENT_MAX
 };
 typedef std::deque<Stream_GTK_Event> Stream_GTK_Events_t;
 typedef Stream_GTK_Events_t::const_iterator Stream_GTK_EventsIterator_t;
 
-struct Stream_Test_U_SessionData
- : Stream_SessionData
-{
-  inline Stream_Test_U_SessionData ()
-   : Stream_SessionData ()
-   , filename ()
-  {};
-
-  std::string filename;
-};
+//struct Stream_Test_U_SessionData
+// : Stream_SessionData
+//{
+//  inline Stream_Test_U_SessionData ()
+//   : Stream_SessionData ()
+//   , filename ()
+//  {};
+//
+//  std::string filename;
+//};
 
 //struct Stream_Test_U_UserData
 //{
@@ -85,7 +86,7 @@ struct Stream_Test_U_SessionData
 typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
-typedef Stream_SessionDataBase_T<Stream_Test_U_SessionData> Stream_Test_U_SessionData_t;
+//typedef Stream_SessionDataBase_T<Stream_Test_U_SessionData> Stream_Test_U_SessionData_t;
 
 struct Stream_Test_U_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration

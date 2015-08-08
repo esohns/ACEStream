@@ -182,6 +182,11 @@ Stream_Module_FileWriter_T<SessionMessageType,
                  ACE_DIRECTORY_SEPARATOR_CHAR_A +
                  filename;
 
+      if (Common_File_Tools::isReadable (filename))
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("target file \"%s\" exists, continuing\n"),
+                    ACE_TEXT (filename.c_str ())));
+
       ACE_FILE_Addr file_address;
       result = file_address.set (filename.c_str ());
       if (result == -1)
@@ -192,8 +197,15 @@ Stream_Module_FileWriter_T<SessionMessageType,
         return;
       } // end IF
       ACE_FILE_Connector file_connector;
-      result = file_connector.connect (stream_,
-                                       file_address);
+      result = file_connector.connect (stream_,                 // stream
+                                       file_address,            // filename
+                                       NULL,                    // timeout (block)
+                                       ACE_Addr::sap_any,       // (local) filename: N/A
+                                       0,                       // reuse_addr: N/A
+                                       (O_WRONLY |
+                                        O_CREAT  |
+                                        O_TRUNC),               // flags --> open
+                                       ACE_DEFAULT_FILE_PERMS); // permissions --> open
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -268,7 +280,8 @@ Stream_Module_FileWriter_T<SessionMessageType,
   // *TODO*: remove type inferences
   if (Common_File_Tools::isReadable (configuration_.targetFilename))
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("target file \"%s\" exists, continuing\n")));
+                ACE_TEXT ("target file \"%s\" exists, continuing\n"),
+                ACE_TEXT (configuration_.targetFilename.c_str ())));
 
   return true;
 }

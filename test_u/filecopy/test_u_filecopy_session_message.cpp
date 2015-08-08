@@ -26,7 +26,7 @@
 #include "stream_macros.h"
 
 Stream_Filecopy_SessionMessage::Stream_Filecopy_SessionMessage (Stream_SessionMessageType messageType_in,
-                                                                Stream_Test_U_SessionData_t*& sessionData_in,
+                                                                Stream_Filecopy_SessionData_t*& sessionData_in,
                                                                 Stream_UserData* userData_in)
  : inherited (messageType_in,
               sessionData_in,

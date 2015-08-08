@@ -31,8 +31,9 @@
 #include "stream_module_runtimestatistic.h"
 #include "stream_streammodule_base.h"
 
-#include "test_u_common.h"
+//#include "test_u_common.h"
 
+#include "test_u_filecopy_common.h"
 #include "test_u_filecopy_message.h"
 #include "test_u_filecopy_session_message.h"
 
@@ -44,8 +45,8 @@ typedef Stream_Module_FileReader_T<Stream_Filecopy_SessionMessage,
                                    //////
                                    Stream_State,
                                    //////
-                                   Stream_Test_U_SessionData,
-                                   Stream_Test_U_SessionData_t,
+                                   Stream_Filecopy_SessionData,
+                                   Stream_Filecopy_SessionData_t,
                                    //////
                                    Stream_Statistic> Stream_Filecopy_Module_FileReader;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                       // task synch type
@@ -79,7 +80,7 @@ typedef Stream_Module_FileWriter_T<Stream_Filecopy_SessionMessage,
                                    //////
                                    Stream_Test_U_ModuleHandlerConfiguration,
                                    //////
-                                   Stream_Test_U_SessionData> Stream_Filecopy_Module_FileWriter;
+                                   Stream_Filecopy_SessionData> Stream_Filecopy_Module_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                       // task synch type
                               Common_TimePolicy_t,                // time policy
                               Stream_ModuleConfiguration,         // module configuration type

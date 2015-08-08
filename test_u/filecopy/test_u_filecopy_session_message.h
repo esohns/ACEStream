@@ -27,7 +27,9 @@
 #include "stream_common.h"
 #include "stream_session_message_base.h"
 
-#include "test_u_common.h"
+//#include "test_u_common.h"
+
+#include "test_u_filecopy_common.h"
 
 // forward declaratation(s)
 class ACE_Allocator;
@@ -36,7 +38,7 @@ template <typename MessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_Filecopy_SessionMessage
- : public Stream_SessionMessageBase_T<Stream_Test_U_SessionData_t,
+ : public Stream_SessionMessageBase_T<Stream_Filecopy_SessionData_t,
                                       Stream_UserData>
 {
   // grant access to specific private ctors...
@@ -46,16 +48,16 @@ class Stream_Filecopy_SessionMessage
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason...
-  Stream_Filecopy_SessionMessage (Stream_SessionMessageType,     // session message type
-                                  Stream_Test_U_SessionData_t*&, // session data container handle
-                                  Stream_UserData*);             // user data handle
+  Stream_Filecopy_SessionMessage (Stream_SessionMessageType,       // session message type
+                                  Stream_Filecopy_SessionData_t*&, // session data container handle
+                                  Stream_UserData*);               // user data handle
   virtual ~Stream_Filecopy_SessionMessage ();
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Stream_Test_U_SessionData_t,
+  typedef Stream_SessionMessageBase_T<Stream_Filecopy_SessionData_t,
                                       Stream_UserData> inherited;
 
   // copy ctor to be used by duplicate()

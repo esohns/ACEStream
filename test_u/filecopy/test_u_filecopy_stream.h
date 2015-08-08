@@ -21,8 +21,10 @@
 #ifndef TEST_U_FILECOPY_STREAM_H
 #define TEST_U_FILECOPY_STREAM_H
 
+#include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
+#include "ace/Thread_Mutex.h"
 
 #include "common_time_common.h"
 
@@ -41,6 +43,7 @@ class Stream_Filecopy_Stream
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         /////////////////
+                        Stream_StateMachine_ControlState,
                         Stream_State,
                         /////////////////
                         Stream_Test_U_StreamConfiguration,
@@ -50,8 +53,8 @@ class Stream_Filecopy_Stream
                         Stream_ModuleConfiguration,
                         Stream_ModuleHandlerConfiguration,
                         /////////////////
-                        Stream_Test_U_SessionData,   // session data
-                        Stream_Test_U_SessionData_t, // session data container (reference counted)
+                        Stream_Filecopy_SessionData,   // session data
+                        Stream_Filecopy_SessionData_t, // session data container (reference counted)
                         Stream_Filecopy_SessionMessage,
                         Stream_Filecopy_Message>
 {
@@ -71,6 +74,7 @@ class Stream_Filecopy_Stream
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         /////////////////
+                        Stream_StateMachine_ControlState,
                         Stream_State,
                         /////////////////
                         Stream_Test_U_StreamConfiguration,
@@ -80,8 +84,8 @@ class Stream_Filecopy_Stream
                         Stream_ModuleConfiguration,
                         Stream_ModuleHandlerConfiguration,
                         /////////////////
-                        Stream_Test_U_SessionData,   // session data
-                        Stream_Test_U_SessionData_t, // session data container (reference counted)
+                        Stream_Filecopy_SessionData,   // session data
+                        Stream_Filecopy_SessionData_t, // session data container (reference counted)
                         Stream_Filecopy_SessionMessage,
                         Stream_Filecopy_Message> inherited;
 
@@ -92,6 +96,8 @@ class Stream_Filecopy_Stream
   Stream_Filecopy_Module_FileReader_Module       fileReader_;
   Stream_Filecopy_Module_RuntimeStatistic_Module runtimeStatistic_;
   Stream_Filecopy_Module_FileWriter_Module       fileWriter_;
+
+  static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long> currentSessionID;
 };
 
 #endif

@@ -55,7 +55,8 @@ class Stream_HeadModuleTaskBase_T
                             SessionMessageType,
                             ProtocolMessageType>
  , public Stream_IModuleHandler_T<ConfigurationType>
- , public Stream_IStreamControl_T<StreamStateType>
+ , public Stream_IStreamControl_T<Stream_StateMachine_ControlState,
+                                  StreamStateType>
  , public Common_IInitialize_T<StreamStateType>
 {
  public:
@@ -82,7 +83,8 @@ class Stream_HeadModuleTaskBase_T
   virtual bool isRunning () const;
   virtual void pause ();
   virtual void rewind ();
-  // *NOTE*: this implementation simply waits for any worker threads to join
+  virtual const Stream_StateMachine_ControlState& status () const;
+  // *NOTE*: waits for any worker threads to join
   virtual void waitForCompletion ();
   // *NOTE*: this is just a stub
   virtual const StreamStateType& state () const;

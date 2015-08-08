@@ -52,10 +52,10 @@ Stream_Filecopy_Module_EventHandler::clone ()
                 ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
   else
   {
-    Stream_Filecopy_Module_EventHandler* eventHandler_impl = NULL;
-    eventHandler_impl =
+    Stream_Filecopy_Module_EventHandler* eventHandler_impl_p = NULL;
+    eventHandler_impl_p =
       dynamic_cast<Stream_Filecopy_Module_EventHandler*> (module_p->writer ());
-    if (!eventHandler_impl)
+    if (!eventHandler_impl_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_EventHandler> failed, aborting\n")));
@@ -65,7 +65,7 @@ Stream_Filecopy_Module_EventHandler::clone ()
 
       return NULL;
     } // end IF
-    eventHandler_impl->initialize (inherited::subscribers_, inherited::lock_);
+    eventHandler_impl_p->initialize (inherited::subscribers_, inherited::lock_);
   } // end ELSE
 
   return module_p;

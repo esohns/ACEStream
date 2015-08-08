@@ -34,7 +34,6 @@
 #include "common_istatistic.h"
 
 #include "stream_common.h"
-//#include "stream_headmoduletask_base.h"
 #include "stream_istreamcontrol.h"
 #include "stream_streammodule_base.h"
 
@@ -44,6 +43,7 @@ class Stream_IAllocator;
 template <typename TaskSynchType,
           typename TimePolicyType,
           ///////////////////////////////
+          typename StatusType,
           typename StateType,
           ///////////////////////////////
           typename ConfigurationType,
@@ -60,7 +60,8 @@ template <typename TaskSynchType,
 class Stream_Base_T
  : public ACE_Stream<TaskSynchType,
                      TimePolicyType>
- , public Stream_IStreamControl_T<StateType>
+ , public Stream_IStreamControl_T<StatusType,
+                                  StateType>
  , public Common_IDumpState
 // , public Common_IGet_T<SessionDataType>
  , public Common_IInitialize_T<ConfigurationType>
@@ -86,6 +87,7 @@ class Stream_Base_T
   virtual bool isRunning () const;
   virtual void pause ();
   virtual void rewind ();
+  virtual const StatusType& status () const;
   virtual void waitForCompletion ();
   virtual const StateType& state () const;
 
@@ -127,7 +129,8 @@ class Stream_Base_T
   typedef Common_IInitialize_T<HandlerConfigurationType> IMODULEHANDLER_T;
   typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;
   typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
-  typedef Stream_IStreamControl_T<StateType> ISTREAM_CONTROL_T;
+  typedef Stream_IStreamControl_T<StatusType,
+                                  StateType> ISTREAM_CONTROL_T;
 
   // *NOTE*: need to subclass this !
   Stream_Base_T ();
@@ -175,6 +178,7 @@ class Stream_Base_T
 //                                      ProtocolMessageType> HEADMODULE_TASK_T;
   typedef Stream_Base_T<TaskSynchType,
                         TimePolicyType,
+                        StatusType,
                         StateType,
                         ConfigurationType,
                         StatisticContainerType,

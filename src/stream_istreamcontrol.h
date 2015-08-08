@@ -24,7 +24,8 @@
 #include "common_icontrol.h"
 //#include "common_iget.h"
 
-template <typename StateType>
+template <typename StatusType,
+          typename StateType>
 class Stream_IStreamControl_T
  : public Common_IControl
 // , public Common_IGet_T<StateType>
@@ -34,6 +35,7 @@ class Stream_IStreamControl_T
 
   virtual void pause () = 0;
   virtual void rewind () = 0;
+  virtual const StatusType& status () const = 0;
   virtual void waitForCompletion () = 0;
 
   virtual const StateType& state () const = 0;

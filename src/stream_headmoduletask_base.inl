@@ -144,7 +144,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   {
     // *WARNING*: mb_in has already been released() at this point !
 
-    stop ();
+    stop (false);
   } // end IF
 
   return 0;
@@ -617,7 +617,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::isRunning"));
 
-  return (inherited::current () == STREAM_STATE_RUNNING);
+  const Stream_StateMachine_ControlState& status_r = inherited::current ();
+  return ((status_r == STREAM_STATE_PAUSED) ||
+          (status_r == STREAM_STATE_RUNNING));
 }
 
 template <typename TaskSynchType,
@@ -667,9 +669,30 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   ACE_ASSERT (false);
   ACE_NOTSUP;
 
-#if defined (_MSC_VER)
-  ACE_NOTREACHED (true);
-#endif
+  ACE_NOTREACHED (return;)
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+const Stream_StateMachine_ControlState&
+Stream_HeadModuleTaskBase_T<TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType>::status () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::status"));
+
+  return inherited::current ();
 }
 
 template <typename TaskSynchType,
@@ -926,37 +949,38 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       // *TODO*: remove type inference
       if (configuration_.active)
       {
-        // OK: drop a control message into the queue...
-        // *TODO*: use ACE_Stream::control() instead ?
-        ACE_Message_Block* message_block_p = NULL;
-        ACE_NEW_NORETURN (message_block_p,
-                          ACE_Message_Block (0,                                  // size
-                                             ACE_Message_Block::MB_STOP,         // type
-                                             NULL,                               // continuation
-                                             NULL,                               // data
-                                             NULL,                               // buffer allocator
-                                             NULL,                               // locking strategy
-                                             ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
-                                             ACE_Time_Value::zero,               // execution time
-                                             ACE_Time_Value::max_time,           // deadline time
-                                             NULL,                               // data block allocator
-                                             NULL));                             // message allocator
-        if (!message_block_p)
-        {
-          ACE_DEBUG ((LM_CRITICAL,
-                      ACE_TEXT ("failed to allocate memory: \"%m\", continuing\n")));
-          break;
-        } // end IF
+        //// OK: drop a control message into the queue...
+        //// *TODO*: use ACE_Stream::control() instead ?
+        //ACE_Message_Block* message_block_p = NULL;
+        //ACE_NEW_NORETURN (message_block_p,
+        //                  ACE_Message_Block (0,                                  // size
+        //                                     ACE_Message_Block::MB_STOP,         // type
+        //                                     NULL,                               // continuation
+        //                                     NULL,                               // data
+        //                                     NULL,                               // buffer allocator
+        //                                     NULL,                               // locking strategy
+        //                                     ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+        //                                     ACE_Time_Value::zero,               // execution time
+        //                                     ACE_Time_Value::max_time,           // deadline time
+        //                                     NULL,                               // data block allocator
+        //                                     NULL));                             // message allocator
+        //if (!message_block_p)
+        //{
+        //  ACE_DEBUG ((LM_CRITICAL,
+        //              ACE_TEXT ("failed to allocate memory: \"%m\", continuing\n")));
+        //  break;
+        //} // end IF
 
-        result = inherited2::putq (message_block_p, NULL);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
+        //result = inherited2::putq (message_block_p, NULL);
+        //if (result == -1)
+        //{
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
 
-          // clean up
-          message_block_p->release ();
-        } // end IF
+        //  // clean up
+        //  message_block_p->release ();
+        //} // end IF
+        inherited2::shutdown ();
       } // end IF
       else
       {

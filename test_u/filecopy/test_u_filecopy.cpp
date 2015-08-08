@@ -383,7 +383,8 @@ do_work (unsigned int bufferSize_in,
 
   Stream_Filecopy_EventHandler ui_event_handler (&CBData_in);
   Stream_Filecopy_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                            NULL);
+                                                            NULL,
+                                                            true);
   Stream_Filecopy_Module_EventHandler* event_handler_p =
     dynamic_cast<Stream_Filecopy_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
@@ -439,25 +440,11 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
-
-    // clean up
-    //timer_manager_p->stop ();
-
     return;
   } // end IF
 
-  // step0f: initialize processing stream
+  // step0f: (initialize) processing stream
   Stream_Filecopy_Stream stream;
-  if (!stream.initialize (configuration.streamConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize stream, aborting\n")));
-
-    // clean up
-    //timer_manager_p->stop ();
-
-    return;
-  } // end IF
 
   // event loop(s):
   // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
@@ -466,6 +453,9 @@ do_work (unsigned int bufferSize_in,
   // step1a: start GTK event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
+    configuration.streamConfiguration.moduleHandlerConfiguration_2.targetFilename =
+      Common_File_Tools::getDumpDirectory ();
+
     CBData_in.finalizationHook = idle_finalize_UI_cb;
     CBData_in.initializationHook = idle_initialize_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -480,15 +470,42 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, aborting\n")));
+      return;
+    } // end IF
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    HWND window_p = GetConsoleWindow ();
+    if (!window_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
 
       // clean up
-      //timer_manager_p->stop ();
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
 
       return;
     } // end IF
+    if (!ShowWindow (window_p, SW_HIDE))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ::ShowWindow(), returning\n")));
+
+      // clean up
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
+
+      return;
+    } // end IF
+#endif
   } // end IF
   else
   {
+    if (!stream.initialize (configuration.streamConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to initialize stream, aborting\n")));
+      return;
+    } // end IF
+
     // *NOTE*: this will block until the file has been copied...
     stream.start ();
 //    if (!stream.isRunning ())

@@ -273,7 +273,36 @@ Stream_Module_MessageHandler_T<SessionMessageType,
       break;
     }
     default:
+    {
+      // refer the data back to any subscriber(s)
+
+      // synch access
+      {
+        ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (*lock_);
+
+        // *WARNING* if users unsubscribe() within the callback Bad Things (TM)
+        // would happen, as the current iter would be invalidated
+        // --> use a slightly modified for-loop (advance first and THEN invoke the
+        // callback (*NOTE*: works for MOST containers...)
+        // *NOTE*: this works due to the ACE_RECURSIVE_Thread_Mutex used as a lock...
+        for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_->begin ();
+             iterator != subscribers_->end ();
+             )
+        {
+          try
+          {
+            (*(iterator++))->notify (*message_inout);
+          }
+          catch (...)
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("caught exception in Common_INotify_T::notify(), continuing\n")));
+          }
+        } // end FOR
+      } // end lock scope
+
       break;
+    }
   } // end SWITCH
 }
 

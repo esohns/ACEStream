@@ -25,14 +25,21 @@
 
 #include "stream_macros.h"
 
+// initialize statics
+ACE_Atomic_Op<ACE_Thread_Mutex,
+              unsigned long> Stream_Filecopy_Stream::currentSessionID = 0;
+
 Stream_Filecopy_Stream::Stream_Filecopy_Stream ()
  : inherited ()
  , fileReader_ (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
-                NULL)
+                NULL,
+                false)
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                      NULL)
+                      NULL,
+                      false)
  , fileWriter_ (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                NULL)
+                NULL,
+                false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::Stream_Filecopy_Stream"));
 
@@ -71,7 +78,50 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (!inherited::isInitialized_);
+  ACE_ASSERT (!isRunning ());
+
+  if (inherited::isInitialized_)
+  {
+    // *TODO*: move this to stream_base.inl ?
+    int result = -1;
+    const inherited::MODULE_T* module_p = NULL;
+    inherited::IMODULE_T* imodule_p = NULL;
+    for (inherited::ITERATOR_T iterator (*this);
+         (iterator.next (module_p) != 0);
+         iterator.advance ())
+    {
+      if ((module_p == inherited::head ()) ||
+          (module_p == inherited::tail ()))
+        continue;
+
+      // need a downcast...
+      imodule_p =
+        dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
+      if (!imodule_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
+                    module_p->name ()));
+        return false;
+      } // end IF
+      if (imodule_p->isFinal ())
+      {
+        //ACE_ASSERT (module_p == configuration_in.module);
+        result = inherited::remove (module_p->name (),
+                                    ACE_Module_Base::M_DELETE_NONE);
+        if (result == -1)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
+                      module_p->name ()));
+          return false;
+        } // end IF
+        imodule_p->reset ();
+
+        break; // done
+      } // end IF
+    } // end FOR
+  } // end IF
 
   // allocate a new session state, reset stream
   if (!inherited::initialize ())
@@ -81,9 +131,13 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  // *TODO*: remove type inference
+  // *TODO*: remove type inferences
+  inherited::sessionData_->sessionID =
+    ++Stream_Filecopy_Stream::currentSessionID;
   inherited::sessionData_->filename =
-      configuration_in.moduleHandlerConfiguration_2.sourceFilename;
+    configuration_in.moduleHandlerConfiguration_2.sourceFilename;
+  inherited::sessionData_->size =
+    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.sourceFilename);
 
   // things to be done here:
   // [- initialize base class]

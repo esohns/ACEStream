@@ -23,22 +23,40 @@
 
 #include <list>
 #include <map>
+#include <string>
 
 #include "gtk/gtk.h"
 
 #include "common_inotify.h"
 #include "common_isubscribe.h"
 
+#include "stream_common.h"
+#include "stream_messageallocatorheap_base.h"
+#include "stream_session_data_base.h"
+
 #include "test_u_common.h"
 
-#include "stream_messageallocatorheap_base.h"
-
 #include "test_u_filecopy_message.h"
-#include "test_u_filecopy_session_message.h"
+//#include "test_u_filecopy_session_message.h"
 
 // forward declarations
 class Stream_IAllocator;
 class Stream_Filecopy_Stream;
+class Stream_Filecopy_Session_Message;
+
+struct Stream_Filecopy_SessionData
+ : Stream_SessionData
+{
+  inline Stream_Filecopy_SessionData ()
+   : Stream_SessionData ()
+   , size (0)
+   , filename ()
+  {};
+
+  std::string  filename;
+  unsigned int size;
+};
+typedef Stream_SessionDataBase_T<Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
 
 struct Stream_Filecopy_SignalHandlerConfiguration
 {
@@ -58,19 +76,18 @@ struct Stream_Filecopy_Configuration
 {
   inline Stream_Filecopy_Configuration ()
    : Stream_Test_U_Configuration ()
-   , moduleHandlerConfiguration ()
    , signalHandlerConfiguration ()
   {};
 
-  Stream_Test_U_ModuleHandlerConfiguration   moduleHandlerConfiguration;
   Stream_Filecopy_SignalHandlerConfiguration signalHandlerConfiguration;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<Stream_Filecopy_Message,
                                           Stream_Filecopy_SessionMessage> Stream_Filecopy_MessageAllocator_t;
 
-typedef Common_INotify_T<Stream_SessionData,
-                         Stream_Filecopy_Message> Stream_Filecopy_IStreamNotify_t;
+typedef Common_INotify_T<Stream_Filecopy_SessionData,
+                         Stream_Filecopy_Message,
+                         Stream_Filecopy_SessionMessage> Stream_Filecopy_IStreamNotify_t;
 typedef std::list<Stream_Filecopy_IStreamNotify_t*> Stream_Filecopy_Subscribers_t;
 typedef Stream_Filecopy_Subscribers_t::iterator Stream_Filecopy_SubscribersIterator_t;
 
@@ -84,15 +101,19 @@ struct Stream_Filecopy_GTK_ProgressData
 {
   inline Stream_Filecopy_GTK_ProgressData ()
    : completedActions ()
+   , copied (0)
 //   , cursorType (GDK_LAST_CURSOR)
    , GTKState (NULL)
    , pendingActions ()
+   , size (0)
   {};
 
   Stream_Filecopy_CompletedActions_t completedActions;
+  unsigned int                       copied; // bytes
 //  GdkCursorType                      cursorType;
   Common_UI_GTKState*                GTKState;
   Stream_Filecopy_PendingActions_t   pendingActions;
+  unsigned int                       size; // bytes
 };
 
 struct Stream_Filecopy_GTK_CBData

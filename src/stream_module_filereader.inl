@@ -122,8 +122,8 @@ Stream_Module_FileReader_T<SessionMessageType,
   int result = -1;
   if (isInitialized_)
   {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("re-initializing...\n")));
+    //ACE_DEBUG ((LM_WARNING,
+    //            ACE_TEXT ("re-initializing...\n")));
 
     // clean up
     if (timerID_ != -1)
@@ -376,8 +376,13 @@ Stream_Module_FileReader_T<SessionMessageType,
                 ACE_TEXT (inherited::configuration_.sourceFilename.c_str ())));
     goto done;
   } // end IF
-  result = file_connector.connect (stream_,
-                                   file_address);
+  result = file_connector.connect (stream_,                 // stream
+                                   file_address,            // filename
+                                   NULL,                    // timeout (block)
+                                   ACE_Addr::sap_any,       // (local) filename: N/A
+                                   0,                       // reuse_addr: N/A
+                                   (O_RDONLY | O_BINARY),   // flags --> open
+                                   ACE_DEFAULT_FILE_PERMS); // permissions --> open
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -455,6 +460,7 @@ Stream_Module_FileReader_T<SessionMessageType,
       }
     } // end SWITCH
   } // end WHILE
+  ACE_ASSERT (message_block_p);
 
   // clean up
   message_block_p->release ();

@@ -35,7 +35,7 @@ gboolean idle_initialize_UI_cb (gpointer);
 gboolean idle_finalize_UI_cb (gpointer);
 gboolean idle_update_log_display_cb (gpointer);
 gboolean idle_update_info_display_cb (gpointer);
-gboolean idle_update_progress_cb (gpointer);
+//gboolean idle_update_progress_cb (gpointer);
 
 //------------------------------------------------------------------------------
 
@@ -44,12 +44,13 @@ extern "C"
 {
 #endif /* __cplusplus */
 // callbacks
-G_MODULE_EXPORT gint button_start_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_stop_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void action_start_activate_cb (GtkAction*, gpointer);
+G_MODULE_EXPORT void action_stop_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT gint button_report_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
