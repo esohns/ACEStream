@@ -49,8 +49,8 @@ struct Stream_Filecopy_SessionData
 {
   inline Stream_Filecopy_SessionData ()
    : Stream_SessionData ()
-   , size (0)
    , filename ()
+   , size (0)
   {};
 
   std::string  filename;

@@ -617,6 +617,7 @@ idle_update_info_display_cb (gpointer userData_in)
           break;
         }
       } // end SWITCH
+      ACE_UNUSED_ARG (is_session_message);
       gtk_spin_button_spin (spin_button_p,
                             GTK_SPIN_STEP_FORWARD,
                             1.0);
@@ -834,18 +835,18 @@ action_start_activate_cb (GtkAction* action_in,
   // *NOTE*: lock access to the progress report structures to avoid a race
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
   int result =
-    thread_manager_p->spawn (::stream_processing_function,              // function
-                             thread_data_p,                             // argument
+    thread_manager_p->spawn (::stream_processing_function,    // function
+                             thread_data_p,                   // argument
                              (THR_NEW_LWP      |
                               THR_JOINABLE     |
-                              THR_INHERIT_SCHED),                       // flags
-                             &thread_id,                                // thread id
-                             &thread_handle,                            // thread handle
-                             ACE_DEFAULT_THREAD_PRIORITY,               // priority
-                             COMMON_EVENT_DISPATCH_THREAD_GROUP_ID + 2, // group id
-                             NULL,                                      // stack
-                             0,                                         // stack size
-                             &thread_name_2);                           // name
+                              THR_INHERIT_SCHED),              // flags
+                             &thread_id,                       // thread id
+                             &thread_handle,                   // thread handle
+                             ACE_DEFAULT_THREAD_PRIORITY,      // priority
+                             COMMON_EVENT_THREAD_GROUP_ID + 2, // *TODO*: group id
+                             NULL,                             // stack
+                             0,                                // stack size
+                             &thread_name_2);                  // name
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1050,7 +1051,9 @@ button_quit_clicked_cb (GtkWidget* widget_in,
                 SIGINT));
 
   // step3: stop GTK event processing
-  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->close (1);
+  // *NOTE*: triggering UI shutdown here is more consistent, compared to doing
+  //         it from the signal handler
+  COMMON_UI_GTK_MANAGER_SINGLETON::instance()->stop (false, true);
 
   return FALSE;
 } // button_quit_clicked_cb

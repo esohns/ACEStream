@@ -24,7 +24,8 @@
 #include "ace/Log_Msg.h"
 
 //#include "common_timer_manager.h"
-//#include "common_tools.h"
+
+//#include "common_ui_gtk_manager.h"
 
 #include "stream_macros.h"
 
@@ -136,6 +137,12 @@ Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
   // ...shutdown ?
   if (shutdown)
   {
+    // stop everything, i.e.
+    // - leave event loop(s) handling signals, sockets, (maintenance) timers,
+    //   exception handlers, ...
+    // - activation timers (connection attempts, ...)
+    // [- UI dispatch]
+
     //// step1: stop action timer (if any)
     //if (configuration_.actionTimerId >= 0)
     //{
@@ -152,26 +159,10 @@ Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
     //  configuration_.actionTimerId = -1;
     //} // end IF
 
-    //// step2: cancel connection attempts (if any)
-    //if (configuration_.connector)
-    //{
-    //  try
-    //  {
-    //    configuration_.connector->abort ();
-    //  }
-    //  catch (...)
-    //  {
-    //    // *PORTABILITY*: tracing in a signal handler context is not portable
-    //    // *TODO*
-    //    ACE_DEBUG ((LM_ERROR,
-    //                ACE_TEXT ("caught exception in Net_Client_IConnector_t::abort(), continuing\n")));
-    //  }
-    //} // end IF
-
-    //// step3: stop reactor (&& proactor, if applicable)
-    //Common_Tools::finalizeEventDispatch (true,         // stop reactor ?
-    //                                     !useReactor_, // stop proactor ?
-    //                                     -1);          // group ID (--> don't block !)
+    // step2: stop GTK event processing
+    // *NOTE*: triggering UI shutdown from a widget callback is more consistent,
+    //         compared to doing it here
+//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
   } // end IF
 
   return true;

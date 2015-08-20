@@ -719,7 +719,9 @@ ACE_TMAIN (int argc_in,
                         &gtk_cb_user_data.stackLock);
   std::string log_file;
   if (log_to_file)
-    log_file = Common_File_Tools::getLogFilename (ACE::basename (argv_in[0]));
+    log_file =
+        Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE_NAME),
+                                           ACE::basename (argv_in[0]));
   if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
                                         log_file,                                 // log file
                                         false,                                    // log to syslog ?

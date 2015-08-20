@@ -24,8 +24,6 @@
 #include <string>
 
 #include "ace/Global_Macros.h"
-#include "ace/Synch.h"
-//#include "ace/Synch_Traits.h"
 
 #include "common_statemachine_base.h"
 
@@ -64,8 +62,8 @@ class Stream_Export Stream_StateMachine_Control
  private:
   typedef Common_StateMachine_Base_T<Stream_StateMachine_ControlState> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control (const Stream_StateMachine_Control&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control& operator= (const Stream_StateMachine_Control&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control (const Stream_StateMachine_Control&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control& operator= (const Stream_StateMachine_Control&))
 };
 
 // convenience types
