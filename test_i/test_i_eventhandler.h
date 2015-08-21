@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Erik Sohns   *
+ *   Copyright (C) 2009 by Erik Sohns   *
  *   erik.sohns@web.de   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,42 +18,41 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_CALLBACKS_H
-#define STREAM_CALLBACKS_H
+#ifndef TEST_I_EVENTHANDLER_H
+#define TEST_I_EVENTHANDLER_H
 
-#include "ace/config-macros.h"
+#include "ace/Global_Macros.h"
 
-#include "gtk/gtk.h"
+#include "common_inotify.h"
 
-// thread functions
-ACE_THR_FUNC_RETURN stream_processing_function (void*);
+#include "stream_common.h"
 
-//------------------------------------------------------------------------------
+#include "test_i_common.h"
+#include "test_i_message.h"
+#include "test_i_session_message.h"
 
-// idle routines
-gboolean idle_initialize_UI_cb (gpointer);
-gboolean idle_finalize_UI_cb (gpointer);
-gboolean idle_update_log_display_cb (gpointer);
-gboolean idle_update_info_display_cb (gpointer);
-//gboolean idle_update_progress_cb (gpointer);
-
-//------------------------------------------------------------------------------
-
-#ifdef __cplusplus
-extern "C"
+class Stream_EventHandler
+ : public Common_INotify_T<Test_I_Stream_SessionData,
+                           Stream_Message,
+                           Stream_SessionMessage>
 {
-#endif /* __cplusplus */
-// callbacks
-G_MODULE_EXPORT void action_start_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT void action_stop_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT gint button_report_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
-G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+ public:
+  Stream_EventHandler (Stream_GTK_CBData*); // GTK state
+  virtual ~Stream_EventHandler ();
+
+  // implement Common_INotify_T
+  virtual void start (const Test_I_Stream_SessionData&);
+  virtual void notify (const Stream_Message&);
+  virtual void notify (const Stream_SessionMessage&);
+  virtual void end ();
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_EventHandler ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_EventHandler (const Stream_EventHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_EventHandler& operator= (const Stream_EventHandler&))
+
+  Stream_GTK_CBData*               CBData_;
+  const Test_I_Stream_SessionData* sessionData_;
+};
 
 #endif

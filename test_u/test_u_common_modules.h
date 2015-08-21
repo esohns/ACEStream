@@ -47,11 +47,11 @@ typedef Stream_Module_FileReader_T<Stream_Test_U_SessionMessage,
                                    Stream_Test_U_SessionData_t,
                                    //////
                                    Stream_Statistic> Stream_Module_FileReader;
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                      // task synch type
-                              Common_TimePolicy_t,               // time policy
-                              Stream_ModuleConfiguration,        // module configuration type
-                              Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_Module_FileReader);         // writer type
+DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
+                              Common_TimePolicy_t,                      // time policy
+                              Stream_ModuleConfiguration,               // module configuration type
+                              Stream_Test_U_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_Module_FileReader);                // writer type
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
@@ -65,13 +65,13 @@ typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Stream_Test_U_Message,
                                              Stream_CommandType_t,
                                              Stream_Statistic> Stream_Module_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                         // task synch type
-                          Common_TimePolicy_t,                  // time policy type
-                          Stream_ModuleConfiguration,           // module configuration type
-                          Stream_ModuleHandlerConfiguration,    // module handler configuration type
-                          Stream_Module_Statistic_ReaderTask_t, // reader type
-                          Stream_Module_Statistic_WriterTask_t, // writer type
-                          Stream_Module_RuntimeStatistic);      // name
+DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task synch type
+                          Common_TimePolicy_t,                      // time policy type
+                          Stream_ModuleConfiguration,               // module configuration type
+                          Stream_Test_U_ModuleHandlerConfiguration, // module handler configuration type
+                          Stream_Module_Statistic_ReaderTask_t,     // reader type
+                          Stream_Module_Statistic_WriterTask_t,     // writer type
+                          Stream_Module_RuntimeStatistic);          // name
 
 typedef Stream_Module_FileWriter_T<Stream_Test_U_SessionMessage,
                                    Stream_Test_U_Message,
@@ -79,10 +79,10 @@ typedef Stream_Module_FileWriter_T<Stream_Test_U_SessionMessage,
                                    Stream_Test_U_ModuleHandlerConfiguration,
                                    //////
                                    Stream_Test_U_SessionData> Stream_Module_FileWriter;
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                      // task synch type
-                              Common_TimePolicy_t,               // time policy
-                              Stream_ModuleConfiguration,        // module configuration type
-                              Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_Module_FileWriter);         // writer type
+DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
+                              Common_TimePolicy_t,                      // time policy
+                              Stream_ModuleConfiguration,               // module configuration type
+                              Stream_Test_U_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_Module_FileWriter);                // writer type
 
 #endif

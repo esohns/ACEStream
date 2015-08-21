@@ -1,0 +1,5 @@
+SUBDIRS = \
+  file \
+  misc \
+  net
+

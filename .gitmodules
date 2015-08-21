@@ -6,4 +6,7 @@
 [submodule "modules/libCommon"]
 	path = modules/libCommon
 	url = git://github.com/esohns/libCommon.git
+[submodule "modules/libACENetwork"]
+        path = modules/libACENetwork
+        url = git://github.com/esohns/libACENetwork.git
 

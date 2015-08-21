@@ -31,8 +31,6 @@
 #include "stream_module_runtimestatistic.h"
 #include "stream_streammodule_base.h"
 
-//#include "test_u_common.h"
-
 #include "test_u_filecopy_common.h"
 #include "test_u_filecopy_message.h"
 #include "test_u_filecopy_session_message.h"

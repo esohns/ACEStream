@@ -52,23 +52,31 @@ stream_filecopy_CPPFLAGS = \
   -I$(top_srcdir)/../libCommon/src \
   -I$(top_srcdir)/../libCommon/src/ui \
   -I$(top_srcdir)/src \
+  -I$(top_srcdir)/src/modules/file \
+  -I$(top_srcdir)/src/modules/misc \
   -I$(srcdir)/..
 stream_filecopy_LDFLAGS = \
   -L$(abs_top_srcdir)/modules/ATCD/ACE/build/linux/lib \
   $(PKGGTK_LDFLAGS) \
   -L$(abs_builddir)/../../modules/libCommon/src/.libs \
   -L$(abs_builddir)/../../modules/libCommon/src/ui/.libs \
-  -L$(abs_builddir)/../../src/.libs
+  -L$(abs_builddir)/../../src/.libs \
+  -L$(abs_builddir)/../../src/modules/file/.libs \
+  -L$(abs_builddir)/../../src/modules/misc/.libs
 stream_filecopy_LDADD = \
   -lACE \
   $(PKGGTK_LIBS) \
   -lCommon \
   -lCommon_UI \
-  -lACEStream
+  -lACEStream \
+  -lACEStream_File \
+  -lACEStream_Misc
 
 SUBDIRS = \
+  . \
   etc
 
 EXTRA_DIST = \
   ReadMe.txt \
   targetver.h
+

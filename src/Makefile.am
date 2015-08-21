@@ -48,14 +48,6 @@ include_HEADERS = \
   stream_messagequeue_base.inl \
   stream_module_base.h \
   stream_module_base.inl \
-  stream_module_filereader.h \
-  stream_module_filereader.inl \
-  stream_module_filewriter.h \
-  stream_module_filewriter.inl \
-  stream_module_messagehandler.h \
-  stream_module_messagehandler.inl \
-  stream_module_runtimestatistic.h \
-  stream_module_runtimestatistic.inl \
   stream_resetcounterhandler.h \
   stream_session_data.h \
   stream_session_data.inl \
@@ -127,18 +119,6 @@ libACEStream_la_SOURCES = \
   stream_module_base.cpp \
   stream_module_base.inl \
   stream_module_base.h \
-  stream_module_filereader.cpp \
-  stream_module_filereader.h \
-  stream_module_filereader.inl \
-  stream_module_filewriter.cpp \
-  stream_module_filewriter.h \
-  stream_module_filewriter.inl \
-  stream_module_messagehandler.cpp \
-  stream_module_messagehandler.h \
-  stream_module_messagehandler.inl \
-  stream_module_runtimestatistic.cpp \
-  stream_module_runtimestatistic.h \
-  stream_module_runtimestatistic.inl \
   stream_resetcounterhandler.cpp \
   stream_resetcounterhandler.h \
   stream_session_data.cpp \
@@ -177,3 +157,8 @@ libACEStream_la_CPPFLAGS = \
   -I$(top_srcdir)/modules/libCommon/src
 libACEStream_la_LDFLAGS = \
   -version-info @LIBACESTREAM_LT_VERSION_INFO@
+
+SUBDIRS = \
+  . \
+  modules
+

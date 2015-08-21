@@ -52,15 +52,14 @@
 #include "libacestream_config.h"
 #endif
 
-#include "test_u_common.h"
-#include "test_u_defines.h"
+#include "test_i_callbacks.h"
+#include "test_i_common.h"
+#include "test_i_defines.h"
 
-#include "test_u_filecopy_callbacks.h"
-#include "test_u_filecopy_defines.h"
-#include "test_u_filecopy_eventhandler.h"
-#include "test_u_filecopy_module_eventhandler.h"
-#include "test_u_filecopy_signalhandler.h"
-#include "test_u_filecopy_stream.h"
+#include "test_i_eventhandler.h"
+#include "test_i_module_eventhandler.h"
+#include "test_i_source_signalhandler.h"
+#include "test_i_source_stream.h"
 
 void
 do_printUsage (const std::string& programName_in)
@@ -92,17 +91,17 @@ do_printUsage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [VALUE]  : buffer size (byte(s)) [")
-            << TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE
+            << TEST_I_DEFAULT_BUFFER_SIZE
             << ACE_TEXT ("])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : filename")
             << std::endl;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE);
+  UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
@@ -125,7 +124,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   path = Common_File_Tools::getDumpDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE);
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x[[STRING]]: target filename [")
             << path
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -168,19 +167,19 @@ do_processArguments (int argc_in,
   // initialize results
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
-  bufferSize_out = TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE;
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
+  bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
   filename_out.clear ();
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE);
+  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
   logToFile_out = false;
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING;
   traceInformation_out = false;
   printVersionAndExit_out = false;
   path = Common_File_Tools::getDumpDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE);
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   targetFilename_out = path;
   //runStressTest_out = false;
 
@@ -369,28 +368,28 @@ do_work (unsigned int bufferSize_in,
          const std::string& UIDefinitionFile_in,
          unsigned int statisticReportingInterval_in,
          const std::string& targetFilename_in,
-         Stream_Filecopy_GTK_CBData& CBData_in,
+         Stream_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
-         Stream_Filecopy_SignalHandler& signalHandler_in)
+         Stream_Source_SignalHandler& signalHandler_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   // step0a: initialize configuration
-  Stream_Filecopy_Configuration configuration;
+  Test_I_Configuration configuration;
   CBData_in.configuration = &configuration;
 
-  Stream_Filecopy_EventHandler ui_event_handler (&CBData_in);
-  Stream_Filecopy_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                            NULL,
-                                                            true);
-  Stream_Filecopy_Module_EventHandler* event_handler_p =
-    dynamic_cast<Stream_Filecopy_Module_EventHandler*> (event_handler.writer ());
+  Stream_EventHandler ui_event_handler (&CBData_in);
+  Stream_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+                                                   NULL,
+                                                   true);
+  Stream_Module_EventHandler* event_handler_p =
+    dynamic_cast<Stream_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_EventHandler> failed, returning\n")));
+                ACE_TEXT ("dynamic_cast<Stream_Module_EventHandler> failed, returning\n")));
     return;
   } // end IF
   event_handler_p->initialize (&CBData_in.subscribers,
@@ -398,9 +397,9 @@ do_work (unsigned int bufferSize_in,
   event_handler_p->subscribe (&ui_event_handler);
 
   Stream_AllocatorHeap heap_allocator;
-  Stream_Filecopy_MessageAllocator_t message_allocator (TEST_U_STREAM_FILECOPY_MAX_MESSAGES, // maximum #buffers
-                                                        &heap_allocator,                     // heap allocator handle
-                                                        true);                               // block ?
+  Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                               &heap_allocator,     // heap allocator handle
+                                               true);               // block ?
   // ********************** module configuration data **************************
   configuration.streamConfiguration.moduleHandlerConfiguration_2.active =
       !UIDefinitionFile_in.empty ();
@@ -444,7 +443,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step0f: (initialize) processing stream
-  Stream_Filecopy_Stream stream;
+  Test_I_Source_Stream stream;
 
   // event loop(s):
   // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
@@ -640,14 +639,14 @@ ACE_TMAIN (int argc_in,
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
-  unsigned int buffer_size = TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE;
+  unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
   std::string filename;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE);
+  UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
   bool log_to_file = false;
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING;
@@ -655,7 +654,7 @@ ACE_TMAIN (int argc_in,
   bool print_version_and_exit = false;
   path = Common_File_Tools::getDumpDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE);
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::string target_filename = path;
   //bool run_stress_test = false;
 
@@ -691,7 +690,7 @@ ACE_TMAIN (int argc_in,
   //                   reactor/proactor thread could (dead)lock on the
   //                   allocator lock, as it cannot dispatch events that would
   //                   free slots
-  if (TEST_U_STREAM_FILECOPY_MAX_MESSAGES)
+  if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
   if ((UI_definition_file.empty () &&
@@ -717,18 +716,18 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
-  Stream_Filecopy_GTK_CBData gtk_cb_user_data;
+  Stream_GTK_CBData gtk_cb_user_data;
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
   // step1d: initialize logging and/or tracing
   Common_Logger logger (&gtk_cb_user_data.logStack,
                         &gtk_cb_user_data.lock);
-  std::string log_file;
+  std::string log_file_name;
   if (log_to_file)
-    log_file =
+    log_file_name =
         Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE_NAME),
                                            ACE::basename (argv_in[0]));
   if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
-                                        log_file,                                 // log file
+                                        log_file_name,                            // log file name
                                         false,                                    // log to syslog ?
                                         false,                                    // trace messages ?
                                         trace_information,                        // debug messages ?
@@ -793,7 +792,7 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_Filecopy_SignalHandler signal_handler;
+  Stream_Source_SignalHandler signal_handler;
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

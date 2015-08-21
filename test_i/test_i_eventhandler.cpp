@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_u_filecopy_eventhandler.h"
+#include "test_i_eventhandler.h"
 
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
@@ -28,26 +28,26 @@
 
 #include "stream_macros.h"
 
-#include "test_u_filecopy_defines.h"
+#include "test_i_defines.h"
 
-Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler (Stream_Filecopy_GTK_CBData* CBData_in)
+Stream_EventHandler::Stream_EventHandler (Stream_GTK_CBData* CBData_in)
  : CBData_ (CBData_in)
  , sessionData_ (NULL)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::Stream_Filecopy_EventHandler"));
+  STREAM_TRACE (ACE_TEXT ("Stream_EventHandler::Stream_EventHandler"));
 
 }
 
-Stream_Filecopy_EventHandler::~Stream_Filecopy_EventHandler ()
+Stream_EventHandler::~Stream_EventHandler ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::~Stream_Filecopy_EventHandler"));
+  STREAM_TRACE (ACE_TEXT ("Stream_EventHandler::~Stream_EventHandler"));
 
 }
 
 void
-Stream_Filecopy_EventHandler::start (const Stream_Filecopy_SessionData& sessionData_in)
+Stream_EventHandler::start (const Test_I_Stream_SessionData& sessionData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::start"));
+  STREAM_TRACE (ACE_TEXT ("Stream_EventHandler::start"));
 
   sessionData_ = &sessionData_in;
 
@@ -74,9 +74,9 @@ Stream_Filecopy_EventHandler::start (const Stream_Filecopy_SessionData& sessionD
 }
 
 void
-Stream_Filecopy_EventHandler::notify (const Stream_Filecopy_Message& message_in)
+Stream_EventHandler::notify (const Stream_Message& message_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::notify"));
+  STREAM_TRACE (ACE_TEXT ("Stream_EventHandler::notify"));
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -89,9 +89,9 @@ Stream_Filecopy_EventHandler::notify (const Stream_Filecopy_Message& message_in)
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
 }
 void
-Stream_Filecopy_EventHandler::notify (const Stream_Filecopy_SessionMessage& sessionMessage_in)
+Stream_EventHandler::notify (const Stream_SessionMessage& sessionMessage_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::notify"));
+  STREAM_TRACE (ACE_TEXT ("Stream_EventHandler::notify"));
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -108,9 +108,9 @@ Stream_Filecopy_EventHandler::notify (const Stream_Filecopy_SessionMessage& sess
 }
 
 void
-Stream_Filecopy_EventHandler::end ()
+Stream_EventHandler::end ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::end"));
+  STREAM_TRACE (ACE_TEXT ("Stream_EventHandler::end"));
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -129,18 +129,18 @@ Stream_Filecopy_EventHandler::end ()
   gdk_threads_enter ();
   GtkTable* table_p =
     GTK_TABLE (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TABLE_OPTIONS_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TABLE_OPTIONS_NAME)));
   ACE_ASSERT (table_p);
   gtk_widget_set_sensitive (GTK_WIDGET (table_p), TRUE);
 
   GtkAction* action_p =
       GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_START_NAME)));
+                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
   gtk_action_set_stock_id (action_p, GTK_STOCK_MEDIA_PLAY);
   action_p =
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_STOP_NAME)));
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_STOP_NAME)));
   ACE_ASSERT (action_p);
   gtk_action_set_sensitive (action_p, FALSE);
   gdk_threads_leave ();

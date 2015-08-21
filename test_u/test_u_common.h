@@ -142,14 +142,12 @@ struct Stream_Test_U_GTK_CBData
    , configuration (NULL)
    , eventStack ()
    , logStack ()
-   , stackLock ()
   {};
 
   bool                         allowUserRuntimeStatistic;
   Stream_Test_U_Configuration* configuration;
   Stream_GTK_Events_t          eventStack;
   Common_MessageStack_t        logStack;
-  ACE_SYNCH_RECURSIVE_MUTEX    stackLock;
 };
 
 #endif

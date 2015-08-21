@@ -102,7 +102,7 @@ do_printUsage (const std::string& programName_in)
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE);
+  UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_UI);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
@@ -111,7 +111,7 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT ("-s [VALUE]   : statistic reporting interval (second(s)) [")
+  std::cout << ACE_TEXT ("-s [VALUE]   : statistics reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING
             << ACE_TEXT ("] {0 --> OFF})")
             << std::endl;
@@ -143,7 +143,7 @@ do_processArguments (int argc_in,
                      std::string& filename_out,
                      std::string& UIFile_out,
                      bool& logToFile_out,
-                     unsigned int& statisticReportingInterval_out,
+                     unsigned int& statisticsReportingInterval_out,
                      bool& traceInformation_out,
                      bool& printVersionAndExit_out,
                      std::string& targetFilename_out)
@@ -173,9 +173,9 @@ do_processArguments (int argc_in,
   filename_out.clear ();
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE);
+  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_UI);
   logToFile_out = false;
-  statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING;
+  statisticsReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING;
   traceInformation_out = false;
   printVersionAndExit_out = false;
   path = Common_File_Tools::getDumpDirectory ();
@@ -230,7 +230,7 @@ do_processArguments (int argc_in,
         converter.clear ();
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
-        converter >> statisticReportingInterval_out;
+        converter >> statisticsReportingInterval_out;
         break;
       }
       case 't':
@@ -647,7 +647,7 @@ ACE_TMAIN (int argc_in,
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE);
+  UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_UI);
   bool log_to_file = false;
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING;
@@ -721,7 +721,7 @@ ACE_TMAIN (int argc_in,
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
   // step1d: initialize logging and/or tracing
   Common_Logger logger (&gtk_cb_user_data.logStack,
-                        &gtk_cb_user_data.lock);
+                        &gtk_cb_user_data.stackLock);
   std::string log_file;
   if (log_to_file)
     log_file =
@@ -817,9 +817,15 @@ ACE_TMAIN (int argc_in,
 
   // step1g: set process resource limits
   // *NOTE*: settings will be inherited by any child processes
-  if (!Common_Tools::setResourceLimits (false,  // file descriptors
-                                        true,   // stack traces
-                                        false)) // pending signals
+  // *TODO*: the reasoning here is incomplete
+  bool use_fd_based_reactor = true;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  use_fd_based_reactor = !COMMON_EVENT_WINXX_USE_WFMO_REACTOR;
+#endif
+  bool stack_traces = true;
+  if (!Common_Tools::setResourceLimits (false,        // file descriptors
+                                        stack_traces, // stack traces
+                                        false))       // pending signals
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));

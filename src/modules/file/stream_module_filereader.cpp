@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_module_messagehandler.h"
+#include "stream_module_filereader.h"

@@ -21,11 +21,12 @@
 #ifndef TEST_U_STREAM_FILECOPY_DEFINES_H
 #define TEST_U_STREAM_FILECOPY_DEFINES_H
 
-#define TEST_U_STREAM_FILECOPY_UI                         "filecopy.glade"
-#define TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE        "output.tmp"
-#define TEST_U_STREAM_FILECOPY_THREAD_NAME                "stream processor"
+#define TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE            "filecopy.glade"
+#define TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE           "output.tmp"
+#define TEST_U_STREAM_FILECOPY_THREAD_NAME                   "stream processor"
 
-#define TEST_U_STREAM_FILECOPY_MAX_MESSAGES               0  // 0 --> no limits
+#define TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE           4096 // bytes
+#define TEST_U_STREAM_FILECOPY_MAX_MESSAGES                  0  // 0 --> no limits
 
 //---------------------------------------
 
@@ -37,13 +38,15 @@
 #define TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME               "about"
 #define TEST_U_STREAM_UI_GTK_BUTTON_CLEAR_NAME               "clear"
 #define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME              "report"
-#define TEST_U_STREAM_UI_GTK_BUTTON_START_NAME               "start"
-#define TEST_U_STREAM_UI_GTK_BUTTON_STOP_NAME                "stop"
+//#define TEST_U_STREAM_UI_GTK_BUTTON_START_NAME               "start"
+//#define TEST_U_STREAM_UI_GTK_BUTTON_STOP_NAME                "stop"
 #define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME                "quit"
 #define TEST_U_STREAM_UI_GTK_DIALOG_ABOUT_NAME               "dialog_about"
 #define TEST_U_STREAM_UI_GTK_DIALOG_MAIN_NAME                "dialog_main"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME     "filechooserbutton_source"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
+#define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_OPEN_NAME     "dialog_filechooser"
+#define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "dialog_filesaver"
 #define TEST_U_STREAM_UI_GTK_HBOX_OPTIONS_NAME               "hbox_options"
 //#define TEST_U_STREAM_UI_GTK_IMAGE_PLAY_NAME                 "image_play"
 //#define TEST_U_STREAM_UI_GTK_IMAGE_PAUSE_NAME                "image_pause"
@@ -52,14 +55,16 @@
 #define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_TEXT            "#000000" // green
 #define TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME                "progressbar"
 #define TEST_U_STREAM_UI_GTK_SCROLLMARK_NAME                 "insert"
+#define TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME      "spinbutton_buffersize"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME    "spinbutton_data_messages"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME "spinbutton_session_messages"
 #define TEST_U_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
+#define TEST_U_STREAM_UI_GTK_TABLE_OPTIONS_NAME              "table_options"
 #define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
 
 // GTK progress/status-bar
-#define TEST_USTREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL   27 // ms (?)
-#define TEST_USTREAM_UI_GTK_STATUSBAR_CONTEXT_DESCRIPTION "Stream::main"
+#define TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL     27 // ms (?)
+#define TEST_U_STREAM_UI_GTK_STATUSBAR_CONTEXT_DESCRIPTION   "Stream::main"
 
 //---------------------------------------
 

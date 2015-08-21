@@ -2,5 +2,6 @@
 
 #  ATCD/ACE/build/linux
 SUBDIRS = \
-  libCommon
+  libCommon \
+  libACENetwork
 

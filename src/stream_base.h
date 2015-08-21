@@ -64,7 +64,7 @@ class Stream_Base_T
                                   StateType>
  , public Common_IDumpState
 // , public Common_IGet_T<SessionDataType>
- , public Common_IInitialize_T<ConfigurationType>
+// , public Common_IInitialize_T<ConfigurationType>
  , public Common_IStatistic_T<StatisticContainerType>
 {
  public:
@@ -97,6 +97,9 @@ class Stream_Base_T
 //  // implement Common_IGet_T
 //  virtual const SessionDataType& get () const;
   const SessionDataType& sessionData () const;
+
+// // implement Common_IInitialize_T
+  virtual bool initialize (const ConfigurationType&) = 0;
 
   //// override ACE_Stream method(s)
   //// *NOTE*: the default implementation close(s) the removed module. This is not

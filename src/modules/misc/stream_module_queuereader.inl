@@ -324,9 +324,10 @@ Stream_Module_QueueReader_T<SessionMessageType,
   // step1: start processing data...
   //   ACE_DEBUG ((LM_DEBUG,
   //               ACE_TEXT ("entering processing loop...\n")));
-  while (queue_->get (message_block_p, NULL) != -1)
+  while (queue_->dequeue (message_block_p, NULL) != -1)
   {
-    if (message_block->msg_type () == ACE_Message_Block::MB_STOP)
+    ACE_ASSERT (message_block_p);
+    if (message_block_p->msg_type () == ACE_Message_Block::MB_STOP)
     {
       // clean up
       message_block_p->release ();
@@ -348,9 +349,8 @@ Stream_Module_QueueReader_T<SessionMessageType,
       goto session_finished;
     } // end IF
   } // end WHILE
-
-  // clean up
-  message_block_p->release ();
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("failed to ACE_Message_Queue_Base::dequeue(): \"%m\", aborting\n")));
 
 session_finished:
   // step2: send final session message downstream...
@@ -359,16 +359,6 @@ session_finished:
                                      false))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
-
-  result = stream_.close ();
-  if (result == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
-                ACE_TEXT (inherited::configuration_.sourceFilename.c_str ())));
-  isOpen_ = false;
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("closed file stream \"%s\"...\n"),
-              ACE_TEXT (inherited::configuration_.sourceFilename.c_str ())));
 
 done:
   // signal the controller
@@ -454,7 +444,7 @@ Stream_Module_QueueReader_T<SessionMessageType,
   // step3: send the statistic data downstream
   // *NOTE*: fire-and-forget session_data_p here
   // *TODO*: remove type inference
-  return inherited::putSessionMessage (SESSION_STATISTICS,
+  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
                                        session_data_p,
                                        inherited::configuration_.streamConfiguration->messageAllocator);
 }

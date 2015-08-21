@@ -202,9 +202,9 @@ Stream_Module_FileWriter_T<SessionMessageType,
                                        NULL,                    // timeout (block)
                                        ACE_Addr::sap_any,       // (local) filename: N/A
                                        0,                       // reuse_addr: N/A
-                                       (O_WRONLY |
-                                        O_CREAT  |
-                                        O_TRUNC),               // flags --> open
+                                       (O_CREAT |
+                                        O_TRUNC |
+                                        O_WRONLY),              // flags --> open
                                        ACE_DEFAULT_FILE_PERMS); // permissions --> open
       if (result == -1)
       {
@@ -279,7 +279,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
   // sanity check(s)
   // *TODO*: remove type inferences
   if (Common_File_Tools::isReadable (configuration_.targetFilename))
-    ACE_DEBUG ((LM_WARNING,
+    ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("target file \"%s\" exists, continuing\n"),
                 ACE_TEXT (configuration_.targetFilename.c_str ())));
 
