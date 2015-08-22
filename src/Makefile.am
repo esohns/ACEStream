@@ -3,7 +3,7 @@ ACLOCAL_AMFLAGS = \
 
 DEFS += \
   -DSTREAM_BUILD_DLL=1 \
-  -DMETA_PACKAGE=\"@PACKAGE_NAME@\"
+  -DPACKAGE=\"@PACKAGE_NAME@\"
 
 AM_CPPFLAGS = \
   -I$(top_srcdir)/modules/ATCD/ACE

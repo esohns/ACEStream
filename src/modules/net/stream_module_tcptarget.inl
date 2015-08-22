@@ -170,11 +170,11 @@ Stream_Module_TCPTarget_T<SessionMessageType,
       const SessionDataType* session_data_p = session_data_container_r.getData ();
       ACE_ASSERT (session_data_p);
 
-      std::string directory, filename;
+      std::string directory, file_name;
       if (configuration_.targetFilename.empty ())
       {
 //        directory = Common_File_Tools::getDumpDirectory ();
-        filename = ACE::basename (session_data_p->filename.c_str ());
+        file_name = ACE::basename (session_data_p->fileName.c_str ());
       } // end IF
 //      else if (Common_File_Tools::isDirectory (configuration_.targetFilename))
 //      {
@@ -191,9 +191,9 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 //        directory = Common_File_Tools::getDumpDirectory ();
 //        filename = ACE::basename (session_data_p->filename.c_str ());
 //      } // end IF
-      filename = directory +
-                 ACE_DIRECTORY_SEPARATOR_CHAR_A +
-                 filename;
+      file_name = directory +
+                  ACE_DIRECTORY_SEPARATOR_CHAR_A +
+                  file_name;
 
 //      if (Common_File_Tools::isReadable (filename))
 //        ACE_DEBUG ((LM_WARNING,
@@ -229,7 +229,7 @@ Stream_Module_TCPTarget_T<SessionMessageType,
       isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("opened file stream \"%s\"...\n"),
-                  ACE_TEXT (filename.c_str ())));
+                  ACE_TEXT (file_name.c_str ())));
 
       break;
     }

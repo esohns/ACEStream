@@ -22,13 +22,13 @@ m4_ifset([M4_LIBACESTREAM_VERSION_DEVEL],
          [AC_DEFINE(HAVE_VERSION_DEVEL, [1], [define if a version suffix is present])])
 
 # (meta-)package name
-m4_define([M4_META_PACKAGE_NAME], [libACEStream])
+m4_define([M4_PACKAGE_NAME], [libACEStream])
 
 AC_PREREQ([2.69])
-AC_INIT([M4_META_PACKAGE_NAME],
+AC_INIT([M4_PACKAGE_NAME],
         [M4_LIBACESTREAM_VERSION],
         [eriksohns@123mail.org],
-        [M4_META_PACKAGE_NAME],
+        [M4_PACKAGE_NAME],
         [http://www.github.com/esohns/libACEStream])
 AC_CONFIG_AUX_DIR([aux_config])
 AC_CONFIG_MACRO_DIR([m4])
@@ -71,7 +71,7 @@ LT_INIT
 
 # prefix config.h
 m4_define([LIBACESTREAM_CONFIG_H], [libacestream_config.h])
-AX_PREFIX_CONFIG_H([LIBACESTREAM_CONFIG_H], [M4_META_PACKAGE_NAME], [config.h])
+AX_PREFIX_CONFIG_H([LIBACESTREAM_CONFIG_H], [M4_PACKAGE_NAME], [config.h])
 
 #AC_LANG([C++])
 
@@ -164,12 +164,30 @@ else
   AC_MSG_RESULT([no])
 fi
 AM_COND_IF([BUILD_MODULES],
-           [AC_CONFIG_SUBDIRS([modules/libCommon
-                               modules/libACENetwork])])
+           [AC_CONFIG_SUBDIRS([modules/libCommon])])
 dnl AC_CONFIG_SUBDIRS([modules/ATCD
-dnl                    modules/libCommon])
+dnl                    modules/libCommon
+dnl                    modules/libACENetwork])])
 #AM_COND_IF([BUILD_MODULES],
 #           [AC_CONFIG_FILES([modules/Makefile])])
+
+# --> build (integration) tests ?
+AC_MSG_CHECKING([build (integration) tests])
+test_default="yes"
+AC_ARG_ENABLE([test],
+              [AS_HELP_STRING([--enable-test], [turn on (integration) test support [default="$test_default"]])],
+              [case "${enableval}" in
+                 yes) test=yes ;;
+                 no)  test=no  ;;
+                 *) AC_MSG_ERROR([bad value ${enableval} for --enable-test]) ;;
+               esac],
+              [test=$test_default])
+AM_CONDITIONAL([TEST_SUPPORT], [test x$test = xyes])
+if test x$test = xyes; then
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
 
 # pkgconfig directory (.pc file location)
 AC_ARG_WITH([pkgconfigdir],

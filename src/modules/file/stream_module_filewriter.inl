@@ -157,43 +157,43 @@ Stream_Module_FileWriter_T<SessionMessageType,
       const SessionDataType* session_data_p = session_data_container_r.getData ();
       ACE_ASSERT (session_data_p);
 
-      std::string directory, filename;
+      std::string directory, file_name;
       if (configuration_.targetFilename.empty ())
       {
         directory = Common_File_Tools::getDumpDirectory ();
-        filename = ACE::basename (session_data_p->filename.c_str ());
+        file_name = ACE::basename (session_data_p->fileName.c_str ());
       } // end IF
       else if (Common_File_Tools::isDirectory (configuration_.targetFilename))
       {
         directory = configuration_.targetFilename;
-        filename = ACE::basename (session_data_p->filename.c_str ());
+        file_name = ACE::basename (session_data_p->fileName.c_str ());
       } // end IF
       else if (Common_File_Tools::isValid (configuration_.targetFilename))
       {
         directory = ACE::dirname (configuration_.targetFilename.c_str ());
-        filename = configuration_.targetFilename;
+        file_name = configuration_.targetFilename;
       } // end ELSE
       else
       {
         directory = Common_File_Tools::getDumpDirectory ();
-        filename = ACE::basename (session_data_p->filename.c_str ());
+        file_name = ACE::basename (session_data_p->fileName.c_str ());
       } // end IF
-      filename = directory +
-                 ACE_DIRECTORY_SEPARATOR_CHAR_A +
-                 filename;
+      file_name = directory +
+                  ACE_DIRECTORY_SEPARATOR_CHAR_A +
+                  file_name;
 
-      if (Common_File_Tools::isReadable (filename))
+      if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("target file \"%s\" exists, continuing\n"),
-                    ACE_TEXT (filename.c_str ())));
+                    ACE_TEXT (file_name.c_str ())));
 
       ACE_FILE_Addr file_address;
-      result = file_address.set (filename.c_str ());
+      result = file_address.set (file_name.c_str ());
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", returning\n"),
-                    ACE_TEXT (filename.c_str ())));
+                    ACE_TEXT (file_name.c_str ())));
         return;
       } // end IF
       ACE_FILE_Connector file_connector;
@@ -216,7 +216,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
       isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("opened file stream \"%s\"...\n"),
-                  ACE_TEXT (filename.c_str ())));
+                  ACE_TEXT (file_name.c_str ())));
 
       break;
     }

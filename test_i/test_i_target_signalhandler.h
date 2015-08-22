@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_U_FILECOPY_SIGNALHANDLER_H
-#define TEST_U_FILECOPY_SIGNALHANDLER_H
+#ifndef TEST_I_TARGET_SIGNALHANDLER_H
+#define TEST_I_TARGET_SIGNALHANDLER_H
 
 #include "ace/Global_Macros.h"
 
@@ -27,19 +27,19 @@
 #include "common_isignal.h"
 #include "common_signalhandler.h"
 
-#include "test_u_filecopy_common.h"
+#include "test_i_common.h"
 
-class Stream_Filecopy_SignalHandler
+class Stream_Target_SignalHandler
  : public Common_SignalHandler
- , public Common_IInitialize_T<Stream_Filecopy_SignalHandlerConfiguration>
+ , public Common_IInitialize_T<Stream_SignalHandlerConfiguration>
  , public Common_ISignal
 {
  public:
-  Stream_Filecopy_SignalHandler ();
-  virtual ~Stream_Filecopy_SignalHandler ();
+  Stream_Target_SignalHandler ();
+  virtual ~Stream_Target_SignalHandler ();
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Stream_Filecopy_SignalHandlerConfiguration&); // configuration
+  virtual bool initialize (const Stream_SignalHandlerConfiguration&); // configuration
 
   // implement Common_ISignal
   virtual bool handleSignal (int); // signal
@@ -47,10 +47,10 @@ class Stream_Filecopy_SignalHandler
  private:
   typedef Common_SignalHandler inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_SignalHandler (const Stream_Filecopy_SignalHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_SignalHandler& operator= (const Stream_Filecopy_SignalHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler (const Stream_Target_SignalHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler& operator= (const Stream_Target_SignalHandler&))
 
-  Stream_Filecopy_SignalHandlerConfiguration configuration_;
+  Stream_SignalHandlerConfiguration configuration_;
 };
 
 #endif

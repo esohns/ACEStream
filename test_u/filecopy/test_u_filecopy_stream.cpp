@@ -134,7 +134,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
   // *TODO*: remove type inferences
   inherited::sessionData_->sessionID =
     ++Stream_Filecopy_Stream::currentSessionID;
-  inherited::sessionData_->filename =
+  inherited::sessionData_->fileName =
     configuration_in.moduleHandlerConfiguration_2.sourceFilename;
   inherited::sessionData_->size =
     Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.sourceFilename);

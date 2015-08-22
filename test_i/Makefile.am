@@ -42,7 +42,9 @@ stream_source_SOURCES = \
   test_i_source_signalhandler.cpp \
   test_i_source_signalhandler.h \
   test_i_source_stream.cpp \
-  test_i_source_stream.h
+  test_i_source_stream.h \
+  test_i_target_stream.cpp \
+  test_i_target_stream.h
 #  stdafx.cpp \
 #  stdafx.h
 
@@ -64,8 +66,8 @@ stream_source_LDFLAGS = \
   $(PKGGTK_LDFLAGS) \
   -L$(abs_builddir)/../modules/libCommon/src/.libs \
   -L$(abs_builddir)/../modules/libCommon/src/ui/.libs \
-  -L$(abs_builddir)/../modules/libACENetwork/src/.libs \
-  -L$(abs_builddir)/../modules/libACENetwork/src/client_server/.libs \
+  -L$(abs_top_srcdir)/modules/libACENetwork/build/debug/src/.libs \
+  -L$(abs_top_srcdir)/modules/libACENetwork/build/debug/src/client_server/.libs \
   -L$(abs_builddir)/../src/.libs \
   -L$(abs_builddir)/../src/modules/file/.libs \
   -L$(abs_builddir)/../src/modules/misc/.libs \
@@ -97,8 +99,10 @@ stream_target_SOURCES = \
   test_i_session_message.cpp \
   test_i_session_message.h \
   test_i_target.cpp \
-  test_i_target_eventhandler.cpp \
-  test_i_target_eventhandler.h \
+  test_i_eventhandler.cpp \
+  test_i_eventhandler.h \
+  test_i_source_stream.cpp \
+  test_i_source_stream.h \
   test_i_target_signalhandler.cpp \
   test_i_target_signalhandler.h \
   test_i_target_stream.cpp \
@@ -124,8 +128,8 @@ stream_target_LDFLAGS = \
   $(PKGGTK_LDFLAGS) \
   -L$(abs_builddir)/../modules/libCommon/src/.libs \
   -L$(abs_builddir)/../modules/libCommon/src/ui/.libs \
-  -L$(abs_builddir)/../modules/libACENetwork/src/.libs \
-  -L$(abs_builddir)/../modules/libACENetwork/src/client_server/.libs \
+  -L$(abs_top_srcdir)/modules/libACENetwork/build/debug/src/.libs \
+  -L$(abs_top_srcdir)/modules/libACENetwork/build/debug/src/client_server/.libs \
   -L$(abs_builddir)/../src/.libs \
   -L$(abs_builddir)/../src/modules/file/.libs \
   -L$(abs_builddir)/../src/modules/misc/.libs \
@@ -140,7 +144,7 @@ stream_target_LDADD = \
   -lACEStream_Misc \
   -lACEStream_Net \
   -lACENetwork \
-  -lACENetwork_Server
+  -lACENetwork_Client
 
 SUBDIRS = \
   . \

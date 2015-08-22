@@ -21,6 +21,8 @@
 #ifndef TEST_I_DEFINES_H
 #define TEST_I_DEFINES_H
 
+//#include "ace/Default_Constants.h"
+
 #define TEST_I_CONFIGURATION_DIRECTORY                       "etc"
 #define TEST_I_DEFAULT_SOURCE_GLADE_FILE                     "source.glade"
 #define TEST_I_DEFAULT_TARGET_GLADE_FILE                     "target.glade"
@@ -29,6 +31,9 @@
 
 #define TEST_I_DEFAULT_BUFFER_SIZE                           4096 // bytes
 #define TEST_I_MAX_MESSAGES                                  0  // 0 --> no limits
+
+#define TEST_I_DEFAULT_TARGET_HOSTNAME                       ACE_LOCALHOST
+#define TEST_I_DEFAULT_PORT                                  10001
 
 //---------------------------------------
 

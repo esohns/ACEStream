@@ -170,9 +170,11 @@ struct Stream_ModuleConfiguration
 struct Stream_ModuleHandlerConfiguration
 {
   inline Stream_ModuleHandlerConfiguration ()
-   : streamConfiguration (NULL)
+   : active (false)
+   , streamConfiguration (NULL)
   {};
 
+  bool                  active; // *NOTE*: applies to head modules only
   Stream_Configuration* streamConfiguration;
 };
 

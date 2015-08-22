@@ -35,7 +35,7 @@
 #include "stream_module_tcptarget.h"
 
 #include "test_i_common.h"
-#include "test_i_connection_manager_common.h"
+#include "test_i_connection_common.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
@@ -70,7 +70,7 @@ typedef Stream_Module_TCPSource_T<Stream_SessionMessage,
                                   Test_I_RuntimeStatistic_t,
                                   ///////
                                   Test_I_Stream_InetSourceConnectionManager_t,
-                                  Test_I_Stream_TCPConnector_t> Test_I_Stream_Module_TCPSource;
+                                  Test_I_Stream_SourceTCPConnector_t> Test_I_Stream_Module_TCPSource;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
                               Common_TimePolicy_t,                      // time policy
                               Stream_ModuleConfiguration,               // module configuration type
@@ -116,8 +116,8 @@ typedef Stream_Module_TCPTarget_T<Stream_SessionMessage,
                                   //////
                                   Test_I_Stream_SessionData,
                                   //////
-                                  Test_I_Stream_InetSourceConnectionManager_t,
-                                  Test_I_Stream_TCPConnector_t> Test_I_Stream_Module_TCPTarget;
+                                  Test_I_Stream_InetTargetConnectionManager_t,
+                                  Test_I_Stream_TargetTCPConnector_t> Test_I_Stream_Module_TCPTarget;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
                               Common_TimePolicy_t,                      // time policy
                               Stream_ModuleConfiguration,               // module configuration type

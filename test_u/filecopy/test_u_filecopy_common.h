@@ -49,11 +49,11 @@ struct Stream_Filecopy_SessionData
 {
   inline Stream_Filecopy_SessionData ()
    : Stream_SessionData ()
-   , filename ()
+   , fileName ()
    , size (0)
   {};
 
-  std::string  filename;
+  std::string  fileName;
   unsigned int size;
 };
 typedef Stream_SessionDataBase_T<Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;

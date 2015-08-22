@@ -40,9 +40,8 @@
 class Stream_IAllocator;
 //struct Net_Configuration;
 struct Net_SocketConfiguration;
-struct Net_StreamUserData;
-//class Net_Stream;
-//struct Test_I_Stream_ConnectionState;
+//struct Net_StreamUserData;
+//struct Test_I_ConnectionState;
 
 //#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
 //typedef Net_IConnection_T<ACE_Netlink_Addr,
@@ -106,7 +105,7 @@ struct Stream_SocketHandlerConfiguration
    , socketConfiguration (NULL)
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING)
      ////////////////////////////////////
-   , userData (NULL)
+//   , userData (NULL)
   {};
 
   int                      bufferSize; // pdu size (if fixed)
@@ -114,7 +113,7 @@ struct Stream_SocketHandlerConfiguration
   Net_SocketConfiguration* socketConfiguration;
   unsigned int             statisticReportingInterval; // seconds [0: off]
 
-  Net_StreamUserData*      userData;
+//  Net_StreamUserData*      userData;
 };
 
 typedef Net_IConnector_T<ACE_INET_Addr,

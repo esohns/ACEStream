@@ -67,6 +67,9 @@ class Stream_SessionMessageBase_T
                                                                              Stream_UserData> >;
 
  public:
+  // convenience types
+  typedef UserDataType USER_DATA_T;
+
   // *NOTE*: assumes responsibility for the second argument !
   Stream_SessionMessageBase_T (Stream_SessionMessageType,
                                SessionDataType*&, // in/out

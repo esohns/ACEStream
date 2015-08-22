@@ -29,7 +29,7 @@
 #include "common_time_common.h"
 
 #include "stream_base.h"
-//#include "stream_common.h"
+#include "stream_common.h"
 
 #include "test_i_common.h"
 #include "test_i_common_modules.h"
@@ -65,9 +65,12 @@ class Test_I_Source_Stream
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Stream_Configuration&); // configuration
 
+  // *TODO*: re-consider this API
+  void ping ();
+
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Stream_Statistic&); // return value: statistic data
+  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
   virtual void report () const;
 
  private:

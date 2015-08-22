@@ -19,21 +19,23 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_u_filecopy_stream.h"
+#include "test_i_target_stream.h"
 
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
+#include "test_i_source_stream.h"
+
 // initialize statics
 ACE_Atomic_Op<ACE_Thread_Mutex,
-              unsigned long> Stream_Filecopy_Stream::currentSessionID = 0;
+              unsigned long> Test_I_Target_Stream::currentSessionID = 0;
 
-Stream_Filecopy_Stream::Stream_Filecopy_Stream ()
+Test_I_Target_Stream::Test_I_Target_Stream ()
  : inherited ()
- , fileReader_ (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
-                NULL,
-                false)
+ , TCPSource_ (ACE_TEXT_ALWAYS_CHAR ("TCPSource"),
+               NULL,
+               false)
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
@@ -41,14 +43,14 @@ Stream_Filecopy_Stream::Stream_Filecopy_Stream ()
                 NULL,
                 false)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::Stream_Filecopy_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::Test_I_Target_Stream"));
 
   // remember the "owned" ones...
   // *TODO*: clean this up
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&fileReader_);
+  inherited::availableModules_.push_front (&TCPSource_);
   inherited::availableModules_.push_front (&runtimeStatistic_);
   inherited::availableModules_.push_front (&fileWriter_);
 
@@ -64,18 +66,18 @@ Stream_Filecopy_Stream::Stream_Filecopy_Stream ()
      (*iterator)->next (NULL);
 }
 
-Stream_Filecopy_Stream::~Stream_Filecopy_Stream ()
+Test_I_Target_Stream::~Test_I_Target_Stream ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::~Stream_Filecopy_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::~Test_I_Target_Stream"));
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
 }
 
 bool
-Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& configuration_in)
+Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
@@ -133,8 +135,8 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
   ACE_ASSERT (inherited::sessionData_);
   // *TODO*: remove type inferences
   inherited::sessionData_->sessionID =
-    ++Stream_Filecopy_Stream::currentSessionID;
-  inherited::sessionData_->filename =
+    ++Test_I_Target_Stream::currentSessionID;
+  inherited::sessionData_->fileName =
     configuration_in.moduleHandlerConfiguration_2.sourceFilename;
   inherited::sessionData_->size =
     Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.sourceFilename);
@@ -232,12 +234,12 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
 
   // ******************* File Writer ************************
   fileWriter_.initialize (configuration_in.moduleConfiguration_2);
-  Stream_Filecopy_Module_FileWriter* fileWriter_impl_p =
-    dynamic_cast<Stream_Filecopy_Module_FileWriter*> (fileWriter_.writer ());
+  Test_I_Stream_Module_FileWriter* fileWriter_impl_p =
+    dynamic_cast<Test_I_Stream_Module_FileWriter*> (fileWriter_.writer ());
   if (!fileWriter_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_FileWriter> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_FileWriter> failed, aborting\n")));
     return false;
   } // end IF
   if (!fileWriter_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
@@ -258,12 +260,12 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
 
   // ******************* Runtime Statistics ************************
   runtimeStatistic_.initialize (configuration_in.moduleConfiguration_2);
-  Stream_Filecopy_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-      dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+      dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_RuntimeStatistic> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_RuntimeStatistic> failed, aborting\n")));
     return false;
   } // end IF
   if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
@@ -284,40 +286,40 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
     return false;
   } // end IF
 
-  // ******************* File Reader ************************
-  fileReader_.initialize (configuration_in.moduleConfiguration_2);
-  Stream_Filecopy_Module_FileReader* fileReader_impl_p =
-    dynamic_cast<Stream_Filecopy_Module_FileReader*> (fileReader_.writer ());
-  if (!fileReader_impl_p)
+  // ******************* TCP Source ************************
+  TCPSource_.initialize (configuration_in.moduleConfiguration_2);
+  Test_I_Stream_Module_TCPSource* TCPSource_impl_p =
+    dynamic_cast<Test_I_Stream_Module_TCPSource*> (TCPSource_.writer ());
+  if (!TCPSource_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Strean_Filecopy_Module_FileReader> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_TCPSource> failed, aborting\n")));
     return false;
   } // end IF
-  if (!fileReader_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!TCPSource_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                fileReader_.name ()));
+                TCPSource_.name ()));
     return false;
   } // end IF
-  if (!fileReader_impl_p->initialize (inherited::state_))
+  if (!TCPSource_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                fileReader_.name ()));
+                TCPSource_.name ()));
     return false;
   } // end IF
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  fileReader_.arg (inherited::sessionData_);
-  result = inherited::push (&fileReader_);
+  TCPSource_.arg (inherited::sessionData_);
+  result = inherited::push (&TCPSource_);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (fileReader_.name ())));
+                ACE_TEXT (TCPSource_.name ())));
     return false;
   } // end IF
 
@@ -334,21 +336,21 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
 }
 
 bool
-Stream_Filecopy_Stream::collect (Stream_Statistic& data_out)
+Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::collect"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::collect"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
 
-  Stream_Filecopy_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
+    dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -395,9 +397,9 @@ Stream_Filecopy_Stream::collect (Stream_Statistic& data_out)
 }
 
 void
-Stream_Filecopy_Stream::report () const
+Test_I_Target_Stream::report () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::report"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::report"));
 
 //   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
 //   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());

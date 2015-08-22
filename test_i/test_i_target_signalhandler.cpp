@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_u_filecopy_signalhandler.h"
+#include "test_i_target_signalhandler.h"
 
 #include "ace/Log_Msg.h"
 
@@ -29,25 +29,25 @@
 
 #include "stream_macros.h"
 
-Stream_Filecopy_SignalHandler::Stream_Filecopy_SignalHandler ()
+Stream_Target_SignalHandler::Stream_Target_SignalHandler ()
  : inherited (this, // event handler handle
               true) // use reactor ?
  , configuration_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::Stream_Filecopy_SignalHandler"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::Stream_Target_SignalHandler"));
 
 }
 
-Stream_Filecopy_SignalHandler::~Stream_Filecopy_SignalHandler ()
+Stream_Target_SignalHandler::~Stream_Target_SignalHandler ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::~Stream_Filecopy_SignalHandler"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::~Stream_Target_SignalHandler"));
 
 }
 
 bool
-Stream_Filecopy_SignalHandler::initialize (const Stream_Filecopy_SignalHandlerConfiguration& configuration_in)
+Stream_Target_SignalHandler::initialize (const Stream_SignalHandlerConfiguration& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::initialize"));
 
   configuration_ = configuration_in;
 
@@ -55,13 +55,13 @@ Stream_Filecopy_SignalHandler::initialize (const Stream_Filecopy_SignalHandlerCo
 }
 
 bool
-Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
+Stream_Target_SignalHandler::handleSignal (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::handleSignal"));
 
 //  int result = -1;
 
-  bool statistics = false;
+  bool statistic = false;
   bool shutdown = false;
   switch (signal_in)
   {
@@ -89,7 +89,7 @@ Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
 #endif
     {
       // print statistics
-      statistics = true;
+      statistic = true;
 
       break;
     }
@@ -100,7 +100,7 @@ Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
     case SIGTERM:
     {
       // print statistics
-      statistics = true;
+      statistic = true;
 
       break;
     }
@@ -117,8 +117,8 @@ Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
 
   // ------------------------------------
 
-  // print statistics ?
-  if (statistics)
+  // print statistic ?
+  if (statistic)
   {
     try
     {

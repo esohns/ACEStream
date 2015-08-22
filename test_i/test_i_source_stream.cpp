@@ -25,6 +25,8 @@
 
 #include "stream_macros.h"
 
+#include "test_i_target_stream.h"
+
 // initialize statics
 ACE_Atomic_Op<ACE_Thread_Mutex,
               unsigned long> Test_I_Source_Stream::currentSessionID = 0;
@@ -70,6 +72,16 @@ Test_I_Source_Stream::~Test_I_Source_Stream ()
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
+}
+
+void
+Test_I_Source_Stream::ping ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream::ping"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+  ACE_NOTREACHED (return;)
 }
 
 bool
@@ -134,7 +146,7 @@ Test_I_Source_Stream::initialize (const Test_I_Stream_Configuration& configurati
   // *TODO*: remove type inferences
   inherited::sessionData_->sessionID =
     ++Test_I_Source_Stream::currentSessionID;
-  inherited::sessionData_->filename =
+  inherited::sessionData_->fileName =
     configuration_in.moduleHandlerConfiguration_2.sourceFilename;
   inherited::sessionData_->size =
     Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.sourceFilename);
@@ -334,7 +346,7 @@ Test_I_Source_Stream::initialize (const Test_I_Stream_Configuration& configurati
 }
 
 bool
-Test_I_Source_Stream::collect (Stream_Statistic& data_out)
+Test_I_Source_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream::collect"));
 

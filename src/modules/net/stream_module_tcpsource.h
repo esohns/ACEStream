@@ -59,8 +59,7 @@ class Stream_Module_TCPSource_T
  , public Common_IStatistic_T<StatisticContainerType>
 {
  public:
-  Stream_Module_TCPSource_T (bool = false,  // active object ?
-                             bool = false); // auto-start ?
+  Stream_Module_TCPSource_T ();
   virtual ~Stream_Module_TCPSource_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -85,8 +84,8 @@ class Stream_Module_TCPSource_T
 //  // implement (part of) Stream_ITaskBase
 //  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
 //                                  bool&);                // return value: pass message downstream ?
-//  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-//                                     bool&);               // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistics collection
@@ -116,6 +115,7 @@ class Stream_Module_TCPSource_T
   bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
   bool                              isInitialized_;
+  bool                              isLinked_;
   bool                              isOpen_;
 
   // timer

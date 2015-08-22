@@ -51,11 +51,13 @@
 #include "test_i_defines.h"
 //#include "test_i_message.h"
 //#include "test_i_session_message.h"
+#include "test_i_connection_manager_common.h"
 
 // forward declarations
 class Stream_IAllocator;
 class Stream_Message;
 class Stream_SessionMessage;
+class Test_I_ConnectionState;
 
 enum Stream_GTK_Event
 {
@@ -81,45 +83,78 @@ struct Test_I_Stream_SessionData
 {
   inline Test_I_Stream_SessionData ()
    : Stream_SessionData ()
-   , filename ()
+   , connectionState (NULL)
+   , fileName ()
    , size (0)
   {};
 
-  std::string  filename;
-  unsigned int size;
+  Test_I_ConnectionState* connectionState;
+  std::string             fileName;
+  unsigned int            size;
 };
 typedef Stream_SessionDataBase_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 
+struct Test_I_Configuration;
+struct Test_I_Stream_Configuration;
+struct Test_I_Stream_UserData
+{
+  inline Test_I_Stream_UserData ()
+   : configuration (NULL)
+   , streamConfiguration (NULL)
+  {};
+
+  Test_I_Configuration*        configuration;
+  Test_I_Stream_Configuration* streamConfiguration;
+};
+
+struct Test_I_Stream_SocketHandlerConfiguration
+ : Stream_SocketHandlerConfiguration
+{
+  inline Test_I_Stream_SocketHandlerConfiguration ()
+   : Stream_SocketHandlerConfiguration ()
+     ////////////////////////////////////
+   , userData (NULL)
+  {};
+
+  Test_I_Stream_UserData* userData;
+};
+
+struct Test_I_Configuration;
 struct Test_I_Stream_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
   inline Test_I_Stream_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
-   , active (false)
+   , configuration (NULL)
+   , connectionManager (NULL)
    , contextID (0)
+   , peerAddress ()
    , printProgressDot (false)
    , queue (NULL)
    , sourceFilename ()
    , targetFilename ()
   {};
 
-  bool                    active;
-  guint                   contextID;
-  bool                    printProgressDot;
-  ACE_Message_Queue_Base* queue;
-  std::string             sourceFilename;
-  std::string             targetFilename;
+  // convenience types
+  typedef Test_I_Configuration CONFIGURATION_T;
+
+  Test_I_Configuration*                        configuration;
+  Test_I_Stream_InetSourceConnectionManager_t* connectionManager;
+  guint                                        contextID;
+  ACE_INET_Addr                                peerAddress;
+  bool                                         printProgressDot;
+  ACE_Message_Queue_Base*                      queue;
+  std::string                                  sourceFilename;
+  std::string                                  targetFilename;
 };
 
 struct Stream_SignalHandlerConfiguration
 {
   inline Stream_SignalHandlerConfiguration ()
-   : actionTimerId (-1)
-   , messageAllocator (NULL)
+   : messageAllocator (NULL)
    , statisticReportingInterval (0)
   {};
 
-  long               actionTimerId;
   Stream_IAllocator* messageAllocator;
   unsigned int       statisticReportingInterval; // statistics collecting interval (second(s)) [0: off]
 };
@@ -131,19 +166,12 @@ struct Test_I_Stream_Configuration
    : Stream_Configuration ()
    , moduleConfiguration_2 ()
    , moduleHandlerConfiguration_2 ()
+   , sessionID (-1)
   {};
 
   Stream_ModuleConfiguration               moduleConfiguration_2;
   Test_I_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration_2;
-};
-
-struct Test_I_Stream_UserData
-{
-  inline Test_I_Stream_UserData ()
-   : streamConfiguration (NULL)
-  {};
-
-  Test_I_Stream_Configuration* streamConfiguration;
+  int                                      sessionID;
 };
 
 struct Test_I_Stream_State
@@ -161,14 +189,15 @@ struct Test_I_Configuration
 {
   inline Test_I_Configuration ()
    : signalHandlerConfiguration ()
+   , socketHandlerConfiguration ()
    , streamConfiguration ()
    , streamUserData ()
   {};
 
-  Stream_SignalHandlerConfiguration signalHandlerConfiguration;
-//  Stream_SocketHandlerConfiguration socketHandlerConfiguration;
-  Test_I_Stream_Configuration       streamConfiguration;
-  Test_I_Stream_UserData            streamUserData;
+  Stream_SignalHandlerConfiguration        signalHandlerConfiguration;
+  Test_I_Stream_SocketHandlerConfiguration socketHandlerConfiguration;
+  Test_I_Stream_Configuration              streamConfiguration;
+  Test_I_Stream_UserData                   streamUserData;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<Stream_Message,
