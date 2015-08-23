@@ -57,9 +57,13 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         // good case
         case STREAM_STATE_RUNNING:
         {
-//           ACE_DEBUG ((LM_DEBUG,
-//                       ACE_TEXT ("state switch: INITIALIZED --> RUNNING\n")));
+          //           ACE_DEBUG ((LM_DEBUG,
+          //                       ACE_TEXT ("state switch: INITIALIZED --> RUNNING\n")));
 
+          // *WARNING*: falls through
+        }
+        case STREAM_STATE_FINISHED: // !active
+        {
           inherited::change (newState_in);
 
           return true;
@@ -68,7 +72,6 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         case STREAM_STATE_INITIALIZED:
         case STREAM_STATE_PAUSED:
         case STREAM_STATE_STOPPED:
-        case STREAM_STATE_FINISHED:
         default:
           break;
       } // end SWITCH

@@ -20,30 +20,36 @@
 
 #include "ace/INET_Addr.h"
 #include "ace/Log_Msg.h"
+#include "ace/SOCK_Stream.h"
 
 #include "stream_macros.h"
+#include "stream_session_message_base.h"
 
-//#include "net_connection_manager_common.h"
 #include "net_iconnector.h"
 
-//#include "net_client_common.h"
-//#include "net_client_connector_common.h"
-//#include "net_client_defines.h"
+#include "net_client_defines.h"
+
+#include "stream_module_net_common.h"
 
 template <typename SessionMessageType,
           typename MessageType,
+          typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_TCPTarget_T<SessionMessageType,
                           MessageType,
+                          ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
                           ConnectionManagerType,
                           ConnectorType>::Stream_Module_TCPTarget_T ()
  : inherited ()
- , isOpen_ (false)
+ , configuration_ ()
+ , connection_ (NULL)
+ , isInitialized_ (false)
+ , isLinked_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPTarget_T::Stream_Module_TCPTarget_T"));
 
@@ -51,12 +57,14 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 
 template <typename SessionMessageType,
           typename MessageType,
+          typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_TCPTarget_T<SessionMessageType,
                           MessageType,
+                          ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
                           ConnectionManagerType,
@@ -65,14 +73,47 @@ Stream_Module_TCPTarget_T<SessionMessageType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPTarget_T::~Stream_Module_TCPTarget_T"));
 
   int result = -1;
+  ACE_TCHAR buffer[BUFSIZ];
 
-  if (isOpen_)
+  if (isLinked_)
   {
+    ACE_ASSERT (connection_);
+    typename ConnectionManagerType::CONNECTION_T::STREAM_T& stream_r =
+        const_cast<typename ConnectionManagerType::CONNECTION_T::STREAM_T&> (connection_->stream ());
+    Stream_Module_t* module_p = NULL;
+    result = stream_r.top (module_p);
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", continuing\n")));
+      goto close;
+    } // end IF
+    ACE_ASSERT (module_p);
+    stream_r.head ()->link (module_p);
+  } // end IF
+
+close:
+  if (connection_)
+  {
+    ACE_OS::memset (buffer, 0, sizeof (buffer));
+    result =
+      configuration_.peerAddress.addr_to_string (buffer,
+                                                 sizeof (buffer));
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
+
+    connection_->close ();
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("closed connection to \"%s\" in dtor...\n"),
+                ACE_TEXT (buffer)));
+    connection_->decrease ();
   } // end IF
 }
 
 template <typename SessionMessageType,
           typename MessageType,
+          typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename ConnectionManagerType,
@@ -80,6 +121,7 @@ template <typename SessionMessageType,
 void
 Stream_Module_TCPTarget_T<SessionMessageType,
                           MessageType,
+                          ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
                           ConnectionManagerType,
@@ -88,55 +130,21 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPTarget_T::handleDataMessage"));
 
-  ssize_t bytes_written = -1;
-
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  if (!isOpen_)
-  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to open file, returning\n")));
-    return;
-  } // end IF
-
-  size_t bytes_transferred = -1;
-//  bytes_written = stream_.send_n (message_inout,       // (chained) message
-//                                  NULL,                // timeout
-//                                  &bytes_transferred); // bytes transferred
-  switch (bytes_written)
-  {
-    case -1:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_File_IO::send_n(%d): \"%m\", continuing\n"),
-                  message_inout->total_length ()));
-      break;
-    }
-    default:
-    {
-      if (bytes_written != static_cast<ssize_t> (message_inout->total_length ()))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_File_IO::send_n(): \"%m\" [wrote %d/%d bytes], continuing\n"),
-                    bytes_transferred,
-                    message_inout->total_length ()));
-//      else
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("wrote %d bytes...\n"),
-//                    bytes_transferred));
-
-//      // print progress dots ?
-//      if (configuration_.printProgressDot)
-//        std::cout << '.';
-
-      break;
-    }
-  } // end SWITCH
+  ACE_ASSERT (connection_);
+  ACE_ASSERT (message_inout);
+  if (!connection_->send (*message_inout))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Net_IConnection_T::send(%d): \"%m\", continuing\n"),
+                message_inout->total_length ()));
 }
 
 template <typename SessionMessageType,
           typename MessageType,
+          typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename ConnectionManagerType,
@@ -144,6 +152,7 @@ template <typename SessionMessageType,
 void
 Stream_Module_TCPTarget_T<SessionMessageType,
                           MessageType,
+                          ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
                           ConnectionManagerType,
@@ -162,110 +171,45 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
-    {
-      // *TODO*: remove type inferences
-      const typename SessionMessageType::SESSION_DATA_TYPE& session_data_container_r =
-          message_inout->get ();
-      const SessionDataType* session_data_p = session_data_container_r.getData ();
-      ACE_ASSERT (session_data_p);
-
-      std::string directory, file_name;
-      if (configuration_.targetFilename.empty ())
-      {
-//        directory = Common_File_Tools::getDumpDirectory ();
-        file_name = ACE::basename (session_data_p->fileName.c_str ());
-      } // end IF
-//      else if (Common_File_Tools::isDirectory (configuration_.targetFilename))
-//      {
-//        directory = configuration_.targetFilename;
-//        filename = ACE::basename (session_data_p->filename.c_str ());
-//      } // end IF
-//      else if (Common_File_Tools::isValid (configuration_.targetFilename))
-//      {
-//        directory = ACE::dirname (configuration_.targetFilename.c_str ());
-//        filename = configuration_.targetFilename;
-//      } // end ELSE
-//      else
-//      {
-//        directory = Common_File_Tools::getDumpDirectory ();
-//        filename = ACE::basename (session_data_p->filename.c_str ());
-//      } // end IF
-      file_name = directory +
-                  ACE_DIRECTORY_SEPARATOR_CHAR_A +
-                  file_name;
-
-//      if (Common_File_Tools::isReadable (filename))
-//        ACE_DEBUG ((LM_WARNING,
-//                    ACE_TEXT ("target file \"%s\" exists, continuing\n"),
-//                    ACE_TEXT (filename.c_str ())));
-
-//      ACE_INET_Addr inet_address;
-//      result = file_address.set (filename.c_str ());
-//      if (result == -1)
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", returning\n"),
-//                    ACE_TEXT (filename.c_str ())));
-//        return;
-//      } // end IF
-//      ACE_FILE_Connector file_connector;
-//      result = file_connector.connect (stream_,                 // stream
-//                                       file_address,            // filename
-//                                       NULL,                    // timeout (block)
-//                                       ACE_Addr::sap_any,       // (local) filename: N/A
-//                                       0,                       // reuse_addr: N/A
-//                                       (O_CREAT |
-//                                        O_TRUNC |
-//                                        O_WRONLY),              // flags --> open
-//                                       ACE_DEFAULT_FILE_PERMS); // permissions --> open
-      if (result == -1)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", returning\n"),
-                    ACE_TEXT (configuration_.targetFilename.c_str ())));
-        return;
-      } // end IF
-      isOpen_ = true;
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("opened file stream \"%s\"...\n"),
-                  ACE_TEXT (file_name.c_str ())));
-
-      break;
-    }
     case STREAM_SESSION_END:
     {
-      if (isOpen_)
+      ACE_TCHAR buffer[BUFSIZ];
+
+      if (isLinked_)
       {
-//        ACE_FILE_Addr file_address;
-//        result = stream_.get_local_addr (file_address);
-//        if (result == -1)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n")));
-        ACE_TCHAR buffer[PATH_MAX];
+        ACE_ASSERT (connection_);
+        typename ConnectionManagerType::CONNECTION_T::STREAM_T& stream_r =
+            const_cast<typename ConnectionManagerType::CONNECTION_T::STREAM_T&> (connection_->stream ());
+        Stream_Module_t* module_p = NULL;
+        result = stream_r.top (module_p);
+        if (result == -1)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", continuing\n")));
+          goto close;
+        } // end IF
+        ACE_ASSERT (module_p);
+        stream_r.head ()->link (module_p);
+        isLinked_ = false;
+      } // end IF
+
+close:
+      if (connection_)
+      {
         ACE_OS::memset (buffer, 0, sizeof (buffer));
-//        result = file_address.addr_to_string (buffer, sizeof (buffer));
-//        if (result == -1)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n")));
-//        ACE_FILE_Info file_info;
-//        ACE_OS::memset (&file_info, 0, sizeof (file_info));
-//        result = stream_.get_info (file_info);
-//        if (result == -1)
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to ACE_FILE_IO::get_info(): \"%m\", continuing\n")));
-//        result = stream_.close ();
-//        if (result == -1)
-//        {
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("failed to ACE_File_Stream::close(): \"%m\", returning\n")));
-//          return;
-//        } // end IF
-        isOpen_ = false;
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("closed file stream \"%s\" (wrote: %d byte(s))...\n"),
-//                    ACE_TEXT (buffer),
-//                    file_info.size_));
+        result =
+          configuration_.peerAddress.addr_to_string (buffer,
+                                                     sizeof (buffer));
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
+
+        connection_->close ();
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("closed connection to \"%s\"...\n"),
+                    ACE_TEXT (buffer)));
+        connection_->decrease ();
+        connection_ = NULL;
       } // end IF
 
       break;
@@ -277,6 +221,7 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 
 template <typename SessionMessageType,
           typename MessageType,
+          typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename ConnectionManagerType,
@@ -284,6 +229,7 @@ template <typename SessionMessageType,
 bool
 Stream_Module_TCPTarget_T<SessionMessageType,
                           MessageType,
+                          ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
                           ConnectionManagerType,
@@ -293,10 +239,174 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 
   configuration_ = configuration_in;
 
+  int result = -1;
+  ACE_TCHAR buffer[BUFSIZ];
+
+  // sanity check(s)
+  // *TODO*: remove type inferences
+  if (configuration_.peerAddress.is_any ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid peer address (was: any), aborting\n")));
+    return false;
+  } // end IF
+  ACE_OS::memset (buffer, 0, sizeof (buffer));
+  result =
+    configuration_.peerAddress.addr_to_string (buffer,
+                                               sizeof (buffer));
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
+
+  if (isInitialized_)
+  {
+    //ACE_DEBUG ((LM_WARNING,
+    //            ACE_TEXT ("re-initializing...\n")));
+
+    if (isLinked_)
+    {
+      ACE_ASSERT (connection_);
+      typename ConnectionManagerType::CONNECTION_T::STREAM_T& stream_r =
+          const_cast<typename ConnectionManagerType::CONNECTION_T::STREAM_T&> (connection_->stream ());
+      Stream_Module_t* module_p = NULL;
+      result = stream_r.top (module_p);
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", aborting\n")));
+        return false;
+      } // end IF
+      ACE_ASSERT (module_p);
+      stream_r.head ()->link (module_p);
+      isLinked_ = false;
+    } // end IF
+
+    if (connection_)
+    {
+      connection_->close ();
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("closed connection to \"%s\"...\n"),
+                  ACE_TEXT (buffer)));
+      connection_->decrease ();
+      connection_ = NULL;
+    } // end IF
+
+    isInitialized_ = false;
+  } // end IF
+
+  // step1: initialize connector
+  // *TODO*: remove type inferences
+  ConnectionManagerType* connection_manager_p =
+      configuration_.sourceConnectionManager;
+  ACE_ASSERT (connection_manager_p);
+  typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
+    connection_manager_p;
+  ACE_ASSERT (configuration_.streamConfiguration);
+  ConnectorType connector (iconnection_manager_p,
+                           configuration_.streamConfiguration->statisticReportingInterval);
+//  Stream_IInetConnector_t* iconnector_p = &connector;
+  ACE_HANDLE handle = ACE_INVALID_HANDLE;
+  Stream_Module_t* module_p = NULL;
+  typename SessionMessageType::USER_DATA_T* user_data_p = NULL;
+  ACE_ASSERT (configuration_.configuration);
+  if (!connector.initialize (configuration_.configuration->socketHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize connector: \"%m\", aborting\n")));
+    return false;
+  } // end IF
+
+  // step2: initialize connection manager
+  // *TODO*: remove type inferences
+  ConfigurationType configuration;
+  connection_manager_p->get (configuration,
+                             user_data_p);
+  connection_manager_p->set (*configuration_.configuration,
+                             user_data_p);
+
+  // step3: connect
+  ACE_ASSERT (!connection_);
+  handle = connector.connect (configuration_.peerAddress);
+  const typename ConnectionManagerType::CONNECTION_T::STREAM_T* stream_p = NULL;
+  Stream_Module_t* module_2 = NULL;
+  if (connector.useReactor ())
+    connection_ = connection_manager_p->get (handle);
+  else
+  {
+    ACE_Time_Value one_second (1, 0);
+    result = ACE_OS::sleep (one_second);
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                  &one_second));
+    connection_ = connection_manager_p->get (configuration_.peerAddress);
+  } // end IF
+  if (!connection_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to connect to \"%s\", aborting\n"),
+                ACE_TEXT (buffer)));
+    goto failed;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("connected to \"%s\"...\n"),
+              ACE_TEXT (buffer)));
+
+  // step4: forward any inbound data upstream
+  ACE_ASSERT (!isLinked_);
+  stream_p = &connection_->stream ();
+  module_p = inherited::module ();
+  ACE_ASSERT (module_p);
+  result =
+      const_cast<typename ConnectionManagerType::CONNECTION_T::STREAM_T*> (stream_p)->top (module_2);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", aborting\n")));
+    goto failed;
+  } // end IF
+  ACE_ASSERT (module_2);
+  module_2->reader ()->next (module_p->reader ());
+  isLinked_ = true;
+
+  isInitialized_ = true;
+
   return true;
+
+failed:
+  if (isLinked_)
+  {
+    ACE_ASSERT (connection_);
+    typename ConnectionManagerType::CONNECTION_T::STREAM_T& stream_r =
+        const_cast<typename ConnectionManagerType::CONNECTION_T::STREAM_T&> (connection_->stream ());
+    Stream_Module_t* module_p = NULL;
+    result = stream_r.top (module_p);
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", aborting\n")));
+      return false;
+    } // end IF
+    ACE_ASSERT (module_p);
+    stream_r.head ()->link (module_p);
+    isLinked_ = false;
+  } // end IF
+
+  if (connection_)
+  {
+    connection_->close ();
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("closed connection to \"%s\"...\n"),
+                ACE_TEXT (buffer)));
+    connection_->decrease ();
+    connection_ = NULL;
+  } // end IF
+
+  return false;
 }
 template <typename SessionMessageType,
           typename MessageType,
+          typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename ConnectionManagerType,
@@ -304,6 +414,7 @@ template <typename SessionMessageType,
 const ModuleHandlerConfigurationType&
 Stream_Module_TCPTarget_T<SessionMessageType,
                           MessageType,
+                          ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
                           ConnectionManagerType,

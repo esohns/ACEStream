@@ -130,15 +130,16 @@ done:
 /////////////////////////////////////////
 
 gboolean
-idle_initialize_UI_cb (gpointer userData_in)
+idle_initialize_source_UI_cb (gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::idle_initialize_UI_cb"));
+  STREAM_TRACE (ACE_TEXT ("::idle_initialize_source_UI_cb"));
 
   Stream_GTK_CBData* data_p =
       static_cast<Stream_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -190,11 +191,68 @@ idle_initialize_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
 
+  GtkFileChooserButton* file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename.empty ())
+  {
+    GFile* file_p =
+        g_file_new_for_path (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename.c_str ());
+    ACE_ASSERT (file_p);
+    GError* error_p = NULL;
+    if (!gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                    file_p,
+                                    &error_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gtk_file_chooser_set_file(): \"%s\", aborting\n"),
+                  ACE_TEXT (error_p->message)));
+
+      // clean up
+      g_error_free (error_p);
+      g_object_unref (file_p);
+
+      return G_SOURCE_REMOVE;
+    } // end IF
+    g_object_unref (file_p);
+  } // end IF
+
+  GtkEntry* entry_p =
+      GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
+                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ENTRY_DESTINATION_NAME)));
+  ACE_ASSERT (entry_p);
+  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.is_any ())
+  {
+//    ACE_TCHAR buffer[BUFSIZ];
+//    ACE_OS::memset (buffer, 0, sizeof (buffer));
+//    int result =
+//      data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.addr_to_string (buffer,
+//                                                                                                          sizeof (buffer),
+//                                                                                                          0);
+//    if (result == -1)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", aborting\n")));
+//      return G_SOURCE_REMOVE;
+//    } // end IF
+//    gtk_entry_set_text (entry_p, buffer);
+    gtk_entry_set_text (entry_p,
+                        data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.get_host_name ());
+
+    spin_button_p =
+        GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
+    ACE_ASSERT (spin_button_p);
+    gtk_spin_button_set_value (spin_button_p,
+                               static_cast<double> (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.get_port_number ()));
+  } // end IF
+
   spin_button_p =
-    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
-    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
-    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
+      //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+      //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+      GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
@@ -220,7 +278,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to pango_font_description_from_string(\"%s\"): \"%m\", aborting\n"),
                 ACE_TEXT (TEST_I_STREAM_UI_GTK_PANGO_LOG_FONT_DESCRIPTION)));
-    return FALSE; // G_SOURCE_REMOVE
+    return G_SOURCE_REMOVE;
   } // end IF
   // apply font
   GtkRcStyle* rc_style_p = gtk_rc_style_new ();
@@ -228,7 +286,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_rc_style_new(): \"%m\", aborting\n")));
-    return FALSE; // G_SOURCE_REMOVE
+    return G_SOURCE_REMOVE;
   } // end IF
   rc_style_p->font_desc = font_description_p;
   GdkColor base_colour, text_colour;
@@ -268,7 +326,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_timeout_add_seconds(): \"%m\", aborting\n")));
-      return FALSE; // G_SOURCE_REMOVE
+      return G_SOURCE_REMOVE;
     } // end ELSE
     // schedule asynchronous updates of the info view
     event_source_id = g_timeout_add (TEST_I_STREAM_UI_GTKEVENT_RESOLUTION,
@@ -280,7 +338,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_timeout_add(): \"%m\", aborting\n")));
-      return FALSE; // G_SOURCE_REMOVE
+      return G_SOURCE_REMOVE;
     } // end ELSE
   } // end lock scope
 
@@ -311,21 +369,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                         G_CALLBACK (gtk_widget_destroyed),
                         NULL);
   ACE_ASSERT (result_2);
-
-  GtkFileChooserButton* file_chooser_button_p =
-    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
-  result_2 =
-    g_signal_connect (file_chooser_button_p,
-                      ACE_TEXT_ALWAYS_CHAR ("file-set"),
-                      G_CALLBACK (filechooserbutton_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  file_chooser_button_p =
-    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
   result_2 =
     g_signal_connect (file_chooser_button_p,
                       ACE_TEXT_ALWAYS_CHAR ("file-set"),
@@ -336,16 +379,6 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERDIALOG_OPEN_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  result_2 =
-    g_signal_connect (file_chooser_dialog_p,
-                      ACE_TEXT_ALWAYS_CHAR ("file-activated"),
-                      G_CALLBACK (filechooserdialog_cb),
-                      NULL);
-  ACE_ASSERT (result_2);
-  file_chooser_dialog_p =
-    GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_dialog_p);
   result_2 =
     g_signal_connect (file_chooser_dialog_p,
                       ACE_TEXT_ALWAYS_CHAR ("file-activated"),
@@ -446,7 +479,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
                 ACE_TEXT (default_folder_uri.c_str ())));
-    return FALSE; // G_SOURCE_REMOVE
+    return G_SOURCE_REMOVE;
   } // end IF
 
   //   // step8: use correct screen
@@ -457,7 +490,357 @@ idle_initialize_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
-  return FALSE; // G_SOURCE_REMOVE
+  return G_SOURCE_REMOVE;
+}
+
+gboolean
+idle_initialize_target_UI_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_initialize_target_UI_cb"));
+
+  Stream_GTK_CBData* data_p =
+      static_cast<Stream_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //// sanity check(s)
+  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  // step1: initialize dialog window(s)
+  GtkWidget* dialog_p =
+  //  GTK_WIDGET (glade_xml_get_widget ((*iterator).second.second,
+  //                                    ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DIALOG_MAIN_NAME)));
+    GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DIALOG_MAIN_NAME)));
+  ACE_ASSERT (dialog_p);
+  //  GtkWidget* image_icon_p = gtk_image_new_from_file (path.c_str ());
+  //  ACE_ASSERT (image_icon_p);
+  //  gtk_window_set_icon (GTK_WINDOW (dialog_p),
+  //                       gtk_image_get_pixbuf (GTK_IMAGE (image_icon_p)));
+  //GdkWindow* dialog_window_p = gtk_widget_get_window (dialog_p);
+  //gtk_window4096_set_title (,
+  //                      caption.c_str ());
+
+//  GtkWidget* about_dialog_p =
+//    //GTK_WIDGET (glade_xml_get_widget ((*iterator).second.second,
+//    //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DIALOG_ABOUT_NAME)));
+//    GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
+//                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DIALOG_ABOUT_NAME)));
+//  ACE_ASSERT (about_dialog_p);
+
+  GtkSpinButton* spin_button_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_range (spin_button_p,
+                             0.0,
+                             std::numeric_limits<double>::max ());
+  spin_button_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_range (spin_button_p,
+                             0.0,
+                             std::numeric_limits<double>::max ());
+  spin_button_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_CONNECTIONS_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_range (spin_button_p,
+                             0.0,
+                             std::numeric_limits<double>::max ());
+
+  GtkFileChooserButton* file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFilename.empty ())
+  {
+    GFile* file_p =
+        g_file_new_for_path (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFilename.c_str ());
+    ACE_ASSERT (file_p);
+    GError* error_p = NULL;
+    if (!gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                    file_p,
+                                    &error_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gtk_file_chooser_set_file(): \"%s\", aborting\n"),
+                  ACE_TEXT (error_p->message)));
+
+      // clean up
+      g_error_free (error_p);
+      g_object_unref (file_p);
+
+      return G_SOURCE_REMOVE;
+    } // end IF
+    g_object_unref (file_p);
+  } // end IF
+
+  spin_button_p =
+      GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p,
+                             static_cast<double> (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.get_port_number ()));
+
+  spin_button_p =
+      //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+      //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+      GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_range (spin_button_p,
+                             0.0,
+                             std::numeric_limits<double>::max ());
+
+  // step4: initialize text view, setup auto-scrolling
+  GtkTextView* view_p =
+    //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
+    //                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TEXTVIEW_NAME)));
+    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TEXTVIEW_NAME)));
+  ACE_ASSERT (view_p);
+//  GtkTextBuffer* buffer_p =
+////    gtk_text_buffer_new (NULL); // text tag table --> create new
+//      gtk_text_view_get_buffer (view_p);
+//  ACE_ASSERT (buffer_p);
+////  gtk_text_view_set_buffer (view_p, buffer_p);
+
+  PangoFontDescription* font_description_p =
+    pango_font_description_from_string (ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PANGO_LOG_FONT_DESCRIPTION));
+  if (!font_description_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to pango_font_description_from_string(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (TEST_I_STREAM_UI_GTK_PANGO_LOG_FONT_DESCRIPTION)));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  // apply font
+  GtkRcStyle* rc_style_p = gtk_rc_style_new ();
+  if (!rc_style_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_rc_style_new(): \"%m\", aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  rc_style_p->font_desc = font_description_p;
+  GdkColor base_colour, text_colour;
+  gdk_color_parse (ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PANGO_LOG_COLOR_BASE),
+                   &base_colour);
+  rc_style_p->base[GTK_STATE_NORMAL] = base_colour;
+  gdk_color_parse (ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PANGO_LOG_COLOR_TEXT),
+                   &text_colour);
+  rc_style_p->text[GTK_STATE_NORMAL] = text_colour;
+  rc_style_p->color_flags[GTK_STATE_NORMAL] =
+    static_cast<GtkRcFlags> (GTK_RC_BASE |
+                             GTK_RC_TEXT);
+  gtk_widget_modify_style (GTK_WIDGET (view_p),
+                           rc_style_p);
+  gtk_rc_style_unref (rc_style_p);
+
+  //  GtkTextIter iterator;
+  //  gtk_text_buffer_get_end_iter (buffer_p,
+  //                                &iterator);
+  //  gtk_text_buffer_create_mark (buffer_p,
+  //                               ACE_TEXT_ALWAYS_CHAR (NET_UI_SCROLLMARK_NAME),
+  //                               &iterator,
+  //                               TRUE);
+  //  g_object_unref (buffer_p);
+
+  // step5: initialize updates
+  {
+    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
+
+    // schedule asynchronous updates of the log view
+    guint event_source_id = g_timeout_add_seconds (1,
+                                                   idle_update_log_display_cb,
+                                                   userData_in);
+    if (event_source_id > 0)
+      data_p->eventSourceIds.insert (event_source_id);
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_timeout_add_seconds(): \"%m\", aborting\n")));
+      return G_SOURCE_REMOVE;
+    } // end ELSE
+    // schedule asynchronous updates of the info view
+    event_source_id = g_timeout_add (TEST_I_STREAM_UI_GTKEVENT_RESOLUTION,
+                                     idle_update_info_display_cb,
+                                     userData_in);
+    if (event_source_id > 0)
+      data_p->eventSourceIds.insert (event_source_id);
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_timeout_add(): \"%m\", aborting\n")));
+      return G_SOURCE_REMOVE;
+    } // end ELSE
+  } // end lock scope
+
+  // step6: disable some functions ?
+  GtkAction* action_p =
+    //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLOSE_NAME)));
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_LISTEN_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, TRUE);
+  action_p =
+      //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+      //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLOSEALL_NAME)));
+      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, FALSE);
+
+  // step7: (auto-)connect signals/slots
+  // *NOTE*: glade_xml_signal_autoconnect does not work reliably
+  //glade_xml_signal_autoconnect(userData_out.xml);
+
+  // step6a: connect default signals
+  gulong result_2 =
+      g_signal_connect (dialog_p,
+                        ACE_TEXT_ALWAYS_CHAR ("destroy"),
+                        G_CALLBACK (gtk_widget_destroyed),
+                        NULL);
+  ACE_ASSERT (result_2);
+  result_2 =
+    g_signal_connect (file_chooser_button_p,
+                      ACE_TEXT_ALWAYS_CHAR ("file-set"),
+                      G_CALLBACK (filechooserbutton_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+  GtkFileChooserDialog* file_chooser_dialog_p =
+    GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERDIALOG_OPEN_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  result_2 =
+    g_signal_connect (file_chooser_dialog_p,
+                      ACE_TEXT_ALWAYS_CHAR ("file-activated"),
+                      G_CALLBACK (filechooserdialog_cb),
+                      NULL);
+  ACE_ASSERT (result_2);
+
+  // step6b: connect custom signals
+  //gtk_builder_connect_signals ((*iterator).second.second,
+  //                             userData_in);
+
+  //GObject* object_p =
+  //    gtk_builder_get_object ((*iterator).second.second,
+  //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_START_NAME));
+  //ACE_ASSERT (object_p);
+  //result_2 = g_signal_connect (object_p,
+  //                           ACE_TEXT_ALWAYS_CHAR ("clicked"),
+  //                           G_CALLBACK (button_start_clicked_cb),
+  //                           userData_in);
+  //ACE_ASSERT (result_2);
+  //object_p =
+  //    gtk_builder_get_object ((*iterator).second.second,
+  //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_STOP_NAME));
+  //ACE_ASSERT (object_p);
+  //result_2 =
+  //    g_signal_connect (object_p,
+  //                      ACE_TEXT_ALWAYS_CHAR ("clicked"),
+  //                      G_CALLBACK (button_stop_clicked_cb),
+  //                      userData_in);
+  //ACE_ASSERT (result_2);
+  GObject* object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME));
+  ACE_ASSERT (object_p);
+  result_2 = g_signal_connect (object_p,
+                               ACE_TEXT_ALWAYS_CHAR ("activate"),
+                               G_CALLBACK (action_close_all_activate_cb),
+                               userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_LISTEN_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("activate"),
+                      G_CALLBACK (action_listen_activate_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+
+  //-------------------------------------
+
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLEAR_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("clicked"),
+                      G_CALLBACK (button_clear_clicked_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+      gtk_builder_get_object ((*iterator).second.second,
+                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_ABOUT_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+      g_signal_connect (object_p,
+                        ACE_TEXT_ALWAYS_CHAR ("clicked"),
+                        G_CALLBACK (button_about_clicked_cb),
+                        userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+      gtk_builder_get_object ((*iterator).second.second,
+                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_QUIT_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+      g_signal_connect (object_p,
+                        ACE_TEXT_ALWAYS_CHAR ("clicked"),
+                        G_CALLBACK (button_quit_clicked_cb),
+                        userData_in);
+  ACE_ASSERT (result_2);
+  ACE_UNUSED_ARG (result_2);
+
+  // set defaults
+  //file_chooser_button_p =
+  //  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
+  default_folder_uri +=
+    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFilename;
+  gboolean result =
+    gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                             default_folder_uri.c_str ());
+  if (!result)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (default_folder_uri.c_str ())));
+    return G_SOURCE_REMOVE;
+  } // end IF
+
+  //   // step8: use correct screen
+  //   if (parentWidget_in)
+  //     gtk_window_set_screen (GTK_WINDOW (dialog_p),
+  //                            gtk_widget_get_screen (const_cast<GtkWidget*> (//parentWidget_in)));
+
+  // step9: draw main dialog
+  gtk_widget_show_all (dialog_p);
+
+  return G_SOURCE_REMOVE;
 }
 
 gboolean
@@ -762,6 +1145,43 @@ extern "C"
 #endif /* __cplusplus */
 
 void
+action_close_all_activate_cb (GtkAction* action_in,
+                              gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::action_close_all_activate_cb"));
+
+  Stream_GTK_CBData* data_p =
+    static_cast<Stream_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  gtk_action_set_sensitive (action_in, FALSE);
+
+} // action_close_all_activate_cb
+
+void
+action_listen_activate_cb (GtkAction* action_in,
+                           gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::action_listen_activate_cb"));
+
+  Stream_GTK_CBData* data_p =
+    static_cast<Stream_GTK_CBData*> (userData_in);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+} // action_listen_activate_cb
+
+void
 action_start_activate_cb (GtkAction* action_in,
                           gpointer userData_in)
 {
@@ -781,6 +1201,15 @@ action_start_activate_cb (GtkAction* action_in,
   ACE_ASSERT (data_p->configuration);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
+
+  Stream_ThreadData* thread_data_p = NULL;
+  ACE_thread_t thread_id = -1;
+  ACE_hthread_t thread_handle = ACE_INVALID_HANDLE;
+  ACE_TCHAR thread_name[BUFSIZ];
+  const char* thread_name_2 = NULL;
+  ACE_Thread_Manager* thread_manager_p = NULL;
+  int result = -1;
+  guint event_source_id = 0;
 
   // toggle play/pause ?
   const Stream_StateMachine_ControlState& status_r =
@@ -842,24 +1271,20 @@ action_start_activate_cb (GtkAction* action_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize stream, returning\n")));
-    return;
+    goto clean;
   } // end IF
 
   // step3: start processing thread
-  Stream_ThreadData* thread_data_p = NULL;
   ACE_NEW_NORETURN (thread_data_p,
                     Stream_ThreadData ());
   if (!thread_data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-    return;
+    goto clean;
   } // end IF
   thread_data_p->CBData = data_p;
   thread_data_p->sessionID = data_p->stream->sessionData ().sessionID;
-  ACE_thread_t thread_id = -1;
-  ACE_hthread_t thread_handle = ACE_INVALID_HANDLE;
-  ACE_TCHAR thread_name[BUFSIZ];
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
 //  char* thread_name_p = NULL;
 //  ACE_NEW_NORETURN (thread_name_p,
@@ -880,70 +1305,79 @@ action_start_activate_cb (GtkAction* action_in,
 //  const char* thread_name_2 = thread_name_p;
   ACE_OS::strcpy (thread_name,
                   ACE_TEXT (TEST_I_THREAD_NAME));
-  const char* thread_name_2 = thread_name;
-  ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
+  thread_name_2 = thread_name;
+  thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
 
   // *NOTE*: lock access to the progress report structures to avoid a race
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
-  int result =
-    thread_manager_p->spawn (::stream_processing_function,    // function
-                             thread_data_p,                   // argument
-                             (THR_NEW_LWP      |
-                              THR_JOINABLE     |
-                              THR_INHERIT_SCHED),              // flags
-                             &thread_id,                       // thread id
-                             &thread_handle,                   // thread handle
-                             ACE_DEFAULT_THREAD_PRIORITY,      // priority
-                             COMMON_EVENT_THREAD_GROUP_ID + 2, // *TODO*: group id
-                             NULL,                             // stack
-                             0,                                // stack size
-                             &thread_name_2);                  // name
-  if (result == -1)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Thread_Manager::spawn(): \"%m\", returning\n")));
+    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
 
-    // clean up
-//    delete thread_name_p;
-    delete thread_data_p;
-
-    return;
-  } // end IF
-
-  // step3: start progress reporting
-  guint event_source_id =
-      //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
-      //                 idle_update_progress_cb,
-      //                 &data_p->progressData,
-      //                 NULL);
-      g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
-                          TEST_I_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
-                          idle_update_progress_cb,
-                          &data_p->progressData,
-                          NULL);
-  if (!event_source_id)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
-
-    // clean up
-    ACE_THR_FUNC_RETURN exit_status;
-    ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
-    ACE_ASSERT (thread_manager_p);
-    result = thread_manager_p->join (thread_id, &exit_status);
+    result =
+        thread_manager_p->spawn (::stream_processing_function,    // function
+                                 thread_data_p,                   // argument
+                                 (THR_NEW_LWP      |
+                                  THR_JOINABLE     |
+                                  THR_INHERIT_SCHED),              // flags
+                                 &thread_id,                       // thread id
+                                 &thread_handle,                   // thread handle
+                                 ACE_DEFAULT_THREAD_PRIORITY,      // priority
+                                 COMMON_EVENT_THREAD_GROUP_ID + 2, // *TODO*: group id
+                                 NULL,                             // stack
+                                 0,                                // stack size
+                                 &thread_name_2);                  // name
     if (result == -1)
+    {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
-                  thread_id));
+                  ACE_TEXT ("failed to ACE_Thread_Manager::spawn(): \"%m\", returning\n")));
 
-    return;
-  } // end IF
-  data_p->progressData.pendingActions[thread_id] = event_source_id;
-  //    ACE_DEBUG ((LM_DEBUG,
-  //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
-  //                event_source_id));
-  data_p->eventSourceIds.insert (event_source_id);
+      // clean up
+      delete thread_data_p;
+
+      goto clean;
+    } // end IF
+
+    // step3: start progress reporting
+    event_source_id =
+        //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
+        //                 idle_update_progress_cb,
+        //                 &data_p->progressData,
+        //                 NULL);
+        g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
+                            TEST_I_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
+                            idle_update_progress_cb,
+                            &data_p->progressData,
+                            NULL);
+    if (!event_source_id)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
+
+      // clean up
+      ACE_THR_FUNC_RETURN exit_status;
+      ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
+      ACE_ASSERT (thread_manager_p);
+      result = thread_manager_p->join (thread_id, &exit_status);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
+                    thread_id));
+
+      goto clean;
+    } // end IF
+    data_p->progressData.pendingActions[thread_id] = event_source_id;
+    //    ACE_DEBUG ((LM_DEBUG,
+    //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
+    //                event_source_id));
+    data_p->eventSourceIds.insert (event_source_id);
+  } // end lock scope
+
+  return;
+
+clean:
+  gtk_action_set_stock_id (action_in, GTK_STOCK_MEDIA_PLAY);
+  gtk_widget_set_sensitive (GTK_WIDGET (table_p), TRUE);
+  gtk_action_set_sensitive (action_p, FALSE);
 } // action_start_activate_cb
 
 void
@@ -1178,27 +1612,9 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   //gtk_entry_set_text (entry_p, string_p);
 
   // find out which button toggled...
-  bool is_source = true, result;
-  const gchar* string_2 = gtk_buildable_get_name (GTK_BUILDABLE (button_in));
-  ACE_ASSERT (string_2);
-  if (!ACE_OS::strcmp (string_2,
-                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)))
-    is_source = false;
-  if (is_source)
-  {
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename =
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename =
       Common_UI_Tools::UTF82Locale (string_p, -1);
-    result =
-      !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename.empty ();
-  } // end IF
-  else
-  {
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFilename =
-      Common_UI_Tools::UTF82Locale (string_p, -1);
-    result =
-      !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFilename.empty ();
-  } // end ELSE
-  if (!result)
+  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
@@ -1218,10 +1634,9 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
-  result =
-    (is_source ? !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFilename.empty ()
-               : !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename.empty ());
-  gtk_action_set_sensitive (action_p, result);
+  bool activate = (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename.empty () &&
+                   !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.is_any ());
+  gtk_action_set_sensitive (action_p, activate);
 } // filechooserbutton_cb
 
 void

@@ -141,13 +141,13 @@ class Stream_Base_T
   bool initialize ();
 
   // *NOTE*: children need to call this PRIOR to module RE-initialization
-  // (i.e. in their own init()); this will:
-  // - pop/close all push()ed modules, clean up default head/tail modules
-  // - reset reader/writer tasks for ALL modules
-  // - generate new default head/tail modules
-  // *WARNING*: NEVER call this while isRunning() == true, otherwise you'll block
-  // until the stream finishes (because close() of a module waits for its worker
-  // thread to die...)
+  //         (i.e. in their own init()); this will:
+  //         - pop/close push()ed modules, clean up default head/tail modules
+  //         - reset reader/writer tasks for ALL modules
+  //         - generate new default head/tail modules
+  // *WARNING*: calling this while isRunning() == true blocks until the stream
+  //            finishes (because close() of a module waits for its worker
+  //            thread(s)...)
   bool reset ();
 
   // *NOTE*: children MUST call this in their dtor !

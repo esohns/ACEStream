@@ -110,17 +110,17 @@ class Stream_Module_TCPSource_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_TCPSource_T& operator= (const Stream_Module_TCPSource_T&))
 
   // helper methods
-  virtual int svc (void);
+//  virtual int svc (void);
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
-  bool                              isInitialized_;
-  bool                              isLinked_;
-  bool                              isOpen_;
+  typename ConnectionManagerType::CONNECTION_T* connection_;
+  bool                                          isInitialized_;
+  bool                                          isLinked_;
 
   // timer
-  Stream_StatisticHandler_Reactor_t statisticCollectionHandler_;
-  long                              timerID_;
+  Stream_StatisticHandler_Reactor_t             statisticCollectionHandler_;
+  long                                          timerID_;
 };
 
 #include "stream_module_tcpsource.inl"

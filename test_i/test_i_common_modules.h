@@ -69,8 +69,8 @@ typedef Stream_Module_TCPSource_T<Stream_SessionMessage,
                                   //////
                                   Test_I_RuntimeStatistic_t,
                                   ///////
-                                  Test_I_Stream_InetSourceConnectionManager_t,
-                                  Test_I_Stream_SourceTCPConnector_t> Test_I_Stream_Module_TCPSource;
+                                  Test_I_Stream_InetTargetConnectionManager_t,
+                                  Test_I_Stream_TargetTCPConnector_t> Test_I_Stream_Module_TCPSource;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
                               Common_TimePolicy_t,                      // time policy
                               Stream_ModuleConfiguration,               // module configuration type
@@ -112,12 +112,14 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task 
 typedef Stream_Module_TCPTarget_T<Stream_SessionMessage,
                                   Stream_Message,
                                   //////
+                                  Test_I_Configuration,
+                                  //////
                                   Test_I_Stream_ModuleHandlerConfiguration,
                                   //////
                                   Test_I_Stream_SessionData,
                                   //////
-                                  Test_I_Stream_InetTargetConnectionManager_t,
-                                  Test_I_Stream_TargetTCPConnector_t> Test_I_Stream_Module_TCPTarget;
+                                  Test_I_Stream_InetSourceConnectionManager_t,
+                                  Test_I_Stream_SourceTCPConnector_t> Test_I_Stream_Module_TCPTarget;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
                               Common_TimePolicy_t,                      // time policy
                               Stream_ModuleConfiguration,               // module configuration type

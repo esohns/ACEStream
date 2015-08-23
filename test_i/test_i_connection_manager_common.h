@@ -103,5 +103,7 @@ typedef ACE_Singleton<Test_I_Stream_NetlinkConnectionManager_t,
 #endif
 typedef ACE_Singleton<Test_I_Stream_InetSourceConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_STREAM_SOURCECONNECTIONMANAGER_SINGLETON;
+typedef ACE_Singleton<Test_I_Stream_InetTargetConnectionManager_t,
+                      ACE_SYNCH_MUTEX> TEST_I_STREAM_TARGETONNECTIONMANAGER_SINGLETON;
 
 #endif

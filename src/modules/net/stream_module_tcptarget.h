@@ -30,6 +30,8 @@
 template <typename SessionMessageType,
           typename MessageType,
           ///////////////////////////////
+          typename ConfigurationType,
+          ///////////////////////////////
           typename ModuleHandlerConfigurationType,
           ///////////////////////////////
           typename SessionDataType,
@@ -57,7 +59,7 @@ class Stream_Module_TCPTarget_T
   virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
-  ModuleHandlerConfigurationType configuration_;
+  ModuleHandlerConfigurationType                configuration_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -67,7 +69,9 @@ class Stream_Module_TCPTarget_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_TCPTarget_T (const Stream_Module_TCPTarget_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_TCPTarget_T& operator= (const Stream_Module_TCPTarget_T&))
 
-  bool isOpen_;
+  typename ConnectionManagerType::CONNECTION_T* connection_;
+  bool                                          isInitialized_;
+  bool                                          isLinked_;
 };
 
 #include "stream_module_tcptarget.inl"

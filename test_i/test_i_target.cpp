@@ -78,9 +78,7 @@ do_printUsage (const std::string& programName_in)
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
 #endif // #ifdef DEBUG_DEBUGGER
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
@@ -94,7 +92,11 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_BUFFER_SIZE
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : filename")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [VALUE]  : max #connections ([")
+            << TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : (target) file name")
             << std::endl;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -106,17 +108,30 @@ do_printUsage (const std::string& programName_in)
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-h [STRING] : target host [")
-            << ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-h          : use thread-pool [")
+            << NET_EVENT_USE_THREAD_POOL
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [VALUE]  : port number [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-n [STRING] : network interface [\"")
+            << ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT)
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
+  // *TODO*: this doesn't really make sense (yet)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o          : use loopback [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [VALUE]  : listening port [")
             << TEST_I_DEFAULT_PORT
-            << ACE_TEXT ("]")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-r          : use reactor [")
+            << NET_EVENT_USE_REACTOR
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING
@@ -130,25 +145,29 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  //std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : run stress-test [")
-  //  << false
-  //  << ACE_TEXT_ALWAYS_CHAR ("]")
-  //  << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x [VALUE]  : #dispatch threads [")
+            << TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
 }
 
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      unsigned int& bufferSize_out,
-                     std::string& filename_out,
+                     unsigned int& maximumNumberOfConnections_out,
+                     std::string& fileName_out,
                      std::string& UIFile_out,
-                     std::string& hostName_out,
+                     bool& useThreadPool_out,
                      bool& logToFile_out,
-                     unsigned short& port_out,
+                     std::string& netWorkInterface_out,
+                     bool& useLoopBack_out,
+                     unsigned short& listeningPortNumber_out,
+                     bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
-                     bool& printVersionAndExit_out)
-                     //bool& runStressTest_out)
+                     bool& printVersionAndExit_out,
+                     unsigned int& numberOfDispatchThreads_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -161,9 +180,7 @@ do_processArguments (int argc_in,
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
@@ -171,21 +188,28 @@ do_processArguments (int argc_in,
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
-  filename_out.clear ();
-  hostName_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME);
+  maximumNumberOfConnections_out =
+    TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS;
+  fileName_out.clear ();
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
+  useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
   logToFile_out = false;
-  port_out = TEST_I_DEFAULT_PORT;
+  netWorkInterface_out =
+    ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT);
+  useLoopBack_out = false;
+  listeningPortNumber_out = TEST_I_DEFAULT_PORT;
+  useReactor_out = NET_EVENT_USE_REACTOR;
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING;
   traceInformation_out = false;
   printVersionAndExit_out = false;
-  //runStressTest_out = false;
+  numberOfDispatchThreads_out =
+    TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:f:g::h:lp:s:tv"),
+                              ACE_TEXT ("b:c:f:g::hln:op:rs:tvx:"),
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -205,9 +229,17 @@ do_processArguments (int argc_in,
         converter >> bufferSize_out;
         break;
       }
+      case 'c':
+      {
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argumentParser.opt_arg ();
+        converter >> maximumNumberOfConnections_out;
+        break;
+      }
       case 'f':
       {
-        filename_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        fileName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
       case 'g':
@@ -221,7 +253,7 @@ do_processArguments (int argc_in,
       }
       case 'h':
       {
-        hostName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        useThreadPool_out = true;
         break;
       }
       case 'l':
@@ -229,12 +261,27 @@ do_processArguments (int argc_in,
         logToFile_out = true;
         break;
       }
+      case 'n':
+      {
+        netWorkInterface_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        break;
+      }
+      case 'o':
+      {
+        useLoopBack_out = true;
+        break;
+      }
       case 'p':
       {
         converter.clear ();
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
-        converter >> port_out;
+        converter >> listeningPortNumber_out;
+        break;
+      }
+      case 'r':
+      {
+        useReactor_out = true;
         break;
       }
       case 's':
@@ -255,11 +302,14 @@ do_processArguments (int argc_in,
         printVersionAndExit_out = true;
         break;
       }
-      //case 'y':
-      //{
-      //  runStressTest_out = true;
-      //  break;
-      //}
+      case 'x':
+      {
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argumentParser.opt_arg ();
+        converter >> numberOfDispatchThreads_out;
+        break;
+      }
       // error handling
       case ':':
       {
@@ -368,11 +418,16 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 
 void
 do_work (unsigned int bufferSize_in,
-         const std::string& filename_in,
+         unsigned int maximumNumberOfConnections_in,
+         const std::string& fileName_in,
          const std::string& UIDefinitionFile_in,
-         const std::string& hostName_in,
-         unsigned short port_in,
+         bool useThreadPool_in,
+         const std::string& networkInterface_in,
+         bool useLoopback_in,
+         unsigned short listeningPortNumber_in,
+         bool useReactor_in,
          unsigned int statisticReportingInterval_in,
+         unsigned int numberOfDispatchThreads_in,
          Stream_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -406,23 +461,12 @@ do_work (unsigned int bufferSize_in,
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
   // ********************** module configuration data **************************
-  int result =
-      configuration.streamConfiguration.moduleHandlerConfiguration_2.peerAddress.set (port_in,
-                                                                                      hostName_in.c_str (),
-                                                                                      1,
-                                                                                      ACE_ADDRESS_FAMILY_INET);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s:%u\"): \"%m\", returning\n"),
-                ACE_TEXT (hostName_in.c_str ()),
-                port_in));
-    return;
-  } // end IF
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.peerAddress.set_port_number (listeningPortNumber_in,
+                                                                                              1);
   configuration.streamConfiguration.moduleHandlerConfiguration_2.printProgressDot =
       UIDefinitionFile_in.empty ();
   configuration.streamConfiguration.moduleHandlerConfiguration_2.sourceFilename =
-      filename_in;
+      fileName_in;
   // ********************** stream configuration data **************************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
@@ -442,10 +486,64 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
 
-  // step0e: initialize signal handling
-  configuration.signalHandlerConfiguration.messageAllocator =
-    &message_allocator;
-  signalHandler_in.initialize (configuration.signalHandlerConfiguration);
+  // step0b: initialize event dispatch
+  if (!Common_Tools::initializeEventDispatch (useReactor_in,
+                                              useThreadPool_in,
+                                              numberOfDispatchThreads_in,
+                                              configuration.streamConfiguration.serializeOutput))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+    return;
+  } // end IF
+
+  // step0c: initialize regular (global) statistics reporting
+  Common_Timer_Manager_t* timer_manager_p =
+      COMMON_TIMERMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (timer_manager_p);
+  Common_TimerConfiguration timer_configuration;
+  timer_manager_p->initialize (timer_configuration);
+  timer_manager_p->start ();
+  Stream_StatisticHandler_Reactor_t statistics_handler (ACTION_REPORT,
+                                                        NET_CONNECTIONMANAGER_SINGLETON::instance (),
+                                                        false);
+  long timer_id = -1;
+  if (statisticReportingInterval_in)
+  {
+    ACE_Event_Handler* handler_p = &statistics_handler;
+    ACE_Time_Value interval (statisticReportingInterval_in,
+                             0);
+    timer_id =
+      timer_manager_p->schedule_timer (handler_p,                  // event handler
+                                       NULL,                       // ACT
+                                       COMMON_TIME_NOW + interval, // first wakeup time
+                                       interval);                  // interval
+    if (timer_id == -1)
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("failed to schedule timer: \"%m\", returning\n")));
+
+      // clean up
+      timer_manager_p->stop ();
+
+      return;
+    } // end IF
+  } // end IF
+
+  // step0d: initialize signal handling
+  if (useReactor_in)
+    CBData_in.serverConfiguration->listener =
+      NET_SERVER_LISTENER_SINGLETON::instance ();
+  else
+    CBData_in.serverConfiguration->listener =
+      NET_SERVER_ASYNCHLISTENER_SINGLETON::instance ();
+  Net_Server_SignalHandlerConfiguration signal_handler_configuration;
+  signal_handler_configuration.listener =
+    CBData_in.serverConfiguration->listener;
+  signal_handler_configuration.statisticReportingHandler =
+      NET_CONNECTIONMANAGER_SINGLETON::instance ();
+  signal_handler_configuration.statisticReportingTimerID = timer_id;
+  signalHandler_in.initialize (signal_handler_configuration);
   if (!Common_Tools::initializeSignals (signalSet_in,
                                         ignoredSignalSet_in,
                                         &signalHandler_in,
@@ -456,12 +554,20 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  // step0f: (initialize) processing stream
-  Test_I_Target_Stream stream;
+  // step0e: initialize connection manager
+  NET_CONNECTIONMANAGER_SINGLETON::instance ()->initialize (maximumNumberOfConnections_in);
+  Net_StreamUserData session_data;
+  NET_CONNECTIONMANAGER_SINGLETON::instance ()->set (configuration,
+                                                     &session_data);
 
-  // event loop(s):
-  // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
-  // [- signal timer expiration to perform server queries] (see above)
+  // step1: handle events (signals, incoming connections/data, timers, ...)
+  // reactor/proactor event loop:
+  // - dispatch connection attempts to acceptor
+  // - dispatch socket events
+  // timer events:
+  // - perform statistics collecting/reporting
+  // [GTK events:]
+  // - dispatch UI events (if any)
 
   // step1a: start GTK event loop ?
   if (!UIDefinitionFile_in.empty ())
@@ -470,12 +576,11 @@ do_work (unsigned int bufferSize_in,
       Common_File_Tools::getDumpDirectory ();
 
     CBData_in.finalizationHook = idle_finalize_UI_cb;
-    CBData_in.initializationHook = idle_initialize_UI_cb;
+    CBData_in.initializationHook = idle_initialize_target_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     CBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
-    CBData_in.stream = &stream;
     CBData_in.userData = &CBData_in;
 
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
@@ -488,6 +593,10 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
+
+      // clean up
+      timer_manager_p->stop ();
+
       return;
     } // end IF
 
@@ -515,33 +624,103 @@ do_work (unsigned int bufferSize_in,
     } // end IF
 #endif
   } // end IF
-  else
+
+  // step4b: initialize worker(s)
+  int group_id = -1;
+  // *NOTE*: this variable needs to stay on the working stack, it's passed to
+  //         the worker(s) (if any)
+  bool use_reactor = useReactor_in;
+  if (!Common_Tools::startEventDispatch (use_reactor,
+                                         numberOfDispatchThreads_in,
+                                         group_id))
   {
-    if (!stream.initialize (configuration.streamConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to initialize stream, aborting\n")));
-      return;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to start event dispatch, returning\n")));
 
-    // *NOTE*: this will block until the file has been copied...
-    stream.start ();
-//    if (!stream.isRunning ())
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to start stream, aborting\n")));
+    // clean up
+    //		{ // synch access
+    //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
-//      // clean up
-//      //timer_manager_p->stop ();
+    //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
+    //					 iterator != CBData_in.event_source_ids.end();
+    //					 iterator++)
+    //				g_source_remove(*iterator);
+    //		} // end lock scope
+    if (!UIDefinitionFile_in.empty ())
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+    timer_manager_p->stop ();
 
-//      return;
-//    } // end IF
-    stream.stop (true, true);
-  } // end ELSE
+    return;
+  } // end IF
 
-  // step3: clean up
-  if (!UIDefinitionFile_in.empty ())
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
+  // step4c: start listening
+  configuration.listenerConfiguration.connectionManager =
+    NET_CONNECTIONMANAGER_SINGLETON::instance ();
+  configuration.listenerConfiguration.messageAllocator = &message_allocator;
+  configuration.listenerConfiguration.portNumber = listeningPortNumber_in;
+  configuration.listenerConfiguration.socketHandlerConfiguration =
+    &configuration.socketHandlerConfiguration;
+  configuration.listenerConfiguration.statisticReportingInterval =
+    statisticReportingInterval_in;
+  configuration.listenerConfiguration.useLoopbackDevice = useLoopBack_in;
+
+  if (!CBData_in.serverConfiguration->listener->initialize (configuration.listenerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize listener, returning\n")));
+
+    // clean up
+    Common_Tools::finalizeEventDispatch (useReactor_in,
+                                         !useReactor_in,
+                                         group_id);
+    //		{ // synch access
+    //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
+
+    //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
+    //					 iterator != CBData_in.event_source_ids.end();
+    //					 iterator++)
+    //				g_source_remove(*iterator);
+    //		} // end lock scope
+    if (!UIDefinitionFile_in.empty ())
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+    timer_manager_p->stop ();
+
+    return;
+  } // end IF
+  CBData_in.serverConfiguration->listener->start ();
+  if (!CBData_in.serverConfiguration->listener->isRunning ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to start listener (port: %u), returning\n"),
+                listeningPortNumber_in));
+
+    // clean up
+    Common_Tools::finalizeEventDispatch (useReactor_in,
+                                         !useReactor_in,
+                                         group_id);
+    //		{ // synch access
+    //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
+
+    //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
+    //					 iterator != CBData_in.event_source_ids.end();
+    //					 iterator++)
+    //				g_source_remove(*iterator);
+    //		} // end lock scope
+    if (!UIDefinitionFile_in.empty ())
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+    timer_manager_p->stop ();
+
+    return;
+  } // end IF
+
+  // *NOTE*: from this point on, clean up any remote connections !
+
+  Common_Tools::dispatchEvents (useReactor_in,
+                                group_id);
+
+  // clean up
+  // *NOTE*: listener has stopped, interval timer has been cancelled,
+  // and connections have been aborted...
   //		{ // synch access
   //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
 
@@ -550,16 +729,19 @@ do_work (unsigned int bufferSize_in,
   //					 iterator++)
   //				g_source_remove(*iterator);
   //		} // end lock scope
-  //timer_manager_p->stop ();
+  if (!UIDefinitionFile_in.empty ())
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+  timer_manager_p->stop ();
 
-  //  { // synch access
-  //    ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
+  //// wait for connection processing to complete
+  //NET_CONNECTIONMANAGER_SINGLETON::instance ()->abort ();
+  //NET_CONNECTIONMANAGER_SINGLETON::instance ()->wait ();
 
-  //		for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-  //				 iterator != CBData_in.event_source_ids.end();
-  //				 iterator++)
-  //			g_source_remove(*iterator);
-  //	} // end lock scope
+  result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
+                event_handler.name ()));
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
@@ -647,13 +829,13 @@ ACE_TMAIN (int argc_in,
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
   unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
+  unsigned int maximum_number_of_connections =
+    TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS;
   std::string file_name;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -662,28 +844,37 @@ ACE_TMAIN (int argc_in,
   UI_definition_file_name += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file_name +=
       ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
-  std::string host_name = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME);
+  bool use_thread_pool = NET_EVENT_USE_THREAD_POOL;
   bool log_to_file = false;
-  unsigned short port = TEST_I_DEFAULT_PORT;
+  std::string network_interface =
+    ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT);
+  bool use_loopback = false;
+  unsigned short listening_port_number = TEST_I_DEFAULT_PORT;
+  bool use_reactor = NET_EVENT_USE_REACTOR;
   unsigned int statistic_reporting_interval =
       STREAM_DEFAULT_STATISTIC_REPORTING;
   bool trace_information = false;
   bool print_version_and_exit = false;
-  //bool run_stress_test = false;
+  unsigned int number_of_dispatch_threads =
+    TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
                             buffer_size,
+                            maximum_number_of_connections,
                             file_name,
                             UI_definition_file_name,
-                            host_name,
+                            use_thread_pool,
                             log_to_file,
-                            port,
+                            network_interface,
+                            use_loopback,
+                            listening_port_number,
+                            use_reactor,
                             statistic_reporting_interval,
                             trace_information,
-                            print_version_and_exit))//,
-                            //run_stress_test))
+                            print_version_and_exit,
+                            number_of_dispatch_threads))
   {
     // make 'em learn...
     do_printUsage (ACE::basename (argv_in[0]));
@@ -867,11 +1058,16 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (buffer_size,
+           maximum_number_of_connections,
            file_name,
            UI_definition_file_name,
-           host_name,
-           port,
+           use_thread_pool,
+           network_interface,
+           use_loopback,
+           listening_port_number,
+           use_reactor,
            statistic_reporting_interval,
+           number_of_dispatch_threads,
            gtk_cb_user_data,
            signal_set,
            ignored_signal_set,

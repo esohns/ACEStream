@@ -60,8 +60,8 @@ echo "copying external module libraries"
 LIB_DIR=".libs"
 SUB_DIRS="modules/libCommon/src
 modules/libCommon/src/ui
-../libACENetwork/build/${BUILD}/src
-../libACENetwork/build/${BUILD}/src/client_server"
+../../modules/libACENetwork/build/${BUILD}/src
+../../modules/libACENetwork/build/${BUILD}/src/client_server"
 #declare -a LIBS=("libCommon.so"
 LIBS="libCommon.so libCommon_UI.so libACENetwork.so libACENetwork_Client.so"
 set -- $LIBS
@@ -81,7 +81,7 @@ done
 
 echo "copying framework libraries"
 LIB_DIR=".libs"
-SUB_DIRS="src modules/file modules/misc modules/net"
+SUB_DIRS="src src/modules/file src/modules/misc src/modules/net"
 #declare -a LIBS=("libACENetwork.so"
 LIBS="libACEStream.so
 libACEStream_File.so

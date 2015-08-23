@@ -20,6 +20,7 @@
 #include "stdafx.h"
 
 #include <iostream>
+#include <limits>
 #include <string>
 
 #include "ace/Get_Opt.h"
@@ -78,9 +79,7 @@ do_printUsage (const std::string& programName_in)
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
 #endif // #ifdef DEBUG_DEBUGGER
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
@@ -106,9 +105,9 @@ do_printUsage (const std::string& programName_in)
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-h [STRING] : target host [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-h [STRING] : target host [\"")
             << ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME)
-            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
             << false
@@ -161,9 +160,7 @@ do_processArguments (int argc_in,
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
@@ -368,7 +365,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 
 void
 do_work (unsigned int bufferSize_in,
-         const std::string& filename_in,
+         const std::string& fileName_in,
          const std::string& UIDefinitionFile_in,
          const std::string& hostName_in,
          unsigned short port_in,
@@ -406,6 +403,8 @@ do_work (unsigned int bufferSize_in,
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
   // ********************** module configuration data **************************
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.configuration =
+      &configuration;
   int result =
       configuration.streamConfiguration.moduleHandlerConfiguration_2.peerAddress.set (port_in,
                                                                                       hostName_in.c_str (),
@@ -421,8 +420,11 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   configuration.streamConfiguration.moduleHandlerConfiguration_2.printProgressDot =
       UIDefinitionFile_in.empty ();
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.sourceConnectionManager =
+      TEST_I_STREAM_SOURCECONNECTIONMANAGER_SINGLETON::instance ();
   configuration.streamConfiguration.moduleHandlerConfiguration_2.sourceFilename =
-      filename_in;
+      fileName_in;
+
   // ********************** stream configuration data **************************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
@@ -442,7 +444,15 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
 
-  // step0e: initialize signal handling
+  // step0b: initialize connection manager
+  Test_I_Stream_InetSourceConnectionManager_t* connectionManager_p =
+      TEST_I_STREAM_SOURCECONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connectionManager_p);
+  connectionManager_p->initialize (std::numeric_limits<unsigned int>::max ());
+  connectionManager_p->set (configuration,
+                            &configuration.streamUserData);
+
+  // step0c: initialize signal handling
   configuration.signalHandlerConfiguration.messageAllocator =
     &message_allocator;
   signalHandler_in.initialize (configuration.signalHandlerConfiguration);
@@ -456,7 +466,7 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  // step0f: (initialize) processing stream
+  // step0d: (initialize) processing stream
   Test_I_Source_Stream stream;
 
   // event loop(s):
@@ -470,7 +480,7 @@ do_work (unsigned int bufferSize_in,
       Common_File_Tools::getDumpDirectory ();
 
     CBData_in.finalizationHook = idle_finalize_UI_cb;
-    CBData_in.initializationHook = idle_initialize_UI_cb;
+    CBData_in.initializationHook = idle_initialize_source_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     CBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -647,9 +657,7 @@ ACE_TMAIN (int argc_in,
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_u");
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filecopy");
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults

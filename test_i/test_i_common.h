@@ -126,12 +126,13 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   inline Test_I_Stream_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
-   , connectionManager (NULL)
    , contextID (0)
    , peerAddress ()
    , printProgressDot (false)
    , queue (NULL)
+   , sourceConnectionManager (NULL)
    , sourceFilename ()
+   , targetConnectionManager (NULL)
    , targetFilename ()
   {};
 
@@ -139,12 +140,13 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   typedef Test_I_Configuration CONFIGURATION_T;
 
   Test_I_Configuration*                        configuration;
-  Test_I_Stream_InetSourceConnectionManager_t* connectionManager;
   guint                                        contextID;
   ACE_INET_Addr                                peerAddress;
   bool                                         printProgressDot;
   ACE_Message_Queue_Base*                      queue;
+  Test_I_Stream_InetSourceConnectionManager_t* sourceConnectionManager;
   std::string                                  sourceFilename;
+  Test_I_Stream_InetTargetConnectionManager_t* targetConnectionManager;
   std::string                                  targetFilename;
 };
 

@@ -123,10 +123,9 @@ Stream_TaskBaseSynch_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::module_closed"));
 
-  // *NOTE*: this method is invoked by an external thread
-  // either from the ACE_Module dtor or during explicit ACE_Module::close()
-
-  // nothing to do...
+  // *NOTE*: invoked by an external thread either from:
+  //         - the ACE_Module dtor or
+  //         - during explicit ACE_Module::close()
   return 0;
 }
 

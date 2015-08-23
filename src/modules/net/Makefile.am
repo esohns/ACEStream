@@ -15,7 +15,11 @@ endif
 noinst_HEADERS = \
   stdafx.h
 include_HEADERS = \
+  stream_module_input_stream.h \
+  stream_module_input_stream.inl \
   stream_module_net_common.h \
+  stream_module_output_stream.h \
+  stream_module_output_stream.inl \
   stream_module_tcpsource.h \
   stream_module_tcpsource.inl \
   stream_module_tcptarget.h \
@@ -24,7 +28,13 @@ include_HEADERS = \
 lib_LTLIBRARIES = libACEStream_Net.la
 
 libACEStream_Net_la_SOURCES = \
+  stream_module_input_stream.cpp \
+  stream_module_input_stream.h \
+  stream_module_input_stream.inl \
   stream_module_net_common.h \
+  stream_module_output_stream.cpp \
+  stream_module_output_stream.h \
+  stream_module_output_stream.inl \
   stream_module_tcpsource.cpp \
   stream_module_tcpsource.h \
   stream_module_tcpsource.inl \
@@ -38,6 +48,7 @@ libACEStream_Net_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   -I$(top_srcdir)/modules/libCommon/src \
   -I$(srcdir)/../.. \
+  -I$(srcdir)/../misc \
   -I$(srcdir)/modules/libACENetwork/src \
   -I$(srcdir)/modules/libACENetwork/src/client_server
 libACEStream_Net_la_LDFLAGS = \

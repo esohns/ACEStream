@@ -124,19 +124,15 @@ Stream_Base_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::reset"));
 
   // sanity check
-  if (isRunning ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("cannot reset (currently running), aborting\n")));
-    return false;
-  } // end IF
+  // *TODO*: cannot call isRunning(), as the stream may not be initialized
+//  ACE_ASSERT (!isRunning ());
 
   // pop/close all modules
   // *NOTE*: will implicitly (blocking !) wait for any active worker threads
   if (!finalize ())
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to finalize(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Base_T::finalize(), aborting\n")));
     return false;
   } // end IF
 
@@ -173,13 +169,16 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
+  int result = -1;
+
   // sanity check(s)
-  ACE_ASSERT (!isRunning ());
+  // *TODO*: cannot call isRunning(), as the stream may not be initialized
+//  ACE_ASSERT (!isRunning ());
 
   if (isInitialized_)
   {
-    // *NOTE*: fini() invokes close(), which will reset the writer/reader tasks
-    // of the enqueued modules --> reset this !
+    // *NOTE*: fini() calls close(), resetting the writer/reader tasks
+    //         of all enqueued modules --> reset them !
     IMODULE_T* imodule_p = NULL;
     for (MODULE_CONTAINER_ITERATOR_T iterator = availableModules_.begin ();
          iterator != availableModules_.end ();
@@ -223,8 +222,6 @@ Stream_Base_T<TaskSynchType,
   // *TODO*: remove type inference
   state_.currentSessionData = sessionData_;
 
-  // delegate this to base class open()
-  int result = -1;
   try
   {
     result = inherited::open (NULL,  // argument to module open()
@@ -354,7 +351,7 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
-                ACE_TEXT (module_p->name ())));
+                module_p->name ()));
     return;
   } // end IF
 
@@ -366,7 +363,7 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::start(), returning\n"),
-                ACE_TEXT (module_p->name ())));
+                module_p->name ()));
     return;
   }
 }
@@ -428,7 +425,7 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
-                ACE_TEXT (module_p->name ())));
+                module_p->name ()));
     return;
   } // end IF
 
@@ -440,7 +437,7 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::stop(), returning\n"),
-                ACE_TEXT (module_p->name ())));
+                module_p->name ()));
     return;
   }
 
@@ -492,9 +489,10 @@ Stream_Base_T<TaskSynchType,
   control_impl_p = dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
   if (!control_impl_p)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, aborting\n"),
-                ACE_TEXT (module_p->name ())));
+    // *NOTE*: perhaps not all modules have been enqueued yet ?
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, aborting\n"),
+//                module_p->name ()));
     return false;
   } // end IF
 
@@ -506,7 +504,7 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::isRunning(), aborting\n"),
-                ACE_TEXT (module_p->name ())));
+                module_p->name ()));
   }
 
   return false;
@@ -561,7 +559,7 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
-                ACE_TEXT (module_p->name ())));
+                module_p->name ()));
     return;
   } // end IF
 
@@ -573,7 +571,7 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::pause(), returning\n"),
-                ACE_TEXT (module_p->name ())));
+                module_p->name ()));
     return;
   }
 }
@@ -633,7 +631,7 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
-                ACE_TEXT (module_p->name ())));
+                module_p->name ()));
     return;
   } // end IF
 
@@ -645,7 +643,7 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::rewind(), returning\n"),
-                ACE_TEXT (module_p->name ())));
+                module_p->name ()));
     return;
   }
 }
@@ -782,7 +780,7 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
-                ACE_TEXT (module_p->name ())));
+                module_p->name ()));
     return;
   } // end IF
 
@@ -795,7 +793,7 @@ Stream_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::waitForCompletion (), returning\n"),
-                ACE_TEXT (module_p->name ())));
+                module_p->name ()));
     return;
   }
 

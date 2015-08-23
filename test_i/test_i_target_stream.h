@@ -65,6 +65,9 @@ class Test_I_Target_Stream
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Stream_Configuration&); // configuration
 
+  // *TODO*: re-consider this API
+  void ping ();
+
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
   virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data

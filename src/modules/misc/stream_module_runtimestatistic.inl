@@ -443,7 +443,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     if ((numInboundMessages_ + numOutboundMessages_))
     {
       ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("*** [session: %u] SESSION STATISTICS ***\ntotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
+                  ACE_TEXT ("*** [session: %u] SESSION STATISTIC ***\ntotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
                   sessionID_,
                   numInboundMessages_, numOutboundMessages_));
 

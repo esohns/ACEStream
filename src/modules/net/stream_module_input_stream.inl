@@ -17,42 +17,48 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "stdafx.h"
-
-#include "test_i_target_stream.h"
 
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
 
-#include "test_i_source_stream.h"
-
-// initialize statics
-ACE_Atomic_Op<ACE_Thread_Mutex,
-              unsigned long> Test_I_Target_Stream::currentSessionID = 0;
-
-Test_I_Target_Stream::Test_I_Target_Stream ()
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+Stream_Module_Input_Stream_T<TaskSynchType,
+                             TimePolicyType,
+                             StatusType,
+                             StateType,
+                             ConfigurationType,
+                             StatisticContainerType,
+                             ModuleConfigurationType,
+                             HandlerConfigurationType,
+                             SessionDataType,
+                             SessionDataContainerType,
+                             SessionMessageType,
+                             ProtocolMessageType>::Stream_Module_Input_Stream_T ()
  : inherited ()
- , TCPSource_ (ACE_TEXT_ALWAYS_CHAR ("TCPSource"),
-               NULL,
-               false)
- , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                      NULL,
-                      false)
- , fileWriter_ (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                NULL,
-                false)
+ , queueReader_ (ACE_TEXT_ALWAYS_CHAR ("QueueReader"),
+                 NULL,
+                 false)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::Test_I_Target_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Input_Stream_T::Stream_Module_Input_Stream_T"));
 
   // remember the "owned" ones...
   // *TODO*: clean this up
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&TCPSource_);
-  inherited::availableModules_.push_front (&runtimeStatistic_);
-  inherited::availableModules_.push_front (&fileWriter_);
+  inherited::availableModules_.push_front (&queueReader_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -60,45 +66,114 @@ Test_I_Target_Stream::Test_I_Target_Stream ()
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::availableModules_.begin ();
+  for (typename inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::availableModules_.begin ();
        iterator != inherited::availableModules_.end ();
        iterator++)
      (*iterator)->next (NULL);
 }
 
-Test_I_Target_Stream::~Test_I_Target_Stream ()
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+Stream_Module_Input_Stream_T<TaskSynchType,
+                             TimePolicyType,
+                             StatusType,
+                             StateType,
+                             ConfigurationType,
+                             StatisticContainerType,
+                             ModuleConfigurationType,
+                             HandlerConfigurationType,
+                             SessionDataType,
+                             SessionDataContainerType,
+                             SessionMessageType,
+                             ProtocolMessageType>::~Stream_Module_Input_Stream_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::~Test_I_Target_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Input_Stream_T::~Stream_Module_Input_Stream_T"));
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
 }
 
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
 void
-Test_I_Target_Stream::ping ()
+Stream_Module_Input_Stream_T<TaskSynchType,
+                             TimePolicyType,
+                             StatusType,
+                             StateType,
+                             ConfigurationType,
+                             StatisticContainerType,
+                             ModuleConfigurationType,
+                             HandlerConfigurationType,
+                             SessionDataType,
+                             SessionDataContainerType,
+                             SessionMessageType,
+                             ProtocolMessageType>::ping ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::ping"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Input_Stream_T::ping"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
   ACE_NOTREACHED (return;)
 }
 
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
 bool
-Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configuration_in)
+Stream_Module_Input_Stream_T<TaskSynchType,
+                             TimePolicyType,
+                             StatusType,
+                             StateType,
+                             ConfigurationType,
+                             StatisticContainerType,
+                             ModuleConfigurationType,
+                             HandlerConfigurationType,
+                             SessionDataType,
+                             SessionDataContainerType,
+                             SessionMessageType,
+                             ProtocolMessageType>::initialize (const ConfigurationType& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Input_Stream_T::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (!isRunning ());
+  ACE_ASSERT (!this->isRunning ());
 
   if (inherited::isInitialized_)
   {
     // *TODO*: move this to stream_base.inl ?
     int result = -1;
-    const inherited::MODULE_T* module_p = NULL;
-    inherited::IMODULE_T* imodule_p = NULL;
-    for (inherited::ITERATOR_T iterator (*this);
+    const typename inherited::MODULE_T* module_p = NULL;
+    typename inherited::IMODULE_T* imodule_p = NULL;
+    for (typename inherited::ITERATOR_T iterator (*this);
          (iterator.next (module_p) != 0);
          iterator.advance ())
     {
@@ -108,7 +183,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
 
       // need a downcast...
       imodule_p =
-        dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
+        dynamic_cast<typename inherited::IMODULE_T*> (const_cast<typename inherited::MODULE_T*> (module_p));
       if (!imodule_p)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -143,13 +218,8 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  // *TODO*: remove type inferences
-  inherited::sessionData_->sessionID =
-    ++Test_I_Target_Stream::currentSessionID;
-  inherited::sessionData_->fileName =
-    configuration_in.moduleHandlerConfiguration_2.sourceFilename;
-  inherited::sessionData_->size =
-    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.sourceFilename);
+  // *TODO*: remove type inference
+  inherited::sessionData_->sessionID = ++OWN_TYPE_T::currentSessionID;
 
   // things to be done here:
   // [- initialize base class]
@@ -196,8 +266,8 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   {
     // *TODO*: (at least part of) this procedure belongs in libACEStream
     //         --> remove type inferences
-    inherited::IMODULE_T* module_2 =
-        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
+    typename inherited::IMODULE_T* module_2 =
+        dynamic_cast<typename inherited::IMODULE_T*> (configuration_in.module);
     if (!module_2)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -214,8 +284,8 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
     } // end IF
     Stream_Task_t* task_p = configuration_in.module->writer ();
     ACE_ASSERT (task_p);
-    inherited::IMODULEHANDLER_T* module_handler_p =
-      dynamic_cast<inherited::IMODULEHANDLER_T*> (task_p);
+    typename inherited::IMODULEHANDLER_T* module_handler_p =
+      dynamic_cast<typename inherited::IMODULEHANDLER_T*> (task_p);
     if (!module_handler_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -242,94 +312,40 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
 
   // ---------------------------------------------------------------------------
 
-  // ******************* File Writer ************************
-  fileWriter_.initialize (configuration_in.moduleConfiguration_2);
-  Test_I_Stream_Module_FileWriter* fileWriter_impl_p =
-    dynamic_cast<Test_I_Stream_Module_FileWriter*> (fileWriter_.writer ());
-  if (!fileWriter_impl_p)
+  // ******************* Queue Reader ************************
+  queueReader_.initialize (configuration_in.moduleConfiguration_2);
+  QUEUEREADER_T* queueReader_impl_p =
+    dynamic_cast<QUEUEREADER_T*> (queueReader_.writer ());
+  if (!queueReader_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_FileWriter> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Stream_Module_QueueReader_T> failed, aborting\n")));
     return false;
   } // end IF
-  if (!fileWriter_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!queueReader_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                fileWriter_.name ()));
+                queueReader_.name ()));
     return false;
   } // end IF
-  result = inherited::push (&fileWriter_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                fileWriter_.name ()));
-    return false;
-  } // end IF
-
-  // ******************* Runtime Statistics ************************
-  runtimeStatistic_.initialize (configuration_in.moduleConfiguration_2);
-  Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-      dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_RuntimeStatistic> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-                                            configuration_in.printFinalReport,           // print final report ?
-                                            configuration_in.messageAllocator))          // message allocator handle
+  if (!queueReader_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                runtimeStatistic_.name ()));
-    return false;
-  } // end IF
-  result = inherited::push (&runtimeStatistic_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (runtimeStatistic_.name ())));
-    return false;
-  } // end IF
-
-  // ******************* TCP Source ************************
-  TCPSource_.initialize (configuration_in.moduleConfiguration_2);
-  Test_I_Stream_Module_TCPSource* TCPSource_impl_p =
-    dynamic_cast<Test_I_Stream_Module_TCPSource*> (TCPSource_.writer ());
-  if (!TCPSource_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_TCPSource> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!TCPSource_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                TCPSource_.name ()));
-    return false;
-  } // end IF
-  if (!TCPSource_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                TCPSource_.name ()));
+                queueReader_.name ()));
     return false;
   } // end IF
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  TCPSource_.arg (inherited::sessionData_);
-  result = inherited::push (&TCPSource_);
+  queueReader_.arg (inherited::sessionData_);
+  result = inherited::push (&queueReader_);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (TCPSource_.name ())));
+                queueReader_.name ()));
     return false;
   } // end IF
 
@@ -345,24 +361,39 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   return true;
 }
 
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
 bool
-Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
+Stream_Module_Input_Stream_T<TaskSynchType,
+                             TimePolicyType,
+                             StatusType,
+                             StateType,
+                             ConfigurationType,
+                             StatisticContainerType,
+                             ModuleConfigurationType,
+                             HandlerConfigurationType,
+                             SessionDataType,
+                             SessionDataContainerType,
+                             SessionMessageType,
+                             ProtocolMessageType>::collect (StatisticContainerType& data_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::collect"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Input_Stream_T::collect"));
 
   // sanity check(s)
+  ACE_UNUSED_ARG (data_out); // *TODO*
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
-
-  Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t> failed, aborting\n")));
-    return false;
-  } // end IF
 
   // synch access
   if (inherited::sessionData_->lock)
@@ -378,23 +409,6 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
 
   inherited::sessionData_->currentStatistic.timestamp = COMMON_TIME_NOW;
 
-  // delegate to the statistics module...
-  bool result_2 = false;
-  try
-  {
-    result_2 = runtimeStatistic_impl->collect (data_out);
-  }
-  catch (...)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
-  }
-  if (!result)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
-  else
-    inherited::sessionData_->currentStatistic = data_out;
-
   if (inherited::sessionData_->lock)
   {
     result = inherited::sessionData_->lock->release ();
@@ -403,29 +417,38 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
   } // end IF
 
-  return result_2;
+  return true;
 }
 
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
 void
-Test_I_Target_Stream::report () const
+Stream_Module_Input_Stream_T<TaskSynchType,
+                             TimePolicyType,
+                             StatusType,
+                             StateType,
+                             ConfigurationType,
+                             StatisticContainerType,
+                             ModuleConfigurationType,
+                             HandlerConfigurationType,
+                             SessionDataType,
+                             SessionDataContainerType,
+                             SessionMessageType,
+                             ProtocolMessageType>::report () const
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::report"));
-
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
-//
-//     return;
-//   } // end IF
-//
-//   // delegate to this module...
-//   return (runtimeStatistic_impl->report ());
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Input_Stream_T::report"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
-
   ACE_NOTREACHED (return;)
 }

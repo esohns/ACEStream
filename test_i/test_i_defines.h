@@ -30,14 +30,18 @@
 #define TEST_I_THREAD_NAME                                   "stream processor"
 
 #define TEST_I_DEFAULT_BUFFER_SIZE                           4096 // bytes
-#define TEST_I_MAX_MESSAGES                                  0  // 0 --> no limits
+#define TEST_I_MAX_MESSAGES                                  0 // 0 --> no limits
 
 #define TEST_I_DEFAULT_TARGET_HOSTNAME                       ACE_LOCALHOST
 #define TEST_I_DEFAULT_PORT                                  10001
+#define TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS            0 // 0 --> no limits
+#define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS         10
 
 //---------------------------------------
 
 #define TEST_I_STREAM_UI_GTKEVENT_RESOLUTION                 200 // ms --> 5 FPS
+#define TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME           "action_close_all"
+#define TEST_I_STREAM_UI_GTK_ACTION_LISTEN_NAME              "action_listen"
 #define TEST_I_STREAM_UI_GTK_ACTION_START_NAME               "action_start"
 #define TEST_I_STREAM_UI_GTK_ACTION_STOP_NAME                "action_stop"
 #define TEST_I_STREAM_UI_GTK_ADJUSTMENT_NAME                 "scrolledwindow_vadjustment"
@@ -50,10 +54,9 @@
 #define TEST_I_STREAM_UI_GTK_BUTTON_QUIT_NAME                "quit"
 #define TEST_I_STREAM_UI_GTK_DIALOG_ABOUT_NAME               "dialog_about"
 #define TEST_I_STREAM_UI_GTK_DIALOG_MAIN_NAME                "dialog_main"
+#define TEST_I_STREAM_UI_GTK_ENTRY_DESTINATION_NAME          "entry_destination"
 #define TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME     "filechooserbutton_source"
-#define TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
 #define TEST_I_STREAM_UI_GTK_FILECHOOSERDIALOG_OPEN_NAME     "dialog_filechooser"
-#define TEST_I_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "dialog_filesaver"
 #define TEST_I_STREAM_UI_GTK_HBOX_OPTIONS_NAME               "hbox_options"
 //#define TEST_I_STREAM_UI_GTK_IMAGE_PLAY_NAME                 "image_play"
 //#define TEST_I_STREAM_UI_GTK_IMAGE_PAUSE_NAME                "image_pause"
@@ -63,8 +66,10 @@
 #define TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME                "progressbar"
 #define TEST_I_STREAM_UI_GTK_SCROLLMARK_NAME                 "insert"
 #define TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME      "spinbutton_buffersize"
-#define TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME    "spinbutton_data_messages"
-#define TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME "spinbutton_session_messages"
+#define TEST_I_STREAM_UI_GTK_SPINBUTTON_CONNECTIONS_NAME     "spinbutton_connections"
+#define TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME    "spinbutton_data"
+#define TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME "spinbutton_session"
+#define TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME            "spinbutton_port"
 #define TEST_I_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
 #define TEST_I_STREAM_UI_GTK_TABLE_OPTIONS_NAME              "table_options"
 #define TEST_I_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
