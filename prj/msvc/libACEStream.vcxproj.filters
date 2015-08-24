@@ -63,18 +63,6 @@
     <ClCompile Include="..\..\src\stream_module_base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\stream_module_filereader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_module_filewriter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_module_messagehandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_module_runtimestatistic.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\stream_resetcounterhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -106,9 +94,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\stream_tools.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stream_module_queuereader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -188,18 +173,6 @@
     <ClInclude Include="..\..\src\stream_module_base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\stream_module_filereader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\stream_module_filewriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\stream_module_messagehandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\stream_module_runtimestatistic.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\stream_resetcounterhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -233,9 +206,6 @@
     <ClInclude Include="..\..\src\stream_tools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\stream_module_queuereader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\stream_base.inl">
@@ -265,18 +235,6 @@
     <None Include="..\..\src\stream_module_base.inl">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\stream_module_filereader.inl">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\stream_module_filewriter.inl">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\stream_module_messagehandler.inl">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\stream_module_runtimestatistic.inl">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\stream_session_data.inl">
       <Filter>Header Files</Filter>
     </None>
@@ -299,9 +257,6 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\stream_task_base_synch.inl">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\stream_module_queuereader.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

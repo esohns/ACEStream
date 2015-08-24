@@ -135,9 +135,9 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
   inherited::sessionData_->sessionID =
     ++Stream_Filecopy_Stream::currentSessionID;
   inherited::sessionData_->fileName =
-    configuration_in.moduleHandlerConfiguration_2.sourceFilename;
+    configuration_in.moduleHandlerConfiguration_2.fileName;
   inherited::sessionData_->size =
-    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.sourceFilename);
+    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.fileName);
 
   // things to be done here:
   // [- initialize base class]

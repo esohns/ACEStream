@@ -68,7 +68,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>STREAM_BUILD_DLL;LIBACESTREAM_EXPORTS;WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STREAM_BUILD_DLL;WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\projects\ATCD\ACE;$(ProjectDir)..\..\3rd_party\msvc;D:\projects\yarp\modules\libACENetwork\3rd_party\msvc;$(ProjectDir)..\..\..\libCommon\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -80,7 +80,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\projects\ATCD\ACE\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -90,7 +90,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>STREAM_BUILD_DLL;LIBACESTREAM_EXPORTS;NDEBUG;WIN32;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STREAM_BUILD_DLL;NDEBUG;WIN32;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\projects\ATCD\ACE;$(ProjectDir)..\..\3rd_party\msvc;$(ProjectDir)..\..\..\libCommon\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -101,7 +101,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\projects\ATCD\ACE\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -129,11 +129,6 @@
     <ClCompile Include="..\..\src\stream_messagequeue_base.cpp" />
     <ClCompile Include="..\..\src\stream_message_base.cpp" />
     <ClCompile Include="..\..\src\stream_module_base.cpp" />
-    <ClCompile Include="..\..\src\stream_module_filereader.cpp" />
-    <ClCompile Include="..\..\src\stream_module_filewriter.cpp" />
-    <ClCompile Include="..\..\src\stream_module_messagehandler.cpp" />
-    <ClCompile Include="..\..\src\stream_module_queuereader.cpp" />
-    <ClCompile Include="..\..\src\stream_module_runtimestatistic.cpp" />
     <ClCompile Include="..\..\src\stream_resetcounterhandler.cpp" />
     <ClCompile Include="..\..\src\stream_session_data.cpp" />
     <ClCompile Include="..\..\src\stream_session_data_base.cpp" />
@@ -172,11 +167,6 @@
     <ClInclude Include="..\..\src\stream_messagequeue_base.h" />
     <ClInclude Include="..\..\src\stream_message_base.h" />
     <ClInclude Include="..\..\src\stream_module_base.h" />
-    <ClInclude Include="..\..\src\stream_module_filereader.h" />
-    <ClInclude Include="..\..\src\stream_module_filewriter.h" />
-    <ClInclude Include="..\..\src\stream_module_messagehandler.h" />
-    <ClInclude Include="..\..\src\stream_module_queuereader.h" />
-    <ClInclude Include="..\..\src\stream_module_runtimestatistic.h" />
     <ClInclude Include="..\..\src\stream_resetcounterhandler.h" />
     <ClInclude Include="..\..\src\stream_session_data.h" />
     <ClInclude Include="..\..\src\stream_session_data_base.h" />
@@ -199,11 +189,6 @@
     <None Include="..\..\src\stream_messagequeue_base.inl" />
     <None Include="..\..\src\stream_message_base.inl" />
     <None Include="..\..\src\stream_module_base.inl" />
-    <None Include="..\..\src\stream_module_filereader.inl" />
-    <None Include="..\..\src\stream_module_filewriter.inl" />
-    <None Include="..\..\src\stream_module_messagehandler.inl" />
-    <None Include="..\..\src\stream_module_queuereader.inl" />
-    <None Include="..\..\src\stream_module_runtimestatistic.inl" />
     <None Include="..\..\src\stream_session_data.inl" />
     <None Include="..\..\src\stream_session_data_base.inl" />
     <None Include="..\..\src\stream_session_message_base.inl" />

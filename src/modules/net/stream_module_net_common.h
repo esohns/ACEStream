@@ -100,7 +100,7 @@ struct Net_SocketConfiguration;
 struct Stream_SocketHandlerConfiguration
 {
   inline Stream_SocketHandlerConfiguration ()
-   : bufferSize (STREAM_MESSAGE_DATA_BUFFER_SIZE)
+   : bufferSize (NET_STREAM_MESSAGE_DATA_BUFFER_SIZE)
    , messageAllocator (NULL)
    , socketConfiguration (NULL)
    , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING)

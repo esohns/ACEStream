@@ -95,9 +95,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(SolutionDir)$(Configuration)_obj\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(SolutionDir)$(Configuration)_obj\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -106,7 +108,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>DEBUG_DEBUGGER;HAVE_CONFIG_H;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\projects\ATCD\ACE;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src;$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src\ui;$(ProjectDir)..\..\..\libCommon\src\ui;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\test_u;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src;$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src\ui;$(ProjectDir)..\..\..\libCommon\src\ui;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\include;$(ProjectDir)..\..\test_u;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -126,7 +129,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>HAVE_CONFIG_H;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\projects\ATCD\ACE;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src;$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src\ui;$(ProjectDir)..\..\..\libCommon\src\ui;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\test_u;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src;$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\modules\libACEStream\modules\libCommon\src\ui;$(ProjectDir)..\..\..\libCommon\src\ui;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\include;$(ProjectDir)..\..\test_u;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

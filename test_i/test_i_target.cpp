@@ -58,8 +58,9 @@
 
 #include "test_i_eventhandler.h"
 #include "test_i_module_eventhandler.h"
+#include "test_i_target_common.h"
+#include "test_i_target_listener_common.h"
 #include "test_i_target_signalhandler.h"
-#include "test_i_target_stream.h"
 
 void
 do_printUsage (const std::string& programName_in)
@@ -103,12 +104,12 @@ do_printUsage (const std::string& programName_in)
   path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
+  UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
             << UI_file
             << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> no GUI}")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-h          : use thread-pool [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-h          : use thread pool [")
             << NET_EVENT_USE_THREAD_POOL
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
@@ -193,7 +194,7 @@ do_processArguments (int argc_in,
   fileName_out.clear ();
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
+  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
   useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
   logToFile_out = false;
   netWorkInterface_out =
@@ -423,12 +424,12 @@ do_work (unsigned int bufferSize_in,
          const std::string& UIDefinitionFile_in,
          bool useThreadPool_in,
          const std::string& networkInterface_in,
-         bool useLoopback_in,
+         bool useLoopBack_in,
          unsigned short listeningPortNumber_in,
          bool useReactor_in,
          unsigned int statisticReportingInterval_in,
          unsigned int numberOfDispatchThreads_in,
-         Stream_GTK_CBData& CBData_in,
+         Test_I_Target_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -437,9 +438,18 @@ do_work (unsigned int bufferSize_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   // step0a: initialize configuration
-  Test_I_Configuration configuration;
-  CBData_in.configuration = &configuration;
+  Test_I_Target_Configuration configuration;
+  configuration.streamUserData.configuration =
+    &configuration;
+  configuration.streamUserData.streamConfiguration =
+    &configuration.streamConfiguration;
 
+  Stream_AllocatorHeap heap_allocator;
+  Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                               &heap_allocator,     // heap allocator handle
+                                               true);               // block ?
+
+  CBData_in.configuration = &configuration;
   Stream_EventHandler ui_event_handler (&CBData_in);
   Stream_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                    NULL,
@@ -456,18 +466,30 @@ do_work (unsigned int bufferSize_in,
                                &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
 
-  Stream_AllocatorHeap heap_allocator;
-  Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                               &heap_allocator,     // heap allocator handle
-                                               true);               // block ?
+  // ********************** socket configuration data *************************
+  configuration.socketConfiguration.peerAddress.set_port_number (listeningPortNumber_in,
+                                                                 1);
+
+  // ******************** socket handler configuration data *******************
+  configuration.socketHandlerConfiguration.bufferSize = bufferSize_in;
+  configuration.socketHandlerConfiguration.messageAllocator =
+    &message_allocator;
+  configuration.socketHandlerConfiguration.socketConfiguration =
+    &configuration.socketConfiguration;
+  configuration.socketHandlerConfiguration.statisticReportingInterval =
+    statisticReportingInterval_in;
+  configuration.socketHandlerConfiguration.userData =
+    &configuration.streamUserData;
+
+  // ********************** stream configuration data **************************
   // ********************** module configuration data **************************
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.peerAddress.set_port_number (listeningPortNumber_in,
-                                                                                              1);
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.configuration =
+    &configuration;
   configuration.streamConfiguration.moduleHandlerConfiguration_2.printProgressDot =
       UIDefinitionFile_in.empty ();
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.sourceFilename =
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.fileName =
       fileName_in;
-  // ********************** stream configuration data **************************
+  // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
@@ -497,7 +519,15 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  // step0c: initialize regular (global) statistics reporting
+  // step0c: initialize connection manager
+  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
+    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
+  connection_manager_p->initialize (maximumNumberOfConnections_in);
+  Test_I_Stream_UserData session_data;
+  connection_manager_p->set (configuration, &session_data);
+
+  // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =
       COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
@@ -505,14 +535,13 @@ do_work (unsigned int bufferSize_in,
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
   Stream_StatisticHandler_Reactor_t statistics_handler (ACTION_REPORT,
-                                                        NET_CONNECTIONMANAGER_SINGLETON::instance (),
+                                                        connection_manager_p,
                                                         false);
   long timer_id = -1;
   if (statisticReportingInterval_in)
   {
     ACE_Event_Handler* handler_p = &statistics_handler;
-    ACE_Time_Value interval (statisticReportingInterval_in,
-                             0);
+    ACE_Time_Value interval (statisticReportingInterval_in, 0);
     timer_id =
       timer_manager_p->schedule_timer (handler_p,                  // event handler
                                        NULL,                       // ACT
@@ -530,18 +559,18 @@ do_work (unsigned int bufferSize_in,
     } // end IF
   } // end IF
 
-  // step0d: initialize signal handling
+  // step0e: initialize signal handling
   if (useReactor_in)
-    CBData_in.serverConfiguration->listener =
-      NET_SERVER_LISTENER_SINGLETON::instance ();
+    CBData_in.configuration->listener =
+      TEST_I_TARGET_LISTENER_SINGLETON::instance ();
   else
-    CBData_in.serverConfiguration->listener =
-      NET_SERVER_ASYNCHLISTENER_SINGLETON::instance ();
-  Net_Server_SignalHandlerConfiguration signal_handler_configuration;
+    CBData_in.configuration->listener =
+      TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
+  Test_I_Target_SignalHandlerConfiguration signal_handler_configuration;
   signal_handler_configuration.listener =
-    CBData_in.serverConfiguration->listener;
+    CBData_in.configuration->listener;
   signal_handler_configuration.statisticReportingHandler =
-      NET_CONNECTIONMANAGER_SINGLETON::instance ();
+      connection_manager_p;
   signal_handler_configuration.statisticReportingTimerID = timer_id;
   signalHandler_in.initialize (signal_handler_configuration);
   if (!Common_Tools::initializeSignals (signalSet_in,
@@ -551,14 +580,12 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
+
+    // clean up
+    timer_manager_p->stop ();
+
     return;
   } // end IF
-
-  // step0e: initialize connection manager
-  NET_CONNECTIONMANAGER_SINGLETON::instance ()->initialize (maximumNumberOfConnections_in);
-  Net_StreamUserData session_data;
-  NET_CONNECTIONMANAGER_SINGLETON::instance ()->set (configuration,
-                                                     &session_data);
 
   // step1: handle events (signals, incoming connections/data, timers, ...)
   // reactor/proactor event loop:
@@ -572,9 +599,6 @@ do_work (unsigned int bufferSize_in,
   // step1a: start GTK event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
-    configuration.streamConfiguration.moduleHandlerConfiguration_2.targetFilename =
-      Common_File_Tools::getDumpDirectory ();
-
     CBData_in.finalizationHook = idle_finalize_UI_cb;
     CBData_in.initializationHook = idle_initialize_target_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -608,6 +632,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
 
       // clean up
+      timer_manager_p->stop ();
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
 
       return;
@@ -618,6 +643,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to ::ShowWindow(), returning\n")));
 
       // clean up
+      timer_manager_p->stop ();
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
 
       return;
@@ -625,7 +651,7 @@ do_work (unsigned int bufferSize_in,
 #endif
   } // end IF
 
-  // step4b: initialize worker(s)
+  // step1b: initialize worker(s)
   int group_id = -1;
   // *NOTE*: this variable needs to stay on the working stack, it's passed to
   //         the worker(s) (if any)
@@ -653,18 +679,18 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  // step4c: start listening
+  // step1c: start listening
   configuration.listenerConfiguration.connectionManager =
-    NET_CONNECTIONMANAGER_SINGLETON::instance ();
+    connection_manager_p;
   configuration.listenerConfiguration.messageAllocator = &message_allocator;
   configuration.listenerConfiguration.portNumber = listeningPortNumber_in;
   configuration.listenerConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
   configuration.listenerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
-  configuration.listenerConfiguration.useLoopbackDevice = useLoopBack_in;
+  configuration.listenerConfiguration.useLoopBackDevice = useLoopBack_in;
 
-  if (!CBData_in.serverConfiguration->listener->initialize (configuration.listenerConfiguration))
+  if (!CBData_in.configuration->listener->initialize (configuration.listenerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize listener, returning\n")));
@@ -687,8 +713,8 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  CBData_in.serverConfiguration->listener->start ();
-  if (!CBData_in.serverConfiguration->listener->isRunning ())
+  CBData_in.configuration->listener->start ();
+  if (!CBData_in.configuration->listener->isRunning ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start listener (port: %u), returning\n"),
@@ -737,7 +763,7 @@ do_work (unsigned int bufferSize_in,
   //NET_CONNECTIONMANAGER_SINGLETON::instance ()->abort ();
   //NET_CONNECTIONMANAGER_SINGLETON::instance ()->wait ();
 
-  result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
+  int result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
@@ -843,7 +869,7 @@ ACE_TMAIN (int argc_in,
   std::string UI_definition_file_name = path;
   UI_definition_file_name += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file_name +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
   bool use_thread_pool = NET_EVENT_USE_THREAD_POOL;
   bool log_to_file = false;
   std::string network_interface =
@@ -921,7 +947,7 @@ ACE_TMAIN (int argc_in,
   //if (run_stress_test)
   //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
 
-  Stream_GTK_CBData gtk_cb_user_data;
+  Test_I_Target_GTK_CBData gtk_cb_user_data;
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
   // step1d: initialize logging and/or tracing
   Common_Logger logger (&gtk_cb_user_data.logStack,
@@ -979,7 +1005,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
   if (!Common_Tools::preInitializeSignals (signal_set,
-                                           true,
+                                           use_reactor,
                                            previous_signal_actions,
                                            previous_signal_mask))
   {
@@ -1021,9 +1047,9 @@ ACE_TMAIN (int argc_in,
 
   // step1g: set process resource limits
   // *NOTE*: settings will be inherited by any child processes
-  if (!Common_Tools::setResourceLimits (false,  // file descriptors
-                                        true,   // stack traces
-                                        false)) // pending signals
+  if (!Common_Tools::setResourceLimits (true,  // file descriptors
+                                        true,  // stack traces
+                                        true)) // pending signals
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));

@@ -158,25 +158,29 @@ Stream_Module_FileWriter_T<SessionMessageType,
       ACE_ASSERT (session_data_p);
 
       std::string directory, file_name;
-      if (configuration_.targetFilename.empty ())
+      if (configuration_.fileName.empty ())
       {
         directory = Common_File_Tools::getDumpDirectory ();
         file_name = ACE::basename (session_data_p->fileName.c_str ());
       } // end IF
-      else if (Common_File_Tools::isDirectory (configuration_.targetFilename))
+      else if (Common_File_Tools::isDirectory (configuration_.fileName))
       {
-        directory = configuration_.targetFilename;
-        file_name = ACE::basename (session_data_p->fileName.c_str ());
+        directory = configuration_.fileName;
+        file_name = ACE::basename (session_data_p->fileName.c_str (),
+                                   ACE_DIRECTORY_SEPARATOR_CHAR);
       } // end IF
-      else if (Common_File_Tools::isValid (configuration_.targetFilename))
+      else if (Common_File_Tools::isValid (configuration_.fileName))
       {
-        directory = ACE::dirname (configuration_.targetFilename.c_str ());
-        file_name = configuration_.targetFilename;
+        directory = ACE::dirname (configuration_.fileName.c_str (),
+                                  ACE_DIRECTORY_SEPARATOR_CHAR);
+        file_name = ACE::basename (configuration_.fileName.c_str (),
+                                   ACE_DIRECTORY_SEPARATOR_CHAR);
       } // end ELSE
       else
       {
         directory = Common_File_Tools::getDumpDirectory ();
-        file_name = ACE::basename (session_data_p->fileName.c_str ());
+        file_name = ACE::basename (session_data_p->fileName.c_str (),
+                                   ACE_DIRECTORY_SEPARATOR_CHAR);
       } // end IF
       file_name = directory +
                   ACE_DIRECTORY_SEPARATOR_CHAR_A +
@@ -210,7 +214,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", returning\n"),
-                    ACE_TEXT (configuration_.targetFilename.c_str ())));
+                    ACE_TEXT (file_name.c_str ())));
         return;
       } // end IF
       isOpen_ = true;
@@ -278,10 +282,10 @@ Stream_Module_FileWriter_T<SessionMessageType,
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  if (Common_File_Tools::isReadable (configuration_.targetFilename))
+  if (Common_File_Tools::isReadable (configuration_.fileName))
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("target file \"%s\" exists, continuing\n"),
-                ACE_TEXT (configuration_.targetFilename.c_str ())));
+                ACE_TEXT (configuration_.fileName.c_str ())));
 
   return true;
 }

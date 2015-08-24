@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
 <interface>
-  <requires lib="gtk+" version="3.0"/>
+  <!-- interface-requires gtk+ 2.24 -->
   <object class="GtkAction" id="action_close_all">
     <property name="stock_id">gtk-close</property>
     <signal name="activate" handler="action_stop_activate_cb" swapped="no"/>
   </object>
   <object class="GtkAction" id="action_listen">
+    <property name="label" translatable="yes">L_isten</property>
     <property name="stock_id">gtk-media-play</property>
     <property name="hide_if_empty">False</property>
+    <property name="always_show_image">True</property>
     <signal name="activate" handler="action_start_activate_cb" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="adjustment_buffersize">
@@ -127,6 +128,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
+            <property name="pack_type">end</property>
             <property name="position">0</property>
           </packing>
         </child>
@@ -136,27 +138,6 @@
       </object>
     </child>
   </object>
-  <object class="GtkImage" id="image_pause">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-media-pause</property>
-  </object>
-  <object class="GtkImage" id="image_play">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-media-play</property>
-  </object>
-  <object class="GtkAdjustment" id="scrolledwindow_hadjustment">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="scrolledwindow_vadjustment">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkTextBuffer" id="textview_textbuffer"/>
   <object class="GtkDialog" id="dialog_main">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -167,71 +148,6 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="hbuttonbox_main">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-            <child>
-              <object class="GtkButton" id="clear">
-                <property name="label">gtk-clear</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-                <property name="focus_on_click">False</property>
-                <signal name="clicked" handler="button_clear_clicked_cb" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-                <property name="secondary">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="about">
-                <property name="label">gtk-about</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-                <property name="focus_on_click">False</property>
-                <signal name="clicked" handler="button_about_clicked_cb" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="quit">
-                <property name="label">gtk-quit</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-                <property name="focus_on_click">False</property>
-                <signal name="clicked" handler="button_quit_clicked_cb" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">5</property>
-          </packing>
-        </child>
         <child>
           <object class="GtkFrame" id="frame_info">
             <property name="visible">True</property>
@@ -324,7 +240,6 @@
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
                         <property name="invisible_char">●</property>
-                        <property name="text" translatable="yes">0</property>
                         <property name="xalign">1</property>
                         <property name="caps_lock_warning">False</property>
                         <property name="primary_icon_activatable">False</property>
@@ -396,7 +311,6 @@
                                 <property name="can_focus">True</property>
                                 <property name="max_length">5</property>
                                 <property name="width_chars">5</property>
-                                <property name="text" translatable="yes">10001</property>
                                 <property name="xalign">1</property>
                                 <property name="shadow_type">etched-in</property>
                                 <property name="caps_lock_warning">False</property>
@@ -410,7 +324,6 @@
                                 <property name="climb_rate">10</property>
                                 <property name="numeric">True</property>
                                 <property name="wrap">True</property>
-                                <property name="value">10001</property>
                               </object>
                             </child>
                           </object>
@@ -564,7 +477,6 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="invisible_char">●</property>
-                                        <property name="text" translatable="yes">0</property>
                                         <property name="xalign">1</property>
                                         <property name="caps_lock_warning">False</property>
                                         <property name="primary_icon_activatable">False</property>
@@ -646,8 +558,6 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkToggleButton" id="listen">
-                        <property name="label">gtk-media-play</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">action_listen</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
@@ -666,7 +576,6 @@
                     <child>
                       <object class="GtkButton" id="close_all">
                         <property name="label">gtk-close</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">action_close_all</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
@@ -757,6 +666,71 @@
             <property name="position">4</property>
           </packing>
         </child>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="hbuttonbox_main">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="clear">
+                <property name="label">gtk-clear</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="can_default">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+                <property name="focus_on_click">False</property>
+                <signal name="clicked" handler="button_clear_clicked_cb" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+                <property name="secondary">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="about">
+                <property name="label">gtk-about</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="can_default">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+                <property name="focus_on_click">False</property>
+                <signal name="clicked" handler="button_about_clicked_cb" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="quit">
+                <property name="label">gtk-quit</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="can_default">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+                <property name="focus_on_click">False</property>
+                <signal name="clicked" handler="button_quit_clicked_cb" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">5</property>
+          </packing>
+        </child>
         <child>
           <object class="GtkHBox" id="hbox_status">
             <property name="visible">True</property>
@@ -787,4 +761,25 @@
       <action-widget response="0">quit</action-widget>
     </action-widgets>
   </object>
+  <object class="GtkImage" id="image_pause">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-media-pause</property>
+  </object>
+  <object class="GtkImage" id="image_play">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-media-play</property>
+  </object>
+  <object class="GtkAdjustment" id="scrolledwindow_hadjustment">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="scrolledwindow_vadjustment">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkTextBuffer" id="textview_textbuffer"/>
 </interface>

@@ -368,12 +368,12 @@ Stream_Module_FileReader_T<SessionMessageType,
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   ProtocolMessageType* message_p = NULL;
-  result = file_address.set (inherited::configuration_.sourceFilename.c_str ());
+  result = file_address.set (inherited::configuration_.fileName.c_str ());
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (inherited::configuration_.sourceFilename.c_str ())));
+                ACE_TEXT (inherited::configuration_.fileName.c_str ())));
     goto done;
   } // end IF
   result = file_connector.connect (stream_,                 // stream
@@ -387,13 +387,13 @@ Stream_Module_FileReader_T<SessionMessageType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (inherited::configuration_.sourceFilename.c_str ())));
+                ACE_TEXT (inherited::configuration_.fileName.c_str ())));
     goto done;
   } // end IF
   isOpen_ = true;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("opened file stream \"%s\"...\n"),
-              ACE_TEXT (inherited::configuration_.sourceFilename.c_str ())));
+              ACE_TEXT (inherited::configuration_.fileName.c_str ())));
 
   // step1: start processing data...
 //   ACE_DEBUG ((LM_DEBUG,
@@ -477,11 +477,11 @@ session_finished:
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
-                ACE_TEXT (inherited::configuration_.sourceFilename.c_str ())));
+                ACE_TEXT (inherited::configuration_.fileName.c_str ())));
   isOpen_ = false;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("closed file stream \"%s\"...\n"),
-              ACE_TEXT (inherited::configuration_.sourceFilename.c_str ())));
+              ACE_TEXT (inherited::configuration_.fileName.c_str ())));
 
 done:
   // signal the controller

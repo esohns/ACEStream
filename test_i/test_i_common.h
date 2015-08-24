@@ -33,6 +33,7 @@
 
 #include "common.h"
 #include "common_inotify.h"
+#include "common_istatistic.h"
 #include "common_isubscribe.h"
 #include "common_time_common.h"
 
@@ -48,16 +49,17 @@
 
 #include "net_defines.h"
 
+#include "test_i_connection_common.h"
+#include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
 //#include "test_i_message.h"
 //#include "test_i_session_message.h"
-#include "test_i_connection_manager_common.h"
 
 // forward declarations
 class Stream_IAllocator;
 class Stream_Message;
 class Stream_SessionMessage;
-class Test_I_ConnectionState;
+struct Test_I_ConnectionState;
 
 enum Stream_GTK_Event
 {
@@ -77,6 +79,8 @@ typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
 
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
+
+typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReportingHandler_t;
 
 struct Test_I_Stream_SessionData
  : Stream_SessionData
@@ -126,38 +130,34 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   inline Test_I_Stream_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
+   , connection (NULL)
+   , connectionManager (NULL)
    , contextID (0)
-   , peerAddress ()
+   , fileName ()
    , printProgressDot (false)
    , queue (NULL)
-   , sourceConnectionManager (NULL)
-   , sourceFilename ()
-   , targetConnectionManager (NULL)
-   , targetFilename ()
   {};
 
   // convenience types
   typedef Test_I_Configuration CONFIGURATION_T;
 
-  Test_I_Configuration*                        configuration;
-  guint                                        contextID;
-  ACE_INET_Addr                                peerAddress;
-  bool                                         printProgressDot;
-  ACE_Message_Queue_Base*                      queue;
-  Test_I_Stream_InetSourceConnectionManager_t* sourceConnectionManager;
-  std::string                                  sourceFilename;
-  Test_I_Stream_InetTargetConnectionManager_t* targetConnectionManager;
-  std::string                                  targetFilename;
+  Test_I_Configuration*                  configuration;
+  Test_I_IConnection_t*                  connection;
+  Test_I_Stream_InetConnectionManager_t* connectionManager;
+  guint                                  contextID;
+  std::string                            fileName;
+  bool                                   printProgressDot;
+  ACE_Message_Queue_Base*                queue;
 };
 
 struct Stream_SignalHandlerConfiguration
 {
   inline Stream_SignalHandlerConfiguration ()
-   : messageAllocator (NULL)
-   , statisticReportingInterval (0)
+   : //messageAllocator (NULL)
+   /*,*/ statisticReportingInterval (0)
   {};
 
-  Stream_IAllocator* messageAllocator;
+  //Stream_IAllocator* messageAllocator;
   unsigned int       statisticReportingInterval; // statistics collecting interval (second(s)) [0: off]
 };
 
@@ -191,13 +191,18 @@ struct Test_I_Configuration
 {
   inline Test_I_Configuration ()
    : signalHandlerConfiguration ()
+   , socketConfiguration ()
    , socketHandlerConfiguration ()
    , streamConfiguration ()
    , streamUserData ()
   {};
 
+  // **************************** signal data **********************************
   Stream_SignalHandlerConfiguration        signalHandlerConfiguration;
+  // **************************** socket data **********************************
+  Net_SocketConfiguration                  socketConfiguration;
   Test_I_Stream_SocketHandlerConfiguration socketHandlerConfiguration;
+  // **************************** stream data **********************************
   Test_I_Stream_Configuration              streamConfiguration;
   Test_I_Stream_UserData                   streamUserData;
 };
@@ -221,7 +226,7 @@ struct Stream_GTK_ProgressData
 {
   inline Stream_GTK_ProgressData ()
    : completedActions ()
-   , copied (0)
+   , sent (0)
 //   , cursorType (GDK_LAST_CURSOR)
    , GTKState (NULL)
    , pendingActions ()
@@ -229,7 +234,7 @@ struct Stream_GTK_ProgressData
   {};
 
   Stream_CompletedActions_t completedActions;
-  unsigned int              copied; // bytes
+  unsigned int              sent; // bytes
 //  GdkCursorType                      cursorType;
   Common_UI_GTKState*       GTKState;
   Stream_PendingActions_t   pendingActions;
@@ -254,45 +259,27 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_Stream_SessionData_t, // session data container (reference counted)
                       Stream_SessionMessage,
                       Stream_Message> Stream_Base_t;
-//class Test_I_Source_Stream;
-//class Test_I_Target_Stream;
 struct Stream_GTK_CBData
  : Common_UI_GTKState
 {
-//  enum Test_I_Stream_Mode
-//  {
-//    TEST_I_STREAM_INVALID = -1,
-//    /////////////////////////////////////
-//    TEST_I_STREAM_SOURCE = 0,
-//    TEST_I_STREAM_TARGET,
-//    /////////////////////////////////////
-//    TEST_I_STREAM_MAX
-//  };
-
   inline Stream_GTK_CBData ()
    : Common_UI_GTKState ()
    , configuration (NULL)
    , eventStack ()
    , logStack ()
-//   , mode (TEST_I_STREAM_INVALID)
    , progressData ()
-//   , sourceStream (NULL)
    , stream (NULL)
    , subscribers ()
    , subscribersLock ()
-//   , targetStream (NULL)
   {};
 
   Test_I_Configuration*     configuration;
   Stream_GTK_Events_t       eventStack;
   Common_MessageStack_t     logStack;
-//  Test_I_Stream_Mode        mode;
   Stream_GTK_ProgressData   progressData;
-//  Test_I_Source_Stream*     sourceStream;
   Stream_Base_t*            stream;
   Stream_Subscribers_t      subscribers;
   ACE_SYNCH_RECURSIVE_MUTEX subscribersLock;
-//  Test_I_Target_Stream*     targetStream;
 };
 
 struct Stream_ThreadData

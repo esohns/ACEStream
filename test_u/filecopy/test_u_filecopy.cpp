@@ -146,7 +146,7 @@ do_processArguments (int argc_in,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& printVersionAndExit_out,
-                     std::string& targetFilename_out)
+                     std::string& targetFileName_out)
                      //bool& runStressTest_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
@@ -181,7 +181,7 @@ do_processArguments (int argc_in,
   path = Common_File_Tools::getDumpDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE);
-  targetFilename_out = path;
+  targetFileName_out = path;
   //runStressTest_out = false;
 
   ACE_Get_Opt argumentParser (argc_in,
@@ -247,9 +247,9 @@ do_processArguments (int argc_in,
       {
         ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
         if (opt_arg)
-          targetFilename_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
+          targetFileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
-          targetFilename_out.clear ();
+          targetFileName_out.clear ();
         break;
       }
       //case 'y':
@@ -365,10 +365,10 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 
 void
 do_work (unsigned int bufferSize_in,
-         const std::string& filename_in,
+         const std::string& fileName_in,
          const std::string& UIDefinitionFile_in,
          unsigned int statisticReportingInterval_in,
-         const std::string& targetFilename_in,
+         const std::string& targetFileName_in,
          Stream_Filecopy_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -406,10 +406,12 @@ do_work (unsigned int bufferSize_in,
       !UIDefinitionFile_in.empty ();
   configuration.streamConfiguration.moduleHandlerConfiguration_2.printProgressDot =
       UIDefinitionFile_in.empty ();
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.sourceFilename =
-      filename_in;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.targetFilename =
-      targetFilename_in;
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.fileName =
+      fileName_in;
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.targetFileName =
+      (targetFileName_in.empty () ? Common_File_Tools::getDumpDirectory ()
+                                  : targetFileName_in);
+
   // ********************** stream configuration data **************************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
@@ -453,9 +455,6 @@ do_work (unsigned int bufferSize_in,
   // step1a: start GTK event loop ?
   if (!UIDefinitionFile_in.empty ())
   {
-    configuration.streamConfiguration.moduleHandlerConfiguration_2.targetFilename =
-      Common_File_Tools::getDumpDirectory ();
-
     CBData_in.finalizationHook = idle_finalize_UI_cb;
     CBData_in.initializationHook = idle_initialize_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -641,7 +640,7 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
   unsigned int buffer_size = TEST_U_STREAM_FILECOPY_DEFAULT_BUFFER_SIZE;
-  std::string filename;
+  std::string file_name;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
@@ -656,20 +655,20 @@ ACE_TMAIN (int argc_in,
   path = Common_File_Tools::getDumpDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE);
-  std::string target_filename = path;
+  std::string target_file_name = path;
   //bool run_stress_test = false;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
                             buffer_size,
-                            filename,
+                            file_name,
                             UI_definition_file,
                             log_to_file,
                             statistic_reporting_interval,
                             trace_information,
                             print_version_and_exit,
-                            target_filename))//,
+                            target_file_name))//,
                             //run_stress_test))
   {
     // make 'em learn...
@@ -695,7 +694,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
   if ((UI_definition_file.empty () &&
-       !Common_File_Tools::isReadable (filename)) ||
+       !Common_File_Tools::isReadable (file_name)) ||
       (!UI_definition_file.empty () &&
        !Common_File_Tools::isReadable (UI_definition_file)))
   {
@@ -722,13 +721,13 @@ ACE_TMAIN (int argc_in,
   // step1d: initialize logging and/or tracing
   Common_Logger logger (&gtk_cb_user_data.logStack,
                         &gtk_cb_user_data.lock);
-  std::string log_file;
+  std::string log_file_name;
   if (log_to_file)
-    log_file =
+    log_file_name =
         Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE_NAME),
                                            ACE::basename (argv_in[0]));
   if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
-                                        log_file,                                 // log file
+                                        log_file_name,                            // log file name
                                         false,                                    // log to syslog ?
                                         false,                                    // trace messages ?
                                         trace_information,                        // debug messages ?
@@ -854,10 +853,10 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (buffer_size,
-           filename,
+           file_name,
            UI_definition_file,
            statistic_reporting_interval,
-           target_filename,
+           target_file_name,
            gtk_cb_user_data,
            signal_set,
            ignored_signal_set,

@@ -30,21 +30,14 @@
 
 #include "stream_common.h"
 
-//#include "net_common.h"
 #include "net_connection_manager.h"
 #include "net_iconnectionmanager.h"
 
-//#include "test_i_common.h"
-//#include "test_i_connection_common.h"
-
 // forward declarations
-struct Net_SocketConfiguration;
 struct Test_I_Configuration;
 struct Test_I_ConnectionState;
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
-class Test_I_Source_Stream;
 struct Test_I_Stream_UserData;
-class Test_I_Target_Stream;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -52,7 +45,6 @@ typedef Net_IConnectionManager_T<ACE_Netlink_Addr,
                                  Test_I_Configuration,
                                  Test_I_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_Source_Stream,
                                  ////////
                                  Test_I_Stream_UserData> Test_I_Stream_INetlinkConnectionManager_t;
 #endif
@@ -60,16 +52,8 @@ typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  Test_I_Configuration,
                                  Test_I_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_Source_Stream,
                                  ////////
-                                 Test_I_Stream_UserData> Test_I_Stream_IInetSourceConnectionManager_t;
-typedef Net_IConnectionManager_T<ACE_INET_Addr,
-                                 Test_I_Configuration,
-                                 Test_I_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
-                                 Test_I_Target_Stream,
-                                 ////////
-                                 Test_I_Stream_UserData> Test_I_Stream_IInetTargetConnectionManager_t;
+                                 Test_I_Stream_UserData> Test_I_Stream_IInetConnectionManager_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -77,7 +61,6 @@ typedef Net_Connection_Manager_T<ACE_Netlink_Addr,
                                  Test_I_Configuration,
                                  Test_I_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_Source_Stream,
                                  ////////
                                  Test_I_Stream_UserData> Test_I_Stream_NetlinkConnectionManager_t;
 #endif
@@ -85,25 +68,15 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  Test_I_Configuration,
                                  Test_I_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_Source_Stream,
                                  ////////
-                                 Test_I_Stream_UserData> Test_I_Stream_InetSourceConnectionManager_t;
-typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 Test_I_Configuration,
-                                 Test_I_ConnectionState,
-                                 Test_I_RuntimeStatistic_t,
-                                 Test_I_Target_Stream,
-                                 ////////
-                                 Test_I_Stream_UserData> Test_I_Stream_InetTargetConnectionManager_t;
+                                 Test_I_Stream_UserData> Test_I_Stream_InetConnectionManager_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 typedef ACE_Singleton<Test_I_Stream_NetlinkConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_STREAM_NETLINKCONNECTIONMANAGER_SINGLETON;
 #endif
-typedef ACE_Singleton<Test_I_Stream_InetSourceConnectionManager_t,
-                      ACE_SYNCH_MUTEX> TEST_I_STREAM_SOURCECONNECTIONMANAGER_SINGLETON;
-typedef ACE_Singleton<Test_I_Stream_InetTargetConnectionManager_t,
-                      ACE_SYNCH_MUTEX> TEST_I_STREAM_TARGETONNECTIONMANAGER_SINGLETON;
+typedef ACE_Singleton<Test_I_Stream_InetConnectionManager_t,
+                      ACE_SYNCH_MUTEX> TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON;
 
 #endif

@@ -97,16 +97,16 @@ struct Stream_Test_U_ModuleHandlerConfiguration
    , contextID (0)
    , printProgressDot (false)
    , queue (NULL)
-   , sourceFilename ()
-   , targetFilename ()
+   , fileName ()
+   , targetFileName ()
   {};
 
   bool                    active;
   guint                   contextID;
   bool                    printProgressDot;
   ACE_Message_Queue_Base* queue;
-  std::string             sourceFilename;
-  std::string             targetFilename;
+  std::string             fileName;
+  std::string             targetFileName;
 };
 
 struct Stream_Test_U_StreamConfiguration

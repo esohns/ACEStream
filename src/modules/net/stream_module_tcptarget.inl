@@ -78,8 +78,8 @@ Stream_Module_TCPTarget_T<SessionMessageType,
   if (isLinked_)
   {
     ACE_ASSERT (connection_);
-    typename ConnectionManagerType::CONNECTION_T::STREAM_T& stream_r =
-        const_cast<typename ConnectionManagerType::CONNECTION_T::STREAM_T&> (connection_->stream ());
+    typename ConnectorType::STREAM_T& stream_r =
+      const_cast<typename ConnectorType::STREAM_T&> (connection_->stream ());
     Stream_Module_t* module_p = NULL;
     result = stream_r.top (module_p);
     if (result == -1)
@@ -96,9 +96,12 @@ close:
   if (connection_)
   {
     ACE_OS::memset (buffer, 0, sizeof (buffer));
-    result =
-      configuration_.peerAddress.addr_to_string (buffer,
-                                                 sizeof (buffer));
+    ACE_HANDLE handle = ACE_INVALID_HANDLE;
+    ACE_INET_Addr local_address, peer_address;
+    connection_->info (handle,
+                       local_address, peer_address);
+    result = peer_address.addr_to_string (buffer,
+                                          sizeof (buffer));
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
@@ -178,8 +181,8 @@ Stream_Module_TCPTarget_T<SessionMessageType,
       if (isLinked_)
       {
         ACE_ASSERT (connection_);
-        typename ConnectionManagerType::CONNECTION_T::STREAM_T& stream_r =
-            const_cast<typename ConnectionManagerType::CONNECTION_T::STREAM_T&> (connection_->stream ());
+        typename ConnectorType::STREAM_T& stream_r =
+          const_cast<typename ConnectorType::STREAM_T&> (connection_->stream ());
         Stream_Module_t* module_p = NULL;
         result = stream_r.top (module_p);
         if (result == -1)
@@ -197,9 +200,12 @@ close:
       if (connection_)
       {
         ACE_OS::memset (buffer, 0, sizeof (buffer));
-        result =
-          configuration_.peerAddress.addr_to_string (buffer,
-                                                     sizeof (buffer));
+        ACE_HANDLE handle = ACE_INVALID_HANDLE;
+        ACE_INET_Addr local_address, peer_address;
+        connection_->info (handle,
+                           local_address, peer_address);
+        result = peer_address.addr_to_string (buffer,
+                                              sizeof (buffer));
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
@@ -244,7 +250,8 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  if (configuration_.peerAddress.is_any ())
+  ACE_ASSERT (configuration_.configuration);
+  if (configuration_.configuration->socketConfiguration.peerAddress.is_any ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid peer address (was: any), aborting\n")));
@@ -252,8 +259,8 @@ Stream_Module_TCPTarget_T<SessionMessageType,
   } // end IF
   ACE_OS::memset (buffer, 0, sizeof (buffer));
   result =
-    configuration_.peerAddress.addr_to_string (buffer,
-                                               sizeof (buffer));
+    configuration_.configuration->socketConfiguration.peerAddress.addr_to_string (buffer,
+                                                                                  sizeof (buffer));
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
@@ -266,8 +273,8 @@ Stream_Module_TCPTarget_T<SessionMessageType,
     if (isLinked_)
     {
       ACE_ASSERT (connection_);
-      typename ConnectionManagerType::CONNECTION_T::STREAM_T& stream_r =
-          const_cast<typename ConnectionManagerType::CONNECTION_T::STREAM_T&> (connection_->stream ());
+      typename ConnectorType::STREAM_T& stream_r =
+        const_cast<typename ConnectorType::STREAM_T&> (connection_->stream ());
       Stream_Module_t* module_p = NULL;
       result = stream_r.top (module_p);
       if (result == -1)
@@ -297,7 +304,7 @@ Stream_Module_TCPTarget_T<SessionMessageType,
   // step1: initialize connector
   // *TODO*: remove type inferences
   ConnectionManagerType* connection_manager_p =
-      configuration_.sourceConnectionManager;
+      configuration_.connectionManager;
   ACE_ASSERT (connection_manager_p);
   typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
     connection_manager_p;
@@ -326,11 +333,13 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 
   // step3: connect
   ACE_ASSERT (!connection_);
-  handle = connector.connect (configuration_.peerAddress);
-  const typename ConnectionManagerType::CONNECTION_T::STREAM_T* stream_p = NULL;
+  handle =
+    connector.connect (configuration_.configuration->socketConfiguration.peerAddress);
+  const typename ConnectorType::STREAM_T* stream_p = NULL;
   Stream_Module_t* module_2 = NULL;
   if (connector.useReactor ())
-    connection_ = connection_manager_p->get (handle);
+    connection_ =
+      dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_manager_p->get (handle));
   else
   {
     ACE_Time_Value one_second (1, 0);
@@ -339,7 +348,8 @@ Stream_Module_TCPTarget_T<SessionMessageType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                   &one_second));
-    connection_ = connection_manager_p->get (configuration_.peerAddress);
+    connection_ =
+      dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_manager_p->get (configuration_.configuration->socketConfiguration.peerAddress));
   } // end IF
   if (!connection_)
   {
@@ -358,7 +368,7 @@ Stream_Module_TCPTarget_T<SessionMessageType,
   module_p = inherited::module ();
   ACE_ASSERT (module_p);
   result =
-      const_cast<typename ConnectionManagerType::CONNECTION_T::STREAM_T*> (stream_p)->top (module_2);
+    const_cast<typename ConnectorType::STREAM_T*> (stream_p)->top (module_2);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -377,8 +387,8 @@ failed:
   if (isLinked_)
   {
     ACE_ASSERT (connection_);
-    typename ConnectionManagerType::CONNECTION_T::STREAM_T& stream_r =
-        const_cast<typename ConnectionManagerType::CONNECTION_T::STREAM_T&> (connection_->stream ());
+    typename ConnectorType::STREAM_T& stream_r =
+      const_cast<typename ConnectorType::STREAM_T&> (connection_->stream ());
     Stream_Module_t* module_p = NULL;
     result = stream_r.top (module_p);
     if (result == -1)

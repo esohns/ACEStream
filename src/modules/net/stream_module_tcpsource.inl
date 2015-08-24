@@ -115,9 +115,12 @@ Stream_Module_TCPSource_T<SessionMessageType,
   if (connection_)
   {
     ACE_OS::memset (buffer, 0, sizeof (buffer));
-    result =
-      inherited::configuration_.peerAddress.addr_to_string (buffer,
-                                                            sizeof (buffer));
+    ACE_HANDLE handle = ACE_INVALID_HANDLE;
+    ACE_INET_Addr local_address, peer_address;
+    connection_->info (handle,
+                       local_address, peer_address);
+    result = peer_address.addr_to_string (buffer,
+                                          sizeof (buffer));
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
@@ -156,7 +159,9 @@ Stream_Module_TCPSource_T<SessionMessageType,
   ACE_TCHAR buffer[BUFSIZ];
 
   // sanity check(s)
-  if (inherited::configuration_.peerAddress.is_any ())
+  // *TODO*: remove type inferences
+  ACE_ASSERT (inherited::configuration_.configuration);
+  if (inherited::configuration_.configuration->socketConfiguration.peerAddress.is_any ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid peer address (was: any), aborting\n")));
@@ -164,8 +169,8 @@ Stream_Module_TCPSource_T<SessionMessageType,
   } // end IF
   ACE_OS::memset (buffer, 0, sizeof (buffer));
   result =
-    inherited::configuration_.peerAddress.addr_to_string (buffer,
-                                                          sizeof (buffer));
+    inherited::configuration_.configuration->socketConfiguration.peerAddress.addr_to_string (buffer,
+                                                                                             sizeof (buffer));
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
@@ -213,7 +218,7 @@ Stream_Module_TCPSource_T<SessionMessageType,
   // step1: initialize connector
   // *TODO*: remove type inferences
   ConnectionManagerType* connection_manager_p =
-      inherited::configuration_.targetConnectionManager;
+      inherited::configuration_.connectionManager;
   ACE_ASSERT (connection_manager_p);
   typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
     connection_manager_p;
@@ -260,7 +265,7 @@ Stream_Module_TCPSource_T<SessionMessageType,
   // step3: connect
   ACE_ASSERT (!connection_);
   handle =
-    connector.connect (inherited::configuration_.peerAddress);
+    connector.connect (inherited::configuration_.configuration->socketConfiguration.peerAddress);
   if (connector.useReactor ())
     connection_ = connection_manager_p->get (handle);
   else
@@ -272,7 +277,7 @@ Stream_Module_TCPSource_T<SessionMessageType,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                   &one_second));
     connection_ =
-        connection_manager_p->get (inherited::configuration_.peerAddress);
+      connection_manager_p->get (inherited::configuration_.configuration->socketConfiguration.peerAddress);
   } // end IF
   if (!connection_)
   {
@@ -435,9 +440,12 @@ Stream_Module_TCPSource_T<SessionMessageType,
       if (connection_)
       {
         ACE_OS::memset (buffer, 0, sizeof (buffer));
-        result =
-          inherited::configuration_.peerAddress.addr_to_string (buffer,
-                                                                sizeof (buffer));
+        ACE_HANDLE handle = ACE_INVALID_HANDLE;
+        ACE_INET_Addr local_address, peer_address;
+        connection_->info (handle,
+                           local_address, peer_address);
+        result = peer_address.addr_to_string (buffer,
+                                              sizeof (buffer));
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));

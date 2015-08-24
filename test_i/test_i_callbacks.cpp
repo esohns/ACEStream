@@ -39,8 +39,7 @@
 
 #include "test_i_common.h"
 #include "test_i_defines.h"
-#include "test_i_source_stream.h"
-#include "test_i_target_stream.h"
+#include "test_i_target_common.h"
 
 ACE_THR_FUNC_RETURN
 stream_processing_function (void* arg_in)
@@ -195,10 +194,10 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename.empty ())
+  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.empty ())
   {
     GFile* file_p =
-        g_file_new_for_path (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename.c_str ());
+        g_file_new_for_path (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.c_str ());
     ACE_ASSERT (file_p);
     GError* error_p = NULL;
     if (!gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
@@ -222,7 +221,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
       GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ENTRY_DESTINATION_NAME)));
   ACE_ASSERT (entry_p);
-  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.is_any ())
+  if (!data_p->configuration->socketConfiguration.peerAddress.is_any ())
   {
 //    ACE_TCHAR buffer[BUFSIZ];
 //    ACE_OS::memset (buffer, 0, sizeof (buffer));
@@ -238,14 +237,14 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 //    } // end IF
 //    gtk_entry_set_text (entry_p, buffer);
     gtk_entry_set_text (entry_p,
-                        data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.get_host_name ());
+                        data_p->configuration->socketConfiguration.peerAddress.get_host_name ());
 
     spin_button_p =
         GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
     ACE_ASSERT (spin_button_p);
     gtk_spin_button_set_value (spin_button_p,
-                               static_cast<double> (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.get_port_number ()));
+                               static_cast<double> (data_p->configuration->socketConfiguration.peerAddress.get_port_number ()));
   } // end IF
 
   spin_button_p =
@@ -470,7 +469,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
   default_folder_uri +=
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFilename;
+    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -498,8 +497,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_target_UI_cb"));
 
-  Stream_GTK_CBData* data_p =
-      static_cast<Stream_GTK_CBData*> (userData_in);
+  Test_I_Target_GTK_CBData* data_p =
+    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -566,12 +565,12 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFilename.empty ())
+  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.empty ())
   {
     GFile* file_p =
-        g_file_new_for_path (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFilename.c_str ());
+        g_file_new_for_path (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.c_str ());
     ACE_ASSERT (file_p);
     GError* error_p = NULL;
     if (!gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
@@ -596,7 +595,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.get_port_number ()));
+                             static_cast<double> (data_p->configuration->socketConfiguration.peerAddress.get_port_number ()));
 
   spin_button_p =
       //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -820,7 +819,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
   default_folder_uri +=
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFilename;
+    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -1131,7 +1130,7 @@ idle_update_progress_cb (gpointer userData_in)
 
   //gtk_progress_bar_pulse (progress_bar_p);
   gtk_progress_bar_set_fraction (progress_bar_p,
-                                 static_cast<double> (data_p->copied) / static_cast<double> (data_p->size));
+                                 static_cast<double> (data_p->sent) / static_cast<double> (data_p->size));
 
   // --> reschedule
   return TRUE; // G_SOURCE_CONTINUE
@@ -1150,8 +1149,8 @@ action_close_all_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_close_all_activate_cb"));
 
-  Stream_GTK_CBData* data_p =
-    static_cast<Stream_GTK_CBData*> (userData_in);
+  Test_I_Target_GTK_CBData* data_p =
+    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -1166,8 +1165,8 @@ action_listen_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_listen_activate_cb"));
 
-  Stream_GTK_CBData* data_p =
-    static_cast<Stream_GTK_CBData*> (userData_in);
+  Test_I_Target_GTK_CBData* data_p =
+    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -1242,7 +1241,7 @@ action_start_activate_cb (GtkAction* action_in,
   gtk_action_set_sensitive (action_p, TRUE);
 
   // step1: set up progress reporting
-  data_p->progressData.copied = 0;
+  data_p->progressData.sent = 0;
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
@@ -1612,9 +1611,9 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   //gtk_entry_set_text (entry_p, string_p);
 
   // find out which button toggled...
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename =
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName =
       Common_UI_Tools::UTF82Locale (string_p, -1);
-  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename.empty ())
+  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
@@ -1634,8 +1633,8 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
-  bool activate = (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.sourceFilename.empty () &&
-                   !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.peerAddress.is_any ());
+  bool activate = (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.empty () &&
+                   !data_p->configuration->socketConfiguration.peerAddress.is_any ());
   gtk_action_set_sensitive (action_p, activate);
 } // filechooserbutton_cb
 

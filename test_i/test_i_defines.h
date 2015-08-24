@@ -57,6 +57,8 @@
 #define TEST_I_STREAM_UI_GTK_ENTRY_DESTINATION_NAME          "entry_destination"
 #define TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME     "filechooserbutton_source"
 #define TEST_I_STREAM_UI_GTK_FILECHOOSERDIALOG_OPEN_NAME     "dialog_filechooser"
+#define TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
+#define TEST_I_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "dialog_filechooser"
 #define TEST_I_STREAM_UI_GTK_HBOX_OPTIONS_NAME               "hbox_options"
 //#define TEST_I_STREAM_UI_GTK_IMAGE_PLAY_NAME                 "image_play"
 //#define TEST_I_STREAM_UI_GTK_IMAGE_PAUSE_NAME                "image_pause"

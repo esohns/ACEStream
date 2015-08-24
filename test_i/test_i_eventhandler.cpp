@@ -84,7 +84,7 @@ Stream_EventHandler::notify (const Stream_Message& message_in)
 
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
 
-  CBData_->progressData.copied += message_in.total_length ();
+  CBData_->progressData.sent += message_in.total_length ();
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
 }
