@@ -22,6 +22,7 @@
 #define STREAM_TASK_BASE_ASYNCH_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_task_base.h"
 #include "stream_messagequeue.h"
@@ -32,12 +33,12 @@ class ACE_Time_Value;
 
 // *IMPORTANT NOTE*: the message queue needs to be synchronized so that shutdown
 //                   can be asynchronous
-template <typename TaskSynchType,
-          typename TimePolicyType,
+template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 class Stream_TaskBaseAsynch_T
- : public Stream_TaskBase_T<TaskSynchType,
+// *TODO*: figure out whether it is possible to use ACE_NULL_SYNCH in this case
+ : public Stream_TaskBase_T<ACE_MT_SYNCH,
                             TimePolicyType,
                             SessionMessageType,
                             ProtocolMessageType>
@@ -61,7 +62,7 @@ class Stream_TaskBaseAsynch_T
   ACE_thread_t        threadID_;
 
  private:
-  typedef Stream_TaskBase_T<TaskSynchType,
+  typedef Stream_TaskBase_T<ACE_MT_SYNCH,
                             TimePolicyType,
                             SessionMessageType,
                             ProtocolMessageType> inherited;

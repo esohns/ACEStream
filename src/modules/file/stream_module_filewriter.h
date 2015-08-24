@@ -23,7 +23,6 @@
 
 #include "ace/FILE_IO.h"
 #include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
@@ -36,8 +35,7 @@ template <typename SessionMessageType,
           ///////////////////////////////
           typename SessionDataType>
 class Stream_Module_FileWriter_T
- : public Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
-                                  Common_TimePolicy_t,
+ : public Stream_TaskBaseAsynch_T<Common_TimePolicy_t,
                                   SessionMessageType,
                                   MessageType>
  , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
@@ -60,8 +58,7 @@ class Stream_Module_FileWriter_T
   ModuleHandlerConfigurationType configuration_;
 
  private:
-  typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
-                                  Common_TimePolicy_t,
+  typedef Stream_TaskBaseAsynch_T<Common_TimePolicy_t,
                                   SessionMessageType,
                                   MessageType> inherited;
 

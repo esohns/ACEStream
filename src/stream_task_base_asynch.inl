@@ -28,12 +28,10 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-template <typename TaskSynchType,
-          typename TimePolicyType,
+template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-Stream_TaskBaseAsynch_T<TaskSynchType,
-                        TimePolicyType,
+Stream_TaskBaseAsynch_T<TimePolicyType,
                         SessionMessageType,
                         ProtocolMessageType>::Stream_TaskBaseAsynch_T ()
  : threadID_ (0)
@@ -49,12 +47,10 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
   inherited::grp_id (STREAM_MODULE_TASK_GROUP_ID);
 }
 
-template <typename TaskSynchType,
-          typename TimePolicyType,
+template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-Stream_TaskBaseAsynch_T<TaskSynchType,
-                        TimePolicyType,
+Stream_TaskBaseAsynch_T<TimePolicyType,
                         SessionMessageType,
                         ProtocolMessageType>::~Stream_TaskBaseAsynch_T ()
 {
@@ -78,13 +74,11 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
 //   queue_.wait ();
 }
 
-template <typename TaskSynchType,
-          typename TimePolicyType,
+template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 int
-Stream_TaskBaseAsynch_T<TaskSynchType,
-                        TimePolicyType,
+Stream_TaskBaseAsynch_T<TimePolicyType,
                         SessionMessageType,
                         ProtocolMessageType>::open (void* args_in)
 {
@@ -160,13 +154,11 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
   return result;
 }
 
-template <typename TaskSynchType,
-          typename TimePolicyType,
+template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 int
-Stream_TaskBaseAsynch_T<TaskSynchType,
-                        TimePolicyType,
+Stream_TaskBaseAsynch_T<TimePolicyType,
                         SessionMessageType,
                         ProtocolMessageType>::close (u_long arg_in)
 {
@@ -216,13 +208,11 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
   return 0;
 }
 
-template <typename TaskSynchType,
-          typename TimePolicyType,
+template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 int
-Stream_TaskBaseAsynch_T<TaskSynchType,
-                        TimePolicyType,
+Stream_TaskBaseAsynch_T<TimePolicyType,
                         SessionMessageType,
                         ProtocolMessageType>::module_closed (void)
 {
@@ -261,13 +251,11 @@ Stream_TaskBaseAsynch_T<TaskSynchType,
 //  return inherited::putq (messageBlock_in, timeout_in);
 //}
 
-template <typename TaskSynchType,
-          typename TimePolicyType,
+template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 int
-Stream_TaskBaseAsynch_T<TaskSynchType,
-                        TimePolicyType,
+Stream_TaskBaseAsynch_T<TimePolicyType,
                         SessionMessageType,
                         ProtocolMessageType>::svc (void)
 {
@@ -327,13 +315,11 @@ done:
   return result;
 }
 
-template <typename TaskSynchType,
-          typename TimePolicyType,
+template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_TaskBaseAsynch_T<TaskSynchType,
-                        TimePolicyType,
+Stream_TaskBaseAsynch_T<TimePolicyType,
                         SessionMessageType,
                         ProtocolMessageType>::waitForIdleState () const
 {

@@ -104,17 +104,17 @@ class Stream_Module_TCPIO_Stream_T
   // convenient types
   typedef Stream_Module_TCPIO_Stream_T<TaskSynchType,
                                         TimePolicyType,
-                                        
+
                                         StatusType,
                                         StateType,
-                                        
+
                                         ConfigurationType,
-                                        
+
                                         StatisticContainerType,
-                                        
+
                                         ModuleConfigurationType,
                                         HandlerConfigurationType,
-                                        
+
                                         SessionDataType,          // session data
                                         SessionDataContainerType, // session data container (reference counted)
                                         SessionMessageType,
@@ -160,5 +160,7 @@ class Stream_Module_TCPIO_Stream_T
 
   static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long> currentSessionID;
 };
+
+#include "stream_module_tcpio_stream.inl"
 
 #endif

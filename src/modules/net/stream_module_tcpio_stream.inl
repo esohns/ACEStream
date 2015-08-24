@@ -68,7 +68,7 @@ Stream_Module_TCPIO_Stream_T<TaskSynchType,
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::availableModules_.begin ();
+  for (typename inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::availableModules_.begin ();
        iterator != inherited::availableModules_.end ();
        iterator++)
      (*iterator)->next (NULL);
@@ -173,15 +173,15 @@ Stream_Module_TCPIO_Stream_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPIO_Stream_T::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (!isRunning ());
+  ACE_ASSERT (!this->isRunning ());
 
   if (inherited::isInitialized_)
   {
     // *TODO*: move this to stream_base.inl ?
     int result = -1;
-    const inherited::MODULE_T* module_p = NULL;
-    inherited::IMODULE_T* imodule_p = NULL;
-    for (inherited::ITERATOR_T iterator (*this);
+    const typename inherited::MODULE_T* module_p = NULL;
+    typename inherited::IMODULE_T* imodule_p = NULL;
+    for (typename inherited::ITERATOR_T iterator (*this);
          (iterator.next (module_p) != 0);
          iterator.advance ())
     {
@@ -191,7 +191,7 @@ Stream_Module_TCPIO_Stream_T<TaskSynchType,
 
       // need a downcast...
       imodule_p =
-        dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
+        dynamic_cast<typename inherited::IMODULE_T*> (const_cast<typename inherited::MODULE_T*> (module_p));
       if (!imodule_p)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -274,8 +274,8 @@ Stream_Module_TCPIO_Stream_T<TaskSynchType,
   {
     // *TODO*: (at least part of) this procedure belongs in libACEStream
     //         --> remove type inferences
-    inherited::IMODULE_T* module_2 =
-        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
+    typename inherited::IMODULE_T* module_2 =
+        dynamic_cast<typename inherited::IMODULE_T*> (configuration_in.module);
     if (!module_2)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -292,8 +292,8 @@ Stream_Module_TCPIO_Stream_T<TaskSynchType,
     } // end IF
     Stream_Task_t* task_p = configuration_in.module->writer ();
     ACE_ASSERT (task_p);
-    inherited::IMODULEHANDLER_T* module_handler_p =
-      dynamic_cast<inherited::IMODULEHANDLER_T*> (task_p);
+    typename inherited::IMODULEHANDLER_T* module_handler_p =
+      dynamic_cast<typename inherited::IMODULEHANDLER_T*> (task_p);
     if (!module_handler_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -459,41 +459,6 @@ Stream_Module_TCPIO_Stream_T<TaskSynchType,
                              ConnectionManagerType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPIO_Stream_T::report"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
-}
-
-template <typename TaskSynchType,
-          typename TimePolicyType,
-          typename StatusType,
-          typename StateType,
-          typename ConfigurationType,
-          typename StatisticContainerType,
-          typename ModuleConfigurationType,
-          typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConnectionManagerType>
-void
-Stream_Module_TCPIO_Stream_T<TaskSynchType,
-                             TimePolicyType,
-                             StatusType,
-                             StateType,
-                             ConfigurationType,
-                             StatisticContainerType,
-                             ModuleConfigurationType,
-                             HandlerConfigurationType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             SessionMessageType,
-                             ProtocolMessageType,
-                             ConnectionManagerType>::ping ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPIO_Stream_T::ping"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP;

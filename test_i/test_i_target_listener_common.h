@@ -25,6 +25,12 @@
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
+#include "net_asynch_tcpsockethandler.h"
+#include "net_stream_asynch_tcpsocket_base.h"
+#include "net_stream_tcpsocket_base.h"
+#include "net_tcpconnection_base.h"
+#include "net_tcpsockethandler.h"
+
 #include "net_server_asynchlistener.h"
 #include "net_server_listener.h"
 
@@ -33,7 +39,55 @@
 #include "test_i_target_common.h"
 #include "test_i_target_stream.h"
 
-typedef Net_Server_AsynchListener_T<Test_I_AsynchTCPConnection_t,
+typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration>,
+                                  ///////
+                                  ACE_INET_Addr,
+                                  Test_I_Configuration,
+                                  Test_I_ConnectionState,
+                                  Test_I_RuntimeStatistic_t,
+                                  Test_I_Target_Stream,
+                                  ///////
+                                  Test_I_Stream_UserData,
+                                  ///////
+                                  Stream_ModuleConfiguration,
+                                  Test_I_Stream_ModuleHandlerConfiguration> Test_I_Target_TCPHandler_t;
+typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration>,
+
+                                        ACE_INET_Addr,
+                                        Test_I_Configuration,
+                                        Test_I_ConnectionState,
+                                        Test_I_RuntimeStatistic_t,
+                                        Test_I_Target_Stream,
+
+                                        Test_I_Stream_UserData,
+
+                                        Stream_ModuleConfiguration,
+                                        Test_I_Stream_ModuleHandlerConfiguration> Test_I_Target_AsynchTCPHandler_t;
+
+typedef Net_TCPConnectionBase_T<Test_I_Target_TCPHandler_t,
+                                /////////
+                                Test_I_Configuration,
+                                Test_I_ConnectionState,
+                                Test_I_RuntimeStatistic_t,
+                                Test_I_Target_Stream,
+                                /////////
+                                Test_I_Stream_SocketHandlerConfiguration,
+                                /////////
+                                Test_I_Stream_UserData> Test_I_Target_TCPConnection_t;
+typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_AsynchTCPHandler_t,
+                                      ///
+                                      Test_I_Configuration,
+                                      Test_I_ConnectionState,
+                                      Test_I_RuntimeStatistic_t,
+                                      Test_I_Target_Stream,
+                                      /////////
+                                      Test_I_Stream_SocketHandlerConfiguration,
+                                      /////////
+                                      Test_I_Stream_UserData> Test_I_Target_AsynchTCPConnection_t;
+
+/////////////////////////////////////////
+
+typedef Net_Server_AsynchListener_T<Test_I_Target_AsynchTCPConnection_t,
                                     /////
                                     ACE_INET_Addr,
                                     Test_I_Target_ListenerConfiguration,
@@ -43,7 +97,7 @@ typedef Net_Server_AsynchListener_T<Test_I_AsynchTCPConnection_t,
                                     Test_I_Stream_SocketHandlerConfiguration,
                                     /////
                                     Test_I_Stream_UserData> Test_I_Target_AsynchListener_t;
-typedef Net_Server_Listener_T<Test_I_TCPConnection_t,
+typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
                               ///////////
                               ACE_INET_Addr,
                               Test_I_Target_ListenerConfiguration,

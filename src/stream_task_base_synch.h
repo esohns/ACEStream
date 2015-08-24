@@ -34,7 +34,7 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 class Stream_TaskBaseSynch_T
-// *TODO*: figure out how to use ACE_NULL_SYNCH in this case...
+// *TODO*: figure out how to use ACE_NULL_SYNCH in this case
  : public Stream_TaskBase_T<ACE_MT_SYNCH,
                             TimePolicyType,
                             SessionMessageType,
