@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!-- interface-requires gtk+ 2.24 -->
+  <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkAction" id="action_close_all">
     <property name="stock_id">gtk-close</property>
     <signal name="activate" handler="action_stop_activate_cb" swapped="no"/>
@@ -687,6 +687,7 @@
                 <property name="fill">False</property>
                 <property name="position">0</property>
                 <property name="secondary">True</property>
+                <property name="non_homogeneous">True</property>
               </packing>
             </child>
             <child>

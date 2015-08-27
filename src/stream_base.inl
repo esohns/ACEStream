@@ -813,22 +813,43 @@ Stream_Base_T<TaskSynchType,
     result = task_p->wait ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
+                  ACE_TEXT ("%s writer: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
+                  module_p->name ()));
 
     module_p = NULL;
   } // end FOR
 
   // step2: wait for any pipelined messages to flush...
+  Stream_Queue_t* queue_p = NULL;
+  ACE_Time_Value one_second (1, 0);
   for (MODULE_CONTAINER_ITERATOR_T iterator2 = modules.begin ();
        iterator2 != modules.end ();
        iterator2++)
   {
-    task_p = (*iterator2)->writer ();
+    task_p = (*iterator2)->reader ();
     ACE_ASSERT (task_p);
+    queue_p = task_p->msg_queue ();
+    ACE_ASSERT (queue_p);
+    do
+    {
+      //result = queue_p->wait ();
+      result = queue_p->message_count ();
+      if (!result) break;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s reader: waiting to process ~%d byte(s) (in %d message(s))...\n"),
+                  queue_p->message_bytes (), result));
+      result = ACE_OS::sleep (one_second);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                    (*iterator2)->name (),
+                    &one_second));
+    } while (true);
     result = task_p->wait ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
+                  ACE_TEXT ("%s reader: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
+                  (*iterator2)->name ()));
   } // end FOR
 }
 
@@ -894,20 +915,17 @@ Stream_Base_T<TaskSynchType,
   std::string stream_layout;
 
   const MODULE_T* module_p = NULL;
+  const MODULE_T* tail_p = const_cast<OWN_TYPE_T*> (this)->tail ();
+  ACE_ASSERT (tail_p);
   for (ITERATOR_T iterator (*this);
        (iterator.next (module_p) != 0);
        iterator.advance ())
   {
-    // silently ignore ACE head/tail modules...
-    if ((module_p == const_cast<OWN_TYPE_T*> (this)->tail ()) ||
-        (module_p == const_cast<OWN_TYPE_T*> (this)->head ()))
-      continue;
-
     stream_layout.append (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
 
-    // avoid trailing "-->"...
-    if (const_cast<MODULE_T*> (module_p)->next () !=
-        const_cast<OWN_TYPE_T*> (this)->tail ())
+    // avoid trailing "-->"
+    //if (module_p != tail_p) // <-- does not work for some reason...
+    if (ACE_OS::strcmp (module_p->name (), tail_p->name ()) != 0)
       stream_layout += ACE_TEXT_ALWAYS_CHAR (" --> ");
 
     module_p = NULL;
@@ -952,6 +970,77 @@ Stream_Base_T<TaskSynchType,
   ACE_ASSERT (sessionData_);
 
   return *sessionData_;
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+int
+Stream_Base_T<TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+//              ProtocolMessageType>::get () const
+              ProtocolMessageType>::link (STREAM_T& us)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
+
+  // *IMPORTANT NOTE*: this bit is mostly copy/pasted from Stream.cpp:505
+
+  // *WARNING*: cannot access the base class lock and other vitals
+  //            --> not thread-safe !
+
+  //this->linked_us_ = &us;
+  //// Make sure the other side is also linked to us!
+  //us.linked_us_ = this;
+
+  ACE_Module<TaskSynchType, TimePolicyType> *my_tail = inherited::head ();
+
+  if (my_tail == 0)
+    return -1;
+
+  // Locate the module just above our Stream tail.
+  while (my_tail->next () != this->tail ())
+    my_tail = my_tail->next ();
+
+  ACE_Module<TaskSynchType, TimePolicyType> *other_tail = us.head ();
+
+  if (other_tail == 0)
+    return -1;
+
+  // Locate the module just above the other Stream's tail.
+  while (other_tail->next () != us.tail ())
+    other_tail = other_tail->next ();
+
+  int result = inherited::link (us);
+
+  //// Reattach the pointers so that the two streams are linked!
+  //my_tail->writer ()->next (other_tail->reader ());
+  //other_tail->writer ()->next (my_tail->reader ());
+  // *EDIT*: reset 'broken' writer link
+  other_tail->writer ()->next (us.tail ()->writer ());
+
+  my_tail->writer ()->next (other_tail->writer ());
+  // *NOTE*: do not link the outbound-side streams together (see header)
+  //other_tail->reader ()->next (my_tail->reader ());
+
+  return result;
 }
 
 //template <typename TaskSynchType,
@@ -1058,6 +1147,87 @@ Stream_Base_T<TaskSynchType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
+              ProtocolMessageType>::remove (MODULE_T* module_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::remove"));
+
+  int result = -1;
+
+  // sanity check(s)
+  ACE_ASSERT (module_in);
+
+  // *NOTE*: start with the last module and work backwards
+  MODULE_T* module_p = module_in;
+  MODULE_T* tail_p = NULL;
+  while (module_p->next () != NULL)
+    module_p = module_p->next ();
+  tail_p = module_p;
+  ACE_ASSERT (tail_p &&
+              (ACE_OS::strcmp (module_p->name (), ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) == 0));
+
+  std::deque<MODULE_T*> modules;
+  module_p = module_in;
+  while (module_p != tail_p)
+  {
+    modules.push_front (module_p);
+    module_p = module_p->next ();
+  } // end WHILE
+  while (!modules.empty ())
+  {
+    module_p = modules.front ();
+
+    // *NOTE*: removing a module close()s it; don't want that
+    //         --> reset() it manually
+    IMODULE_T* imodule_p = dynamic_cast<IMODULE_T*> (module_p);
+    if (!imodule_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to dynamic_cast<Stream_IModule_T*> (%@), aborting\n"),
+                  module_p->name (),
+                  module_p));
+      return false;
+    } // end IF
+
+    result = inherited::remove (module_p->name (),
+                                ACE_Module_Base::M_DELETE_NONE);
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", continuing\n"),
+                  module_p->name ()));
+    } // end IF
+    imodule_p->reset ();
+
+    modules.pop_front ();
+  } // end WHILE
+
+  return true;
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+bool
+Stream_Base_T<TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
               ProtocolMessageType>::isInitialized () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isInitialized"));
@@ -1121,8 +1291,8 @@ Stream_Base_T<TaskSynchType,
     } // end IF
   } // end IF
 
-  // step1: retrieve a list of modules which are NOT on the stream
-  // --> need to close() these manually (before they do so in their dtors...)
+  // step1: iterator over modules which are NOT on the stream
+  //        --> close() these manually (before they do so in their dtors...)
   //   ACE_DEBUG ((LM_DEBUG,
   //               ACE_TEXT ("deactivating offline module(s)...\n")));
 
@@ -1151,14 +1321,14 @@ Stream_Base_T<TaskSynchType,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
                     //ACE_TEXT (module_p->name ())));
-                    ACE_TEXT ((*iterator)->name ())));
+                    (*iterator)->name ()));
         result = -1;
       }
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", continuing\n"),
                     //ACE_TEXT (module_p->name ())));
-                    ACE_TEXT ((*iterator)->name ())));
+                    (*iterator)->name ()));
     } // end IF
   } // end FOR
 

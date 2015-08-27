@@ -20,34 +20,3 @@
 #include "stdafx.h"
 
 #include "stream_module_tcpio_stream.h"
-
-// *TODO*: is there a way to initialize (/export) static template members within
-//         (/from) a dynamic library ?
-//// initialize statics
-//template <typename TaskSynchType,
-//          typename TimePolicyType,
-//          typename StatusType,
-//          typename StateType,
-//          typename ConfigurationType,
-//          typename StatisticContainerType,
-//          typename ModuleConfigurationType,
-//          typename HandlerConfigurationType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConnectionManagerType>
-//ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long>
-//Stream_Module_TCPIO_Stream_T<TaskSynchType,
-//                             TimePolicyType,
-//                             StatusType,
-//                             StateType,
-//                             ConfigurationType,
-//                             StatisticContainerType,
-//                             ModuleConfigurationType,
-//                             HandlerConfigurationType,
-//                             SessionDataType,
-//                             SessionDataContainerType,
-//                             SessionMessageType,
-//                             ProtocolMessageType,
-//                             ConnectionManagerType>::currentSessionID = 0;

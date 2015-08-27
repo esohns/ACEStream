@@ -27,15 +27,11 @@
 
 #include "test_i_source_stream.h"
 
-// initialize statics
-ACE_Atomic_Op<ACE_Thread_Mutex,
-              unsigned long> Test_I_Target_Stream::currentSessionID = 0;
-
 Test_I_Target_Stream::Test_I_Target_Stream ()
  : inherited ()
- , TCPSource_ (ACE_TEXT_ALWAYS_CHAR ("TCPSource"),
-               NULL,
-               false)
+ , TCPIO_ (ACE_TEXT_ALWAYS_CHAR ("TCPIO"),
+           NULL,
+           false)
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
@@ -50,7 +46,7 @@ Test_I_Target_Stream::Test_I_Target_Stream ()
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&TCPSource_);
+  inherited::availableModules_.push_front (&TCPIO_);
   inherited::availableModules_.push_front (&runtimeStatistic_);
   inherited::availableModules_.push_front (&fileWriter_);
 
@@ -70,7 +66,6 @@ Test_I_Target_Stream::~Test_I_Target_Stream ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::~Test_I_Target_Stream"));
 
-  // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
 }
 
@@ -144,12 +139,9 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
   // *TODO*: remove type inferences
-  inherited::sessionData_->sessionID =
-    ++Test_I_Target_Stream::currentSessionID;
   inherited::sessionData_->fileName =
     configuration_in.moduleHandlerConfiguration_2.fileName;
-  inherited::sessionData_->size =
-    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.fileName);
+  inherited::sessionData_->sessionID = configuration_in.sessionID;
 
   // things to be done here:
   // [- initialize base class]
@@ -163,32 +155,32 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   // ------------------------------------
 
   int result = -1;
-//  inherited::MODULE_T* module_p = NULL;
-//  if (configuration_in.notificationStrategy)
-//  {
-//    module_p = inherited::head ();
-//    if (!module_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("no head module found, aborting\n")));
-//      return false;
-//    } // end IF
-//    inherited::TASK_T* task_p = module_p->reader ();
-//    if (!task_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("no head module reader task found, aborting\n")));
-//      return false;
-//    } // end IF
-//    inherited::QUEUE_T* queue_p = task_p->msg_queue ();
-//    if (!queue_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("no head module reader task queue found, aborting\n")));
-//      return false;
-//    } // end IF
-//    queue_p->notification_strategy (configuration_in.notificationStrategy);
-//  } // end IF
+  inherited::MODULE_T* module_p = NULL;
+  if (configuration_in.notificationStrategy)
+  {
+    module_p = inherited::head ();
+    if (!module_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("no head module found, aborting\n")));
+      return false;
+    } // end IF
+    inherited::TASK_T* task_p = module_p->reader ();
+    if (!task_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("no head module reader task found, aborting\n")));
+      return false;
+    } // end IF
+    inherited::QUEUE_T* queue_p = task_p->msg_queue ();
+    if (!queue_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("no head module reader task queue found, aborting\n")));
+      return false;
+    } // end IF
+    queue_p->notification_strategy (configuration_in.notificationStrategy);
+  } // end IF
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
@@ -196,22 +188,23 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   {
     // *TODO*: (at least part of) this procedure belongs in libACEStream
     //         --> remove type inferences
-    inherited::IMODULE_T* module_2 =
+    inherited::IMODULE_T* imodule_p =
         dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
-    if (!module_2)
+    if (!imodule_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    if (!module_2->initialize (configuration_in.moduleConfiguration_2))
+    if (!imodule_p->initialize (configuration_in.moduleConfiguration_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to initialize module, aborting\n"),
                   configuration_in.module->name ()));
       return false;
     } // end IF
+    imodule_p->reset ();
     Stream_Task_t* task_p = configuration_in.module->writer ();
     ACE_ASSERT (task_p);
     inherited::IMODULEHANDLER_T* module_handler_p =
@@ -296,40 +289,41 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
     return false;
   } // end IF
 
-  // ******************* TCP Source ************************
-  TCPSource_.initialize (configuration_in.moduleConfiguration_2);
-  Test_I_Stream_Module_TCPSource* TCPSource_impl_p =
-    dynamic_cast<Test_I_Stream_Module_TCPSource*> (TCPSource_.writer ());
-  if (!TCPSource_impl_p)
+  // ******************* TCP IO ************************
+  TCPIO_.initialize (configuration_in.moduleConfiguration_2);
+  Test_I_Stream_Module_TCPWriter_t* TCPIO_impl_p =
+    dynamic_cast<Test_I_Stream_Module_TCPWriter_t*> (TCPIO_.writer ());
+  if (!TCPIO_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_TCPSource> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Stream_Module_TCPWriter_T> failed, aborting\n")));
     return false;
   } // end IF
-  if (!TCPSource_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                TCPSource_.name ()));
-    return false;
-  } // end IF
-  if (!TCPSource_impl_p->initialize (inherited::state_))
+  if (!TCPIO_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                TCPSource_.name ()));
+                TCPIO_.name ()));
     return false;
   } // end IF
+  if (!TCPIO_impl_p->initialize (inherited::state_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+                TCPIO_.name ()));
+    return false;
+  } // end IF
+  TCPIO_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  TCPSource_.arg (inherited::sessionData_);
-  result = inherited::push (&TCPSource_);
+  TCPIO_.arg (inherited::sessionData_);
+  result = inherited::push (&TCPIO_);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (TCPSource_.name ())));
+                ACE_TEXT (TCPIO_.name ())));
     return false;
   } // end IF
 

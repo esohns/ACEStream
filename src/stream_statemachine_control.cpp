@@ -31,7 +31,6 @@ Stream_StateMachine_Control::Stream_StateMachine_Control ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::Stream_StateMachine_Control"));
 
-  inherited::state_ = STREAM_STATE_INITIALIZED;
 }
 
 Stream_StateMachine_Control::~Stream_StateMachine_Control ()
@@ -40,16 +39,55 @@ Stream_StateMachine_Control::~Stream_StateMachine_Control ()
 
 }
 
+void
+Stream_StateMachine_Control::initialize ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::initialize"));
+
+  if (!change (STREAM_STATE_INITIALIZED))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_StateMachine_Control::change(STREAM_STATE_INITIALIZED), continuing\n")));
+}
+
+void
+Stream_StateMachine_Control::reset ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::reset"));
+
+  initialize ();
+}
+
 bool
 Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::change"));
 
   // synchronize access to state machine...
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (inherited::lock_);
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (inherited::stateLock_);
 
   switch (inherited::state_)
   {
+    case STREAM_STATE_INVALID:
+    {
+      switch (newState_in)
+      {
+        // good case
+        case STREAM_STATE_INITIALIZED:
+        {
+          //           ACE_DEBUG ((LM_DEBUG,
+          //                       ACE_TEXT ("state switch: INVALID --> INITIALIZED\n")));
+
+          inherited::change (newState_in);
+
+          return true;
+        }
+        // error case
+        default:
+          break;
+      } // end SWITCH
+
+      break;
+    }
     case STREAM_STATE_INITIALIZED:
     {
       switch (newState_in)
@@ -63,13 +101,13 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           // *WARNING*: falls through
         }
         case STREAM_STATE_FINISHED: // !active
+        case STREAM_STATE_INITIALIZED:
         {
           inherited::change (newState_in);
 
           return true;
         }
         // error case
-        case STREAM_STATE_INITIALIZED:
         case STREAM_STATE_PAUSED:
         case STREAM_STATE_STOPPED:
         default:
@@ -175,19 +213,21 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
     {
       switch (newState_in)
       {
-        // *NOTE*: the whole stream needs to re-initialize BEFORE this happens
         // good case
         case STREAM_STATE_RUNNING:
         {
           //ACE_DEBUG ((LM_DEBUG,
           //            ACE_TEXT ("state switch: FINISHED --> RUNNING\n")));
 
+          // *WARNING*: falls through
+        }
+        case STREAM_STATE_INITIALIZED:
+        {
           inherited::change (newState_in);
 
           return true;
         }
         // error case
-        case STREAM_STATE_INITIALIZED:
         case STREAM_STATE_PAUSED:
         case STREAM_STATE_STOPPED:
         default:

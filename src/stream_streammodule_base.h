@@ -124,7 +124,7 @@ class Stream_StreamModuleInputOnly_T
 
 // *NOTE*: use this macro to instantiate the module definitions
 // *IMPORTANT NOTE*: TASK_SYNCH_TYPE is [ACE_MT_SYNCH | ACE_NULL_SYNCH] and MUST
-// correspond to the actual TASK_TYPE declaration !
+//                   correspond with the actual TASK_TYPE declaration !
 // *TODO*: --> remove TASK_TYPE
 #define DATASTREAM_MODULE_INPUT_ONLY(TASK_SYNCH_TYPE,\
                                      TIME_POLICY_TYPE,\

@@ -486,10 +486,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::handleDataMessage"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
+  ACE_UNUSED_ARG (message_inout);
+  ACE_UNUSED_ARG (passMessageDownstream_out);
 }
 
 template <typename TaskSynchType,
@@ -1181,17 +1179,17 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   ACE_ASSERT (configuration_.streamConfiguration);
 
   // create session data
-  SessionDataContainerType* session_data_p = NULL;
+  SessionDataContainerType* session_data_container_p = NULL;
   switch (messageType_in)
   {
     case STREAM_SESSION_BEGIN:
     case STREAM_SESSION_STEP:
     case STREAM_SESSION_END:
     {
-      ACE_NEW_NORETURN (session_data_p,
+      ACE_NEW_NORETURN (session_data_container_p,
                         SessionDataContainerType (sessionData_in,
                                                   deleteSessionData_in));
-      if (!session_data_p)
+      if (!session_data_container_p)
       {
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
@@ -1210,9 +1208,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     }
   } // end SWITCH
 
-  // *IMPORTANT NOTE*: "fire-and-forget" session_data_p
+  // *IMPORTANT NOTE*: "fire-and-forget" session_data_container_p
   // *TODO*: remove type inference
   return putSessionMessage (messageType_in,
-                            session_data_p,
+                            session_data_container_p,
                             configuration_.streamConfiguration->messageAllocator);
 }

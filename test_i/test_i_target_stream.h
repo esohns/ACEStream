@@ -21,15 +21,14 @@
 #ifndef TEST_I_TARGET_STREAM_H
 #define TEST_I_TARGET_STREAM_H
 
-#include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
-#include "ace/Thread_Mutex.h"
 
 #include "common_time_common.h"
 
 #include "stream_base.h"
-//#include "stream_common.h"
+#include "stream_common.h"
+#include "stream_statemachine_control.h"
 
 #include "test_i_common.h"
 #include "test_i_common_modules.h"
@@ -96,11 +95,9 @@ class Test_I_Target_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 
   // modules
-  Test_I_Stream_Module_TCPSource_Module        TCPSource_;
+  Test_I_Stream_Module_TCPIO_Module            TCPIO_;
   Test_I_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
   Test_I_Stream_Module_FileWriter_Module       fileWriter_;
-
-  static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long> currentSessionID;
 };
 
 #endif

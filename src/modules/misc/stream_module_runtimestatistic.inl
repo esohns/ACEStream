@@ -567,8 +567,8 @@ Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
                                      SessionMessageType,
                                      ProtocolMessageType,
                                      ProtocolCommandType,
-                                     StatisticContainerType>::put (ACE_Message_Block* mb_in,
-                                                                   ACE_Time_Value* tv_in)
+                                     StatisticContainerType>::put (ACE_Message_Block* messageBlock_in,
+                                                                   ACE_Time_Value* timeValue_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_ReaderTask_T::put"));
 
@@ -588,11 +588,13 @@ Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
                 ACE_TEXT ("failed to dynamic_cast<Net_Module_Statistic_WriterTask_t>: \"%m\", aborting\n")));
     return -1;
   } // end IF
-  ProtocolMessageType* message_p = dynamic_cast<ProtocolMessageType*> (mb_in);
+  ProtocolMessageType* message_p =
+    dynamic_cast<ProtocolMessageType*> (messageBlock_in);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<ProtocolMessageType>: \"%m\", aborting\n")));
+                ACE_TEXT ("failed to dynamic_cast<ProtocolMessageType>(%@), aborting\n"),
+                messageBlock_in));
     return -1;
   } // end IF
 
@@ -601,9 +603,9 @@ Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
 
     // update counters...
     sibling_p->numOutboundMessages_++;
-    sibling_p->numOutboundBytes_ += mb_in->total_length ();
+    sibling_p->numOutboundBytes_ += messageBlock_in->total_length ();
 
-    sibling_p->byteCounter_ += mb_in->total_length ();
+    sibling_p->byteCounter_ += messageBlock_in->total_length ();
 
     sibling_p->messageCounter_++;
 
@@ -611,5 +613,5 @@ Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
     sibling_p->messageTypeStatistic_[message_p->command ()]++;
   } // end lock scope
 
-  return inherited::put (mb_in, tv_in);
+  return inherited::put (messageBlock_in, timeValue_in);
 }

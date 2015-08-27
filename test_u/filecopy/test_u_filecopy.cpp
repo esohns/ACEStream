@@ -489,16 +489,7 @@ do_work (unsigned int bufferSize_in,
 
       return;
     } // end IF
-    if (!ShowWindow (window_p, SW_HIDE))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ::ShowWindow(), returning\n")));
-
-      // clean up
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
-
-      return;
-    } // end IF
+    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
 #endif
   } // end IF
   else

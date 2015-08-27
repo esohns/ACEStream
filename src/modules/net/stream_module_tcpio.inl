@@ -48,9 +48,9 @@ Stream_Module_TCPWriter_T<SessionMessageType,
                           SessionDataContainerType,
                           StatisticContainerType,
                           ConnectionManagerType>::Stream_Module_TCPWriter_T ()
- : inherited (true,
-              false,
-              true)
+ : inherited (false, // active object ?
+              false, // auto-start ?
+              false) // run svc() routine on start ? (passive only)
  , connection_ (NULL)
  , isInitialized_ (false)
  , statisticCollectionHandler_ (ACTION_COLLECT,
@@ -144,9 +144,6 @@ Stream_Module_TCPWriter_T<SessionMessageType,
 
   int result = -1;
 
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.connection);
-
   if (isInitialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
@@ -175,9 +172,6 @@ Stream_Module_TCPWriter_T<SessionMessageType,
     isInitialized_ = false;
   } // end IF
 
-  configuration_in.connection->increase ();
-  connection_ = configuration_in.connection;
-
   isInitialized_ = inherited::initialize (configuration_in);
   if (!isInitialized_)
   {
@@ -189,29 +183,60 @@ Stream_Module_TCPWriter_T<SessionMessageType,
   return true;
 }
 
-//template <typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Module_TCPWriter_T<SessionMessageType,
-//                           ProtocolMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType>::handleDataMessage (ProtocolMessageType*& message_inout,
-//                                                                       bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPWriter_T::handleDataMessage"));
+template <typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename ConnectionManagerType>
+void
+Stream_Module_TCPWriter_T<SessionMessageType,
+                          ProtocolMessageType,
+                          ConfigurationType,
+                          StreamStateType,
+                          SessionDataType,
+                          SessionDataContainerType,
+                          StatisticContainerType,
+                          ConnectionManagerType>::handleDataMessage (ProtocolMessageType*& message_inout,
+                                                                     bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPWriter_T::handleDataMessage"));
 
-//  // sanity check(s)
-//  ACE_ASSERT (message_inout);
-//  ACE_ASSERT (isInitialized_);
-//}
+  if (configuration_.inbound)
+  {
+    ACE_UNUSED_ARG (message_inout);
+    ACE_UNUSED_ARG (passMessageDownstream_out);
+  } // end IF
+  else
+  {
+    // *NOTE*: enqueue message on siblings' queue (will be forwarded to the
+    //         streams' head)
+    int result = -1;
+
+    // sanity check(s)
+    ACE_ASSERT (message_inout);
+    ACE_Message_Block* message_block_p = message_inout->duplicate ();
+    if (!message_block_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MessageType::duplicate(): \"%m\", returning\n")));
+      return;
+    } // end IF
+    result = inherited::reply (message_block_p, NULL);
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Task::reply(): \"%m\", returning\n")));
+
+      // clean up
+      message_block_p->release ();
+
+      return;
+    } // end IF
+  } // end IF
+}
 
 template <typename SessionMessageType,
           typename ProtocolMessageType,
@@ -263,7 +288,7 @@ Stream_Module_TCPWriter_T<SessionMessageType,
         if (timerID_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n")));
+                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", returning\n")));
           return;
         } // end IF
         //        ACE_DEBUG ((LM_DEBUG,
@@ -271,6 +296,78 @@ Stream_Module_TCPWriter_T<SessionMessageType,
         //                    timerID_,
         //                    &interval));
       } // end IF
+
+      // sanity check(s)
+      ACE_ASSERT (!connection_);
+      ACE_ASSERT (inherited::configuration_.connectionManager);
+
+      const SessionDataContainerType& session_data_container_r =
+        message_inout->get ();
+      const SessionDataType* session_data_p =
+        session_data_container_r.getData ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_ASSERT (session_data_p->sessionID != reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE));
+      connection_ =
+        inherited::configuration_.connectionManager->get (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID));
+#else
+      ACE_ASSERT (session_data_p->sessionID != ACE_INVALID_HANDLE);
+      connection_ =
+        inherited::configuration_.connectionManager->get (static_cast<ACE_HANDLE> (session_data_p->sessionID));
+#endif
+      if (!connection_)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
+                    session_data_p->sessionID));
+        return;
+      } // end IF
+
+      // set up reactor/proactor notification
+      // *TODO*: find a way to retrieve the stream handle here
+      //typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
+      //  dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
+      //if (!socket_connection_p)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
+      //              connection_));
+      //  return;
+      //} // end IF
+      //typename ConnectorType::STREAM_T& stream_r =
+      //  const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
+      //Stream_Module_t* module_p = stream_r.head ();
+      Stream_Module_t* module_p = inherited::module ();
+      ACE_ASSERT (module_p);
+      Stream_Task_t* task_p = module_p->reader ();
+      ACE_ASSERT (task_p);
+      while (ACE_OS::strcmp (module_p->name (),
+                             ACE_TEXT ("ACE_Stream_Head")) != 0)
+      {
+        task_p = task_p->next ();
+        if (!task_p) break;
+        module_p = task_p->module ();
+      } // end WHILE
+      //if (!module_p)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("no head module found, returning\n")));
+      //  return;
+      //} // end IF
+      //Stream_Task_t* task_p = module_p->reader ();
+      if (!task_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("no head module reader task found, returning\n")));
+        return;
+      } // end IF
+      Stream_Queue_t* queue_p = task_p->msg_queue ();
+      if (!queue_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("no head module reader task queue found, returning\n")));
+        return;
+      } // end IF
+      queue_p->notification_strategy (connection_->notification ());
 
       //      // start profile timer...
       //      profile_.start ();
@@ -297,6 +394,53 @@ Stream_Module_TCPWriter_T<SessionMessageType,
         connection_->decrease ();
         connection_ = NULL;
       } // end IF
+
+      // set up reactor/proactor notification
+      // *TODO*: find a way to retrieve the stream handle here
+      //typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
+      //  dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
+      //if (!socket_connection_p)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
+      //              connection_));
+      //  return;
+      //} // end IF
+      //typename ConnectorType::STREAM_T& stream_r =
+      //  const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
+      //Stream_Module_t* module_p = stream_r.head ();
+      Stream_Module_t* module_p = inherited::module ();
+      ACE_ASSERT (module_p);
+      Stream_Task_t* task_p = module_p->reader ();
+      ACE_ASSERT (task_p);
+      while (ACE_OS::strcmp (module_p->name (),
+                             ACE_TEXT ("ACE_Stream_Head")) != 0)
+      {
+        task_p = task_p->next ();
+        if (!task_p) break;
+        module_p = task_p->module ();
+      } // end WHILE
+      //if (!module_p)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("no head module found, returning\n")));
+      //  return;
+      //} // end IF
+      //Stream_Task_t* task_p = module_p->reader ();
+      if (!task_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("no head module reader task found, returning\n")));
+        return;
+      } // end IF
+      Stream_Queue_t* queue_p = task_p->msg_queue ();
+      if (!queue_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("no head module reader task queue found, returning\n")));
+        return;
+      } // end IF
+      queue_p->notification_strategy (NULL);
 
       break;
     }
@@ -554,12 +698,14 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType>
 Stream_Module_TCPReader_T<SessionMessageType,
                           MessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType>::Stream_Module_TCPReader_T ()
  : inherited ()
  , configuration_ ()
@@ -575,12 +721,14 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType>
 Stream_Module_TCPReader_T<SessionMessageType,
                           MessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType>::~Stream_Module_TCPReader_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPReader_T::~Stream_Module_TCPReader_T"));
@@ -601,10 +749,10 @@ Stream_Module_TCPReader_T<SessionMessageType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
-    connection_->close ();
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
-                ACE_TEXT (buffer)));
+    //connection_->close ();
+    //ACE_DEBUG ((LM_WARNING,
+    //            ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
+    //            ACE_TEXT (buffer)));
     connection_->decrease ();
     connection_ = NULL;
   } // end IF
@@ -615,6 +763,7 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType>
 void
 Stream_Module_TCPReader_T<SessionMessageType,
@@ -622,21 +771,15 @@ Stream_Module_TCPReader_T<SessionMessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType>::handleDataMessage (MessageType*& message_inout,
                                                                      bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPReader_T::handleDataMessage"));
 
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
   // sanity check(s)
-  ACE_ASSERT (connection_);
   ACE_ASSERT (message_inout);
-  if (!connection_->send (*message_inout))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Net_IConnection_T::send(%d): \"%m\", continuing\n"),
-                message_inout->total_length ()));
+  ACE_ASSERT (isInitialized_);
 }
 
 template <typename SessionMessageType,
@@ -644,6 +787,7 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType>
 void
 Stream_Module_TCPReader_T<SessionMessageType,
@@ -651,6 +795,7 @@ Stream_Module_TCPReader_T<SessionMessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                         bool& passMessageDownstream_out)
 {
@@ -666,6 +811,35 @@ Stream_Module_TCPReader_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_BEGIN:
+    {
+      // sanity check(s)
+      ACE_ASSERT (!connection_);
+      ACE_ASSERT (configuration_.connectionManager);
+
+      const SessionDataContainerType& session_data_container_r =
+        message_inout->get ();
+      const SessionDataType* session_data_p =
+        session_data_container_r.getData ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_ASSERT (session_data_p->sessionID != reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE));
+      connection_ =
+        configuration_.connectionManager->get (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID));
+#else
+      ACE_ASSERT (session_data_p->sessionID != ACE_INVALID_HANDLE);
+      connection_ =
+        configuration_.connectionManager->get (static_cast<ACE_HANDLE> (session_data_p->sessionID));
+#endif
+      if (!connection_)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
+                    session_data_p->sessionID));
+        return;
+      } // end IF
+
+      break;
+    }
     case STREAM_SESSION_END:
     {
       if (connection_)
@@ -686,6 +860,7 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType>
 bool
 Stream_Module_TCPReader_T<SessionMessageType,
@@ -693,16 +868,12 @@ Stream_Module_TCPReader_T<SessionMessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPReader_T::initialize"));
 
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.connection);
-
   configuration_ = configuration_in;
-  configuration_in.connection->increase ();
-  connection_ = configuration_in.connection;
 
   return true;
 }
@@ -711,6 +882,7 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType>
 const ModuleHandlerConfigurationType&
 Stream_Module_TCPReader_T<SessionMessageType,
@@ -718,6 +890,7 @@ Stream_Module_TCPReader_T<SessionMessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPReader_T::get"));

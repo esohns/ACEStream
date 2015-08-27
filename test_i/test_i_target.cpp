@@ -56,9 +56,9 @@
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
-#include "test_i_eventhandler.h"
 #include "test_i_module_eventhandler.h"
 #include "test_i_target_common.h"
+#include "test_i_target_eventhandler.h"
 #include "test_i_target_listener_common.h"
 #include "test_i_target_signalhandler.h"
 
@@ -93,11 +93,13 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_BUFFER_SIZE
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [VALUE]  : max #connections ([")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [VALUE]  : max #connections [")
             << TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : (target) file name")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : (target) file name [\"")
+            << ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE)
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -191,7 +193,7 @@ do_processArguments (int argc_in,
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
   maximumNumberOfConnections_out =
     TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS;
-  fileName_out.clear ();
+  fileName_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   UIFile_out = path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
@@ -450,7 +452,7 @@ do_work (unsigned int bufferSize_in,
                                                true);               // block ?
 
   CBData_in.configuration = &configuration;
-  Stream_EventHandler ui_event_handler (&CBData_in);
+  Stream_Target_EventHandler ui_event_handler (&CBData_in);
   Stream_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                    NULL,
                                                    true);
@@ -465,6 +467,10 @@ do_work (unsigned int bufferSize_in,
   event_handler_p->initialize (&CBData_in.subscribers,
                                &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
+
+  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
+    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
 
   // ********************** socket configuration data *************************
   configuration.socketConfiguration.peerAddress.set_port_number (listeningPortNumber_in,
@@ -485,10 +491,14 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   configuration.streamConfiguration.moduleHandlerConfiguration_2.configuration =
     &configuration;
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.connectionManager =
+    connection_manager_p;
   configuration.streamConfiguration.moduleHandlerConfiguration_2.printProgressDot =
       UIDefinitionFile_in.empty ();
   configuration.streamConfiguration.moduleHandlerConfiguration_2.fileName =
       fileName_in;
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.inbound =
+    true;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
@@ -520,12 +530,9 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step0c: initialize connection manager
-  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
-    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (connection_manager_p);
-  connection_manager_p->initialize (maximumNumberOfConnections_in);
-  Test_I_Stream_UserData session_data;
-  connection_manager_p->set (configuration, &session_data);
+  connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
+                                                                  : std::numeric_limits<unsigned int>::max ());
+  connection_manager_p->set (configuration, &configuration.streamUserData);
 
   // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =
@@ -637,17 +644,7 @@ do_work (unsigned int bufferSize_in,
 
       return;
     } // end IF
-    if (!ShowWindow (window_p, SW_HIDE))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ::ShowWindow(), returning\n")));
-
-      // clean up
-      timer_manager_p->stop ();
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
-
-      return;
-    } // end IF
+    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
 #endif
   } // end IF
 
@@ -862,7 +859,7 @@ ACE_TMAIN (int argc_in,
   unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
   unsigned int maximum_number_of_connections =
     TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS;
-  std::string file_name;
+  std::string file_name = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
@@ -924,10 +921,14 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
+  if (use_reactor && (number_of_dispatch_threads > 1))
+    use_thread_pool = true;
   if ((UI_definition_file_name.empty () &&
-       !Common_File_Tools::isReadable (file_name)) ||
+       !Common_File_Tools::isReadable (file_name))              ||
       (!UI_definition_file_name.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_file_name)))
+      !Common_File_Tools::isReadable (UI_definition_file_name)) ||
+      (use_thread_pool && !use_reactor)                         ||
+      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -944,8 +945,7 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  //if (run_stress_test)
-  //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
+  if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
 
   Test_I_Target_GTK_CBData gtk_cb_user_data;
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;

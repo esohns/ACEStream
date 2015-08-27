@@ -41,8 +41,6 @@
 #include "net_client_asynchconnector.h"
 #include "net_client_connector.h"
 
-//#include "test_i_common.h"
-
 // forward declarations
 class Stream_Message;
 class Stream_SessionMessage;

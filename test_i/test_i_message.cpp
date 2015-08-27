@@ -80,8 +80,8 @@ Stream_Message::duplicate (void) const
                       Stream_Message (*this));
   else // otherwise, use the existing message_block_allocator
   {
-    // *NOTE*: the argument to malloc SHOULDN'T really matter, as this will be
-    // a "shallow" copy which just references our data block...
+    // *NOTE*: the argument to malloc doesn't matter, as this will be
+    //         a shallow copy which just references the same data block
     ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<Stream_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
                                                                                                         '\0')),

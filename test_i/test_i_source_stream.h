@@ -21,15 +21,15 @@
 #ifndef TEST_I_SOURCE_STREAM_H
 #define TEST_I_SOURCE_STREAM_H
 
-#include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
-#include "ace/Thread_Mutex.h"
 
 #include "common_time_common.h"
 
 #include "stream_base.h"
 #include "stream_common.h"
+
+#include "stream_module_tcptarget.h"
 
 #include "test_i_common.h"
 #include "test_i_common_modules.h"
@@ -39,7 +39,8 @@
 // forward declarations
 class Stream_IAllocator;
 
-class Test_I_Source_Stream
+template <typename ConnectorType>
+class Test_I_Source_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         /////////////////
@@ -59,8 +60,8 @@ class Test_I_Source_Stream
                         Stream_Message>
 {
  public:
-  Test_I_Source_Stream ();
-  virtual ~Test_I_Source_Stream ();
+  Test_I_Source_Stream_T ();
+  virtual ~Test_I_Source_Stream_T ();
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Stream_Configuration&); // configuration
@@ -91,16 +92,39 @@ class Test_I_Source_Stream
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
                         Stream_SessionMessage,
                         Stream_Message> inherited;
+  typedef Stream_Module_TCPTarget_T<Stream_SessionMessage,
+                                    Stream_Message,
+                                    /////
+                                    Test_I_Configuration,
+                                    /////
+                                    Test_I_Stream_ModuleHandlerConfiguration,
+                                    /////
+                                    Test_I_Stream_SessionData,
+                                    Test_I_Stream_SessionData_t,
+                                    /////
+                                    Test_I_Stream_InetConnectionManager_t,
+                                    ConnectorType> WRITER_T;
+  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                             // task synch type
+                                         Common_TimePolicy_t,                      // time policy
+                                         Stream_ModuleConfiguration,               // module configuration type
+                                         Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                                         WRITER_T> TCPTARGET_MODULE_T;             // writer type
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream (const Test_I_Source_Stream&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream& operator= (const Test_I_Source_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
 
   // modules
   Test_I_Stream_Module_FileReader_Module       fileReader_;
   Test_I_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
-  Test_I_Stream_Module_TCPTarget_Module        TCPTarget_;
-
-  static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long> currentSessionID;
+  TCPTARGET_MODULE_T                           TCPTarget_;
 };
+
+// include template implementation
+#include "test_i_source_stream.inl"
+
+/////////////////////////////////////////
+
+typedef Test_I_Source_Stream_T<Test_I_Stream_TCPConnector_t> Test_I_Source_Stream_t;
+typedef Test_I_Source_Stream_T<Test_I_Stream_TCPAsynchConnector_t> Test_I_Source_AsynchStream_t;
 
 #endif

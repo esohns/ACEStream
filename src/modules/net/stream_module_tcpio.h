@@ -81,9 +81,9 @@ class Stream_Module_TCPWriter_T // --> output
   // info
   bool isInitialized () const;
 
-  //  // implement (part of) Stream_ITaskBase
-  //  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-  //                                  bool&);                // return value: pass message downstream ?
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
+                                  bool&);                // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -104,6 +104,8 @@ private:
                                       ///
                                       SessionDataType,
                                       SessionDataContainerType> inherited;
+  typedef ACE_Message_Queue<ACE_MT_SYNCH,
+                            Common_TimePolicy_t> MESSAGEQUEUE_T;
 
   //  ACE_UNIMPLEMENTED_FUNC (Stream_Module_TCPIO_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_TCPWriter_T (const Stream_Module_TCPWriter_T&))
@@ -131,7 +133,8 @@ template <typename SessionMessageType,
           ///////////////////////////////
           typename ModuleHandlerConfigurationType,
           ///////////////////////////////
-          typename SessionDataType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           ///////////////////////////////
           typename ConnectionManagerType>
 class Stream_Module_TCPReader_T // --> input

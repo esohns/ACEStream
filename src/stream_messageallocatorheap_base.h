@@ -106,8 +106,10 @@ class Stream_MessageAllocatorHeapBase_T
   bool                            block_;
   Stream_DataBlockAllocatorHeap   dataBlockAllocator_;
   ACE_Thread_Semaphore            freeMessageCounter_;
+  // *NOTE*: only the (unsigned) 'long' specialization may have support the
+  //         interlocked echange_add  (see ace/Atomic_Op.h)
   ACE_Atomic_Op<ACE_SYNCH_MUTEX,
-                unsigned int>     poolSize_;
+                unsigned long>    poolSize_;
 };
 
 // include template implementation

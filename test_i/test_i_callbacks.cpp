@@ -99,13 +99,14 @@ stream_processing_function (void* arg_in)
   //              ACE_TEXT ("failed to Stream_Filecopy_Stream::initialize(): \"%m\", aborting\n")));
   //  goto done;
   //} // end IF
+  // *NOTE*: processing currently happens 'inline' (borrows calling thread)
   data_p->CBData->stream->start ();
-  if (!data_p->CBData->stream->isRunning ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Test_I_Stream::start(): \"%m\", aborting\n")));
-    goto done;
-  } // end IF
+  //if (!data_p->CBData->stream->isRunning ())
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Test_I_Stream::start(): \"%m\", aborting\n")));
+  //  goto done;
+  //} // end IF
   data_p->CBData->stream->waitForCompletion ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -114,7 +115,7 @@ stream_processing_function (void* arg_in)
   result = NULL;
 #endif
 
-done:
+//done:
   { // synch access
     ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->CBData->lock);
     data_p->CBData->progressData.completedActions.insert (ACE_Thread::self ());
@@ -1211,12 +1212,11 @@ action_start_activate_cb (GtkAction* action_in,
   guint event_source_id = 0;
 
   // toggle play/pause ?
-  const Stream_StateMachine_ControlState& status_r =
-    data_p->stream->status ();
+  Stream_StateMachine_ControlState status_r = data_p->stream->status ();
   if ((status_r == STREAM_STATE_RUNNING) ||
       (status_r == STREAM_STATE_PAUSED))
   {
-    data_p->stream->pause ();
+    data_p->stream->pause (); // pause/unpause
     if (status_r == STREAM_STATE_RUNNING) // <-- image is "pause"
       gtk_action_set_stock_id (action_in, GTK_STOCK_MEDIA_PLAY);
     else // <-- image is "play"

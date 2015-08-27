@@ -36,6 +36,7 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_TCPTarget_T<SessionMessageType,
@@ -43,11 +44,12 @@ Stream_Module_TCPTarget_T<SessionMessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType,
                           ConnectorType>::Stream_Module_TCPTarget_T ()
  : inherited ()
  , configuration_ ()
- , connection_ (NULL)
+ //, connection_ (NULL)
  , isInitialized_ (false)
  , isLinked_ (false)
 {
@@ -60,6 +62,7 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
 Stream_Module_TCPTarget_T<SessionMessageType,
@@ -67,6 +70,7 @@ Stream_Module_TCPTarget_T<SessionMessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType,
                           ConnectorType>::~Stream_Module_TCPTarget_T ()
 {
@@ -75,42 +79,34 @@ Stream_Module_TCPTarget_T<SessionMessageType,
   int result = -1;
   ACE_TCHAR buffer[BUFSIZ];
 
-  if (isLinked_)
+  if (configuration_.connection)
   {
-    ACE_ASSERT (connection_);
-    typename ConnectorType::STREAM_T& stream_r =
-      const_cast<typename ConnectorType::STREAM_T&> (connection_->stream ());
-    Stream_Module_t* module_p = NULL;
-    result = stream_r.top (module_p);
-    if (result == -1)
+    if (isLinked_)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", continuing\n")));
-      goto close;
+      ACE_ASSERT (configuration_.stream);
+      result = configuration_.stream->unlink ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Stream::unlink(): \"%m\", continuing\n")));
     } // end IF
-    ACE_ASSERT (module_p);
-    stream_r.head ()->link (module_p);
-  } // end IF
 
-close:
-  if (connection_)
-  {
     ACE_OS::memset (buffer, 0, sizeof (buffer));
     ACE_HANDLE handle = ACE_INVALID_HANDLE;
     ACE_INET_Addr local_address, peer_address;
-    connection_->info (handle,
-                       local_address, peer_address);
+    configuration_.connection->info (handle,
+                                     local_address, peer_address);
     result = peer_address.addr_to_string (buffer,
                                           sizeof (buffer));
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
-    connection_->close ();
+    configuration_.connection->close ();
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("closed connection to \"%s\" in dtor...\n"),
+                ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
                 ACE_TEXT (buffer)));
-    connection_->decrease ();
+    configuration_.connection->decrease ();
+    configuration_.connection = NULL;
   } // end IF
 }
 
@@ -119,6 +115,7 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
@@ -127,22 +124,15 @@ Stream_Module_TCPTarget_T<SessionMessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType,
                           ConnectorType>::handleDataMessage (MessageType*& message_inout,
                                                              bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPTarget_T::handleDataMessage"));
 
-  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (message_inout);
   ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // sanity check(s)
-  ACE_ASSERT (connection_);
-  ACE_ASSERT (message_inout);
-  if (!connection_->send (*message_inout))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Net_IConnection_T::send(%d): \"%m\", continuing\n"),
-                message_inout->total_length ()));
 }
 
 template <typename SessionMessageType,
@@ -150,6 +140,7 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
@@ -158,6 +149,7 @@ Stream_Module_TCPTarget_T<SessionMessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType,
                           ConnectorType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                 bool& passMessageDownstream_out)
@@ -174,48 +166,78 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_BEGIN:
+    {
+      ACE_ASSERT (configuration_.connection);
+      typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
+        dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (configuration_.connection);
+      if (!socket_connection_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
+                    configuration_.connection));
+        return;
+      } // end IF
+      typename ConnectorType::STREAM_T& stream_r =
+        const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
+      ACE_ASSERT (configuration_.stream);
+      result = configuration_.stream->link (stream_r);
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Stream::link(): \"%m\", returning\n")));
+        return;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("linked i/o streams...\n")));
+      isLinked_ = true;
+
+      // set session ID
+      const SessionDataContainerType& session_data_container_r =
+        message_inout->get ();
+      SessionDataType* session_data_p =
+        const_cast<SessionDataType*> (session_data_container_r.getData ());
+      ACE_ASSERT (session_data_p);
+      // *TODO*: remove type inference
+      session_data_p->sessionID = configuration_.connection->id ();
+
+      break;
+    }
     case STREAM_SESSION_END:
     {
-      ACE_TCHAR buffer[BUFSIZ];
-
       if (isLinked_)
       {
-        ACE_ASSERT (connection_);
-        typename ConnectorType::STREAM_T& stream_r =
-          const_cast<typename ConnectorType::STREAM_T&> (connection_->stream ());
-        Stream_Module_t* module_p = NULL;
-        result = stream_r.top (module_p);
+        ACE_ASSERT (configuration_.stream);
+        result = configuration_.stream->unlink ();
         if (result == -1)
-        {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", continuing\n")));
-          goto close;
-        } // end IF
-        ACE_ASSERT (module_p);
-        stream_r.head ()->link (module_p);
-        isLinked_ = false;
+                      ACE_TEXT ("failed to ACE_Stream::unlink(): \"%m\", continuing\n")));
+        else
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("unlinked i/o streams...\n")));
       } // end IF
+      isLinked_ = false;
 
-close:
-      if (connection_)
+      if (configuration_.connection)
       {
+        ACE_TCHAR buffer[BUFSIZ];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
         ACE_INET_Addr local_address, peer_address;
-        connection_->info (handle,
-                           local_address, peer_address);
+        configuration_.connection->info (handle,
+                                         local_address, peer_address);
         result = peer_address.addr_to_string (buffer,
                                               sizeof (buffer));
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
-        connection_->close ();
+        configuration_.connection->close ();
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("closed connection to \"%s\"...\n"),
                     ACE_TEXT (buffer)));
-        connection_->decrease ();
-        connection_ = NULL;
+        configuration_.connection->decrease ();
+        configuration_.connection = NULL;
       } // end IF
 
       break;
@@ -230,6 +252,7 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
@@ -238,6 +261,7 @@ Stream_Module_TCPTarget_T<SessionMessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType,
                           ConnectorType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
 {
@@ -272,50 +296,57 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 
     if (isLinked_)
     {
-      ACE_ASSERT (connection_);
-      typename ConnectorType::STREAM_T& stream_r =
-        const_cast<typename ConnectorType::STREAM_T&> (connection_->stream ());
-      Stream_Module_t* module_p = NULL;
-      result = stream_r.top (module_p);
+      ACE_ASSERT (configuration_.stream);
+      result = configuration_.stream->unlink ();
       if (result == -1)
-      {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", aborting\n")));
-        return false;
-      } // end IF
-      ACE_ASSERT (module_p);
-      stream_r.head ()->link (module_p);
-      isLinked_ = false;
+                    ACE_TEXT ("failed to ACE_Stream::unlink(): \"%m\", continuing\n")));
     } // end IF
+    isLinked_ = false;
 
-    if (connection_)
+    if (configuration_.connection)
     {
-      connection_->close ();
+      configuration_.connection->close ();
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("closed connection to \"%s\"...\n"),
                   ACE_TEXT (buffer)));
-      connection_->decrease ();
-      connection_ = NULL;
+      configuration_.connection->decrease ();
+      configuration_.connection = NULL;
     } // end IF
 
     isInitialized_ = false;
   } // end IF
 
-  // step1: initialize connector
+  // step1: initialize connection manager
   // *TODO*: remove type inferences
   ConnectionManagerType* connection_manager_p =
-      configuration_.connectionManager;
+    configuration_.connectionManager;
   ACE_ASSERT (connection_manager_p);
   typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
     connection_manager_p;
+  ConfigurationType configuration;
+  typename SessionMessageType::USER_DATA_T* user_data_p = NULL;
+  connection_manager_p->get (configuration,
+                             user_data_p);
+  configuration = *configuration_.configuration;
+  configuration.streamConfiguration.cloneModule = false;
+  configuration.streamConfiguration.deleteModule = false;
+  configuration.streamConfiguration.module = NULL;
+  connection_manager_p->set (configuration,
+                             user_data_p);
+
+  // step2: initialize connector
+  // *TODO*: remove type inferences
   ACE_ASSERT (configuration_.streamConfiguration);
   ConnectorType connector (iconnection_manager_p,
                            configuration_.streamConfiguration->statisticReportingInterval);
 //  Stream_IInetConnector_t* iconnector_p = &connector;
   ACE_HANDLE handle = ACE_INVALID_HANDLE;
-  Stream_Module_t* module_p = NULL;
-  typename SessionMessageType::USER_DATA_T* user_data_p = NULL;
   ACE_ASSERT (configuration_.configuration);
+  // *TODO*: reset this later...
+  ACE_ASSERT (configuration_.configuration->socketHandlerConfiguration.userData);
+  configuration_.configuration->socketHandlerConfiguration.userData->configuration =
+    &configuration;
   if (!connector.initialize (configuration_.configuration->socketHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -323,22 +354,14 @@ Stream_Module_TCPTarget_T<SessionMessageType,
     return false;
   } // end IF
 
-  // step2: initialize connection manager
-  // *TODO*: remove type inferences
-  ConfigurationType configuration;
-  connection_manager_p->get (configuration,
-                             user_data_p);
-  connection_manager_p->set (*configuration_.configuration,
-                             user_data_p);
-
   // step3: connect
-  ACE_ASSERT (!connection_);
+  ACE_ASSERT (!configuration_.connection);
   handle =
     connector.connect (configuration_.configuration->socketConfiguration.peerAddress);
   const typename ConnectorType::STREAM_T* stream_p = NULL;
   Stream_Module_t* module_2 = NULL;
   if (connector.useReactor ())
-    connection_ =
+    configuration_.connection =
       dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_manager_p->get (handle));
   else
   {
@@ -348,68 +371,33 @@ Stream_Module_TCPTarget_T<SessionMessageType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                   &one_second));
-    connection_ =
+    configuration_.connection =
       dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_manager_p->get (configuration_.configuration->socketConfiguration.peerAddress));
   } // end IF
-  if (!connection_)
+  if (!configuration_.connection)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to connect to \"%s\", aborting\n"),
                 ACE_TEXT (buffer)));
-    goto failed;
+    goto close;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("connected to \"%s\"...\n"),
               ACE_TEXT (buffer)));
 
-  // step4: forward any inbound data upstream
-  ACE_ASSERT (!isLinked_);
-  stream_p = &connection_->stream ();
-  module_p = inherited::module ();
-  ACE_ASSERT (module_p);
-  result =
-    const_cast<typename ConnectorType::STREAM_T*> (stream_p)->top (module_2);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", aborting\n")));
-    goto failed;
-  } // end IF
-  ACE_ASSERT (module_2);
-  module_2->reader ()->next (module_p->reader ());
-  isLinked_ = true;
-
   isInitialized_ = true;
 
   return true;
 
-failed:
-  if (isLinked_)
+close:
+  if (configuration_.connection)
   {
-    ACE_ASSERT (connection_);
-    typename ConnectorType::STREAM_T& stream_r =
-      const_cast<typename ConnectorType::STREAM_T&> (connection_->stream ());
-    Stream_Module_t* module_p = NULL;
-    result = stream_r.top (module_p);
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", aborting\n")));
-      return false;
-    } // end IF
-    ACE_ASSERT (module_p);
-    stream_r.head ()->link (module_p);
-    isLinked_ = false;
-  } // end IF
-
-  if (connection_)
-  {
-    connection_->close ();
+    configuration_.connection->close ();
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("closed connection to \"%s\"...\n"),
                 ACE_TEXT (buffer)));
-    connection_->decrease ();
-    connection_ = NULL;
+    configuration_.connection->decrease ();
+    configuration_.connection = NULL;
   } // end IF
 
   return false;
@@ -419,6 +407,7 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
+          typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
 const ModuleHandlerConfigurationType&
@@ -427,6 +416,7 @@ Stream_Module_TCPTarget_T<SessionMessageType,
                           ConfigurationType,
                           ModuleHandlerConfigurationType,
                           SessionDataType,
+                          SessionDataContainerType,
                           ConnectionManagerType,
                           ConnectorType>::get () const
 {

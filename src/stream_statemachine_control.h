@@ -49,15 +49,17 @@ class Stream_Export Stream_StateMachine_Control
   virtual ~Stream_StateMachine_Control ();
 
   // implement (part of) Common_IStateMachine_T
+  virtual void initialize ();
+  virtual void reset ();
   virtual std::string state2String (Stream_StateMachine_ControlState) const;
 
  protected:
   // override (part of) Common_IStateMachine_T
   // *NOTE*: only children can change state
   // *WARNING*: PAUSED --> PAUSED is silently remapped to PAUSED --> RUNNING
-  // in order to resemble a traditional tape recorder...
-  // --> children must implement the corresponding behavior !
-   virtual bool change (Stream_StateMachine_ControlState); // new state
+  //            mimicing a traditional tape recorder
+  //            --> children must implement the corresponding behavior !
+  virtual bool change (Stream_StateMachine_ControlState); // new state
 
  private:
   typedef Common_StateMachine_Base_T<Stream_StateMachine_ControlState> inherited;

@@ -104,10 +104,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_eventhandler.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\test_i\test_i_message.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
@@ -124,6 +120,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\test_i\test_i_target_eventhandler.cpp" />
     <ClCompile Include="..\..\test_i\test_i_target_signalhandler.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
@@ -142,11 +139,11 @@
     <ClInclude Include="..\..\test_i\test_i_connection_common.h" />
     <ClInclude Include="..\..\test_i\test_i_connection_manager_common.h" />
     <ClInclude Include="..\..\test_i\test_i_defines.h" />
-    <ClInclude Include="..\..\test_i\test_i_eventhandler.h" />
     <ClInclude Include="..\..\test_i\test_i_message.h" />
     <ClInclude Include="..\..\test_i\test_i_module_eventhandler.h" />
     <ClInclude Include="..\..\test_i\test_i_session_message.h" />
     <ClInclude Include="..\..\test_i\test_i_target_common.h" />
+    <ClInclude Include="..\..\test_i\test_i_target_eventhandler.h" />
     <ClInclude Include="..\..\test_i\test_i_target_listener_common.h" />
     <ClInclude Include="..\..\test_i\test_i_target_signalhandler.h" />
     <ClInclude Include="..\..\test_i\test_i_target_stream.h" />

@@ -21,9 +21,7 @@
 #ifndef STREAM_MODULE_TCPIO_STREAM_H
 #define STREAM_MODULE_TCPIO_STREAM_H
 
-#include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
-#include "ace/Thread_Mutex.h"
 
 #include "stream_base.h"
 #include "stream_module_base.h"
@@ -103,24 +101,24 @@ class Stream_Module_TCPIO_Stream_T
 
   // convenient types
   typedef Stream_Module_TCPIO_Stream_T<TaskSynchType,
-                                        TimePolicyType,
+                                       TimePolicyType,
 
-                                        StatusType,
-                                        StateType,
+                                       StatusType,
+                                       StateType,
 
-                                        ConfigurationType,
+                                       ConfigurationType,
 
-                                        StatisticContainerType,
+                                       StatisticContainerType,
 
-                                        ModuleConfigurationType,
-                                        HandlerConfigurationType,
+                                       ModuleConfigurationType,
+                                       HandlerConfigurationType,
 
-                                        SessionDataType,          // session data
-                                        SessionDataContainerType, // session data container (reference counted)
-                                        SessionMessageType,
-                                        ProtocolMessageType,
+                                       SessionDataType,          // session data
+                                       SessionDataContainerType, // session data container (reference counted)
+                                       SessionMessageType,
+                                       ProtocolMessageType,
 
-                                        ConnectionManagerType> OWN_TYPE_T;
+                                       ConnectionManagerType> OWN_TYPE_T;
 
   typedef Stream_Module_TCPWriter_T<SessionMessageType,
                                     ProtocolMessageType,
@@ -143,6 +141,7 @@ class Stream_Module_TCPIO_Stream_T
                                     HandlerConfigurationType,
                                     /////
                                     SessionDataType,
+                                    SessionDataContainerType,
                                     /////
                                     ConnectionManagerType> READER_T;
   typedef Stream_StreamModule_T<TaskSynchType,             // task synch type
@@ -157,10 +156,9 @@ class Stream_Module_TCPIO_Stream_T
 
   // modules
   TCPIO_MODULE_T TCPIO_;
-
-  static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long> currentSessionID;
 };
 
+// include template implementation
 #include "stream_module_tcpio_stream.inl"
 
 #endif

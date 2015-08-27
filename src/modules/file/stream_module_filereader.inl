@@ -44,7 +44,11 @@ Stream_Module_FileReader_T<SessionMessageType,
                                                                                 bool autoStart_in)
  : inherited (isActive_in,
               autoStart_in,
-              true)
+              true) // *NOTE*: when working in 'passive' mode, enabling this
+                    //         utilizes the calling thread. Note that this
+                    //         renders state transitions during processing a
+                    //         tricky affair, as the thread holds the lock
+                    //         --> check carefully
  , isInitialized_ (false)
  , isOpen_ (false)
  , stream_ ()
@@ -350,24 +354,37 @@ Stream_Module_FileReader_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::svc"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
-  ACE_ASSERT (!isOpen_);
-
-  // step0: increment thread count
-  {
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited::lock_);
-
-    inherited::threadCount_++;
-  } // end IF
-
   int result = -1;
   ACE_FILE_Addr file_address;
   ACE_FILE_Connector file_connector;
   ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
-  ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  ACE_Time_Value no_wait;
   ProtocolMessageType* message_p = NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+  ACE_ASSERT (!isOpen_);
+
+  // step0a: if in passive mode, release state machine lock
+  ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> lock (inherited::stateLock_);
+  if (!inherited::configuration_.active)
+  {
+    result = lock.acquire ();
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Reverse_Lock::acquire(): \"%m\", aborting\n")));
+      goto done;
+    } // end IF
+  } // end IF
+  // step0b: increment thread count
+  {
+    ACE_Guard<ACE_SYNCH_MUTEX> aGuard2 (inherited::lock_);
+
+    inherited::threadCount_++;
+  } // end IF
+
   result = file_address.set (inherited::configuration_.fileName.c_str ());
   if (result == -1)
   {
@@ -398,6 +415,7 @@ Stream_Module_FileReader_T<SessionMessageType,
   // step1: start processing data...
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("entering processing loop...\n")));
+  no_wait = COMMON_TIME_NOW;
   while (inherited::getq (message_block_p,
                           &no_wait) == -1)
   {
@@ -486,6 +504,14 @@ session_finished:
 done:
   // signal the controller
   inherited::finished ();
+
+  if (!inherited::configuration_.active)
+  {
+    int result_2 = lock.release ();
+    if (result_2 == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Reverse_Lock::release(): \"%m\", aborting\n")));
+  } // end IF
 
   return result;
 }

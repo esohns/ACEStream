@@ -35,6 +35,7 @@ template <typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           ///////////////////////////////
           typename SessionDataType,
+          typename SessionDataContainerType,
           ///////////////////////////////
           typename ConnectionManagerType,
           typename ConnectorType>
@@ -69,7 +70,7 @@ class Stream_Module_TCPTarget_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_TCPTarget_T (const Stream_Module_TCPTarget_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_TCPTarget_T& operator= (const Stream_Module_TCPTarget_T&))
 
-  typename ConnectorType::ISOCKET_CONNECTION_T* connection_;
+  //typename ConnectorType::ISOCKET_CONNECTION_T* connection_;
   bool                                          isInitialized_;
   bool                                          isLinked_;
 };

@@ -58,5 +58,5 @@ typedef Stream_Module_TCPIO_Stream_T<ACE_MT_SYNCH,
                                                               Test_I_Stream_UserData> > Stream_Module_TCPIO_Stream_t;
 
 template <>
-ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long>
+ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long>
 Stream_Module_TCPIO_Stream_t::currentSessionID = 0;

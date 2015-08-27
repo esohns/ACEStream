@@ -21,6 +21,7 @@
 #ifndef STREAM_COMMON_H
 #define STREAM_COMMON_H
 
+//#include "ace/Message_Queue.h"
 //#include "ace/Module.h"
 #include "ace/Notification_Strategy.h"
 //#include "ace/Stream.h"
@@ -67,7 +68,11 @@ struct Stream_SessionData
    : aborted (false)
    , currentStatistic ()
    , lock (NULL)
-   , sessionID (0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , sessionID (reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE))
+#else
+   , sessionID (static_cast<unsigned int> (ACE_INVALID_HANDLE))
+#endif
    , startOfSession (ACE_Time_Value::zero)
   {};
 
@@ -102,12 +107,16 @@ struct Stream_State
 
 // forward declarations
 template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Message_Queue;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Task;
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Stream_Iterator;
 
+typedef ACE_Message_Queue<ACE_MT_SYNCH,
+                          Common_TimePolicy_t> Stream_Queue_t;
 typedef ACE_Task<ACE_MT_SYNCH,
                  Common_TimePolicy_t> Stream_Task_t;
 typedef ACE_Module<ACE_MT_SYNCH,
@@ -134,6 +143,11 @@ struct Stream_Configuration
    , notificationStrategy (NULL)
    , printFinalReport (false)
    , serializeOutput (false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , sessionID (reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE))
+#else
+   , sessionID (static_cast<unsigned int> (ACE_INVALID_HANDLE))
+#endif
    , statisticReportingInterval (0)
    , useThreadPerConnection (false)
   {};
@@ -152,6 +166,7 @@ struct Stream_Configuration
   //                   (most notably, ACE_TP_Reactor)
   //                   --> enforce proper serialization
   bool                               serializeOutput;
+  unsigned int                       sessionID;
   unsigned int                       statisticReportingInterval; // 0: don't report
   bool                               useThreadPerConnection;
 };

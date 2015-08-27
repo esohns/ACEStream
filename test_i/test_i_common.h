@@ -123,7 +123,25 @@ struct Test_I_Stream_SocketHandlerConfiguration
   Test_I_Stream_UserData* userData;
 };
 
+// forward declarations
 struct Test_I_Configuration;
+typedef Stream_Base_T<ACE_MT_SYNCH,
+                      Common_TimePolicy_t,
+                      /////////////////
+                      Stream_StateMachine_ControlState,
+                      Test_I_Stream_State,
+                      /////////////////
+                      Test_I_Stream_Configuration,
+                      /////////////////
+                      Test_I_RuntimeStatistic_t,
+                      /////////////////
+                      Stream_ModuleConfiguration,
+                      Test_I_Stream_ModuleHandlerConfiguration,
+                      /////////////////
+                      Test_I_Stream_SessionData,   // session data
+                      Test_I_Stream_SessionData_t, // session data container (reference counted)
+                      Stream_SessionMessage,
+                      Stream_Message> Stream_Base_t;
 struct Test_I_Stream_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
@@ -134,20 +152,22 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , connectionManager (NULL)
    , contextID (0)
    , fileName ()
+   , inbound (false)
    , printProgressDot (false)
-   , queue (NULL)
+   , stream (NULL)
   {};
 
-  // convenience types
-  typedef Test_I_Configuration CONFIGURATION_T;
+  //// convenience types
+  //typedef Test_I_Configuration CONFIGURATION_T;
 
   Test_I_Configuration*                  configuration;
-  Test_I_IConnection_t*                  connection;
-  Test_I_Stream_InetConnectionManager_t* connectionManager;
+  Test_I_IConnection_t*                  connection; // TCP target/IO module
+  Test_I_Stream_InetConnectionManager_t* connectionManager; // TCP IO module
   guint                                  contextID;
-  std::string                            fileName;
+  std::string                            fileName; // file reader/writer module
+  bool                                   inbound; // TCP IO module
   bool                                   printProgressDot;
-  ACE_Message_Queue_Base*                queue;
+  Stream_Base_t*                         stream;
 };
 
 struct Stream_SignalHandlerConfiguration
@@ -168,12 +188,10 @@ struct Test_I_Stream_Configuration
    : Stream_Configuration ()
    , moduleConfiguration_2 ()
    , moduleHandlerConfiguration_2 ()
-   , sessionID (-1)
   {};
 
   Stream_ModuleConfiguration               moduleConfiguration_2;
   Test_I_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration_2;
-  int                                      sessionID;
 };
 
 struct Test_I_Stream_State
@@ -241,24 +259,6 @@ struct Stream_GTK_ProgressData
   unsigned int              size; // bytes
 };
 
-// forward declarations
-typedef Stream_Base_T<ACE_MT_SYNCH,
-                      Common_TimePolicy_t,
-                      /////////////////
-                      Stream_StateMachine_ControlState,
-                      Test_I_Stream_State,
-                      /////////////////
-                      Test_I_Stream_Configuration,
-                      /////////////////
-                      Test_I_RuntimeStatistic_t,
-                      /////////////////
-                      Stream_ModuleConfiguration,
-                      Test_I_Stream_ModuleHandlerConfiguration,
-                      /////////////////
-                      Test_I_Stream_SessionData,   // session data
-                      Test_I_Stream_SessionData_t, // session data container (reference counted)
-                      Stream_SessionMessage,
-                      Stream_Message> Stream_Base_t;
 struct Stream_GTK_CBData
  : Common_UI_GTKState
 {

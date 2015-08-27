@@ -280,12 +280,12 @@ Stream_Module_FileWriter_T<SessionMessageType,
 
   configuration_ = configuration_in;
 
-  // sanity check(s)
-  // *TODO*: remove type inferences
-  if (Common_File_Tools::isReadable (configuration_.fileName))
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("target file \"%s\" exists, continuing\n"),
-                ACE_TEXT (configuration_.fileName.c_str ())));
+  //// sanity check(s)
+  //// *TODO*: remove type inferences
+  //if (Common_File_Tools::isReadable (configuration_.fileName))
+  //  ACE_DEBUG ((LM_DEBUG,
+  //              ACE_TEXT ("target file \"%s\" exists, continuing\n"),
+  //              ACE_TEXT (configuration_.fileName.c_str ())));
 
   return true;
 }

@@ -68,18 +68,35 @@ class Stream_Base_T
  , public Common_IStatistic_T<StatisticContainerType>
 {
  public:
+  // convenient types
+  typedef ACE_Module<TaskSynchType,
+                     TimePolicyType> MODULE_T;
+  typedef Stream_IModule_T<TaskSynchType,
+                           TimePolicyType,
+                           ModuleConfigurationType,
+                           HandlerConfigurationType> IMODULE_T;
+  typedef ACE_Stream<TaskSynchType,
+                     TimePolicyType> STREAM_T;
+  typedef ACE_Stream_Iterator<TaskSynchType,
+                              TimePolicyType> ITERATOR_T;
+  typedef StateType STATE_T;
+  typedef SessionDataType SESSION_DATA_T;
+
   // *NOTE*: this will try to sanely close down the stream:
   // 1: tell all worker threads to exit gracefully
-  // 2: close() all modules which have not been enqueued onto the stream (next() == NULL)
-  // 3: close() the stream (closes all enqueued modules: wait for queue to flush and threads, if any, to die)
+  // 2: close() all modules which have not been enqueued onto the stream
+  //    (next() == NULL)
+  // 3: close() the stream (closes all enqueued modules: wait for queue to flush
+  //    and threads, if any, to join)
   virtual ~Stream_Base_T ();
 
-  // overload this from ACE_Stream to work as a hook to pass our messagecounter as argument to the modules
+  // overload this from ACE_Stream to work as a hook to pass a messagecounter as
+  // argument to the modules
   // open() method...
   //virtual int push(ACE_Module<ACE_MT_SYNCH>*); // handle to module
 
   // implement Stream_IStreamControl_T
-  // *NOTE*: delegate these calls to the head module (which also implements that
+  // *NOTE*: delegate these calls to the head module (which also implements this
   //         API)
   virtual void start ();
   virtual void stop (bool = true,  // wait for completion ?
@@ -102,22 +119,39 @@ class Stream_Base_T
   virtual bool initialize (const ConfigurationType&) = 0;
 
   //// override ACE_Stream method(s)
+  // *NOTE*: the default ACE_Stream impementation of link() joins writer A to
+  //         reader B and writer B to reader A. Prefer 'concat' method: writer
+  //         A to writer B(, reader A to reader B; see explanation)
+  // *TODO*: the 'outbound' pipe of readers is not currently implemented, as it
+  //         creates problems in conjunction with libACENetwork.
+  //         libACENetwork connections use the connection streams'
+  //         ACE_Stream_Head reader queue/notification to buffer outbound data
+  //         while the reactor dispatches the corresponding events.
+  //         libACEStream modules encapsulating a network connection may be
+  //         tempted to link the data processing stream to the connections'
+  //         stream. For 'inbound' (i.e. reader-side oriented) modules, the
+  //         connection stream is prepended, for 'outbound' modules appended.
+  //         However, doing so requires consideration of the fact that the
+  //         connection will still look for data on the connections' (!)
+  //         ACE_Stream_Head, which is 'hidden' by the default linking
+  //         procedure.
+  //         --> avoid linking the outbound side of the stream for now
+  // *WARNING*: this method is NOT (!) threadsafe in places
+  //            --> handle with care !
+  virtual int link (STREAM_T&);
+
   //// *NOTE*: the default implementation close(s) the removed module. This is not
   ////         the intended behavior when the module is being used by several
   ////         streams at once
   //// *TODO*: this needs more work...
   //virtual int remove (const ACE_TCHAR*, // name
   //                    int = M_DELETE);  // flags
+  // *NOTE*: this gracefully (see above) removes the given module (and chain)
+  bool remove (MODULE_T*); // module handle
+  // *NOTE*: make sure the original API is not hidden
+  using STREAM_T::remove;
 
   bool isInitialized () const;
-
-  // convenient types
-  typedef ACE_Module<TaskSynchType,
-                     TimePolicyType> MODULE_T;
-  typedef ACE_Stream_Iterator<TaskSynchType,
-                              TimePolicyType> ITERATOR_T;
-  typedef StateType STATE_T;
-  typedef SessionDataType SESSION_DATA_T;
 
  protected:
   // convenient types
@@ -125,10 +159,6 @@ class Stream_Base_T
                    TimePolicyType> TASK_T;
   typedef ACE_Message_Queue<TaskSynchType,
                             TimePolicyType> QUEUE_T;
-  typedef Stream_IModule_T<TaskSynchType,
-                           TimePolicyType,
-                           ModuleConfigurationType,
-                           HandlerConfigurationType> IMODULE_T;
   typedef Common_IInitialize_T<HandlerConfigurationType> IMODULEHANDLER_T;
   typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;
   typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;

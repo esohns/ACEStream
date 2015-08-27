@@ -57,8 +57,8 @@
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
-#include "test_i_eventhandler.h"
 #include "test_i_module_eventhandler.h"
+#include "test_i_source_eventhandler.h"
 #include "test_i_source_signalhandler.h"
 #include "test_i_source_stream.h"
 
@@ -407,12 +407,19 @@ do_work (unsigned int bufferSize_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-  // step0a: initialize configuration
+  // step0a: initialize configuration and stream
   Test_I_Configuration configuration;
   configuration.streamUserData.configuration =
     &configuration;
   configuration.streamUserData.streamConfiguration =
     &configuration.streamConfiguration;
+  Test_I_Source_Stream_t stream;
+  Test_I_Source_AsynchStream_t asynch_stream;
+  Stream_Base_t* stream_p = NULL;
+  if (useReactor_in)
+    stream_p = &stream;
+  else
+    stream_p = &asynch_stream;
 
   Stream_AllocatorHeap heap_allocator;
   Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
@@ -420,7 +427,7 @@ do_work (unsigned int bufferSize_in,
                                                true);               // block ?
 
   CBData_in.configuration = &configuration;
-  Stream_EventHandler ui_event_handler (&CBData_in);
+  Stream_Source_EventHandler ui_event_handler (&CBData_in);
   Stream_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                    NULL,
                                                    true);
@@ -435,6 +442,10 @@ do_work (unsigned int bufferSize_in,
   event_handler_p->initialize (&CBData_in.subscribers,
                                &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
+
+  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
+    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
 
   // ******************** socket handler configuration data *******************
   configuration.socketHandlerConfiguration.bufferSize = bufferSize_in;
@@ -465,11 +476,13 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
   configuration.streamConfiguration.moduleHandlerConfiguration_2.printProgressDot =
-      UIDefinitionFile_in.empty ();
+    UIDefinitionFile_in.empty ();
   configuration.streamConfiguration.moduleHandlerConfiguration_2.connectionManager =
-      TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+    connection_manager_p;
   configuration.streamConfiguration.moduleHandlerConfiguration_2.fileName =
-      fileName_in;
+    fileName_in;
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.stream =
+    stream_p;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
@@ -487,7 +500,7 @@ do_work (unsigned int bufferSize_in,
     &configuration.streamConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
   configuration.streamConfiguration.statisticReportingInterval =
-      statisticReportingInterval_in;
+    statisticReportingInterval_in;
 
   // step0b: initialize event dispatch
   if (!Common_Tools::initializeEventDispatch (useReactor_in,
@@ -501,12 +514,8 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step0c: initialize connection manager
-  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
-    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (connection_manager_p);
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (configuration,
-                             &configuration.streamUserData);
+  connection_manager_p->set (configuration, &configuration.streamUserData);
 
   // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =
@@ -559,9 +568,6 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  // step0d: (initialize) processing stream
-  Test_I_Source_Stream stream;
-
   // step1: handle events (signals, incoming connections/data, timers, ...)
   // reactor/proactor event loop:
   // - dispatch connection attempts to acceptor
@@ -613,17 +619,7 @@ do_work (unsigned int bufferSize_in,
 
       return;
     } // end IF
-    if (!ShowWindow (window_p, SW_HIDE))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ::ShowWindow(), returning\n")));
-
-      // clean up
-      timer_manager_p->stop ();
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
-
-      return;
-    } // end IF
+    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
 #endif
   } // end IF
   else
@@ -867,10 +863,14 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
+  if (use_reactor && (number_of_dispatch_threads > 1))
+    use_thread_pool = true;
   if ((UI_definition_file_name.empty () &&
-       !Common_File_Tools::isReadable (file_name)) ||
+       !Common_File_Tools::isReadable (file_name))               ||
       (!UI_definition_file_name.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_file_name)))
+       !Common_File_Tools::isReadable (UI_definition_file_name)) ||
+      (use_thread_pool && !use_reactor)                          ||
+      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -887,8 +887,7 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  //if (run_stress_test)
-  //  action_mode = Net_Client_TimeoutHandler::ACTION_STRESS;
+  if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
 
   Stream_GTK_CBData gtk_cb_user_data;
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;

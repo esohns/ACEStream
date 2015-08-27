@@ -158,9 +158,6 @@ class Stream_HeadModuleTaskBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T& operator= (const Stream_HeadModuleTaskBase_T&))
 
   // implement (part of) Stream_ITaskBase
-  // *NOTE*: this is just a stub
-  // *WARNING*: needed to implement this in the base class to please linker
-  //            errors about missing template instantiations
   virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
                                   bool&);                // return value: pass message downstream ?
 

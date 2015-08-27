@@ -31,8 +31,9 @@
 #include "stream_module_filereader.h"
 #include "stream_module_filewriter.h"
 #include "stream_module_runtimestatistic.h"
-#include "stream_module_tcpsource.h"
-#include "stream_module_tcptarget.h"
+#include "stream_module_tcpio.h"
+//#include "stream_module_tcpsource.h"
+//#include "stream_module_tcptarget.h"
 
 #include "test_i_common.h"
 #include "test_i_connection_common.h"
@@ -57,44 +58,76 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task 
                               Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Stream_Module_FileReader);         // writer type
 
-typedef Stream_Module_TCPSource_T<Stream_SessionMessage,
+//typedef Stream_Module_TCPSource_T<Stream_SessionMessage,
+//                                  Stream_Message,
+//                                  //////
+//                                  Test_I_Stream_ModuleHandlerConfiguration,
+//                                  //////
+//                                  Test_I_Stream_State,
+//                                  //////
+//                                  Test_I_Stream_SessionData,
+//                                  Test_I_Stream_SessionData_t,
+//                                  //////
+//                                  Test_I_RuntimeStatistic_t,
+//                                  ///////
+//                                  Test_I_Stream_InetConnectionManager_t,
+//                                  Test_I_Stream_TCPConnector_t> Test_I_Stream_Module_TCPSource;
+//DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
+//                              Common_TimePolicy_t,                      // time policy
+//                              Stream_ModuleConfiguration,               // module configuration type
+//                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
+//                              Test_I_Stream_Module_TCPSource);          // writer type
+//typedef Stream_Module_TCPSource_T<Stream_SessionMessage,
+//                                  Stream_Message,
+//                                  //////
+//                                  Test_I_Stream_ModuleHandlerConfiguration,
+//                                  //////
+//                                  Test_I_Stream_State,
+//                                  //////
+//                                  Test_I_Stream_SessionData,
+//                                  Test_I_Stream_SessionData_t,
+//                                  //////
+//                                  Test_I_RuntimeStatistic_t,
+//                                  ///////
+//                                  Test_I_Stream_InetConnectionManager_t,
+//                                  Test_I_Stream_TCPAsynchConnector_t> Test_I_Stream_Module_TCPAsynchSource;
+//DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
+//                              Common_TimePolicy_t,                      // time policy
+//                              Stream_ModuleConfiguration,               // module configuration type
+//                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
+//                              Test_I_Stream_Module_TCPAsynchSource);    // writer type
+
+typedef Stream_Module_TCPWriter_T<Stream_SessionMessage,
                                   Stream_Message,
-                                  //////
+                                  /////
                                   Test_I_Stream_ModuleHandlerConfiguration,
-                                  //////
+                                  /////
                                   Test_I_Stream_State,
-                                  //////
+                                  /////
                                   Test_I_Stream_SessionData,
                                   Test_I_Stream_SessionData_t,
-                                  //////
+                                  /////
                                   Test_I_RuntimeStatistic_t,
-                                  ///////
-                                  Test_I_Stream_InetConnectionManager_t,
-                                  Test_I_Stream_TCPConnector_t> Test_I_Stream_Module_TCPSource;
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
-                              Common_TimePolicy_t,                      // time policy
-                              Stream_ModuleConfiguration,               // module configuration type
-                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_Stream_Module_TCPSource);          // writer type
-typedef Stream_Module_TCPSource_T<Stream_SessionMessage,
+                                  /////
+                                  Test_I_Stream_InetConnectionManager_t> Test_I_Stream_Module_TCPWriter_t;
+typedef Stream_Module_TCPReader_T<Stream_SessionMessage,
                                   Stream_Message,
-                                  //////
+                                  /////
+                                  Test_I_Configuration,
+                                  /////
                                   Test_I_Stream_ModuleHandlerConfiguration,
-                                  //////
-                                  Test_I_Stream_State,
-                                  //////
+                                  /////
                                   Test_I_Stream_SessionData,
                                   Test_I_Stream_SessionData_t,
-                                  //////
-                                  Test_I_RuntimeStatistic_t,
-                                  ///////
-                                  Test_I_Stream_InetConnectionManager_t,
-                                  Test_I_Stream_TCPAsynchConnector_t> Test_I_Stream_Module_TCPAsynchSource;
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
-                              Common_TimePolicy_t,                      // time policy
-                              Stream_ModuleConfiguration,               // module configuration type
-                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_Stream_Module_TCPAsynchSource);    // writer type
+                                  /////
+                                  Test_I_Stream_InetConnectionManager_t> Test_I_Stream_Module_TCPReader_t;
+DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task synch type
+                          Common_TimePolicy_t,                      // time policy
+                          Stream_ModuleConfiguration,               // module configuration type
+                          Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                          Test_I_Stream_Module_TCPReader_t,         // reader type
+                          Test_I_Stream_Module_TCPWriter_t,         // writer type
+                          Test_I_Stream_Module_TCPIO);              // name
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
@@ -128,37 +161,39 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task 
                               Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Stream_Module_FileWriter);         // writer type
 
-typedef Stream_Module_TCPTarget_T<Stream_SessionMessage,
-                                  Stream_Message,
-                                  //////
-                                  Test_I_Configuration,
-                                  //////
-                                  Test_I_Stream_ModuleHandlerConfiguration,
-                                  //////
-                                  Test_I_Stream_SessionData,
-                                  //////
-                                  Test_I_Stream_InetConnectionManager_t,
-                                  Test_I_Stream_TCPConnector_t> Test_I_Stream_Module_TCPTarget;
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
-                              Common_TimePolicy_t,                      // time policy
-                              Stream_ModuleConfiguration,               // module configuration type
-                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_Stream_Module_TCPTarget);          // writer type
-typedef Stream_Module_TCPTarget_T<Stream_SessionMessage,
-                                  Stream_Message,
-                                  //////
-                                  Test_I_Configuration,
-                                  //////
-                                  Test_I_Stream_ModuleHandlerConfiguration,
-                                  //////
-                                  Test_I_Stream_SessionData,
-                                  //////
-                                  Test_I_Stream_InetConnectionManager_t,
-                                  Test_I_Stream_TCPAsynchConnector_t> Test_I_Stream_Module_TCPAsynchTarget;
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
-                              Common_TimePolicy_t,                      // time policy
-                              Stream_ModuleConfiguration,               // module configuration type
-                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_Stream_Module_TCPAsynchTarget);    // writer type
+//typedef Stream_Module_TCPTarget_T<Stream_SessionMessage,
+//                                  Stream_Message,
+//                                  //////
+//                                  Test_I_Configuration,
+//                                  //////
+//                                  Test_I_Stream_ModuleHandlerConfiguration,
+//                                  //////
+//                                  Test_I_Stream_SessionData,
+//                                  Test_I_Stream_SessionData_t,
+//                                  //////
+//                                  Test_I_Stream_InetConnectionManager_t,
+//                                  Test_I_Stream_TCPConnector_t> Test_I_Stream_Module_TCPTarget;
+//DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
+//                              Common_TimePolicy_t,                      // time policy
+//                              Stream_ModuleConfiguration,               // module configuration type
+//                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
+//                              Test_I_Stream_Module_TCPTarget);          // writer type
+//typedef Stream_Module_TCPTarget_T<Stream_SessionMessage,
+//                                  Stream_Message,
+//                                  //////
+//                                  Test_I_Configuration,
+//                                  //////
+//                                  Test_I_Stream_ModuleHandlerConfiguration,
+//                                  //////
+//                                  Test_I_Stream_SessionData,
+//                                  Test_I_Stream_SessionData_t,
+//                                  //////
+//                                  Test_I_Stream_InetConnectionManager_t,
+//                                  Test_I_Stream_TCPAsynchConnector_t> Test_I_Stream_Module_TCPAsynchTarget;
+//DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
+//                              Common_TimePolicy_t,                      // time policy
+//                              Stream_ModuleConfiguration,               // module configuration type
+//                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
+//                              Test_I_Stream_Module_TCPAsynchTarget);    // writer type
 
 #endif

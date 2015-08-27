@@ -59,7 +59,10 @@ class Stream_Module_TCPSource_T
  , public Common_IStatistic_T<StatisticContainerType>
 {
  public:
-  Stream_Module_TCPSource_T ();
+  // *NOTE*: this module has two modes of operation:
+  //         active:  establish and manage a connection
+  //         passive: use an existing connection (handle passed in initialize())
+  Stream_Module_TCPSource_T (bool = false); // passive ?
   virtual ~Stream_Module_TCPSource_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -81,9 +84,9 @@ class Stream_Module_TCPSource_T
   // info
   bool isInitialized () const;
 
-//  // implement (part of) Stream_ITaskBase
-//  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-//                                  bool&);                // return value: pass message downstream ?
+  // implement (part of) Stream_ITaskBase
+  //virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
+  //                                bool&);                // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -114,9 +117,9 @@ class Stream_Module_TCPSource_T
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
-  typename ConnectionManagerType::CONNECTION_T* connection_;
+  //typename ConnectionManagerType::CONNECTION_T* connection_;
   bool                                          isInitialized_;
-  bool                                          isLinked_;
+  bool                                          isPassive_;
 
   // timer
   Stream_StatisticHandler_Reactor_t             statisticCollectionHandler_;
