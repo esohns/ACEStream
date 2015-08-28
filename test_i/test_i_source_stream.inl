@@ -238,6 +238,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   WRITER_T* TCPTarget_impl_p = NULL;
   Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Stream_Module_FileReader* fileReader_impl_p = NULL;
+  typename ConnectorType::ICONNECTION_T* connection_p = NULL;
 
   // ******************* TCP Target ************************
   TCPTarget_.initialize (configuration_in.moduleConfiguration_2);
@@ -336,7 +337,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   inherited::sessionData_->fileName =
     configuration_in.moduleHandlerConfiguration_2.fileName;
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration_2.configuration);
-  ConnectorType::ICONNECTION_T* connection_p =
+  connection_p =
     TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ()->get (configuration_in.moduleHandlerConfiguration_2.configuration->socketConfiguration.peerAddress);
   ACE_ASSERT (connection_p);
   inherited::sessionData_->sessionID = connection_p->id ();

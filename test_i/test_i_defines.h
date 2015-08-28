@@ -42,6 +42,7 @@
 #define TEST_I_STREAM_UI_GTKEVENT_RESOLUTION                 200 // ms --> 5 FPS
 #define TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME           "action_close_all"
 #define TEST_I_STREAM_UI_GTK_ACTION_LISTEN_NAME              "action_listen"
+#define TEST_I_STREAM_UI_GTK_ACTION_REPORT_NAME              "action_report"
 #define TEST_I_STREAM_UI_GTK_ACTION_START_NAME               "action_start"
 #define TEST_I_STREAM_UI_GTK_ACTION_STOP_NAME                "action_stop"
 #define TEST_I_STREAM_UI_GTK_ADJUSTMENT_NAME                 "scrolledwindow_vadjustment"
@@ -74,6 +75,7 @@
 #define TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME            "spinbutton_port"
 #define TEST_I_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
 #define TEST_I_STREAM_UI_GTK_TABLE_OPTIONS_NAME              "table_options"
+#define TEST_I_STREAM_UI_GTK_TOGGLEBUTTON_LISTEN_NAME        "listen"
 #define TEST_I_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
 
 // GTK progress/status-bar

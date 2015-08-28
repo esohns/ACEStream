@@ -744,6 +744,8 @@ Stream_Base_T<TaskSynchType,
   // *NOTE*: the logic here is this:
   //         step1: wait for processing (message generation) to finish
   //         step2: wait for any pipelined messages to flush...
+  MODULE_CONTAINER_T modules;
+  modules.push_front (inherited::head ());
 
   // step1: get head module, skip over ACE_Stream_Head
   ITERATOR_T iterator (*this);
@@ -770,7 +772,6 @@ Stream_Base_T<TaskSynchType,
   if (module_p == inherited::tail ())
     return;
 
-  MODULE_CONTAINER_T modules;
   modules.push_front (const_cast<MODULE_T*> (module_p));
   // need to downcast
   ISTREAM_CONTROL_T* control_impl_p = NULL;

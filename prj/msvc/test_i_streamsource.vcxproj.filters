@@ -94,5 +94,8 @@
     <None Include="..\..\test_i\test_i_source_stream.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="..\..\test_i\etc\source.glade">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

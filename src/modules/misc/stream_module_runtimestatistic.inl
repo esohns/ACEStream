@@ -451,21 +451,16 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
       for (MESSAGE_STATISTICITERATOR_T iterator = messageTypeStatistic_.begin ();
            iterator != messageTypeStatistic_.end ();
            iterator++)
-        ACE_DEBUG ((LM_DEBUG,
+        ACE_DEBUG ((LM_INFO,
                     ACE_TEXT ("\"%s\": %u --> %.2f %%\n"),
                     ACE_TEXT (ProtocolMessageType::CommandType2String (iterator->first).c_str ()),
                     iterator->second,
                     static_cast<double> (((iterator->second * 100.0) / (numInboundMessages_ + numOutboundMessages_)))));
     } // end IF
-
-//     double messages_per_sec = double (message_count) / et.real_time;
-//     ACE_DEBUG ((LM_DEBUG,
-//                 ACE_TEXT ("\t\tmessages = %d\n\t\ttotal bytes = %d\n\t\tmbits/sec = %f\n\t\tusec-per-message = %f\n\t\tmessages-per-second = %0.00f\n"),
-//                 message_count,
-//                 total_bytes,
-//                 (((double) total_bytes * 8) / et.real_time) / (double) (1024 * 1024),
-//                 (et.real_time / (double) message_count) * 1000000,
-//                 messages_per_sec < 0 ? 0 : messages_per_sec));
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("------------------------------------------\ntotal byte(s) [in/out]: %.0f/%.0f\nbytes/s: %u\n"),
+                numInboundBytes_, numOutboundBytes_,
+                lastBytesPerSecondCount_));
   } // end lock scope
 }
 

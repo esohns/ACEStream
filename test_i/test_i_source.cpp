@@ -33,7 +33,7 @@
 #include "ace/Signal.h"
 #include "ace/Version.h"
 
-#ifdef LIBACENETWORK_ENABLE_VALGRIND_SUPPORT
+#ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
 #include "valgrind/valgrind.h"
 #endif
 

@@ -23,15 +23,16 @@
 
 #include "ace/Log_Msg.h"
 
-//#include "common_timer_manager.h"
+#include "common_timer_manager.h"
+#include "common_tools.h"
 
 //#include "common_ui_gtk_manager.h"
 
 #include "stream_macros.h"
 
-Stream_Target_SignalHandler::Stream_Target_SignalHandler ()
- : inherited (this, // event handler handle
-              true) // use reactor ?
+Stream_Target_SignalHandler::Stream_Target_SignalHandler (bool useReactor_in)
+ : inherited (this,          // event handler handle
+              useReactor_in) // use reactor ?
  , configuration_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::Stream_Target_SignalHandler"));
@@ -45,7 +46,7 @@ Stream_Target_SignalHandler::~Stream_Target_SignalHandler ()
 }
 
 bool
-Stream_Target_SignalHandler::initialize (const Stream_SignalHandlerConfiguration& configuration_in)
+Stream_Target_SignalHandler::initialize (const Test_I_Target_SignalHandlerConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::initialize"));
 
@@ -59,8 +60,7 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::handleSignal"));
 
-//  int result = -1;
-
+  int result = -1;
   bool statistic = false;
   bool shutdown = false;
   switch (signal_in)
@@ -118,18 +118,17 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
   // ------------------------------------
 
   // print statistic ?
-  if (statistic)
+  if (statistic && configuration_.statisticReportingHandler)
   {
     try
     {
-      //handle = configuration_.connector->connect (configuration_.peerAddress);
+      configuration_.statisticReportingHandler->report ();
     }
     catch (...)
     {
-      //// *PORTABILITY*: tracing in a signal handler context is not portable
-      //// *TODO*
-      //ACE_DEBUG ((LM_ERROR,
-      //            ACE_TEXT ("caught exception in Net_Client_IConnector::connect(): \"%m\", continuing\n")));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Common_IStatistic::report(), aborting\n")));
+      return false;
     }
   } // end IF
 
@@ -143,26 +142,60 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
     // - activation timers (connection attempts, ...)
     // [- UI dispatch]
 
-    //// step1: stop action timer (if any)
-    //if (configuration_.actionTimerId >= 0)
-    //{
-    //  const void* act_p = NULL;
-    //  result =
-    //      COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (configuration_.actionTimerId,
-    //                                                                &act_p);
-    //  // *PORTABILITY*: tracing in a signal handler context is not portable
-    //  // *TODO*
-    //  if (result <= 0)
-    //    ACE_DEBUG ((LM_ERROR,
-    //                ACE_TEXT ("failed to cancel action timer (ID: %d): \"%m\", continuing\n"),
-    //                configuration_.actionTimerId));
-    //  configuration_.actionTimerId = -1;
-    //} // end IF
-
-    // step2: stop GTK event processing
+    // step1: stop GTK event processing
     // *NOTE*: triggering UI shutdown from a widget callback is more consistent,
     //         compared to doing it here
 //    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
+
+    // step2: invoke controller (if any)
+    if (configuration_.listener)
+    {
+      try
+      {
+        configuration_.listener->stop ();
+      }
+      catch (...)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("caught exception in Common_IControl::stop(), aborting\n")));
+        return false;
+      }
+    } // end IF
+
+    // step3: stop timer
+    if (configuration_.statisticReportingTimerID >= 0)
+    {
+      const void* act_p = NULL;
+      result =
+          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel (configuration_.statisticReportingTimerID,
+                                                              &act_p);
+      if (result <= 0)
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", aborting\n"),
+                    configuration_.statisticReportingTimerID));
+
+        // clean up
+        configuration_.statisticReportingTimerID = -1;
+
+        return false;
+      } // end IF
+      configuration_.statisticReportingTimerID = -1;
+    } // end IF
+
+    // step4: stop/abort(/wait) for connections
+    Test_I_Stream_IInetConnectionManager_t* connection_manager_p =
+        TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+    ACE_ASSERT (connection_manager_p);
+    connection_manager_p->stop ();
+    connection_manager_p->abort ();
+
+    // step5: stop reactor (&& proactor, if applicable)
+    Common_Tools::finalizeEventDispatch (useReactor_,  // stop reactor ?
+                                         !useReactor_, // stop proactor ?
+                                         -1);          // group ID (--> don't block)
+
+    // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF
 
   return true;

@@ -157,9 +157,6 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , stream (NULL)
   {};
 
-  //// convenience types
-  //typedef Test_I_Configuration CONFIGURATION_T;
-
   Test_I_Configuration*                  configuration;
   Test_I_IConnection_t*                  connection; // TCP target/IO module
   Test_I_Stream_InetConnectionManager_t* connectionManager; // TCP IO module

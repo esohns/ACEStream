@@ -27,19 +27,19 @@
 #include "common_isignal.h"
 #include "common_signalhandler.h"
 
-#include "test_i_common.h"
+#include "test_i_target_common.h"
 
 class Stream_Target_SignalHandler
  : public Common_SignalHandler
- , public Common_IInitialize_T<Stream_SignalHandlerConfiguration>
+ , public Common_IInitialize_T<Test_I_Target_SignalHandlerConfiguration>
  , public Common_ISignal
 {
  public:
-  Stream_Target_SignalHandler ();
+  Stream_Target_SignalHandler (bool = true); // use reactor ?
   virtual ~Stream_Target_SignalHandler ();
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Stream_SignalHandlerConfiguration&); // configuration
+  virtual bool initialize (const Test_I_Target_SignalHandlerConfiguration&); // configuration
 
   // implement Common_ISignal
   virtual bool handleSignal (int); // signal
@@ -50,7 +50,7 @@ class Stream_Target_SignalHandler
   ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler (const Stream_Target_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler& operator= (const Stream_Target_SignalHandler&))
 
-  Stream_SignalHandlerConfiguration configuration_;
+  Test_I_Target_SignalHandlerConfiguration configuration_;
 };
 
 #endif

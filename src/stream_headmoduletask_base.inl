@@ -865,80 +865,82 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
         break;
       } // end IF
-
-      // send initial session message downstream...
-      if (!putSessionMessage (STREAM_SESSION_BEGIN,
-                              sessionData_,
-                              false))
+      else
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
-        break;
-      } // end IF
-
-      // *TODO*: remove type inference
-      if (configuration_.active)
-      {
-        // OK: start worker
-        ACE_hthread_t thread_handles[1];
-        thread_handles[0] = 0;
-        ACE_thread_t thread_ids[1];
-        thread_ids[0] = 0;
-        char thread_name[BUFSIZ];
-        ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-        ACE_OS::strcpy (thread_name, STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME);
-        const char* thread_names[1];
-        thread_names[0] = thread_name;
-        result =
-          inherited2::activate ((THR_NEW_LWP      |
-                                 THR_JOINABLE     |
-                                 THR_INHERIT_SCHED),                // flags
-                                STREAM_MODULE_DEFAULT_HEAD_THREADS, // number of threads
-                                0,                                  // force spawning
-                                ACE_DEFAULT_THREAD_PRIORITY,        // priority
-                                inherited2::grp_id (),              // group id (see above)
-                                NULL,                               // corresp. task --> use 'this'
-                                thread_handles,                     // thread handle(s)
-                                NULL,                               // thread stack(s)
-                                NULL,                               // thread stack size(s)
-                                thread_ids,                         // thread id(s)
-                                thread_names);                      // thread name(s)
-        if (result == -1)
+        // send initial session message downstream...
+        if (!putSessionMessage (STREAM_SESSION_BEGIN,
+                                sessionData_,
+                                false))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", continuing\n")));
+                      ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
           break;
         } // end IF
 
-        //       if (inherited::module ())
-        //         ACE_DEBUG ((LM_DEBUG,
-        //                     ACE_TEXT ("module \"%s\" started worker thread (group: %d, id: %u)...\n"),
-        //                     ACE_TEXT (inherited::name ()),
-        //                     inherited::grp_id (),
-        //                     thread_ids[0]));
-        //       else
-        //         ACE_DEBUG ((LM_DEBUG,
-        //                     ACE_TEXT ("started worker thread (group: %d, id: %u)...\n"),
-        //                     inherited::grp_id (),
-        //                     thread_ids[0]));
-      } // end IF
-      else if (runSvcRoutineOnStart_)
-      {
-        result = svc ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
+        // *TODO*: remove type inference
+        if (configuration_.active)
+        {
+          // OK: start worker
+          ACE_hthread_t thread_handles[1];
+          thread_handles[0] = 0;
+          ACE_thread_t thread_ids[1];
+          thread_ids[0] = 0;
+          char thread_name[BUFSIZ];
+          ACE_OS::memset (thread_name, 0, sizeof (thread_name));
+          ACE_OS::strcpy (thread_name, STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME);
+          const char* thread_names[1];
+          thread_names[0] = thread_name;
+          result =
+            inherited2::activate ((THR_NEW_LWP      |
+                                   THR_JOINABLE     |
+                                   THR_INHERIT_SCHED),                // flags
+                                  STREAM_MODULE_DEFAULT_HEAD_THREADS, // number of threads
+                                  0,                                  // force spawning
+                                  ACE_DEFAULT_THREAD_PRIORITY,        // priority
+                                  inherited2::grp_id (),              // group id (see above)
+                                  NULL,                               // corresp. task --> use 'this'
+                                  thread_handles,                     // thread handle(s)
+                                  NULL,                               // thread stack(s)
+                                  NULL,                               // thread stack size(s)
+                                  thread_ids,                         // thread id(s)
+                                  thread_names);                      // thread name(s)
+          if (result == -1)
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", continuing\n")));
+            break;
+          } // end IF
 
-//        // send initial session message downstream...
-//        if (!putSessionMessage (STREAM_SESSION_END,
-//                                sessionData_,
-//                                false))
-//        {
-//          ACE_DEBUG ((LM_ERROR,
-//                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
-//          break;
-//        } // end IF
-      } // end IF
+          //       if (inherited::module ())
+          //         ACE_DEBUG ((LM_DEBUG,
+          //                     ACE_TEXT ("module \"%s\" started worker thread (group: %d, id: %u)...\n"),
+          //                     ACE_TEXT (inherited::name ()),
+          //                     inherited::grp_id (),
+          //                     thread_ids[0]));
+          //       else
+          //         ACE_DEBUG ((LM_DEBUG,
+          //                     ACE_TEXT ("started worker thread (group: %d, id: %u)...\n"),
+          //                     inherited::grp_id (),
+          //                     thread_ids[0]));
+        } // end IF
+        else if (runSvcRoutineOnStart_)
+        {
+          result = svc ();
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
+
+  //        // send initial session message downstream...
+  //        if (!putSessionMessage (STREAM_SESSION_END,
+  //                                sessionData_,
+  //                                false))
+  //        {
+  //          ACE_DEBUG ((LM_ERROR,
+  //                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
+  //          break;
+  //        } // end IF
+        } // end IF
+      } // end ELSE
 
       break;
     }

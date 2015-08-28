@@ -96,4 +96,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\test_i\etc\target.glade">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

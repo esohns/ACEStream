@@ -696,14 +696,14 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   } // end lock scope
 
   // step6: disable some functions ?
-  GtkAction* action_p =
+  GtkToggleButton* toggle_button_p =
     //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLOSE_NAME)));
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_LISTEN_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, TRUE);
-  action_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEBUTTON_LISTEN_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_toggle_button_set_active (toggle_button_p, TRUE);
+  GtkAction* action_p =
       //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
       //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLOSEALL_NAME)));
       GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
@@ -743,15 +743,15 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //gtk_builder_connect_signals ((*iterator).second.second,
   //                             userData_in);
 
-  //GObject* object_p =
-  //    gtk_builder_get_object ((*iterator).second.second,
-  //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_START_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 = g_signal_connect (object_p,
-  //                           ACE_TEXT_ALWAYS_CHAR ("clicked"),
-  //                           G_CALLBACK (button_start_clicked_cb),
-  //                           userData_in);
-  //ACE_ASSERT (result_2);
+  GObject* object_p =
+      gtk_builder_get_object ((*iterator).second.second,
+                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME));
+  ACE_ASSERT (object_p);
+  result_2 = g_signal_connect (object_p,
+                             ACE_TEXT_ALWAYS_CHAR ("value-changed"),
+                             G_CALLBACK (spinbutton_port_value_changed_cb),
+                             userData_in);
+  ACE_ASSERT (result_2);
   //object_p =
   //    gtk_builder_get_object ((*iterator).second.second,
   //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_STOP_NAME));
@@ -762,7 +762,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //                      G_CALLBACK (button_stop_clicked_cb),
   //                      userData_in);
   //ACE_ASSERT (result_2);
-  GObject* object_p =
+  object_p =
     gtk_builder_get_object ((*iterator).second.second,
                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME));
   ACE_ASSERT (object_p);
@@ -779,6 +779,16 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     g_signal_connect (object_p,
                       ACE_TEXT_ALWAYS_CHAR ("activate"),
                       G_CALLBACK (action_listen_activate_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_REPORT_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("activate"),
+                      G_CALLBACK (action_report_activate_cb),
                       userData_in);
   ACE_ASSERT (result_2);
 
@@ -1160,7 +1170,6 @@ action_close_all_activate_cb (GtkAction* action_in,
   ACE_ASSERT (data_p);
 
   gtk_action_set_sensitive (action_in, FALSE);
-
 } // action_close_all_activate_cb
 
 void
@@ -1179,10 +1188,89 @@ action_listen_activate_cb (GtkAction* action_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
 
+  GtkToggleButton* toggle_button_p =
+    //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLOSE_NAME)));
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEBUTTON_LISTEN_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  if (gtk_toggle_button_get_active (toggle_button_p))
+  {
+    try
+    {
+      data_p->configuration->signalHandlerConfiguration.listener->start ();
+    }
+    catch (...)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Net_Server_IListener::start(): \"%m\", continuing\n")));
+    } // end catch
+  } // end IF
+  else
+  {
+    try
+    {
+      data_p->configuration->signalHandlerConfiguration.listener->stop ();
+    }
+    catch (...)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
+    } // end catch
+  } // end IF
 } // action_listen_activate_cb
+
+void
+spinbutton_port_value_changed_cb (GtkWidget* widget_in,
+                                  gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::spinbutton_port_value_changed_cb"));
+
+  Test_I_Target_GTK_CBData* data_p =
+    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+
+  unsigned short port_number =
+      gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (widget_in));
+  data_p->configuration->listenerConfiguration.address.set_port_number (port_number,
+                                                                        1);
+  if (!data_p->configuration->listener->initialize (data_p->configuration->listenerConfiguration))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize listener, continuing\n")));
+} // spinbutton_port_value_changed_cb
+
+/////////////////////////////////////////
+
+void
+action_report_activate_cb (GtkAction* action_in,
+                           gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::action_report_activate_cb"));
+
+  ACE_UNUSED_ARG (action_in);
+  ACE_UNUSED_ARG (userData_in);
+
+// *PORTABILITY*: on Windows SIGUSRx are not defined
+// --> use SIGBREAK (21) instead...
+  int signal = 0;
+#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+  signal = SIGUSR1;
+#else
+  signal = SIGBREAK;
+#endif
+  if (ACE_OS::raise (signal) == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
+                signal));
+} // action_report_activate_cb
 
 void
 action_start_activate_cb (GtkAction* action_in,

@@ -32,7 +32,7 @@
 #include "ace/Signal.h"
 #include "ace/Version.h"
 
-#ifdef LIBACENETWORK_ENABLE_VALGRIND_SUPPORT
+#ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
 #include "valgrind/valgrind.h"
 #endif
 
@@ -573,13 +573,13 @@ do_work (unsigned int bufferSize_in,
   else
     CBData_in.configuration->listener =
       TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
-  Test_I_Target_SignalHandlerConfiguration signal_handler_configuration;
-  signal_handler_configuration.listener =
+  CBData_in.configuration->signalHandlerConfiguration.listener =
     CBData_in.configuration->listener;
-  signal_handler_configuration.statisticReportingHandler =
+  CBData_in.configuration->signalHandlerConfiguration.statisticReportingHandler =
       connection_manager_p;
-  signal_handler_configuration.statisticReportingTimerID = timer_id;
-  signalHandler_in.initialize (signal_handler_configuration);
+  CBData_in.configuration->signalHandlerConfiguration.statisticReportingTimerID =
+      timer_id;
+  signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration);
   if (!Common_Tools::initializeSignals (signalSet_in,
                                         ignoredSignalSet_in,
                                         &signalHandler_in,
@@ -677,10 +677,11 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step1c: start listening
+  configuration.listenerConfiguration.address.set_port_number (listeningPortNumber_in,
+                                                               1);
   configuration.listenerConfiguration.connectionManager =
     connection_manager_p;
   configuration.listenerConfiguration.messageAllocator = &message_allocator;
-  configuration.listenerConfiguration.portNumber = listeningPortNumber_in;
   configuration.listenerConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
   configuration.listenerConfiguration.statisticReportingInterval =
@@ -1021,7 +1022,7 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_Target_SignalHandler signal_handler;
+  Stream_Target_SignalHandler signal_handler (use_reactor);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

@@ -164,6 +164,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\test_i\etc\source.glade">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="..\..\test_i\test_i_source_stream.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

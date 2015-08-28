@@ -389,27 +389,14 @@ Stream_Module_TCPWriter_T<SessionMessageType,
         timerID_ = -1;
       } // end IF
 
-      // *TODO*: wait for the pipeline to flush first...
+      // *TODO*: wait for the pipeline to flush first ?
       if (connection_)
       {
         connection_->decrease ();
         connection_ = NULL;
       } // end IF
 
-      // set up reactor/proactor notification
-      // *TODO*: find a way to retrieve the stream handle here
-      //typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
-      //  dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-      //if (!socket_connection_p)
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
-      //              connection_));
-      //  return;
-      //} // end IF
-      //typename ConnectorType::STREAM_T& stream_r =
-      //  const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
-      //Stream_Module_t* module_p = stream_r.head ();
+      // reset reactor/proactor notification
       Stream_Module_t* module_p = inherited::module ();
       ACE_ASSERT (module_p);
       Stream_Task_t* task_p = module_p->reader ();

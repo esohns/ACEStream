@@ -21,36 +21,38 @@
 #ifndef TEST_I_TARGET_COMMON_H
 #define TEST_I_TARGET_COMMON_H
 
+#include "ace/INET_Addr.h"
 #include "ace/os_include/sys/os_socket.h"
 
 #include "net_ilistener.h"
 
 #include "test_i_common.h"
 #include "test_i_connection_manager_common.h"
+#include "test_i_defines.h"
 
 struct Test_I_Target_ListenerConfiguration
 {
   inline Test_I_Target_ListenerConfiguration ()
-   : addressFamily (ACE_ADDRESS_FAMILY_INET)
+   : address (TEST_I_DEFAULT_PORT, static_cast<ACE_UINT32> (INADDR_ANY))
+   , addressFamily (ACE_ADDRESS_FAMILY_INET)
    , connectionManager (NULL)
    , messageAllocator (NULL)
-   , portNumber (0)
    , socketHandlerConfiguration (NULL)
    , statisticReportingInterval (0)
    , useLoopBackDevice (false)
   {};
 
+  ACE_INET_Addr                             address;
   int                                       addressFamily;
   Test_I_Stream_IInetConnectionManager_t*   connectionManager;
   Stream_IAllocator*                        messageAllocator;
-  unsigned short                            portNumber;
   Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
   unsigned int                              statisticReportingInterval; // (second(s)) [0: off]
   bool                                      useLoopBackDevice;
 };
 
 typedef Net_IListener_T<Test_I_Target_ListenerConfiguration,
-                        Test_I_Stream_SocketHandlerConfiguration> Net_IListener_t;
+                        Test_I_Stream_SocketHandlerConfiguration> Test_I_Target_IListener_t;
 
 struct Test_I_Target_SignalHandlerConfiguration
  : Stream_SignalHandlerConfiguration
@@ -62,7 +64,7 @@ struct Test_I_Target_SignalHandlerConfiguration
    , statisticReportingTimerID (-1)
   {};
 
-  Net_IListener_t*                    listener;
+  Test_I_Target_IListener_t*          listener;
   Test_I_StatisticReportingHandler_t* statisticReportingHandler;
   long                                statisticReportingTimerID;
 };
@@ -77,7 +79,7 @@ struct Test_I_Target_Configuration
    , signalHandlerConfiguration ()
   {};
 
-  Net_IListener_t*                         listener;
+  Test_I_Target_IListener_t*               listener;
   Test_I_Target_ListenerConfiguration      listenerConfiguration;
   Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
 };
