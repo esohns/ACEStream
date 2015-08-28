@@ -27,7 +27,7 @@
 #include "stream_macros.h"
 
 Stream_StateMachine_Control::Stream_StateMachine_Control ()
- : inherited ()
+ : inherited (STREAM_STATE_INVALID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::Stream_StateMachine_Control"));
 

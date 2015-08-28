@@ -204,7 +204,7 @@ Stream_Module_TCPWriter_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPWriter_T::handleDataMessage"));
 
-  if (configuration_.inbound)
+  if (inherited::configuration_.inbound)
   {
     ACE_UNUSED_ARG (message_inout);
     ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -310,7 +310,7 @@ Stream_Module_TCPWriter_T<SessionMessageType,
       connection_ =
         inherited::configuration_.connectionManager->get (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID));
 #else
-      ACE_ASSERT (session_data_p->sessionID != ACE_INVALID_HANDLE);
+      ACE_ASSERT (session_data_p->sessionID != static_cast<unsigned int> (ACE_INVALID_HANDLE));
       connection_ =
         inherited::configuration_.connectionManager->get (static_cast<ACE_HANDLE> (session_data_p->sessionID));
 #endif
@@ -389,6 +389,7 @@ Stream_Module_TCPWriter_T<SessionMessageType,
         timerID_ = -1;
       } // end IF
 
+      // *TODO*: wait for the pipeline to flush first...
       if (connection_)
       {
         connection_->decrease ();
@@ -801,8 +802,6 @@ Stream_Module_TCPReader_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPReader_T::handleSessionMessage"));
 
-  int result = -1;
-
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
@@ -826,7 +825,7 @@ Stream_Module_TCPReader_T<SessionMessageType,
       connection_ =
         configuration_.connectionManager->get (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID));
 #else
-      ACE_ASSERT (session_data_p->sessionID != ACE_INVALID_HANDLE);
+      ACE_ASSERT (session_data_p->sessionID != static_cast<unsigned int> (ACE_INVALID_HANDLE));
       connection_ =
         configuration_.connectionManager->get (static_cast<ACE_HANDLE> (session_data_p->sessionID));
 #endif

@@ -33,8 +33,6 @@ stream_source_SOURCES = \
   test_i_connection_common.h \
   test_i_connection_manager_common.h \
   test_i_defines.h \
-  test_i_eventhandler.cpp \
-  test_i_eventhandler.h \
   test_i_message.cpp \
   test_i_message.h \
   test_i_module_eventhandler.cpp \
@@ -44,11 +42,12 @@ stream_source_SOURCES = \
   test_i_source.cpp \
   test_i_source_signalhandler.cpp \
   test_i_source_signalhandler.h \
+  test_i_source_eventhandler.cpp \
+  test_i_source_eventhandler.h \
   test_i_source_stream.cpp \
   test_i_source_stream.h \
-  test_i_target_stream.cpp \
-  test_i_target_stream.h \
-  test_i_template_instantiations.cpp
+  test_i_source_stream.inl
+#  test_i_template_instantiations.cpp
 #  stdafx.cpp \
 #  stdafx.h
 
@@ -96,8 +95,6 @@ stream_target_SOURCES = \
   test_i_connection_common.h \
   test_i_connection_manager_common.h \
   test_i_defines.h \
-  test_i_eventhandler.cpp \
-  test_i_eventhandler.h \
   test_i_message.cpp \
   test_i_message.h \
   test_i_module_eventhandler.cpp \
@@ -108,12 +105,14 @@ stream_target_SOURCES = \
   test_i_source_stream.h \
   test_i_target.cpp \
   test_i_target.common.h \
+  test_i_target_eventhandler.cpp \
+  test_i_target_eventhandler.h \
   test_i_target_listener.common.h \
   test_i_target_signalhandler.cpp \
   test_i_target_signalhandler.h \
   test_i_target_stream.cpp \
-  test_i_target_stream.h \
-  test_i_template_instantiations.cpp
+  test_i_target_stream.h
+#  test_i_template_instantiations.cpp
 #  stdafx.cpp \
 #  stdafx.h
 

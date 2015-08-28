@@ -93,7 +93,7 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_BUFFER_SIZE
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [VALUE]  : max #connections [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [VALUE]  : maximum number of connections [")
             << TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
@@ -923,10 +923,8 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
   if (use_reactor && (number_of_dispatch_threads > 1))
     use_thread_pool = true;
-  if ((UI_definition_file_name.empty () &&
-       !Common_File_Tools::isReadable (file_name))              ||
-      (!UI_definition_file_name.empty () &&
-      !Common_File_Tools::isReadable (UI_definition_file_name)) ||
+  if ((!UI_definition_file_name.empty () &&
+       !Common_File_Tools::isReadable (UI_definition_file_name)) ||
       (use_thread_pool && !use_reactor)                         ||
       (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool))
   {

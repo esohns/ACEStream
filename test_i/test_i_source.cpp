@@ -93,7 +93,7 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_BUFFER_SIZE
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : filename")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : file name")
             << std::endl;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -415,11 +415,10 @@ do_work (unsigned int bufferSize_in,
     &configuration.streamConfiguration;
   Test_I_Source_Stream_t stream;
   Test_I_Source_AsynchStream_t asynch_stream;
-  Stream_Base_t* stream_p = NULL;
   if (useReactor_in)
-    stream_p = &stream;
+    CBData_in.stream = &stream;
   else
-    stream_p = &asynch_stream;
+    CBData_in.stream = &asynch_stream;
 
   Stream_AllocatorHeap heap_allocator;
   Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
@@ -482,7 +481,7 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.moduleHandlerConfiguration_2.fileName =
     fileName_in;
   configuration.streamConfiguration.moduleHandlerConfiguration_2.stream =
-    stream_p;
+    CBData_in.stream;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
@@ -586,7 +585,6 @@ do_work (unsigned int bufferSize_in,
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     CBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
       std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
-    CBData_in.stream = &stream;
     CBData_in.userData = &CBData_in;
 
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
@@ -622,19 +620,6 @@ do_work (unsigned int bufferSize_in,
     BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
 #endif
   } // end IF
-  else
-  {
-    if (!stream.initialize (configuration.streamConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to initialize stream, aborting\n")));
-
-      // clean up
-      timer_manager_p->stop ();
-
-      return;
-    } // end IF
-  } // end IF
 
   // step1b: initialize worker(s)
   int group_id = -1;
@@ -664,14 +649,26 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  if (!UIDefinitionFile_in.empty ())
-    Common_Tools::dispatchEvents (useReactor_in,
-                                  group_id);
-  else
+  if (UIDefinitionFile_in.empty ())
   {
-    // *NOTE*: this will block until the file has been sent...
-    stream.start ();
-//    if (!stream.isRunning ())
+    if (!CBData_in.stream->initialize (configuration.streamConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to initialize stream, aborting\n")));
+
+      // clean up
+      Common_Tools::finalizeEventDispatch (useReactor_in,
+                                           !useReactor_in,
+                                           group_id);
+      timer_manager_p->stop ();
+
+      return;
+    } // end IF
+
+    // *NOTE*: this call blocks until the file has been sent (or an error
+    //         occurs)
+    CBData_in.stream->start ();
+//    if (!stream_p->isRunning ())
 //    {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to start stream, aborting\n")));
@@ -681,8 +678,11 @@ do_work (unsigned int bufferSize_in,
 
 //      return;
 //    } // end IF
-    stream.stop (true, true);
-  } // end ELSE
+    CBData_in.stream->stop (true, true);
+  } // end IF
+  else
+    Common_Tools::dispatchEvents (useReactor_in,
+                                  group_id);
 
   // step3: clean up
   if (!UIDefinitionFile_in.empty ())

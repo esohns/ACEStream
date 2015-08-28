@@ -80,25 +80,28 @@ stream_processing_function (void* arg_in)
 //    ACE_ASSERT (progress_bar_p);
 
     // generate context ID
+    if (!data_p->CBData->stream->initialize (data_p->CBData->configuration->streamConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to initialize stream: \"%m\", aborting\n")));
+      goto done;
+    } // end IF
+
     statusbar_p =
       GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_STATUSBAR_NAME)));
     ACE_ASSERT (statusbar_p);
 
     std::ostringstream converter;
-    converter << data_p->sessionID;
+    const Test_I_Stream_SessionData& session_data_r =
+      data_p->CBData->stream->sessionData ();
+    converter << session_data_r.sessionID;;
     data_p->CBData->configuration->streamConfiguration.moduleHandlerConfiguration_2.contextID =
         gtk_statusbar_get_context_id (statusbar_p,
                                       converter.str ().c_str ());
     gdk_threads_leave ();
   } // end lock scope
 
-  //if (!data_p->CBData->stream->initialize (data_p->CBData->configuration->streamConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Filecopy_Stream::initialize(): \"%m\", aborting\n")));
-  //  goto done;
-  //} // end IF
   // *NOTE*: processing currently happens 'inline' (borrows calling thread)
   data_p->CBData->stream->start ();
   //if (!data_p->CBData->stream->isRunning ())
@@ -115,7 +118,7 @@ stream_processing_function (void* arg_in)
   result = NULL;
 #endif
 
-//done:
+done:
   { // synch access
     ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->CBData->lock);
     data_p->CBData->progressData.completedActions.insert (ACE_Thread::self ());
@@ -1266,12 +1269,6 @@ action_start_activate_cb (GtkAction* action_in,
   else
     gtk_spin_button_set_value (spin_button_p,
                                static_cast<gdouble> (data_p->configuration->streamConfiguration.bufferSize));
-  if (!data_p->stream->initialize (data_p->configuration->streamConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize stream, returning\n")));
-    goto clean;
-  } // end IF
 
   // step3: start processing thread
   ACE_NEW_NORETURN (thread_data_p,
@@ -1283,7 +1280,6 @@ action_start_activate_cb (GtkAction* action_in,
     goto clean;
   } // end IF
   thread_data_p->CBData = data_p;
-  thread_data_p->sessionID = data_p->stream->sessionData ().sessionID;
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
 //  char* thread_name_p = NULL;
 //  ACE_NEW_NORETURN (thread_name_p,

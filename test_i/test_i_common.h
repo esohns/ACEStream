@@ -286,11 +286,11 @@ struct Stream_ThreadData
 {
   inline Stream_ThreadData ()
    : CBData (NULL)
-   , sessionID (-1)
+   //, sessionID (-1)
   {};
 
   Stream_GTK_CBData* CBData;
-  int                sessionID;
+  //int                sessionID;
 };
 
 #endif

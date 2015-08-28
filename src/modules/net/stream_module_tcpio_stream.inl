@@ -240,7 +240,7 @@ Stream_Module_TCPIO_Stream_T<TaskSynchType,
   // ------------------------------------
 
   int result = -1;
-  inherited::MODULE_T* module_p = NULL;
+  typename inherited::MODULE_T* module_p = NULL;
   if (configuration_in.notificationStrategy)
   {
     module_p = inherited::head ();
@@ -250,14 +250,14 @@ Stream_Module_TCPIO_Stream_T<TaskSynchType,
                   ACE_TEXT ("no head module found, aborting\n")));
       return false;
     } // end IF
-    inherited::TASK_T* task_p = module_p->reader ();
+    typename inherited::TASK_T* task_p = module_p->reader ();
     if (!task_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("no head module reader task found, aborting\n")));
       return false;
     } // end IF
-    inherited::QUEUE_T* queue_p = task_p->msg_queue ();
+    typename inherited::QUEUE_T* queue_p = task_p->msg_queue ();
     if (!queue_p)
     {
       ACE_DEBUG ((LM_ERROR,

@@ -142,12 +142,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  // *TODO*: remove type inferences
-  inherited::sessionData_->fileName =
-    configuration_in.moduleHandlerConfiguration_2.fileName;
-  inherited::sessionData_->sessionID = configuration_in.sessionID;
-  inherited::sessionData_->size =
-    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.fileName);
 
   // things to be done here:
   // [- initialize base class]
@@ -337,6 +331,17 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   } // end IF
 
   // -------------------------------------------------------------
+
+  // *TODO*: remove type inferences
+  inherited::sessionData_->fileName =
+    configuration_in.moduleHandlerConfiguration_2.fileName;
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration_2.configuration);
+  ConnectorType::ICONNECTION_T* connection_p =
+    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ()->get (configuration_in.moduleHandlerConfiguration_2.configuration->socketConfiguration.peerAddress);
+  ACE_ASSERT (connection_p);
+  inherited::sessionData_->sessionID = connection_p->id ();
+  inherited::sessionData_->size =
+    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.fileName);
 
   // set (session) message allocator
   inherited::allocator_ = configuration_in.messageAllocator;

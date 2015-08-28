@@ -158,9 +158,6 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 
   int result = -1;
 
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
   // sanity check(s)
   ACE_ASSERT (message_inout);
 
@@ -207,6 +204,18 @@ Stream_Module_TCPTarget_T<SessionMessageType,
     {
       if (isLinked_)
       {
+        // *IMPORTANT NOTE*: forward this session message before unlinking the two
+        //                   streams
+        result = inherited::put_next (message_inout, NULL);
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", continuing\n")));
+
+        // clean up
+        // *NOTE*: the session message has been consumed...
+        message_inout = NULL;
+        passMessageDownstream_out = false;
+
         ACE_ASSERT (configuration_.stream);
         result = configuration_.stream->unlink ();
         if (result == -1)
@@ -232,6 +241,7 @@ Stream_Module_TCPTarget_T<SessionMessageType,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
+        // *TODO*: wait for the pipeline to flush first...
         configuration_.connection->close ();
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("closed connection to \"%s\"...\n"),
@@ -356,15 +366,15 @@ Stream_Module_TCPTarget_T<SessionMessageType,
 
   // step3: connect
   ACE_ASSERT (!configuration_.connection);
+//  typename ConnectorType::ICONNECTION_T* connection_p = NULL;
   handle =
     connector.connect (configuration_.configuration->socketConfiguration.peerAddress);
-  const typename ConnectorType::STREAM_T* stream_p = NULL;
-  Stream_Module_t* module_2 = NULL;
   if (connector.useReactor ())
-    configuration_.connection =
-      dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_manager_p->get (handle));
+    configuration_.connection = connection_manager_p->get (handle);
   else
   {
+    // *TODO*: support one-thread operation by scheduling a signal and manually
+    //         running the dispatch loop for a limited time...
     ACE_Time_Value one_second (1, 0);
     result = ACE_OS::sleep (one_second);
     if (result == -1)

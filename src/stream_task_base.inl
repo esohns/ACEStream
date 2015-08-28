@@ -366,6 +366,8 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       } // end IF
 
       // OK: process session message...
+      Stream_SessionMessageType session_message_type =
+        session_message_p->type ();
       try
       {
         // invoke specific implementation...
@@ -385,11 +387,8 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
       // *NOTE*: if this was a Stream_SessionMessage::SESSION_END, stop
       //         processing (see above) !
-      if (session_message_p->type () == STREAM_SESSION_END)
-      {
-        // OK: tell any worker thread to stop whatever it's doing ASAP...
+      if (session_message_type == STREAM_SESSION_END)
         stopProcessing_out = true;
-      } // end IF
 
       break;
     }

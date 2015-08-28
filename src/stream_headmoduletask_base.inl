@@ -843,7 +843,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     {
       // OK: (re-)initialized
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("(re-)initialized...\n")));
+                  ACE_TEXT ("head module (re-)initialized...\n")));
       break;
     }
     case STREAM_STATE_RUNNING:
