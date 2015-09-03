@@ -6,16 +6,16 @@
 ;--------------------------------
 
 ; Metadata
-!searchparse /file "..\test_i\IRC_client_gui_defines.h" `#define IRC_CLIENT_GUI_GTK_UI_FILE_DIRECTORY  "` CONFIGURATION_SUBDIR `"`
+!searchparse /file "..\test_i\test_i_defines.h" `#define TEST_I_CONFIGURATION_DIRECTORY                       ` CONFIGURATION_SUBDIR `"`
 ;!define CONFIGURATION_SUBDIR "etc"
 !searchparse /file "..\configure.ac" `m4_define([M4_PACKAGE_NAME], [` PROGRAM `])`
-;!define PROGRAM "libACENetwork"
+;!define PROGRAM "libACEStream"
 !searchparse /file ".\libACEStream.spec.in" `Summary:      ` SUMMARY `\n`
 
-!searchparse /file "..\configure.ac" `m4_define([M4_LIBACENETWORK_VERSION_MAJOR], [` VER_MAJOR `])`
-!searchparse /file "..\configure.ac" `m4_define([M4_LIBACENETWORK_VERSION_MINOR], [` VER_MINOR `])`
-!searchparse /file "..\configure.ac" `m4_define([M4_LIBACENETWORK_VERSION_MACRO], [` VER_MICRO `])`
-!searchparse /file "..\configure.ac" `m4_define([M4_LIBACENETWORK_VERSION_DEVEL], [` DEVEL `])`
+!searchparse /file "..\configure.ac" `m4_define([M4_LIBACESTREAM_VERSION_MAJOR], [` VER_MAJOR `])`
+!searchparse /file "..\configure.ac" `m4_define([M4_LIBACESTREAM_VERSION_MINOR], [` VER_MINOR `])`
+!searchparse /file "..\configure.ac" `m4_define([M4_LIBACESTREAM_VERSION_MICRO], [` VER_MICRO `])`
+!searchparse /file "..\configure.ac" `m4_define([M4_LIBACESTREAM_VERSION_DEVEL], [` DEVEL `])`
 
 ; Languages
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\English.nlf"
@@ -24,8 +24,8 @@ LoadLanguageFile "${NSISDIR}\Contrib\Language files\English.nlf"
 Name ${PROGRAM}
 
 ; The file to write
-VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" ${PROGRAM}
-VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" ${SUMMARY}
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "${PROGRAM}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "${SUMMARY}"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" ""
 !define /date NOW "%Y"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© ${NOW}"
@@ -37,7 +37,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" ""
 VIAddVersionKey /LANG=${LANG_ENGLISH} "OriginalFilename" ""
 VIAddVersionKey /LANG=${LANG_ENGLISH} "PrivateBuild" ""
 VIAddVersionKey /LANG=${LANG_ENGLISH} "SpecialBuild" ""
-VIProductVersion "${VER_MAJOR}.${VER_MINOR}.${VER_MICRO}"
+VIProductVersion "${VER_MAJOR}.${VER_MINOR}.${VER_MICRO}.0"
 
 OutFile "${PROGRAM}-${VER_MAJOR}.${VER_MINOR}.${VER_MICRO}.exe"
 
@@ -106,12 +106,53 @@ File "D:\projects\ATCD\ACE\lib\ACE.dll"
 
 ;File "D:\projects\lpng167\projects\vstudio\${release}\libpng16.dll"
 
-File "..\..\prj\msvc\${release}\libCommon.dll"
-File "..\..\prj\msvc\${release}\libCommon_UI.dll"
+File "D:\projects\gtk\bin\freetype6.dll"
+File "D:\projects\gtk\bin\intl.dll"
+File "D:\projects\gtk\bin\libatk-1.0-0.dll"
+File "D:\projects\gtk\bin\libcairo-2.dll"
+File "D:\projects\gtk\bin\libexpat-1.dll"
+File "D:\projects\gtk\bin\libfontconfig-1.dll"
+File "D:\projects\gtk\bin\libgdk_pixbuf-2.0-0.dll"
+File "D:\projects\gtk\bin\libgdk-win32-2.0-0.dll"
+File "D:\projects\gtk\bin\libgio-2.0-0.dll"
+File "D:\projects\gtk\bin\libglib-2.0-0.dll"
+File "D:\projects\gtk\bin\libgmodule-2.0-0.dll"
+File "D:\projects\gtk\bin\libgobject-2.0-0.dll"
+File "D:\projects\gtk\bin\libgthread-2.0-0.dll"
+File "D:\projects\gtk\bin\libgtk-win32-2.0-0.dll"
+File "D:\projects\gtk\bin\libpango-1.0-0.dll"
+File "D:\projects\gtk\bin\libpangocairo-1.0-0.dll"
+File "D:\projects\gtk\bin\libpangoft2-1.0-0.dll"
+File "D:\projects\gtk\bin\libpangowin32-1.0-0.dll"
+File "D:\projects\gtk\bin\libpng14-14.dll"
+File "D:\projects\gtk\bin\zlib1.dll"
+
+File "D:\projects\libglade\bin\libglade-2.0-0.dll"
+
+File "G:\software\Development\libiconv-2.dll"
+File "G:\software\Development\libxml2-2.dll"
+
+File "..\prj\msvc\${release}\libCommon.dll"
+File "..\prj\msvc\${release}\libCommon_UI.dll"
+File "..\prj\msvc\${release}\libACEStream.dll"
+File "..\prj\msvc\${release}\libACEStream_File.dll"
+File "..\prj\msvc\${release}\libACEStream_Misc.dll"
+File "..\prj\msvc\${release}\libACEStream_Net.dll"
+File "..\prj\msvc\${release}\libACENetwork.dll"
+File "..\prj\msvc\${release}\libACENetwork_Client.dll"
+File "..\prj\msvc\${release}\libACENetwork_Server.dll"
+File "..\prj\msvc\${release}\test_u_filecopy.exe"
+File "..\prj\msvc\${release}\test_i_streamsource.exe"
+File "..\prj\msvc\${release}\test_i_streamtarget.exe"
 
 ; Config
 ; set output path to the installation directory
 SetOutPath $INSTDIR\${CONFIGURATION_SUBDIR}
+
+; Config - glade
+File "..\test_u\filecopy\etc\filecopy.glade"
+File "..\test_i\etc\source.glade"
+File "..\test_i\etc\target.glade"
 
 ; Write the installation path into the registry
 WriteRegStr HKLM SOFTWARE\${PROGRAM} "Install_Dir" "$INSTDIR"
