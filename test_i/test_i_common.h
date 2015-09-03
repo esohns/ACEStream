@@ -233,26 +233,37 @@ typedef Stream_Subscribers_t::iterator Stream_SubscribersIterator_t;
 
 typedef Common_ISubscribe_T<Stream_IStreamNotify_t> Stream_ISubscribe_t;
 
-typedef std::map<ACE_thread_t, guint> Stream_PendingActions_t;
+struct Stream_ThreadID
+{
+ inline Stream_ThreadID ()
+  : handle (ACE_INVALID_HANDLE)
+  , id (-1)
+ {};
+
+  ACE_hthread_t handle;
+  ACE_thread_t  id;
+};
+
+typedef std::map<guint, Stream_ThreadID> Stream_PendingActions_t;
 typedef Stream_PendingActions_t::iterator Stream_PendingActionsIterator_t;
-typedef std::set<ACE_thread_t> Stream_CompletedActions_t;
+typedef std::set<guint> Stream_CompletedActions_t;
 typedef Stream_CompletedActions_t::iterator Stream_CompletedActionsIterator_t;
 struct Stream_GTK_ProgressData
 {
   inline Stream_GTK_ProgressData ()
    : completedActions ()
-   , sent (0)
 //   , cursorType (GDK_LAST_CURSOR)
    , GTKState (NULL)
    , pendingActions ()
+   , sent (0)
    , size (0)
   {};
 
   Stream_CompletedActions_t completedActions;
-  unsigned int              sent; // bytes
 //  GdkCursorType                      cursorType;
   Common_UI_GTKState*       GTKState;
   Stream_PendingActions_t   pendingActions;
+  unsigned int              sent; // bytes
   unsigned int              size; // bytes
 };
 
@@ -283,11 +294,11 @@ struct Stream_ThreadData
 {
   inline Stream_ThreadData ()
    : CBData (NULL)
-   //, sessionID (-1)
+   , eventSourceID (0)
   {};
 
   Stream_GTK_CBData* CBData;
-  //int                sessionID;
+  guint              eventSourceID;
 };
 
 #endif

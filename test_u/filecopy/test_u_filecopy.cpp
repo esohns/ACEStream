@@ -123,7 +123,7 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  path = Common_File_Tools::getDumpDirectory ();
+  path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x[[STRING]]: target filename [")
@@ -178,7 +178,7 @@ do_processArguments (int argc_in,
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING;
   traceInformation_out = false;
   printVersionAndExit_out = false;
-  path = Common_File_Tools::getDumpDirectory ();
+  path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE);
   targetFileName_out = path;
@@ -409,7 +409,7 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.moduleHandlerConfiguration_2.fileName =
       fileName_in;
   configuration.streamConfiguration.moduleHandlerConfiguration_2.targetFileName =
-      (targetFileName_in.empty () ? Common_File_Tools::getDumpDirectory ()
+      (targetFileName_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFileName_in);
 
   // ********************** stream configuration data **************************
@@ -643,7 +643,7 @@ ACE_TMAIN (int argc_in,
     STREAM_DEFAULT_STATISTIC_REPORTING;
   bool trace_information = false;
   bool print_version_and_exit = false;
-  path = Common_File_Tools::getDumpDirectory ();
+  path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_OUTPUT_FILE);
   std::string target_file_name = path;

@@ -157,7 +157,8 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         // good case
         case STREAM_STATE_PAUSED: // just like a tape-recorder...
         case STREAM_STATE_RUNNING: // ...but also allow this to resume
-        case STREAM_STATE_STOPPED:
+        case STREAM_STATE_STOPPED: // asynchronous (normal) mode
+        case STREAM_STATE_FINISHED: // synchronous (blocking) mode
         {
           // handle a special case: PAUSED --> PAUSED is logically mapped to
           // PAUSED --> RUNNING, just like a tape recorder...
@@ -176,7 +177,6 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         }
         // error case
         case STREAM_STATE_INITIALIZED:
-        case STREAM_STATE_FINISHED:
         default:
           break;
       } // end SWITCH
@@ -188,6 +188,7 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
       switch (newState_in)
       {
         // good cases
+        case STREAM_STATE_RUNNING:
         // *NOTE*: have to allow this...
         // (scenario: asynchronous user abort via stop())
         case STREAM_STATE_FINISHED:
@@ -202,7 +203,6 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         // error cases
         case STREAM_STATE_INITIALIZED:
         case STREAM_STATE_PAUSED:
-        case STREAM_STATE_RUNNING:
         default:
           break;
       } // end SWITCH
@@ -240,7 +240,7 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
       break;
   } // end SWITCH
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("invalid state switch: \"%s\" --> \"%s\": check implementation !, aborting\n"),
+              ACE_TEXT ("invalid state transition: \"%s\" --> \"%s\": check implementation !, aborting\n"),
               ACE_TEXT (state2String (state_).c_str ()),
               ACE_TEXT (state2String (newState_in).c_str ())));
 

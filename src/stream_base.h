@@ -102,6 +102,8 @@ class Stream_Base_T
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true); // locked access ?
   virtual bool isRunning () const;
+
+  virtual void flush ();
   virtual void pause ();
   virtual void rewind ();
   virtual const StatusType& status () const;

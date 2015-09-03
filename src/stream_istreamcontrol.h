@@ -33,6 +33,7 @@ class Stream_IStreamControl_T
  public:
   inline virtual ~Stream_IStreamControl_T () {};
 
+  virtual void flush () = 0;
   virtual void pause () = 0;
   virtual void rewind () = 0;
   virtual const StatusType& status () const = 0;

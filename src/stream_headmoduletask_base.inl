@@ -50,12 +50,13 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
  : configuration_ ()
 // , isActive_ (isActive_in)
  , sessionData_ (NULL)
- , state_ (NULL)
+ , streamState_ (NULL)
  , lock_ ()
  , queue_ (STREAM_QUEUE_MAX_SLOTS)
  , autoStart_ (autoStart_in)
  , condition_ (lock_)
  , runSvcRoutineOnStart_ (runSvcRoutineOnStart_in)
+ , threadID_ (-1)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
@@ -636,6 +637,46 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
+                            SessionDataContainerType>::flush ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
+
+  //int result = -1;
+
+  //// step1: wait for final state
+  //{
+  //  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+
+  //  while (inherited2::threadCount_)
+  //  {
+  //    result = condition_.wait ();
+  //    if (result == -1)
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("failed to ACE_SYNCH_CONDITION::wait(): \"%m\", continuing\n")));
+  //  } // end WHILE
+  //} // end IF
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+  ACE_NOTREACHED (return;)
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+void
+Stream_HeadModuleTaskBase_T<TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
                             SessionDataContainerType>::pause ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::pause"));
@@ -718,7 +759,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   // *TODO*: remove type inference
   if (configuration_.active)
   {
-    // step1: wait for workers to finish
+    // step1: wait for final state
     {
       ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
@@ -731,7 +772,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       } // end WHILE
     } // end IF
 
-    // step2: wait for workers to join
+    // step2: wait for worker(s) to join
     result = inherited2::wait ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -781,11 +822,11 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::initialize (const StreamStateType& state_in)
+                            SessionDataContainerType>::initialize (const StreamStateType& streamState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
 
-  state_ = &const_cast<StreamStateType&> (state_in);
+  streamState_ = &const_cast<StreamStateType&> (streamState_in);
 //  sessionData_ = &const_cast<SessionDataType&> (sessionData_in);
 
   return true;
@@ -925,6 +966,19 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         } // end IF
         else if (runSvcRoutineOnStart_)
         {
+          {
+            ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (stateLock_);
+
+            // *NOTE*: if the implementation is 'passive', the whole operation pertaining
+            //         to newState_in may have been processed 'inline' by the current
+            //         thread and have completed by 'now'
+            //         --> in this case set the state early
+            // *TODO*: this may not be the best way to implement that case (i.e. there
+            //         could be intermediate states...)
+            inherited::state_ = STREAM_STATE_RUNNING;
+          } // end lock scope
+
+          threadID_ = ACE_Thread::self ();
           result = svc ();
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
@@ -947,7 +1001,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     case STREAM_STATE_STOPPED:
     {
       // *TODO*: remove type inference
-      if (configuration_.active)
+      if (configuration_.active ||
+          runSvcRoutineOnStart_)
       {
         //// OK: drop a control message into the queue...
         //// *TODO*: use ACE_Stream::control() instead ?
@@ -984,6 +1039,16 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       } // end IF
       else
       {
+        //if (runSvcRoutineOnStart_)
+        //{
+        //  ACE_ASSERT (threadID_ != -1);
+        //  result = ACE_Thread::kill (threadID_, SIGKILL);
+        //  if (result == -1)
+        //    ACE_DEBUG ((LM_ERROR,
+        //                ACE_TEXT ("ACE_Thread::kill(%d, \"%S\") failed: \"%m\", continuing\n"),
+        //                threadID_, SIGKILL));
+        //} // end IF
+
         // send final session message downstream...
         if (!putSessionMessage (STREAM_SESSION_END,
                                 sessionData_,
@@ -1064,7 +1129,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putSessionMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (state_);
+  ACE_ASSERT (streamState_);
 
   int result = -1;
 
@@ -1104,7 +1169,7 @@ allocate:
     ACE_NEW_NORETURN (session_message_p,
                       SessionMessageType (messageType_in,
                                           sessionData_inout,
-                                          state_->userData));
+                                          streamState_->userData));
   } // end ELSE
   if (!session_message_p)
   {
@@ -1131,7 +1196,7 @@ allocate:
     // *TODO*: remove type inference
     session_message_p->initialize (messageType_in,
                                    sessionData_inout,
-                                   state_->userData);
+                                   streamState_->userData);
   } // end IF
 
   // pass message downstream...

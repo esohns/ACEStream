@@ -65,7 +65,8 @@ Stream_Module_EventHandler::clone ()
 
       return NULL;
     } // end IF
-    eventHandler_impl_p->initialize (inherited::subscribers_, inherited::lock_);
+    eventHandler_impl_p->initialize (inherited::subscribers_,
+                                     inherited::lock_);
   } // end ELSE
 
   return module_p;

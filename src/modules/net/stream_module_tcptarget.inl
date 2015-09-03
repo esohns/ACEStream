@@ -204,20 +204,7 @@ Stream_Module_TCPTarget_T<SessionMessageType,
     {
       // wait for data processing to complete
       if (configuration_.connection)
-      {
-        typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
-            dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (configuration_.connection);
-        if (!socket_connection_p)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
-                      configuration_.connection));
-          return;
-        } // end IF
-        typename ConnectorType::STREAM_T& stream_r =
-            const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
-        stream_r.waitForCompletion ();
-      } // end IF
+        configuration_.connection->waitForCompletion ();
 
       if (isLinked_)
       {

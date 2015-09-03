@@ -159,37 +159,61 @@ Stream_Module_FileWriter_T<SessionMessageType,
       ACE_ASSERT (session_data_p);
 
       std::string directory, file_name;
-      if (configuration_.fileName.empty ())
+      directory =
+        (session_data_p->fileName.empty () ? configuration_.fileName.empty () ? Common_File_Tools::getTempDirectory ()
+                                                                              : configuration_.fileName
+                                           : session_data_p->fileName);
+      file_name =
+        (session_data_p->fileName.empty () ? configuration_.fileName.empty () ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
+                                                                              : configuration_.fileName
+                                           : session_data_p->fileName);
+      // sanity check(s)
+      if (!Common_File_Tools::isDirectory (directory))
       {
-        directory = Common_File_Tools::getDumpDirectory ();
-        file_name = ACE::basename (session_data_p->fileName.c_str ());
+        if (Common_File_Tools::isValidPath (directory))
+        {
+          if (!Common_File_Tools::createDirectory (directory))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to create directory \"%s\": \"%m\", returning\n"),
+                        ACE_TEXT (directory.c_str ())));
+            return;
+          } // end IF
+        } // end IF
+        else if (Common_File_Tools::isValidFileName (directory))
+        {
+          directory =
+            ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+          if (!Common_File_Tools::isDirectory (directory))
+            if (!Common_File_Tools::createDirectory (directory))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("failed to create directory \"%s\": \"%m\", returning\n"),
+                          ACE_TEXT (directory.c_str ())));
+              return;
+            } // end IF
+        } // end IF
+        else
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("invalid target directory (was: \"%s\"), falling back\n"),
+                      ACE_TEXT (directory.c_str ())));
+          directory = Common_File_Tools::getTempDirectory ();
+        } // end ELSE
       } // end IF
-      else if (Common_File_Tools::isDirectory (configuration_.fileName))
-      {
-        directory = configuration_.fileName;
-        file_name = ACE::basename (session_data_p->fileName.c_str (),
-                                   ACE_DIRECTORY_SEPARATOR_CHAR);
-      } // end IF
-      else if (Common_File_Tools::isValid (configuration_.fileName))
-      {
-        directory = ACE::dirname (configuration_.fileName.c_str (),
-                                  ACE_DIRECTORY_SEPARATOR_CHAR);
-        file_name = ACE::basename (configuration_.fileName.c_str (),
-                                   ACE_DIRECTORY_SEPARATOR_CHAR);
-      } // end ELSE
-      else
-      {
-        directory = Common_File_Tools::getDumpDirectory ();
-        file_name = ACE::basename (session_data_p->fileName.c_str (),
-                                   ACE_DIRECTORY_SEPARATOR_CHAR);
-      } // end IF
+      if (Common_File_Tools::isDirectory (file_name))
+        file_name =
+          ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE);
+      else if (Common_File_Tools::isValidFileName (file_name))
+        file_name =
+          ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
       file_name = directory +
                   ACE_DIRECTORY_SEPARATOR_CHAR_A +
                   file_name;
 
       if (Common_File_Tools::isReadable (file_name))
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("target file \"%s\" exists, continuing\n"),
+                    ACE_TEXT ("overwriting existing target file \"%s\"\n"),
                     ACE_TEXT (file_name.c_str ())));
 
       ACE_FILE_Addr file_address;

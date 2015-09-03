@@ -341,6 +341,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
     TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ()->get (configuration_in.moduleHandlerConfiguration_2.configuration->socketConfiguration.peerAddress);
   ACE_ASSERT (connection_p);
   inherited::sessionData_->sessionID = connection_p->id ();
+  connection_p->decrease ();
   inherited::sessionData_->size =
     Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.fileName);
 

@@ -54,12 +54,15 @@ extern "C"
 // callbacks
 G_MODULE_EXPORT void action_start_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT void action_stop_activate_cb (GtkAction*, gpointer);
+G_MODULE_EXPORT void filechooserbutton_source_cb (GtkFileChooserButton*, gpointer);
 
 /////////////////////////////////////////
 
 G_MODULE_EXPORT void action_close_all_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT void action_listen_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT void spinbutton_port_value_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void filechooserbutton_target_cb (GtkFileChooserButton*, gpointer);
+G_MODULE_EXPORT void filechooser_target_cb (GtkFileChooser*, gpointer);
 
 /////////////////////////////////////////
 
@@ -73,7 +76,6 @@ G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
 
 /////////////////////////////////////////
 
-G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
 #ifdef __cplusplus
 }

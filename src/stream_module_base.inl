@@ -20,8 +20,6 @@
 
 #include "ace/Log_Msg.h"
 
-#include "common_irefcount.h"
-
 #include "stream_common.h"
 #include "stream_macros.h"
 
@@ -53,18 +51,19 @@ Stream_Module_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::Stream_Module_Base_T"));
 
-  // *WARNING*: apparently, we cannot use "this" at this stage
-  // --> children must do this...
-//   // set links to ourselves...
+  // *WARNING*: apparently, "this" is not valid at this stage
+  //            --> derived classes must do this
+//   // set module links in the tasks
 //   // *NOTE*: essential to enable dereferencing (name-lookups, controlled
   //shutdown, etc)
 //   myWriter->mod_ = this;
 //   myReader->mod_ = this;
 
   // *IMPORTANT NOTE*: when using this ACE_Module ctor, the next_ member isn't
-  // initialized properly; this causes mayhem in a corner case so do it here...
-  // *TODO*: notify the ACE people
-  inherited::next(NULL);
+  //                   initialized properly; this causes mayhem in a corner
+  //                   case, so do it here
+  // *TODO*: notify the ACE people to correct this in the library
+  inherited::next (NULL);
 }
 
 template <typename TaskSynchType,
@@ -153,7 +152,7 @@ Stream_Module_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Stream_IModuleHandler_T*>(%@) failed, aborting\n"),
-                ACE_TEXT (inherited::name ()),
+                inherited::name (),
                 task_p));
 
     ACE_ASSERT (false);
@@ -233,7 +232,7 @@ Stream_Module_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: dynamic_cast<Common_IClone_T> failed, aborting\n"),
-                ACE_TEXT (inherited::name ())));
+                inherited::name ()));
     return NULL;
   } // end IF
 
@@ -245,13 +244,13 @@ Stream_Module_Base_T<TaskSynchType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IClone_T::clone(), continuing\n"),
-                ACE_TEXT (inherited::name ())));
+                inherited::name ()));
   }
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_IClone_T::clone(), aborting\n"),
-                ACE_TEXT (inherited::name ())));
+                inherited::name ()));
     return NULL;
   } // end IF
 

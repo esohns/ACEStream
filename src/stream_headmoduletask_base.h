@@ -81,6 +81,8 @@ class Stream_HeadModuleTaskBase_T
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true); // locked access ?
   virtual bool isRunning () const;
+
+  virtual void flush ();
   virtual void pause ();
   virtual void rewind ();
   virtual const Stream_StateMachine_ControlState& status () const;
@@ -128,7 +130,7 @@ class Stream_HeadModuleTaskBase_T
   ConfigurationType   configuration_;
 //  bool                isActive_;
   SessionDataType*    sessionData_;
-  StreamStateType*    state_;
+  StreamStateType*    streamState_;
 
   ACE_SYNCH_MUTEX     lock_;
   Stream_MessageQueue queue_;
@@ -165,6 +167,7 @@ class Stream_HeadModuleTaskBase_T
   bool                autoStart_;
   ACE_SYNCH_CONDITION condition_;
   bool                runSvcRoutineOnStart_;
+  ACE_thread_t        threadID_;
 };
 
 // include template implementation

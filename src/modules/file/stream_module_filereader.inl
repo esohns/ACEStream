@@ -393,13 +393,14 @@ Stream_Module_FileReader_T<SessionMessageType,
                 ACE_TEXT (inherited::configuration_.fileName.c_str ())));
     goto done;
   } // end IF
-  result = file_connector.connect (stream_,                 // stream
-                                   file_address,            // filename
-                                   NULL,                    // timeout (block)
-                                   ACE_Addr::sap_any,       // (local) filename: N/A
-                                   0,                       // reuse_addr: N/A
-                                   (O_RDONLY | O_BINARY),   // flags --> open
-                                   ACE_DEFAULT_FILE_PERMS); // permissions --> open
+  result =
+    file_connector.connect (stream_,                 // stream
+                            file_address,            // filename
+                            NULL,                    // timeout (block)
+                            ACE_Addr::sap_any,       // (local) filename: N/A
+                            0,                       // reuse_addr: N/A
+                            (O_RDONLY | O_BINARY),   // flags --> open
+                            ACE_DEFAULT_FILE_PERMS); // permissions --> open
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,

@@ -534,6 +534,103 @@ Stream_Base_T<TaskSynchType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
+              ProtocolMessageType>::flush ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::flush"));
+
+  int result = -1;
+
+  // writer (inbound) side
+  MODULE_CONTAINER_T modules;
+  Stream_Queue_t* queue_p = NULL;
+  Stream_Task_t* task_p = NULL;
+  const Stream_Module_t* module_p = NULL;
+  ACE_Time_Value one_second (1, 0);
+  for (ITERATOR_T iterator (*this);
+       (iterator.next (module_p) != 0);
+       iterator.advance ())
+  {
+    // skip stream tail (last module)
+    if (module_p == inherited::tail ())
+      continue;
+
+    modules.push_front (const_cast<MODULE_T*> (module_p));
+    task_p = const_cast<MODULE_T*> (module_p)->writer ();
+    ACE_ASSERT (task_p);
+    queue_p = task_p->msg_queue ();
+    ACE_ASSERT (queue_p);
+    do
+    {
+      //result = queue_p->wait ();
+      result = queue_p->message_count ();
+      if (!result) break;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s writer: waiting to process ~%d byte(s) (in %d message(s))...\n"),
+                  module_p->name (),
+                  queue_p->message_bytes (), result));
+      result = ACE_OS::sleep (one_second);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s writer: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                    module_p->name (),
+                    &one_second));
+    } while (true);
+
+    module_p = NULL;
+  } // end FOR
+
+  // reader (outbound) side
+  for (MODULE_CONTAINER_ITERATOR_T iterator = modules.begin ();
+       iterator != modules.end ();
+       iterator++)
+  {
+    task_p = (*iterator)->reader ();
+    ACE_ASSERT (task_p);
+    queue_p = task_p->msg_queue ();
+    ACE_ASSERT (queue_p);
+    do
+    {
+      //result = queue_p->wait ();
+      result = queue_p->message_count ();
+      if (!result) break;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s reader: waiting to process ~%d byte(s) (in %d message(s))...\n"),
+                  module_p->name (),
+                  queue_p->message_bytes (), result));
+      result = ACE_OS::sleep (one_second);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                    module_p->name (),
+                    &one_second));
+    } while (true);
+  } // end FOR
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+void
+Stream_Base_T<TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
               ProtocolMessageType>::pause ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::pause"));
@@ -743,7 +840,7 @@ Stream_Base_T<TaskSynchType,
 
   // *NOTE*: the logic here is this:
   //         step1: wait for processing (message generation) to finish
-  //         step2: wait for any pipelined messages to flush...
+  //         step2: wait for any pipelined messages to 'flush'
   MODULE_CONTAINER_T modules;
   modules.push_front (inherited::head ());
 
@@ -766,9 +863,9 @@ Stream_Base_T<TaskSynchType,
   } // end IF
 
   // sanity check: head == tail ?
-  // --> reason: no modules have been push()ed (yet) !
+  // --> reason: no modules have been push()ed (yet)
   // --> stream hasn't been intialized (at all: too many connections ?)
-  // --> nothing to do !
+  // --> nothing to do
   if (module_p == inherited::tail ())
     return;
 
@@ -838,6 +935,7 @@ Stream_Base_T<TaskSynchType,
       if (!result) break;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s reader: waiting to process ~%d byte(s) (in %d message(s))...\n"),
+                  (*iterator2)->name (),
                   queue_p->message_bytes (), result));
       result = ACE_OS::sleep (one_second);
       if (result == -1)

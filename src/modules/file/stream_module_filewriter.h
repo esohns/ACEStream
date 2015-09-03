@@ -28,6 +28,8 @@
 
 #include "stream_task_base_asynch.h"
 
+#define STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE "output.tmp"
+
 template <typename SessionMessageType,
           typename MessageType,
           ///////////////////////////////
