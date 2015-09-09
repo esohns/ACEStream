@@ -108,7 +108,7 @@ struct Stream_SocketHandlerConfiguration
 //   , userData (NULL)
   {};
 
-  int                      bufferSize; // pdu size (if fixed)
+  unsigned int             bufferSize; // pdu size (if fixed)
   Stream_IAllocator*       messageAllocator;
   Net_SocketConfiguration* socketConfiguration;
   unsigned int             statisticReportingInterval; // seconds [0: off]

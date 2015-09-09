@@ -90,6 +90,8 @@ Stream_StatisticHandler_Reactor_T<StatisticContainerType>::handle_timeout (const
 
       break;
     }
+    case ACTION_INVALID:
+    case ACTION_MAX:
     default:
     {
       ACE_DEBUG ((LM_ERROR,

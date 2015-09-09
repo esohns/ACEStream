@@ -49,3 +49,4 @@ Debug_obj
 ipch
 *.sdf
 *.suo
+Release_obj

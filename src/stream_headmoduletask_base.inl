@@ -56,7 +56,11 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
  , autoStart_ (autoStart_in)
  , condition_ (lock_)
  , runSvcRoutineOnStart_ (runSvcRoutineOnStart_in)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , threadID_ (std::numeric_limits<unsigned long>::max ())
+#else
  , threadID_ (-1)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 

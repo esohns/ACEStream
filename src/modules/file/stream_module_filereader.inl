@@ -462,7 +462,7 @@ Stream_Module_FileReader_T<SessionMessageType,
       }
       default:
       {
-        message_p->wr_ptr (bytes_read);
+        message_p->wr_ptr (static_cast<size_t> (bytes_read));
         result = inherited::put_next (message_p, NULL);
         if (result == -1)
         {

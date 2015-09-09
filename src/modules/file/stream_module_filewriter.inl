@@ -92,7 +92,11 @@ Stream_Module_FileWriter_T<SessionMessageType,
     return;
   } // end IF
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  size_t bytes_transferred = std::numeric_limits<unsigned int>::max ();
+#else
   size_t bytes_transferred = -1;
+#endif
   bytes_written = stream_.send_n (message_inout,       // (chained) message
                                   NULL,                // timeout
                                   &bytes_transferred); // bytes transferred

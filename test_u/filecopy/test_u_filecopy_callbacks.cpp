@@ -21,6 +21,7 @@
 
 #include "test_u_filecopy_callbacks.h"
 
+#include <limits>
 #include <sstream>
 
 #include "ace/Guard_T.h"
@@ -48,7 +49,7 @@ stream_processing_function (void* arg_in)
 
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  result = -1;
+  result = std::numeric_limits<unsigned long>::max ();
 #else
   result = arg_in;
 #endif
@@ -277,7 +278,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to pango_font_description_from_string(\"%s\"): \"%m\", aborting\n"),
                 ACE_TEXT (TEST_U_STREAM_UI_GTK_PANGO_LOG_FONT_DESCRIPTION)));
-    return FALSE; // G_SOURCE_REMOVE
+    return G_SOURCE_REMOVE;
   } // end IF
   // apply font
   GtkRcStyle* rc_style_p = gtk_rc_style_new ();
@@ -285,7 +286,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to gtk_rc_style_new(): \"%m\", aborting\n")));
-    return FALSE; // G_SOURCE_REMOVE
+    return G_SOURCE_REMOVE;
   } // end IF
   rc_style_p->font_desc = font_description_p;
   GdkColor base_colour, text_colour;
@@ -325,7 +326,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_timeout_add_seconds(): \"%m\", aborting\n")));
-      return FALSE; // G_SOURCE_REMOVE
+      return G_SOURCE_REMOVE;
     } // end ELSE
     // schedule asynchronous updates of the info view
     event_source_id = g_timeout_add (TEST_U_STREAM_UI_GTKEVENT_RESOLUTION,
@@ -337,7 +338,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_timeout_add(): \"%m\", aborting\n")));
-      return FALSE; // G_SOURCE_REMOVE
+      return G_SOURCE_REMOVE;
     } // end ELSE
   } // end lock scope
 
@@ -514,7 +515,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
-  return FALSE; // G_SOURCE_REMOVE
+  return G_SOURCE_REMOVE;
 }
 
 gboolean
@@ -522,10 +523,12 @@ idle_finalize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_finalize_UI_cb"));
 
+  ACE_UNUSED_ARG (userData_in);
+
   // leave GTK
   gtk_main_quit ();
 
-  return FALSE; // G_SOURCE_REMOVE
+  return G_SOURCE_REMOVE;
 }
 
 gboolean
@@ -618,7 +621,7 @@ idle_update_log_display_cb (gpointer userData_in)
   gtk_adjustment_set_value (adjustment_p,
                             gtk_adjustment_get_upper (adjustment_p));
 
-  return TRUE; // G_SOURCE_CONTINUE
+  return G_SOURCE_CONTINUE;
 }
 
 gboolean
@@ -698,6 +701,8 @@ idle_update_info_display_cb (gpointer userData_in)
           is_session_message = true;
           break;
         }
+        case STREAM_GKTEVENT_INVALID:
+        case STREAM_GTKEVENT_MAX:
         default:
         {
           ACE_DEBUG ((LM_ERROR,
@@ -715,7 +720,7 @@ idle_update_info_display_cb (gpointer userData_in)
     data_p->eventStack.clear ();
   } // end lock scope
 
-  return TRUE; // G_SOURCE_CONTINUE
+  return G_SOURCE_CONTINUE;
 }
 
 gboolean
@@ -789,7 +794,7 @@ idle_update_progress_cb (gpointer userData_in)
     //    ACE_DEBUG ((LM_ERROR,
     //                ACE_TEXT ("failed to gdk_cursor_new(%d): \"%m\", continuing\n"),
     //                data_p->cursorType));
-    //    return FALSE; // G_SOURCE_REMOVE
+    //    return G_SOURCE_REMOVE;
     //  } // end IF
     //  GtkWindow* window_p =
     //    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
@@ -800,7 +805,7 @@ idle_update_progress_cb (gpointer userData_in)
     //  gdk_window_set_cursor (window_2, cursor_p);
     //  data_p->cursorType = GDK_LAST_CURSOR;
     //} // end IF
-    return FALSE; // G_SOURCE_REMOVE
+    return G_SOURCE_REMOVE;
   } // end IF
 
   //gtk_progress_bar_pulse (progress_bar_p);
@@ -808,7 +813,7 @@ idle_update_progress_cb (gpointer userData_in)
                                  static_cast<double> (data_p->copied) / static_cast<double> (data_p->size));
 
   // --> reschedule
-  return TRUE; // G_SOURCE_CONTINUE
+  return G_SOURCE_CONTINUE;
 }
 
 /////////////////////////////////////////
@@ -936,7 +941,11 @@ action_start_activate_cb (GtkAction* action_in,
   } // end IF
   thread_data_p->CBData = data_p;
   thread_data_p->sessionID = data_p->stream->sessionData ().sessionID;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
+#else
   ACE_thread_t thread_id = -1;
+#endif
   ACE_hthread_t thread_handle = ACE_INVALID_HANDLE;
   ACE_TCHAR thread_name[BUFSIZ];
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
@@ -1309,11 +1318,7 @@ filechooserdialog_cb (GtkFileChooser* chooser_in,
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserdialog_cb"));
 
-//  Stream_Filecopy_GTK_CBData* data_p =
-//    static_cast<Stream_Filecopy_GTK_CBData*> (userData_in);
-
-//  // sanity check(s)
-//  ACE_ASSERT (data_p);
+  ACE_UNUSED_ARG (userData_in);
 
   gtk_dialog_response (GTK_DIALOG (GTK_FILE_CHOOSER_DIALOG (chooser_in)),
                        GTK_RESPONSE_ACCEPT);

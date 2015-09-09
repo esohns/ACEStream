@@ -546,6 +546,7 @@ Stream_Base_T<TaskSynchType,
   Stream_Task_t* task_p = NULL;
   const Stream_Module_t* module_p = NULL;
   ACE_Time_Value one_second (1, 0);
+  size_t message_count = 0;
   for (ITERATOR_T iterator (*this);
        (iterator.next (module_p) != 0);
        iterator.advance ())
@@ -562,12 +563,12 @@ Stream_Base_T<TaskSynchType,
     do
     {
       //result = queue_p->wait ();
-      result = queue_p->message_count ();
-      if (!result) break;
+      message_count = queue_p->message_count ();
+      if (!message_count) break;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s writer: waiting to process ~%d byte(s) (in %d message(s))...\n"),
+                  ACE_TEXT ("%s writer: waiting to process ~%d byte(s) (in %u message(s))...\n"),
                   module_p->name (),
-                  queue_p->message_bytes (), result));
+                  queue_p->message_bytes (), message_count));
       result = ACE_OS::sleep (one_second);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -591,12 +592,12 @@ Stream_Base_T<TaskSynchType,
     do
     {
       //result = queue_p->wait ();
-      result = queue_p->message_count ();
-      if (!result) break;
+      message_count = queue_p->message_count ();
+      if (!message_count) break;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s reader: waiting to process ~%d byte(s) (in %d message(s))...\n"),
+                  ACE_TEXT ("%s reader: waiting to process ~%d byte(s) (in %u message(s))...\n"),
                   module_p->name (),
-                  queue_p->message_bytes (), result));
+                  queue_p->message_bytes (), message_count));
       result = ACE_OS::sleep (one_second);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -920,6 +921,7 @@ Stream_Base_T<TaskSynchType,
   // step2: wait for any pipelined messages to flush...
   Stream_Queue_t* queue_p = NULL;
   ACE_Time_Value one_second (1, 0);
+  unsigned int message_count = 0;
   for (MODULE_CONTAINER_ITERATOR_T iterator2 = modules.begin ();
        iterator2 != modules.end ();
        iterator2++)
@@ -931,12 +933,12 @@ Stream_Base_T<TaskSynchType,
     do
     {
       //result = queue_p->wait ();
-      result = queue_p->message_count ();
-      if (!result) break;
+      message_count = queue_p->message_count ();
+      if (!message_count) break;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s reader: waiting to process ~%d byte(s) (in %d message(s))...\n"),
+                  ACE_TEXT ("%s reader: waiting to process ~%d byte(s) (in %u message(s))...\n"),
                   (*iterator2)->name (),
-                  queue_p->message_bytes (), result));
+                  queue_p->message_bytes (), message_count));
       result = ACE_OS::sleep (one_second);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,

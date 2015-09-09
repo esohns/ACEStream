@@ -142,7 +142,11 @@ Stream_DataBlockAllocatorHeap::cache_depth () const
   if (heapAllocator_)
     return heapAllocator_->cache_size ();
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  return std::numeric_limits<unsigned int>::max ();
+#else
   return -1;
+#endif
 }
 
 size_t

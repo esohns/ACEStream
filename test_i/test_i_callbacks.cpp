@@ -21,6 +21,7 @@
 
 #include "test_i_callbacks.h"
 
+#include <limits>
 #include <sstream>
 
 #include "ace/Guard_T.h"
@@ -49,7 +50,7 @@ stream_processing_function (void* arg_in)
 
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  result = -1;
+  result = std::numeric_limits<unsigned long>::max ();
 #else
   result = arg_in;
 #endif
@@ -903,6 +904,8 @@ idle_finalize_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_finalize_UI_cb"));
 
+  ACE_UNUSED_ARG (userData_in);
+
   // leave GTK
   gtk_main_quit ();
 
@@ -1539,11 +1542,7 @@ action_close_all_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_close_all_activate_cb"));
 
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
-
-  // sanity check(s)
-  ACE_ASSERT (data_p);
+  ACE_UNUSED_ARG (userData_in);
 
   gtk_action_set_sensitive (action_in, FALSE);
 } // action_close_all_activate_cb
@@ -1554,6 +1553,7 @@ action_listen_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_listen_activate_cb"));
 
+  ACE_UNUSED_ARG (action_in);
   Test_I_Target_GTK_CBData* data_p =
     static_cast<Test_I_Target_GTK_CBData*> (userData_in);
 
@@ -1615,7 +1615,7 @@ spinbutton_port_value_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (data_p->configuration);
 
   unsigned short port_number =
-      gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (widget_in));
+      static_cast<unsigned short> (gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (widget_in)));
   data_p->configuration->listenerConfiguration.address.set_port_number (port_number,
                                                                         1);
   if (!data_p->configuration->listener->initialize (data_p->configuration->listenerConfiguration))
@@ -1877,6 +1877,8 @@ filechooserdialog_cb (GtkFileChooser* chooser_in,
                       gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::filechooserdialog_cb"));
+
+  ACE_UNUSED_ARG (userData_in);
 
 //  Stream_GTK_CBData* data_p =
 //    static_cast<Stream_GTK_CBData*> (userData_in);

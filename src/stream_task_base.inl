@@ -123,6 +123,9 @@ Stream_TaskBase_T<TaskSynchStrategyType,
     }
     case STREAM_SESSION_STATISTIC:
       break;
+    case STREAM_SESSION_MESSAGE_MAP:
+    case STREAM_SESSION_INVALID:
+    case STREAM_SESSION_MAX:
     default:
     {
       ACE_DEBUG ((LM_WARNING,

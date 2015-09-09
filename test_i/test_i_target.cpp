@@ -439,6 +439,8 @@ do_work (unsigned int bufferSize_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
+  ACE_UNUSED_ARG (networkInterface_in);
+
   // step0a: initialize configuration
   Test_I_Target_Configuration configuration;
   configuration.streamUserData.configuration =
@@ -500,8 +502,7 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.moduleHandlerConfiguration_2.inbound =
     true;
   // ******************** (sub-)stream configuration data *********************
-  if (bufferSize_in)
-    configuration.streamConfiguration.bufferSize = bufferSize_in;
+  configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
@@ -645,6 +646,7 @@ do_work (unsigned int bufferSize_in,
       return;
     } // end IF
     BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
+    ACE_UNUSED_ARG (was_visible_b);
 #endif
   } // end IF
 

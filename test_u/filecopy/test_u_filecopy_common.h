@@ -139,11 +139,11 @@ struct Stream_Filecopy_ThreadData
 {
   inline Stream_Filecopy_ThreadData ()
    : CBData (NULL)
-   , sessionID (-1)
+   , sessionID (0)
   {};
 
   Stream_Filecopy_GTK_CBData* CBData;
-  int                         sessionID;
+  unsigned int                sessionID;
 };
 
 #endif

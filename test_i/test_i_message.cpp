@@ -140,5 +140,9 @@ Stream_Message::command () const
 std::string
 Stream_Message::CommandType2String (Stream_CommandType_t command_in)
 {
+  STREAM_TRACE (ACE_TEXT ("Stream_Message::CommandType2String"));
+
+  ACE_UNUSED_ARG (command_in);
+
   return ACE_TEXT_ALWAYS_CHAR ("MB_DATA");
 }

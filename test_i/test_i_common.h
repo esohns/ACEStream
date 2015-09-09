@@ -22,6 +22,7 @@
 #define TEST_I_COMMON_H
 
 #include <deque>
+#include <limits>
 #include <list>
 #include <map>
 #include <set>
@@ -237,7 +238,11 @@ struct Stream_ThreadID
 {
  inline Stream_ThreadID ()
   : handle (ACE_INVALID_HANDLE)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  , id (std::numeric_limits<unsigned long>::max ())
+#else
   , id (-1)
+#endif
  {};
 
   ACE_hthread_t handle;

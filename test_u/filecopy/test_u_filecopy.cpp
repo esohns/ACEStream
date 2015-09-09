@@ -490,6 +490,7 @@ do_work (unsigned int bufferSize_in,
       return;
     } // end IF
     BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
+    ACE_UNUSED_ARG (was_visible_b);
 #endif
   } // end IF
   else

@@ -116,8 +116,11 @@ Stream_AllocatorHeap::cache_depth () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap::cache_depth"));
 
-  // *TODO*: specify a maximum size
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  return std::numeric_limits<unsigned int>::max ();
+#else
   return -1;
+#endif
 }
 
 size_t

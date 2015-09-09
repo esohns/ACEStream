@@ -29,18 +29,18 @@
 template <typename MessageType,
           typename SessionMessageType>
 Stream_MessageAllocatorHeapBase_T<MessageType,
-                                  SessionMessageType>::Stream_MessageAllocatorHeapBase_T (unsigned int maxNumMessages_in,
+                                  SessionMessageType>::Stream_MessageAllocatorHeapBase_T (unsigned int maximumNumberOfMessages_in,
                                                                                           Stream_AllocatorHeap* allocator_in,
                                                                                           bool block_in)
  : inherited ()
  , block_ (block_in)
  , dataBlockAllocator_ (allocator_in)
- , freeMessageCounter_ ((maxNumMessages_in ? maxNumMessages_in
-                                           : std::numeric_limits<int>::max ()),
+ , freeMessageCounter_ ((maximumNumberOfMessages_in ? static_cast<int> (maximumNumberOfMessages_in)
+                                                    : std::numeric_limits<int>::max ()),
                         NULL,
                         NULL,
-                        (maxNumMessages_in ? maxNumMessages_in
-                                           : std::numeric_limits<int>::max ()))
+                        (maximumNumberOfMessages_in ? static_cast<int> (maximumNumberOfMessages_in)
+                                                    : std::numeric_limits<int>::max ()))
  , poolSize_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::Stream_MessageAllocatorHeapBase_T"));

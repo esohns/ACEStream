@@ -765,6 +765,9 @@ Stream_Module_TCPReader_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_TCPReader_T::handleDataMessage"));
 
+  ACE_UNUSED_ARG (message_inout);
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
   // sanity check(s)
   ACE_ASSERT (message_inout);
   ACE_ASSERT (isInitialized_);
