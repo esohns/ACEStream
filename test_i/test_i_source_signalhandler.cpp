@@ -24,10 +24,11 @@
 #include "ace/Log_Msg.h"
 
 //#include "common_timer_manager.h"
-
-//#include "common_ui_gtk_manager.h"
+#include "common_tools.h"
 
 #include "stream_macros.h"
+
+#include "test_i_connection_manager_common.h"
 
 Stream_Source_SignalHandler::Stream_Source_SignalHandler ()
  : inherited (this, // event handler handle
@@ -159,10 +160,19 @@ Stream_Source_SignalHandler::handleSignal (int signal_in)
     //  configuration_.actionTimerId = -1;
     //} // end IF
 
-    // step2: stop GTK event processing
-    // *NOTE*: triggering UI shutdown from a widget callback is more consistent,
-    //         compared to doing it here
-//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
+    // step2: stop/abort(/wait) for connections
+    Test_I_Stream_IInetConnectionManager_t* connection_manager_p =
+        TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+    ACE_ASSERT (connection_manager_p);
+    connection_manager_p->stop ();
+    connection_manager_p->abort ();
+
+    // step5: stop reactor (&& proactor, if applicable)
+    Common_Tools::finalizeEventDispatch (useReactor_,  // stop reactor ?
+                                         !useReactor_, // stop proactor ?
+                                         -1);          // group ID (--> don't block)
+
+    // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF
 
   return true;

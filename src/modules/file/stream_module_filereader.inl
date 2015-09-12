@@ -22,6 +22,7 @@
 #include "ace/FILE_Connector.h"
 #include "ace/Log_Msg.h"
 
+#include "common_file_tools.h"
 #include "common_timer_manager_common.h"
 
 #include "stream_macros.h"
@@ -410,8 +411,9 @@ Stream_Module_FileReader_T<SessionMessageType,
   } // end IF
   isOpen_ = true;
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened file stream \"%s\"...\n"),
-              ACE_TEXT (inherited::configuration_.fileName.c_str ())));
+              ACE_TEXT ("opened file stream \"%s\" (%u byte(s))...\n"),
+              ACE_TEXT (inherited::configuration_.fileName.c_str ()),
+              Common_File_Tools::size (inherited::configuration_.fileName)));
 
   // step1: start processing data...
 //   ACE_DEBUG ((LM_DEBUG,

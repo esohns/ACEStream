@@ -29,9 +29,9 @@
 
 Test_I_Target_Stream::Test_I_Target_Stream ()
  : inherited ()
- , TCPIO_ (ACE_TEXT_ALWAYS_CHAR ("TCPIO"),
-           NULL,
-           false)
+ , netReader_ (ACE_TEXT_ALWAYS_CHAR ("NetReader"),
+               NULL,
+               false)
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
@@ -46,7 +46,7 @@ Test_I_Target_Stream::Test_I_Target_Stream ()
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&TCPIO_);
+  inherited::availableModules_.push_front (&netReader_);
   inherited::availableModules_.push_front (&runtimeStatistic_);
   inherited::availableModules_.push_front (&fileWriter_);
 
@@ -289,41 +289,41 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
     return false;
   } // end IF
 
-  // ******************* TCP IO ************************
-  TCPIO_.initialize (configuration_in.moduleConfiguration_2);
-  Test_I_Stream_Module_TCPWriter_t* TCPIO_impl_p =
-    dynamic_cast<Test_I_Stream_Module_TCPWriter_t*> (TCPIO_.writer ());
-  if (!TCPIO_impl_p)
+  // ******************* Net Reader ***********************
+  netReader_.initialize (configuration_in.moduleConfiguration_2);
+  Test_I_Stream_Module_Net_Writer_t* netReader_impl_p =
+    dynamic_cast<Test_I_Stream_Module_Net_Writer_t*> (netReader_.writer ());
+  if (!netReader_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Module_TCPWriter_T> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Stream_Module_Net_Writer_T> failed, aborting\n")));
     return false;
   } // end IF
-  if (!TCPIO_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                TCPIO_.name ()));
-    return false;
-  } // end IF
-  if (!TCPIO_impl_p->initialize (inherited::state_))
+  if (!netReader_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                TCPIO_.name ()));
+                netReader_.name ()));
     return false;
   } // end IF
-  TCPIO_impl_p->reset ();
+  if (!netReader_impl_p->initialize (inherited::state_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+                netReader_.name ()));
+    return false;
+  } // end IF
+  netReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  TCPIO_.arg (inherited::sessionData_);
-  result = inherited::push (&TCPIO_);
+  netReader_.arg (inherited::sessionData_);
+  result = inherited::push (&netReader_);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (TCPIO_.name ())));
+                ACE_TEXT (netReader_.name ())));
     return false;
   } // end IF
 

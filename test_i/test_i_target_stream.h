@@ -95,7 +95,7 @@ class Test_I_Target_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 
   // modules
-  Test_I_Stream_Module_TCPIO_Module            TCPIO_;
+  Test_I_Stream_Module_Net_IO_Module           netReader_;
   Test_I_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
   Test_I_Stream_Module_FileWriter_Module       fileWriter_;
 };

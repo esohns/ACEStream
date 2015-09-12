@@ -3,7 +3,7 @@
 # this script gathers the dependent libraries in one place for in-source-tree
 # debugging
 # *NOTE*: it is neither portable nor particularly stable !
-# parameters:   - $1 [BUILD] {"debug" || "debug_tracing" || "release" || ...}
+# parameters:   - $1 [BUILD] {"debug" || "debug_tracing" || "valgrind" || "release" || ...}
 # return value: - 0 success, 1 failure
 
 DEFAULT_PROJECT_DIR="$(dirname $(readlink -f $0))/.."
@@ -23,7 +23,14 @@ else
 fi
 
 # sanity check(s)
-[ ${BUILD} != "debug" -a ${BUILD} != "debug_tracing" -a ${BUILD} != "release" ] && echo "WARNING: invalid/unknown build (was: \"${BUILD}\"), continuing"
+[ ${BUILD} != "debug" -a ${BUILD} != "debug_tracing" -a ${BUILD} != "valgrind" -a ${BUILD} != "release" ] && echo "WARNING: invalid/unknown build (was: \"${BUILD}\"), continuing"
+if [ "${BUILD}" = "debug_tracing" -o "${BUILD}" = "valgrind" ]; then
+ if [ "${BUILD}" = "debug_tracing" ]; then
+  BUILD="debug"
+ else
+  BUILD="valgrind"
+ fi
+fi
 BUILD_DIR="${PROJECT_DIR}/build/${BUILD}"
 [ ! -d "${BUILD_DIR}" ] && echo "ERROR: invalid build dir (was: \"${BUILD_DIR}\"), aborting" && exit 1
 
@@ -100,4 +107,3 @@ do
 # i=$i+1
  shift
 done
-

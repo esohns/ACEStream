@@ -72,7 +72,7 @@ Stream_Filecopy_Message::duplicate (void) const
 
   // create a new Stream_MessageBase that contains unique copies of
   // the message block fields, but a (reference counted) shallow duplicate of
-  // the ACE_Data_Block.
+  // the ACE_Data_Block
 
   // if there is no allocator, use the standard new and delete calls.
   if (inherited::message_block_allocator_ == NULL)
@@ -80,8 +80,8 @@ Stream_Filecopy_Message::duplicate (void) const
                       Stream_Filecopy_Message (*this));
   else // otherwise, use the existing message_block_allocator
   {
-    // *NOTE*: the argument to malloc SHOULDN'T really matter, as this will be
-    // a "shallow" copy which just references our data block...
+    // *NOTE*: the argument to alloc() does not really matter, as this creates
+    //         a shallow copy of the existing data block
     ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<Stream_Filecopy_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
                                                                                                                  '\0')),

@@ -23,6 +23,8 @@
 
 //#include "ace/Default_Constants.h"
 
+//#include "net_common.h"
+
 #define TEST_I_CONFIGURATION_DIRECTORY                       "etc"
 #define TEST_I_DEFAULT_SOURCE_GLADE_FILE                     "source.glade"
 #define TEST_I_DEFAULT_TARGET_GLADE_FILE                     "target.glade"
@@ -36,6 +38,8 @@
 #define TEST_I_DEFAULT_PORT                                  10001
 #define TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS            0 // 0 --> no limits
 #define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS         10
+
+#define TEST_I_DEFAULT_TRANSPORT_LAYER                       NET_TRANSPORTLAYER_TCP
 
 //---------------------------------------
 
@@ -67,6 +71,8 @@
 #define TEST_I_STREAM_UI_GTK_PANGO_LOG_COLOR_BASE            "#FFFFFF" // white
 #define TEST_I_STREAM_UI_GTK_PANGO_LOG_COLOR_TEXT            "#000000" // green
 #define TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME                "progressbar"
+#define TEST_I_STREAM_UI_GTK_RADIOBUTTON_TCP_NAME            "radiobutton_tcp"
+#define TEST_I_STREAM_UI_GTK_RADIOBUTTON_UDP_NAME            "radiobutton_udp"
 #define TEST_I_STREAM_UI_GTK_SCROLLMARK_NAME                 "insert"
 #define TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME      "spinbutton_buffersize"
 #define TEST_I_STREAM_UI_GTK_SPINBUTTON_CONNECTIONS_NAME     "spinbutton_connections"

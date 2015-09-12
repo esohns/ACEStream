@@ -128,7 +128,8 @@ class Stream_Base_T
   //         creates problems in conjunction with libACENetwork.
   //         libACENetwork connections use the connection streams'
   //         ACE_Stream_Head reader queue/notification to buffer outbound data
-  //         while the reactor dispatches the corresponding events.
+  //         while the reactor/connection thread dispatches the corresponding
+  //         events.
   //         libACEStream modules encapsulating a network connection may be
   //         tempted to link the data processing stream to the connections'
   //         stream. For 'inbound' (i.e. reader-side oriented) modules, the

@@ -16,31 +16,31 @@ noinst_HEADERS = \
   stdafx.h
 include_HEADERS = \
   stream_module_net_common.h \
-  stream_module_tcpio.h \
-  stream_module_tcpio.inl \
-  stream_module_tcpio_stream.h \
-  stream_module_tcpio_stream.inl \
-  stream_module_tcpsource.h \
-  stream_module_tcpsource.inl \
-  stream_module_tcptarget.h \
-  stream_module_tcptarget.inl
+  stream_module_io.h \
+  stream_module_io.inl \
+  stream_module_io_stream.h \
+  stream_module_io_stream.inl \
+  stream_module_source.h \
+  stream_module_source.inl \
+  stream_module_target.h \
+  stream_module_target.inl
 
 lib_LTLIBRARIES = libACEStream_Net.la
 
 libACEStream_Net_la_SOURCES = \
   stream_module_net_common.h \
-  stream_module_tcpio.cpp \
-  stream_module_tcpio.h \
-  stream_module_tcpio.inl \
-  stream_module_tcpio_stream.cpp \
-  stream_module_tcpio_stream.h \
-  stream_module_tcpio_stream.inl \
-  stream_module_tcpsource.cpp \
-  stream_module_tcpsource.h \
-  stream_module_tcpsource.inl \
-  stream_module_tcptarget.cpp \
-  stream_module_tcptarget.h \
-  stream_module_tcptarget.inl
+  stream_module_io.cpp \
+  stream_module_io.h \
+  stream_module_io.inl \
+  stream_module_io_stream.cpp \
+  stream_module_io_stream.h \
+  stream_module_io_stream.inl \
+  stream_module_source.cpp \
+  stream_module_source.h \
+  stream_module_source.inl \
+  stream_module_target.cpp \
+  stream_module_target.h \
+  stream_module_target.inl
 #  stdafx.cpp \
 #  stdafx.h
 

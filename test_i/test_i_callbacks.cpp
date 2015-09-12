@@ -41,6 +41,8 @@
 
 #include "test_i_common.h"
 #include "test_i_defines.h"
+#include "test_i_message.h"
+#include "test_i_session_message.h"
 #include "test_i_target_common.h"
 
 ACE_THR_FUNC_RETURN
@@ -253,6 +255,16 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                static_cast<double> (data_p->configuration->socketConfiguration.peerAddress.get_port_number ()));
   } // end IF
 
+  GtkRadioButton* radio_button_p = NULL;
+  if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
+  {
+    radio_button_p =
+      GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_UDP_NAME)));
+    ACE_ASSERT (radio_button_p);
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p), TRUE);
+  } // end IF
+
   spin_button_p =
       //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
       //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
@@ -395,26 +407,34 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //gtk_builder_connect_signals ((*iterator).second.second,
   //                             userData_in);
 
-  //GObject* object_p =
-  //    gtk_builder_get_object ((*iterator).second.second,
-  //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_START_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 = g_signal_connect (object_p,
-  //                           ACE_TEXT_ALWAYS_CHAR ("clicked"),
-  //                           G_CALLBACK (button_start_clicked_cb),
-  //                           userData_in);
-  //ACE_ASSERT (result_2);
-  //object_p =
-  //    gtk_builder_get_object ((*iterator).second.second,
-  //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_STOP_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 =
-  //    g_signal_connect (object_p,
-  //                      ACE_TEXT_ALWAYS_CHAR ("clicked"),
-  //                      G_CALLBACK (button_stop_clicked_cb),
-  //                      userData_in);
-  //ACE_ASSERT (result_2);
   GObject* object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_TCP_NAME));
+  ACE_ASSERT (object_p);
+  result_2 = g_signal_connect (object_p,
+                               ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                               G_CALLBACK (togglebutton_protocol_toggled_cb),
+                               userData_in);
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_UDP_NAME));
+  ACE_ASSERT (object_p);
+  result_2 = g_signal_connect (object_p,
+                               ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                               G_CALLBACK (togglebutton_protocol_toggled_cb),
+                               userData_in);
+
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME));
+  ACE_ASSERT (object_p);
+  result_2 = g_signal_connect (object_p,
+                               ACE_TEXT_ALWAYS_CHAR ("value-changed"),
+                               G_CALLBACK (spinbutton_port_value_changed_cb),
+                               userData_in);
+  ACE_ASSERT (result_2);
+
+  object_p =
     gtk_builder_get_object ((*iterator).second.second,
                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME));
   ACE_ASSERT (object_p);
@@ -636,6 +656,16 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<double> (data_p->configuration->socketConfiguration.peerAddress.get_port_number ()));
 
+  GtkRadioButton* radio_button_p = NULL;
+  if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
+  {
+    radio_button_p =
+      GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_UDP_NAME)));
+    ACE_ASSERT (radio_button_p);
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p), TRUE);
+  } // end IF
+
   spin_button_p =
       //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
       //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
@@ -787,6 +817,23 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //                             userData_in);
 
   GObject* object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_TCP_NAME));
+  ACE_ASSERT (object_p);
+  result_2 = g_signal_connect (object_p,
+                               ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                               G_CALLBACK (togglebutton_protocol_toggled_cb),
+                               userData_in);
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_UDP_NAME));
+  ACE_ASSERT (object_p);
+  result_2 = g_signal_connect (object_p,
+                               ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                               G_CALLBACK (togglebutton_protocol_toggled_cb),
+                               userData_in);
+
+  object_p =
       gtk_builder_get_object ((*iterator).second.second,
                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME));
   ACE_ASSERT (object_p);
@@ -1565,7 +1612,6 @@ action_listen_activate_cb (GtkAction* action_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -1575,20 +1621,163 @@ action_listen_activate_cb (GtkAction* action_in,
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEBUTTON_LISTEN_NAME)));
   ACE_ASSERT (toggle_button_p);
-  if (gtk_toggle_button_get_active (toggle_button_p))
+  bool start_listening = gtk_toggle_button_get_active (toggle_button_p);
+  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
+    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
+
+  if (start_listening)
   {
-    try
+    switch (data_p->configuration->protocol)
     {
-      data_p->configuration->signalHandlerConfiguration.listener->start ();
-    }
-    catch (...)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Net_Server_IListener::start(): \"%m\", continuing\n")));
-    } // end catch
+      case NET_TRANSPORTLAYER_TCP:
+      {
+        // listening on UDP ? --> stop
+        if (data_p->configuration->handle != ACE_INVALID_HANDLE)
+        {
+          Test_I_Stream_InetConnectionManager_t::ICONNECTION_T* connection_p =
+            connection_manager_p->get (data_p->configuration->handle);
+          if (!connection_p)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to retrieve connection (handle was: %d), continuing\n"),
+                        data_p->configuration->handle));
+          else
+          {
+            connection_p->close ();
+            connection_p->decrease ();
+            data_p->configuration->handle = ACE_INVALID_HANDLE;
+          } // end ELSE
+        } // end IF
+
+        data_p->configuration->listenerConfiguration.address =
+          data_p->configuration->socketConfiguration.peerAddress;
+        ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
+        if (!data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to initialize listener, continuing\n")));
+        try
+        {
+          data_p->configuration->signalHandlerConfiguration.listener->start ();
+        }
+        catch (...)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("caught exception in Net_Server_IListener::start(): \"%m\", continuing\n")));
+        } // end catch
+
+        break;
+      }
+      case NET_TRANSPORTLAYER_UDP:
+      {
+        // listening on TCP ? --> stop
+        ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
+        if (data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
+        {
+          try
+          {
+            data_p->configuration->signalHandlerConfiguration.listener->stop ();
+          }
+          catch (...)
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
+          } // end catch
+        } // end IF
+
+        ACE_ASSERT (data_p->configuration->handle == ACE_INVALID_HANDLE);
+
+        Test_I_Stream_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
+          connection_manager_p;
+        ACE_ASSERT (iconnection_manager_p);
+        Test_I_Stream_IInetConnector_t* connector_p = NULL;
+        if (data_p->configuration->useReactor)
+          ACE_NEW_NORETURN (connector_p,
+                            Test_I_Stream_UDPConnector_t (iconnection_manager_p,
+                                                          data_p->configuration->streamConfiguration.statisticReportingInterval));
+        else
+          ACE_NEW_NORETURN (connector_p,
+                            Test_I_Stream_UDPAsynchConnector_t (iconnection_manager_p,
+                                                                data_p->configuration->streamConfiguration.statisticReportingInterval));
+        if (!connector_p)
+        {
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("failed to allocate memory, returning\n")));
+          return;
+        } // end IF
+        //  Stream_IInetConnector_t* iconnector_p = &connector;
+        if (!connector_p->initialize (data_p->configuration->socketHandlerConfiguration))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
+
+          // clean up
+          delete connector_p;
+
+          return;
+        } // end IF
+
+        ACE_TCHAR buffer[BUFSIZ];
+        ACE_OS::memset (buffer, 0, sizeof (buffer));
+        int result =
+          data_p->configuration->socketConfiguration.peerAddress.addr_to_string (buffer,
+                                                                                 sizeof (buffer),
+                                                                                 1);
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string(): \"%m\", continuing\n")));
+        data_p->configuration->handle =
+          connector_p->connect (data_p->configuration->socketConfiguration.peerAddress);
+        if (!data_p->configuration->useReactor)
+        {
+          // *TODO*: support one-thread operation by scheduling a signal and manually
+          //         running the dispatch loop for a limited time...
+          ACE_Time_Value one_second (1, 0);
+          result = ACE_OS::sleep (one_second);
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                        &one_second));
+          Test_I_Stream_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
+              connection_manager_p->get (data_p->configuration->socketConfiguration.peerAddress);
+          if (connection_p)
+          {
+            data_p->configuration->handle =
+              reinterpret_cast<ACE_HANDLE> (connection_p->id ());
+            connection_p->decrease ();
+          } // end IF
+        } // end IF
+        if (data_p->configuration->handle == ACE_INVALID_HANDLE)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to connect to \"%s\", returning\n"),
+                      ACE_TEXT (buffer)));
+
+          // clean up
+          delete connector_p;
+
+          return;
+        } // end IF
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("listening to UDP \"%s\"...\n"),
+                    ACE_TEXT (buffer)));
+
+        // clean up
+        delete connector_p;
+
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown transport layer type (was: %d), returning\n"),
+                    data_p->configuration->protocol));
+        return;
+      } // end catch
+    } // end SWITCH
   } // end IF
   else
   {
+    ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
     try
     {
       data_p->configuration->signalHandlerConfiguration.listener->stop ();
@@ -1598,7 +1787,23 @@ action_listen_activate_cb (GtkAction* action_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
     } // end catch
-  } // end IF
+
+    if (data_p->configuration->handle != ACE_INVALID_HANDLE)
+    {
+      Test_I_Stream_InetConnectionManager_t::ICONNECTION_T* connection_p =
+        connection_manager_p->get (data_p->configuration->handle);
+      if (!connection_p)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to retrieve connection (handle was: %d), continuing\n"),
+                    data_p->configuration->handle));
+      else
+      {
+        connection_p->close ();
+        connection_p->decrease ();
+        data_p->configuration->handle = ACE_INVALID_HANDLE;
+      } // end ELSE
+    } // end IF
+  } // end ELSE
 } // action_listen_activate_cb
 
 void
@@ -1607,8 +1812,8 @@ spinbutton_port_value_changed_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::spinbutton_port_value_changed_cb"));
 
-  Test_I_Target_GTK_CBData* data_p =
-    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+  Stream_GTK_CBData* data_p =
+    static_cast<Stream_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -1616,11 +1821,8 @@ spinbutton_port_value_changed_cb (GtkWidget* widget_in,
 
   unsigned short port_number =
       static_cast<unsigned short> (gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (widget_in)));
-  data_p->configuration->listenerConfiguration.address.set_port_number (port_number,
-                                                                        1);
-  if (!data_p->configuration->listener->initialize (data_p->configuration->listenerConfiguration))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize listener, continuing\n")));
+  data_p->configuration->socketConfiguration.peerAddress.set_port_number (port_number,
+                                                                          1);
 } // spinbutton_port_value_changed_cb
 
 void
@@ -1740,6 +1942,46 @@ action_report_activate_cb (GtkAction* action_in,
                 ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
                 signal));
 } // action_report_activate_cb
+
+void
+togglebutton_protocol_toggled_cb (GtkToggleButton* toggleButton_in,
+                                  gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::togglebutton_protocol_toggled_cb"));
+
+  // sanity check
+  if (!gtk_toggle_button_get_active (toggleButton_in))
+    return; // nothing to do
+
+  Stream_GTK_CBData* data_p =
+    static_cast<Stream_GTK_CBData*> (userData_in);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  GtkRadioButton* radio_button_p =
+    //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
+    //                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TEXTVIEW_NAME)));
+    GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_TCP_NAME)));
+  ACE_ASSERT (radio_button_p);
+  const gchar* string_p =
+    gtk_buildable_get_name (GTK_BUILDABLE (radio_button_p));
+  ACE_ASSERT (string_p);
+  if (ACE_OS::strcmp (string_p,
+                      gtk_buildable_get_name (GTK_BUILDABLE (toggleButton_in))) == 0)
+    data_p->configuration->protocol = NET_TRANSPORTLAYER_TCP;
+  else
+    data_p->configuration->protocol = NET_TRANSPORTLAYER_UDP;
+}
 
 // -----------------------------------------------------------------------------
 

@@ -222,6 +222,7 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           // *WARNING*: falls through
         }
         case STREAM_STATE_INITIALIZED:
+        case STREAM_STATE_STOPPED:
         {
           inherited::change (newState_in);
 
@@ -229,7 +230,6 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         }
         // error case
         case STREAM_STATE_PAUSED:
-        case STREAM_STATE_STOPPED:
         default:
           break;
       } // end SWITCH

@@ -29,7 +29,7 @@
 #include "stream_base.h"
 #include "stream_common.h"
 
-#include "stream_module_tcptarget.h"
+#include "stream_module_target.h"
 
 #include "test_i_common.h"
 #include "test_i_common_modules.h"
@@ -92,23 +92,23 @@ class Test_I_Source_Stream_T
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
                         Stream_SessionMessage,
                         Stream_Message> inherited;
-  typedef Stream_Module_TCPTarget_T<Stream_SessionMessage,
-                                    Stream_Message,
-                                    /////
-                                    Test_I_Configuration,
-                                    /////
-                                    Test_I_Stream_ModuleHandlerConfiguration,
-                                    /////
-                                    Test_I_Stream_SessionData,
-                                    Test_I_Stream_SessionData_t,
-                                    /////
-                                    Test_I_Stream_InetConnectionManager_t,
-                                    ConnectorType> WRITER_T;
+  typedef Stream_Module_Net_Target_T<Stream_SessionMessage,
+                                     Stream_Message,
+                                     ////
+                                     Test_I_Configuration,
+                                     ////
+                                     Test_I_Stream_ModuleHandlerConfiguration,
+                                     ////
+                                     Test_I_Stream_SessionData,
+                                     Test_I_Stream_SessionData_t,
+                                     ////
+                                     Test_I_Stream_InetConnectionManager_t,
+                                     ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                             // task synch type
                                          Common_TimePolicy_t,                      // time policy
                                          Stream_ModuleConfiguration,               // module configuration type
                                          Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                                         WRITER_T> TCPTARGET_MODULE_T;             // writer type
+                                         WRITER_T> TARGET_MODULE_T;                // writer type
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
@@ -116,7 +116,7 @@ class Test_I_Source_Stream_T
   // modules
   Test_I_Stream_Module_FileReader_Module       fileReader_;
   Test_I_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
-  TCPTARGET_MODULE_T                           TCPTarget_;
+  TARGET_MODULE_T                              netTarget_;
 };
 
 // include template implementation
@@ -124,7 +124,9 @@ class Test_I_Source_Stream_T
 
 /////////////////////////////////////////
 
-typedef Test_I_Source_Stream_T<Test_I_Stream_TCPConnector_t> Test_I_Source_Stream_t;
-typedef Test_I_Source_Stream_T<Test_I_Stream_TCPAsynchConnector_t> Test_I_Source_AsynchStream_t;
+typedef Test_I_Source_Stream_T<Test_I_Stream_TCPConnector_t> Test_I_Source_TCPStream_t;
+typedef Test_I_Source_Stream_T<Test_I_Stream_TCPAsynchConnector_t> Test_I_Source_AsynchTCPStream_t;
+typedef Test_I_Source_Stream_T<Test_I_Stream_UDPConnector_t> Test_I_Source_UDPStream_t;
+typedef Test_I_Source_Stream_T<Test_I_Stream_UDPAsynchConnector_t> Test_I_Source_AsynchUDPStream_t;
 
 #endif

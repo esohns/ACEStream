@@ -31,7 +31,7 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T ()
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
- , TCPTarget_ (ACE_TEXT_ALWAYS_CHAR ("TCPTarget"),
+ , netTarget_ (ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
                NULL,
                false)
 {
@@ -44,7 +44,7 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T ()
   //         close()d
   inherited::availableModules_.push_front (&fileReader_);
   inherited::availableModules_.push_front (&runtimeStatistic_);
-  inherited::availableModules_.push_front (&TCPTarget_);
+  inherited::availableModules_.push_front (&netTarget_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -235,33 +235,33 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
 
   // ---------------------------------------------------------------------------
 
-  WRITER_T* TCPTarget_impl_p = NULL;
+  WRITER_T* netTarget_impl_p = NULL;
   Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Stream_Module_FileReader* fileReader_impl_p = NULL;
   typename ConnectorType::ICONNECTION_T* connection_p = NULL;
 
-  // ******************* TCP Target ************************
-  TCPTarget_.initialize (configuration_in.moduleConfiguration_2);
-  TCPTarget_impl_p = dynamic_cast<WRITER_T*> (TCPTarget_.writer ());
-  if (!TCPTarget_impl_p)
+  // ******************* Net Target ************************
+  netTarget_.initialize (configuration_in.moduleConfiguration_2);
+  netTarget_impl_p = dynamic_cast<WRITER_T*> (netTarget_.writer ());
+  if (!netTarget_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_TCPTarget> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Net_Target_T> failed, aborting\n")));
     goto failed;
   } // end IF
-  if (!TCPTarget_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!netTarget_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                TCPTarget_.name ()));
+                netTarget_.name ()));
     goto failed;
   } // end IF
-  result = inherited::push (&TCPTarget_);
+  result = inherited::push (&netTarget_);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                TCPTarget_.name ()));
+                netTarget_.name ()));
     goto failed;
   } // end IF
 

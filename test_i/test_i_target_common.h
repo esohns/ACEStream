@@ -74,14 +74,18 @@ struct Test_I_Target_Configuration
 {
   inline Test_I_Target_Configuration ()
    : Test_I_Configuration ()
-   , listener (NULL)
+   , handle (ACE_INVALID_HANDLE)
+   //, listener (NULL)
    , listenerConfiguration ()
    , signalHandlerConfiguration ()
+   , useReactor (false)
   {};
 
-  Test_I_Target_IListener_t*               listener;
+  ACE_HANDLE                               handle;
+  //Test_I_Target_IListener_t*               listener;
   Test_I_Target_ListenerConfiguration      listenerConfiguration;
   Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
+  bool                                     useReactor;
 };
 
 struct Test_I_Target_GTK_CBData

@@ -211,6 +211,7 @@ struct Test_I_Configuration
    , socketHandlerConfiguration ()
    , streamConfiguration ()
    , streamUserData ()
+   , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
   {};
 
   // **************************** signal data **********************************
@@ -221,6 +222,8 @@ struct Test_I_Configuration
   // **************************** stream data **********************************
   Test_I_Stream_Configuration              streamConfiguration;
   Test_I_Stream_UserData                   streamUserData;
+  // *************************** protocol data *********************************
+  Net_TransportLayerType                   protocol;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<Stream_Message,

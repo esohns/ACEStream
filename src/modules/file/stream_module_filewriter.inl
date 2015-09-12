@@ -174,15 +174,18 @@ Stream_Module_FileWriter_T<SessionMessageType,
       // sanity check(s)
       if (!Common_File_Tools::isDirectory (directory))
       {
+        directory =
+          ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
         if (Common_File_Tools::isValidPath (directory))
         {
-          if (!Common_File_Tools::createDirectory (directory))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to create directory \"%s\": \"%m\", returning\n"),
-                        ACE_TEXT (directory.c_str ())));
-            return;
-          } // end IF
+          if (!Common_File_Tools::isDirectory (directory))
+            if (!Common_File_Tools::createDirectory (directory))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("failed to create directory \"%s\": \"%m\", returning\n"),
+                          ACE_TEXT (directory.c_str ())));
+              return;
+            } // end IF
         } // end IF
         else if (Common_File_Tools::isValidFileName (directory))
         {
@@ -283,9 +286,9 @@ Stream_Module_FileWriter_T<SessionMessageType,
         } // end IF
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("closed file stream \"%s\" (wrote: %d byte(s))...\n"),
+                    ACE_TEXT ("closed file stream \"%s\" (wrote: %u byte(s))...\n"),
                     ACE_TEXT (buffer),
-                    file_info.size_));
+                    static_cast<unsigned int> (file_info.size_)));
       } // end IF
 
       break;

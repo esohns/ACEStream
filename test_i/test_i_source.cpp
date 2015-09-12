@@ -133,6 +133,10 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u          : use UDP [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-v          : print version information and exit [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -156,6 +160,7 @@ do_processArguments (int argc_in,
                      bool& useReactor_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
+                     bool& useUDP_out,
                      bool& printVersionAndExit_out,
                      unsigned int& numberOfDispatchThreads_out)
 {
@@ -189,13 +194,14 @@ do_processArguments (int argc_in,
   useReactor_out = NET_EVENT_USE_REACTOR;
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING;
   traceInformation_out = false;
+  useUDP_out = false;
   printVersionAndExit_out = false;
   numberOfDispatchThreads_out =
     NET_CLIENT_DEF_NUM_DISPATCH_THREADS;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:f:g::h:lop:rs:tvx:"),
+                              ACE_TEXT ("b:f:g::h:lop:rs:tuvx:"),
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -268,6 +274,11 @@ do_processArguments (int argc_in,
       case 't':
       {
         traceInformation_out = true;
+        break;
+      }
+      case 'u':
+      {
+        useUDP_out = true;
         break;
       }
       case 'v':
@@ -398,6 +409,7 @@ do_work (unsigned int bufferSize_in,
          unsigned short port_in,
          bool useReactor_in,
          unsigned int statisticReportingInterval_in,
+         bool useUDP_in,
          unsigned int numberOfDispatchThreads_in,
          Stream_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
@@ -413,12 +425,44 @@ do_work (unsigned int bufferSize_in,
     &configuration;
   configuration.streamUserData.streamConfiguration =
     &configuration.streamConfiguration;
-  Test_I_Source_Stream_t stream;
-  Test_I_Source_AsynchStream_t asynch_stream;
-  if (useReactor_in)
-    CBData_in.stream = &stream;
-  else
-    CBData_in.stream = &asynch_stream;
+  configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
+                                      : NET_TRANSPORTLAYER_TCP);
+  switch (configuration.protocol)
+  {
+    case NET_TRANSPORTLAYER_TCP:
+    {
+      if (useReactor_in)
+        ACE_NEW_NORETURN (CBData_in.stream,
+                          Test_I_Source_TCPStream_t ());
+      else
+        ACE_NEW_NORETURN (CBData_in.stream,
+                          Test_I_Source_AsynchTCPStream_t ());
+      break;
+    }
+    case NET_TRANSPORTLAYER_UDP:
+    {
+      if (useReactor_in)
+        ACE_NEW_NORETURN (CBData_in.stream,
+                          Test_I_Source_UDPStream_t ());
+      else
+        ACE_NEW_NORETURN (CBData_in.stream,
+                          Test_I_Source_AsynchUDPStream_t ());
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown transport layer (was: %d), returning\n"),
+                  configuration.protocol));
+      return;
+    }
+  } // end SWITCH
+  if (!CBData_in.stream)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory, returning\n")));
+    return;
+  } // end IF
 
   Stream_AllocatorHeap heap_allocator;
   Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
@@ -436,6 +480,10 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Stream_Module_EventHandler> failed, returning\n")));
+
+    // clean up
+    delete CBData_in.stream;
+
     return;
   } // end IF
   event_handler_p->initialize (&CBData_in.subscribers,
@@ -446,6 +494,8 @@ do_work (unsigned int bufferSize_in,
     TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
 
+  // *********************** socket configuration data ************************
+  configuration.socketConfiguration.writeOnly = true;
   // ******************** socket handler configuration data *******************
   configuration.socketHandlerConfiguration.bufferSize = bufferSize_in;
   configuration.socketHandlerConfiguration.messageAllocator =
@@ -472,6 +522,10 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s:%u\"): \"%m\", returning\n"),
                 ACE_TEXT (hostName_in.c_str ()),
                 port_in));
+
+    // clean up
+    delete CBData_in.stream;
+
     return;
   } // end IF
   configuration.streamConfiguration.moduleHandlerConfiguration_2.printProgressDot =
@@ -509,6 +563,10 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+
+    // clean up
+    delete CBData_in.stream;
+
     return;
   } // end IF
 
@@ -543,6 +601,7 @@ do_work (unsigned int bufferSize_in,
 
       // clean up
       timer_manager_p->stop ();
+      delete CBData_in.stream;
 
       return;
     } // end IF
@@ -563,6 +622,7 @@ do_work (unsigned int bufferSize_in,
 
     // clean up
     timer_manager_p->stop ();
+    delete CBData_in.stream;
 
     return;
   } // end IF
@@ -600,6 +660,7 @@ do_work (unsigned int bufferSize_in,
 
       // clean up
       timer_manager_p->stop ();
+      delete CBData_in.stream;
 
       return;
     } // end IF
@@ -612,8 +673,9 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
 
       // clean up
-      timer_manager_p->stop ();
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
+      timer_manager_p->stop ();
+      delete CBData_in.stream;
 
       return;
     } // end IF
@@ -646,6 +708,7 @@ do_work (unsigned int bufferSize_in,
     if (!UIDefinitionFile_in.empty ())
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
     timer_manager_p->stop ();
+    delete CBData_in.stream;
 
     return;
   } // end IF
@@ -662,6 +725,7 @@ do_work (unsigned int bufferSize_in,
                                            !useReactor_in,
                                            group_id);
       timer_manager_p->stop ();
+      delete CBData_in.stream;
 
       return;
     } // end IF
@@ -680,6 +744,11 @@ do_work (unsigned int bufferSize_in,
 //      return;
 //    } // end IF
     CBData_in.stream->stop (true, true);
+
+    // clean up
+    Common_Tools::finalizeEventDispatch (useReactor_in,
+                                         !useReactor_in,
+                                         group_id);
   } // end IF
   else
     Common_Tools::dispatchEvents (useReactor_in,
@@ -689,6 +758,7 @@ do_work (unsigned int bufferSize_in,
   if (!UIDefinitionFile_in.empty ())
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
   timer_manager_p->stop ();
+  delete CBData_in.stream;
 
   //		{ // synch access
   //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
@@ -822,6 +892,7 @@ ACE_TMAIN (int argc_in,
   unsigned int statistic_reporting_interval =
       STREAM_DEFAULT_STATISTIC_REPORTING;
   bool trace_information = false;
+  bool use_UDP = false;
   bool print_version_and_exit = false;
   unsigned int number_of_dispatch_threads =
     NET_CLIENT_DEF_NUM_DISPATCH_THREADS;
@@ -839,6 +910,7 @@ ACE_TMAIN (int argc_in,
                             use_reactor,
                             statistic_reporting_interval,
                             trace_information,
+                            use_UDP,
                             print_version_and_exit,
                             number_of_dispatch_threads))
   {
@@ -1034,6 +1106,7 @@ ACE_TMAIN (int argc_in,
            port,
            use_reactor,
            statistic_reporting_interval,
+           use_UDP,
            number_of_dispatch_threads,
            gtk_cb_user_data,
            signal_set,

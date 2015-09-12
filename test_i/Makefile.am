@@ -14,7 +14,8 @@ endif
 
 DEFS = \
   -DHAVE_CONFIG_H \
-  -DBASEDIR=\"$(datadir)/@PACKAGE_NAME@\"
+  -DBASEDIR=\"$(datadir)/@PACKAGE_NAME@\" \
+  -DNET_HAS_DLL
 if DEBUG
 DEFS += \
   -DDEBUG_DEBUGGER

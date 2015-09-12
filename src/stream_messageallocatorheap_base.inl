@@ -35,12 +35,21 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
  : inherited ()
  , block_ (block_in)
  , dataBlockAllocator_ (allocator_in)
- , freeMessageCounter_ ((maximumNumberOfMessages_in ? static_cast<int> (maximumNumberOfMessages_in)
-                                                    : std::numeric_limits<int>::max ()),
-                        NULL,
-                        NULL,
-                        (maximumNumberOfMessages_in ? static_cast<int> (maximumNumberOfMessages_in)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , freeMessageCounter_ ((maximumNumberOfMessages_in ? maximumNumberOfMessages_in
+                                                    : std::numeric_limits<signed int>::max ()),     // initial count
+                        NULL,                                                                       // name
+                        NULL,                                                                       // ACT
+                        (maximumNumberOfMessages_in ? static_cast<int> (maximumNumberOfMessages_in) // maximum
                                                     : std::numeric_limits<int>::max ()))
+#else
+ , freeMessageCounter_ ((maximumNumberOfMessages_in ? maximumNumberOfMessages_in
+                                                    : SEM_VALUE_MAX),                               // initial count
+                        NULL,                                                                       // name
+                        NULL,                                                                       // ACT
+                        (maximumNumberOfMessages_in ? static_cast<int> (maximumNumberOfMessages_in) // maximum
+                                                    : std::numeric_limits<int>::max ()))
+#endif
  , poolSize_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::Stream_MessageAllocatorHeapBase_T"));
