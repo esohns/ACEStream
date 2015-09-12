@@ -80,6 +80,7 @@ class Stream_Module_MessageHandler_T
  protected:
   ModuleHandlerConfigurationType configuration_;
 
+  bool                           delete_;
    // *NOTE*: recursive so that callees may unsubscribe from within the
    //         notification callbacks...
    ACE_SYNCH_RECURSIVE_MUTEX*    lock_;
@@ -100,8 +101,6 @@ class Stream_Module_MessageHandler_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T (const Stream_Module_MessageHandler_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T& operator= (const Stream_Module_MessageHandler_T&))
-
-  bool                           delete_;
 };
 
 #include "stream_module_messagehandler.inl"

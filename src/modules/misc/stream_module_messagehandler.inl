@@ -33,9 +33,10 @@ Stream_Module_MessageHandler_T<SessionMessageType,
                                ModuleHandlerConfigurationType,
                                SessionDataType>::Stream_Module_MessageHandler_T ()
  : inherited ()
+ , configuration_ ()
+ , delete_ (false)
  , lock_ (NULL)
  , subscribers_ (NULL)
- , delete_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::Stream_Module_MessageHandler_T"));
 
@@ -207,11 +208,12 @@ Stream_Module_MessageHandler_T<SessionMessageType,
   {
     case STREAM_SESSION_BEGIN:
     {
-      // refer the session data back to any subscriber(s)
+      // forward the session data to any subscriber(s)
       // *TODO*: remove type inferences
       const typename SessionMessageType::SESSION_DATA_TYPE& session_data_container_r =
-          message_inout->get ();
-      const SessionDataType* session_data_p = session_data_container_r.getData ();
+        message_inout->get ();
+      const SessionDataType* session_data_p =
+        session_data_container_r.getData ();
       ACE_ASSERT (session_data_p);
 
       // synch access
