@@ -44,16 +44,16 @@ class Stream_MessageAllocatorHeapBase_T
 {
  public:
   Stream_MessageAllocatorHeapBase_T (unsigned int = std::numeric_limits<unsigned int>::max (), // total number of concurrent messages
-                                     Stream_AllocatorHeap* = NULL,                             // (heap) memory allocator...
+                                     Stream_AllocatorHeap* = NULL,                             // (heap) memory allocator handle
                                      bool = true);                                             // block until a buffer is available ?
   virtual ~Stream_MessageAllocatorHeapBase_T ();
 
   // implement Stream_IAllocator
-  virtual bool block (); // return value: block when full ?
-  // *NOTE*: returns a pointer to <MessageType>...
-  // *NOTE: passing a value of 0 will return a (pointer to) <SessionMessageType>
+  virtual bool block (); // return value: block when pool is empty ?
+  // *NOTE*: if argument is > 0, this returns a (pointer to) <MessageType>, and
+  //         a (pointer to) <SessionMessageType> otherwise
   virtual void* malloc (size_t); // bytes
-  // *NOTE*: frees an <MessageType>/<SessionMessageType>...
+  // *NOTE*: frees a <MessageType>/<SessionMessageType>
   virtual void free (void*); // element handle
   virtual size_t cache_depth () const; // return value: #bytes allocated
   virtual size_t cache_size () const;  // return value: #inflight ACE_Message_Blocks
