@@ -26,20 +26,20 @@
 template <typename MessageType,
           typename SessionMessageType>
 Stream_CachedMessageAllocator_T<MessageType,
-                                SessionMessageType>::Stream_CachedMessageAllocator_T (unsigned int maxNumMessages_in,
-                                                                                      ACE_Allocator* allocator_in)
- : dataBlockAllocator_ (((maxNumMessages_in == 0) ? STREAM_QUEUE_DEFAULT_CACHED_MESSAGES
-                                                  : maxNumMessages_in),
+SessionMessageType>::Stream_CachedMessageAllocator_T (unsigned int maximumNumberOfMessages_in,
+                                                      ACE_Allocator* allocator_in)
+ : dataBlockAllocator_ ((maximumNumberOfMessages_in ? maximumNumberOfMessages_in
+                                                    : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES),
                         allocator_in)
- , messageAllocator_ ((maxNumMessages_in == 0) ? STREAM_QUEUE_DEFAULT_CACHED_MESSAGES
-                                               : maxNumMessages_in)
- , sessionMessageAllocator_ ((maxNumMessages_in == 0) ? STREAM_QUEUE_DEFAULT_CACHED_MESSAGES
-                                                      : maxNumMessages_in)
+ , messageAllocator_ (maximumNumberOfMessages_in ? maximumNumberOfMessages_in
+                                                 : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES)
+ , sessionMessageAllocator_ (maximumNumberOfMessages_in ? maximumNumberOfMessages_in
+                                                        :STREAM_QUEUE_DEFAULT_CACHED_MESSAGES)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::Stream_CachedMessageAllocator_T"));
 
   // sanity check(s)
-  if (!maxNumMessages_in)
+  if (!maximumNumberOfMessages_in)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("cannot allocate unlimited memory, caching %d buffers...\n"),
                 STREAM_QUEUE_DEFAULT_CACHED_MESSAGES));
