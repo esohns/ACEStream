@@ -73,7 +73,6 @@ do_printUsage (const std::string& programName_in)
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -97,7 +96,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);

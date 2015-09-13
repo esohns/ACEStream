@@ -164,12 +164,13 @@ else
   AC_MSG_RESULT([no])
 fi
 AM_COND_IF([BUILD_MODULES],
-           [AC_CONFIG_SUBDIRS([modules/libCommon])])
+           [AC_CONFIG_SUBDIRS([modules/libCommon
+                               modules/libACENetwork])])
 dnl AC_CONFIG_SUBDIRS([modules/ATCD
 dnl                    modules/libCommon
 dnl                    modules/libACENetwork])])
-#AM_COND_IF([BUILD_MODULES],
-#           [AC_CONFIG_FILES([modules/Makefile])])
+AM_COND_IF([BUILD_MODULES],
+           [AC_CONFIG_FILES([modules/Makefile])])
 
 # --> build (integration) tests ?
 AC_MSG_CHECKING([build (integration) tests])
@@ -235,7 +236,6 @@ AC_SEARCH_LIBS([pthread_create], [pthread], , AC_MSG_ERROR([unable to find pthre
 
 AC_CONFIG_HEADERS([config.h])
 
-#test_i/modules/Makefile
 AC_CONFIG_FILES([Makefile
                  3rd_party/Makefile
                  3rd_party/ACE_wrappers/Makefile
@@ -245,10 +245,7 @@ AC_CONFIG_FILES([Makefile
                  3rd_party/bison/Makefile
                  3rd_party/msvc/Makefile
                  m4/Makefile
-                 modules/Makefile
                  scripts/Makefile
-                 scripts/libACEStream.pc
-                 scripts/libACEStream.spec
                  src/Makefile
                  src/modules/Makefile
                  src/modules/file/Makefile
@@ -259,6 +256,7 @@ AC_CONFIG_FILES([Makefile
                  test_u/filecopy/etc/Makefile
                  test_i/Makefile
                  test_i/etc/Makefile])
+AC_CONFIG_FILES([scripts/libACEStream.pc
+                 scripts/libACEStream.spec])
 
 AC_OUTPUT
-

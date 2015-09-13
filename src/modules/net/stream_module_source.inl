@@ -154,13 +154,14 @@ Stream_Module_Net_Source_T<SessionMessageType,
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_in.configuration);
+  ACE_ASSERT (configuration_in.socketConfiguration);
   ACE_ASSERT (configuration_in.streamConfiguration);
 
   ACE_OS::memset (buffer, 0, sizeof (buffer));
   result =
-    configuration_in.configuration->socketConfiguration.peerAddress.addr_to_string (buffer,
-                                                                                    sizeof (buffer));
+    configuration_in.socketConfiguration->peerAddress.addr_to_string (buffer,
+                                                                      sizeof (buffer),
+                                                                      1);
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
@@ -205,29 +206,28 @@ Stream_Module_Net_Source_T<SessionMessageType,
     // *TODO*: remove type inferences
     typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
       configuration_in.connectionManager;
-    typename ConfigurationType::CONFIGURATION_T configuration;
-    typename SessionMessageType::USER_DATA_T* user_data_p = NULL;
-    configuration_in.connectionManager->get (configuration,
-                                             user_data_p);
-    configuration = *inherited::configuration_.configuration;
-    configuration.streamConfiguration.cloneModule = false;
-    configuration.streamConfiguration.deleteModule = false;
-    configuration.streamConfiguration.module = inherited::module ();
-    ACE_ASSERT (configuration.streamConfiguration.module);
-    configuration_in.connectionManager->set (configuration,
-                                             user_data_p);
+    //typename ConnectionManagerType::CONFIGURATION_T configuration;
+    //typename SessionMessageType::USER_DATA_T* user_data_p = NULL;
+    //configuration_in.connectionManager->get (configuration,
+    //                                         user_data_p);
+    //configuration.streamConfiguration.cloneModule = false;
+    //configuration.streamConfiguration.deleteModule = false;
+    //configuration.streamConfiguration.module = inherited::module ();
+    //ACE_ASSERT (configuration.streamConfiguration.module);
+    //configuration_in.connectionManager->set (configuration,
+    //                                         user_data_p);
 
     // step2: initialize connector
     // *TODO*: remove type inferences
     ConnectorType connector (iconnection_manager_p,
                              configuration_in.streamConfiguration->statisticReportingInterval);
-  //  Stream_IInetConnector_t* iconnector_p = &connector;
+    //  Stream_IInetConnector_t* iconnector_p = &connector;
     ACE_HANDLE handle = ACE_INVALID_HANDLE;
     // *TODO*: reset this later...
-    ACE_ASSERT (inherited::configuration_.configuration->socketHandlerConfiguration.userData);
-    configuration_in.configuration->socketHandlerConfiguration.userData->configuration =
-      &configuration;
-    if (!connector.initialize (configuration_in.configuration->socketHandlerConfiguration))
+    //ACE_ASSERT (inherited::configuration_.configuration->socketHandlerConfiguration.userData);
+    //configuration_in.configuration->socketHandlerConfiguration.userData->configuration =
+    //  &configuration;
+    if (!connector.initialize (*configuration_in.socketHandlerConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize connector: \"%m\", aborting\n")));
@@ -237,7 +237,7 @@ Stream_Module_Net_Source_T<SessionMessageType,
     // step3: connect
     ACE_ASSERT (!inherited::configuration_.connection);
     handle =
-      connector.connect (configuration_in.configuration->socketConfiguration.peerAddress);
+      connector.connect (configuration_in.socketConfiguration->peerAddress);
     if (connector.useReactor ())
       inherited::configuration_.connection =
         configuration_in.connectionManager->get (handle);
@@ -250,7 +250,7 @@ Stream_Module_Net_Source_T<SessionMessageType,
                     ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                     &one_second));
       inherited::configuration_.connection =
-        configuration_in.connectionManager->get (configuration_in.configuration->socketConfiguration.peerAddress);
+        configuration_in.connectionManager->get (configuration_in.socketConfiguration->peerAddress);
     } // end IF
     if (!inherited::configuration_.connection)
     {
