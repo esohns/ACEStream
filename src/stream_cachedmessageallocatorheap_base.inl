@@ -22,14 +22,14 @@
 #include "stream_macros.h"
 
 template <typename MessageType>
-Stream_CachedMessageAllocatorHeapBase_T<MessageType>::Stream_CachedMessageAllocatorHeapBase_T (unsigned int maxNumMessages_in)
- : inherited ((maxNumMessages_in == 0) ? STREAM_QUEUE_DEFAULT_CACHED_MESSAGES
-                                       : maxNumMessages_in)
+Stream_CachedMessageAllocatorHeapBase_T<MessageType>::Stream_CachedMessageAllocatorHeapBase_T (unsigned int maximumNumberOfMessages_in)
+ : inherited (maximumNumberOfMessages_in ? maximumNumberOfMessages_in
+                                         : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::Stream_CachedMessageAllocatorHeapBase_T"));
 
   // sanity check(s)
-  if (!maxNumMessages_in)
+  if (!maximumNumberOfMessages_in)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("cannot allocate unlimited memory, caching %d buffers...\n"),
                 STREAM_QUEUE_DEFAULT_CACHED_MESSAGES));
