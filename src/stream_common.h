@@ -67,6 +67,7 @@ struct Stream_SessionData
   inline Stream_SessionData ()
    : aborted (false)
    , currentStatistic ()
+   , lastCollectionTimestamp (ACE_Time_Value::zero)
    , lock (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , sessionID (reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE))
@@ -79,6 +80,7 @@ struct Stream_SessionData
   bool             aborted;
 
   Stream_Statistic currentStatistic;
+  ACE_Time_Value   lastCollectionTimestamp;
   ACE_SYNCH_MUTEX* lock;
 
   unsigned int     sessionID; // (== socket handle !)

@@ -25,7 +25,6 @@
 
 //#include "net_common.h"
 
-#define TEST_I_CONFIGURATION_DIRECTORY                       "etc"
 #define TEST_I_DEFAULT_SOURCE_GLADE_FILE                     "source.glade"
 #define TEST_I_DEFAULT_TARGET_GLADE_FILE                     "target.glade"
 #define TEST_I_DEFAULT_OUTPUT_FILE                           "output.tmp"

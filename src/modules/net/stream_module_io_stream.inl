@@ -320,7 +320,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
   // ---------------------------------------------------------------------------
 
   // ******************* IO ************************
-  IO_.initialize (configuration_in.moduleConfiguration_2);
+  IO_.initialize (*configuration_in.moduleConfiguration);
   WRITER_T* IOWriter_impl_p = dynamic_cast<WRITER_T*> (IO_.writer ());
   if (!IOWriter_impl_p)
   {
@@ -328,7 +328,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n")));
     return false;
   } // end IF
-  if (!IOWriter_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!IOWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOWriter_T, aborting\n"),
@@ -350,7 +350,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOReader_T> failed, aborting\n")));
     return false;
   } // end IF
-  if (!IOReader_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!IOReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOReader_T, aborting\n"),
