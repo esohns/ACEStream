@@ -226,12 +226,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
   } // end IF
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::initialize(), aborting\n")));
-    return false;
-  } // end IF
+  inherited::initialize ();
   ACE_ASSERT (inherited::sessionData_);
   // *TODO*: remove type inferences
   inherited::sessionData_->sessionID = configuration_in.sessionID;

@@ -138,7 +138,7 @@ Stream_Base_T<TaskSynchType,
 
   // - reset reader/writers tasks for ALL modules
   // - re-initialize head/tail modules
-  return initialize ();
+  initialize ();
 }
 
 template <typename TaskSynchType,
@@ -153,7 +153,7 @@ template <typename TaskSynchType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-bool
+void
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StatusType,
@@ -189,9 +189,9 @@ Stream_Base_T<TaskSynchType,
       if (!imodule_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
+                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, returning\n"),
                     (*iterator)->name ()));
-        return false;
+        return;
       } // end IF
       try
       {
@@ -216,8 +216,8 @@ Stream_Base_T<TaskSynchType,
   if (!sessionData_)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
-    return false;
+                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+    return;
   } // end IF
   // *TODO*: remove type inference
   state_.currentSessionData = sessionData_;
@@ -236,9 +236,7 @@ Stream_Base_T<TaskSynchType,
   }
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", aborting\n")));
-
-  return (result == 0);
+                ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", continuing\n")));
 }
 
 template <typename TaskSynchType,

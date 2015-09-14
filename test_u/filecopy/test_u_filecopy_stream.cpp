@@ -124,12 +124,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
   } // end IF
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::initialize(), aborting\n")));
-    return false;
-  } // end IF
+  inherited::initialize ();
   ACE_ASSERT (inherited::sessionData_);
   // *TODO*: remove type inferences
   inherited::sessionData_->sessionID =

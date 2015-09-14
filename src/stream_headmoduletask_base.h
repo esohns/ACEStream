@@ -76,7 +76,7 @@ class Stream_HeadModuleTaskBase_T
   virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&);
 
-  // implement Stream_IStreamControl_T
+  // implement (part of) Stream_IStreamControl_T
   virtual void start ();
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true); // locked access ?
@@ -120,6 +120,9 @@ class Stream_HeadModuleTaskBase_T
   // implement state machine callback
   // *NOTE*: this method is threadsafe
   virtual void onChange (Stream_StateType_t); // new state
+
+  // implement (part of) Stream_IStreamControl_T
+  virtual void initialize ();
 
   // *NOTE*: functionally, this does the same as stop(), with the
   //         difference that stop() will wait for any worker(s)

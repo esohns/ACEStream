@@ -65,18 +65,18 @@ class Stream_Module_Net_Source_T
   Stream_Module_Net_Source_T (bool = false); // passive ?
   virtual ~Stream_Module_Net_Source_T ();
 
-#if defined (__GNUG__) || defined (_MSC_VER)
-  // *PORTABILITY*: for some reason, this base class member is not exposed
-  //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
-                                    Common_TimePolicy_t,
-                                    SessionMessageType,
-                                    ProtocolMessageType,
-                                    ConfigurationType,
-                                    StreamStateType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::initialize;
-#endif
+//#if defined (__GNUG__) || defined (_MSC_VER)
+//  // *PORTABILITY*: for some reason, this base class member is not exposed
+//  //                (MSVC/gcc)
+//  using Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+//                                    Common_TimePolicy_t,
+//                                    SessionMessageType,
+//                                    ProtocolMessageType,
+//                                    ConfigurationType,
+//                                    StreamStateType,
+//                                    SessionDataType,
+//                                    SessionDataContainerType>::initialize;
+//#endif
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&);

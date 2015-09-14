@@ -171,7 +171,8 @@ class Stream_Base_T
   // *NOTE*: need to subclass this !
   Stream_Base_T ();
 
-  bool initialize ();
+  // implement (part of) Common_IControl
+  virtual void initialize ();
 
   // *NOTE*: children need to call this PRIOR to module RE-initialization
   //         (i.e. in their own init()); this will:
