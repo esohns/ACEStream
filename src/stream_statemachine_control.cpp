@@ -54,7 +54,7 @@ Stream_StateMachine_Control::reset ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::reset"));
 
-  initialize ();
+  Stream_StateMachine_Control::initialize ();
 }
 
 bool
@@ -257,6 +257,8 @@ Stream_StateMachine_Control::state2String (Stream_StateMachine_ControlState stat
 
   switch (state_in)
   {
+    case STREAM_STATE_INVALID:
+      break;
     case STREAM_STATE_INITIALIZED:
     {
       result = ACE_TEXT_ALWAYS_CHAR ("INITIALIZED");

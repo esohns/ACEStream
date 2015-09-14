@@ -539,6 +539,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
   configuration_ = configuration_in;
 
+  inherited::change (STREAM_STATE_INITIALIZED);
+
   return true;
 }
 
