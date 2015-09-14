@@ -388,15 +388,15 @@ Stream_Module_Net_Source_T<SessionMessageType,
         const SessionDataType* session_data_p =
             session_data_container_r.getData ();
         // *TODO*: remove type inference
+        ACE_HANDLE handle = ACE_INVALID_HANDLE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_ASSERT (session_data_p->sessionID != reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE));
-        inherited::configuration_.connection =
-          inherited::configuration_.connectionManager->get (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID));
+        handle = reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID);
 #else
-        ACE_ASSERT (session_data_p->sessionID != ACE_INVALID_HANDLE);
-        inherited::configuration_.connection =
-          inherited::configuration_.connectionManager->get (static_cast<ACE_HANDLE> (session_data_p->sessionID));
+        handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
 #endif
+        ACE_ASSERT (handle != ACE_INVALID_HANDLE);
+        inherited::configuration_.connection =
+          inherited::configuration_.connectionManager->get (handle);
         if (!inherited::configuration_.connection)
         {
           ACE_DEBUG ((LM_ERROR,

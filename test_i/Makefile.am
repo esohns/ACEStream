@@ -21,7 +21,7 @@ DEFS += \
   -DDEBUG_DEBUGGER
 endif
 
-bin_PROGRAMS = \
+check_PROGRAMS = \
   stream_source \
   stream_target
 

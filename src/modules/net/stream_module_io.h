@@ -43,6 +43,7 @@ template <typename SessionMessageType,
           ///////////////////////////////
           typename StatisticContainerType,
           ///////////////////////////////
+          typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IOWriter_T // --> output
  : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
@@ -136,6 +137,7 @@ template <typename SessionMessageType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           ///////////////////////////////
+          typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IOReader_T // --> input
  : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,

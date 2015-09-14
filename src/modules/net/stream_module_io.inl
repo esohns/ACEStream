@@ -39,6 +39,7 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 Stream_Module_Net_IOWriter_T<SessionMessageType,
                              ProtocolMessageType,
@@ -47,6 +48,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
+                             AddressType,
                              ConnectionManagerType>::Stream_Module_Net_IOWriter_T ()
  : inherited (false, // active object ?
               false, // auto-start ?
@@ -69,6 +71,7 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 Stream_Module_Net_IOWriter_T<SessionMessageType,
                              ProtocolMessageType,
@@ -77,6 +80,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
+                             AddressType,
                              ConnectionManagerType>::~Stream_Module_Net_IOWriter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::~Stream_Module_Net_IOWriter_T"));
@@ -104,7 +108,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
   {
     ACE_OS::memset (buffer, 0, sizeof (buffer));
     ACE_HANDLE handle = ACE_INVALID_HANDLE;
-    ACE_INET_Addr local_address, peer_address;
+    AddressType local_address, peer_address;
     connection_->info (handle,
                        local_address, peer_address);
     result = peer_address.addr_to_string (buffer,
@@ -129,6 +133,7 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 bool
 Stream_Module_Net_IOWriter_T<SessionMessageType,
@@ -138,6 +143,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
+                             AddressType,
                              ConnectionManagerType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::initialize"));
@@ -190,6 +196,7 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_IOWriter_T<SessionMessageType,
@@ -199,6 +206,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
+                             AddressType,
                              ConnectionManagerType>::handleDataMessage (ProtocolMessageType*& message_inout,
                                                                         bool& passMessageDownstream_out)
 {
@@ -247,6 +255,7 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_IOWriter_T<SessionMessageType,
@@ -256,6 +265,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
+                             AddressType,
                              ConnectionManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                            bool& passMessageDownstream_out)
 {
@@ -307,15 +317,15 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
         message_inout->get ();
       const SessionDataType* session_data_p =
         session_data_container_r.getData ();
+      ACE_HANDLE handle = ACE_INVALID_HANDLE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_ASSERT (session_data_p->sessionID != reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE));
-      connection_ =
-        inherited::configuration_.connectionManager->get (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID));
+      handle = reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID);
 #else
-      ACE_ASSERT (session_data_p->sessionID != static_cast<unsigned int> (ACE_INVALID_HANDLE));
-      connection_ =
-        inherited::configuration_.connectionManager->get (static_cast<ACE_HANDLE> (session_data_p->sessionID));
+      handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
 #endif
+      ACE_ASSERT (handle != ACE_INVALID_HANDLE);
+      connection_ =
+        inherited::configuration_.connectionManager->get (handle);
       if (!connection_)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -446,6 +456,7 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 bool
 Stream_Module_Net_IOWriter_T<SessionMessageType,
@@ -455,6 +466,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
+                             AddressType,
                              ConnectionManagerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::collect"));
@@ -489,6 +501,7 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_IOWriter_T<SessionMessageType,
@@ -498,6 +511,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
+                             AddressType,
                              ConnectionManagerType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::report"));
@@ -580,6 +594,7 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 ProtocolMessageType*
 Stream_Module_Net_IOWriter_T<SessionMessageType,
@@ -589,6 +604,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
+                             AddressType,
                              ConnectionManagerType>::allocateMessage (unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::allocateMessage"));
@@ -637,6 +653,7 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 bool
 Stream_Module_Net_IOWriter_T<SessionMessageType,
@@ -646,6 +663,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              StatisticContainerType,
+                             AddressType,
                              ConnectionManagerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::putStatisticMessage"));
@@ -689,6 +707,7 @@ template <typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 Stream_Module_Net_IOReader_T<SessionMessageType,
                              MessageType,
@@ -696,6 +715,7 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
                              ModuleHandlerConfigurationType,
                              SessionDataType,
                              SessionDataContainerType,
+                             AddressType,
                              ConnectionManagerType>::Stream_Module_Net_IOReader_T ()
  : inherited ()
  , configuration_ ()
@@ -712,6 +732,7 @@ template <typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 Stream_Module_Net_IOReader_T<SessionMessageType,
                              MessageType,
@@ -719,30 +740,31 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
                              ModuleHandlerConfigurationType,
                              SessionDataType,
                              SessionDataContainerType,
+                             AddressType,
                              ConnectionManagerType>::~Stream_Module_Net_IOReader_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::~Stream_Module_Net_IOReader_T"));
 
-  int result = -1;
-  ACE_TCHAR buffer[BUFSIZ];
+//  int result = -1;
+//  ACE_TCHAR buffer[BUFSIZ];
 
   if (connection_)
   {
-    ACE_OS::memset (buffer, 0, sizeof (buffer));
-    ACE_HANDLE handle = ACE_INVALID_HANDLE;
-    ACE_INET_Addr local_address, peer_address;
-    connection_->info (handle,
-                       local_address, peer_address);
-    result = peer_address.addr_to_string (buffer,
-                                          sizeof (buffer));
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
+//    ACE_OS::memset (buffer, 0, sizeof (buffer));
+//    ACE_HANDLE handle = ACE_INVALID_HANDLE;
+//    AddressType local_address, peer_address;
+//    connection_->info (handle,
+//                       local_address, peer_address);
+//    result = peer_address.addr_to_string (buffer,
+//                                          sizeof (buffer));
+//    if (result == -1)
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
-    //connection_->close ();
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
-    //            ACE_TEXT (buffer)));
+//    connection_->close ();
+//    ACE_DEBUG ((LM_WARNING,
+//                ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
+//                ACE_TEXT (buffer)));
     connection_->decrease ();
     connection_ = NULL;
   } // end IF
@@ -754,6 +776,7 @@ template <typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_IOReader_T<SessionMessageType,
@@ -762,6 +785,7 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
                              ModuleHandlerConfigurationType,
                              SessionDataType,
                              SessionDataContainerType,
+                             AddressType,
                              ConnectionManagerType>::handleDataMessage (MessageType*& message_inout,
                                                                         bool& passMessageDownstream_out)
 {
@@ -781,6 +805,7 @@ template <typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_IOReader_T<SessionMessageType,
@@ -789,6 +814,7 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
                              ModuleHandlerConfigurationType,
                              SessionDataType,
                              SessionDataContainerType,
+                             AddressType,
                              ConnectionManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                            bool& passMessageDownstream_out)
 {
@@ -852,6 +878,7 @@ template <typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 bool
 Stream_Module_Net_IOReader_T<SessionMessageType,
@@ -860,6 +887,7 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
                              ModuleHandlerConfigurationType,
                              SessionDataType,
                              SessionDataContainerType,
+                             AddressType,
                              ConnectionManagerType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::initialize"));
@@ -874,6 +902,7 @@ template <typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
+          typename AddressType,
           typename ConnectionManagerType>
 const ModuleHandlerConfigurationType&
 Stream_Module_Net_IOReader_T<SessionMessageType,
@@ -882,6 +911,7 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
                              ModuleHandlerConfigurationType,
                              SessionDataType,
                              SessionDataContainerType,
+                             AddressType,
                              ConnectionManagerType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::get"));

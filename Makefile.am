@@ -1,10 +1,11 @@
 SUBDIRS = \
   scripts \
-  modules \
-  src \
-  test_u
+  src
+if BUILD_MODULES
+ SUBDIRS += modules
+endif
 if TEST_SUPPORT
-  SUBDIRS += test_i
+  SUBDIRS += test_u test_i
 endif
 
 EXTRA_DIST = \
