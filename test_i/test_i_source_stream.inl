@@ -184,6 +184,9 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
+  ACE_ASSERT (configuration_in.moduleConfiguration);
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
+
   if (configuration_in.module)
   {
     // *TODO*: (at least part of) this procedure belongs in libACEStream
@@ -197,7 +200,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    if (!imodule_p->initialize (configuration_in.moduleConfiguration_2))
+    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to initialize module, aborting\n"),
@@ -216,7 +219,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    if (!module_handler_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+    if (!module_handler_p->initialize (*configuration_in.moduleHandlerConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
@@ -241,7 +244,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   typename ConnectorType::ICONNECTION_T* connection_p = NULL;
 
   // ******************* Net Target ************************
-  netTarget_.initialize (configuration_in.moduleConfiguration_2);
+  netTarget_.initialize (*configuration_in.moduleConfiguration);
   netTarget_impl_p = dynamic_cast<WRITER_T*> (netTarget_.writer ());
   if (!netTarget_impl_p)
   {
@@ -249,7 +252,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Net_Target_T> failed, aborting\n")));
     goto failed;
   } // end IF
-  if (!netTarget_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!netTarget_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
@@ -266,7 +269,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   } // end IF
 
   // ******************* Runtime Statistics ************************
-  runtimeStatistic_.initialize (configuration_in.moduleConfiguration_2);
+  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
   runtimeStatistic_impl_p =
       dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl_p)
@@ -294,7 +297,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   } // end IF
 
   // ******************* File Reader ************************
-  fileReader_.initialize (configuration_in.moduleConfiguration_2);
+  fileReader_.initialize (*configuration_in.moduleConfiguration);
   fileReader_impl_p =
     dynamic_cast<Test_I_Stream_Module_FileReader*> (fileReader_.writer ());
   if (!fileReader_impl_p)
@@ -303,7 +306,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_FileReader> failed, aborting\n")));
     goto failed;
   } // end IF
-  if (!fileReader_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!fileReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
@@ -335,15 +338,15 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
 
   // *TODO*: remove type inferences
   inherited::sessionData_->fileName =
-    configuration_in.moduleHandlerConfiguration_2.fileName;
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration_2.configuration);
+    configuration_in.moduleHandlerConfiguration->fileName;
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->configuration);
   connection_p =
-    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ()->get (configuration_in.moduleHandlerConfiguration_2.configuration->socketConfiguration.peerAddress);
+    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ()->get (configuration_in.moduleHandlerConfiguration->configuration->socketConfiguration.peerAddress);
   ACE_ASSERT (connection_p);
   inherited::sessionData_->sessionID = connection_p->id ();
   connection_p->decrease ();
   inherited::sessionData_->size =
-    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.fileName);
+    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
   // set (session) message allocator
   inherited::allocator_ = configuration_in.messageAllocator;

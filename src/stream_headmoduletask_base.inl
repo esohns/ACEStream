@@ -913,9 +913,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       else
       {
         // send initial session message downstream...
-        if (!putSessionMessage (STREAM_SESSION_BEGIN,
-                                sessionData_,
-                                false))
+        if (!putSessionMessage (STREAM_SESSION_BEGIN, // type
+                                sessionData_,         // session data handle
+                                false))               // do not delete the session data
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));

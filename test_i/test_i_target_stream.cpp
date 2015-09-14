@@ -138,9 +138,10 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   // *TODO*: remove type inferences
   inherited::sessionData_->fileName =
-    configuration_in.moduleHandlerConfiguration_2.fileName;
+    configuration_in.moduleHandlerConfiguration->fileName;
   inherited::sessionData_->sessionID = configuration_in.sessionID;
 
   // things to be done here:
@@ -184,6 +185,9 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
+  ACE_ASSERT (configuration_in.moduleConfiguration);
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
+
   if (configuration_in.module)
   {
     // *TODO*: (at least part of) this procedure belongs in libACEStream
@@ -197,7 +201,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    if (!imodule_p->initialize (configuration_in.moduleConfiguration_2))
+    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to initialize module, aborting\n"),
@@ -216,7 +220,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    if (!module_handler_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+    if (!module_handler_p->initialize (*configuration_in.moduleHandlerConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
@@ -236,7 +240,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   // ---------------------------------------------------------------------------
 
   // ******************* File Writer ************************
-  fileWriter_.initialize (configuration_in.moduleConfiguration_2);
+  fileWriter_.initialize (*configuration_in.moduleConfiguration);
   Test_I_Stream_Module_FileWriter* fileWriter_impl_p =
     dynamic_cast<Test_I_Stream_Module_FileWriter*> (fileWriter_.writer ());
   if (!fileWriter_impl_p)
@@ -245,7 +249,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_FileWriter> failed, aborting\n")));
     return false;
   } // end IF
-  if (!fileWriter_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
@@ -262,7 +266,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   } // end IF
 
   // ******************* Runtime Statistics ************************
-  runtimeStatistic_.initialize (configuration_in.moduleConfiguration_2);
+  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
   Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
       dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl_p)
@@ -290,7 +294,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   } // end IF
 
   // ******************* Net Reader ***********************
-  netReader_.initialize (configuration_in.moduleConfiguration_2);
+  netReader_.initialize (*configuration_in.moduleConfiguration);
   Test_I_Stream_Module_Net_Writer_t* netReader_impl_p =
     dynamic_cast<Test_I_Stream_Module_Net_Writer_t*> (netReader_.writer ());
   if (!netReader_impl_p)
@@ -299,7 +303,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_Writer_T> failed, aborting\n")));
     return false;
   } // end IF
-  if (!netReader_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!netReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),

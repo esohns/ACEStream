@@ -180,7 +180,7 @@ do_processArguments (int argc_in,
   // initialize results
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
   fileName_out.clear ();
   hostName_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME);
@@ -494,27 +494,11 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (connection_manager_p);
 
   // *********************** socket configuration data ************************
-  configuration.socketConfiguration.writeOnly = true;
-  // ******************** socket handler configuration data *******************
-  configuration.socketHandlerConfiguration.bufferSize = bufferSize_in;
-  configuration.socketHandlerConfiguration.messageAllocator =
-    &message_allocator;
-  configuration.socketHandlerConfiguration.socketConfiguration =
-    &configuration.socketConfiguration;
-  configuration.socketHandlerConfiguration.statisticReportingInterval =
-    statisticReportingInterval_in;
-  configuration.socketHandlerConfiguration.userData =
-    &configuration.streamUserData;
-
-  // ********************** stream configuration data **************************
-  // ********************** module configuration data **************************
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.configuration =
-      &configuration;
   int result =
-      configuration.socketConfiguration.peerAddress.set (port_in,
-                                                         hostName_in.c_str (),
-                                                         1,
-                                                         ACE_ADDRESS_FAMILY_INET);
+    configuration.socketConfiguration.peerAddress.set (port_in,
+                                                       hostName_in.c_str (),
+                                                       1,
+                                                       ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -527,14 +511,32 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.printProgressDot =
-    UIDefinitionFile_in.empty ();
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.connectionManager =
+  configuration.socketConfiguration.writeOnly = true;
+  // ******************** socket handler configuration data *******************
+  configuration.socketHandlerConfiguration.messageAllocator =
+    &message_allocator;
+  configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
+  configuration.socketHandlerConfiguration.socketConfiguration =
+    &configuration.socketConfiguration;
+  configuration.socketHandlerConfiguration.statisticReportingInterval =
+    statisticReportingInterval_in;
+  configuration.socketHandlerConfiguration.userData =
+    &configuration.streamUserData;
+
+  // ********************** stream configuration data **************************
+  // ********************** module configuration data **************************
+  configuration.moduleConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
+
+  configuration.moduleHandlerConfiguration.configuration = &configuration;
+  configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.fileName =
-    fileName_in;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.stream =
-    CBData_in.stream;
+  configuration.moduleHandlerConfiguration.fileName = fileName_in;
+  configuration.moduleHandlerConfiguration.printProgressDot =
+    UIDefinitionFile_in.empty ();
+  configuration.moduleHandlerConfiguration.stream = CBData_in.stream;
+  configuration.moduleHandlerConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
@@ -543,13 +545,9 @@ do_work (unsigned int bufferSize_in,
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
   configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
+    &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.streamConfiguration.moduleHandlerConfiguration_2;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
+    &configuration.moduleHandlerConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
   configuration.streamConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
@@ -878,7 +876,7 @@ ACE_TMAIN (int argc_in,
   std::string file_name;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   std::string UI_definition_file_name = path;
   UI_definition_file_name += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file_name +=

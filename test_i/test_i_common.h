@@ -113,11 +113,11 @@ struct Test_I_Stream_UserData
 };
 
 struct Test_I_Stream_SocketHandlerConfiguration
- : Stream_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
 {
   inline Test_I_Stream_SocketHandlerConfiguration ()
-   : Stream_SocketHandlerConfiguration ()
-     ////////////////////////////////////
+   : Net_SocketHandlerConfiguration ()
+   ////////////////////////////////////
    , userData (NULL)
   {};
 
@@ -184,12 +184,10 @@ struct Test_I_Stream_Configuration
 {
   inline Test_I_Stream_Configuration ()
    : Stream_Configuration ()
-   , moduleConfiguration_2 ()
-   , moduleHandlerConfiguration_2 ()
+   , moduleHandlerConfiguration (NULL)
   {};
 
-  Stream_ModuleConfiguration               moduleConfiguration_2;
-  Test_I_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration_2;
+  Test_I_Stream_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 
 struct Test_I_Stream_State
@@ -209,6 +207,8 @@ struct Test_I_Configuration
    : signalHandlerConfiguration ()
    , socketConfiguration ()
    , socketHandlerConfiguration ()
+   , moduleConfiguration ()
+   , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , streamUserData ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
@@ -220,6 +220,8 @@ struct Test_I_Configuration
   Net_SocketConfiguration                  socketConfiguration;
   Test_I_Stream_SocketHandlerConfiguration socketHandlerConfiguration;
   // **************************** stream data **********************************
+  Stream_ModuleConfiguration               moduleConfiguration;
+  Test_I_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Test_I_Stream_Configuration              streamConfiguration;
   Test_I_Stream_UserData                   streamUserData;
   // *************************** protocol data *********************************

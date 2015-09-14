@@ -21,6 +21,7 @@
 #ifndef TEST_I_COMMON_MODULES_H
 #define TEST_I_COMMON_MODULES_H
 
+#include "ace/INET_Addr.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
@@ -70,6 +71,7 @@ typedef Stream_Module_Net_IOWriter_T<Stream_SessionMessage,
                                      ////
                                      Test_I_RuntimeStatistic_t,
                                      ////
+                                     ACE_INET_Addr,
                                      Test_I_Stream_InetConnectionManager_t> Test_I_Stream_Module_Net_Writer_t;
 typedef Stream_Module_Net_IOReader_T<Stream_SessionMessage,
                                      Stream_Message,
@@ -81,6 +83,7 @@ typedef Stream_Module_Net_IOReader_T<Stream_SessionMessage,
                                      Test_I_Stream_SessionData,
                                      Test_I_Stream_SessionData_t,
                                      ////
+                                     ACE_INET_Addr,
                                      Test_I_Stream_InetConnectionManager_t> Test_I_Stream_Module_Net_Reader_t;
 DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task synch type
                           Common_TimePolicy_t,                      // time policy

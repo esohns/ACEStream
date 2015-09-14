@@ -233,8 +233,10 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  // *TODO*: remove type inference
+  // *TODO*: remove type inferences
   inherited::sessionData_->sessionID = configuration_in.sessionID;
+  //inherited::sessionData_->state =
+  //  &const_cast<StateType&> (inherited::state ());
 
   // things to be done here:
   // [- initialize base class]

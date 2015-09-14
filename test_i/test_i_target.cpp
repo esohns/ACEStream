@@ -103,7 +103,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
@@ -194,7 +194,7 @@ do_processArguments (int argc_in,
   // initialize results
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
   maximumNumberOfConnections_out =
     TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS;
@@ -496,9 +496,9 @@ do_work (unsigned int bufferSize_in,
                                                                  1);
 
   // ******************** socket handler configuration data *******************
-  configuration.socketHandlerConfiguration.bufferSize = bufferSize_in;
   configuration.socketHandlerConfiguration.messageAllocator =
     &message_allocator;
+  configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
   configuration.socketHandlerConfiguration.socketConfiguration =
     &configuration.socketConfiguration;
   configuration.socketHandlerConfiguration.statisticReportingInterval =
@@ -508,30 +508,29 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** stream configuration data **************************
   // ********************** module configuration data **************************
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.configuration =
-    &configuration;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.connectionManager =
+  configuration.moduleConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
+
+  configuration.moduleHandlerConfiguration.configuration = &configuration;
+  configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.printProgressDot =
+  configuration.moduleHandlerConfiguration.fileName = fileName_in;
+  configuration.moduleHandlerConfiguration.inbound = true;
+  configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.fileName =
-      fileName_in;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.inbound =
-    true;
+  configuration.moduleHandlerConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
   // ******************** (sub-)stream configuration data *********************
+  configuration.streamConfiguration.moduleConfiguration =
+    &configuration.moduleConfiguration;
+  configuration.streamConfiguration.moduleHandlerConfiguration =
+    &configuration.moduleHandlerConfiguration;
+
   configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
-  configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
-  configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.streamConfiguration.moduleHandlerConfiguration_2;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
   configuration.streamConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
@@ -1008,7 +1007,7 @@ ACE_TMAIN (int argc_in,
   std::string file_name = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CONFIGURATION_DIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   std::string UI_definition_file_name = path;
   UI_definition_file_name += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file_name +=

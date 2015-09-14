@@ -22,7 +22,8 @@
 #define TEST_I_CONNECTION_COMMON_H
 
 #include "ace/INET_Addr.h"
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 #include "ace/Netlink_Addr.h"
 #endif
 
@@ -86,6 +87,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       Stream_SessionMessage,
                                       Stream_Message,
                                       ///
+                                      ACE_INET_Addr,
                                       Test_I_Stream_InetConnectionManager_t> Test_I_NetStream_t;
 
 /////////////////////////////////////////
@@ -154,7 +156,9 @@ typedef Net_StreamUDPSocketBase_T<Net_UDPSocketHandler_T<Net_SOCK_Dgram,
                                   Test_I_Stream_UserData,
                                   ///////
                                   Stream_ModuleConfiguration,
-                                  Test_I_Stream_ModuleHandlerConfiguration> Test_I_UDPHandler_t;
+                                  Test_I_Stream_ModuleHandlerConfiguration,
+                                  ///////
+                                  Test_I_Stream_SocketHandlerConfiguration> Test_I_UDPHandler_t;
 typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration>,
                                         Net_SOCK_Dgram,
 
@@ -167,7 +171,9 @@ typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<Test_I_Stre
                                         Test_I_Stream_UserData,
 
                                         Stream_ModuleConfiguration,
-                                        Test_I_Stream_ModuleHandlerConfiguration> Test_I_AsynchUDPHandler_t;
+                                        Test_I_Stream_ModuleHandlerConfiguration,
+                                        
+                                        Test_I_Stream_SocketHandlerConfiguration> Test_I_AsynchUDPHandler_t;
 
 typedef Net_TCPConnectionBase_T<Test_I_TCPHandler_t,
                                 /////////

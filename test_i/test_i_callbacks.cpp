@@ -100,7 +100,7 @@ stream_processing_function (void* arg_in)
     const Test_I_Stream_SessionData& session_data_r =
       data_p->CBData->stream->sessionData ();
     converter << session_data_r.sessionID;;
-    data_p->CBData->configuration->streamConfiguration.moduleHandlerConfiguration_2.contextID =
+    data_p->CBData->configuration->moduleHandlerConfiguration.contextID =
         gtk_statusbar_get_context_id (statusbar_p,
                                       converter.str ().c_str ());
     gdk_threads_leave ();
@@ -202,10 +202,10 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.empty ())
+  if (!data_p->configuration->moduleHandlerConfiguration.fileName.empty ())
   {
     GFile* file_p =
-        g_file_new_for_path (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.c_str ());
+        g_file_new_for_path (data_p->configuration->moduleHandlerConfiguration.fileName.c_str ());
     ACE_ASSERT (file_p);
     GError* error_p = NULL;
     if (!gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
@@ -495,7 +495,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
   default_folder_uri +=
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName;
+    data_p->configuration->moduleHandlerConfiguration.fileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -594,16 +594,16 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   GFile* file_p = NULL;
-  if (Common_File_Tools::isValidFileName (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName))
+  if (Common_File_Tools::isValidFileName (data_p->configuration->moduleHandlerConfiguration.fileName))
     file_p =
-        g_file_new_for_path (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.c_str ());
+        g_file_new_for_path (data_p->configuration->moduleHandlerConfiguration.fileName.c_str ());
   else
   {
     std::string file_name = Common_File_Tools::getTempDirectory ();
     file_name += ACE_DIRECTORY_SEPARATOR_CHAR_A;
     file_name +=
-      (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.empty () ? data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName
-                                                                                                  : ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE));
+      (!data_p->configuration->moduleHandlerConfiguration.fileName.empty () ? data_p->configuration->moduleHandlerConfiguration.fileName
+                                                                            : ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE));
     file_p =
       g_file_new_for_path (file_name.c_str ());
   } // end ELSE
@@ -923,7 +923,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
   default_folder_uri +=
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName;
+    data_p->configuration->moduleHandlerConfiguration.fileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -1283,7 +1283,7 @@ action_start_activate_cb (GtkAction* action_in,
       (status_r == STREAM_STATE_PAUSED))
   {
     data_p->stream->pause (); // pause/unpause
-    if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.active)
+    if (!data_p->configuration->moduleHandlerConfiguration.active)
     {
       ACE_ASSERT (!data_p->progressData.pendingActions.empty ());
       Stream_PendingActionsIterator_t iterator =
@@ -1554,9 +1554,9 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
   //gtk_entry_set_text (entry_p, string_p);
 
   // find out which button toggled...
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName =
+  data_p->configuration->moduleHandlerConfiguration.fileName =
     Common_UI_Tools::UTF82Locale (string_p, -1);
-  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.empty ())
+  if (data_p->configuration->moduleHandlerConfiguration.fileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
@@ -1576,7 +1576,7 @@ filechooserbutton_source_cb (GtkFileChooserButton* button_in,
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
   ACE_ASSERT (action_p);
-  bool activate = (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.empty () &&
+  bool activate = (!data_p->configuration->moduleHandlerConfiguration.fileName.empty () &&
                     !data_p->configuration->socketConfiguration.peerAddress.is_any ());
   gtk_action_set_sensitive (action_p, activate);
 } // filechooserbutton_source_cb
@@ -1856,9 +1856,9 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   } // end IF
   g_object_unref (file_p);
 
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName =
+  data_p->configuration->moduleHandlerConfiguration.fileName =
     Common_UI_Tools::UTF82Locale (string_p, -1);
-  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.empty ())
+  if (data_p->configuration->moduleHandlerConfiguration.fileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
@@ -1902,9 +1902,9 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   } // end IF
   g_object_unref (file_p);
 
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName =
+  data_p->configuration->moduleHandlerConfiguration.fileName =
     Common_UI_Tools::UTF82Locale (string_p, -1);
-  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileName.empty ())
+  if (data_p->configuration->moduleHandlerConfiguration.fileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
