@@ -199,9 +199,11 @@ Stream_Module_Net_Source_T<SessionMessageType,
   } // end IF
 
   isPassive_ = configuration_in.passive;
-  ACE_ASSERT (configuration_in.connectionManager);
   if (!isPassive_)
   {
+    ACE_ASSERT (configuration_in.connectionManager);
+    ACE_ASSERT (configuration_in.socketHandlerConfiguration);
+
     // step1: initialize connection manager
     // *TODO*: remove type inferences
     typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
@@ -259,9 +261,9 @@ Stream_Module_Net_Source_T<SessionMessageType,
                   ACE_TEXT (buffer)));
       return false;
     } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("connected to \"%s\"...\n"),
-                ACE_TEXT (buffer)));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("connected to \"%s\"...\n"),
+    //            ACE_TEXT (buffer)));
   } // end IF
 
   isInitialized_ = inherited::initialize (configuration_in);
