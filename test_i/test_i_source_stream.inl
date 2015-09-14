@@ -135,12 +135,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   } // end IF
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::initialize(), aborting\n")));
-    return false;
-  } // end IF
+  inherited::initialize ();
   ACE_ASSERT (inherited::sessionData_);
 
   // things to be done here:
