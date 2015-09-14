@@ -46,6 +46,7 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           ///////////////////////////////
+          typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IO_Stream_T
  : public Stream_Base_T<TaskSynchType,
@@ -118,6 +119,7 @@ class Stream_Module_Net_IO_Stream_T
                                         SessionMessageType,
                                         ProtocolMessageType,
 
+                                        AddressType,
                                         ConnectionManagerType> OWN_TYPE_T;
 
   typedef Stream_Module_Net_IOWriter_T<SessionMessageType,
@@ -132,6 +134,7 @@ class Stream_Module_Net_IO_Stream_T
                                        //
                                        StatisticContainerType,
                                        //
+                                       AddressType,
                                        ConnectionManagerType> WRITER_T;
   typedef Stream_Module_Net_IOReader_T<SessionMessageType,
                                        ProtocolMessageType,
@@ -143,6 +146,7 @@ class Stream_Module_Net_IO_Stream_T
                                        SessionDataType,
                                        SessionDataContainerType,
                                        //
+                                       AddressType,
                                        ConnectionManagerType> READER_T;
   typedef Stream_StreamModule_T<TaskSynchType,             // task synch type
                                 TimePolicyType,            // time policy

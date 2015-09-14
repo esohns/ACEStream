@@ -34,6 +34,7 @@ template <typename TaskSynchType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename AddressType,
           typename ConnectionManagerType>
 Stream_Module_Net_IO_Stream_T<TaskSynchType,
                               TimePolicyType,
@@ -47,6 +48,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
                               SessionDataContainerType,
                               SessionMessageType,
                               ProtocolMessageType,
+                              AddressType,
                               ConnectionManagerType>::Stream_Module_Net_IO_Stream_T ()
  : inherited ()
  , IO_ (ACE_TEXT_ALWAYS_CHAR ("IO"),
@@ -86,6 +88,7 @@ template <typename TaskSynchType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename AddressType,
           typename ConnectionManagerType>
 Stream_Module_Net_IO_Stream_T<TaskSynchType,
                               TimePolicyType,
@@ -99,6 +102,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
                               SessionDataContainerType,
                               SessionMessageType,
                               ProtocolMessageType,
+                              AddressType,
                               ConnectionManagerType>::~Stream_Module_Net_IO_Stream_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::~Stream_Module_Net_IO_Stream_T"));
@@ -118,6 +122,7 @@ template <typename TaskSynchType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename AddressType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_IO_Stream_T<TaskSynchType,
@@ -132,6 +137,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
                               SessionDataContainerType,
                               SessionMessageType,
                               ProtocolMessageType,
+                              AddressType,
                               ConnectionManagerType>::ping ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::ping"));
@@ -153,6 +159,7 @@ template <typename TaskSynchType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename AddressType,
           typename ConnectionManagerType>
 bool
 Stream_Module_Net_IO_Stream_T<TaskSynchType,
@@ -167,6 +174,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
                               SessionDataContainerType,
                               SessionMessageType,
                               ProtocolMessageType,
+                              AddressType,
                               ConnectionManagerType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
@@ -401,6 +409,7 @@ template <typename TaskSynchType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename AddressType,
           typename ConnectionManagerType>
 bool
 Stream_Module_Net_IO_Stream_T<TaskSynchType,
@@ -415,6 +424,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
                               SessionDataContainerType,
                               SessionMessageType,
                               ProtocolMessageType,
+                              AddressType,
                               ConnectionManagerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::collect"));
@@ -462,6 +472,7 @@ template <typename TaskSynchType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename AddressType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_IO_Stream_T<TaskSynchType,
@@ -476,6 +487,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
                               SessionDataContainerType,
                               SessionMessageType,
                               ProtocolMessageType,
+                              AddressType,
                               ConnectionManagerType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::report"));

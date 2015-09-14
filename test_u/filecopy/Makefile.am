@@ -17,7 +17,7 @@ DEFS += \
   -DDEBUG_DEBUGGER
 endif
 
-bin_PROGRAMS = \
+check_PROGRAMS = \
   stream_filecopy
 
 noinst_HEADERS = stdafx.h

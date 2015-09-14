@@ -43,14 +43,12 @@ libACEStream_Net_la_SOURCES = \
   stream_module_target.inl
 #  stdafx.cpp \
 #  stdafx.h
-
 libACEStream_Net_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   -I$(top_srcdir)/modules/libCommon/src \
   -I$(srcdir)/../.. \
   -I$(srcdir)/../misc \
-  -I$(srcdir)/modules/libACENetwork/src \
-  -I$(srcdir)/modules/libACENetwork/src/client_server
+  -I$(top_srcdir)/modules/libACENetwork/src \
+  -I$(top_srcdir)/modules/libACENetwork/src/client_server
 libACEStream_Net_la_LDFLAGS = \
   -version-info @LIBACESTREAM_LT_VERSION_INFO@
-

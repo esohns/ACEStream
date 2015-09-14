@@ -57,7 +57,7 @@ if ! test -x $AUTOPOINT; then
 fi
 echo $($(basename $AUTOPOINT) --version | head -1) found
 
-autoreconf$AC_POSTFIX --force --install --symlink --warnings=all
+autoreconf$AC_POSTFIX --force --install --symlink --no-recursive --warnings=all
 #autoconf$AC_POSTFIX
 #autoheader$AC_POSTFIX
 #aclocal$AM_POSTFIX
