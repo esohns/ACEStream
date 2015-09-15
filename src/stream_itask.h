@@ -34,14 +34,15 @@ class Stream_ITask_T
  public:
   inline virtual ~Stream_ITask_T () {};
 
-  // *NOTE*: pipelined "stream tasks" generally need not worry about the lifecycle of the
-  // messages passed to them; any filtering functionality however needs to set the second
-  // parameter to false (--> default is "true" !), which makes the task assume lifecycle
-  // responsibility for the first argument --> HANDLE WITH CARE !
+  // *NOTE*: pipelined "stream tasks" generally need not worry about the
+  //         lifecycle of the messages passed to them; any filtering
+  //         functionality however needs to set the second parameter to false
+  //         (--> default is "true" !), which makes the task claim the memory
+  //         of the first argument --> HANDLE WITH CARE !
   virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-                                  bool&) = 0;            // return value: pass this message downstream ?
+                                  bool&) = 0;            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&,                 // session message handle
-                                     bool&) = 0;                           // return value: pass this message downstream ?
+                                     bool&) = 0;                           // return value: pass message downstream ?
   virtual void handleProcessingError (const ACE_Message_Block* const) = 0; // corresp. message
 };
 

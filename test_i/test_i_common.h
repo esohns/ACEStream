@@ -142,7 +142,7 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_Stream_SessionData,   // session data
                       Test_I_Stream_SessionData_t, // session data container (reference counted)
                       Stream_SessionMessage,
-                      Stream_Message> Stream_Base_t;
+                      Stream_Message> Test_I_StreamBase_t;
 struct Test_I_Stream_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
@@ -165,7 +165,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   std::string                            fileName; // file reader/writer module
   bool                                   inbound; // TCP IO module
   bool                                   printProgressDot;
-  Stream_Base_t*                         stream;
+  Test_I_StreamBase_t*                   stream;
 };
 
 struct Stream_SignalHandlerConfiguration

@@ -56,14 +56,11 @@ class Stream_StreamModule_T
                          bool = false);      // final module ?
   virtual ~Stream_StreamModule_T ();
 
- protected:
-//  // define convenient types
-//  typedef Stream_Module_Base_T<TaskSynchType,
-//                               TimePolicyType,
-//                               ConfigurationType,
-//                               ReaderTaskType,
-//                               WriterTaskType> STREAM_MODULE_T;
+  // define convenient types
+  typedef ReaderTaskType READER_T;
+  typedef WriterTaskType WRITER_T;
 
+ protected:
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T (const Stream_StreamModule_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T& operator= (const Stream_StreamModule_T&))

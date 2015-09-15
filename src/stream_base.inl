@@ -1102,8 +1102,7 @@ Stream_Base_T<TaskSynchType,
 
   // *IMPORTANT NOTE*: this bit is mostly copy/pasted from Stream.cpp:505
 
-  // *WARNING*: cannot access the base class lock and other vitals
-  //            --> not thread-safe !
+  // *WARNING*: cannot reach the base class lock --> not thread-safe !
 
   //this->linked_us_ = &us;
   //// Make sure the other side is also linked to us!
@@ -1119,8 +1118,10 @@ Stream_Base_T<TaskSynchType,
     my_tail = my_tail->next ();
 
   ACE_Module<TaskSynchType, TimePolicyType> *other_tail = us.head ();
+  ACE_Module<TaskSynchType, TimePolicyType> *other_head = us.head ();
+  other_head = other_head->next ();
 
-  if (other_tail == 0)
+  if ((other_tail == 0) || (other_head == 0))
     return -1;
 
   // Locate the module just above the other Stream's tail.
@@ -1135,7 +1136,7 @@ Stream_Base_T<TaskSynchType,
   // *EDIT*: reset 'broken' writer link
   other_tail->writer ()->next (us.tail ()->writer ());
 
-  my_tail->writer ()->next (other_tail->writer ());
+  my_tail->writer ()->next (other_head->writer ());
   // *NOTE*: do not link the outbound-side streams together (see header)
   //other_tail->reader ()->next (my_tail->reader ());
 

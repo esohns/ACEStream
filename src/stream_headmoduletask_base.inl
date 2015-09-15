@@ -128,7 +128,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
   int result = -1;
 
-  // if active, simply drop the message into the queue...
+  // if active, simply drop the message into the queue
   // *TODO*: remove type inference
   if (configuration_.active)
   {
@@ -139,18 +139,18 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     return result;
   } // end IF
 
-  // otherwise, process manually...
+  // otherwise, process manually
   bool stop_processing = false;
   inherited2::handleMessage (messageBlock_in,
                              stop_processing);
 
-  // finished ?
-  if (stop_processing)
-  {
-    // *WARNING*: mb_in has already been released() at this point !
+//  // finished ?
+//  if (stop_processing)
+//  {
+//    // *WARNING*: messageBlock_in has already been released() at this point !
 
-    stop (false);
-  } // end IF
+//    stop (false);
+//  } // end IF
 
   return 0;
 }
@@ -539,7 +539,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
   configuration_ = configuration_in;
 
-  inherited::change (STREAM_STATE_INITIALIZED);
+//  inherited::change (STREAM_STATE_INITIALIZED);
 
   return true;
 }
@@ -859,6 +859,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
   streamState_ = &const_cast<StreamStateType&> (streamState_in);
 //  sessionData_ = &const_cast<SessionDataType&> (sessionData_in);
+
+  inherited::change (STREAM_STATE_INITIALIZED);
 
   return true;
 }
@@ -1231,12 +1233,12 @@ allocate:
   } // end IF
 
   // pass message downstream...
-  result = const_cast<OWN_TYPE_T*> (this)->put_next (session_message_p,
-                                                     NULL);
+  result = const_cast<OWN_TYPE_T*> (this)->put (session_message_p,
+                                                NULL);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));
+                ACE_TEXT ("failed to ACE_Task::put(): \"%m\", aborting\n")));
 
     // clean up
     session_message_p->release ();

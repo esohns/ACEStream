@@ -347,7 +347,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
                 IO_.name ()));
     return false;
   } // end IF
-  IOWriter_impl_p->reset ();
+//  IOWriter_impl_p->reset ();
   READER_T* IOReader_impl_p = dynamic_cast<READER_T*> (IO_.reader ());
   if (!IOReader_impl_p)
   {

@@ -174,7 +174,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 //   if (inherited::module ())
 //     ACE_DEBUG ((LM_WARNING,
 //                 ACE_TEXT (" ***** MODULE: \"%s\" has not implemented the dump_state() API *****\n"),
-//                 ACE_TEXT (inherited::name ())));
+//                 inherited::name ()));
 //   else
 //     ACE_DEBUG ((LM_WARNING,
 //                 ACE_TEXT ("dump_state() API not implemented\n")));
@@ -294,11 +294,10 @@ Stream_TaskBase_T<TaskSynchStrategyType,
     }
   } // end SWITCH
 
-  // pass message downstream (if there IS a stream)...
+  // pass message downstream (if there is a stream)
   if (passMessageDownstream)
   {
-    // *NOTE*: tasks that are not part of a stream have no notion of this
-    //         concept, so decide for them...
+    // *NOTE*: tasks that are not part of a stream have no notion of the concept
     if (!inherited::module ())
     {
 //      ACE_DEBUG ((LM_DEBUG,
