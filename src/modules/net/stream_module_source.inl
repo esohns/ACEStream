@@ -142,8 +142,9 @@ Stream_Module_Net_Source_T<SessionMessageType,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("closed connection to \"%s\" in dtor --> check implementation !\n"),
                 buffer));
-    inherited::configuration_.connection->decrease ();
   } // end IF
+  if (inherited::configuration_.connection)
+    inherited::configuration_.connection->decrease ();
 }
 
 template <typename SessionMessageType,

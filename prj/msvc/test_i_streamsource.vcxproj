@@ -181,6 +181,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\test_i\test_i_target_stream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\test_i\stdafx.h" />
@@ -197,6 +198,7 @@
     <ClInclude Include="..\..\test_i\test_i_source_eventhandler.h" />
     <ClInclude Include="..\..\test_i\test_i_source_signalhandler.h" />
     <ClInclude Include="..\..\test_i\test_i_source_stream.h" />
+    <ClInclude Include="..\..\test_i\test_i_target_stream.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\libACENetwork\prj\msvc\libACENetwork.vcxproj">

@@ -58,13 +58,13 @@ struct Test_I_Stream_ModuleHandlerConfiguration;
 struct Test_I_Stream_SessionData;
 typedef Stream_SessionDataBase_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 struct Test_I_Stream_State;
-struct Test_I_Stream_UserData;
+struct Test_I_UserData;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  Test_I_Configuration,
                                  Test_I_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  ////////
-                                 Test_I_Stream_UserData> Test_I_Stream_InetConnectionManager_t;
+                                 Test_I_UserData> Test_I_Stream_InetConnectionManager_t;
 struct Test_I_Stream_SocketHandlerConfiguration;
 
 /////////////////////////////////////////
@@ -108,7 +108,7 @@ struct Test_I_ConnectionState
 
   Test_I_RuntimeStatistic_t currentStatistic;
 
-  Test_I_Stream_UserData*   userData;
+  Test_I_UserData*   userData;
 };
 
 /////////////////////////////////////////
@@ -120,6 +120,7 @@ typedef Net_IConnection_T<ACE_INET_Addr,
 
 /////////////////////////////////////////
 
+// outbound
 typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration>,
                                   ///////
                                   ACE_INET_Addr,
@@ -128,7 +129,7 @@ typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHan
                                   Test_I_RuntimeStatistic_t,
                                   Test_I_NetStream_t,
                                   ///////
-                                  Test_I_Stream_UserData,
+                                  Test_I_UserData,
                                   ///////
                                   Stream_ModuleConfiguration,
                                   Test_I_Stream_ModuleHandlerConfiguration> Test_I_TCPHandler_t;
@@ -140,7 +141,7 @@ typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<Test_I_Stre
                                         Test_I_RuntimeStatistic_t,
                                         Test_I_NetStream_t,
 
-                                        Test_I_Stream_UserData,
+                                        Test_I_UserData,
 
                                         Stream_ModuleConfiguration,
                                         Test_I_Stream_ModuleHandlerConfiguration> Test_I_AsynchTCPHandler_t;
@@ -153,7 +154,7 @@ typedef Net_StreamUDPSocketBase_T<Net_UDPSocketHandler_T<Net_SOCK_Dgram,
                                   Test_I_RuntimeStatistic_t,
                                   Test_I_NetStream_t,
                                   ///////
-                                  Test_I_Stream_UserData,
+                                  Test_I_UserData,
                                   ///////
                                   Stream_ModuleConfiguration,
                                   Test_I_Stream_ModuleHandlerConfiguration,
@@ -168,7 +169,7 @@ typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<Test_I_Stre
                                         Test_I_RuntimeStatistic_t,
                                         Test_I_NetStream_t,
 
-                                        Test_I_Stream_UserData,
+                                        Test_I_UserData,
 
                                         Stream_ModuleConfiguration,
                                         Test_I_Stream_ModuleHandlerConfiguration,
@@ -184,7 +185,7 @@ typedef Net_TCPConnectionBase_T<Test_I_TCPHandler_t,
                                 /////////
                                 Test_I_Stream_SocketHandlerConfiguration,
                                 /////////
-                                Test_I_Stream_UserData> Test_I_TCPConnection_t;
+                                Test_I_UserData> Test_I_TCPConnection_t;
 typedef Net_AsynchTCPConnectionBase_T<Test_I_AsynchTCPHandler_t,
                                       ///
                                       Test_I_Configuration,
@@ -194,7 +195,7 @@ typedef Net_AsynchTCPConnectionBase_T<Test_I_AsynchTCPHandler_t,
                                       ///
                                       Test_I_Stream_SocketHandlerConfiguration,
                                       ///
-                                      Test_I_Stream_UserData> Test_I_AsynchTCPConnection_t;
+                                      Test_I_UserData> Test_I_AsynchTCPConnection_t;
 typedef Net_UDPConnectionBase_T<Test_I_UDPHandler_t,
                                 /////////
                                 Test_I_Configuration,
@@ -204,7 +205,7 @@ typedef Net_UDPConnectionBase_T<Test_I_UDPHandler_t,
                                 /////////
                                 Test_I_Stream_SocketHandlerConfiguration,
                                 /////////
-                                Test_I_Stream_UserData> Test_I_UDPConnection_t;
+                                Test_I_UserData> Test_I_UDPConnection_t;
 typedef Net_AsynchUDPConnectionBase_T<Test_I_AsynchUDPHandler_t,
                                       ///
                                       Test_I_Configuration,
@@ -214,7 +215,7 @@ typedef Net_AsynchUDPConnectionBase_T<Test_I_AsynchUDPHandler_t,
                                       ///
                                       Test_I_Stream_SocketHandlerConfiguration,
                                       ///
-                                      Test_I_Stream_UserData> Test_I_AsynchUDPConnection_t;
+                                      Test_I_UserData> Test_I_AsynchUDPConnection_t;
 
 /////////////////////////////////////////
 
@@ -223,6 +224,7 @@ typedef Net_IConnector_T<ACE_INET_Addr,
 
 /////////////////////////////////////////
 
+// outbound
 typedef Net_Client_AsynchConnector_T<Test_I_AsynchTCPConnection_t,
                                      ////
                                      ACE_INET_Addr,
@@ -233,7 +235,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_AsynchTCPConnection_t,
                                      ////
                                      Test_I_Stream_SocketHandlerConfiguration,
                                      ////
-                                     Test_I_Stream_UserData> Test_I_Stream_TCPAsynchConnector_t;
+                                     Test_I_UserData> Test_I_Stream_TCPAsynchConnector_t;
 typedef Net_Client_Connector_T<Test_I_TCPConnection_t,
                                //////////
                                ACE_INET_Addr,
@@ -244,7 +246,7 @@ typedef Net_Client_Connector_T<Test_I_TCPConnection_t,
                                //////////
                                Test_I_Stream_SocketHandlerConfiguration,
                                //////////
-                               Test_I_Stream_UserData> Test_I_Stream_TCPConnector_t;
+                               Test_I_UserData> Test_I_Stream_TCPConnector_t;
 typedef Net_Client_AsynchConnector_T<Test_I_AsynchUDPConnection_t,
                                      ////
                                      ACE_INET_Addr,
@@ -255,7 +257,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_AsynchUDPConnection_t,
                                      ////
                                      Test_I_Stream_SocketHandlerConfiguration,
                                      ////
-                                     Test_I_Stream_UserData> Test_I_Stream_UDPAsynchConnector_t;
+                                     Test_I_UserData> Test_I_Stream_UDPAsynchConnector_t;
 typedef Net_Client_Connector_T<Test_I_UDPConnection_t,
                                //////////
                                ACE_INET_Addr,
@@ -266,6 +268,6 @@ typedef Net_Client_Connector_T<Test_I_UDPConnection_t,
                                //////////
                                Test_I_Stream_SocketHandlerConfiguration,
                                //////////
-                               Test_I_Stream_UserData> Test_I_Stream_UDPConnector_t;
+                               Test_I_UserData> Test_I_Stream_UDPConnector_t;
 
 #endif

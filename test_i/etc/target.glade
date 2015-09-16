@@ -2,9 +2,7 @@
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkAction" id="action_close_all">
-    <property name="label" translatable="yes">_Close All</property>
-    <property name="stock_id">gtk-close</property>
-    <property name="icon_name">gtk-close</property>
+    <property name="stock_id">gtk-clear</property>
     <property name="always_show_image">True</property>
     <signal name="activate" handler="action_close_all_activate_cb" swapped="no"/>
   </object>
@@ -19,7 +17,6 @@
   <object class="GtkAction" id="action_report">
     <property name="label" translatable="yes">_Report</property>
     <property name="stock_id">gtk-file</property>
-    <property name="icon_name">gtk-file</property>
     <property name="always_show_image">True</property>
     <signal name="activate" handler="actio_report_activate_cb" swapped="no"/>
   </object>
@@ -31,23 +28,28 @@
   <object class="GtkAdjustment" id="adjustment_connections">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
+    <property name="page_increment">1</property>
   </object>
   <object class="GtkAdjustment" id="adjustment_data">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">1</property>
   </object>
+  <object class="GtkAdjustment" id="adjustment_data_messages">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">1</property>
+  </object>
   <object class="GtkAdjustment" id="adjustment_port">
     <property name="lower">1</property>
-    <property name="upper">32767</property>
+    <property name="upper">65535</property>
     <property name="step_increment">1</property>
     <property name="page_increment">100</property>
   </object>
-  <object class="GtkAdjustment" id="adjustment_session">
+  <object class="GtkAdjustment" id="adjustment_session_messages">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
+    <property name="page_increment">1</property>
   </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
@@ -270,7 +272,7 @@
                       <object class="GtkTable" id="table">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="n_rows">2</property>
+                        <property name="n_rows">3</property>
                         <property name="n_columns">2</property>
                         <child>
                           <object class="GtkLabel" id="label_messages">
@@ -285,15 +287,16 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkSpinButton" id="spinbutton_session">
+                              <object class="GtkSpinButton" id="spinbutton_session_messages">
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">session messages</property>
                                 <property name="editable">False</property>
                                 <property name="invisible_char">●</property>
                                 <property name="xalign">1</property>
                                 <property name="caps_lock_warning">False</property>
-                                <property name="adjustment">adjustment_session</property>
+                                <property name="adjustment">adjustment_session_messages</property>
                                 <property name="numeric">True</property>
                               </object>
                               <packing>
@@ -303,15 +306,16 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkSpinButton" id="spinbutton_data">
+                              <object class="GtkSpinButton" id="spinbutton_data_messages">
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">data messages</property>
                                 <property name="editable">False</property>
                                 <property name="invisible_char">●</property>
                                 <property name="xalign">1</property>
                                 <property name="caps_lock_warning">False</property>
-                                <property name="adjustment">adjustment_data</property>
+                                <property name="adjustment">adjustment_data_messages</property>
                                 <property name="numeric">True</property>
                               </object>
                               <packing>
@@ -334,8 +338,8 @@
                             <property name="label" translatable="yes">connections</property>
                           </object>
                           <packing>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
+                            <property name="top_attach">2</property>
+                            <property name="bottom_attach">3</property>
                           </packing>
                         </child>
                         <child>
@@ -346,12 +350,46 @@
                             <property name="editable">False</property>
                             <property name="invisible_char">●</property>
                             <property name="xalign">1</property>
+                            <property name="invisible_char_set">True</property>
                             <property name="caps_lock_warning">False</property>
                             <property name="primary_icon_activatable">False</property>
                             <property name="secondary_icon_activatable">False</property>
                             <property name="primary_icon_sensitive">False</property>
                             <property name="secondary_icon_sensitive">False</property>
                             <property name="adjustment">adjustment_connections</property>
+                            <property name="numeric">True</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="right_attach">2</property>
+                            <property name="top_attach">2</property>
+                            <property name="bottom_attach">3</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="label_data">
+                            <property name="visible">True</property>
+                            <property name="sensitive">False</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">data</property>
+                          </object>
+                          <packing>
+                            <property name="top_attach">1</property>
+                            <property name="bottom_attach">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="spinbutton_data">
+                            <property name="visible">True</property>
+                            <property name="sensitive">False</property>
+                            <property name="can_focus">True</property>
+                            <property name="tooltip_text" translatable="yes">bytes</property>
+                            <property name="editable">False</property>
+                            <property name="invisible_char">●</property>
+                            <property name="xalign">1</property>
+                            <property name="invisible_char_set">True</property>
+                            <property name="caps_lock_warning">False</property>
+                            <property name="adjustment">adjustment_data</property>
                             <property name="numeric">True</property>
                           </object>
                           <packing>
@@ -845,6 +883,19 @@
           <object class="GtkHBox" id="hbox_status">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <child>
+              <object class="GtkProgressBar" id="progressbar">
+                <property name="width_request">150</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="show_text">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
             <child>
               <object class="GtkStatusbar" id="statusbar">
                 <property name="visible">True</property>

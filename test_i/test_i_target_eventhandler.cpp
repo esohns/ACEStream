@@ -24,10 +24,11 @@
 #include "ace/Guard_T.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_ui_defines.h"
-
 #include "stream_macros.h"
+#include "stream_session_message_base.h"
 
+#include "test_i_common.h"
+#include "test_i_callbacks.h"
 #include "test_i_defines.h"
 
 Stream_Target_EventHandler::Stream_Target_EventHandler (Stream_GTK_CBData* CBData_in)
@@ -54,28 +55,17 @@ Stream_Target_EventHandler::start (const Test_I_Stream_SessionData& sessionData_
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  Common_UI_GTKBuildersIterator_t iterator =
-    CBData_->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
 
-  // sanity check(s)
-  //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
-  ACE_ASSERT (iterator != CBData_->builders.end ());
-
-  gdk_threads_enter ();
-  GtkSpinButton* spin_button_p =
-    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_CONNECTIONS_NAME)));
-  ACE_ASSERT (spin_button_p);
-  gint number_of_connections = gtk_spin_button_get_value_as_int (spin_button_p);
-  gtk_spin_button_set_value (spin_button_p, static_cast<gdouble> (++number_of_connections));
-  GtkAction* action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, TRUE);
-  gdk_threads_leave ();
+  //guint event_source_id = g_idle_add (idle_set_target_UI_cb,
+  //                                    CBData_);
+  //if (event_source_id == 0)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to g_idle_add(): \"%m\", returning\n")));
+  //  return;
+  //} // end IF
+  //CBData_->eventSourceIds.insert (event_source_id);
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
 }
@@ -91,7 +81,7 @@ Stream_Target_EventHandler::notify (const Stream_Message& message_in)
 
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
 
-  CBData_->progressData.sent += message_in.total_length ();
+  CBData_->progressData.transferred += message_in.total_length ();
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
 }
@@ -103,15 +93,32 @@ Stream_Target_EventHandler::notify (const Stream_SessionMessage& sessionMessage_
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  Stream_GTK_Event event =
-    ((sessionMessage_in.type () == STREAM_SESSION_STATISTIC) ? STREAM_GTKEVENT_STATISTIC
-                                                             : STREAM_GKTEVENT_INVALID);
+  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
 
+  Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
+  switch (sessionMessage_in.type ())
   {
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
+    case STREAM_SESSION_STATISTIC:
+    {
+      event = STREAM_GTKEVENT_STATISTIC;
 
-    CBData_->eventStack.push_back (event);
-  } // end lock scope
+      const Test_I_Stream_SessionData_t& session_data_container_r =
+        sessionMessage_in.get ();
+      const Test_I_Stream_SessionData* session_data_p =
+        session_data_container_r.getData ();
+      ACE_ASSERT (session_data_p);
+      CBData_->progressData.statistic = session_data_p->currentStatistic;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown session message type (was: %d), returning\n"),
+                  sessionMessage_in.type ()));
+      return;
+    }
+  } // end SWITCH
+  CBData_->eventStack.push_back (event);
 }
 
 void
@@ -124,31 +131,15 @@ Stream_Target_EventHandler::end ()
 
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
 
-  //Common_UI_GladeXMLsIterator_t iterator =
-  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  Common_UI_GTKBuildersIterator_t iterator =
-    CBData_->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-
-  // sanity check(s)
-  //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
-  ACE_ASSERT (iterator != CBData_->builders.end ());
-
-  gdk_threads_enter ();
-  GtkSpinButton* spin_button_p =
-    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_CONNECTIONS_NAME)));
-  ACE_ASSERT (spin_button_p);
-  gint number_of_connections = gtk_spin_button_get_value_as_int (spin_button_p);
-  gtk_spin_button_set_value (spin_button_p, static_cast<gdouble> (--number_of_connections));
-  if (!number_of_connections)
-  {
-    GtkAction* action_p =
-        GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME)));
-    ACE_ASSERT (action_p);
-    gtk_action_set_sensitive (action_p, FALSE);
-  } // end IF
-  gdk_threads_leave ();
+  //guint event_source_id = g_idle_add (idle_reset_target_UI_cb,
+  //                                    CBData_);
+  //if (event_source_id == 0)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to g_idle_add(): \"%m\", returning\n")));
+  //  return;
+  //} // end IF
+  //CBData_->eventSourceIds.insert (event_source_id);
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
 }

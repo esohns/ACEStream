@@ -420,10 +420,6 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize configuration and stream
   Test_I_Configuration configuration;
-  configuration.streamUserData.configuration =
-    &configuration;
-  configuration.streamUserData.streamConfiguration =
-    &configuration.streamConfiguration;
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
   switch (configuration.protocol)
@@ -462,6 +458,9 @@ do_work (unsigned int bufferSize_in,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
     return;
   } // end IF
+  configuration.userData.configuration = &configuration;
+  configuration.userData.streamConfiguration =
+    &configuration.streamConfiguration;
 
   Stream_AllocatorHeap heap_allocator;
   Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
@@ -521,11 +520,14 @@ do_work (unsigned int bufferSize_in,
   configuration.socketHandlerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
   configuration.socketHandlerConfiguration.userData =
-    &configuration.streamUserData;
+    &configuration.userData;
 
   // ********************** stream configuration data **************************
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
+
+  configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
   configuration.moduleHandlerConfiguration.configuration = &configuration;
@@ -534,9 +536,11 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.fileName = fileName_in;
   configuration.moduleHandlerConfiguration.printProgressDot =
     UIDefinitionFile_in.empty ();
+  configuration.moduleHandlerConfiguration.socketConfiguration =
+    &configuration.socketConfiguration;
+  configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
+    &configuration.socketHandlerConfiguration;
   configuration.moduleHandlerConfiguration.stream = CBData_in.stream;
-  configuration.moduleHandlerConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
@@ -569,7 +573,8 @@ do_work (unsigned int bufferSize_in,
 
   // step0c: initialize connection manager
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (configuration, &configuration.streamUserData);
+  connection_manager_p->set (configuration,
+                             &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =
@@ -581,6 +586,9 @@ do_work (unsigned int bufferSize_in,
   Stream_StatisticHandler_Reactor_t statistics_handler (ACTION_REPORT,
                                                         connection_manager_p,
                                                         false);
+  //Stream_StatisticHandler_Proactor_t statistics_handler_proactor (ACTION_REPORT,
+  //                                                                connection_manager_p,
+  //                                                                false);
   long timer_id = -1;
   if (statisticReportingInterval_in)
   {
@@ -740,12 +748,14 @@ do_work (unsigned int bufferSize_in,
 
 //      return;
 //    } // end IF
-    CBData_in.stream->stop (true, true);
 
     // clean up
+    CBData_in.stream->stop (true);
+    connection_manager_p->stop ();
     Common_Tools::finalizeEventDispatch (useReactor_in,
                                          !useReactor_in,
                                          group_id);
+    connection_manager_p->wait ();
   } // end IF
   else
     Common_Tools::dispatchEvents (useReactor_in,

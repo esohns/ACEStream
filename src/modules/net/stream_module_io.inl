@@ -309,80 +309,92 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
         //                    &interval));
       } // end IF
 
-      // sanity check(s)
-      ACE_ASSERT (!connection_);
-      ACE_ASSERT (inherited::configuration_.connectionManager);
-
-      const SessionDataContainerType& session_data_container_r =
-        message_inout->get ();
-      const SessionDataType* session_data_p =
-        session_data_container_r.getData ();
-      ACE_HANDLE handle = ACE_INVALID_HANDLE;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      handle = reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID);
-#else
-      handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
-#endif
-      ACE_ASSERT (handle != ACE_INVALID_HANDLE);
-      connection_ =
-        inherited::configuration_.connectionManager->get (handle);
+      // *WARNING*: ward consecutive STREAM_SESSION_BEGIN messages here
+      //            This happens when using the Stream_Module_Net_Target_T in
+      //            active mode. When the connection stream is start()ed (1x)
+      //            during connection establishment, a link between the module
+      //            stream and the connection stream is created. After the
+      //            module has initialized the connection (see
+      //            stream_module_target.inl:266), the session message is
+      //            forwarded downstream, onto the connections' stream (2x).
+      // *NOTE*: the connection handle has already been retrieved when the
+      //         second message arrives (see stream_module_io_stream.inl:232)
       if (!connection_)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
-                    session_data_p->sessionID));
-        return;
-      } // end IF
+        // sanity check(s)
+        ACE_ASSERT (inherited::configuration_.connectionManager);
 
-      // set up reactor/proactor notification
-      // *TODO*: find a way to retrieve the stream handle here
-      //typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
-      //  dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-      //if (!socket_connection_p)
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
-      //              connection_));
-      //  return;
-      //} // end IF
-      //typename ConnectorType::STREAM_T& stream_r =
-      //  const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
-      //Stream_Module_t* module_p = stream_r.head ();
-      Stream_Module_t* module_p = inherited::module ();
-      ACE_ASSERT (module_p);
-      Stream_Task_t* task_p = module_p->reader ();
-      ACE_ASSERT (task_p);
-      while (ACE_OS::strcmp (module_p->name (),
-                             ACE_TEXT ("ACE_Stream_Head")) != 0)
-      {
-        task_p = task_p->next ();
-        if (!task_p) break;
-        module_p = task_p->module ();
-      } // end WHILE
-      //if (!module_p)
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("no head module found, returning\n")));
-      //  return;
-      //} // end IF
-      //Stream_Task_t* task_p = module_p->reader ();
-      if (!task_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("no head module reader task found, returning\n")));
-        return;
-      } // end IF
-      Stream_Queue_t* queue_p = task_p->msg_queue ();
-      if (!queue_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("no head module reader task queue found, returning\n")));
-        return;
-      } // end IF
-      queue_p->notification_strategy (connection_->notification ());
+        const SessionDataContainerType& session_data_container_r =
+          message_inout->get ();
+        const SessionDataType* session_data_p =
+          session_data_container_r.getData ();
+        ACE_HANDLE handle = ACE_INVALID_HANDLE;
+  #if defined (ACE_WIN32) || defined (ACE_WIN64)
+        handle = reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID);
+  #else
+        handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
+  #endif
+        ACE_ASSERT (handle != ACE_INVALID_HANDLE);
+        connection_ =
+          inherited::configuration_.connectionManager->get (handle);
+        if (!connection_)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
+                      session_data_p->sessionID));
+          return;
+        } // end IF
 
-      //      // start profile timer...
-      //      profile_.start ();
+        // set up reactor/proactor notification
+        // *TODO*: find a way to retrieve the stream handle here
+        //typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
+        //  dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
+        //if (!socket_connection_p)
+        //{
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
+        //              connection_));
+        //  return;
+        //} // end IF
+        //typename ConnectorType::STREAM_T& stream_r =
+        //  const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
+        //Stream_Module_t* module_p = stream_r.head ();
+        Stream_Module_t* module_p = inherited::module ();
+        ACE_ASSERT (module_p);
+        Stream_Task_t* task_p = module_p->reader ();
+        ACE_ASSERT (task_p);
+        while (ACE_OS::strcmp (module_p->name (),
+                               ACE_TEXT ("ACE_Stream_Head")) != 0)
+        {
+          task_p = task_p->next ();
+          if (!task_p) break;
+          module_p = task_p->module ();
+        } // end WHILE
+        //if (!module_p)
+        //{
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("no head module found, returning\n")));
+        //  return;
+        //} // end IF
+        //Stream_Task_t* task_p = module_p->reader ();
+        if (!task_p)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("no head module reader task found, returning\n")));
+          return;
+        } // end IF
+        Stream_Queue_t* queue_p = task_p->msg_queue ();
+        if (!queue_p)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("no head module reader task queue found, returning\n")));
+          return;
+        } // end IF
+        queue_p->notification_strategy (connection_->notification ());
+
+        //      // start profile timer...
+        //      profile_.start ();
+      } // end IF
 
       break;
     }
@@ -401,9 +413,11 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
         timerID_ = -1;
       } // end IF
 
-      // *TODO*: wait for the pipeline to flush first ?
       if (connection_)
       {
+        // wait for data processing to complete
+        connection_->waitForCompletion ();
+
         connection_->decrease ();
         connection_ = NULL;
       } // end IF

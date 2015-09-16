@@ -26,9 +26,9 @@
 #include "common_timer_manager.h"
 #include "common_tools.h"
 
-//#include "common_ui_gtk_manager.h"
-
 #include "stream_macros.h"
+
+#include "test_i_connection_manager_common.h"
 
 Stream_Target_SignalHandler::Stream_Target_SignalHandler (bool useReactor_in)
  : inherited (this,          // event handler handle
@@ -61,13 +61,15 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::handleSignal"));
 
   int result = -1;
-  bool statistic = false;
+  bool close = false;
   bool shutdown = false;
+  bool statistic = false;
   switch (signal_in)
   {
     case SIGINT:
 // *PORTABILITY*: on Windows SIGQUIT is not defined
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case SIGQUIT:
 #endif
     {
@@ -77,31 +79,29 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
       //           ACE_TEXT("shutting down...\n")));
 
       shutdown = true;
-
       break;
     }
 // *PORTABILITY*: on Windows SIGUSRx are not defined
 // --> use SIGBREAK (21) and SIGTERM (15) instead...
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
-    case SIGUSR1:
-#else
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case SIGBREAK:
+#else
+    case SIGUSR1:
 #endif
     {
-      // print statistics
+      // print statistic
       statistic = true;
-
       break;
     }
-#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
     case SIGHUP:
     case SIGUSR2:
 #endif
     case SIGTERM:
     {
-      // print statistics
-      statistic = true;
-
+      // close
+      close = true;
       break;
     }
     default:
@@ -131,6 +131,12 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
       return false;
     }
   } // end IF
+
+  Test_I_Stream_IInetConnectionManager_t* connection_manager_p =
+    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
+  if (close)
+    connection_manager_p->abort ();
 
 //check_shutdown:
   // ...shutdown ?
@@ -184,9 +190,6 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
     } // end IF
 
     // step4: stop/abort(/wait) for connections
-    Test_I_Stream_IInetConnectionManager_t* connection_manager_p =
-        TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
-    ACE_ASSERT (connection_manager_p);
     connection_manager_p->stop ();
     connection_manager_p->abort ();
 

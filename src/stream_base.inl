@@ -56,6 +56,7 @@ Stream_Base_T<TaskSynchType,
  , availableModules_ ()
  , isInitialized_ (false)
  , allocator_ (NULL)
+ , lock_ ()
  , sessionData_ (NULL)
  , state_ ()
 {
@@ -139,6 +140,8 @@ Stream_Base_T<TaskSynchType,
   // - reset reader/writers tasks for ALL modules
   // - re-initialize head/tail modules
   initialize ();
+
+  return true;
 }
 
 template <typename TaskSynchType,
@@ -219,7 +222,8 @@ Stream_Base_T<TaskSynchType,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
     return;
   } // end IF
-  // *TODO*: remove type inference
+  // *TODO*: remove type inferences
+  sessionData_->lock = &lock_;
   state_.currentSessionData = sessionData_;
 
   try
@@ -400,7 +404,7 @@ Stream_Base_T<TaskSynchType,
   int result = -1;
 
   if (!isRunning ())
-    return;
+    goto wait;
 
   // delegate to the head module, skip over ACE_Stream_Head...
   MODULE_T* module_p = NULL;
@@ -439,6 +443,7 @@ Stream_Base_T<TaskSynchType,
     return;
   }
 
+wait:
   if (waitForCompletion_in)
     waitForCompletion ();
 }

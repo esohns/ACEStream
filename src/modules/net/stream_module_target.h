@@ -46,7 +46,10 @@ class Stream_Module_Net_Target_T
  , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
-  Stream_Module_Net_Target_T ();
+  // *NOTE*: this module has two modes of operation:
+  //         active:  establish and manage a connection
+  //         passive: use an existing connection (handle passed in initialize())
+  Stream_Module_Net_Target_T (bool = false); // passive ?
   virtual ~Stream_Module_Net_Target_T ();
 
   // implement (part of) Stream_ITaskBase_T
@@ -73,6 +76,7 @@ class Stream_Module_Net_Target_T
   //typename ConnectorType::ISOCKET_CONNECTION_T* connection_;
   bool                                          isInitialized_;
   bool                                          isLinked_;
+  bool                                          isPassive_;
 };
 
 #include "stream_module_target.inl"

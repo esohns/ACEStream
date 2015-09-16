@@ -47,14 +47,18 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ProtocolCommandType,
-          typename StatisticContainerType> class Stream_Module_Statistic_WriterTask_T;
+          typename StatisticContainerType,
+          typename SessionDataType,                                                      // session data
+          typename SessionDataContainerType> class Stream_Module_Statistic_WriterTask_T; // session message payload (reference counted)
 
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ProtocolCommandType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_Module_Statistic_ReaderTask_T
  : public ACE_Thru_Task<TaskSynchType,
                         TimePolicyType>
@@ -74,9 +78,11 @@ class Stream_Module_Statistic_ReaderTask_T
                                                SessionMessageType,
                                                ProtocolMessageType,
                                                ProtocolCommandType,
-                                               StatisticContainerType> WRITER_TASK_T;
-  typedef ProtocolMessageType MESSAGE_TYPE_T;
-  typedef ProtocolCommandType COMMAND_TYPE_T;
+                                               StatisticContainerType,
+                                               SessionDataType,
+                                               SessionDataContainerType> WRITER_TASK_T;
+  typedef ProtocolMessageType MESSAGE_T;
+  typedef ProtocolCommandType COMMAND_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_ReaderTask_T (const Stream_Module_Statistic_ReaderTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_ReaderTask_T& operator= (const Stream_Module_Statistic_ReaderTask_T&))
@@ -87,7 +93,9 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ProtocolCommandType,
-          typename StatisticContainerType>
+          typename StatisticContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_Module_Statistic_WriterTask_T
  : public Stream_TaskBaseSynch_T<TimePolicyType,
                                  SessionMessageType,
@@ -100,15 +108,19 @@ class Stream_Module_Statistic_WriterTask_T
                                                    SessionMessageType,
                                                    ProtocolMessageType,
                                                    ProtocolCommandType,
-                                                   StatisticContainerType>;
+                                                   StatisticContainerType,
+                                                   SessionDataType,
+                                                   SessionDataContainerType>;
+
  public:
   Stream_Module_Statistic_WriterTask_T ();
   virtual ~Stream_Module_Statistic_WriterTask_T ();
 
   // initialization
   bool initialize (unsigned int = STREAM_DEFAULT_STATISTIC_REPORTING, // (local) reporting interval (second(s)) [0: off]
+                   bool = false,                                      // send statistic messages ?
                    bool = false,                                      // print final report ?
-                   const Stream_IAllocator* = NULL);                  // report cache usage ?
+                   Stream_IAllocator* = NULL);                        // report cache usage ?
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
@@ -131,21 +143,33 @@ class Stream_Module_Statistic_WriterTask_T
                                  SessionMessageType,
                                  ProtocolMessageType> inherited;
 
+  // convenient types
+  typedef Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+                                               TimePolicyType,
+                                               SessionMessageType,
+                                               ProtocolMessageType,
+                                               ProtocolCommandType,
+                                               StatisticContainerType,
+                                               SessionDataType,
+                                               SessionDataContainerType> OWN_TYPE_T;
+
   // message type counters
 //  typedef std::set<ProtocolCommandType> Net_Messages_t;
 //  typedef typename Net_Messages_t::const_iterator Net_MessagesIterator_t;
   typedef std::map<ProtocolCommandType,
-                   unsigned int> MESSAGE_STATISTIC_T;
-  typedef typename MESSAGE_STATISTIC_T::const_iterator MESSAGE_STATISTICITERATOR_T;
+                   unsigned int> STATISTIC_T;
+  typedef typename STATISTIC_T::const_iterator STATISTIC_ITERATOR_T;
   typedef std::pair<ProtocolCommandType,
-                    unsigned int> MESSAGE_STATISTIC_RECORD_T;
+                    unsigned int> STATISTIC_RECORD_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_WriterTask_T (const Stream_Module_Statistic_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_WriterTask_T& operator= (const Stream_Module_Statistic_WriterTask_T&))
 
   // helper method(s)
-  void final_report () const;
-  void fini_timers (bool = true); // cancel both timers ? (false --> cancel only localReportingHandlerID_)
+  void finalReport () const;
+  void finiTimers (bool = true); // cancel both timers ? (false --> cancel only localReportingHandlerID_)
+  // *NOTE*: must be called with lock_ held !
+  void sendStatistic ();
 
   bool                              isInitialized_;
 
@@ -154,34 +178,35 @@ class Stream_Module_Statistic_WriterTask_T
   long                              resetTimeoutHandlerID_;
   Stream_StatisticHandler_Reactor_t localReportingHandler_;
   long                              localReportingHandlerID_;
-  unsigned int                      reportingInterval_; // second(s) {0 --> OFF}
+  unsigned int                      reportingInterval_; // second(s) [0: off]
+  bool                              sendStatisticMessages_;
   bool                              printFinalReport_;
 
-  // *GENERIC STATS*
+  // *DATA STATISTIC*
   mutable ACE_SYNCH_MUTEX           lock_;
-  unsigned int                      sessionID_;
+  SessionDataType*                  sessionData_;
 
-  // *NOTE*: data messages == (myNumTotalMessages - myNumSessionMessages)
-  unsigned int                      numInboundMessages_;
-  unsigned int                      numOutboundMessages_;
-  unsigned int                      numSessionMessages_;
+  // *NOTE*: data messages == (messageCounter_ - sessionMessages_)
+  unsigned int                      inboundMessages_;
+  unsigned int                      outboundMessages_;
+  unsigned int                      sessionMessages_;
   // used to compute message throughput...
   unsigned int                      messageCounter_;
-  // *NOTE: support asynchronous collecting/reporting of data...
+  // *NOTE: support asynchronous collecting/reporting of data
   unsigned int                      lastMessagesPerSecondCount_;
 
-  float                             numInboundBytes_;
-  float                             numOutboundBytes_;
+  float                             inboundBytes_;
+  float                             outboundBytes_;
   // used to compute data throughput...
   unsigned int                      byteCounter_;
-  // *NOTE: support asynchronous collecting/reporting of data...
+  // *NOTE: support asynchronous collecting/reporting of data
   unsigned int                      lastBytesPerSecondCount_;
 
-  // *MESSAGE TYPE STATS*
-  MESSAGE_STATISTIC_T               messageTypeStatistic_;
+  // *TYPE STATISTIC*
+  STATISTIC_T                       messageTypeStatistic_;
 
-  // *CACHE STATS*
-  const Stream_IAllocator*          allocator_;
+  // *CACHE STATISTIC*
+  Stream_IAllocator*                allocator_;
 };
 
 // include template implementation

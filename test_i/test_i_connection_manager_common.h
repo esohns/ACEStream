@@ -37,7 +37,7 @@
 struct Test_I_Configuration;
 struct Test_I_ConnectionState;
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
-struct Test_I_Stream_UserData;
+struct Test_I_UserData;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -46,14 +46,14 @@ typedef Net_IConnectionManager_T<ACE_Netlink_Addr,
                                  Test_I_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  ////////
-                                 Test_I_Stream_UserData> Test_I_Stream_INetlinkConnectionManager_t;
+                                 Test_I_UserData> Test_I_Stream_INetlinkConnectionManager_t;
 #endif
 typedef Net_IConnectionManager_T<ACE_INET_Addr,
                                  Test_I_Configuration,
                                  Test_I_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  ////////
-                                 Test_I_Stream_UserData> Test_I_Stream_IInetConnectionManager_t;
+                                 Test_I_UserData> Test_I_Stream_IInetConnectionManager_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -62,14 +62,14 @@ typedef Net_Connection_Manager_T<ACE_Netlink_Addr,
                                  Test_I_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  ////////
-                                 Test_I_Stream_UserData> Test_I_Stream_NetlinkConnectionManager_t;
+                                 Test_I_UserData> Test_I_Stream_NetlinkConnectionManager_t;
 #endif
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  Test_I_Configuration,
                                  Test_I_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
                                  ////////
-                                 Test_I_Stream_UserData> Test_I_Stream_InetConnectionManager_t;
+                                 Test_I_UserData> Test_I_Stream_InetConnectionManager_t;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

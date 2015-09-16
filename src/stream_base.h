@@ -198,6 +198,7 @@ class Stream_Base_T
 
   // *NOTE*: children need to initialize these !
   Stream_IAllocator* allocator_;
+  ACE_SYNCH_MUTEX    lock_;
   SessionDataType*   sessionData_;
   StateType          state_;
 

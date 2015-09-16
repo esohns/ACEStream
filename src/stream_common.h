@@ -40,10 +40,12 @@
 struct Stream_Statistic
 {
   inline Stream_Statistic ()
-   : bytes (0.0)
+   : bytes (0.0F)
    , dataMessages (0)
    , droppedMessages (0)
    , timestamp (ACE_Time_Value::zero)
+   , bytesPerSecond (0.0F)
+   , messagesPerSecond (0.0F)
   {};
 
   inline Stream_Statistic operator+= (const Stream_Statistic& rhs_in)
@@ -55,11 +57,24 @@ struct Stream_Statistic
     return *this;
   };
 
-  double         bytes;           // amount of processed data
+  float          bytes;           // amount of processed data
   unsigned int   dataMessages;    // (protocol) messages
   unsigned int   droppedMessages; // dropped messages
 
+  // (current) runtime performance
+  float          bytesPerSecond;
+  float          messagesPerSecond;
+
   ACE_Time_Value timestamp;
+};
+
+struct Stream_UserData
+{
+  inline Stream_UserData ()
+   : userData (NULL)
+  {};
+
+  void* userData;
 };
 
 struct Stream_SessionData
@@ -75,6 +90,7 @@ struct Stream_SessionData
    , sessionID (static_cast<unsigned int> (ACE_INVALID_HANDLE))
 #endif
    , startOfSession (ACE_Time_Value::zero)
+   , userData (NULL)
   {};
 
   bool             aborted;
@@ -85,15 +101,8 @@ struct Stream_SessionData
 
   unsigned int     sessionID; // (== socket handle !)
   ACE_Time_Value   startOfSession;
-};
 
-struct Stream_UserData
-{
-  inline Stream_UserData ()
-   : userData (NULL)
-  {};
-
-  void* userData;
+  Stream_UserData* userData;
 };
 
 struct Stream_State

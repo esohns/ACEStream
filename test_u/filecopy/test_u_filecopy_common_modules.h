@@ -58,13 +58,17 @@ typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Stream_Filecopy_SessionMessage,
                                              Stream_Filecopy_Message,
                                              Stream_CommandType_t,
-                                             Stream_Statistic> Stream_Filecopy_Module_Statistic_ReaderTask_t;
+                                             Stream_Statistic,
+                                             Stream_Filecopy_SessionData,
+                                             Stream_Filecopy_SessionData_t> Stream_Filecopy_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
                                              Stream_Filecopy_SessionMessage,
                                              Stream_Filecopy_Message,
                                              Stream_CommandType_t,
-                                             Stream_Statistic> Stream_Filecopy_Module_Statistic_WriterTask_t;
+                                             Stream_Statistic,
+                                             Stream_Filecopy_SessionData,
+                                             Stream_Filecopy_SessionData_t> Stream_Filecopy_Module_Statistic_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                  // task synch type
                           Common_TimePolicy_t,                           // time policy type
                           Stream_ModuleConfiguration,                    // module configuration type

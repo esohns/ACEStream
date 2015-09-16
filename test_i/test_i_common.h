@@ -83,6 +83,21 @@ typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 
 typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReportingHandler_t;
 
+struct Test_I_Configuration;
+struct Test_I_Stream_Configuration;
+struct Test_I_UserData
+ : public Stream_UserData
+{
+  inline Test_I_UserData ()
+   : Stream_UserData ()
+   , configuration (NULL)
+   , streamConfiguration (NULL)
+  {};
+
+  Test_I_Configuration*        configuration;
+  Test_I_Stream_Configuration* streamConfiguration;
+};
+
 struct Test_I_Stream_SessionData
  : Stream_SessionData
 {
@@ -91,26 +106,15 @@ struct Test_I_Stream_SessionData
    , connectionState (NULL)
    , fileName ()
    , size (0)
+   , userData (NULL)
   {};
 
   Test_I_ConnectionState* connectionState;
   std::string             fileName;
   unsigned int            size;
+  Test_I_UserData*        userData;
 };
 typedef Stream_SessionDataBase_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
-
-struct Test_I_Configuration;
-struct Test_I_Stream_Configuration;
-struct Test_I_Stream_UserData
-{
-  inline Test_I_Stream_UserData ()
-   : configuration (NULL)
-   , streamConfiguration (NULL)
-  {};
-
-  Test_I_Configuration*        configuration;
-  Test_I_Stream_Configuration* streamConfiguration;
-};
 
 struct Test_I_Stream_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
@@ -121,7 +125,7 @@ struct Test_I_Stream_SocketHandlerConfiguration
    , userData (NULL)
   {};
 
-  Test_I_Stream_UserData* userData;
+  Test_I_UserData* userData;
 };
 
 // forward declarations
@@ -154,18 +158,24 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , contextID (0)
    , fileName ()
    , inbound (false)
+   , passive (false)
    , printProgressDot (false)
+   , socketConfiguration (NULL)
+   , socketHandlerConfiguration (NULL)
    , stream (NULL)
   {};
 
-  Test_I_Configuration*                  configuration;
-  Test_I_IConnection_t*                  connection; // TCP target/IO module
-  Test_I_Stream_InetConnectionManager_t* connectionManager; // TCP IO module
-  guint                                  contextID;
-  std::string                            fileName; // file reader/writer module
-  bool                                   inbound; // TCP IO module
-  bool                                   printProgressDot;
-  Test_I_StreamBase_t*                   stream;
+  Test_I_Configuration*                     configuration;
+  Test_I_IConnection_t*                     connection; // TCP target/IO module
+  Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
+  guint                                     contextID;
+  std::string                               fileName; // file reader/writer module
+  bool                                      inbound; // TCP IO module
+  bool                                      passive;
+  bool                                      printProgressDot;
+  Net_SocketConfiguration*                  socketConfiguration;
+  Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
+  Test_I_StreamBase_t*                      stream;
 };
 
 struct Stream_SignalHandlerConfiguration
@@ -198,7 +208,7 @@ struct Test_I_Stream_State
   {};
 
   Test_I_Stream_SessionData* currentSessionData;
-  Test_I_Stream_UserData*    userData;
+  Test_I_UserData*           userData;
 };
 
 struct Test_I_Configuration
@@ -210,8 +220,8 @@ struct Test_I_Configuration
    , moduleConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
-   , streamUserData ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
+   , userData ()
   {};
 
   // **************************** signal data **********************************
@@ -223,9 +233,10 @@ struct Test_I_Configuration
   Stream_ModuleConfiguration               moduleConfiguration;
   Test_I_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Test_I_Stream_Configuration              streamConfiguration;
-  Test_I_Stream_UserData                   streamUserData;
   // *************************** protocol data *********************************
   Net_TransportLayerType                   protocol;
+
+  Test_I_UserData                          userData;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<Stream_Message,
@@ -265,7 +276,8 @@ struct Stream_GTK_ProgressData
 //   , cursorType (GDK_LAST_CURSOR)
    , GTKState (NULL)
    , pendingActions ()
-   , sent (0)
+   , statistic ()
+   , transferred (0)
    , size (0)
   {};
 
@@ -273,7 +285,8 @@ struct Stream_GTK_ProgressData
 //  GdkCursorType                      cursorType;
   Common_UI_GTKState*       GTKState;
   Stream_PendingActions_t   pendingActions;
-  unsigned int              sent; // bytes
+  Stream_Statistic          statistic;
+  unsigned int              transferred; // bytes
   unsigned int              size; // bytes
 };
 
@@ -295,7 +308,7 @@ struct Stream_GTK_CBData
   Stream_GTK_Events_t       eventStack;
   Common_MessageStack_t     logStack;
   Stream_GTK_ProgressData   progressData;
-  Stream_Base_t*            stream;
+  Test_I_StreamBase_t*      stream;
   Stream_Subscribers_t      subscribers;
   ACE_SYNCH_RECURSIVE_MUTEX subscribersLock;
 };

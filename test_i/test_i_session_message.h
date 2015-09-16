@@ -37,7 +37,7 @@ template <typename MessageType,
 
 class Stream_SessionMessage
  : public Stream_SessionMessageBase_T<Test_I_Stream_SessionData_t,
-                                      Test_I_Stream_UserData>
+                                      Test_I_UserData>
 {
   // grant access to specific private ctors...
   friend class Stream_MessageAllocatorHeapBase_T<Stream_Message,
@@ -48,7 +48,7 @@ class Stream_SessionMessage
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason...
   Stream_SessionMessage (Stream_SessionMessageType,     // session message type
                          Test_I_Stream_SessionData_t*&, // session data container handle
-                         Test_I_Stream_UserData*);      // user data handle
+                         Test_I_UserData*);             // user data handle
   virtual ~Stream_SessionMessage ();
 
   // overloaded from ACE_Message_Block
@@ -56,7 +56,7 @@ class Stream_SessionMessage
 
  private:
   typedef Stream_SessionMessageBase_T<Test_I_Stream_SessionData_t,
-                                      Test_I_Stream_UserData> inherited;
+                                      Test_I_UserData> inherited;
 
   // copy ctor to be used by duplicate()
   Stream_SessionMessage (const Stream_SessionMessage&);

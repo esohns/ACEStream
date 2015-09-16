@@ -98,13 +98,17 @@ typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Stream_SessionMessage,
                                              Stream_Message,
                                              Stream_CommandType_t,
-                                             Test_I_RuntimeStatistic_t> Test_I_Stream_Module_Statistic_ReaderTask_t;
+                                             Test_I_RuntimeStatistic_t,
+                                             Test_I_Stream_SessionData,
+                                             Test_I_Stream_SessionData_t> Test_I_Stream_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
                                              Stream_SessionMessage,
                                              Stream_Message,
                                              Stream_CommandType_t,
-                                             Test_I_RuntimeStatistic_t> Test_I_Stream_Module_Statistic_WriterTask_t;
+                                             Test_I_RuntimeStatistic_t,
+                                             Test_I_Stream_SessionData,
+                                             Test_I_Stream_SessionData_t> Test_I_Stream_Module_Statistic_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                // task synch type
                           Common_TimePolicy_t,                         // time policy type
                           Stream_ModuleConfiguration,                  // module configuration type

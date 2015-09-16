@@ -43,7 +43,8 @@
 #include "test_i_defines.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
-#include "test_i_target_common.h"
+
+#include "test_i_target_listener_common.h"
 
 ACE_THR_FUNC_RETURN
 stream_processing_function (void* arg_in)
@@ -183,6 +184,15 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_range (spin_button_p,
+                             0.0,
+                             std::numeric_limits<double>::max ());
+  spin_button_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
@@ -192,7 +202,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
@@ -519,6 +529,46 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 }
 
 gboolean
+idle_end_source_UI_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_end_source_UI_cb"));
+
+  Stream_GTK_CBData* data_p =
+    static_cast<Stream_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  // sanity check(s)
+  //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  GtkTable* table_p =
+    GTK_TABLE (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TABLE_OPTIONS_NAME)));
+  ACE_ASSERT (table_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (table_p), TRUE);
+
+  GtkAction* action_p =
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_stock_id (action_p, GTK_STOCK_MEDIA_PLAY);
+  action_p =
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_STOP_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, FALSE);
+
+  return G_SOURCE_REMOVE;
+}
+
+gboolean
 idle_initialize_target_UI_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_target_UI_cb"));
@@ -565,6 +615,15 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_range (spin_button_p,
+                             0.0,
+                             std::numeric_limits<double>::max ());
+  spin_button_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
@@ -574,7 +633,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
@@ -594,19 +653,58 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   GFile* file_p = NULL;
-  if (Common_File_Tools::isValidFileName (data_p->configuration->moduleHandlerConfiguration.fileName))
-    file_p =
-        g_file_new_for_path (data_p->configuration->moduleHandlerConfiguration.fileName.c_str ());
-  else
+  std::string directory, file_name;
+  directory = data_p->configuration->moduleHandlerConfiguration.fileName;
+  file_name = data_p->configuration->moduleHandlerConfiguration.fileName;
+  // sanity check(s)
+  if (!Common_File_Tools::isDirectory (directory))
   {
-    std::string file_name = Common_File_Tools::getTempDirectory ();
-    file_name += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-    file_name +=
-      (!data_p->configuration->moduleHandlerConfiguration.fileName.empty () ? data_p->configuration->moduleHandlerConfiguration.fileName
-                                                                            : ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE));
-    file_p =
-      g_file_new_for_path (file_name.c_str ());
-  } // end ELSE
+    directory =
+      ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+    if (Common_File_Tools::isValidPath (directory))
+    {
+      if (!Common_File_Tools::isDirectory (directory))
+        if (!Common_File_Tools::createDirectory (directory))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to create directory \"%s\": \"%m\", aborting\n"),
+                      ACE_TEXT (directory.c_str ())));
+          return G_SOURCE_REMOVE;
+        } // end IF
+    } // end IF
+    else if (Common_File_Tools::isValidFileName (directory))
+    {
+      directory =
+        ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
+      if (!Common_File_Tools::isDirectory (directory))
+        if (!Common_File_Tools::createDirectory (directory))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to create directory \"%s\": \"%m\", aborting\n"),
+                      ACE_TEXT (directory.c_str ())));
+          return G_SOURCE_REMOVE;
+        } // end IF
+    } // end IF
+    else
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("invalid target directory (was: \"%s\"), falling back\n"),
+                  ACE_TEXT (directory.c_str ())));
+      directory = Common_File_Tools::getTempDirectory ();
+    } // end ELSE
+  } // end IF
+  if (Common_File_Tools::isDirectory (file_name))
+    file_name =
+      ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE);
+  else if (Common_File_Tools::isValidFileName (file_name))
+    file_name =
+      ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
+  file_name = directory +
+              ACE_DIRECTORY_SEPARATOR_CHAR_A +
+              file_name;
+  ACE_ASSERT (Common_File_Tools::isValidFileName (file_name));
+  file_p =
+    g_file_new_for_path (file_name.c_str ());
   ACE_ASSERT (file_p);
   //GFile* file_2 = g_file_get_parent (file_p);
   //if (!file_2)
@@ -731,13 +829,14 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //  g_object_unref (buffer_p);
 
   // step5: initialize updates
+  guint event_source_id = 0;
   {
     ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
 
     // schedule asynchronous updates of the log view
-    guint event_source_id = g_timeout_add_seconds (1,
-                                                   idle_update_log_display_cb,
-                                                   userData_in);
+    event_source_id = g_timeout_add_seconds (1,
+                                             idle_update_log_display_cb,
+                                             userData_in);
     if (event_source_id > 0)
       data_p->eventSourceIds.insert (event_source_id);
     else
@@ -746,6 +845,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                   ACE_TEXT ("failed to g_timeout_add_seconds(): \"%m\", aborting\n")));
       return G_SOURCE_REMOVE;
     } // end ELSE
+
     // schedule asynchronous updates of the info view
     event_source_id = g_timeout_add (TEST_I_STREAM_UI_GTKEVENT_RESOLUTION,
                                      idle_update_info_display_cb,
@@ -768,13 +868,13 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEBUTTON_LISTEN_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p, TRUE);
-  GtkAction* action_p =
-      //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
-      //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLOSEALL_NAME)));
-      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, FALSE);
+  //GtkAction* action_p =
+  //    //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+  //    //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLOSEALL_NAME)));
+  //    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+  //                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME)));
+  //ACE_ASSERT (action_p);
+  //gtk_action_set_sensitive (action_p, FALSE);
 
   // step7: (auto-)connect signals/slots
   // *NOTE*: glade_xml_signal_autoconnect does not work reliably
@@ -943,6 +1043,82 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
+  // step10: start progress reporting
+  {
+    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
+    
+    event_source_id =
+    //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
+    //                 idle_update_progress_cb,
+    //                 &data_p->progressData,
+    //                 NULL);
+      g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
+                          TEST_I_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
+                          idle_update_progress_target_cb,
+                          &data_p->progressData,
+                          NULL);
+    if (event_source_id > 0)
+      data_p->eventSourceIds.insert (event_source_id);
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_target_progress_cb): \"%m\", returning\n")));
+      return G_SOURCE_REMOVE;
+    } // end IF
+  } // end lock scope
+
+  return G_SOURCE_REMOVE;
+}
+
+gboolean
+idle_reset_target_UI_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_reset_target_UI_cb"));
+
+  Test_I_Target_GTK_CBData* data_p =
+    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  // sanity check(s)
+  //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  GtkSpinButton* spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p, 0.0);
+  spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p, 0.0);
+  spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p, 0.0);
+
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+  gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
+  gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
+
+  {
+    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
+
+    data_p->progressData.transferred = 0;
+  } // end lock scope
+
   return G_SOURCE_REMOVE;
 }
 
@@ -1088,35 +1264,74 @@ idle_update_info_display_cb (gpointer userData_in)
         {
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+          ACE_ASSERT (spin_button_p);
+          gtk_spin_button_set_value (spin_button_p, 0.0);
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p, 0.0);
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
+          ACE_ASSERT (spin_button_p);
+          gtk_spin_button_set_value (spin_button_p, 0.0);
+
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_CONNECTIONS_NAME)));
+          if (spin_button_p)
+          {
+            gint number_of_connections = gtk_spin_button_get_value_as_int (spin_button_p);
+            gtk_spin_button_set_value (spin_button_p, static_cast<gdouble> (++number_of_connections));
+          } // end IF
+
           spin_button_p =
             //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
             //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
-          gtk_spin_button_set_value (spin_button_p, 0.0);
+
           is_session_message = true;
           break;
         }
         case STREAM_GTKEVENT_DATA:
         {
           spin_button_p =
+            //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+            //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
+          ACE_ASSERT (spin_button_p);
+          gtk_spin_button_set_value (spin_button_p, static_cast<gdouble> (data_p->progressData.transferred));
+
+          spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
+
           break;
         }
         case STREAM_GTKEVENT_END:
         {
+          spin_button_p =
+            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_CONNECTIONS_NAME)));
+          if (spin_button_p)
+          {
+            gint number_of_connections = gtk_spin_button_get_value_as_int (spin_button_p);
+            gtk_spin_button_set_value (spin_button_p, static_cast<gdouble> (--number_of_connections));
+          } // end IF
+
           spin_button_p =
             //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
             //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
+
           is_session_message = true;
           break;
         }
@@ -1126,6 +1341,7 @@ idle_update_info_display_cb (gpointer userData_in)
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
+
           is_session_message = true;
           break;
         }
@@ -1150,9 +1366,9 @@ idle_update_info_display_cb (gpointer userData_in)
 }
 
 gboolean
-idle_update_progress_cb (gpointer userData_in)
+idle_update_progress_source_cb (gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
+  STREAM_TRACE (ACE_TEXT ("::idle_update_progress_source_cb"));
 
   Stream_GTK_ProgressData* data_p =
       static_cast<Stream_GTK_ProgressData*> (userData_in);
@@ -1210,6 +1426,7 @@ idle_update_progress_cb (gpointer userData_in)
   } // end FOR
   data_p->completedActions.clear ();
 
+  bool done = false;
   if (data_p->pendingActions.empty ())
   {
     //if (data_p->cursorType != GDK_LAST_CURSOR)
@@ -1231,12 +1448,69 @@ idle_update_progress_cb (gpointer userData_in)
     //  gdk_window_set_cursor (window_2, cursor_p);
     //  data_p->cursorType = GDK_LAST_CURSOR;
     //} // end IF
-    return G_SOURCE_REMOVE;
+    
+    done = true;
   } // end IF
 
   //gtk_progress_bar_pulse (progress_bar_p);
   gtk_progress_bar_set_fraction (progress_bar_p,
-                                 static_cast<double> (data_p->sent) / static_cast<double> (data_p->size));
+                                 static_cast<double> (data_p->transferred) / static_cast<double> (data_p->size));
+
+  // --> reschedule
+  return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
+}
+
+gboolean
+idle_update_progress_target_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_update_progress_target_cb"));
+
+  Stream_GTK_ProgressData* data_p =
+    static_cast<Stream_GTK_ProgressData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->GTKState);
+
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->GTKState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != data_p->GTKState->builders.end ());
+
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+
+  ACE_TCHAR buffer[BUFSIZ];
+  ACE_OS::memset (buffer, 0, sizeof (buffer));
+  int result = -1;
+  float speed = data_p->statistic.bytesPerSecond;
+  std::string magnitude_string = ACE_TEXT_ALWAYS_CHAR ("byte(s)/s");
+  if (speed >= 1024.0F)
+  {
+    speed /= 1024.0F;
+    magnitude_string = ACE_TEXT_ALWAYS_CHAR ("kbyte(s)/s");
+  } // end IF
+  if (speed >= 1024.0F)
+  {
+    speed /= 1024.0F;
+    magnitude_string = ACE_TEXT_ALWAYS_CHAR ("mbyte(s)/s");
+  } // end IF
+  {
+    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->GTKState->lock);
+
+    result = ACE_OS::sprintf (buffer, ACE_TEXT ("%.2f %s"),
+                              speed, magnitude_string.c_str ());
+  } // end lock scope
+  if (result < 0)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_OS::sprintf(): \"%m\", continuing\n")));
+  gtk_progress_bar_set_text (progress_bar_p,
+                             ACE_TEXT_ALWAYS_CHAR (buffer));
+  ////gtk_progress_bar_pulse (progress_bar_p);
+  //gtk_progress_bar_set_fraction (progress_bar_p,
+  //                               static_cast<double> (data_p->transferred) / static_cast<double> (data_p->size));
 
   // --> reschedule
   return G_SOURCE_CONTINUE;
@@ -1321,7 +1595,7 @@ action_start_activate_cb (GtkAction* action_in,
   gtk_action_set_sensitive (action_p, TRUE);
 
   // step1: set up progress reporting
-  data_p->progressData.sent = 0;
+  data_p->progressData.transferred = 0;
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
@@ -1417,13 +1691,13 @@ action_start_activate_cb (GtkAction* action_in,
       //                 NULL);
       g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
                           TEST_I_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
-                          idle_update_progress_cb,
+                          idle_update_progress_source_cb,
                           &data_p->progressData,
                           NULL);
     if (!event_source_id)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
+                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_source_cb): \"%m\", returning\n")));
 
       // clean up
       ACE_THR_FUNC_RETURN exit_status;
@@ -1589,9 +1863,24 @@ action_close_all_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_close_all_activate_cb"));
 
+  //gtk_action_set_sensitive (action_in, FALSE);
+  ACE_UNUSED_ARG (action_in);
   ACE_UNUSED_ARG (userData_in);
 
-  gtk_action_set_sensitive (action_in, FALSE);
+//  // *PORTABILITY*: on Windows SIGUSRx are not defined
+//  // --> use SIGBREAK (21) and SIGTERM (15) instead...
+//  int signal = 0;
+//#if !defined (ACE_WIN32) && !defined (ACE_WIN64)
+//  signal = SIGUSR2;
+//#else
+//  signal = SIGTERM;
+//#endif
+//  if (ACE_OS::raise (signal) == -1)
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
+//                signal));
+
+  idle_reset_target_UI_cb (userData_in);
 } // action_close_all_activate_cb
 
 void
@@ -1692,12 +1981,12 @@ action_listen_activate_cb (GtkAction* action_in,
         Test_I_Stream_IInetConnector_t* connector_p = NULL;
         if (data_p->configuration->useReactor)
           ACE_NEW_NORETURN (connector_p,
-                            Test_I_Stream_UDPConnector_t (iconnection_manager_p,
-                                                          data_p->configuration->streamConfiguration.statisticReportingInterval));
+                            Test_I_Stream_InboundUDPConnector_t (iconnection_manager_p,
+                                                                 data_p->configuration->streamConfiguration.statisticReportingInterval));
         else
           ACE_NEW_NORETURN (connector_p,
-                            Test_I_Stream_UDPAsynchConnector_t (iconnection_manager_p,
-                                                                data_p->configuration->streamConfiguration.statisticReportingInterval));
+                            Test_I_Stream_InboundUDPAsynchConnector_t (iconnection_manager_p,
+                                                                       data_p->configuration->streamConfiguration.statisticReportingInterval));
         if (!connector_p)
         {
           ACE_DEBUG ((LM_CRITICAL,

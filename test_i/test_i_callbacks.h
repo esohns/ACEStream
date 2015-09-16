@@ -32,10 +32,14 @@ ACE_THR_FUNC_RETURN stream_processing_function (void*);
 
 // idle routines
 gboolean idle_initialize_source_UI_cb (gpointer);
+gboolean idle_end_source_UI_cb (gpointer);
+gboolean idle_update_progress_source_cb (gpointer);
 
 /////////////////////////////////////////
 
 gboolean idle_initialize_target_UI_cb (gpointer);
+gboolean idle_reset_target_UI_cb (gpointer);
+gboolean idle_update_progress_target_cb (gpointer);
 
 /////////////////////////////////////////
 
@@ -43,7 +47,6 @@ gboolean idle_finalize_UI_cb (gpointer);
 
 gboolean idle_update_info_display_cb (gpointer);
 gboolean idle_update_log_display_cb (gpointer);
-gboolean idle_update_progress_cb (gpointer);
 
 //------------------------------------------------------------------------------
 

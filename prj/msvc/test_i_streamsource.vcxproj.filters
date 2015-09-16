@@ -45,6 +45,9 @@
     <ClCompile Include="..\..\test_i\test_i_source_eventhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\test_i\test_i_target_stream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\test_i\stdafx.h">
@@ -87,6 +90,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\test_i\test_i_source_eventhandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test_i\test_i_target_stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -456,9 +456,8 @@ do_work (unsigned int bufferSize_in,
   // step0a: initialize configuration
   Test_I_Target_Configuration configuration;
   configuration.useReactor = useReactor_in;
-  configuration.streamUserData.configuration =
-    &configuration;
-  configuration.streamUserData.streamConfiguration =
+  configuration.userData.configuration = &configuration;
+  configuration.userData.streamConfiguration =
     &configuration.streamConfiguration;
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
@@ -504,7 +503,7 @@ do_work (unsigned int bufferSize_in,
   configuration.socketHandlerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
   configuration.socketHandlerConfiguration.userData =
-    &configuration.streamUserData;
+    &configuration.userData;
 
   // ********************** stream configuration data **************************
   // ********************** module configuration data **************************
@@ -549,7 +548,8 @@ do_work (unsigned int bufferSize_in,
   // step0c: initialize connection manager
   connection_manager_p->initialize (maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                   : std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (configuration, &configuration.streamUserData);
+  connection_manager_p->set (configuration,
+                             &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =
@@ -711,12 +711,12 @@ do_work (unsigned int bufferSize_in,
     Test_I_Stream_IInetConnector_t* connector_p = NULL;
     if (useReactor_in)
       ACE_NEW_NORETURN (connector_p,
-                        Test_I_Stream_UDPConnector_t (iconnection_manager_p,
-                                                      configuration.streamConfiguration.statisticReportingInterval));
+                        Test_I_Stream_InboundUDPConnector_t (iconnection_manager_p,
+                                                             configuration.streamConfiguration.statisticReportingInterval));
     else
       ACE_NEW_NORETURN (connector_p,
-                        Test_I_Stream_UDPAsynchConnector_t (iconnection_manager_p,
-                                                            configuration.streamConfiguration.statisticReportingInterval));
+                        Test_I_Stream_InboundUDPAsynchConnector_t (iconnection_manager_p,
+                                                                   configuration.streamConfiguration.statisticReportingInterval));
     if (!connector_p)
     {
       ACE_DEBUG ((LM_CRITICAL,

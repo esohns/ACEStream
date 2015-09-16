@@ -52,26 +52,17 @@ enum Stream_GTK_Event
 typedef std::deque<Stream_GTK_Event> Stream_GTK_Events_t;
 typedef Stream_GTK_Events_t::const_iterator Stream_GTK_EventsIterator_t;
 
-//struct Stream_Test_U_SessionData
-// : Stream_SessionData
-//{
-//  inline Stream_Test_U_SessionData ()
-//   : Stream_SessionData ()
-//   , filename ()
-//  {};
-//
-//  std::string filename;
-//};
-
 //struct Stream_Test_U_UserData
+// : Stream_UserData
 //{
 //  inline Stream_Test_U_UserData ()
-//   : configuration (NULL)
+//   : Stream_UserData ()
+//   //, configuration (NULL)
 //  {};
 //
-//  Stream_Test_U_Configuration* configuration;
+//  //Stream_Test_U_Configuration* configuration;
 //};
-//
+
 //struct Stream_Test_U_StreamState
 //{
 //  inline Stream_Test_U_StreamState ()

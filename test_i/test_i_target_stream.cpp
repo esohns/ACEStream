@@ -270,9 +270,11 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_RuntimeStatistic> failed, aborting\n")));
     return false;
   } // end IF
-  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-                                            configuration_in.printFinalReport,           // print final report ?
-                                            configuration_in.messageAllocator))          // message allocator handle
+  if (!runtimeStatistic_impl_p->initialize ((configuration_in.statisticReportingInterval ? configuration_in.statisticReportingInterval
+                                                                                         : 1), // reporting interval (seconds)
+                                            true,                                              // send statistic messages
+                                            configuration_in.printFinalReport,                 // print final report ?
+                                            configuration_in.messageAllocator))                // message allocator handle
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
