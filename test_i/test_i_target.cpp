@@ -558,13 +558,13 @@ do_work (unsigned int bufferSize_in,
   Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
-  Stream_StatisticHandler_Reactor_t statistics_handler (ACTION_REPORT,
-                                                        connection_manager_p,
-                                                        false);
+  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
+                                                       connection_manager_p,
+                                                       false);
   long timer_id = -1;
   if (statisticReportingInterval_in)
   {
-    ACE_Event_Handler* handler_p = &statistics_handler;
+    ACE_Event_Handler* handler_p = &statistic_handler;
     ACE_Time_Value interval (statisticReportingInterval_in, 0);
     timer_id =
       timer_manager_p->schedule_timer (handler_p,                  // event handler
@@ -703,6 +703,29 @@ do_work (unsigned int bufferSize_in,
   configuration.listenerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
   configuration.listenerConfiguration.useLoopBackDevice = useLoopBack_in;
+  if (!CBData_in.configuration->signalHandlerConfiguration.listener->initialize (configuration.listenerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize listener, returning\n")));
+
+    // clean up
+    Common_Tools::finalizeEventDispatch (useReactor_in,
+                                         !useReactor_in,
+                                         group_id);
+    //		{ // synch access
+    //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
+
+    //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
+    //					 iterator != CBData_in.event_source_ids.end();
+    //					 iterator++)
+    //				g_source_remove(*iterator);
+    //		} // end lock scope
+    if (!UIDefinitionFile_in.empty ())
+      COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+    timer_manager_p->stop ();
+
+    return;
+  } // end IF
   if (useUDP_in)
   {
     Test_I_Stream_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
@@ -830,29 +853,6 @@ do_work (unsigned int bufferSize_in,
   } // end IF
   else
   {
-    if (!CBData_in.configuration->signalHandlerConfiguration.listener->initialize (configuration.listenerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to initialize listener, returning\n")));
-
-      // clean up
-      Common_Tools::finalizeEventDispatch (useReactor_in,
-                                           !useReactor_in,
-                                           group_id);
-      //		{ // synch access
-      //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
-
-      //			for (Net_GTK_EventSourceIDsIterator_t iterator = CBData_in.event_source_ids.begin();
-      //					 iterator != CBData_in.event_source_ids.end();
-      //					 iterator++)
-      //				g_source_remove(*iterator);
-      //		} // end lock scope
-      if (!UIDefinitionFile_in.empty ())
-        COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
-      timer_manager_p->stop ();
-
-      return;
-    } // end IF
     CBData_in.configuration->signalHandlerConfiguration.listener->start ();
     if (!CBData_in.configuration->signalHandlerConfiguration.listener->isRunning ())
     {

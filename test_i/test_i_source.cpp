@@ -56,8 +56,9 @@
 #include "test_i_callbacks.h"
 #include "test_i_common.h"
 #include "test_i_defines.h"
-
 #include "test_i_module_eventhandler.h"
+
+#include "test_i_source_common.h"
 #include "test_i_source_eventhandler.h"
 #include "test_i_source_signalhandler.h"
 #include "test_i_source_stream.h"
@@ -410,7 +411,7 @@ do_work (unsigned int bufferSize_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
          unsigned int numberOfDispatchThreads_in,
-         Stream_GTK_CBData& CBData_in,
+         Test_I_Source_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -422,37 +423,19 @@ do_work (unsigned int bufferSize_in,
   Test_I_Configuration configuration;
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
-  switch (configuration.protocol)
-  {
-    case NET_TRANSPORTLAYER_TCP:
-    {
-      if (useReactor_in)
-        ACE_NEW_NORETURN (CBData_in.stream,
-                          Test_I_Source_TCPStream_t ());
-      else
-        ACE_NEW_NORETURN (CBData_in.stream,
-                          Test_I_Source_AsynchTCPStream_t ());
-      break;
-    }
-    case NET_TRANSPORTLAYER_UDP:
-    {
-      if (useReactor_in)
-        ACE_NEW_NORETURN (CBData_in.stream,
-                          Test_I_Source_UDPStream_t ());
-      else
-        ACE_NEW_NORETURN (CBData_in.stream,
-                          Test_I_Source_AsynchUDPStream_t ());
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown transport layer (was: %d), returning\n"),
-                  configuration.protocol));
-      return;
-    }
-  } // end SWITCH
-  if (!CBData_in.stream)
+  if (useReactor_in)
+    ACE_NEW_NORETURN (CBData_in.stream,
+                      Test_I_Source_TCPStream_t ());
+  else
+    ACE_NEW_NORETURN (CBData_in.stream,
+                      Test_I_Source_AsynchTCPStream_t ());
+  if (useReactor_in)
+    ACE_NEW_NORETURN (CBData_in.UDPStream,
+                      Test_I_Source_UDPStream_t ());
+  else
+    ACE_NEW_NORETURN (CBData_in.UDPStream,
+                      Test_I_Source_AsynchUDPStream_t ());
+  if (!CBData_in.stream || !CBData_in.UDPStream)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
@@ -481,6 +464,7 @@ do_work (unsigned int bufferSize_in,
 
     // clean up
     delete CBData_in.stream;
+    delete CBData_in.UDPStream;
 
     return;
   } // end IF
@@ -507,6 +491,7 @@ do_work (unsigned int bufferSize_in,
 
     // clean up
     delete CBData_in.stream;
+    delete CBData_in.UDPStream;
 
     return;
   } // end IF
@@ -540,7 +525,9 @@ do_work (unsigned int bufferSize_in,
     &configuration.socketConfiguration;
   configuration.moduleHandlerConfiguration.socketHandlerConfiguration =
     &configuration.socketHandlerConfiguration;
-  configuration.moduleHandlerConfiguration.stream = CBData_in.stream;
+  configuration.moduleHandlerConfiguration.stream =
+    ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
+                                                        : CBData_in.UDPStream);
   // ******************** (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
@@ -567,6 +554,7 @@ do_work (unsigned int bufferSize_in,
 
     // clean up
     delete CBData_in.stream;
+    delete CBData_in.UDPStream;
 
     return;
   } // end IF
@@ -607,6 +595,7 @@ do_work (unsigned int bufferSize_in,
       // clean up
       timer_manager_p->stop ();
       delete CBData_in.stream;
+      delete CBData_in.UDPStream;
 
       return;
     } // end IF
@@ -628,6 +617,7 @@ do_work (unsigned int bufferSize_in,
     // clean up
     timer_manager_p->stop ();
     delete CBData_in.stream;
+    delete CBData_in.UDPStream;
 
     return;
   } // end IF
@@ -666,6 +656,7 @@ do_work (unsigned int bufferSize_in,
       // clean up
       timer_manager_p->stop ();
       delete CBData_in.stream;
+      delete CBData_in.UDPStream;
 
       return;
     } // end IF
@@ -681,6 +672,7 @@ do_work (unsigned int bufferSize_in,
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
       timer_manager_p->stop ();
       delete CBData_in.stream;
+      delete CBData_in.UDPStream;
 
       return;
     } // end IF
@@ -714,13 +706,18 @@ do_work (unsigned int bufferSize_in,
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
     timer_manager_p->stop ();
     delete CBData_in.stream;
+    delete CBData_in.UDPStream;
 
     return;
   } // end IF
 
   if (UIDefinitionFile_in.empty ())
   {
-    if (!CBData_in.stream->initialize (configuration.streamConfiguration))
+    Test_I_StreamBase_t* stream_p =
+      ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
+                                                          : CBData_in.UDPStream);
+    ACE_ASSERT (stream_p);
+    if (!stream_p->initialize (configuration.streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to initialize stream, aborting\n")));
@@ -731,26 +728,27 @@ do_work (unsigned int bufferSize_in,
                                            group_id);
       timer_manager_p->stop ();
       delete CBData_in.stream;
+      delete CBData_in.UDPStream;
 
       return;
     } // end IF
 
     // *NOTE*: this call blocks until the file has been sent (or an error
     //         occurs)
-    CBData_in.stream->start ();
-//    if (!stream_p->isRunning ())
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to start stream, aborting\n")));
+    stream_p->start ();
+    //    if (!stream_p->isRunning ())
+    //    {
+    //      ACE_DEBUG ((LM_ERROR,
+    //                  ACE_TEXT ("failed to start stream, aborting\n")));
 
-//      // clean up
-//      //timer_manager_p->stop ();
+    //      // clean up
+    //      //timer_manager_p->stop ();
 
-//      return;
-//    } // end IF
+    //      return;
+    //    } // end IF
+    stream_p->waitForCompletion ();
 
     // clean up
-    CBData_in.stream->stop (true);
     connection_manager_p->stop ();
     Common_Tools::finalizeEventDispatch (useReactor_in,
                                          !useReactor_in,
@@ -766,6 +764,7 @@ do_work (unsigned int bufferSize_in,
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
   timer_manager_p->stop ();
   delete CBData_in.stream;
+  delete CBData_in.UDPStream;
 
   //		{ // synch access
   //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
@@ -969,7 +968,7 @@ ACE_TMAIN (int argc_in,
   } // end IF
   if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
 
-  Stream_GTK_CBData gtk_cb_user_data;
+  Test_I_Source_GTK_CBData gtk_cb_user_data;
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
   // step1d: initialize logging and/or tracing
   Common_Logger logger (&gtk_cb_user_data.logStack,

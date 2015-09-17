@@ -67,6 +67,8 @@ Stream_Target_EventHandler::start (const Test_I_Stream_SessionData& sessionData_
   //} // end IF
   //CBData_->eventSourceIds.insert (event_source_id);
 
+  CBData_->progressData.transferred = 0;
+
   CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
 }
 

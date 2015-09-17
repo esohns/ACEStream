@@ -95,6 +95,9 @@
     <ClInclude Include="..\..\test_i\test_i_target_stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\test_i\test_i_source_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\test_i\test_i_source_stream.inl">

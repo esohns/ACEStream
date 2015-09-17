@@ -471,12 +471,10 @@
                                           <object class="GtkHBox" id="hbox_protocol options">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
-                                            <property name="homogeneous">True</property>
                                             <child>
                                               <object class="GtkVButtonBox" id="vbuttonbox_protocol">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
-                                                <property name="homogeneous">True</property>
                                                 <property name="layout_style">spread</property>
                                                 <child>
                                                   <object class="GtkRadioButton" id="radiobutton_tcp">
@@ -491,7 +489,7 @@
                                                     <signal name="toggled" handler="togglebutton_protocol_toggled_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">False</property>
+                                                    <property name="expand">True</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">0</property>
                                                   </packing>
@@ -509,20 +507,59 @@
                                                     <signal name="toggled" handler="togglebutton_protocol_toggled_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">False</property>
+                                                    <property name="expand">True</property>
                                                     <property name="fill">True</property>
                                                     <property name="position">1</property>
                                                   </packing>
                                                 </child>
                                               </object>
                                               <packing>
-                                                <property name="expand">True</property>
-                                                <property name="fill">True</property>
+                                                <property name="expand">False</property>
+                                                <property name="fill">False</property>
                                                 <property name="position">0</property>
                                               </packing>
                                             </child>
                                             <child>
-                                              <placeholder/>
+                                              <object class="GtkFrame" id="frame_asynch">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">False</property>
+                                                <property name="label_xalign">0</property>
+                                                <property name="shadow_type">in</property>
+                                                <child>
+                                                  <object class="GtkAlignment" id="alignment_aysnch">
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">False</property>
+                                                    <property name="xalign">0</property>
+                                                    <property name="yalign">0</property>
+                                                    <child>
+                                                      <object class="GtkCheckButton" id="checkbutton_asynch">
+                                                        <property name="label" translatable="yes">asynchronous</property>
+                                                        <property name="visible">True</property>
+                                                        <property name="sensitive">False</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="receives_default">False</property>
+                                                        <property name="focus_on_click">False</property>
+                                                        <property name="xalign">0</property>
+                                                        <property name="draw_indicator">True</property>
+                                                      </object>
+                                                    </child>
+                                                  </object>
+                                                </child>
+                                                <child type="label">
+                                                  <object class="GtkLabel" id="label_asynch">
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">False</property>
+                                                    <property name="xalign">0</property>
+                                                    <property name="yalign">0</property>
+                                                    <property name="use_markup">True</property>
+                                                  </object>
+                                                </child>
+                                              </object>
+                                              <packing>
+                                                <property name="expand">True</property>
+                                                <property name="fill">True</property>
+                                                <property name="position">1</property>
+                                              </packing>
                                             </child>
                                           </object>
                                         </child>

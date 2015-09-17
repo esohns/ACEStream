@@ -195,6 +195,7 @@
     <ClInclude Include="..\..\test_i\test_i_message.h" />
     <ClInclude Include="..\..\test_i\test_i_module_eventhandler.h" />
     <ClInclude Include="..\..\test_i\test_i_session_message.h" />
+    <ClInclude Include="..\..\test_i\test_i_source_common.h" />
     <ClInclude Include="..\..\test_i\test_i_source_eventhandler.h" />
     <ClInclude Include="..\..\test_i\test_i_source_signalhandler.h" />
     <ClInclude Include="..\..\test_i\test_i_source_stream.h" />

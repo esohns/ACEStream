@@ -313,15 +313,4 @@ struct Stream_GTK_CBData
   ACE_SYNCH_RECURSIVE_MUTEX subscribersLock;
 };
 
-struct Stream_ThreadData
-{
-  inline Stream_ThreadData ()
-   : CBData (NULL)
-   , eventSourceID (0)
-  {};
-
-  Stream_GTK_CBData* CBData;
-  guint              eventSourceID;
-};
-
 #endif

@@ -214,8 +214,8 @@ Stream_Module_Net_Target_T<SessionMessageType,
         ACE_OS::memset (buffer, 0, sizeof (buffer));
         result =
           configuration_.socketConfiguration->peerAddress.addr_to_string (buffer,
-                                                                                     sizeof (buffer),
-                                                                                     1);
+                                                                          sizeof (buffer),
+                                                                          1);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
