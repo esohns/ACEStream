@@ -461,6 +461,7 @@ do_work (unsigned int bufferSize_in,
     &configuration.streamConfiguration;
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
+  configuration.useReactor = useReactor_in;
 
   Stream_AllocatorHeap heap_allocator;
   Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers

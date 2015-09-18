@@ -70,6 +70,7 @@ stream_processing_function (void* arg_in)
 
 //  GtkProgressBar* progress_bar_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
+  Test_I_StreamBase_t* stream_p = NULL;
   {
 //    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->CBData->lock);
 
@@ -90,39 +91,31 @@ stream_processing_function (void* arg_in)
     switch (data_p->CBData->configuration->protocol)
     {
       case NET_TRANSPORTLAYER_TCP:
-      {
+        stream_p = data_p->CBData->stream;
         data_p->CBData->configuration->moduleHandlerConfiguration.stream =
-          data_p->CBData->stream;
-        if (!data_p->CBData->stream->initialize (data_p->CBData->configuration->streamConfiguration))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to initialize stream: \"%m\", aborting\n")));
-          goto done;
-        } // end IF
-        session_data_p = &data_p->CBData->stream->sessionData ();
+          stream_p;
         break;
-      }
       case NET_TRANSPORTLAYER_UDP:
-      {
+        stream_p = data_p->CBData->UDPStream;
         data_p->CBData->configuration->moduleHandlerConfiguration.stream =
-          data_p->CBData->UDPStream;
-        if (!data_p->CBData->UDPStream->initialize (data_p->CBData->configuration->streamConfiguration))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to initialize stream: \"%m\", aborting\n")));
-          goto done;
-        } // end IF
-        session_data_p = &data_p->CBData->UDPStream->sessionData ();
+          stream_p;
         break;
-      }
       default:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown protocol (was: %d), returning\n"),
                     data_p->CBData->configuration->protocol));
-        break;
+        goto done;
       }
     } // end SWITCH
+    ACE_ASSERT (stream_p);
+    if (!stream_p->initialize (data_p->CBData->configuration->streamConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to initialize stream: \"%m\", aborting\n")));
+      goto done;
+    } // end IF
+    session_data_p = &stream_p->sessionData ();
 
     statusbar_p =
       GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
@@ -138,40 +131,14 @@ stream_processing_function (void* arg_in)
   } // end lock scope
 
   // *NOTE*: processing currently happens 'inline' (borrows calling thread)
-  switch (data_p->CBData->configuration->protocol)
-  {
-    case NET_TRANSPORTLAYER_TCP:
-    {
-      data_p->CBData->stream->start ();
-      //    if (!stream_p->isRunning ())
-      //    {
-      //      ACE_DEBUG ((LM_ERROR,
-      //                  ACE_TEXT ("failed to start stream, aborting\n")));
-      //      return;
-      //    } // end IF
-      data_p->CBData->stream->waitForCompletion ();
-      break;
-    }
-    case NET_TRANSPORTLAYER_UDP:
-    {
-      data_p->CBData->UDPStream->start ();
-      //    if (!stream_p->isRunning ())
-      //    {
-      //      ACE_DEBUG ((LM_ERROR,
-      //                  ACE_TEXT ("failed to start stream, aborting\n")));
-      //      return;
-      //    } // end IF
-      data_p->CBData->UDPStream->waitForCompletion ();
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown protocol (was: %d), returning\n"),
-                  data_p->CBData->configuration->protocol));
-      break;
-    }
-  } // end SWITCH
+  stream_p->start ();
+  //    if (!stream_p->isRunning ())
+  //    {
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("failed to start stream, aborting\n")));
+  //      return;
+  //    } // end IF
+  stream_p->waitForCompletion ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -327,6 +294,12 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     ACE_ASSERT (radio_button_p);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p), TRUE);
   } // end IF
+  GtkCheckButton* check_button_p =
+      GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_ASYNCH_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
+                                !data_p->configuration->useReactor);
 
   spin_button_p =
       //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -817,6 +790,12 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     ACE_ASSERT (radio_button_p);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p), TRUE);
   } // end IF
+  GtkCheckButton* check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_ASYNCH_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
+                                !data_p->configuration->useReactor);
 
   spin_button_p =
       //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -827,6 +806,15 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
                              std::numeric_limits<double>::max ());
+
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+  gint width, height;
+  gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
+  gtk_progress_bar_set_pulse_step (progress_bar_p,
+                                   1.0 / static_cast<double> (width));
 
   // step4: initialize text view, setup auto-scrolling
   GtkTextView* view_p =
@@ -931,11 +919,36 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //ACE_ASSERT (action_p);
   //gtk_action_set_sensitive (action_p, FALSE);
 
+  // start progress reporting
+  ACE_ASSERT (!data_p->progressEventSourceID);
+  {
+    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
+
+    data_p->progressEventSourceID =
+      //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
+      //                 idle_update_progress_cb,
+      //                 &data_p->progressData,
+      //                 NULL);
+      g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
+                          TEST_I_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
+                          idle_update_progress_target_cb,
+                          &data_p->progressData,
+                          NULL);
+    if (data_p->progressEventSourceID > 0)
+      data_p->eventSourceIds.insert (data_p->progressEventSourceID);
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_target_progress_cb): \"%m\", aborting\n")));
+      return G_SOURCE_REMOVE;
+    } // end IF
+  } // end lock scope
+
   // step7: (auto-)connect signals/slots
   // *NOTE*: glade_xml_signal_autoconnect does not work reliably
   //glade_xml_signal_autoconnect(userData_out.xml);
 
-  // step6a: connect default signals
+  // step7a: connect default signals
   gulong result_2 =
     g_signal_connect (dialog_p,
                       ACE_TEXT_ALWAYS_CHAR ("destroy"),
@@ -1098,30 +1111,6 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
-  // step10: start progress reporting
-  {
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
-    
-    event_source_id =
-    //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
-    //                 idle_update_progress_cb,
-    //                 &data_p->progressData,
-    //                 NULL);
-      g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
-                          TEST_I_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
-                          idle_update_progress_target_cb,
-                          &data_p->progressData,
-                          NULL);
-    if (event_source_id > 0)
-      data_p->eventSourceIds.insert (event_source_id);
-    else
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_target_progress_cb): \"%m\", returning\n")));
-      return G_SOURCE_REMOVE;
-    } // end IF
-  } // end lock scope
-
   return G_SOURCE_REMOVE;
 }
 
@@ -1166,7 +1155,6 @@ idle_reset_target_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
   gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
-  gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
 
   {
     ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
@@ -1563,9 +1551,7 @@ idle_update_progress_target_cb (gpointer userData_in)
                 ACE_TEXT ("failed to ACE_OS::sprintf(): \"%m\", continuing\n")));
   gtk_progress_bar_set_text (progress_bar_p,
                              ACE_TEXT_ALWAYS_CHAR (buffer));
-  ////gtk_progress_bar_pulse (progress_bar_p);
-  //gtk_progress_bar_set_fraction (progress_bar_p,
-  //                               static_cast<double> (data_p->transferred) / static_cast<double> (data_p->size));
+  gtk_progress_bar_pulse (progress_bar_p);
 
   // --> reschedule
   return G_SOURCE_CONTINUE;
@@ -1593,8 +1579,9 @@ action_start_activate_cb (GtkAction* action_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->stream);
   ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->stream);
+  ACE_ASSERT (data_p->UDPStream);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -1606,12 +1593,31 @@ action_start_activate_cb (GtkAction* action_in,
   int result = -1;
   guint event_source_id = 0;
 
+  Test_I_StreamBase_t* stream_p = NULL;
+  switch (data_p->configuration->protocol)
+  {
+    case NET_TRANSPORTLAYER_TCP:
+      stream_p = data_p->stream;
+      break;
+    case NET_TRANSPORTLAYER_UDP:
+      stream_p = data_p->UDPStream;
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown protocol (was: %d), returning\n"),
+                  data_p->configuration->protocol));
+      return;
+    }
+  } // end SWITCH
+  ACE_ASSERT (stream_p);
+
   // toggle play/pause ?
-  Stream_StateMachine_ControlState status_r = data_p->stream->status ();
+  Stream_StateMachine_ControlState status_r = stream_p->status ();
   if ((status_r == STREAM_STATE_RUNNING) ||
       (status_r == STREAM_STATE_PAUSED))
   {
-    data_p->stream->pause (); // pause/unpause
+    stream_p->pause (); // pause/unpause
     if (!data_p->configuration->moduleHandlerConfiguration.active)
     {
       ACE_ASSERT (!data_p->progressData.pendingActions.empty ());
@@ -1655,10 +1661,6 @@ action_start_activate_cb (GtkAction* action_in,
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
-  //gint width, height;
-  //gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
-  //gtk_progress_bar_set_pulse_step (progress_bar_p,
-  //                                 1.0 / static_cast<double> (width));
   gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
 
   // step2: initialize processing stream
@@ -1800,8 +1802,28 @@ action_stop_activate_cb (GtkAction* action_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->stream);
+  ACE_ASSERT (data_p->UDPStream);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
+
+  Test_I_StreamBase_t* stream_p = NULL;
+  switch (data_p->configuration->protocol)
+  {
+    case NET_TRANSPORTLAYER_TCP:
+      stream_p = data_p->stream;
+      break;
+    case NET_TRANSPORTLAYER_UDP:
+      stream_p = data_p->UDPStream;
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown protocol (was: %d), returning\n"),
+                  data_p->configuration->protocol));
+      return;
+    }
+  } // end SWITCH
+  ACE_ASSERT (stream_p);
 
   gtk_action_set_sensitive (action_in, FALSE);
   GtkAction* action_p =
@@ -1812,7 +1834,7 @@ action_stop_activate_cb (GtkAction* action_in,
   ACE_ASSERT (action_p);
   gtk_action_set_stock_id (action_p, GTK_STOCK_MEDIA_PLAY);
 
-  data_p->stream->stop (false);
+  stream_p->stop (false);
 } // action_stop_activate_cb
 
 void
@@ -2128,6 +2150,37 @@ action_listen_activate_cb (GtkAction* action_in,
         return;
       } // end catch
     } // end SWITCH
+
+    // start progress reporting
+    GtkProgressBar* progress_bar_p =
+      GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+    ACE_ASSERT (progress_bar_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), TRUE);
+
+    ACE_ASSERT (!data_p->progressEventSourceID);
+    {
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
+
+      data_p->progressEventSourceID =
+        //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
+        //                 idle_update_progress_cb,
+        //                 &data_p->progressData,
+        //                 NULL);
+        g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,                          // _LOW doesn't work (on Win32)
+                            TEST_I_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL, // ms (?)
+                            idle_update_progress_target_cb,
+                            &data_p->progressData,
+                            NULL);
+      if (data_p->progressEventSourceID > 0)
+        data_p->eventSourceIds.insert (data_p->progressEventSourceID);
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_timeout_add_full(idle_update_target_progress_cb): \"%m\", returning\n")));
+        return;
+      } // end IF
+    } // end lock scope
   } // end IF
   else
   {
@@ -2157,6 +2210,26 @@ action_listen_activate_cb (GtkAction* action_in,
         data_p->configuration->handle = ACE_INVALID_HANDLE;
       } // end ELSE
     } // end IF
+
+    // stop progress reporting
+    ACE_ASSERT (data_p->progressEventSourceID);
+    {
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
+
+      if (!g_source_remove (data_p->progressEventSourceID))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                    data_p->progressEventSourceID));
+      data_p->eventSourceIds.erase (data_p->progressEventSourceID);
+      data_p->progressEventSourceID = 0;
+    } // end lock scope
+    GtkProgressBar* progress_bar_p =
+      GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+    ACE_ASSERT (progress_bar_p);
+    // *NOTE*: this disables "activity mode" (in Gtk2)
+    gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
+    gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), FALSE);
   } // end ELSE
 } // action_listen_activate_cb
 

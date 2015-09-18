@@ -236,7 +236,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   WRITER_T* netTarget_impl_p = NULL;
   Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Stream_Module_FileReader* fileReader_impl_p = NULL;
-  typename ConnectorType::ICONNECTION_T* connection_p = NULL;
 
   // ******************* Net Target ************************
   netTarget_.initialize (*configuration_in.moduleConfiguration);

@@ -444,6 +444,7 @@ do_work (unsigned int bufferSize_in,
   configuration.userData.configuration = &configuration;
   configuration.userData.streamConfiguration =
     &configuration.streamConfiguration;
+  configuration.useReactor = useReactor_in;
 
   Stream_AllocatorHeap heap_allocator;
   Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers

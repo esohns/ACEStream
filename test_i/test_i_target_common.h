@@ -94,9 +94,11 @@ struct Test_I_Target_GTK_CBData
   inline Test_I_Target_GTK_CBData ()
    : Stream_GTK_CBData ()
    , configuration (NULL)
+   , progressEventSourceID (0)
   {};
 
   Test_I_Target_Configuration* configuration;
+  guint                        progressEventSourceID;
 };
 
 #endif

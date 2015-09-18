@@ -222,6 +222,7 @@ struct Test_I_Configuration
    , streamConfiguration ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
    , userData ()
+   , useReactor (NET_EVENT_USE_REACTOR)
   {};
 
   // **************************** signal data **********************************
@@ -237,6 +238,7 @@ struct Test_I_Configuration
   Net_TransportLayerType                   protocol;
 
   Test_I_UserData                          userData;
+  bool                                     useReactor;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<Stream_Message,
