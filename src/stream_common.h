@@ -43,9 +43,9 @@ struct Stream_Statistic
    : bytes (0.0F)
    , dataMessages (0)
    , droppedMessages (0)
-   , timestamp (ACE_Time_Value::zero)
    , bytesPerSecond (0.0F)
    , messagesPerSecond (0.0F)
+   , timestamp (ACE_Time_Value::zero)
   {};
 
   inline Stream_Statistic operator+= (const Stream_Statistic& rhs_in)

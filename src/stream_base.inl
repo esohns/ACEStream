@@ -402,12 +402,13 @@ Stream_Base_T<TaskSynchType,
   ACE_UNUSED_ARG (lockedAccess_in);
 
   int result = -1;
+  MODULE_T* module_p = NULL;
+  ISTREAM_CONTROL_T* control_impl_p = NULL;
 
   if (!isRunning ())
     goto wait;
 
   // delegate to the head module, skip over ACE_Stream_Head...
-  MODULE_T* module_p = NULL;
   result = inherited::top (module_p);
   if ((result == -1) || !module_p)
   {
@@ -416,12 +417,12 @@ Stream_Base_T<TaskSynchType,
     return;
   } // end IF
 
-  // *WARNING*: cannot flush(), as this deactivates() the queue as well,
-  // which causes mayhem for (blocked) worker(s)...
-  // *TODO*: consider optimizing this...
+  // *WARNING*: cannot flush(), as this deactivates() the queue as well, which
+  //            causes mayhem for any (blocked) worker(s)
+  // *TODO*: consider optimizing this
   //module->writer ()->flush ();
 
-  ISTREAM_CONTROL_T* control_impl_p =
+  control_impl_p =
     dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
   if (!control_impl_p)
   {

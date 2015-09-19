@@ -459,7 +459,7 @@ Stream_Module_Net_Source_T<SessionMessageType,
                       buffer));
 
           // clean up
-          connector_p->abort ();
+          connector.abort ();
 
           goto reset;
         } // end IF

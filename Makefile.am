@@ -9,5 +9,7 @@ if TEST_SUPPORT
 endif
 
 EXTRA_DIST = \
-  autogen.sh
-
+  autogen.sh \
+  configure.gnu \
+  LICENSE \
+  README.md
