@@ -23,9 +23,11 @@
 
 #include "ace/INET_Addr.h"
 #include "ace/Singleton.h"
+#include "ace/SOCK_Connector.h"
 #include "ace/Synch_Traits.h"
 
 #include "net_asynch_tcpsockethandler.h"
+#include "net_sock_acceptor.h"
 #include "net_stream_asynch_tcpsocket_base.h"
 #include "net_stream_tcpsocket_base.h"
 #include "net_tcpconnection_base.h"
@@ -150,6 +152,7 @@ typedef Net_Server_AsynchListener_T<Test_I_Target_AsynchTCPConnection_t,
                                     /////
                                     Test_I_UserData> Test_I_Target_AsynchListener_t;
 typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
+                              Net_SOCK_Acceptor,
                               ///////////
                               ACE_INET_Addr,
                               Test_I_Target_ListenerConfiguration,
@@ -172,6 +175,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_InboundAsynchUDPConnection_t,
                                      ////
                                      Test_I_UserData> Test_I_Stream_InboundUDPAsynchConnector_t;
 typedef Net_Client_Connector_T<Test_I_InboundUDPConnection_t,
+                               ACE_SOCK_CONNECTOR,
                                //////////
                                ACE_INET_Addr,
                                Test_I_Configuration,

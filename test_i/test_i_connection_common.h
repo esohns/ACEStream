@@ -26,6 +26,7 @@
 #else
 #include "ace/Netlink_Addr.h"
 #endif
+#include "ace/SOCK_Connector.h"
 
 #include "stream_common.h"
 
@@ -35,6 +36,7 @@
 #include "net_asynch_udpsockethandler.h"
 #include "net_common.h"
 #include "net_connection_manager.h"
+#include "net_sock_connector.h"
 #include "net_stream_asynch_tcpsocket_base.h"
 #include "net_stream_asynch_udpsocket_base.h"
 #include "net_stream_tcpsocket_base.h"
@@ -237,6 +239,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_AsynchTCPConnection_t,
                                      ////
                                      Test_I_UserData> Test_I_Stream_TCPAsynchConnector_t;
 typedef Net_Client_Connector_T<Test_I_TCPConnection_t,
+                               Net_SOCK_Connector,
                                //////////
                                ACE_INET_Addr,
                                Test_I_Configuration,
@@ -259,6 +262,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_AsynchUDPConnection_t,
                                      ////
                                      Test_I_UserData> Test_I_Stream_UDPAsynchConnector_t;
 typedef Net_Client_Connector_T<Test_I_UDPConnection_t,
+                               ACE_SOCK_CONNECTOR,
                                //////////
                                ACE_INET_Addr,
                                Test_I_Configuration,

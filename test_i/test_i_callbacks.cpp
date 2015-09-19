@@ -1613,7 +1613,7 @@ action_start_activate_cb (GtkAction* action_in,
   ACE_ASSERT (stream_p);
 
   // toggle play/pause ?
-  Stream_StateMachine_ControlState status_r = stream_p->status ();
+  const Stream_StateMachine_ControlState& status_r = stream_p->status ();
   if ((status_r == STREAM_STATE_RUNNING) ||
       (status_r == STREAM_STATE_PAUSED))
   {
@@ -2093,26 +2093,35 @@ action_listen_activate_cb (GtkAction* action_in,
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string(): \"%m\", continuing\n")));
+        // connect
         data_p->configuration->handle =
           connector_p->connect (data_p->configuration->socketConfiguration.peerAddress);
+        // *TODO*: support one-thread operation by scheduling a signal and manually
+        //         running the dispatch loop for a limited time...
         if (!data_p->configuration->useReactor)
         {
-          // *TODO*: support one-thread operation by scheduling a signal and manually
-          //         running the dispatch loop for a limited time...
-          ACE_Time_Value one_second (1, 0);
-          result = ACE_OS::sleep (one_second);
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                        &one_second));
+          // *TODO*: avoid tight loop here
+          ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
+          //result = ACE_OS::sleep (timeout);
+          //if (result == -1)
+          //  ACE_DEBUG ((LM_ERROR,
+          //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+          //              &timeout));
+          ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
           Test_I_Stream_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
-              connection_manager_p->get (data_p->configuration->socketConfiguration.peerAddress);
-          if (connection_p)
+            NULL;
+          do
           {
-            data_p->configuration->handle =
-              reinterpret_cast<ACE_HANDLE> (connection_p->id ());
-            connection_p->decrease ();
-          } // end IF
+            connection_p =
+              connection_manager_p->get (data_p->configuration->socketConfiguration.peerAddress);
+            if (connection_p)
+            {
+              data_p->configuration->handle =
+                reinterpret_cast<ACE_HANDLE> (connection_p->id ());
+              connection_p->decrease ();
+              break;
+            } // end IF
+          } while (COMMON_TIME_NOW < deadline);
         } // end IF
         if (data_p->configuration->handle == ACE_INVALID_HANDLE)
         {
@@ -2121,6 +2130,7 @@ action_listen_activate_cb (GtkAction* action_in,
                       ACE_TEXT (buffer)));
 
           // clean up
+          connector_p->abort ();
           delete connector_p;
 
           return;

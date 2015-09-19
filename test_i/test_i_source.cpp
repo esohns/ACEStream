@@ -142,7 +142,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-x [VALUE]  : #dispatch threads [")
-            << NET_CLIENT_DEF_NUM_DISPATCH_THREADS
+            << NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 }
@@ -197,7 +197,7 @@ do_processArguments (int argc_in,
   useUDP_out = false;
   printVersionAndExit_out = false;
   numberOfDispatchThreads_out =
-    NET_CLIENT_DEF_NUM_DISPATCH_THREADS;
+    NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
@@ -902,7 +902,7 @@ ACE_TMAIN (int argc_in,
   bool use_UDP = false;
   bool print_version_and_exit = false;
   unsigned int number_of_dispatch_threads =
-    NET_CLIENT_DEF_NUM_DISPATCH_THREADS;
+    NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,

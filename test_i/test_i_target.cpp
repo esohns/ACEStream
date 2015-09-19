@@ -790,6 +790,7 @@ do_work (unsigned int bufferSize_in,
       return;
     } // end IF
 
+    // connect
     ACE_TCHAR buffer[BUFSIZ];
     ACE_OS::memset (buffer, 0, sizeof (buffer));
     int result =
@@ -799,26 +800,34 @@ do_work (unsigned int bufferSize_in,
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string(): \"%m\", continuing\n")));
+    // *TODO*: support one-thread operation by scheduling a signal and manually
+    //         running the dispatch loop for a limited time...
     configuration.handle =
       connector_p->connect (configuration.socketConfiguration.peerAddress);
     if (!useReactor_in)
     {
-      // *TODO*: support one-thread operation by scheduling a signal and manually
-      //         running the dispatch loop for a limited time...
-      ACE_Time_Value one_second (1, 0);
-      result = ACE_OS::sleep (one_second);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                    &one_second));
+      // *TODO*: avoid tight loop here
+      ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
+      //result = ACE_OS::sleep (timeout);
+      //if (result == -1)
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+      //              &timeout));
+      ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
       Test_I_Stream_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
-          connection_manager_p->get (configuration.socketConfiguration.peerAddress);
-      if (connection_p)
+        NULL;
+      do
       {
-        configuration.handle =
-          reinterpret_cast<ACE_HANDLE> (connection_p->id ());
-        connection_p->decrease ();
-      } // end IF
+        connection_p =
+          connection_manager_p->get (configuration.socketConfiguration.peerAddress);
+        if (connection_p)
+        {
+          configuration.handle =
+            reinterpret_cast<ACE_HANDLE> (connection_p->id ());
+          connection_p->decrease ();
+          break;
+        } // end IF
+      } while (COMMON_TIME_NOW < deadline);
     } // end IF
     if (configuration.handle == ACE_INVALID_HANDLE)
     {
@@ -827,6 +836,7 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT (buffer)));
 
       // clean up
+      connector_p->abort ();
       Common_Tools::finalizeEventDispatch (useReactor_in,
                                            !useReactor_in,
                                            group_id);

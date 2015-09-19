@@ -241,7 +241,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
         // *TODO*: remove type inferences
         ConnectorType connector (iconnection_manager_p,
                                  configuration_.streamConfiguration->statisticReportingInterval);
-        //  Stream_IInetConnector_t* iconnector_p = &connector;
+        typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector;
         ACE_ASSERT (configuration_.streamConfiguration);
         bool clone_module, delete_module;
         clone_module =
@@ -253,7 +253,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
         configuration_.streamConfiguration->cloneModule = false;
         configuration_.streamConfiguration->deleteModule = false;
         configuration_.streamConfiguration->module = NULL;
-        if (!connector.initialize (*configuration_.socketHandlerConfiguration))
+        if (!iconnector_p->initialize (*configuration_.socketHandlerConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
@@ -262,27 +262,40 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
         // step3: connect
         ACE_ASSERT (!configuration_.connection);
+        // *TODO*: support one-thread operation by scheduling a signal and manually
+        //         running the dispatch loop for a limited time...
         handle =
-          connector.connect (configuration_.socketConfiguration->peerAddress);
-        if (connector.useReactor ())
+          iconnector_p->connect (configuration_.socketConfiguration->peerAddress);
+        if (iconnector_p->useReactor ())
           configuration_.connection =
             configuration_.connectionManager->get (handle);
         else
         {
-          ACE_Time_Value one_second (1, 0);
-          result = ACE_OS::sleep (one_second);
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                        &one_second));
-          configuration_.connection =
-            configuration_.connectionManager->get (configuration_.socketConfiguration->peerAddress);
+          // *TODO*: avoid tight loop here
+          ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
+          //result = ACE_OS::sleep (timeout);
+          //if (result == -1)
+          //  ACE_DEBUG ((LM_ERROR,
+          //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+          //              &timeout));
+          ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
+          do
+          {
+            configuration_.connection =
+              configuration_.connectionManager->get (configuration_.socketConfiguration->peerAddress);
+            if (configuration_.connection)
+              break;
+          } while (COMMON_TIME_NOW < deadline);
         } // end IF
         if (!configuration_.connection)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to \"%s\", returning\n"),
                       buffer));
+
+          // clean up
+          iconnector_p->abort ();
+
           goto reset;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
@@ -296,7 +309,7 @@ reset:
           delete_module;
         configuration_.streamConfiguration->module = module_p;
         if (!configuration_.connection)
-          goto done;
+          break;
 
         typename ConnectorType::STREAM_T* stream_p = NULL;
         typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =

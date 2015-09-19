@@ -436,20 +436,31 @@ Stream_Module_Net_Source_T<SessionMessageType,
               inherited::configuration_.connectionManager->get (handle);
         else
         {
-          ACE_Time_Value one_second (1, 0);
-          result = ACE_OS::sleep (one_second);
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                        &one_second));
-          inherited::configuration_.connection =
+          // *TODO*: avoid tight loop here
+          ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
+          //result = ACE_OS::sleep (timeout);
+          //if (result == -1)
+          //  ACE_DEBUG ((LM_ERROR,
+          //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+          //              &timeout));
+          ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
+          do
+          {
+            inherited::configuration_.connection =
               inherited::configuration_.connectionManager->get (inherited::configuration_.socketConfiguration->peerAddress);
+            if (inherited::configuration_.connection)
+              break;
+          } while (COMMON_TIME_NOW < deadline);
         } // end IF
         if (!inherited::configuration_.connection)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to connect to \"%s\", returning\n"),
                       buffer));
+
+          // clean up
+          connector_p->abort ();
+
           goto reset;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
