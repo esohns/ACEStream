@@ -412,8 +412,8 @@ Stream_Base_T<TaskSynchType,
   result = inherited::top (module_p);
   if ((result == -1) || !module_p)
   {
-    //ACE_DEBUG ((LM_ERROR,
-    //            ACE_TEXT ("no head module found: \"%m\", returning\n")));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("no head module found: \"%m\", returning\n")));
     return;
   } // end IF
 
@@ -421,7 +421,10 @@ Stream_Base_T<TaskSynchType,
   //            causes mayhem for any (blocked) worker(s)
   // *TODO*: consider optimizing this
   //module->writer ()->flush ();
+<<<<<<< HEAD
 
+=======
+>>>>>>> 73b3dea26f55af37d8c25b7389d4f966f2e2d7a8
   control_impl_p =
     dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
   if (!control_impl_p)
