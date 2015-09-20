@@ -165,12 +165,15 @@ else
 fi
 AM_COND_IF([BUILD_MODULES],
            [AC_CONFIG_SUBDIRS([modules/libCommon
-                               modules/libACENetwork])])
+                               src/modules/net/modules/libACENetwork
+                               test_i/modules/libACENetwork])])
 dnl AC_CONFIG_SUBDIRS([modules/ATCD
 dnl                    modules/libCommon
 dnl                    modules/libACENetwork])])
 AM_COND_IF([BUILD_MODULES],
-           [AC_CONFIG_FILES([modules/Makefile])])
+           [AC_CONFIG_FILES([modules/Makefile
+                             src/modules/net/modules/Makefile
+                             test_i/modules/Makefile])])
 
 # --> build (integration) tests ?
 AC_MSG_CHECKING([build (integration) tests])

@@ -77,7 +77,6 @@ Stream_Module_Net_Target_T<SessionMessageType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::~Stream_Module_Net_Target_T"));
 
   int result = -1;
-  ACE_TCHAR buffer[BUFSIZ];
 
   if (!isPassive_ && configuration_.connection)
   {

@@ -155,7 +155,8 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   } // end IF
 
   reportingInterval_ = reportingInterval_in;
-  if (reportingInterval_)
+  if (reportingInterval_ &&
+      (resetTimeoutHandlerID_ == -1))
   {
     // schedule the second-granularity timer
     ACE_Time_Value one_second (1, 0); // one second interval
@@ -309,8 +310,8 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     }
     case STREAM_SESSION_END:
     {
-      // stop reporting timer
-      finiTimers (false);
+      // stop (reporting) timer(s) --> need to re-initialize after this
+      finiTimers (true);
 
       // session finished --> print overall statistic ?
       if (printFinalReport_)
@@ -364,14 +365,14 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
       // *TODO*: remove type inferences
       sessionData_->currentStatistic.bytesPerSecond =
         static_cast<float> (lastBytesPerSecondCount_);
-      sessionData_->currentStatistic.messagesPerSecond = 
+      sessionData_->currentStatistic.messagesPerSecond =
         static_cast<float> (lastMessagesPerSecondCount_);
     } // end IF
-
-    if (sendStatisticMessages_ &&
-        (reportingInterval_ == 1))
-      sendStatistic ();
   } // end lock scope
+
+  if (sendStatisticMessages_ &&
+      (reportingInterval_ == 1))
+    sendStatistic ();
 }
 
 template <typename TaskSynchType,
@@ -433,11 +434,11 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::report"));
 
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
-
   if (sendStatisticMessages_ &&
       (reportingInterval_ != 1))
     const_cast<OWN_TYPE_T*> (this)->sendStatistic ();
+
+  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
   // *TODO*: remove type inferences
   ACE_DEBUG ((LM_INFO,

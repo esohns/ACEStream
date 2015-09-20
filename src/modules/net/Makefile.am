@@ -48,7 +48,12 @@ libACEStream_Net_la_CPPFLAGS = \
   -I$(top_srcdir)/modules/libCommon/src \
   -I$(srcdir)/../.. \
   -I$(srcdir)/../misc \
-  -I$(top_srcdir)/modules/libACENetwork/src \
-  -I$(top_srcdir)/modules/libACENetwork/src/client_server
+  -I$(srcdir)/modules/libACENetwork/src \
+  -I$(srcdir)/modules/libACENetwork/src/client_server
 libACEStream_Net_la_LDFLAGS = \
   -version-info @LIBACESTREAM_LT_VERSION_INFO@
+
+SUBDIRS = \
+  modules \
+  .
+

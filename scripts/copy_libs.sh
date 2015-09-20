@@ -67,8 +67,8 @@ echo "copying external module libraries"
 LIB_DIR=".libs"
 SUB_DIRS="modules/libCommon/src
 modules/libCommon/src/ui
-../../modules/libACENetwork/build/${BUILD}/src
-../../modules/libACENetwork/build/${BUILD}/src/client_server"
+src/modules/net/modules/libACENetwork/src
+src/modules/net/modules/libACENetwork/src/client_server"
 #declare -a LIBS=("libCommon.so"
 LIBS="libCommon.so libCommon_UI.so libACENetwork.so libACENetwork_Client.so"
 set -- $LIBS

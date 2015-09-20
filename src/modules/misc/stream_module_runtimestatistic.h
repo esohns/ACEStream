@@ -168,7 +168,6 @@ class Stream_Module_Statistic_WriterTask_T
   // helper method(s)
   void finalReport () const;
   void finiTimers (bool = true); // cancel both timers ? (false --> cancel only localReportingHandlerID_)
-  // *NOTE*: must be called with lock_ held !
   void sendStatistic ();
 
   bool                              isInitialized_;

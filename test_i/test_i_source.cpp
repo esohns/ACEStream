@@ -764,8 +764,6 @@ do_work (unsigned int bufferSize_in,
   if (!UIDefinitionFile_in.empty ())
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
   timer_manager_p->stop ();
-  delete CBData_in.stream;
-  delete CBData_in.UDPStream;
 
   //		{ // synch access
   //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
@@ -791,6 +789,8 @@ do_work (unsigned int bufferSize_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
                 event_handler.name ()));
+  delete CBData_in.stream;
+  delete CBData_in.UDPStream;
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));

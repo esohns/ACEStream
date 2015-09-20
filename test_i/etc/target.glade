@@ -171,14 +171,10 @@
               <object class="GtkVBox" id="vbox_controls">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="valign">start</property>
                 <child>
                   <object class="GtkHBox" id="hbox_actions_information">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="halign">start</property>
-                    <property name="valign">start</property>
                     <child>
                       <object class="GtkFrame" id="frame_actions">
                         <property name="visible">True</property>
@@ -206,7 +202,6 @@
                                     <property name="focus_on_click">False</property>
                                     <property name="xalign">0</property>
                                     <property name="yalign">0</property>
-                                    <property name="always_show_image">True</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -225,7 +220,6 @@
                                     <property name="focus_on_click">False</property>
                                     <property name="xalign">0</property>
                                     <property name="yalign">0</property>
-                                    <property name="always_show_image">True</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -243,7 +237,6 @@
                                     <property name="focus_on_click">False</property>
                                     <property name="xalign">0</property>
                                     <property name="yalign">0</property>
-                                    <property name="always_show_image">True</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -288,8 +281,6 @@
                               <object class="GtkTable" id="table_information">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="halign">start</property>
-                                <property name="valign">start</property>
                                 <property name="n_rows">3</property>
                                 <property name="n_columns">2</property>
                                 <property name="homogeneous">True</property>
@@ -458,7 +449,6 @@
                   <object class="GtkFrame" id="frame_options">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="valign">start</property>
                     <property name="label_xalign">0</property>
                     <property name="label_yalign">0</property>
                     <child>
@@ -471,7 +461,6 @@
                           <object class="GtkVBox" id="vbox_options">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="valign">start</property>
                             <child>
                               <object class="GtkFrame" id="frame_source">
                                 <property name="visible">True</property>
@@ -612,7 +601,6 @@
                                                   <object class="GtkHBox" id="hbox_protocol options">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">False</property>
-                                                    <property name="valign">start</property>
                                                     <child>
                                                       <object class="GtkFrame" id="frame_protocol">
                                                         <property name="visible">True</property>
@@ -959,7 +947,6 @@
                 <property name="fill">False</property>
                 <property name="position">0</property>
                 <property name="secondary">True</property>
-                <property name="non_homogeneous">True</property>
               </packing>
             </child>
             <child>

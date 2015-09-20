@@ -421,10 +421,6 @@ Stream_Base_T<TaskSynchType,
   //            causes mayhem for any (blocked) worker(s)
   // *TODO*: consider optimizing this
   //module->writer ()->flush ();
-<<<<<<< HEAD
-
-=======
->>>>>>> 73b3dea26f55af37d8c25b7389d4f966f2e2d7a8
   control_impl_p =
     dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
   if (!control_impl_p)
@@ -564,7 +560,8 @@ Stream_Base_T<TaskSynchType,
 
     modules.push_front (const_cast<MODULE_T*> (module_p));
     task_p = const_cast<MODULE_T*> (module_p)->writer ();
-    ACE_ASSERT (task_p);
+    if (!task_p) // close()d already ?
+      continue;
     queue_p = task_p->msg_queue ();
     ACE_ASSERT (queue_p);
     do
@@ -573,13 +570,13 @@ Stream_Base_T<TaskSynchType,
       message_count = queue_p->message_count ();
       if (!message_count) break;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s writer: waiting to process ~%d byte(s) (in %u message(s))...\n"),
+                  ACE_TEXT ("\"%s\" writer: waiting to process ~%d byte(s) (in %u message(s))...\n"),
                   module_p->name (),
                   queue_p->message_bytes (), message_count));
       result = ACE_OS::sleep (one_second);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s writer: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                    ACE_TEXT ("\"%s\" writer: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
                     module_p->name (),
                     &one_second));
     } while (true);
@@ -593,7 +590,8 @@ Stream_Base_T<TaskSynchType,
        iterator++)
   {
     task_p = (*iterator)->reader ();
-    ACE_ASSERT (task_p);
+    if (!task_p) // close()d already ?
+      continue;
     queue_p = task_p->msg_queue ();
     ACE_ASSERT (queue_p);
     do
@@ -602,14 +600,14 @@ Stream_Base_T<TaskSynchType,
       message_count = queue_p->message_count ();
       if (!message_count) break;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s reader: waiting to process ~%d byte(s) (in %u message(s))...\n"),
-                  module_p->name (),
+                  ACE_TEXT ("\"%s\" reader: waiting to process ~%d byte(s) (in %u message(s))...\n"),
+                  (*iterator)->name (),
                   queue_p->message_bytes (), message_count));
       result = ACE_OS::sleep (one_second);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                    module_p->name (),
+                    ACE_TEXT ("\"%s\" reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
+                    (*iterator)->name (),
                     &one_second));
     } while (true);
   } // end FOR

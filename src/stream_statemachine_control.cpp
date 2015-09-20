@@ -188,8 +188,9 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
       switch (newState_in)
       {
         // good cases
+        case STREAM_STATE_INITIALIZED:
         case STREAM_STATE_RUNNING:
-        // *NOTE*: have to allow this...
+          // *NOTE*: have to allow this...
         // (scenario: asynchronous user abort via stop())
         case STREAM_STATE_FINISHED:
         {
@@ -201,7 +202,6 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           return true;
         }
         // error cases
-        case STREAM_STATE_INITIALIZED:
         case STREAM_STATE_PAUSED:
         default:
           break;
