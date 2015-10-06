@@ -31,25 +31,25 @@
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
-class Stream_Target_EventHandler
+class Test_I_Stream_Target_EventHandler
  : public Common_INotify_T<Test_I_Stream_SessionData,
-                           Stream_Message,
-                           Stream_SessionMessage>
+                           Test_I_Stream_Message,
+                           Test_I_Stream_SessionMessage>
 {
  public:
-  Stream_Target_EventHandler (Stream_GTK_CBData*); // GTK state
-  virtual ~Stream_Target_EventHandler ();
+  Test_I_Stream_Target_EventHandler (Stream_GTK_CBData*); // GTK state
+  virtual ~Test_I_Stream_Target_EventHandler ();
 
   // implement Common_INotify_T
   virtual void start (const Test_I_Stream_SessionData&);
-  virtual void notify (const Stream_Message&);
-  virtual void notify (const Stream_SessionMessage&);
+  virtual void notify (const Test_I_Stream_Message&);
+  virtual void notify (const Test_I_Stream_SessionMessage&);
   virtual void end ();
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Target_EventHandler ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Target_EventHandler (const Stream_Target_EventHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Target_EventHandler& operator= (const Stream_Target_EventHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler (const Test_I_Stream_Target_EventHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler& operator= (const Test_I_Stream_Target_EventHandler&))
 
   Stream_GTK_CBData*               CBData_;
   const Test_I_Stream_SessionData* sessionData_;

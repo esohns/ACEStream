@@ -471,16 +471,16 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
   Stream_GTK_CBData* cb_data_base_p = &CBData_in;
   cb_data_base_p->configuration = &configuration;
-  Stream_Target_EventHandler ui_event_handler (&CBData_in);
-  Stream_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                   NULL,
-                                                   true);
-  Stream_Module_EventHandler* event_handler_p =
-    dynamic_cast<Stream_Module_EventHandler*> (event_handler.writer ());
+  Test_I_Stream_Target_EventHandler ui_event_handler (&CBData_in);
+  Test_I_Stream_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+                                                          NULL,
+                                                          true);
+  Test_I_Stream_Module_EventHandler* event_handler_p =
+    dynamic_cast<Test_I_Stream_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Module_EventHandler> failed, returning\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_EventHandler> failed, returning\n")));
     return;
   } // end IF
   event_handler_p->initialize (&CBData_in.subscribers,
@@ -527,6 +527,7 @@ do_work (unsigned int bufferSize_in,
     &configuration.moduleHandlerConfiguration;
 
   configuration.streamConfiguration.bufferSize = bufferSize_in;
+  configuration.streamConfiguration.cloneModule = true;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
     (!UIDefinitionFile_in.empty () ? &event_handler
@@ -1084,11 +1085,18 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-  if (use_reactor && (number_of_dispatch_threads > 1))
+  if (use_reactor                      &&
+      (number_of_dispatch_threads > 1) &&
+      !use_thread_pool)
+  { // *NOTE*: see also: man (2) select
+    // *TODO*: verify this for MS Windows based systems
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
     use_thread_pool = true;
+  } // end IF
   if ((!UI_definition_file_name.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_file_name)) ||
-      (use_thread_pool && !use_reactor)                         ||
+       !Common_File_Tools::isReadable (UI_definition_file_name))           ||
+      (use_thread_pool && !use_reactor)                                    ||
       (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool))
   {
     ACE_DEBUG ((LM_ERROR,

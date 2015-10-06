@@ -50,8 +50,8 @@
 #include "net_client_connector.h"
 
 // forward declarations
-class Stream_Message;
-class Stream_SessionMessage;
+class Test_I_Stream_Message;
+class Test_I_Stream_SessionMessage;
 struct Test_I_Configuration;
 struct Test_I_ConnectionState;
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
@@ -86,8 +86,8 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       ///
                                       Test_I_Stream_SessionData,   // session data
                                       Test_I_Stream_SessionData_t, // session data container (reference counted)
-                                      Stream_SessionMessage,
-                                      Stream_Message,
+                                      Test_I_Stream_SessionMessage,
+                                      Test_I_Stream_Message,
                                       ///
                                       ACE_INET_Addr,
                                       Test_I_Stream_InetConnectionManager_t> Test_I_NetStream_t;
@@ -110,7 +110,7 @@ struct Test_I_ConnectionState
 
   Test_I_RuntimeStatistic_t currentStatistic;
 
-  Test_I_UserData*   userData;
+  Test_I_UserData*          userData;
 };
 
 /////////////////////////////////////////
@@ -175,7 +175,7 @@ typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<Test_I_Stre
 
                                         Stream_ModuleConfiguration,
                                         Test_I_Stream_ModuleHandlerConfiguration,
-                                        
+
                                         Test_I_Stream_SocketHandlerConfiguration> Test_I_AsynchUDPHandler_t;
 
 typedef Net_TCPConnectionBase_T<Test_I_TCPHandler_t,

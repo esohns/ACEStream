@@ -58,9 +58,34 @@ Stream_StateMachine_Control::reset ()
 }
 
 bool
+Stream_StateMachine_Control::wait (const ACE_Time_Value* timeout_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::wait"));
+
+  int result = -1;
+
+  {
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (inherited::stateLock_);
+
+    while (inherited::state_ != STREAM_STATE_FINISHED)
+    {
+      result = condition_.wait (timeout_in);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Condition::wait(%#T): \"%m\", continuing\n"),
+                    timeout_in));
+    } // end WHILE
+  } // end lock scope
+
+  return true;
+}
+
+bool
 Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::change"));
+
+  int result = -1;
 
   // synchronize access to state machine...
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (inherited::stateLock_);
@@ -105,6 +130,14 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         {
           inherited::change (newState_in);
 
+          if (newState_in == STREAM_STATE_FINISHED)
+          {
+            result = condition_.broadcast ();
+            if (result == -1)
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n")));
+          } // end IF
+
           return true;
         }
         // error case
@@ -134,9 +167,17 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
 
           inherited::change (newState_in);
 
+          if (newState_in == STREAM_STATE_FINISHED)
+          {
+            result = condition_.broadcast ();
+            if (result == -1)
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n")));
+          } // end IF
+
           // *IMPORTANT NOTE*: make sure the transition RUNNING
           //                   [--> STOPPED] --> FINISHED
-          //                   works for the inactive (!) case as well...
+          //                   works for the nonactive (!) case as well...
           if (inherited::state_ != STREAM_STATE_FINISHED)
             inherited::state_ = newState_in;
 
@@ -191,13 +232,21 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         case STREAM_STATE_INITIALIZED:
         case STREAM_STATE_RUNNING:
           // *NOTE*: have to allow this...
-        // (scenario: asynchronous user abort via stop())
+        // (scenario: asynchronous user abort via stop() race)
         case STREAM_STATE_FINISHED:
         {
 //           ACE_DEBUG ((LM_DEBUG,
 //                       ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
 
           inherited::change (newState_in);
+
+          if (newState_in == STREAM_STATE_FINISHED)
+          {
+            result = condition_.broadcast ();
+            if (result == -1)
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n")));
+          } // end IF
 
           return true;
         }
@@ -245,6 +294,14 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
               ACE_TEXT (state2String (newState_in).c_str ())));
 
   return false;
+}
+
+void
+Stream_StateMachine_Control::finished ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::finished"));
+
+  change (STREAM_STATE_FINISHED);
 }
 
 std::string

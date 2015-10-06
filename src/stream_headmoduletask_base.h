@@ -21,6 +21,8 @@
 #ifndef STREAM_HEADMODULETASK_BASE_H
 #define STREAM_HEADMODULETASK_BASE_H
 
+#include <string>
+
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -82,12 +84,13 @@ class Stream_HeadModuleTaskBase_T
                      bool = true); // locked access ?
   virtual bool isRunning () const;
 
-  virtual void flush ();
   virtual void pause ();
-  virtual void rewind ();
   virtual const Stream_StateMachine_ControlState& status () const;
   // *NOTE*: waits for any worker threads to join
-  virtual void waitForCompletion ();
+  virtual void waitForCompletion (bool = true,   // wait for any worker
+                                                 // thread(s) ?
+                                  bool = false); // N/A
+  virtual std::string name () const;
   // *NOTE*: this is just a stub
   virtual const StreamStateType& state () const;
 
@@ -121,14 +124,11 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: this method is threadsafe
   virtual void onChange (Stream_StateType_t); // new state
 
-  // implement (part of) Stream_IStreamControl_T
-  virtual void initialize ();
-
-  // *NOTE*: functionally, this does the same as stop(), with the
-  //         difference that stop() will wait for any worker(s)
-  //         --> i.e. stop() MUST NOT be called within a worker thread itself
-  //             so it calls this to signal an end
-  virtual void finished ();
+  //// *NOTE*: functionally, this does the same as stop(), with the
+  ////         difference that stop() will wait for any worker(s)
+  ////         --> i.e. stop() MUST NOT be called within a worker thread itself;
+  ////             worker threads calls this to signal an end instead
+  //virtual void finished ();
 
   ConfigurationType   configuration_;
 //  bool                isActive_;
@@ -166,11 +166,18 @@ class Stream_HeadModuleTaskBase_T
   virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
                                   bool&);                // return value: pass message downstream ?
 
+  // implement (part of) Stream_IStreamControl_T
+//  virtual void initialize ();
+  virtual void flush (bool = false); // N/A
+  virtual void rewind ();
+  virtual void upstream (Stream_Base_t*);
+  virtual Stream_Base_t* upstream () const;
+
   // allow blocking wait in waitForCompletion()
   bool                autoStart_;
   ACE_SYNCH_CONDITION condition_;
   bool                runSvcRoutineOnStart_;
-  ACE_thread_t        threadID_;
+  ACE_hthread_t       threadID_;
 };
 
 // include template implementation

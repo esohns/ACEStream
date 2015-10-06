@@ -33,31 +33,31 @@
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
-class Stream_Module_EventHandler
- : public Stream_Module_MessageHandler_T<Stream_SessionMessage,
-                                         Stream_Message,
-                                         
+class Test_I_Stream_Module_EventHandler
+ : public Stream_Module_MessageHandler_T<Test_I_Stream_SessionMessage,
+                                         Test_I_Stream_Message,
+
                                          Test_I_Stream_ModuleHandlerConfiguration,
-                                         
+
                                          Test_I_Stream_SessionData>
 {
  public:
-  Stream_Module_EventHandler ();
-  virtual ~Stream_Module_EventHandler ();
+  Test_I_Stream_Module_EventHandler ();
+  virtual ~Test_I_Stream_Module_EventHandler ();
 
   // implement Common_IClone_T
   virtual Stream_Module_t* clone ();
 
  private:
-  typedef Stream_Module_MessageHandler_T<Stream_SessionMessage,
-                                         Stream_Message,
-                                         
+  typedef Stream_Module_MessageHandler_T<Test_I_Stream_SessionMessage,
+                                         Test_I_Stream_Message,
+
                                          Test_I_Stream_ModuleHandlerConfiguration,
-                                         
+
                                          Test_I_Stream_SessionData> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_EventHandler (const Stream_Module_EventHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_EventHandler& operator= (const Stream_Module_EventHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler (const Test_I_Stream_Module_EventHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler& operator= (const Test_I_Stream_Module_EventHandler&))
 };
 
 // declare module
@@ -65,6 +65,6 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task 
                               Common_TimePolicy_t,                      // time policy
                               Stream_ModuleConfiguration,               // module configuration type
                               Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_Module_EventHandler);              // writer type
+                              Test_I_Stream_Module_EventHandler);       // writer type
 
 #endif

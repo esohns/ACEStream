@@ -50,8 +50,8 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
                               ProtocolMessageType,
                               AddressType,
                               ConnectionManagerType>::Stream_Module_Net_IO_Stream_T ()
- : inherited ()
- , IO_ (ACE_TEXT_ALWAYS_CHAR ("IO"),
+ : inherited (ACE_TEXT_ALWAYS_CHAR ("NetIOStream"))
+ , IO_ (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
         NULL,
         false)
 {
@@ -389,7 +389,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
 
   // OK: all went well
   inherited::isInitialized_ = true;
-  //inherited::dump_state ();
+  inherited::dump_state ();
 
   return true;
 }

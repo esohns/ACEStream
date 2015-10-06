@@ -304,9 +304,9 @@ template <typename SessionMessageType,
           typename SessionDataType>
 bool
 Stream_Module_FileWriter_T<SessionMessageType,
-                               MessageType,
-                               ModuleHandlerConfigurationType,
-                               SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
+                           MessageType,
+                           ModuleHandlerConfigurationType,
+                           SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::initialize"));
 
@@ -327,9 +327,9 @@ template <typename SessionMessageType,
           typename SessionDataType>
 const ModuleHandlerConfigurationType&
 Stream_Module_FileWriter_T<SessionMessageType,
-                               MessageType,
-                               ModuleHandlerConfigurationType,
-                               SessionDataType>::get () const
+                           MessageType,
+                           ModuleHandlerConfigurationType,
+                           SessionDataType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::get"));
 

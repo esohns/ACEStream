@@ -33,24 +33,24 @@
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
-Stream_Source_EventHandler::Stream_Source_EventHandler (Stream_GTK_CBData* CBData_in)
+Test_I_Stream_Source_EventHandler::Test_I_Stream_Source_EventHandler (Stream_GTK_CBData* CBData_in)
  : CBData_ (CBData_in)
  , sessionData_ (NULL)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_EventHandler::Stream_Source_EventHandler"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Source_EventHandler::Test_I_Stream_Source_EventHandler"));
 
 }
 
-Stream_Source_EventHandler::~Stream_Source_EventHandler ()
+Test_I_Stream_Source_EventHandler::~Test_I_Stream_Source_EventHandler ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_EventHandler::~Stream_Source_EventHandler"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Source_EventHandler::~Test_I_Stream_Source_EventHandler"));
 
 }
 
 void
-Stream_Source_EventHandler::start (const Test_I_Stream_SessionData& sessionData_in)
+Test_I_Stream_Source_EventHandler::start (const Test_I_Stream_SessionData& sessionData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_EventHandler::start"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Source_EventHandler::start"));
 
   sessionData_ = &sessionData_in;
 
@@ -66,9 +66,9 @@ Stream_Source_EventHandler::start (const Test_I_Stream_SessionData& sessionData_
 }
 
 void
-Stream_Source_EventHandler::notify (const Stream_Message& message_in)
+Test_I_Stream_Source_EventHandler::notify (const Test_I_Stream_Message& message_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_EventHandler::notify"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Source_EventHandler::notify"));
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -81,9 +81,9 @@ Stream_Source_EventHandler::notify (const Stream_Message& message_in)
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
 }
 void
-Stream_Source_EventHandler::notify (const Stream_SessionMessage& sessionMessage_in)
+Test_I_Stream_Source_EventHandler::notify (const Test_I_Stream_SessionMessage& sessionMessage_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_EventHandler::notify"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Source_EventHandler::notify"));
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -99,9 +99,9 @@ Stream_Source_EventHandler::notify (const Stream_SessionMessage& sessionMessage_
 }
 
 void
-Stream_Source_EventHandler::end ()
+Test_I_Stream_Source_EventHandler::end ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_EventHandler::end"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Source_EventHandler::end"));
 
   // sanity check(s)
   ACE_ASSERT (CBData_);

@@ -28,7 +28,7 @@
 #include "test_i_source_stream.h"
 
 Test_I_Target_Stream::Test_I_Target_Stream ()
- : inherited ()
+ : inherited (ACE_TEXT_ALWAYS_CHAR ("TargetStream"))
  , netReader_ (ACE_TEXT_ALWAYS_CHAR ("NetReader"),
                NULL,
                false)
@@ -124,6 +124,10 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
           return false;
         } // end IF
         imodule_p->reset ();
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("\"%s\" removed from stream \"%s\"...\n"),
+                    module_p->name (),
+                    ACE_TEXT (name ().c_str ())));
 
         break; // done
       } // end IF
@@ -286,7 +290,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (runtimeStatistic_.name ())));
+                runtimeStatistic_.name ()));
     return false;
   } // end IF
 
@@ -314,7 +318,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
                 netReader_.name ()));
     return false;
   } // end IF
-  netReader_impl_p->reset ();
+//  netReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
@@ -324,7 +328,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (netReader_.name ())));
+                netReader_.name ()));
     return false;
   } // end IF
 
@@ -335,7 +339,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
 
   // OK: all went well
   inherited::isInitialized_ = true;
-  //inherited::dump_state ();
+  inherited::dump_state ();
 
   return true;
 }

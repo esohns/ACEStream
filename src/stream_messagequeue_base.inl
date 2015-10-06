@@ -62,5 +62,5 @@ Stream_MessageQueueBase_T<TaskSynchType,
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("# currently queued objects: %d\n"),
-              const_cast<own_type*> (this)->message_count ()));
+              const_cast<OWN_TYPE_T*> (this)->message_count ()));
 }

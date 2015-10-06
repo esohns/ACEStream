@@ -93,7 +93,10 @@ class Stream_Module_Net_IOWriter_T // --> output
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   virtual void report () const;
 
-private:
+  virtual void upStream (Stream_Base_t*);
+  virtual Stream_Base_t* upStream () const;
+
+ private:
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,

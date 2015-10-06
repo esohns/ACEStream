@@ -334,7 +334,7 @@ Stream_Module_QueueReader_T<SessionMessageType,
 
       result = 0;
 
-      goto session_finished;
+      goto done;
     } // end IF
 
     result = inherited::put_next (message_block_p, NULL);
@@ -346,19 +346,13 @@ Stream_Module_QueueReader_T<SessionMessageType,
       // clean up
       message_block_p->release ();
 
-      goto session_finished;
+      goto done;
     } // end IF
   } // end WHILE
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("failed to ACE_Message_Queue_Base::dequeue(): \"%m\", aborting\n")));
 
-session_finished:
-  // step2: send final session message downstream...
-  if (!inherited::putSessionMessage (STREAM_SESSION_END,
-                                     inherited::sessionData_,
-                                     false))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
+  result = -1;
 
 done:
   // signal the controller
@@ -377,7 +371,7 @@ done:
 // {
 //STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::allocateMessage"));
 //
-//   // init return value(s)
+//   // initialize return value(s)
 //   Net_Message* message_out = NULL;
 //
 //   try

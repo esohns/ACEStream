@@ -56,8 +56,8 @@ class Test_I_Source_Stream_T
                         /////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        Stream_SessionMessage,
-                        Stream_Message>
+                        Test_I_Stream_SessionMessage,
+                        Test_I_Stream_Message>
 {
  public:
   Test_I_Source_Stream_T ();
@@ -90,10 +90,10 @@ class Test_I_Source_Stream_T
                         /////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        Stream_SessionMessage,
-                        Stream_Message> inherited;
-  typedef Stream_Module_Net_Target_T<Stream_SessionMessage,
-                                     Stream_Message,
+                        Test_I_Stream_SessionMessage,
+                        Test_I_Stream_Message> inherited;
+  typedef Stream_Module_Net_Target_T<Test_I_Stream_SessionMessage,
+                                     Test_I_Stream_Message,
                                      ////
                                      Test_I_Configuration,
                                      ////

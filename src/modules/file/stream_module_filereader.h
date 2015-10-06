@@ -91,6 +91,9 @@ class Stream_Module_FileReader_T
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   virtual void report () const;
 
+  virtual void upStream (Stream_Base_t*);
+  virtual Stream_Base_t* upStream () const;
+
  private:
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,

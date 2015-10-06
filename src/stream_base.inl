@@ -24,6 +24,7 @@
 #include "stream_macros.h"
 #include "stream_session_data_base.h"
 #include "stream_session_message_base.h"
+#include "stream_statemachine_control.h"
 
 template <typename TaskSynchType,
           typename TimePolicyType,
@@ -48,7 +49,7 @@ Stream_Base_T<TaskSynchType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
-              ProtocolMessageType>::Stream_Base_T ()
+              ProtocolMessageType>::Stream_Base_T (const std::string& name_in)
 // *TODO*: use default ctor and rely on init/fini() ?
  : inherited (NULL, // argument to module open()
               NULL, // no head module --> allocate !
@@ -59,6 +60,9 @@ Stream_Base_T<TaskSynchType,
  , lock_ ()
  , sessionData_ (NULL)
  , state_ ()
+ , upStream_ (NULL)
+ ////////////////////////////////////////
+ , name_ (name_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
@@ -537,11 +541,30 @@ Stream_Base_T<TaskSynchType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
-              ProtocolMessageType>::flush ()
+              ProtocolMessageType>::flush (bool flushUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::flush"));
 
   int result = -1;
+
+  // *IMPORTANT NOTE*: if this stream has been linked (e.g. connection is part
+  //                   of another stream), make sure to flush the whole pipeline
+  if (upStream_ && flushUpStream_in)
+  {
+    ISTREAM_CONTROL_T* istream_control_p =
+        dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
+    if (!istream_control_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
+                  upStream_));
+      return;
+    } // end IF
+    istream_control_p->flush (flushUpStream_in);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("flushed upstream \"%s\"...\n"),
+                ACE_TEXT (istream_control_p->name ().c_str ())));
+  } // end IF
 
   // writer (inbound) side
   MODULE_CONTAINER_T modules;
@@ -779,16 +802,17 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::status"));
 
-  int result = -1;
+  StatusType result = static_cast<StatusType> (-1);
+  int result_2 = -1;
 
   // delegate to the head module
   MODULE_T* module_p = NULL;
-  result = const_cast<OWN_TYPE_T*> (this)->top (module_p);
-  if ((result == -1) || !module_p)
+  result_2 = const_cast<OWN_TYPE_T*> (this)->top (module_p);
+  if ((result_2 == -1) || !module_p)
   {
     //ACE_DEBUG ((LM_ERROR,
     //            ACE_TEXT ("no head module found: \"%m\", returning\n")));
-    return StatusType ();
+    return result;
   } // end IF
 
   ISTREAM_CONTROL_T* control_impl_p = NULL;
@@ -796,22 +820,24 @@ Stream_Base_T<TaskSynchType,
   if (!control_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
+                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, aborting\n"),
                 module_p->name ()));
-    return StatusType ();
+    return result;
   } // end IF
 
   try
   {
-    return control_impl_p->status ();
+    result = control_impl_p->status ();
   }
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Stream_IStreamControl::status(), returning\n"),
+                ACE_TEXT ("%s: caught exception in Stream_IStreamControl::status(), aborting\n"),
                 module_p->name ()));
-    return StatusType ();
+    return result;
   }
+
+  return result;
 }
 
 template <typename TaskSynchType,
@@ -838,19 +864,40 @@ Stream_Base_T<TaskSynchType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
-              ProtocolMessageType>::waitForCompletion ()
+              ProtocolMessageType>::waitForCompletion (bool waitForThreads_in,
+                                                       bool waitForUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::waitForCompletion"));
 
   int result = -1;
 
+  // *NOTE*: if this stream has been linked (e.g. connection is part of another
+  //         stream), make sure to wait for the whole pipeline
+  if (upStream_ && waitForUpStream_in)
+  {
+    ISTREAM_CONTROL_T* istream_control_p =
+      dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
+    if (!istream_control_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
+                  upStream_));
+      return;
+    } // end IF
+    istream_control_p->waitForCompletion (waitForThreads_in,
+                                          waitForUpStream_in);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("upstream \"%s\" complete...\n"),
+                ACE_TEXT (istream_control_p->name ().c_str ())));
+  } // end IF
+
   // *NOTE*: the logic here is this:
-  //         step1: wait for processing (message generation) to finish
-  //         step2: wait for any pipelined messages to 'flush'
+  //         step1: wait for (message source) processing to finish
+  //         step2: wait for any upstreamed messages to 'flush' (message sink)
   MODULE_CONTAINER_T modules;
   modules.push_front (inherited::head ());
 
-  // step1: get head module, skip over ACE_Stream_Head
+  // step1a: get head module, skip over ACE_Stream_Head
   ITERATOR_T iterator (*this);
   result = iterator.advance ();
   if (result == 0)
@@ -890,8 +937,9 @@ Stream_Base_T<TaskSynchType,
 
   try
   {
-    // wait for state switch (xxx --> FINISHED) / any head module threads
-    control_impl_p->waitForCompletion ();
+    // wait for state switch (xxx --> FINISHED) (/ any head module thread(s))
+    control_impl_p->waitForCompletion (waitForThreads_in,
+                                       waitForUpStream_in);
   }
   catch (...)
   {
@@ -901,6 +949,7 @@ Stream_Base_T<TaskSynchType,
     return;
   }
 
+  // step1b: wait for processing pipeline to flush
   Stream_Task_t* task_p = NULL;
   for (iterator.advance ();
        (iterator.next (module_p) != 0);
@@ -911,19 +960,22 @@ Stream_Base_T<TaskSynchType,
       continue;
 
     modules.push_front (const_cast<MODULE_T*> (module_p));
-    // OK: got a handle... wait
-    task_p = const_cast<MODULE_T*> (module_p)->writer ();
-    ACE_ASSERT (task_p);
-    result = task_p->wait ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s writer: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
-                  module_p->name ()));
+
+    if (waitForThreads_in)
+    {
+      task_p = const_cast<MODULE_T*> (module_p)->writer ();
+      if (!task_p) continue; // close()d already ?
+      result = task_p->wait ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s writer: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
+                    module_p->name ()));
+    } // end IF
 
     module_p = NULL;
   } // end FOR
 
-  // step2: wait for any pipelined messages to flush...
+  // step2: wait for any upstream workers and messages to flush
   Stream_Queue_t* queue_p = NULL;
   ACE_Time_Value one_second (1, 0);
   unsigned int message_count = 0;
@@ -932,7 +984,7 @@ Stream_Base_T<TaskSynchType,
        iterator2++)
   {
     task_p = (*iterator2)->reader ();
-    ACE_ASSERT (task_p);
+    if (!task_p) continue; // close()d already ?
     queue_p = task_p->msg_queue ();
     ACE_ASSERT (queue_p);
     do
@@ -951,12 +1003,47 @@ Stream_Base_T<TaskSynchType,
                     (*iterator2)->name (),
                     &one_second));
     } while (true);
-    result = task_p->wait ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s reader: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
-                  (*iterator2)->name ()));
+
+    if (waitForThreads_in)
+    {
+      result = task_p->wait ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s reader: failed to ACE_Task_Base::wait(): \"%m\", continuing\n"),
+                    (*iterator2)->name ()));
+    } // end IF
   } // end FOR
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+std::string
+Stream_Base_T<TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+              ProtocolMessageType>::name () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::name"));
+
+  return name_;
 }
 
 template <typename TaskSynchType,
@@ -988,6 +1075,70 @@ Stream_Base_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::state"));
 
   return state_;
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+void
+Stream_Base_T<TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+              ProtocolMessageType>::upStream (Stream_Base_t* upStream_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::upStream"));
+
+  // sanity check(s)
+  ACE_ASSERT (!upStream_);
+
+  upStream_ = upStream_in;
+}
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+Stream_Base_t*
+Stream_Base_T<TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+              ProtocolMessageType>::upStream () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::upStream"));
+
+  return upStream_;
 }
 
 template <typename TaskSynchType,
@@ -1103,51 +1254,87 @@ Stream_Base_T<TaskSynchType,
               SessionDataContainerType,
               SessionMessageType,
 //              ProtocolMessageType>::get () const
-              ProtocolMessageType>::link (STREAM_T& us)
+              ProtocolMessageType>::link (STREAM_T& upStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
-  // *IMPORTANT NOTE*: this bit is mostly copy/pasted from Stream.cpp:505
+  // *WARNING*: cannot reach the base class lock --> not thread-safe !
+
+  // sanity check(s)
+  ACE_Module<TaskSynchType, TimePolicyType>* upstream_tail_module_p =
+    upStream_in.head ();
+  if (!upstream_tail_module_p) return -1;
+
+  // locate the module just above the upstreams' tail
+  while (upstream_tail_module_p->next () != upStream_in.tail ())
+    upstream_tail_module_p = upstream_tail_module_p->next ();
+
+  //int result = inherited::link (upStream_in);
+  inherited::head ()->reader ()->next (upstream_tail_module_p->reader ());
+  upstream_tail_module_p->next (inherited::head ());
+  upstream_tail_module_p->writer ()->next (inherited::head ()->writer ());
+
+  ///////////////////////////////////////
+
+  // *NOTE*: ACE_Stream::linked_us_ is currently private
+  //         --> retain another copy :-(
+  // *TODO*: modify ACE to make this a protected member
+  upStream_ = &upStream_in;
+
+  return 0;
+}
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+int
+Stream_Base_T<TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+//              ProtocolMessageType>::get () const
+              ProtocolMessageType>::unlink (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlink"));
 
   // *WARNING*: cannot reach the base class lock --> not thread-safe !
 
-  //this->linked_us_ = &us;
-  //// Make sure the other side is also linked to us!
-  //us.linked_us_ = this;
+  // sanity check(s)
+  if (!upStream_) return -1;
+  ACE_Module<TaskSynchType, TimePolicyType>* upstream_tail_module_p =
+    upStream_->head ();
+  if (!upstream_tail_module_p) return -1;
 
-  ACE_Module<TaskSynchType, TimePolicyType> *my_tail = inherited::head ();
+  // locate the module just above the upstreams' tail
+  //while (upstream_tail_module_p->next () != inherited::head ())
+  while (ACE_OS::strcmp (upstream_tail_module_p->next ()->name (),
+                         inherited::head ()->name ()) != 0)
+    upstream_tail_module_p = upstream_tail_module_p->next ();
 
-  if (my_tail == 0)
-    return -1;
+  //int result = inherited::link (upStream_in);
+  inherited::head ()->reader ()->next (NULL);
+  upstream_tail_module_p->next (upStream_->tail ());
+  upstream_tail_module_p->writer ()->next (upStream_->tail ()->writer ());
 
-  // Locate the module just above our Stream tail.
-  while (my_tail->next () != this->tail ())
-    my_tail = my_tail->next ();
+  upStream_ = NULL;
 
-  ACE_Module<TaskSynchType, TimePolicyType> *other_tail = us.head ();
-  ACE_Module<TaskSynchType, TimePolicyType> *other_head = us.head ();
-  other_head = other_head->next ();
-
-  if ((other_tail == 0) || (other_head == 0))
-    return -1;
-
-  // Locate the module just above the other Stream's tail.
-  while (other_tail->next () != us.tail ())
-    other_tail = other_tail->next ();
-
-  int result = inherited::link (us);
-
-  //// Reattach the pointers so that the two streams are linked!
-  //my_tail->writer ()->next (other_tail->reader ());
-  //other_tail->writer ()->next (my_tail->reader ());
-  // *EDIT*: reset 'broken' writer link
-  other_tail->writer ()->next (us.tail ()->writer ());
-
-  my_tail->writer ()->next (other_head->writer ());
-  // *NOTE*: do not link the outbound-side streams together (see header)
-  //other_tail->reader ()->next (my_tail->reader ());
-
-  return result;
+  //return inherited::unlink ();
+  return 0;
 }
 
 //template <typename TaskSynchType,
@@ -1270,7 +1457,8 @@ Stream_Base_T<TaskSynchType,
     module_p = module_p->next ();
   tail_p = module_p;
   ACE_ASSERT (tail_p &&
-              (ACE_OS::strcmp (module_p->name (), ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) == 0));
+              (ACE_OS::strcmp (module_p->name (),
+                               ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) == 0));
 
   std::deque<MODULE_T*> modules;
   module_p = module_in;
@@ -1366,6 +1554,72 @@ Stream_Base_T<TaskSynchType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
+              ProtocolMessageType>::finished ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::finished"));
+
+  int result = -1;
+
+  //// sanity check
+  //ACE_ASSERT (isRunning ());
+
+  // delegate to the head module
+  MODULE_T* module_p = NULL;
+  result = inherited::top (module_p);
+  if ((result == -1) || !module_p)
+  {
+    //ACE_DEBUG ((LM_ERROR,
+    //            ACE_TEXT ("no head module found: \"%m\", returning\n")));
+    return;
+  } // end IF
+
+  STATEMACHINE_ICONTROL_T* control_impl_p =
+      dynamic_cast<STATEMACHINE_ICONTROL_T*> (module_p->writer ());
+  if (!control_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_StateMachine_IControl_T> failed, returning\n"),
+                module_p->name ()));
+    return;
+  } // end IF
+
+  try
+  {
+    control_impl_p->finished ();
+  }
+  catch (...)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Stream_StateMachine_IControl_T::finished(), returning\n"),
+                module_p->name ()));
+    return;
+  }
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+void
+Stream_Base_T<TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
               ProtocolMessageType>::shutdown ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::shutdown"));
@@ -1416,7 +1670,7 @@ Stream_Base_T<TaskSynchType,
     {
       //ACE_DEBUG ((LM_WARNING,
       //            ACE_TEXT ("manually closing module: \"%s\"\n"),
-      //            ACE_TEXT (module->name ())));
+      //            module->name ()));
 
       try
       {
@@ -1427,14 +1681,12 @@ Stream_Base_T<TaskSynchType,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
-                    //ACE_TEXT (module_p->name ())));
                     (*iterator)->name ()));
         result = -1;
       }
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", continuing\n"),
-                    //ACE_TEXT (module_p->name ())));
                     (*iterator)->name ()));
     } // end IF
   } // end FOR

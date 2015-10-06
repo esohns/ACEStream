@@ -416,7 +416,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
       if (connection_)
       {
         // wait for data processing to complete
-        connection_->waitForCompletion ();
+        connection_->waitForCompletion (false);
 
         connection_->decrease ();
         connection_ = NULL;
@@ -534,6 +534,63 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
   ACE_NOTSUP;
 
   ACE_NOTREACHED (return;)
+}
+
+template <typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename AddressType,
+          typename ConnectionManagerType>
+void
+Stream_Module_Net_IOWriter_T<SessionMessageType,
+                             ProtocolMessageType,
+                             ConfigurationType,
+                             StreamStateType,
+                             SessionDataType,
+                             SessionDataContainerType,
+                             StatisticContainerType,
+                             AddressType,
+                             ConnectionManagerType>::upStream (Stream_Base_t* streamBase_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::upStream"));
+
+  ACE_UNUSED_ARG (streamBase_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+template <typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType,
+          typename AddressType,
+          typename ConnectionManagerType>
+Stream_Base_t*
+Stream_Module_Net_IOWriter_T<SessionMessageType,
+                             ProtocolMessageType,
+                             ConfigurationType,
+                             StreamStateType,
+                             SessionDataType,
+                             SessionDataContainerType,
+                             StatisticContainerType,
+                             AddressType,
+                             ConnectionManagerType>::upStream () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::upStream"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (NULL);
+
+  ACE_NOTREACHED (return NULL;)
 }
 
 //template <typename SessionMessageType,

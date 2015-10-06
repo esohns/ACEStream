@@ -23,7 +23,7 @@
 
 #include "ace/Atomic_Op.h"
 #include "ace/Malloc_Allocator.h"
-#include "ace/Synch.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_idumpstate.h"
 
@@ -59,8 +59,8 @@ class Stream_Export Stream_AllocatorHeap
  private:
   typedef ACE_New_Allocator inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorHeap (const Stream_AllocatorHeap&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorHeap& operator= (const Stream_AllocatorHeap&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorHeap (const Stream_AllocatorHeap&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorHeap& operator= (const Stream_AllocatorHeap&))
 
   // these methods are ALL no-ops and will FAIL ! --> hide from user
   virtual int remove (void);
@@ -86,7 +86,7 @@ class Stream_Export Stream_AllocatorHeap
                        size_t,           // length
                        int = PROT_RDWR); // protection
 
-  ACE_Atomic_Op<ACE_Thread_Mutex,
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX,
                 unsigned int> poolSize_;
 };
 

@@ -29,27 +29,27 @@
 
 #include "test_i_common.h"
 
-// forward declaratation(s)
+// forward declaration(s)
 class ACE_Allocator;
-class Stream_Message;
+class Test_I_Stream_Message;
 template <typename MessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
-class Stream_SessionMessage
+class Test_I_Stream_SessionMessage
  : public Stream_SessionMessageBase_T<Test_I_Stream_SessionData_t,
                                       Test_I_UserData>
 {
   // grant access to specific private ctors...
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_Message,
-                                                 Stream_SessionMessage>;
+  friend class Stream_MessageAllocatorHeapBase_T<Test_I_Stream_Message,
+                                                 Test_I_Stream_SessionMessage>;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason...
-  Stream_SessionMessage (Stream_SessionMessageType,     // session message type
-                         Test_I_Stream_SessionData_t*&, // session data container handle
-                         Test_I_UserData*);             // user data handle
-  virtual ~Stream_SessionMessage ();
+  Test_I_Stream_SessionMessage (Stream_SessionMessageType,     // session message type
+                                Test_I_Stream_SessionData_t*&, // session data container handle
+                                Test_I_UserData*);             // user data handle
+  virtual ~Test_I_Stream_SessionMessage ();
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
@@ -59,16 +59,16 @@ class Stream_SessionMessage
                                       Test_I_UserData> inherited;
 
   // copy ctor to be used by duplicate()
-  Stream_SessionMessage (const Stream_SessionMessage&);
+  Test_I_Stream_SessionMessage (const Test_I_Stream_SessionMessage&);
 
   // *NOTE*: these may be used by message allocators...
   // *WARNING*: these ctors are NOT threadsafe...
-  Stream_SessionMessage (ACE_Allocator*); // message allocator
-  Stream_SessionMessage (ACE_Data_Block*, // data block
-                         ACE_Allocator*); // message allocator
+  Test_I_Stream_SessionMessage (ACE_Allocator*); // message allocator
+  Test_I_Stream_SessionMessage (ACE_Data_Block*, // data block
+                                ACE_Allocator*); // message allocator
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessage ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessage& operator= (const Stream_SessionMessage&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SessionMessage ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SessionMessage& operator= (const Test_I_Stream_SessionMessage&))
 };
 
 #endif

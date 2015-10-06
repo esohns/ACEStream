@@ -31,27 +31,27 @@
 class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
-class Stream_SessionMessage;
+class Test_I_Stream_SessionMessage;
 template <typename MessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
-class Stream_Message
+class Test_I_Stream_Message
  : public Stream_MessageBase
 {
   // grant access to specific private ctors...
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_Message,
-                                                 Stream_SessionMessage>;
+  friend class Stream_MessageAllocatorHeapBase_T<Test_I_Stream_Message,
+                                                 Test_I_Stream_SessionMessage>;
 
  public:
-  Stream_Message (unsigned int); // size
-  virtual ~Stream_Message ();
+  Test_I_Stream_Message (unsigned int); // size
+  virtual ~Test_I_Stream_Message ();
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
 
-  // implement Stream_MessageBase::Common_IGet_T
+  // implement Test_I_Stream_MessageBase::Common_IGet_T
   const Stream_HeaderType_t& get () const;
   const Stream_CommandType_t& command () const; // return value: message type
 
@@ -60,18 +60,18 @@ class Stream_Message
  protected:
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
-  Stream_Message (const Stream_Message&);
+  Test_I_Stream_Message (const Test_I_Stream_Message&);
 
  private:
   typedef Stream_MessageBase inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Message ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message ())
   // *NOTE*: to be used by message allocators...
-  Stream_Message (ACE_Data_Block*, // data block
-                  ACE_Allocator*,  // message allocator
-                  bool = true);    // increment running message counter ?
-  Stream_Message (ACE_Allocator*); // message allocator
-  ACE_UNIMPLEMENTED_FUNC (Stream_Message& operator= (const Stream_Message&))
+  Test_I_Stream_Message (ACE_Data_Block*, // data block
+                         ACE_Allocator*,  // message allocator
+                         bool = true);    // increment running message counter ?
+  Test_I_Stream_Message (ACE_Allocator*); // message allocator
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message& operator= (const Test_I_Stream_Message&))
 };
 
 #endif

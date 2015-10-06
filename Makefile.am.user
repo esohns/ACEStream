@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.2.1, 2015-09-20T02:05:29. -->
+<!-- Written by QtCreator 3.2.1, 2015-10-03T20:14:19. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -63,7 +63,7 @@
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">{6dd3ed2c-b05c-42ea-acca-c161568a133d}</value>
    <value type="int" key="ProjectExplorer.Target.ActiveBuildConfiguration">1</value>
    <value type="int" key="ProjectExplorer.Target.ActiveDeployConfiguration">1</value>
-   <value type="int" key="ProjectExplorer.Target.ActiveRunConfiguration">2</value>
+   <value type="int" key="ProjectExplorer.Target.ActiveRunConfiguration">3</value>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.0">
     <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}</value>
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
@@ -82,7 +82,7 @@
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">AutotoolsProjectManager.ConfigureStep</value>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.2">
-      <value type="QString" key="AutotoolsProjectManager.MakeStep.AdditionalArguments"></value>
+      <value type="QString" key="AutotoolsProjectManager.MakeStep.AdditionalArguments">-j4</value>
       <valuelist type="QVariantList" key="AutotoolsProjectManager.MakeStep.BuildTargets">
        <value type="QString">all</value>
       </valuelist>
@@ -311,7 +311,7 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">1</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes">
-     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/debug/lib</value>
+     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}/lib</value>
     </valuelist>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-l -t</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}/test_u/filecopy/.libs/stream_filecopy</value>
@@ -364,7 +364,7 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">1</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes">
-     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/debug/lib</value>
+     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}/lib</value>
     </valuelist>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-g/mnt/win_d/projects/libACEStream/test_i/etc/source.glade -l -p 10002 -r -t</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}/test_i/.libs/stream_source</value>
@@ -417,9 +417,9 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">1</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes">
-     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/debug/lib</value>
+     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}/lib</value>
     </valuelist>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-f /mnt/win_d -l -p 10002 -t</value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-f /mnt/win_d -l -p 10002 -r -t</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}/test_i/.libs/stream_target</value>
     <value type="bool" key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal">false</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.WorkingDirectory">/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}</value>
@@ -470,9 +470,9 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">1</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes">
-     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/release/lib</value>
+     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/debug/lib</value>
     </valuelist>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-f /mnt/win_d/output.tmp -g -l -r -t -u</value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-f /mnt/win_d/output.tmp -g -l -p 10002 -t</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}/test_i/.libs/stream_target</value>
     <value type="bool" key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal">false</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.WorkingDirectory">%{buildDir}</value>
@@ -523,9 +523,9 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">1</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes">
-     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/release/lib</value>
+     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/debug/lib</value>
     </valuelist>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-f /mnt/win_d/projects/yarp/Yarp/releases/Yarp-0.1.exe -g -l -r -t -u</value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-f /mnt/win_d/projects/yarp/Yarp/releases/Yarp-0.1.exe -g -l -p 10002 -r -t</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}/test_i/.libs/stream_source</value>
     <value type="bool" key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal">false</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.WorkingDirectory">%{buildDir}</value>
@@ -576,7 +576,7 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">1</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes">
-     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/debug/lib</value>
+     <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}/lib</value>
     </valuelist>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-f /media/esohns/NEW\ VOLUME/backup/documents.zip -l -t</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}/test_u/filecopy/.libs/stream_filecopy</value>

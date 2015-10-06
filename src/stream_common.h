@@ -24,7 +24,7 @@
 //#include "ace/Message_Queue.h"
 //#include "ace/Module.h"
 #include "ace/Notification_Strategy.h"
-//#include "ace/Stream.h"
+#include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
 //#include "ace/Task.h"
 #include "ace/Time_Value.h"
@@ -93,6 +93,9 @@ struct Stream_SessionData
    , userData (NULL)
   {};
 
+  // *NOTE*: modules can set this to signal (internal) processing errors.
+  //         The (stream / process) control logic may (or may not) then react to
+  //         abort processing early
   bool             aborted;
 
   Stream_Statistic currentStatistic;
@@ -132,6 +135,9 @@ typedef ACE_Task<ACE_MT_SYNCH,
                  Common_TimePolicy_t> Stream_Task_t;
 typedef ACE_Module<ACE_MT_SYNCH,
                    Common_TimePolicy_t> Stream_Module_t;
+typedef ACE_Stream<ACE_MT_SYNCH,
+                   Common_TimePolicy_t> Stream_Base_t;
+
 struct Stream_ModuleConfiguration;
 struct Stream_ModuleHandlerConfiguration;
 typedef Stream_IModule_T<ACE_MT_SYNCH,

@@ -175,16 +175,18 @@ Stream_Module_Net_Target_T<SessionMessageType,
   {
     case STREAM_SESSION_BEGIN:
     {
+      const SessionDataContainerType& session_data_container_r =
+        message_inout->get ();
+      const SessionDataType* session_data_p =
+        session_data_container_r.getData ();
+      ACE_ASSERT (session_data_p);
+
       if (isPassive_)
       {
         // sanity check(s)
         ACE_ASSERT (!configuration_.connection);
         ACE_ASSERT (configuration_.connectionManager);
 
-        const SessionDataContainerType& session_data_container_r =
-          message_inout->get ();
-        const SessionDataType* session_data_p =
-          session_data_container_r.getData ();
         // *TODO*: remove type inference
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -192,7 +194,6 @@ Stream_Module_Net_Target_T<SessionMessageType,
 #else
         handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
 #endif
-        ACE_ASSERT (handle != ACE_INVALID_HANDLE);
         configuration_.connection =
           configuration_.connectionManager->get (handle);
         if (!configuration_.connection)
@@ -200,6 +201,12 @@ Stream_Module_Net_Target_T<SessionMessageType,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
                       session_data_p->sessionID));
+
+          // clean up
+          ACE_ASSERT (session_data_p->lock);
+          ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_p->lock);
+          const_cast<SessionDataType*> (session_data_p)->aborted = true;
+
           return;
         } // end IF
       } // end IF
@@ -294,6 +301,9 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
           // clean up
           iconnector_p->abort ();
+          ACE_ASSERT (session_data_p->lock);
+          ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_p->lock);
+          const_cast<SessionDataType*> (session_data_p)->aborted = true;
 
           goto reset;
         } // end IF
@@ -323,11 +333,13 @@ reset:
         stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
         ACE_ASSERT (configuration_.stream);
-        result = configuration_.stream->link (*stream_p);
+        result = stream_p->link (*configuration_.stream);
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Stream::link(): \"%m\", returning\n")));
+                      ACE_TEXT ("\"%s\": failed to ACE_Stream::link(\"%s\"): \"%m\", returning\n"),
+                      ACE_TEXT (stream_p->name ().c_str ()),
+                      ACE_TEXT (configuration_.stream->name ().c_str ())));
           goto close;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
@@ -350,13 +362,11 @@ close:
 
 done:
       // set session ID
-      const SessionDataContainerType& session_data_container_r =
-        message_inout->get ();
-      SessionDataType* session_data_p =
-        const_cast<SessionDataType*> (session_data_container_r.getData ());
-      ACE_ASSERT (session_data_p);
       // *TODO*: remove type inference
-      session_data_p->sessionID = configuration_.connection->id ();
+      ACE_ASSERT (session_data_p->lock);
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_p->lock);
+      const_cast<SessionDataType*> (session_data_p)->sessionID =
+          configuration_.connection->id ();
 
       break;
     }
@@ -364,10 +374,29 @@ done:
     {
       // wait for data processing to complete
       if (configuration_.connection)
-        configuration_.connection->waitForCompletion ();
+      {
+        typename ConnectorType::STREAM_T* stream_p = NULL;
+        typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
+          dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (configuration_.connection);
+        if (!socket_connection_p)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
+                      configuration_.connection));
+          if (!isPassive_)
+            goto unlink_close;
+          else
+            goto release;
+        } // end IF
+        stream_p =
+          &const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
+        stream_p->finished ();
+        configuration_.connection->waitForCompletion (false); // data only
+      } // end IF
 
       if (!isPassive_ && configuration_.connection)
       {
+unlink_close:
         if (isLinked_)
         {
           // *IMPORTANT NOTE*: forward this session message before unlinking the
@@ -420,6 +449,7 @@ done:
                     ACE_TEXT ("closed connection to \"%s\"...\n"),
                     ACE_TEXT (buffer)));
       } // end IF
+release:
       if (configuration_.connection)
       {
         configuration_.connection->decrease ();

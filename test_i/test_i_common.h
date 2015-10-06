@@ -58,8 +58,8 @@
 
 // forward declarations
 class Stream_IAllocator;
-class Stream_Message;
-class Stream_SessionMessage;
+class Test_I_Stream_Message;
+class Test_I_Stream_SessionMessage;
 struct Test_I_ConnectionState;
 
 enum Stream_GTK_Event
@@ -145,8 +145,8 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       /////////////////
                       Test_I_Stream_SessionData,   // session data
                       Test_I_Stream_SessionData_t, // session data container (reference counted)
-                      Stream_SessionMessage,
-                      Stream_Message> Test_I_StreamBase_t;
+                      Test_I_Stream_SessionMessage,
+                      Test_I_Stream_Message> Test_I_StreamBase_t;
 struct Test_I_Stream_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
@@ -241,12 +241,12 @@ struct Test_I_Configuration
   bool                                     useReactor;
 };
 
-typedef Stream_MessageAllocatorHeapBase_T<Stream_Message,
-                                          Stream_SessionMessage> Stream_MessageAllocator_t;
+typedef Stream_MessageAllocatorHeapBase_T<Test_I_Stream_Message,
+                                          Test_I_Stream_SessionMessage> Stream_MessageAllocator_t;
 
 typedef Common_INotify_T<Test_I_Stream_SessionData,
-                         Stream_Message,
-                         Stream_SessionMessage> Stream_IStreamNotify_t;
+                         Test_I_Stream_Message,
+                         Test_I_Stream_SessionMessage> Stream_IStreamNotify_t;
 typedef std::list<Stream_IStreamNotify_t*> Stream_Subscribers_t;
 typedef Stream_Subscribers_t::iterator Stream_SubscribersIterator_t;
 

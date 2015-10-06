@@ -23,42 +23,42 @@
 
 #include "stream_macros.h"
 
-Stream_Module_EventHandler::Stream_Module_EventHandler ()
+Test_I_Stream_Module_EventHandler::Test_I_Stream_Module_EventHandler ()
  : inherited ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_EventHandler::Stream_Module_EventHandler"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler::Test_I_Stream_Module_EventHandler"));
 
 }
 
-Stream_Module_EventHandler::~Stream_Module_EventHandler ()
+Test_I_Stream_Module_EventHandler::~Test_I_Stream_Module_EventHandler ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_EventHandler::~Stream_Module_EventHandler"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler::~Test_I_Stream_Module_EventHandler"));
 
 }
 
 Stream_Module_t*
-Stream_Module_EventHandler::clone ()
+Test_I_Stream_Module_EventHandler::clone ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_EventHandler::clone"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler::clone"));
 
   // initialize return value(s)
   Stream_Module_t* module_p = NULL;
 
   ACE_NEW_NORETURN (module_p,
-                    Stream_Module_EventHandler_Module (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
+                    Test_I_Stream_Module_EventHandler_Module (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
                     NULL));
   if (!module_p)
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
   else
   {
-    Stream_Module_EventHandler* eventHandler_impl_p = NULL;
+    Test_I_Stream_Module_EventHandler* eventHandler_impl_p = NULL;
     eventHandler_impl_p =
-      dynamic_cast<Stream_Module_EventHandler*> (module_p->writer ());
+      dynamic_cast<Test_I_Stream_Module_EventHandler*> (module_p->writer ());
     if (!eventHandler_impl_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Stream_Module_EventHandler> failed, aborting\n")));
+                  ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_EventHandler> failed, aborting\n")));
 
       // clean up
       delete module_p;

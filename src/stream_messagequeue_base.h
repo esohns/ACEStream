@@ -22,7 +22,7 @@
 #define STREAM_MESSAGEQUEUE_BASE_H
 
 #include "ace/Global_Macros.h"
-#include "ace/Synch.h"
+#include "ace/Condition_T.h"
 #include "ace/Message_Queue.h"
 
 #include "common_idumpstate.h"
@@ -38,34 +38,34 @@ class Stream_MessageQueueBase_T
    public Common_IDumpState
 {
  public:
-  Stream_MessageQueueBase_T (unsigned int); // max number of queued items
+  Stream_MessageQueueBase_T (unsigned int); // maximum number of queued items
   virtual ~Stream_MessageQueueBase_T ();
 
   // implement Common_IDumpState
-  // *IMPORTANT NOTE*: children SHOULD override this...
+  // *IMPORTANT NOTE*: child classes should override this
   virtual void dump_state () const;
 
  protected:
-  // convenient types...
+  // convenient types
   typedef ACE_Message_Queue<TaskSynchType,
-                            TimePolicyType> MESSAGEQUEUE_T;
+                            TimePolicyType> MESSAGE_QUEUE_T;
   typedef ACE_Message_Queue_Iterator<TaskSynchType,
-                                     TimePolicyType> MESSAGEQUEUEITERATOR_T;
+                                     TimePolicyType> MESSAGE_QUEUE_ITERATOR_T;
   typedef Stream_MessageQueueBase_T<TaskSynchType,
-                                    TimePolicyType> own_type;
+                                    TimePolicyType> OWN_TYPE_T;
 
-  // *IMPORTANT NOTE*: override this so that the queue considers the number of
-  // enqueued items (instead of the amount of enqueued bytes) to determine its
-  // water mark...
+  // *IMPORTANT NOTE*: override, so that the queue considers the number of
+  //                   enqueued items (instead of the amount of enqueued bytes)
+  //                   to determine its water mark
   virtual bool is_full_i (void);
 
  private:
   typedef ACE_Message_Queue<TaskSynchType,
                             TimePolicyType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T (const Stream_MessageQueueBase_T&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T& operator= (const Stream_MessageQueueBase_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T (const Stream_MessageQueueBase_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T& operator= (const Stream_MessageQueueBase_T&))
 };
 
 // include template definition

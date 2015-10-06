@@ -24,7 +24,7 @@
 
 template <typename ConnectorType>
 Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T ()
- : inherited ()
+ : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"))
  , fileReader_ (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
                 NULL,
                 false)

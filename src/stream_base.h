@@ -35,6 +35,7 @@
 
 #include "stream_common.h"
 #include "stream_istreamcontrol.h"
+#include "stream_statemachine_control.h"
 #include "stream_streammodule_base.h"
 
 // forward declaration(s)
@@ -103,12 +104,18 @@ class Stream_Base_T
                      bool = true); // locked access ?
   virtual bool isRunning () const;
 
-  virtual void flush ();
+  virtual void flush (bool = false);
   virtual void pause ();
   virtual void rewind ();
   virtual const StatusType& status () const;
-  virtual void waitForCompletion ();
+  virtual void waitForCompletion (bool = true,   // wait for any worker
+                                                 // thread(s) ?
+                                  bool = false); // wait for upstream (if any) ?
+  virtual std::string name () const;
   virtual const StateType& state () const;
+
+  virtual void upStream (Stream_Base_t*);
+  virtual Stream_Base_t* upStream () const;
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -142,6 +149,7 @@ class Stream_Base_T
   // *WARNING*: this method is NOT (!) threadsafe in places
   //            --> handle with care !
   virtual int link (STREAM_T&);
+  virtual int unlink (void);
 
   //// *NOTE*: the default implementation close(s) the removed module. This is not
   ////         the intended behavior when the module is being used by several
@@ -156,6 +164,8 @@ class Stream_Base_T
 
   bool isInitialized () const;
 
+  void finished ();
+
  protected:
   // convenient types
   typedef ACE_Task<TaskSynchType,
@@ -167,24 +177,25 @@ class Stream_Base_T
   typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
   typedef Stream_IStreamControl_T<StatusType,
                                   StateType> ISTREAM_CONTROL_T;
+  typedef Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
 
   // *NOTE*: need to subclass this !
-  Stream_Base_T ();
+  Stream_Base_T (const std::string&); // name
 
   // implement (part of) Common_IControl
   virtual void initialize ();
 
-  // *NOTE*: children need to call this PRIOR to module RE-initialization
-  //         (i.e. in their own init()); this will:
-  //         - pop/close push()ed modules, clean up default head/tail modules
-  //         - reset reader/writer tasks for ALL modules
+  // *NOTE*: derived classes should call this prior to module reinitialization
+  //         (i.e. in their own initialize()); this function
+  //         - pop/close()s push()ed modules, remove default head/tail modules
+  //         - reset reader/writer tasks for all modules
   //         - generate new default head/tail modules
   // *WARNING*: calling this while isRunning() == true blocks until the stream
   //            finishes (because close() of a module waits for its worker
-  //            thread(s)...)
+  //            thread(s))
   bool reset ();
 
-  // *NOTE*: children MUST call this in their dtor !
+  // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
 
   // *NOTE*: children need to add handles to ALL of their modules to this container !
@@ -201,6 +212,9 @@ class Stream_Base_T
   ACE_SYNCH_MUTEX    lock_;
   SessionDataType*   sessionData_;
   StateType          state_;
+  // *NOTE*: cannot currently reach ACE_Stream::linked_us_
+  //         --> use this instead
+  Stream_Base_t*     upStream_;
 
  private:
   typedef ACE_Stream<TaskSynchType,
@@ -227,13 +241,16 @@ class Stream_Base_T
                         SessionMessageType,
                         ProtocolMessageType> OWN_TYPE_T;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Base_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&))
 
   // helper methods
   // wrap inherited::open/close() calls
-  bool finalize ();
   void deactivateModules ();
+  bool finalize ();
+
+  std::string        name_;
 };
 
 // include template implementation

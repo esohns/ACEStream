@@ -24,6 +24,7 @@
 
 #include "common_defines.h"
 #include "common_timer_manager.h"
+#include "common_tools.h"
 
 #include "stream_defines.h"
 #include "stream_iallocator.h"
@@ -57,7 +58,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
  , condition_ (lock_)
  , runSvcRoutineOnStart_ (runSvcRoutineOnStart_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
- , threadID_ (std::numeric_limits<unsigned long>::max ())
+ , threadID_ (ACE_INVALID_HANDLE)
 #else
  , threadID_ (-1)
 #endif
@@ -103,6 +104,15 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 //   // *TODO*: check if this sequence actually works...
 //   queue_.deactivate ();
 //   queue_.wait ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (threadID_ != ACE_INVALID_HANDLE)
+    if (!CloseHandle (threadID_))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
+                  threadID_,
+                  ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
+#endif
 }
 
 template <typename TaskSynchType,
@@ -544,30 +554,30 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   return true;
 }
 
-template <typename TaskSynchType,
-          typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-void
-Stream_HeadModuleTaskBase_T<TaskSynchType,
-                            TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType,
-                            ConfigurationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType>::initialize ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
+//template <typename TaskSynchType,
+//          typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//void
+//Stream_HeadModuleTaskBase_T<TaskSynchType,
+//                            TimePolicyType,
+//                            SessionMessageType,
+//                            ProtocolMessageType,
+//                            ConfigurationType,
+//                            StreamStateType,
+//                            SessionDataType,
+//                            SessionDataContainerType>::initialize ()
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
-}
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//  ACE_NOTREACHED (return;)
+//}
 
 template <typename TaskSynchType,
           typename TimePolicyType,
@@ -668,7 +678,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::flush ()
+                            SessionDataContainerType>::flush (bool /* flushUpStream_in */)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
 
@@ -750,6 +760,59 @@ template <typename TaskSynchType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType>
+void
+Stream_HeadModuleTaskBase_T<TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType>::upstream (Stream_Base_t* upStream_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::upstream"));
+
+  ACE_UNUSED_ARG (upStream_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+Stream_Base_t*
+Stream_HeadModuleTaskBase_T<TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType>::upstream () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::upstream"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (NULL);
+
+  ACE_NOTREACHED (return NULL;)
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
 const Stream_StateMachine_ControlState&
 Stream_HeadModuleTaskBase_T<TaskSynchType,
                             TimePolicyType,
@@ -762,7 +825,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::status"));
 
-  return inherited::current ();
+  Stream_StateMachine_ControlState result = inherited::current ();
+
+  return result;
 }
 
 template <typename TaskSynchType,
@@ -781,34 +846,65 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::waitForCompletion ()
+                            SessionDataContainerType>::waitForCompletion (bool waitForThreads_in,
+                                                                          bool waitForUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::waitForCompletion"));
 
   int result = -1;
 
-  // *TODO*: remove type inference
-  if (configuration_.active)
+  // step1: wait for final state
+  inherited::wait (NULL);
+
+  // step2: wait for worker(s) to join ?
+  if (waitForThreads_in)
   {
-    // step1: wait for final state
+    // *TODO*: remove type inference
+    if (configuration_.active)
     {
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
-
-      while (inherited2::threadCount_)
       {
-        result = condition_.wait ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_SYNCH_CONDITION::wait(): \"%m\", continuing\n")));
-      } // end WHILE
-    } // end IF
+        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-    // step2: wait for worker(s) to join
-    result = inherited2::wait ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
+        while (inherited2::threadCount_)
+        {
+          result = condition_.wait ();
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_SYNCH_CONDITION::wait(): \"%m\", continuing\n")));
+        } // end WHILE
+      } // end lock scope
+
+      // *TODO*: this should be redundant (see above)
+      result = inherited2::wait ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
+    } // end IF
   } // end IF
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+std::string
+Stream_HeadModuleTaskBase_T<TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType>::name () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::name"));
+
+  std::string result = ACE_TEXT_ALWAYS_CHAR (inherited2::name ());
+  return result;
 }
 
 template <typename TaskSynchType,
@@ -865,29 +961,29 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   return true;
 }
 
-template <typename TaskSynchType,
-          typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-void
-Stream_HeadModuleTaskBase_T<TaskSynchType,
-                            TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType,
-                            ConfigurationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType>::finished ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::finished"));
-
-  // (try to) set new state
-  inherited::change (STREAM_STATE_FINISHED);
-}
+//template <typename TaskSynchType,
+//          typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//void
+//Stream_HeadModuleTaskBase_T<TaskSynchType,
+//                            TimePolicyType,
+//                            SessionMessageType,
+//                            ProtocolMessageType,
+//                            ConfigurationType,
+//                            StreamStateType,
+//                            SessionDataType,
+//                            SessionDataContainerType>::finished ()
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::finished"));
+//
+//  // (try to) set new state
+//  inherited::change (STREAM_STATE_FINISHED);
+//}
 
 template <typename TaskSynchType,
           typename TimePolicyType,
@@ -917,7 +1013,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     {
       // OK: (re-)initialized
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("head module (re-)initialized...\n")));
+                  ACE_TEXT ("\"%s\" head module (re-)initialized...\n"),
+                  inherited2::name ()));
       break;
     }
     case STREAM_STATE_RUNNING:
@@ -936,6 +1033,14 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to ACE_Task::resume(): \"%m\", continuing\n")));
         } // end IF
+        else
+        {
+          // task object not active --> suspend the borrowed thread
+          result = ACE_Thread::resume (threadID_);
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_Thread::resume(): \"%m\", continuing\n")));
+        } // end ELSE
 
         break;
       } // end IF
@@ -1002,16 +1107,31 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
           {
             ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (stateLock_);
 
-            // *NOTE*: if the implementation is 'passive', the whole operation pertaining
-            //         to newState_in may have been processed 'inline' by the current
-            //         thread and have completed by 'now'
+            // *NOTE*: if the implementation is 'passive', the whole operation
+            //         pertaining to newState_in is processed 'inline' by the
+            //         calling thread and would complete before the state
+            //         actually has been set to 'running'
             //         --> in this case set the state early
             // *TODO*: this may not be the best way to implement that case (i.e. there
             //         could be intermediate states...)
             inherited::state_ = STREAM_STATE_RUNNING;
           } // end lock scope
 
-          threadID_ = ACE_Thread::self ();
+          ACE_Thread::self (threadID_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          HANDLE process_handle = GetCurrentProcess ();
+          if (!DuplicateHandle (process_handle,
+                                threadID_,
+                                process_handle,
+                                &threadID_,
+                                0,
+                                FALSE,
+                                DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to DuplicateHandle(0x%@): \"%s\", continuing\n"),
+                        threadID_,
+                        ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
+#endif
           result = svc ();
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
@@ -1082,13 +1202,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         //                threadID_, SIGKILL));
         //} // end IF
 
-        // send final session message downstream...
-        if (!putSessionMessage (STREAM_SESSION_END,
-                                sessionData_,
-                                false))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
-
         // signal the controller
         finished ();
       } // end ELSE
@@ -1097,6 +1210,25 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     }
     case STREAM_STATE_FINISHED:
     {
+      {
+        ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (stateLock_);
+
+        // *NOTE*: modules processing the final session message (see below) may
+        //         (indirectly) invoke waitForCompletion() on the stream,
+        //         which would deadlock if the implementation is 'passive'
+        //         --> set the state early
+        // *TODO*: this may not be the best way to handle that case (i.e. it
+        //         could introduce race conditions...)
+        inherited::state_ = STREAM_STATE_FINISHED;
+      } // end lock scope
+
+      // send final session message downstream
+      if (!putSessionMessage (STREAM_SESSION_END,
+                              sessionData_,
+                              false))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
+
       // signal waiting thread(s)
       {
         ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
@@ -1108,15 +1240,15 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n")));
       } // end lock scope
-
 //       ACE_DEBUG ((LM_DEBUG,
-//                   ACE_TEXT ("finished successfully !\n")));
+//                   ACE_TEXT ("stream processing complete\n")));
 
       break;
     }
     case STREAM_STATE_PAUSED:
     {
       // suspend the worker(s) ?
+
       // *TODO*: remove type inference
       if (configuration_.active)
       {
@@ -1125,6 +1257,14 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Task::suspend(): \"%m\", continuing\n")));
       } // end IF
+      else
+      {
+        // task object not active --> suspend the borrowed thread
+        result = ACE_Thread::suspend (threadID_);
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Thread::suspend(): \"%m\", continuing\n")));
+      } // end ELSE
 
       break;
     }

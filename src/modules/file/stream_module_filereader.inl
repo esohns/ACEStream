@@ -344,6 +344,55 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
+void
+Stream_Module_FileReader_T<SessionMessageType,
+                           ProtocolMessageType,
+                           ConfigurationType,
+                           StreamStateType,
+                           SessionDataType,
+                           SessionDataContainerType,
+                           StatisticContainerType>::upStream (Stream_Base_t* streamBase_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::upStream"));
+
+  ACE_UNUSED_ARG (streamBase_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+template <typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
+Stream_Base_t*
+Stream_Module_FileReader_T<SessionMessageType,
+                           ProtocolMessageType,
+                           ConfigurationType,
+                           StreamStateType,
+                           SessionDataType,
+                           SessionDataContainerType,
+                           StatisticContainerType>::upStream () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::upStream"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (NULL);
+
+  ACE_NOTREACHED (return NULL;)
+}
+
+template <typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 int
 Stream_Module_FileReader_T<SessionMessageType,
                            ProtocolMessageType,
@@ -368,10 +417,10 @@ Stream_Module_FileReader_T<SessionMessageType,
   ACE_ASSERT (!isOpen_);
 
   // step0a: if in passive mode, release state machine lock
-  ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> lock (inherited::stateLock_);
+  ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> reverse_lock (inherited::stateLock_);
   if (!inherited::configuration_.active)
   {
-    result = lock.acquire ();
+    result = reverse_lock.acquire ();
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -487,13 +536,6 @@ Stream_Module_FileReader_T<SessionMessageType,
   message_block_p->release ();
 
 session_finished:
-  // step2: send final session message downstream...
-  if (!inherited::putSessionMessage (STREAM_SESSION_END,
-                                     inherited::sessionData_,
-                                     false))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
-
   result = stream_.close ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
@@ -510,7 +552,7 @@ done:
 
   if (!inherited::configuration_.active)
   {
-    int result_2 = lock.release ();
+    int result_2 = reverse_lock.release ();
     if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Reverse_Lock::release(): \"%m\", aborting\n")));

@@ -685,10 +685,13 @@ idle_update_progress_source_cb (gpointer userData_in)
   } // end IF
 
   //gtk_progress_bar_pulse (progress_bar_p);
-  ACE_ASSERT (data_p->size);
-  ACE_ASSERT (data_p->transferred <= data_p->size);
-  gdouble fraction_d =
+  gdouble fraction_d = 0.0;
+  if (data_p->size)
+  {
+    ACE_ASSERT (data_p->transferred <= data_p->size);
+    fraction_d =
       static_cast<double> (data_p->transferred) / static_cast<double> (data_p->size);
+  } // end IF
   gtk_progress_bar_set_fraction (progress_bar_p, fraction_d);
 
   // --> reschedule

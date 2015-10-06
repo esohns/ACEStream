@@ -41,8 +41,19 @@ enum Stream_StateMachine_ControlState
   STREAM_STATE_MAX
 };
 
+template <typename StateType>
+class Stream_StateMachine_IControl_T
+ : virtual public Common_IStateMachine_T<Stream_StateMachine_ControlState>
+{
+ public:
+  virtual ~Stream_StateMachine_IControl_T () {}
+
+  virtual void finished () = 0;
+};
+
 class Stream_Export Stream_StateMachine_Control
  : public Common_StateMachine_Base_T<Stream_StateMachine_ControlState>
+ , public Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState>
 {
  public:
   Stream_StateMachine_Control ();
@@ -51,13 +62,23 @@ class Stream_Export Stream_StateMachine_Control
   // implement (part of) Common_IStateMachine_T
   virtual void initialize ();
   virtual void reset ();
+  // *NOTE*: users need to provide absolute values (i.e. deadline)
+  // *IMPORTANT NOTE*: upon return, processing has completed in the sense that
+  //                   all data has been enqueued onto the stream (e.g. a file
+  //                   has been read). Data processing may well still be ongoing
+  //                   at this stage
+  // *TODO*: allow waiting for discrete states
+  virtual bool wait (const ACE_Time_Value* = NULL); // timeout ? : block
   virtual std::string state2String (Stream_StateMachine_ControlState) const;
+
+  // implement Stream_StateMachine_IControl_T
+  virtual void finished ();
 
  protected:
   // override (part of) Common_IStateMachine_T
   // *NOTE*: only children can change state
   // *WARNING*: PAUSED --> PAUSED is silently remapped to PAUSED --> RUNNING
-  //            mimicing a traditional tape recorder
+  //            in the model of a traditional tape recorder
   //            --> children must implement the corresponding behavior !
   virtual bool change (Stream_StateMachine_ControlState); // new state
 

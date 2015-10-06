@@ -30,7 +30,7 @@ ACE_Atomic_Op<ACE_Thread_Mutex,
               unsigned long> Stream_Filecopy_Stream::currentSessionID = 0;
 
 Stream_Filecopy_Stream::Stream_Filecopy_Stream ()
- : inherited ()
+ : inherited (ACE_TEXT_ALWAYS_CHAR ("FileCopyStream"))
  , fileReader_ (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
                 NULL,
                 false)
