@@ -108,8 +108,8 @@ Test_I_Stream_Target_EventHandler::notify (const Test_I_Stream_SessionMessage& s
         sessionMessage_in.get ();
       const Test_I_Stream_SessionData* session_data_p =
         session_data_container_r.getData ();
-      ACE_ASSERT (session_data_p);
-      CBData_->progressData.statistic = session_data_p->currentStatistic;
+      if (session_data_p)
+	      CBData_->progressData.statistic = session_data_p->currentStatistic;
       break;
     }
     default:

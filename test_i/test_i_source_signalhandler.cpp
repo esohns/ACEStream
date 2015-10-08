@@ -30,9 +30,9 @@
 
 #include "test_i_connection_manager_common.h"
 
-Stream_Source_SignalHandler::Stream_Source_SignalHandler ()
- : inherited (this, // event handler handle
-              true) // use reactor ?
+Stream_Source_SignalHandler::Stream_Source_SignalHandler (bool useReactor_in)
+ : inherited (this,          // event handler handle
+              useReactor_in) // use reactor ?
  , configuration_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::Stream_Source_SignalHandler"));
@@ -168,9 +168,9 @@ Stream_Source_SignalHandler::handleSignal (int signal_in)
     connection_manager_p->abort ();
 
     // step5: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (useReactor_,  // stop reactor ?
-                                         !useReactor_, // stop proactor ?
-                                         -1);          // group ID (--> don't block)
+    Common_Tools::finalizeEventDispatch (inherited::useReactor_,  // stop reactor ?
+                                         !inherited::useReactor_, // stop proactor ?
+                                         -1);                     // group ID (--> don't block)
 
     // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF

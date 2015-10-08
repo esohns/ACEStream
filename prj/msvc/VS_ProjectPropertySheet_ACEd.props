@@ -8,7 +8,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\ATCD\ACE</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\ATCD\ACE\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\ATCD\ACE\lib;$(ProjectDir)..\..\..\ATCD\ACE\lib\$(Configuration)\$(Platform)</AdditionalLibraryDirectories>
       <AdditionalDependencies>ACEd.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

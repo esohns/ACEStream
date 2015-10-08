@@ -288,8 +288,8 @@ struct Stream_GTK_ProgressData
   Common_UI_GTKState*       GTKState;
   Stream_PendingActions_t   pendingActions;
   Stream_Statistic          statistic;
-  unsigned int              transferred; // bytes
-  unsigned int              size; // bytes
+  size_t                    transferred; // bytes
+  size_t                    size; // bytes
 };
 
 struct Stream_GTK_CBData

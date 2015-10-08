@@ -909,19 +909,13 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
         message_inout->get ();
       const SessionDataType* session_data_p =
         session_data_container_r.getData ();
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_ASSERT (session_data_p->sessionID != reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE));
+      ACE_ASSERT (session_data_p->sessionID != reinterpret_cast<size_t> (ACE_INVALID_HANDLE));
       connection_ =
         configuration_.connectionManager->get (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID));
-#else
-      ACE_ASSERT (session_data_p->sessionID != static_cast<unsigned int> (ACE_INVALID_HANDLE));
-      connection_ =
-        configuration_.connectionManager->get (static_cast<ACE_HANDLE> (session_data_p->sessionID));
-#endif
       if (!connection_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
+                    ACE_TEXT ("failed to retrieve connection (handle was: %u), returning\n"),
                     session_data_p->sessionID));
         return;
       } // end IF

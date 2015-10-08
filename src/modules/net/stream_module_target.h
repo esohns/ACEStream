@@ -63,7 +63,7 @@ class Stream_Module_Net_Target_T
   virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
-  ModuleHandlerConfigurationType                configuration_;
+  ModuleHandlerConfigurationType        configuration_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -73,12 +73,14 @@ class Stream_Module_Net_Target_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T (const Stream_Module_Net_Target_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T& operator= (const Stream_Module_Net_Target_T&))
 
-  //typename ConnectorType::ISOCKET_CONNECTION_T* connection_;
-  bool                                          isInitialized_;
-  bool                                          isLinked_;
-  bool                                          isPassive_;
+  // *NOTE*: facilitate asynchronous connects
+  typename ConnectorType::ICONNECTOR_T* iconnector_;
+  bool                                  isInitialized_;
+  bool                                  isLinked_;
+  bool                                  isPassive_;
 };
 
+// include template implementation
 #include "stream_module_target.inl"
 
 #endif

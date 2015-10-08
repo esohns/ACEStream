@@ -210,6 +210,7 @@ Stream_Base_T<TaskSynchType,
                     ACE_TEXT ("caught exception in Stream_IModule::reset(), continuing\n")));
       }
     } // end FOR
+    isInitialized_ = false;
   } // end IF
 
   // allocate session data
@@ -243,8 +244,45 @@ Stream_Base_T<TaskSynchType,
     result = -1;
   }
   if (result == -1)
+  {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", continuing\n")));
+                ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", returning\n")));
+    return;
+  } // end IF
+
+  //// delegate to the head module
+  //MODULE_T* module_p = NULL;
+  //result = inherited::top (module_p);
+  //if ((result == -1) || !module_p)
+  //{
+  //  //ACE_DEBUG ((LM_ERROR,
+  //  //            ACE_TEXT ("no head module found: \"%m\", returning\n")));
+  //  return;
+  //} // end IF
+
+  //STATEMACHINE_ICONTROL_T* statemachine_icontrol_p =
+  //  dynamic_cast<STATEMACHINE_ICONTROL_T*> (module_p->writer ());
+  //if (!statemachine_icontrol_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: dynamic_cast<Stream_StateMachine_IControl_T*> failed, returning\n"),
+  //              module_p->name ()));
+  //  return;
+  //} // end IF
+
+  //try
+  //{
+  //  statemachine_icontrol_p->initialize ();
+  //}
+  //catch (...)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: caught exception in Stream_StateMachine_IControl_T::initialize(), returning\n"),
+  //              module_p->name ()));
+  //  return;
+  //}
+
+  isInitialized_ = true;
 }
 
 template <typename TaskSynchType,
@@ -978,7 +1016,7 @@ Stream_Base_T<TaskSynchType,
   // step2: wait for any upstream workers and messages to flush
   Stream_Queue_t* queue_p = NULL;
   ACE_Time_Value one_second (1, 0);
-  unsigned int message_count = 0;
+  size_t message_count = 0;
   for (MODULE_CONTAINER_ITERATOR_T iterator2 = modules.begin ();
        iterator2 != modules.end ();
        iterator2++)

@@ -145,6 +145,10 @@ do_printUsage (const std::string& programName_in)
             << NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-z [VALUE]  : loop [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("] {-1 --> forever}")
+            << std::endl;
 }
 
 bool
@@ -162,7 +166,8 @@ do_processArguments (int argc_in,
                      bool& traceInformation_out,
                      bool& useUDP_out,
                      bool& printVersionAndExit_out,
-                     unsigned int& numberOfDispatchThreads_out)
+                     unsigned int& numberOfDispatchThreads_out,
+                     unsigned int& loop_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -198,10 +203,11 @@ do_processArguments (int argc_in,
   printVersionAndExit_out = false;
   numberOfDispatchThreads_out =
     NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS;
+  loop_out = 0;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:f:g::h:lop:rs:tuvx:"),
+                              ACE_TEXT ("b:f:g::h:lop:rs:tuvx:z:"),
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -292,6 +298,14 @@ do_processArguments (int argc_in,
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
         converter >> numberOfDispatchThreads_out;
+        break;
+      }
+      case 'z':
+      {
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argumentParser.opt_arg ();
+        converter >> loop_out;
         break;
       }
       // error handling
@@ -684,10 +698,7 @@ do_work (unsigned int bufferSize_in,
 
   // step1b: initialize worker(s)
   int group_id = -1;
-  // *NOTE*: this variable needs to stay on the working stack, it's passed to
-  //         the worker(s) (if any)
-  bool use_reactor = useReactor_in;
-  if (!Common_Tools::startEventDispatch (use_reactor,
+  if (!Common_Tools::startEventDispatch (&useReactor_in,
                                          numberOfDispatchThreads_in,
                                          group_id))
   {
@@ -718,6 +729,9 @@ do_work (unsigned int bufferSize_in,
       ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
                                                           : CBData_in.UDPStream);
     ACE_ASSERT (stream_p);
+
+    unsigned int counter = 0;
+loop:
     if (!stream_p->initialize (configuration.streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -748,6 +762,15 @@ do_work (unsigned int bufferSize_in,
     //      return;
     //    } // end IF
     stream_p->waitForCompletion ();
+    if (CBData_in.loop)
+    {
+      ++counter;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("iteration #%u complete...\n"),
+                  counter));
+      if ((CBData_in.loop == -1) || (counter != CBData_in.loop))
+        goto loop;
+    } // end IF
 
     // clean up
     connection_manager_p->stop ();
@@ -863,6 +886,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 #endif
+  Common_Tools::initialize ();
 
   // *PROCESS PROFILE*
   ACE_Profile_Timer process_profile;
@@ -903,6 +927,7 @@ ACE_TMAIN (int argc_in,
   bool print_version_and_exit = false;
   unsigned int number_of_dispatch_threads =
     NET_CLIENT_DEFAULT_NUMBER_OF_DISPATCH_THREADS;
+  size_t loop = 0;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -919,7 +944,8 @@ ACE_TMAIN (int argc_in,
                             trace_information,
                             use_UDP,
                             print_version_and_exit,
-                            number_of_dispatch_threads))
+                            number_of_dispatch_threads,
+                            loop))
   {
     // make 'em learn...
     do_printUsage (ACE::basename (argv_in[0]));
@@ -953,11 +979,12 @@ ACE_TMAIN (int argc_in,
     use_thread_pool = true;
   } // end IF
   if ((UI_definition_file_name.empty () &&
-       !Common_File_Tools::isReadable (file_name))                         ||
+       !Common_File_Tools::isReadable (file_name))                          ||
       (!UI_definition_file_name.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_file_name))           ||
-      (use_thread_pool && !use_reactor)                                    ||
-      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool))
+       !Common_File_Tools::isReadable (UI_definition_file_name))            ||
+      (use_thread_pool && !use_reactor)                                     ||
+      (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool) ||
+      (loop && !UI_definition_file_name.empty ()))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -978,6 +1005,7 @@ ACE_TMAIN (int argc_in,
 
   Test_I_Source_GTK_CBData gtk_cb_user_data;
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
+  gtk_cb_user_data.loop = loop;
   // step1d: initialize logging and/or tracing
   Common_Logger logger (&gtk_cb_user_data.logStack,
                         &gtk_cb_user_data.lock);
@@ -1052,7 +1080,7 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_Source_SignalHandler signal_handler;
+  Stream_Source_SignalHandler signal_handler (use_reactor);
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

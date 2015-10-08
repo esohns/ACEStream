@@ -35,7 +35,7 @@ class Stream_Source_SignalHandler
  , public Common_ISignal
 {
  public:
-  Stream_Source_SignalHandler ();
+  Stream_Source_SignalHandler (bool = true); // use reactor ?
   virtual ~Stream_Source_SignalHandler ();
 
   // implement Common_IInitialize_T
@@ -47,6 +47,7 @@ class Stream_Source_SignalHandler
  private:
   typedef Common_SignalHandler inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler (const Stream_Source_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler& operator= (const Stream_Source_SignalHandler&))
 

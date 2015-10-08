@@ -5,15 +5,24 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{69AC49A2-46D0-45BF-8353-C24A814DC255}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>test_i_streamsource</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -22,7 +31,20 @@
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
@@ -38,7 +60,19 @@
     <Import Project="VS_ProjectPropertySheet_png_gtk_gnome.props" />
     <Import Project="VS_ProjectPropertySheet_glade.props" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="VS_ProjectPropertySheet_ACEd.props" />
+    <Import Project="VS_ProjectPropertySheet_png_gtk_gnome.props" />
+    <Import Project="VS_ProjectPropertySheet_glade.props" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="VS_ProjectPropertySheet_ACE.props" />
+    <Import Project="VS_ProjectPropertySheet_png_gtk_gnome.props" />
+    <Import Project="VS_ProjectPropertySheet_glade.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="VS_ProjectPropertySheet_ACE.props" />
     <Import Project="VS_ProjectPropertySheet_png_gtk_gnome.props" />
@@ -46,17 +80,38 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <IntDir>$(SolutionDir)$(Configuration)_obj\$(ProjectName)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(SolutionDir)$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
     <RunCodeAnalysis>false</RunCodeAnalysis>
+    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
+    <GenerateManifest>false</GenerateManifest>
+    <EmbedManifest>false</EmbedManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
+    <GenerateManifest>false</GenerateManifest>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(SolutionDir)$(Configuration)_obj\$(ProjectName)\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
     <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <GenerateManifest>false</GenerateManifest>
-    <EmbedManifest>false</EmbedManifest>
+    <EmbedManifest>true</EmbedManifest>
+    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <GenerateManifest>false</GenerateManifest>
+    <EmbedManifest>true</EmbedManifest>
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -74,12 +129,60 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <OpenMPSupport>false</OpenMPSupport>
+      <DisableLanguageExtensions />
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ShowIncludes />
+      <ErrorReporting>Send</ErrorReporting>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
       <AdditionalDependencies>User32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <RandomizedBaseAddress />
+      <DataExecutionPrevention />
+      <TurnOffAssemblyGeneration />
+      <Profile>true</Profile>
+      <LinkErrorReporting>SendErrorReport</LinkErrorReporting>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;STREAM_HAS_DLL;DEBUG_DEBUGGER;HAVE_CONFIG_H;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\..\libCommon\src\ui;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\src\modules\net;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <EnablePREfast>false</EnablePREfast>
+      <AdditionalOptions>/vd0</AdditionalOptions>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BrowseInformation>true</BrowseInformation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitFramePointers>false</OmitFramePointers>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <OpenMPSupport>false</OpenMPSupport>
+      <DisableLanguageExtensions />
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ShowIncludes />
+      <ErrorReporting>Send</ErrorReporting>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
+      <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
+      <AdditionalDependencies>User32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <RandomizedBaseAddress />
+      <DataExecutionPrevention />
+      <TurnOffAssemblyGeneration />
+      <Profile>true</Profile>
+      <LinkErrorReporting>SendErrorReport</LinkErrorReporting>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -101,18 +204,18 @@
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FloatingPointModel>Strict</FloatingPointModel>
-      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
-      <OmitDefaultLibName />
-      <ErrorReporting>
-      </ErrorReporting>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
+      <ErrorReporting>Send</ErrorReporting>
       <AdditionalOptions>/vd0</AdditionalOptions>
       <DisableSpecificWarnings>4061;4820;4006;4172;4191;4350;4471;4503;4571;4711</DisableSpecificWarnings>
       <ExceptionHandling>Async</ExceptionHandling>
       <DisableLanguageExtensions>
       </DisableLanguageExtensions>
+      <ShowIncludes />
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -125,13 +228,12 @@
       </AllowIsolation>
       <EnableUAC>false</EnableUAC>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <SetChecksum>
-      </SetChecksum>
+      <SetChecksum>true</SetChecksum>
       <RandomizedBaseAddress />
-      <DataExecutionPrevention />
+      <DataExecutionPrevention>true</DataExecutionPrevention>
       <TurnOffAssemblyGeneration>
       </TurnOffAssemblyGeneration>
-      <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
+      <LinkErrorReporting>SendErrorReport</LinkErrorReporting>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -143,6 +245,80 @@
       <Command>$(ProjectDir)..\..\scripts\make_installer.bat $(Configuration)</Command>
       <Message>packaging...</Message>
     </CustomBuildStep>
+    <Manifest>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+    </Manifest>
+    <Bscmake>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;STREAM_HAS_DLL;HAVE_CONFIG_H;DEBUG_DEBUGGER;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\..\libCommon\src\ui;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\src\modules\net;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <EnablePREfast>false</EnablePREfast>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+      <OmitFramePointers>true</OmitFramePointers>
+      <StringPooling>true</StringPooling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointModel>Strict</FloatingPointModel>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <OmitDefaultLibName>true</OmitDefaultLibName>
+      <ErrorReporting>Send</ErrorReporting>
+      <AdditionalOptions>/vd0</AdditionalOptions>
+      <DisableSpecificWarnings>4061;4820;4006;4172;4191;4350;4471;4503;4571;4711</DisableSpecificWarnings>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <DisableLanguageExtensions>
+      </DisableLanguageExtensions>
+      <ShowIncludes />
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
+      <AdditionalDependencies>User32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AllowIsolation>
+      </AllowIsolation>
+      <EnableUAC>false</EnableUAC>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <SetChecksum>true</SetChecksum>
+      <RandomizedBaseAddress>
+      </RandomizedBaseAddress>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <TurnOffAssemblyGeneration>
+      </TurnOffAssemblyGeneration>
+      <LinkErrorReporting>SendErrorReport</LinkErrorReporting>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>$(ProjectDir)..\..\scripts\make_installer.bat $(Configuration)</Command>
+      <Message>packaging...</Message>
+    </CustomBuildStep>
+    <Manifest>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+    </Manifest>
+    <Bscmake>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="..\..\test_i\ReadMe.txt" />
@@ -150,36 +326,52 @@
   <ItemGroup>
     <ClCompile Include="..\..\test_i\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\test_i\test_i_callbacks.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\test_i\test_i_message.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\test_i\test_i_module_eventhandler.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\test_i\test_i_session_message.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\test_i\test_i_source.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\test_i\test_i_source_eventhandler.cpp" />
     <ClCompile Include="..\..\test_i\test_i_source_signalhandler.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\test_i\test_i_source_stream.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\test_i\test_i_target_stream.cpp" />
   </ItemGroup>
@@ -204,9 +396,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\libACENetwork\prj\msvc\libACENetwork.vcxproj">
       <Project>{751d54c5-12bd-4771-9453-b9d3948ed025}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\libACENetwork\prj\msvc\libACENetwork_Client.vcxproj">
-      <Project>{125bbe44-7481-4edf-8f17-8d373e044976}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\libCommon\prj\msvc\libCommon.vcxproj">
       <Project>{78a90d08-4e40-4ed4-8f75-393ac6526158}</Project>

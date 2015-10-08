@@ -177,7 +177,7 @@ class Stream_Module_Statistic_WriterTask_T
   long                              resetTimeoutHandlerID_;
   Stream_StatisticHandler_Reactor_t localReportingHandler_;
   long                              localReportingHandlerID_;
-  unsigned int                      reportingInterval_; // second(s) [0: off]
+  size_t                            reportingInterval_; // second(s) [0: off]
   bool                              sendStatisticMessages_;
   bool                              printFinalReport_;
 
@@ -197,9 +197,9 @@ class Stream_Module_Statistic_WriterTask_T
   float                             inboundBytes_;
   float                             outboundBytes_;
   // used to compute data throughput...
-  unsigned int                      byteCounter_;
+  size_t                            byteCounter_;
   // *NOTE: support asynchronous collecting/reporting of data
-  unsigned int                      lastBytesPerSecondCount_;
+  size_t                            lastBytesPerSecondCount_;
 
   // *TYPE STATISTIC*
   STATISTIC_T                       messageTypeStatistic_;

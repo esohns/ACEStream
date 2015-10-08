@@ -339,7 +339,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
 
   // OK: all went well
   inherited::isInitialized_ = true;
-  inherited::dump_state ();
+  //inherited::dump_state ();
 
   return true;
 }

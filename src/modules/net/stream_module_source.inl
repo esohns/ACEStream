@@ -499,7 +499,7 @@ reset:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("linked i/o streams...\n")));
         isLinked_ = true;
-        stream_p->dump_state ();
+        //stream_p->dump_state ();
 
         goto done;
 
@@ -555,7 +555,7 @@ done:
           else
             ACE_DEBUG ((LM_DEBUG,
                         ACE_TEXT ("unlinked i/o streams...\n")));
-          stream_r.dump_state ();
+          //stream_r.dump_state ();
         } // end IF
         isLinked_ = false;
 

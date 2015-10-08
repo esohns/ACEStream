@@ -109,11 +109,11 @@ struct Stream_Filecopy_GTK_ProgressData
   {};
 
   Stream_Filecopy_CompletedActions_t completedActions;
-  unsigned int                       copied; // bytes
+  size_t                             copied; // bytes
 //  GdkCursorType                      cursorType;
   Common_UI_GTKState*                GTKState;
   Stream_Filecopy_PendingActions_t   pendingActions;
-  unsigned int                       size; // bytes
+  size_t                             size; // bytes
 };
 
 struct Stream_Filecopy_GTK_CBData
@@ -143,7 +143,7 @@ struct Stream_Filecopy_ThreadData
   {};
 
   Stream_Filecopy_GTK_CBData* CBData;
-  unsigned int                sessionID;
+  size_t                      sessionID;
 };
 
 #endif

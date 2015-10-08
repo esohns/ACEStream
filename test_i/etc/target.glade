@@ -1,25 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkAction" id="action_close_all">
-    <property name="stock_id">gtk-clear</property>
-    <property name="always_show_image">True</property>
-    <signal name="activate" handler="action_close_all_activate_cb" swapped="no"/>
+  <object class="GtkActionGroup" id="actiongroup">
+    <property name="name">actions</property>
+    <property name="accel_group">accelgroup</property>
+    <child>
+      <object class="GtkToggleAction" id="toggleaction_listen">
+        <property name="label" translatable="yes">Listen</property>
+        <property name="short_label" translatable="yes">Listen</property>
+        <property name="stock_id">gtk-disconnect</property>
+        <signal name="toggled" handler="action_listen_activate_cb" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="action_close_all">
+        <property name="label" translatable="yes">Close All</property>
+        <property name="short_label" translatable="yes">Close All</property>
+        <property name="stock_id">gtk-cancel</property>
+        <signal name="activate" handler="action_close_all_activate_cb" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="action_report">
+        <property name="label" translatable="yes">Report</property>
+        <property name="short_label" translatable="yes">Report</property>
+        <property name="stock_id">gtk-file</property>
+        <signal name="activate" handler="action_report_activate_cb" swapped="no"/>
+      </object>
+    </child>
   </object>
-  <object class="GtkAction" id="action_listen">
-    <property name="label" translatable="yes">L_isten</property>
-    <property name="stock_id">gtk-media-play</property>
-    <property name="icon_name">gtk-media-play-ltr</property>
-    <property name="hide_if_empty">False</property>
-    <property name="always_show_image">True</property>
-    <signal name="activate" handler="action_listen_activate_cb" swapped="no"/>
-  </object>
-  <object class="GtkAction" id="action_report">
-    <property name="label" translatable="yes">_Report</property>
-    <property name="stock_id">gtk-file</property>
-    <property name="always_show_image">True</property>
-    <signal name="activate" handler="actio_report_activate_cb" swapped="no"/>
-  </object>
+  <object class="GtkAccelGroup" id="accelgroup"/>
   <object class="GtkAdjustment" id="adjustment_buffersize">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
@@ -43,6 +53,7 @@
   <object class="GtkAdjustment" id="adjustment_port">
     <property name="lower">1</property>
     <property name="upper">65535</property>
+    <property name="value">10001</property>
     <property name="step_increment">1</property>
     <property name="page_increment">100</property>
   </object>
@@ -152,6 +163,16 @@
       </object>
     </child>
   </object>
+  <object class="GtkImage" id="image_disconnect">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-disconnect</property>
+  </object>
+  <object class="GtkImage" id="image_report">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-file</property>
+  </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -194,11 +215,14 @@
                                 <property name="layout_style">start</property>
                                 <child>
                                   <object class="GtkToggleButton" id="listen">
-                                    <property name="related_action">action_listen</property>
+                                    <property name="label" translatable="yes">_Listen</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="related_action">toggleaction_listen</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
-                                    <property name="use_stock">True</property>
+                                    <property name="image">image_disconnect</property>
+                                    <property name="use_underline">True</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="xalign">0</property>
                                     <property name="yalign">0</property>
@@ -211,12 +235,15 @@
                                 </child>
                                 <child>
                                   <object class="GtkButton" id="close_all">
+                                    <property name="label" translatable="yes">_Close All</property>
+                                    <property name="use_action_appearance">False</property>
                                     <property name="related_action">action_close_all</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
-                                    <property name="use_stock">True</property>
+                                    <property name="image">image_close_all</property>
+                                    <property name="use_underline">True</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="xalign">0</property>
                                     <property name="yalign">0</property>
@@ -229,11 +256,14 @@
                                 </child>
                                 <child>
                                   <object class="GtkButton" id="report">
+                                    <property name="label" translatable="yes">_Report</property>
+                                    <property name="use_action_appearance">False</property>
                                     <property name="related_action">action_report</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
-                                    <property name="use_stock">True</property>
+                                    <property name="image">image_report</property>
+                                    <property name="use_underline">True</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="xalign">0</property>
                                     <property name="yalign">0</property>
@@ -475,6 +505,8 @@
                                       <object class="GtkSpinButton" id="spinbutton_port">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
+                                        <property name="tooltip_markup" translatable="yes">port</property>
+                                        <property name="tooltip_text" translatable="yes">port</property>
                                         <property name="max_length">5</property>
                                         <property name="invisible_char">●</property>
                                         <property name="width_chars">5</property>
@@ -485,6 +517,8 @@
                                         <property name="secondary_icon_activatable">False</property>
                                         <property name="primary_icon_sensitive">False</property>
                                         <property name="secondary_icon_sensitive">False</property>
+                                        <property name="primary_icon_tooltip_text" translatable="yes">port</property>
+                                        <property name="primary_icon_tooltip_markup" translatable="yes">port</property>
                                         <property name="adjustment">adjustment_port</property>
                                         <property name="climb_rate">10</property>
                                         <property name="numeric">True</property>
@@ -772,6 +806,9 @@
                                                       <object class="GtkSpinButton" id="spinbutton_buffersize">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
+                                                        <property name="has_tooltip">True</property>
+                                                        <property name="tooltip_markup" translatable="yes">bytes</property>
+                                                        <property name="tooltip_text" translatable="yes">bytes</property>
                                                         <property name="invisible_char">●</property>
                                                         <property name="xalign">1</property>
                                                         <property name="caps_lock_warning">False</property>
@@ -779,6 +816,8 @@
                                                         <property name="secondary_icon_activatable">False</property>
                                                         <property name="primary_icon_sensitive">False</property>
                                                         <property name="secondary_icon_sensitive">False</property>
+                                                        <property name="primary_icon_tooltip_text" translatable="yes">bytes</property>
+                                                        <property name="primary_icon_tooltip_markup" translatable="yes">bytes</property>
                                                         <property name="adjustment">adjustment_buffersize</property>
                                                         <property name="numeric">True</property>
                                                       </object>
@@ -895,6 +934,7 @@
                             <property name="cursor_visible">False</property>
                             <property name="buffer">textview_textbuffer</property>
                             <property name="accepts_tab">False</property>
+                            <signal name="size-allocate" handler="textview_size_allocate_cb" swapped="no"/>
                           </object>
                         </child>
                       </object>
@@ -1034,15 +1074,15 @@
       <action-widget response="0">quit</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkImage" id="image_pause">
+  <object class="GtkImage" id="image_close_all">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="stock">gtk-media-pause</property>
+    <property name="stock">gtk-cancel</property>
   </object>
-  <object class="GtkImage" id="image_play">
+  <object class="GtkImage" id="image_connect">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="stock">gtk-media-play</property>
+    <property name="stock">gtk-connect</property>
   </object>
   <object class="GtkAdjustment" id="scrolledwindow_hadjustment">
     <property name="upper">100</property>

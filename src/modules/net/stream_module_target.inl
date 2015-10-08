@@ -48,7 +48,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
                            ConnectorType>::Stream_Module_Net_Target_T (bool isPassive_in)
  : inherited ()
  , configuration_ ()
- //, connection_ (NULL)
+ , iconnector_ (NULL)
  , isInitialized_ (false)
  , isLinked_ (false)
  , isPassive_ (isPassive_in)
@@ -118,6 +118,9 @@ Stream_Module_Net_Target_T<SessionMessageType,
   } // end IF
   if (configuration_.connection)
     configuration_.connection->decrease ();
+
+  if (iconnector_)
+    delete iconnector_;
 }
 
 template <typename SessionMessageType,
@@ -244,10 +247,20 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
         // step2: initialize connector
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
-        // *TODO*: remove type inferences
-        ConnectorType connector (iconnection_manager_p,
-                                 configuration_.streamConfiguration->statisticReportingInterval);
-        typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector;
+        if (!iconnector_)
+        {
+          // *TODO*: remove type inferences
+          ACE_NEW_NORETURN (iconnector_,
+                            ConnectorType (iconnection_manager_p,
+                                           configuration_.streamConfiguration->statisticReportingInterval));
+          if (!iconnector_)
+          {
+            ACE_DEBUG ((LM_CRITICAL,
+                        ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+            return;
+          } // end IF
+        } // end IF
+        ACE_ASSERT (iconnector_);
         ACE_ASSERT (configuration_.streamConfiguration);
         bool clone_module, delete_module;
         clone_module =
@@ -259,7 +272,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
         configuration_.streamConfiguration->cloneModule = false;
         configuration_.streamConfiguration->deleteModule = false;
         configuration_.streamConfiguration->module = NULL;
-        if (!iconnector_p->initialize (*configuration_.socketHandlerConfiguration))
+        if (!iconnector_->initialize (*configuration_.socketHandlerConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
@@ -271,8 +284,8 @@ Stream_Module_Net_Target_T<SessionMessageType,
         // *TODO*: support one-thread operation by scheduling a signal and manually
         //         running the dispatch loop for a limited time...
         handle =
-          iconnector_p->connect (configuration_.socketConfiguration->peerAddress);
-        if (iconnector_p->useReactor ())
+          iconnector_->connect (configuration_.socketConfiguration->peerAddress);
+        if (iconnector_->useReactor ())
           configuration_.connection =
             configuration_.connectionManager->get (handle);
         else
@@ -300,7 +313,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
                       buffer));
 
           // clean up
-          iconnector_p->abort ();
+          iconnector_->abort ();
           ACE_ASSERT (session_data_p->lock);
           ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_p->lock);
           const_cast<SessionDataType*> (session_data_p)->aborted = true;
@@ -399,15 +412,15 @@ done:
 unlink_close:
         if (isLinked_)
         {
-          // *IMPORTANT NOTE*: forward this session message before unlinking the
-          //                   streams
+          // *TODO*: finished () (see above) already forwarded a session end
+          //         message (on the linked stream)...
           result = inherited::put_next (message_inout, NULL);
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", continuing\n")));
 
           // clean up
-          // *NOTE*: the session message has been consumed...
+          //message_inout->release ();
           message_inout = NULL;
           passMessageDownstream_out = false;
 
@@ -556,6 +569,12 @@ Stream_Module_Net_Target_T<SessionMessageType,
                   buffer));
       configuration_.connection->decrease ();
       configuration_.connection = NULL;
+    } // end IF
+
+    if (iconnector_)
+    {
+      delete iconnector_;
+      iconnector_ = NULL;
     } // end IF
 
     isInitialized_ = false;

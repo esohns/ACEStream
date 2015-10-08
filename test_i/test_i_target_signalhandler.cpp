@@ -61,7 +61,7 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::handleSignal"));
 
   int result = -1;
-  bool close = false;
+  bool close_all = false;
   bool shutdown = false;
   bool statistic = false;
   switch (signal_in)
@@ -101,7 +101,7 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
     case SIGTERM:
     {
       // close
-      close = true;
+      close_all = true;
       break;
     }
     default:
@@ -135,7 +135,7 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
   Test_I_Stream_IInetConnectionManager_t* connection_manager_p =
     TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
-  if (close)
+  if (close_all)
     connection_manager_p->abort ();
 
 //check_shutdown:
@@ -194,9 +194,9 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
     connection_manager_p->abort ();
 
     // step5: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (useReactor_,  // stop reactor ?
-                                         !useReactor_, // stop proactor ?
-                                         -1);          // group ID (--> don't block)
+    Common_Tools::finalizeEventDispatch (inherited::useReactor_,  // stop reactor ?
+                                         !inherited::useReactor_, // stop proactor ?
+                                         -1);                     // group ID (--> don't block)
 
     // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF

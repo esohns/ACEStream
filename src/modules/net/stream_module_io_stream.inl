@@ -389,7 +389,7 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
 
   // OK: all went well
   inherited::isInitialized_ = true;
-  inherited::dump_state ();
+  //inherited::dump_state ();
 
   return true;
 }

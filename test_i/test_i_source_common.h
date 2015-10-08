@@ -28,9 +28,11 @@ struct Test_I_Source_GTK_CBData
 {
   inline Test_I_Source_GTK_CBData ()
    : Stream_GTK_CBData ()
-   , UDPStream (NULL)
+   , loop(0)
+   , UDPStream(NULL)
   {};
 
+  size_t               loop;
   Test_I_StreamBase_t* UDPStream;
 };
 
