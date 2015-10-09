@@ -350,7 +350,7 @@ reset:
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("\"%s\": failed to ACE_Stream::link(\"%s\"): \"%m\", returning\n"),
+                      ACE_TEXT ("\"%s\": failed to Stream_Base_T::link(\"%s\"): \"%m\", returning\n"),
                       ACE_TEXT (stream_p->name ().c_str ()),
                       ACE_TEXT (configuration_.stream->name ().c_str ())));
           goto close;
@@ -438,7 +438,7 @@ unlink_close:
           result = stream_r.unlink ();
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_Stream::unlink(): \"%m\", continuing\n")));
+                        ACE_TEXT ("failed to Stream_Base_T::unlink(): \"%m\", continuing\n")));
           else
             ACE_DEBUG ((LM_DEBUG,
                         ACE_TEXT ("unlinked i/o streams...\n")));

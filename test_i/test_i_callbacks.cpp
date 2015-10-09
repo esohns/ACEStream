@@ -73,6 +73,8 @@ stream_processing_function (void* arg_in)
   Test_I_StreamBase_t* stream_p = NULL;
   std::ostringstream converter;
   const Test_I_Stream_SessionData* session_data_p = NULL;
+  unsigned int counter = 0;
+  bool loop = data_p->CBData->loop;
 
   gdk_threads_enter ();
   bool leave_gdk = true;
@@ -124,8 +126,6 @@ stream_processing_function (void* arg_in)
   gdk_threads_leave ();
   leave_gdk = false;
 
-  unsigned int counter = 0;
-  bool loop = data_p->CBData->loop;
 loop:
   if (!stream_p->initialize (data_p->CBData->configuration->streamConfiguration))
   {
@@ -159,9 +159,8 @@ loop:
   ++counter;
   if (loop)
   {
-    if (data_p->CBData->loop != -1)
+    if (static_cast<int> (data_p->CBData->loop) != -1)
     {
-      --data_p->CBData->loop;
       gdk_threads_enter ();
       gtk_spin_button_spin (spin_button_p,
                             GTK_SPIN_STEP_BACKWARD,
@@ -523,7 +522,6 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
   //                             cb_data_p);
 
-  object_p =
     gtk_builder_get_object ((*iterator).second.second,
                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOP_NAME));
   ACE_ASSERT (object_p);
@@ -641,6 +639,8 @@ idle_end_source_UI_cb (gpointer userData_in)
   // synch access
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
 
+  if (data_p->loop > 0) --data_p->loop;
+
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTKBuildersIterator_t iterator =
@@ -664,13 +664,13 @@ idle_end_source_UI_cb (gpointer userData_in)
                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
     ACE_ASSERT (action_p);
     gtk_action_set_stock_id (action_p, GTK_STOCK_MEDIA_PLAY);
-  } // end IF
 
-  action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_STOP_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, !(data_p->loop == 0));
+    action_p =
+        GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_STOP_NAME)));
+    ACE_ASSERT (action_p);
+    gtk_action_set_sensitive (action_p, FALSE);
+  } // end IF
 
   return G_SOURCE_REMOVE;
 }
@@ -1165,7 +1165,6 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //                      userData_in);
   //ACE_ASSERT (result_2);
   //object_p =
-  object_p =
     gtk_builder_get_object ((*iterator).second.second,
                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEACTION_LISTEN_NAME));
   ACE_ASSERT (object_p);
@@ -1274,6 +1273,37 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
+
+  return G_SOURCE_REMOVE;
+}
+
+gboolean
+idle_start_target_UI_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_start_target_UI_cb"));
+
+  Test_I_Target_GTK_CBData* data_p =
+    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  // sanity check(s)
+  //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  GtkAction* action_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, TRUE);
 
   return G_SOURCE_REMOVE;
 }
@@ -2074,8 +2104,22 @@ action_close_all_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_close_all_activate_cb"));
 
-  //gtk_action_set_sensitive (action_in, FALSE);
-  ACE_UNUSED_ARG (action_in);
+  gtk_action_set_sensitive (action_in, FALSE);
+  Test_I_Target_GTK_CBData* data_p =
+    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  // sanity check(s)
+  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != data_p->builders.end ());
 
   int result = -1;
 
@@ -2093,6 +2137,18 @@ action_close_all_activate_cb (GtkAction* action_in,
                 ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
                 signal));
 
+  // closed the UDP "listener" ? --> toggle listen button
+  if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
+  {
+    GtkToggleAction* toggle_action_p =
+      //GTK_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+      //                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_CLOSE_NAME)));
+      GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEACTION_LISTEN_NAME)));
+    ACE_ASSERT (toggle_action_p);
+    gtk_action_activate (GTK_ACTION (toggle_action_p));
+  } // end IF
+
   idle_reset_target_UI_cb (userData_in);
 } // action_close_all_activate_cb
 
@@ -2106,14 +2162,16 @@ action_listen_activate_cb (GtkAction* action_in,
   Test_I_Target_GTK_CBData* data_p =
     static_cast<Test_I_Target_GTK_CBData*> (userData_in);
 
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
   // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
 
@@ -2162,11 +2220,7 @@ action_listen_activate_cb (GtkAction* action_in,
         {
           Test_I_Stream_InetConnectionManager_t::ICONNECTION_T* connection_p =
             connection_manager_p->get (data_p->configuration->handle);
-          if (!connection_p)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to retrieve connection (handle was: %d), continuing\n"),
-                        data_p->configuration->handle));
-          else
+          if (connection_p)
           {
             connection_p->close ();
             connection_p->decrease ();
@@ -2213,11 +2267,7 @@ action_listen_activate_cb (GtkAction* action_in,
         {
           Test_I_Stream_InetConnectionManager_t::ICONNECTION_T* connection_p =
             connection_manager_p->get (data_p->configuration->handle);
-          if (!connection_p)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to retrieve connection (handle was: %d), continuing\n"),
-                        data_p->configuration->handle));
-          else
+          if (connection_p)
           {
             connection_p->close ();
             connection_p->decrease ();
@@ -2287,12 +2337,11 @@ action_listen_activate_cb (GtkAction* action_in,
               connection_manager_p->get (data_p->configuration->socketConfiguration.peerAddress);
             if (connection_p)
             {
+              data_p->configuration->handle =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-              data_p->configuration->handle =
-                reinterpret_cast<ACE_HANDLE> (connection_p->id ());
+                  reinterpret_cast<ACE_HANDLE> (connection_p->id ());
 #else
-              data_p->configuration->handle =
-                static_cast<ACE_HANDLE> (connection_p->id ());
+                  static_cast<ACE_HANDLE> (connection_p->id ());
 #endif
               connection_p->decrease ();
               break;
@@ -2385,16 +2434,12 @@ action_listen_activate_cb (GtkAction* action_in,
     {
       Test_I_Stream_InetConnectionManager_t::ICONNECTION_T* connection_p =
         connection_manager_p->get (data_p->configuration->handle);
-      if (!connection_p)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to retrieve connection (handle was: %d), continuing\n"),
-                    data_p->configuration->handle));
-      else
+      if (connection_p)
       {
         connection_p->close ();
         connection_p->decrease ();
-        data_p->configuration->handle = ACE_INVALID_HANDLE;
       } // end ELSE
+      data_p->configuration->handle = ACE_INVALID_HANDLE;
     } // end IF
 
     // stop progress reporting

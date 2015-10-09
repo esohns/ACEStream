@@ -318,12 +318,12 @@ Stream_Base_T<TaskSynchType,
   // delegate this to base class close(ACE_Module_Base::M_DELETE_NONE)
   try
   {
-    // *NOTE*: this will implicitly:
-    // - unwind the stream, which pop()s all (pushed) modules
-    // --> pop()ing a module will close() it
-    // --> close()ing a module will module_closed() and flush() its tasks
-    // --> flush()ing a task will close() its queue
-    // --> close()ing a queue will deactivate() and flush() it
+    // *NOTE*: unwinds the stream, pop()ing all push()ed modules
+    //         --> pop()ing a module will close() it
+    //         --> close()ing a module will module_closed() and flush() its
+    //             tasks
+    //         --> flush()ing a task will close() its queue
+    //         --> close()ing a queue will deactivate() and flush() it
     result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
   }
   catch (...)
@@ -1315,7 +1315,7 @@ Stream_Base_T<TaskSynchType,
   ///////////////////////////////////////
 
   // *NOTE*: ACE_Stream::linked_us_ is currently private
-  //         --> retain another copy :-(
+  //         --> retain another handle
   // *TODO*: modify ACE to make this a protected member
   upStream_ = &upStream_in;
 
@@ -1359,10 +1359,18 @@ Stream_Base_T<TaskSynchType,
   if (!upstream_tail_module_p) return -1;
 
   // locate the module just above the upstreams' tail
-  //while (upstream_tail_module_p->next () != inherited::head ())
-  while (ACE_OS::strcmp (upstream_tail_module_p->next ()->name (),
-                         inherited::head ()->name ()) != 0)
+  do
+  {
+    if (!upstream_tail_module_p->next ()) return -1;
+
+    //if (upstream_tail_module_p->next () == inherited::head ())
+    if (ACE_OS::strcmp (upstream_tail_module_p->next ()->name (),
+                        inherited::head ()->name ()) == 0)
+      break;
+
     upstream_tail_module_p = upstream_tail_module_p->next ();
+    if (!upstream_tail_module_p) return -1;
+  } while (true);
 
   //int result = inherited::link (upStream_in);
   inherited::head ()->reader ()->next (NULL);

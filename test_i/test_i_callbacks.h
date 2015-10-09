@@ -38,6 +38,7 @@ gboolean idle_update_progress_source_cb (gpointer);
 /////////////////////////////////////////
 
 gboolean idle_initialize_target_UI_cb (gpointer);
+gboolean idle_start_target_UI_cb (gpointer);
 gboolean idle_reset_target_UI_cb (gpointer);
 gboolean idle_update_progress_target_cb (gpointer);
 

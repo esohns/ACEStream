@@ -84,13 +84,14 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
+  int result = -1;
+
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
   if (inherited::isInitialized_)
   {
     // *TODO*: move this to stream_base.inl ?
-    int result = -1;
     const inherited::MODULE_T* module_p = NULL;
     inherited::IMODULE_T* imodule_p = NULL;
     for (inherited::ITERATOR_T iterator (*this);
@@ -149,7 +150,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   // - push them onto the stream (tail-first) !
   // ------------------------------------
 
-  int result = -1;
   //inherited::MODULE_T* module_p = NULL;
   //if (configuration_in.notificationStrategy)
   //{

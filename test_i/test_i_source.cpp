@@ -167,7 +167,7 @@ do_processArguments (int argc_in,
                      bool& useUDP_out,
                      bool& printVersionAndExit_out,
                      unsigned int& numberOfDispatchThreads_out,
-                     unsigned int& loop_out)
+                     size_t& loop_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -768,7 +768,8 @@ loop:
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("iteration #%u complete...\n"),
                   counter));
-      if ((CBData_in.loop == -1) || (counter != CBData_in.loop))
+      if ((static_cast<int> (CBData_in.loop) == -1) ||
+          (counter != CBData_in.loop))
         goto loop;
     } // end IF
 

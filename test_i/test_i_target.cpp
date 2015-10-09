@@ -1246,10 +1246,28 @@ ACE_TMAIN (int argc_in,
   Common_UI_GtkBuilderDefinition ui_definition (argc_in,
                                                 argv_in);
   if (!UI_definition_file_name.empty ())
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
-                                                              argv_in,
-                                                              &gtk_cb_user_data,
-                                                              &ui_definition);
+    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
+                                                                   argv_in,
+                                                                   &gtk_cb_user_data,
+                                                                   &ui_definition))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Common_UI_GTK_Manager::initialize(), aborting\n")));
+
+      Common_Tools::finalizeSignals (signal_set,
+                                     previous_signal_actions,
+                                     previous_signal_mask);
+      Common_Tools::finalizeLogging ();
+      // *PORTABILITY*: on Windows, finalize ACE...
+  #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      result = ACE::fini ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+  #endif
+
+      return EXIT_FAILURE;
+    } // end IF
 
   ACE_High_Res_Timer timer;
   timer.start ();

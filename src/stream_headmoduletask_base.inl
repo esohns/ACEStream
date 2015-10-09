@@ -851,6 +851,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::waitForCompletion"));
 
+  ACE_UNUSED_ARG (waitForUpStream_in);
+
   int result = -1;
 
   // step1: wait for final state

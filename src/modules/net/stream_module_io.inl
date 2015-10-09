@@ -329,19 +329,24 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
         const SessionDataType* session_data_p =
           session_data_container_r.getData ();
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
-  #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
         handle = reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID);
-  #else
+#else
         handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
-  #endif
-        ACE_ASSERT (handle != ACE_INVALID_HANDLE);
+#endif
         connection_ =
           inherited::configuration_.connectionManager->get (handle);
         if (!connection_)
         {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to retrieve connection (handle was: 0x%@), returning\n"),
+                      handle));
+#else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
-                      session_data_p->sessionID));
+                      handle));
+#endif
           return;
         } // end IF
 
@@ -909,9 +914,17 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
         message_inout->get ();
       const SessionDataType* session_data_p =
         session_data_container_r.getData ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_ASSERT (session_data_p->sessionID != reinterpret_cast<size_t> (ACE_INVALID_HANDLE));
+#else
+      ACE_ASSERT (session_data_p->sessionID != static_cast<size_t> (ACE_INVALID_HANDLE));
+#endif
       connection_ =
-        configuration_.connectionManager->get (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          configuration_.connectionManager->get (reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID));
+#else
+          configuration_.connectionManager->get (static_cast<ACE_HANDLE> (session_data_p->sessionID));
+#endif
       if (!connection_)
       {
         ACE_DEBUG ((LM_ERROR,

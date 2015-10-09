@@ -1,3 +1,6 @@
+// *NOTE*: compile with large(r) file support
+#define _FILE_OFFSET_BITS 64
+
 // *NOTE*: uncomment the line corresponding to your platform !
 #include "ace/config-win32.h"
 
