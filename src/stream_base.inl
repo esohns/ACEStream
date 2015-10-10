@@ -441,12 +441,58 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::stop"));
 
-  ACE_UNUSED_ARG (lockedAccess_in);
-
   int result = -1;
   MODULE_T* module_p = NULL;
   ISTREAM_CONTROL_T* control_impl_p = NULL;
 
+  // has upstream ? --> (try to) stop that instead
+  if (upStream_)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: stopping upstream...\n"),
+                ACE_TEXT (name ().c_str ())));
+
+    // delegate to the head module, skip over ACE_Stream_Head...
+    result = upStream_->top (module_p);
+    if ((result == -1) || !module_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("no head module found: \"%m\", returning\n")));
+      return;
+    } // end IF
+
+      // *WARNING*: cannot flush(), as this deactivates() the queue as well, which
+      //            causes mayhem for any (blocked) worker(s)
+      // *TODO*: consider optimizing this
+      //module->writer ()->flush ();
+    control_impl_p =
+      dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
+    if (!control_impl_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, returning\n"),
+                  module_p->name ()));
+      return;
+    } // end IF
+
+    try
+    {
+      control_impl_p->stop (waitForCompletion_in,
+                            lockedAccess_in);
+    }
+    catch (...)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: caught exception in Stream_IStreamControl::stop(), returning\n"),
+                  module_p->name ()));
+      return;
+    }
+
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: stopping upstream...done\n"),
+                ACE_TEXT (name ().c_str ())));
+  } // end IF
+  
   if (!isRunning ())
     goto wait;
 
@@ -475,7 +521,8 @@ Stream_Base_T<TaskSynchType,
 
   try
   {
-    control_impl_p->stop (waitForCompletion_in);
+    control_impl_p->stop (waitForCompletion_in,
+                          lockedAccess_in);
   }
   catch (...)
   {
@@ -585,8 +632,10 @@ Stream_Base_T<TaskSynchType,
 
   int result = -1;
 
+  // *IMPORTANT NOTE*: make sure not to flush any control/session messages !
+
   // *IMPORTANT NOTE*: if this stream has been linked (e.g. connection is part
-  //                   of another stream), make sure to flush the whole pipeline
+  //                   of another stream), flush the whole pipeline ?
   if (upStream_ && flushUpStream_in)
   {
     ISTREAM_CONTROL_T* istream_control_p =
@@ -608,15 +657,19 @@ Stream_Base_T<TaskSynchType,
   MODULE_CONTAINER_T modules;
   Stream_Queue_t* queue_p = NULL;
   Stream_Task_t* task_p = NULL;
-  const Stream_Module_t* module_p = NULL;
-  ACE_Time_Value one_second (1, 0);
-  size_t message_count = 0;
+  const Stream_Module_t* module_p = inherited::head ();
+  ACE_ASSERT (module_p);
+  const Stream_Module_t* top_module_p =
+    (upStream_ ? NULL
+               : const_cast<Stream_Module_t*> (module_p)->next ());
   for (ITERATOR_T iterator (*this);
        (iterator.next (module_p) != 0);
        iterator.advance ())
   {
-    // skip stream tail (last module)
-    if (module_p == inherited::tail ())
+    // skip stream head/tail
+    if ((module_p == inherited::head ()) ||
+        (module_p == top_module_p)       || // <-- stream generator
+        (module_p == inherited::tail ()))
       continue;
 
     modules.push_front (const_cast<MODULE_T*> (module_p));
@@ -625,22 +678,16 @@ Stream_Base_T<TaskSynchType,
       continue;
     queue_p = task_p->msg_queue ();
     ACE_ASSERT (queue_p);
-    do
-    {
-      //result = queue_p->wait ();
-      message_count = queue_p->message_count ();
-      if (!message_count) break;
+    result = queue_p->flush ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("\"%s\" writer: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
+                  module_p->name ()));
+    else if (result)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("\"%s\" writer: waiting to process ~%d byte(s) (in %u message(s))...\n"),
+                  ACE_TEXT ("\"%s\" writer: flushed %d message(s)...\n"),
                   module_p->name (),
-                  queue_p->message_bytes (), message_count));
-      result = ACE_OS::sleep (one_second);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("\"%s\" writer: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                    module_p->name (),
-                    &one_second));
-    } while (true);
+                  result));
 
     module_p = NULL;
   } // end FOR
@@ -655,22 +702,16 @@ Stream_Base_T<TaskSynchType,
       continue;
     queue_p = task_p->msg_queue ();
     ACE_ASSERT (queue_p);
-    do
-    {
-      //result = queue_p->wait ();
-      message_count = queue_p->message_count ();
-      if (!message_count) break;
+    result = queue_p->flush ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("\"%s\" reader: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
+                  (*iterator)->name ()));
+    else if (result)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("\"%s\" reader: waiting to process ~%d byte(s) (in %u message(s))...\n"),
+                  ACE_TEXT ("\"%s\" reader: flushed %d message(s)...\n"),
                   (*iterator)->name (),
-                  queue_p->message_bytes (), message_count));
-      result = ACE_OS::sleep (one_second);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("\"%s\" reader: failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
-                    (*iterator)->name (),
-                    &one_second));
-    } while (true);
+                  result));
   } // end FOR
 }
 

@@ -78,6 +78,7 @@ class Stream_Module_Net_Target_T
   bool                                  isInitialized_;
   bool                                  isLinked_;
   bool                                  isPassive_;
+  SessionDataType*                      sessionData_;
 };
 
 // include template implementation

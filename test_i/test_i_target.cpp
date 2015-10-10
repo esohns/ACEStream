@@ -453,6 +453,8 @@ do_work (unsigned int bufferSize_in,
 
   ACE_UNUSED_ARG (networkInterface_in);
 
+  int result = -1;
+
   // step0a: initialize configuration
   Test_I_Target_Configuration configuration;
   configuration.useReactor = useReactor_in;
@@ -494,6 +496,18 @@ do_work (unsigned int bufferSize_in,
   // ********************** socket configuration data *************************
   configuration.socketConfiguration.peerAddress.set_port_number (listeningPortNumber_in,
                                                                  1);
+  configuration.socketConfiguration.useLoopBackDevice = useLoopBack_in;
+  if (configuration.socketConfiguration.useLoopBackDevice)
+  {
+    result =
+      configuration.socketConfiguration.peerAddress.set (listeningPortNumber_in,
+                                                         INADDR_LOOPBACK,
+                                                         1,
+                                                         0);
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
+  } // end IF
 
   // ******************** socket handler configuration data *******************
   configuration.socketHandlerConfiguration.messageAllocator =
@@ -923,7 +937,7 @@ do_work (unsigned int bufferSize_in,
   connection_manager_p->abort ();
   connection_manager_p->wait ();
 
-  int result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
+  result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),

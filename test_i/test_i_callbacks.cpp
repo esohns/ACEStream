@@ -337,6 +337,13 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
                                 !data_p->configuration->useReactor);
+  check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
+                                data_p->configuration->socketConfiguration.useLoopBackDevice);
+
   spin_button_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
@@ -535,8 +542,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME));
   ACE_ASSERT (object_p);
   result_2 = g_signal_connect (object_p,
-                               ACE_TEXT_ALWAYS_CHAR ("activate"),
-                               G_CALLBACK (action_start_activate_cb),
+                               ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                               G_CALLBACK (toggle_action_start_toggled_cb),
                                userData_in);
   ACE_ASSERT (result_2);
   object_p =
@@ -979,6 +986,12 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
                                 !data_p->configuration->useReactor);
+  check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
+                                data_p->configuration->socketConfiguration.useLoopBackDevice);
 
   spin_button_p =
       //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -1304,6 +1317,41 @@ idle_start_target_UI_cb (gpointer userData_in)
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME)));
   ACE_ASSERT (action_p);
   gtk_action_set_sensitive (action_p, TRUE);
+
+  return G_SOURCE_REMOVE;
+}
+
+gboolean
+idle_end_target_UI_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_end_target_UI_cb"));
+
+  Test_I_Target_GTK_CBData* data_p =
+    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  // sanity check(s)
+  //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  GtkAction* action_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME)));
+  ACE_ASSERT (action_p);
+  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
+    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
+  gtk_action_set_sensitive (action_p,
+                            (connection_manager_p->count () != 0));
 
   return G_SOURCE_REMOVE;
 }
@@ -1667,10 +1715,18 @@ extern "C"
 {
 #endif /* __cplusplus */
 void
-action_start_activate_cb (GtkAction* action_in,
-                          gpointer userData_in)
+toggle_action_start_toggled_cb (GtkToggleAction* action_in,
+                                gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_start_activate_cb"));
+  STREAM_TRACE (ACE_TEXT ("::toggle_action_start_toggled_cb"));
+
+  // handle untoggle --> PLAY
+  static bool un_toggling = false;
+  if (un_toggling)
+  {
+    un_toggling = false;
+    return; // done
+  } // end IF
 
   Test_I_Source_GTK_CBData* data_p =
     static_cast<Test_I_Source_GTK_CBData*> (userData_in);
@@ -1736,12 +1792,14 @@ action_start_activate_cb (GtkAction* action_in,
     } // end ELSE
 
     if (status_r == STREAM_STATE_RUNNING) // <-- image is "pause"
-      gtk_action_set_stock_id (action_in, GTK_STOCK_MEDIA_PLAY);
+      gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PLAY);
     else // <-- image is "play"
-      gtk_action_set_stock_id (action_in, GTK_STOCK_MEDIA_PAUSE);
+      gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PAUSE);
     return;
   } // end IF
-  gtk_action_set_stock_id (action_in, GTK_STOCK_MEDIA_PAUSE);
+  un_toggling = true;
+  gtk_toggle_action_set_active (action_in, FALSE); // untoggle
+  gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PAUSE);
 
   // step0: modify widgets
   GtkTable* table_p =
@@ -1913,7 +1971,7 @@ action_start_activate_cb (GtkAction* action_in,
   return;
 
 clean:
-  gtk_action_set_stock_id (action_in, GTK_STOCK_MEDIA_PLAY);
+  gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PLAY);
   gtk_widget_set_sensitive (GTK_WIDGET (table_p), TRUE);
   gtk_action_set_sensitive (action_p, FALSE);
 } // action_start_activate_cb

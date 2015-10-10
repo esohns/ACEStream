@@ -416,7 +416,10 @@ Stream_Module_FileReader_T<SessionMessageType,
   ACE_ASSERT (inherited::configuration_.streamConfiguration);
   ACE_ASSERT (!isOpen_);
 
-  // step0a: if in passive mode, release state machine lock
+  // step0a: increment thread count
+  inherited::thr_count_++;
+
+  // step0b: if in passive mode, release state machine lock
   ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> reverse_lock (inherited::stateLock_);
   if (!inherited::configuration_.active)
   {
@@ -427,12 +430,6 @@ Stream_Module_FileReader_T<SessionMessageType,
                   ACE_TEXT ("failed to ACE_Reverse_Lock::acquire(): \"%m\", aborting\n")));
       goto done;
     } // end IF
-  } // end IF
-  // step0b: increment thread count
-  {
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard2 (inherited::lock_);
-
-    inherited::threadCount_++;
   } // end IF
 
   result = file_address.set (inherited::configuration_.fileName.c_str ());
@@ -468,9 +465,27 @@ Stream_Module_FileReader_T<SessionMessageType,
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("entering processing loop...\n")));
   no_wait = COMMON_TIME_NOW;
+  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (inherited::sessionData_->lock);
   while (inherited::getq (message_block_p,
                           &no_wait) == -1)
   {
+    // *TODO*: use a control message to handle abortions
+    // *TODO*: remove type inferences
+    {
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*inherited::sessionData_->lock);
+
+      if (inherited::sessionData_->aborted)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("session has been aborted, aborting\n")));
+
+        result = -1;
+
+        goto session_finished;
+      } // end IF
+    } // end lock scope
+
     // *TODO*: remove type inference
     message_p =
         allocateMessage (inherited::configuration_.streamConfiguration->bufferSize);
@@ -532,6 +547,9 @@ Stream_Module_FileReader_T<SessionMessageType,
   } // end WHILE
   ACE_ASSERT (message_block_p);
 
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("session aborted...\n")));
+
   // clean up
   message_block_p->release ();
 
@@ -557,6 +575,9 @@ done:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Reverse_Lock::release(): \"%m\", aborting\n")));
   } // end IF
+
+  // decrement thread count
+  inherited::thr_count_--;
 
   return result;
 }

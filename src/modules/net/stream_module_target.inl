@@ -52,6 +52,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
  , isInitialized_ (false)
  , isLinked_ (false)
  , isPassive_ (isPassive_in)
+ , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::Stream_Module_Net_Target_T"));
 
@@ -146,6 +147,26 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
   ACE_UNUSED_ARG (message_inout);
   ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // check wheter the connection is alive
+  if (configuration_.connection)
+  {
+    Net_Connection_Status status = configuration_.connection->status ();
+    if (status != NET_CONNECTION_STATUS_OK)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("connection %d closed (status was: %d), aborting session %d...\n"),
+                  configuration_.connection->id (),
+                  status,
+                  sessionData_->sessionID));
+
+      ACE_ASSERT (sessionData_);
+      ACE_ASSERT (sessionData_->lock);
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*sessionData_->lock);
+
+      sessionData_->aborted = true;
+    } // end IF
+  } // end IF
 }
 
 template <typename SessionMessageType,
@@ -180,9 +201,9 @@ Stream_Module_Net_Target_T<SessionMessageType,
     {
       const SessionDataContainerType& session_data_container_r =
         message_inout->get ();
-      const SessionDataType* session_data_p =
-        session_data_container_r.getData ();
-      ACE_ASSERT (session_data_p);
+      sessionData_ =
+        const_cast<SessionDataType*> (session_data_container_r.getData ());
+      ACE_ASSERT (sessionData_);
 
       if (isPassive_)
       {
@@ -193,7 +214,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
         // *TODO*: remove type inference
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        handle = reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID);
+        handle = reinterpret_cast<ACE_HANDLE> (sessionData_->sessionID);
 #else
         handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
 #endif
@@ -203,12 +224,12 @@ Stream_Module_Net_Target_T<SessionMessageType,
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
-                      session_data_p->sessionID));
+                      sessionData_->sessionID));
 
           // clean up
-          ACE_ASSERT (session_data_p->lock);
-          ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_p->lock);
-          const_cast<SessionDataType*> (session_data_p)->aborted = true;
+          ACE_ASSERT (sessionData_->lock);
+          ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*sessionData_->lock);
+          sessionData_->aborted = true;
 
           return;
         } // end IF
@@ -314,9 +335,9 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
           // clean up
           iconnector_->abort ();
-          ACE_ASSERT (session_data_p->lock);
-          ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_p->lock);
-          const_cast<SessionDataType*> (session_data_p)->aborted = true;
+          ACE_ASSERT (sessionData_->lock);
+          ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*sessionData_->lock);
+          sessionData_->aborted = true;
 
           goto reset;
         } // end IF
@@ -376,18 +397,23 @@ close:
 done:
       // set session ID
       // *TODO*: remove type inference
-      ACE_ASSERT (session_data_p->lock);
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_p->lock);
-      const_cast<SessionDataType*> (session_data_p)->sessionID =
-          configuration_.connection->id ();
+      ACE_ASSERT (sessionData_->lock);
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*sessionData_->lock);
+      sessionData_->sessionID = configuration_.connection->id ();
 
       break;
     }
     case STREAM_SESSION_END:
     {
-      // wait for data processing to complete
       if (configuration_.connection)
       {
+        // wait for data (!) processing to complete
+        ACE_ASSERT (configuration_.stream);
+        configuration_.stream->waitForCompletion (false, // wait for worker(s) ?
+                                                  true); // wait for upstream ?
+
+        // *NOTE*: finalize the connection stream state so waitForCompletion()
+        //         does not block
         typename ConnectorType::STREAM_T* stream_p = NULL;
         typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
           dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (configuration_.connection);
@@ -404,6 +430,13 @@ done:
         stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
         stream_p->finished ();
+
+        // *NOTE*: if the connection was closed abruptly, there may well be
+        //         undispatched data in the connection stream. Flush it so
+        //         waitForCompletion() does not block
+        Net_Connection_Status status = configuration_.connection->status ();
+        if (status != NET_CONNECTION_STATUS_OK)
+          configuration_.stream->flush (true);
         configuration_.connection->waitForCompletion (false); // data only
       } // end IF
 
@@ -468,6 +501,8 @@ release:
         configuration_.connection->decrease ();
         configuration_.connection = NULL;
       } // end IF
+
+      sessionData_ = NULL;
 
       break;
     }

@@ -55,7 +55,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
  , lock_ ()
  , queue_ (STREAM_QUEUE_MAX_SLOTS)
  , autoStart_ (autoStart_in)
- , condition_ (lock_)
  , runSvcRoutineOnStart_ (runSvcRoutineOnStart_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , threadID_ (ACE_INVALID_HANDLE)
@@ -682,21 +681,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
 
-  //int result = -1;
-
-  //// step1: wait for final state
-  //{
-  //  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
-
-  //  while (inherited2::threadCount_)
-  //  {
-  //    result = condition_.wait ();
-  //    if (result == -1)
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to ACE_SYNCH_CONDITION::wait(): \"%m\", continuing\n")));
-  //  } // end WHILE
-  //} // end IF
-
   ACE_ASSERT (false);
   ACE_NOTSUP;
   ACE_NOTREACHED (return;)
@@ -856,31 +840,34 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   int result = -1;
 
   // step1: wait for final state
-  inherited::wait (NULL);
+  inherited::wait (NULL); // <-- block
 
   // step2: wait for worker(s) to join ?
   if (waitForThreads_in)
   {
+    ACE_hthread_t thread_id = ACE_INVALID_HANDLE;
+    ACE_Thread::self (thread_id);
+
     // *TODO*: remove type inference
-    if (configuration_.active)
+    if (configuration_.active ||
+        (runSvcRoutineOnStart_ && (thread_id != threadID_)))
     {
+      if (configuration_.active)
       {
-        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
-
-        while (inherited2::threadCount_)
-        {
-          result = condition_.wait ();
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_SYNCH_CONDITION::wait(): \"%m\", continuing\n")));
-        } // end WHILE
-      } // end lock scope
-
-      // *TODO*: this should be redundant (see above)
-      result = inherited2::wait ();
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
+        result = inherited2::wait ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
+      } // end IF
+      else
+      {
+        ACE_ASSERT (threadID_ != ACE_INVALID_HANDLE);
+        ACE_THR_FUNC_RETURN status;
+        result = ACE_Thread::join (threadID_, &status);
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Thread::join(%d): \"%m\", continuing\n")));
+      } // end ELSE
     } // end IF
   } // end IF
 }
@@ -1013,6 +1000,16 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   {
     case STREAM_STATE_INITIALIZED:
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      if (threadID_ != ACE_INVALID_HANDLE)
+        if (!CloseHandle (threadID_))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
+                      threadID_,
+                      ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
+#endif
+      threadID_ = ACE_INVALID_HANDLE;
+
       // OK: (re-)initialized
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("\"%s\" head module (re-)initialized...\n"),
@@ -1155,9 +1152,12 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     }
     case STREAM_STATE_STOPPED:
     {
+      ACE_hthread_t thread_id = ACE_INVALID_HANDLE;
+      ACE_Thread::self (thread_id);
+
       // *TODO*: remove type inference
       if (configuration_.active ||
-          runSvcRoutineOnStart_)
+          (runSvcRoutineOnStart_  && (thread_id != threadID_)))
       {
         //// OK: drop a control message into the queue...
         //// *TODO*: use ACE_Stream::control() instead ?
@@ -1204,6 +1204,14 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         //                threadID_, SIGKILL));
         //} // end IF
 
+        {
+          ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (stateLock_);
+
+          // *NOTE*: 'passive' mode; the finished() method waits for the stream
+          //         --> set the (intermediate) state early
+          inherited::state_ = STREAM_STATE_STOPPED;
+        } // end lock scope
+
         // signal the controller
         finished ();
       } // end ELSE
@@ -1231,17 +1239,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
 
-      // signal waiting thread(s)
-      {
-        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
-
-        inherited2::threadCount_--;
-
-        result = condition_.broadcast ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n")));
-      } // end lock scope
 //       ACE_DEBUG ((LM_DEBUG,
 //                   ACE_TEXT ("stream processing complete\n")));
 

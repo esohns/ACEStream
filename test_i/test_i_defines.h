@@ -56,6 +56,7 @@
 //#define TEST_I_STREAM_UI_GTK_BUTTON_STOP_NAME                "stop"
 #define TEST_I_STREAM_UI_GTK_BUTTON_QUIT_NAME                "quit"
 #define TEST_I_STREAM_UI_GTK_CHECKBUTTON_ASYNCH_NAME         "checkbutton_asynch"
+#define TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME       "checkbutton_loopback"
 #define TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOP_NAME           "checkbutton_loop"
 #define TEST_I_STREAM_UI_GTK_DIALOG_ABOUT_NAME               "dialog_about"
 #define TEST_I_STREAM_UI_GTK_DIALOG_MAIN_NAME                "dialog_main"

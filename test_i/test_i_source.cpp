@@ -510,6 +510,8 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
+  configuration.socketConfiguration.useLoopBackDevice =
+    configuration.socketConfiguration.peerAddress.is_loopback ();
   configuration.socketConfiguration.writeOnly = true;
   // ******************** socket handler configuration data *******************
   configuration.socketHandlerConfiguration.messageAllocator =

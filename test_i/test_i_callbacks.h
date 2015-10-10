@@ -39,6 +39,7 @@ gboolean idle_update_progress_source_cb (gpointer);
 
 gboolean idle_initialize_target_UI_cb (gpointer);
 gboolean idle_start_target_UI_cb (gpointer);
+gboolean idle_end_target_UI_cb (gpointer);
 gboolean idle_reset_target_UI_cb (gpointer);
 gboolean idle_update_progress_target_cb (gpointer);
 
@@ -56,10 +57,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 // callbacks
-G_MODULE_EXPORT void action_start_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT void action_stop_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT void checkbutton_loop_toggled_cb (GtkToggleButton*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_source_cb (GtkFileChooserButton*, gpointer);
+G_MODULE_EXPORT void toggle_action_start_toggled_cb (GtkToggleAction*, gpointer);
 
 /////////////////////////////////////////
 

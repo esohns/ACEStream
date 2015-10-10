@@ -173,9 +173,7 @@ class Stream_HeadModuleTaskBase_T
   virtual void upstream (Stream_Base_t*);
   virtual Stream_Base_t* upstream () const;
 
-  // allow blocking wait in waitForCompletion()
   bool                autoStart_;
-  ACE_SYNCH_CONDITION condition_;
   bool                runSvcRoutineOnStart_;
   ACE_hthread_t       threadID_;
 };

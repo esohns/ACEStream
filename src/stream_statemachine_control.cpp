@@ -23,6 +23,7 @@
 
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
+#include "ace/Reverse_Lock_T.h"
 
 #include "stream_macros.h"
 
@@ -71,9 +72,13 @@ Stream_StateMachine_Control::wait (const ACE_Time_Value* timeout_in)
     {
       result = condition_.wait (timeout_in);
       if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Condition::wait(%#T): \"%m\", continuing\n"),
-                    timeout_in));
+      {
+        int error = ACE_OS::last_error ();
+        if (error != ETIME) // 137: timed out
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Condition::wait(%#T): \"%m\", continuing\n"),
+                      timeout_in));
+      } // end IF
     } // end WHILE
   } // end lock scope
 
@@ -86,8 +91,8 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::change"));
 
   int result = -1;
+  ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> reverse_lock (inherited::stateLock_);
 
-  // synchronize access to state machine...
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (inherited::stateLock_);
 
   switch (inherited::state_)
@@ -102,7 +107,10 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           //           ACE_DEBUG ((LM_DEBUG,
           //                       ACE_TEXT ("state switch: INVALID --> INITIALIZED\n")));
 
-          inherited::change (newState_in);
+          {
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
+            inherited::change (newState_in);
+          } // end lock scope
 
           return true;
         }
@@ -128,7 +136,10 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         case STREAM_STATE_FINISHED: // !active
         case STREAM_STATE_INITIALIZED:
         {
-          inherited::change (newState_in);
+          {
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
+            inherited::change (newState_in);
+          } // end lock scope
 
           if (newState_in == STREAM_STATE_FINISHED)
           {
@@ -165,8 +176,12 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
 //                       ACE_TEXT ("state switch: RUNNING --> %s\n"),
 //                       ACE_TEXT (newStateString.c_str())));
 
-          inherited::change (newState_in);
+          {
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
+            inherited::change (newState_in);
+          } // end lock scope
 
+          // signal waiting thread(s)
           if (newState_in == STREAM_STATE_FINISHED)
           {
             result = condition_.broadcast ();
@@ -212,7 +227,10 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           //            ACE_TEXT ("state switch: PAUSED --> %s\n"),
           //            ACE_TEXT (state2String (new_state).c_str ())));
 
-          inherited::change (new_state);
+          {
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
+            inherited::change (new_state);
+          } // end lock scope
 
           return true;
         }
@@ -231,15 +249,17 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         // good cases
         case STREAM_STATE_INITIALIZED:
         case STREAM_STATE_RUNNING:
-          // *NOTE*: have to allow this...
-        // (scenario: asynchronous user abort via stop() race)
         case STREAM_STATE_FINISHED:
         {
 //           ACE_DEBUG ((LM_DEBUG,
 //                       ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
 
-          inherited::change (newState_in);
+          {
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
+            inherited::change (newState_in);
+          } // end lock scope
 
+          // signal waiting thread(s)
           if (newState_in == STREAM_STATE_FINISHED)
           {
             result = condition_.broadcast ();
@@ -271,14 +291,17 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           // *WARNING*: falls through
         }
         case STREAM_STATE_INITIALIZED:
-        case STREAM_STATE_STOPPED:
         {
-          inherited::change (newState_in);
+          {
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
+            inherited::change (newState_in);
+          } // end lock scope
 
           return true;
         }
         // error case
         case STREAM_STATE_PAUSED:
+        case STREAM_STATE_STOPPED:
         default:
           break;
       } // end SWITCH
