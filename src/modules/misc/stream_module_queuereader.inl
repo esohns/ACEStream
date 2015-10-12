@@ -313,11 +313,7 @@ Stream_Module_QueueReader_T<SessionMessageType,
   ACE_ASSERT (queue_);
 
   // step0: increment thread count
-  {
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited::lock_);
-
-    inherited::threadCount_++;
-  } // end IF
+  ++inherited::thr_count;
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
@@ -357,6 +353,9 @@ Stream_Module_QueueReader_T<SessionMessageType,
 done:
   // signal the controller
   inherited::finished ();
+
+  // decrement thread count
+  --inherited::thr_count;
 
   return result;
 }

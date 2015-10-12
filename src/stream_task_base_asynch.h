@@ -25,7 +25,6 @@
 #include "ace/Synch_Traits.h"
 
 #include "stream_task_base.h"
-#include "stream_messagequeue.h"
 
 // forward declarations
 class ACE_Message_Block;
@@ -59,7 +58,7 @@ class Stream_TaskBaseAsynch_T
  protected:
   Stream_TaskBaseAsynch_T ();
 
-  ACE_thread_t        threadID_;
+  Stream_ThreadID threadID_;
 
  private:
   typedef Stream_TaskBase_T<ACE_MT_SYNCH,
@@ -68,13 +67,11 @@ class Stream_TaskBaseAsynch_T
                             ProtocolMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T (const Stream_TaskBaseAsynch_T&))
-//   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&))
 
   // helper methods
   //// enqueue MB_STOP --> stop worker thread(s)
   //void shutdown ();
-
-  Stream_MessageQueue queue_;
 };
 
 // include template implementation

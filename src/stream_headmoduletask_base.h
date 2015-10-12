@@ -24,7 +24,6 @@
 #include <string>
 
 #include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
 
 #include "common_iinitialize.h"
 
@@ -73,6 +72,8 @@ class Stream_HeadModuleTaskBase_T
   virtual int close (u_long = 0);
   virtual int module_closed (void);
   virtual int svc (void);
+
+  virtual void waitForIdleState () const;
 
   // implement Stream_IModuleHandler_T
   virtual const ConfigurationType& get () const;
@@ -135,9 +136,6 @@ class Stream_HeadModuleTaskBase_T
   SessionDataType*    sessionData_;
   StreamStateType*    streamState_;
 
-  ACE_SYNCH_MUTEX     lock_;
-  Stream_MessageQueue queue_;
-
  private:
   typedef Stream_StateMachine_Control inherited;
   typedef Stream_TaskBase_T<TaskSynchType,
@@ -175,7 +173,7 @@ class Stream_HeadModuleTaskBase_T
 
   bool                autoStart_;
   bool                runSvcRoutineOnStart_;
-  ACE_hthread_t       threadID_;
+  Stream_ThreadID     threadID_;
 };
 
 // include template implementation

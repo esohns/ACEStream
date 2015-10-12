@@ -39,7 +39,11 @@ Stream_TaskBase_T<TaskSynchStrategyType,
  : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME), // thread name
               STREAM_MODULE_TASK_GROUP_ID,                                   // group id
               1,                                                             // # thread(s)
-              false)                                                         // auto-start ?
+              false,                                                         // auto-start ?
+              ///////////////////////////
+              &queue_)                                                       // queue handle
+ , lock_ ()
+ , queue_ (STREAM_QUEUE_MAX_SLOTS)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
@@ -56,6 +60,19 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::~Stream_TaskBase_T"));
 
+  int result = 0;
+  result = queue_.flush ();
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
+  else if (result)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("flushed %d message(s)...\n"),
+                result));
+
+//   // *TODO*: check if this sequence actually works...
+//   queue_.deactivate ();
+//   queue_.wait ();
 }
 
 template <typename TaskSynchStrategyType,
@@ -380,7 +397,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       {
         if (inherited::module ())
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("module \"%s\": caught an exception in handleSessionMessage(), continuing\n"),
+                      ACE_TEXT ("%s: caught an exception in handleSessionMessage(), continuing\n"),
                       inherited::name ()));
         else
           ACE_DEBUG ((LM_ERROR,

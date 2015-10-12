@@ -448,9 +448,9 @@ Stream_Base_T<TaskSynchType,
   // has upstream ? --> (try to) stop that instead
   if (upStream_)
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: stopping upstream...\n"),
-                ACE_TEXT (name ().c_str ())));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("%s: stopping upstream...\n"),
+    //            ACE_TEXT (name ().c_str ())));
 
     // delegate to the head module, skip over ACE_Stream_Head...
     result = upStream_->top (module_p);
@@ -488,9 +488,9 @@ Stream_Base_T<TaskSynchType,
       return;
     }
 
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: stopping upstream...done\n"),
-                ACE_TEXT (name ().c_str ())));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("%s: stopping upstream...done\n"),
+    //            ACE_TEXT (name ().c_str ())));
   } // end IF
   
   if (!isRunning ())
@@ -648,28 +648,30 @@ Stream_Base_T<TaskSynchType,
       return;
     } // end IF
     istream_control_p->flush (flushUpStream_in);
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("flushed upstream \"%s\"...\n"),
-                ACE_TEXT (istream_control_p->name ().c_str ())));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("flushed upstream \"%s\"...\n"),
+    //            ACE_TEXT (istream_control_p->name ().c_str ())));
   } // end IF
 
   // writer (inbound) side
   MODULE_CONTAINER_T modules;
-  Stream_Queue_t* queue_p = NULL;
+  const Stream_Module_t* head_p = inherited::head ();
+  const Stream_Module_t* tail_p = inherited::tail ();
+  const Stream_Module_t* module_p = NULL;
   Stream_Task_t* task_p = NULL;
-  const Stream_Module_t* module_p = inherited::head ();
-  ACE_ASSERT (module_p);
+  Stream_Queue_t* queue_p = NULL;
+  Stream_IMessageQueue* iqueue_p = NULL;
   const Stream_Module_t* top_module_p =
     (upStream_ ? NULL
-               : const_cast<Stream_Module_t*> (module_p)->next ());
+               : const_cast<Stream_Module_t*> (head_p)->next ());
   for (ITERATOR_T iterator (*this);
        (iterator.next (module_p) != 0);
        iterator.advance ())
   {
     // skip stream head/tail
-    if ((module_p == inherited::head ()) ||
-        (module_p == top_module_p)       || // <-- stream generator
-        (module_p == inherited::tail ()))
+    if ((module_p == head_p)       ||
+        (module_p == top_module_p) || // <-- stream generator
+        (module_p == tail_p))
       continue;
 
     modules.push_front (const_cast<MODULE_T*> (module_p));
@@ -678,16 +680,31 @@ Stream_Base_T<TaskSynchType,
       continue;
     queue_p = task_p->msg_queue ();
     ACE_ASSERT (queue_p);
-    result = queue_p->flush ();
+    iqueue_p = dynamic_cast<Stream_IMessageQueue*> (queue_p);
+    if (!iqueue_p)
+    {
+      // *NOTE*: most probably cause: module is upstream head
+      // *WARNING*: control/session messages are flushed here
+      result = queue_p->flush ();
+    } // end IF
+    else
+      result = iqueue_p->flushData ();
     if (result == -1)
+      //ACE_DEBUG ((LM_ERROR,
+      //            ACE_TEXT ("\"%s\":\"%s\" writer: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
+      //            ACE_TEXT (name ().c_str ()), module_p->name ()));
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("\"%s\" writer: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
-                  module_p->name ()));
+                  ACE_TEXT ("\"%s\":\"%s\" writer: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
+                  ACE_TEXT (name ().c_str ()), module_p->name ()));
     else if (result)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("\"%s\" writer: flushed %d message(s)...\n"),
-                  module_p->name (),
+                  ACE_TEXT ("\"%s\":\"%s\" writer: flushed %d message(s)...\n"),
+                  ACE_TEXT (name ().c_str ()), module_p->name (),
                   result));
+
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("\"%s\":\"%s\" writer: flushed...\n"),
+    //            ACE_TEXT (name ().c_str ()), module_p->name ()));
 
     module_p = NULL;
   } // end FOR
@@ -702,16 +719,31 @@ Stream_Base_T<TaskSynchType,
       continue;
     queue_p = task_p->msg_queue ();
     ACE_ASSERT (queue_p);
-    result = queue_p->flush ();
+    iqueue_p = dynamic_cast<Stream_IMessageQueue*> (queue_p);
+    if (!iqueue_p)
+    {
+      // *NOTE*: most probably cause: module is upstream head
+      // *WARNING*: control/session messages are flushed here
+      result = queue_p->flush ();
+    } // end IF
+    else
+      result = iqueue_p->flushData ();
     if (result == -1)
+      //ACE_DEBUG ((LM_ERROR,
+      //            ACE_TEXT ("\"%s\":\"%s\" reader: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
+      //            ACE_TEXT (name ().c_str ()), (*iterator)->name ()));
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("\"%s\" reader: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
-                  (*iterator)->name ()));
+                  ACE_TEXT ("\"%s\":\"%s\" reader: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
+                  ACE_TEXT (name ().c_str ()), (*iterator)->name ()));
     else if (result)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("\"%s\" reader: flushed %d message(s)...\n"),
-                  (*iterator)->name (),
+                  ACE_TEXT ("\"%s\":\"%s\" reader: flushed %d message(s)...\n"),
+                  ACE_TEXT (name ().c_str ()), (*iterator)->name (),
                   result));
+
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("\"%s\":\"%s\" reader: flushed...\n"),
+    //            ACE_TEXT (name ().c_str ()), (*iterator)->name ()));
   } // end FOR
 }
 
@@ -965,9 +997,9 @@ Stream_Base_T<TaskSynchType,
     } // end IF
     istream_control_p->waitForCompletion (waitForThreads_in,
                                           waitForUpStream_in);
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("upstream \"%s\" complete...\n"),
-                ACE_TEXT (istream_control_p->name ().c_str ())));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("upstream \"%s\" complete...\n"),
+    //            ACE_TEXT (istream_control_p->name ().c_str ())));
   } // end IF
 
   // *NOTE*: the logic here is this:

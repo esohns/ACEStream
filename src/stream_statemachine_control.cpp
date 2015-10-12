@@ -251,9 +251,6 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         case STREAM_STATE_RUNNING:
         case STREAM_STATE_FINISHED:
         {
-//           ACE_DEBUG ((LM_DEBUG,
-//                       ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
-
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
             inherited::change (newState_in);
@@ -262,6 +259,9 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           // signal waiting thread(s)
           if (newState_in == STREAM_STATE_FINISHED)
           {
+            // ACE_DEBUG ((LM_DEBUG,
+            //             ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
+
             result = condition_.broadcast ();
             if (result == -1)
               ACE_DEBUG ((LM_ERROR,
@@ -270,6 +270,8 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
 
           return true;
         }
+        case STREAM_STATE_STOPPED: // *NOTE*: allow STOPPED --> STOPPED
+          return true; // done
         // error cases
         case STREAM_STATE_PAUSED:
         default:
@@ -299,6 +301,8 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
 
           return true;
         }
+        case STREAM_STATE_FINISHED: // *NOTE*: allow FINISHED --> FINISHED
+          return true; // done
         // error case
         case STREAM_STATE_PAUSED:
         case STREAM_STATE_STOPPED:

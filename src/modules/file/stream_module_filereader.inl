@@ -416,21 +416,8 @@ Stream_Module_FileReader_T<SessionMessageType,
   ACE_ASSERT (inherited::configuration_.streamConfiguration);
   ACE_ASSERT (!isOpen_);
 
-  // step0a: increment thread count
+  // step0: increment thread count
   inherited::thr_count_++;
-
-  // step0b: if in passive mode, release state machine lock
-  ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> reverse_lock (inherited::stateLock_);
-  if (!inherited::configuration_.active)
-  {
-    result = reverse_lock.acquire ();
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Reverse_Lock::acquire(): \"%m\", aborting\n")));
-      goto done;
-    } // end IF
-  } // end IF
 
   result = file_address.set (inherited::configuration_.fileName.c_str ());
   if (result == -1)
@@ -567,14 +554,6 @@ session_finished:
 done:
   // signal the controller
   inherited::finished ();
-
-  if (!inherited::configuration_.active)
-  {
-    int result_2 = reverse_lock.release ();
-    if (result_2 == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Reverse_Lock::release(): \"%m\", aborting\n")));
-  } // end IF
 
   // decrement thread count
   inherited::thr_count_--;

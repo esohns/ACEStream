@@ -57,6 +57,9 @@ Test_I_Stream_Target_EventHandler::start (const Test_I_Stream_SessionData& sessi
 
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
 
+  CBData_->progressData.transferred = 0;
+  CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
+
   guint event_source_id = g_idle_add (idle_start_target_UI_cb,
                                       CBData_);
   if (event_source_id == 0)
@@ -66,10 +69,6 @@ Test_I_Stream_Target_EventHandler::start (const Test_I_Stream_SessionData& sessi
     return;
   } // end IF
   CBData_->eventSourceIds.insert (event_source_id);
-
-  CBData_->progressData.transferred = 0;
-
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
 }
 
 void
@@ -133,15 +132,15 @@ Test_I_Stream_Target_EventHandler::end ()
 
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
 
-  //guint event_source_id = g_idle_add (idle_reset_target_UI_cb,
-  //                                    CBData_);
-  //if (event_source_id == 0)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to g_idle_add(): \"%m\", returning\n")));
-  //  return;
-  //} // end IF
-  //CBData_->eventSourceIds.insert (event_source_id);
-
   CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+
+  guint event_source_id = g_idle_add (idle_end_target_UI_cb,
+                                      CBData_);
+  if (event_source_id == 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_idle_add(idle_end_target_UI_cb): \"%m\", returning\n")));
+    return;
+  } // end IF
+  CBData_->eventSourceIds.insert (event_source_id);
 }

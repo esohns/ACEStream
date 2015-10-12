@@ -52,23 +52,14 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 // , isActive_ (isActive_in)
  , sessionData_ (NULL)
  , streamState_ (NULL)
- , lock_ ()
- , queue_ (STREAM_QUEUE_MAX_SLOTS)
  , autoStart_ (autoStart_in)
  , runSvcRoutineOnStart_ (runSvcRoutineOnStart_in)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
- , threadID_ (ACE_INVALID_HANDLE)
-#else
- , threadID_ (-1)
-#endif
+ , threadID_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
   // *TODO*: remove type inference
   configuration_.active = isActive_in;
-
-  // tell the task to use our message queue...
-  inherited2::msg_queue (&queue_);
 
   // set group ID for worker thread(s)
   inherited2::grp_id (STREAM_MODULE_TASK_GROUP_ID);
@@ -93,23 +84,12 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::~Stream_HeadModuleTaskBase_T"));
 
-  // flush/deactivate our queue (check whether it was empty...)
-  int flushed_messages = queue_.flush ();
-  if (flushed_messages)
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("flushed %d message(s)...\n"),
-                flushed_messages));
-
-//   // *TODO*: check if this sequence actually works...
-//   queue_.deactivate ();
-//   queue_.wait ();
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (threadID_ != ACE_INVALID_HANDLE)
-    if (!CloseHandle (threadID_))
+  if (threadID_.handle != ACE_INVALID_HANDLE)
+    if (!CloseHandle (threadID_.handle))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
-                  threadID_,
+                  threadID_.handle,
                   ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
 #endif
 }
@@ -180,7 +160,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::open (void* args_in)
+                            SessionDataContainerType>::open (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::open"));
 
@@ -196,7 +176,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   //} // end IF
 
   // step0: initialize this
-  sessionData_ = reinterpret_cast<SessionDataType*> (args_in);
+  sessionData_ = reinterpret_cast<SessionDataType*> (arg_in);
 
   // step1: (re-)activate() the message queue
   // *NOTE*: the first time around, the queue will have been open()ed
@@ -206,7 +186,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   //         (see svc()) would fail (ESHUTDOWN)
   //         --> (re-)activate() the queue here !
   // step1: (re-)activate() message queue
-  result = queue_.activate ();
+  result = inherited2::queue_.activate ();
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -375,11 +355,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   bool               stop_processing = false;
 
   // step0: increment thread count
-  {
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
-
-    inherited2::threadCount_++;
-  } // end IF
+  ++inherited2::thr_count_;
 
   // step1: start processing incoming data...
 //   ACE_DEBUG ((LM_DEBUG,
@@ -423,7 +399,42 @@ session_finished:
   // signal the controller
   finished ();
 
+  // decrement thread count
+  --inherited2::thr_count_;
+
   return result;
+}
+
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+void
+Stream_HeadModuleTaskBase_T<TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType>::waitForIdleState () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::waitForIdleState"));
+
+  // delegate this to the queue
+  try
+  {
+    inherited2::queue_.waitForIdleState ();
+  }
+  catch (...)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_IMessageQueue::waitForIdleState, continuing\n")));
+  }
 }
 
 template <typename TaskSynchType,
@@ -845,12 +856,11 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   // step2: wait for worker(s) to join ?
   if (waitForThreads_in)
   {
-    ACE_hthread_t thread_id = ACE_INVALID_HANDLE;
-    ACE_Thread::self (thread_id);
+    ACE_thread_t thread_id = ACE_Thread::self ();
 
     // *TODO*: remove type inference
     if (configuration_.active ||
-        (runSvcRoutineOnStart_ && (thread_id != threadID_)))
+        (runSvcRoutineOnStart_ && (thread_id != threadID_.id)))
     {
       if (configuration_.active)
       {
@@ -859,15 +869,35 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
       } // end IF
-      else
+      else if (thread_id != threadID_.id)
       {
-        ACE_ASSERT (threadID_ != ACE_INVALID_HANDLE);
+        thread_id = threadID_.id;
         ACE_THR_FUNC_RETURN status;
-        result = ACE_Thread::join (threadID_, &status);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        if (threadID_.handle != ACE_INVALID_HANDLE)
+        {
+          result = ACE_Thread::join (threadID_.handle, &status);
+          // *NOTE*: successful join()s close the thread handle
+          //         (see OS_NS_Thread.inl:2971)
+          if (result == 0) threadID_.handle = ACE_INVALID_HANDLE;
+          threadID_.id = std::numeric_limits<DWORD>::max ();
+        } // end IF
+        else
+          result = 0;
+#else
+        if (threadID_.id != -1)
+        {
+          result = ACE_Thread::join (threadID_.id, NULL, &status);
+          threadID_.id = -1;
+        } // end IF
+        else
+          result = 0;
+#endif
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Thread::join(%d): \"%m\", continuing\n")));
-      } // end ELSE
+                      ACE_TEXT ("failed to ACE_Thread::join(%d): \"%m\", continuing\n"),
+                      thread_id));
+      } // end IF
     } // end IF
   } // end IF
 }
@@ -1001,19 +1031,22 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     case STREAM_STATE_INITIALIZED:
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (threadID_ != ACE_INVALID_HANDLE)
-        if (!CloseHandle (threadID_))
+      if (threadID_.handle != ACE_INVALID_HANDLE)
+        if (!::CloseHandle (threadID_.handle))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
-                      threadID_,
+                      threadID_.handle,
                       ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
+      threadID_.handle = ACE_INVALID_HANDLE;
+      threadID_.id = std::numeric_limits<DWORD>::max ();
+#else
+      threadID_.id = -1;
 #endif
-      threadID_ = ACE_INVALID_HANDLE;
 
-      // OK: (re-)initialized
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("\"%s\" head module (re-)initialized...\n"),
-                  inherited2::name ()));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("\"%s\" head module (re-)initialized...\n"),
+      //            inherited2::name ()));
+
       break;
     }
     case STREAM_STATE_RUNNING:
@@ -1035,7 +1068,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         else
         {
           // task object not active --> suspend the borrowed thread
-          result = ACE_Thread::resume (threadID_);
+          result = ACE_Thread::resume (threadID_.handle);
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to ACE_Thread::resume(): \"%m\", continuing\n")));
@@ -1116,21 +1149,23 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
             inherited::state_ = STREAM_STATE_RUNNING;
           } // end lock scope
 
-          ACE_Thread::self (threadID_);
+          threadID_.id = ACE_Thread::self ();
+          ACE_Thread::self (threadID_.handle);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-          HANDLE process_handle = GetCurrentProcess ();
-          if (!DuplicateHandle (process_handle,
-                                threadID_,
-                                process_handle,
-                                &threadID_,
-                                0,
-                                FALSE,
-                                DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS))
+          HANDLE process_handle = ::GetCurrentProcess ();
+          if (!::DuplicateHandle (process_handle,
+                                  threadID_.handle,
+                                  process_handle,
+                                  &threadID_.handle,
+                                  0,
+                                  FALSE,
+                                  DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS))
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to DuplicateHandle(0x%@): \"%s\", continuing\n"),
-                        threadID_,
+                        threadID_.handle,
                         ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
 #endif
+
           result = svc ();
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
@@ -1150,14 +1185,36 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
       break;
     }
+    case STREAM_STATE_PAUSED:
+    {
+      // suspend the worker(s) ?
+
+      // *TODO*: remove type inference
+      if (configuration_.active)
+      {
+        result = inherited2::suspend ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Task::suspend(): \"%m\", continuing\n")));
+      } // end IF
+      else
+      {
+        // task object not active --> suspend the borrowed thread
+        result = ACE_Thread::suspend (threadID_.handle);
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Thread::suspend(): \"%m\", continuing\n")));
+      } // end ELSE
+
+      break;
+    }
     case STREAM_STATE_STOPPED:
     {
-      ACE_hthread_t thread_id = ACE_INVALID_HANDLE;
-      ACE_Thread::self (thread_id);
+      ACE_thread_t thread_id = ACE_Thread::self ();
 
       // *TODO*: remove type inference
       if (configuration_.active ||
-          (runSvcRoutineOnStart_  && (thread_id != threadID_)))
+          (runSvcRoutineOnStart_  && (thread_id != threadID_.id)))
       {
         //// OK: drop a control message into the queue...
         //// *TODO*: use ACE_Stream::control() instead ?
@@ -1241,29 +1298,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
 //       ACE_DEBUG ((LM_DEBUG,
 //                   ACE_TEXT ("stream processing complete\n")));
-
-      break;
-    }
-    case STREAM_STATE_PAUSED:
-    {
-      // suspend the worker(s) ?
-
-      // *TODO*: remove type inference
-      if (configuration_.active)
-      {
-        result = inherited2::suspend ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task::suspend(): \"%m\", continuing\n")));
-      } // end IF
-      else
-      {
-        // task object not active --> suspend the borrowed thread
-        result = ACE_Thread::suspend (threadID_);
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Thread::suspend(): \"%m\", continuing\n")));
-      } // end ELSE
 
       break;
     }

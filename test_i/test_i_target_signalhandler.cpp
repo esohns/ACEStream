@@ -66,10 +66,12 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
   bool statistic = false;
   switch (signal_in)
   {
-    case SIGINT:
 // *PORTABILITY*: on Windows SIGQUIT is not defined
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case SIGINT:
 #else
+    case SIGINT:
+      break;
     case SIGQUIT:
 #endif
     {

@@ -19,11 +19,13 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "ace/Synch.h" // *TODO*: remove this ASAP (ACE bug)
 #include "stream_messagequeue.h"
 
 #include "ace/Time_Value.h"
 
 #include "stream_macros.h"
+#include "stream_message_base.h"
 
 Stream_MessageQueue::Stream_MessageQueue (unsigned int maxMessages_in)
  : inherited (maxMessages_in)
@@ -38,7 +40,41 @@ Stream_MessageQueue::~Stream_MessageQueue ()
 
 }
 
-void Stream_MessageQueue::waitForIdleState () const
+unsigned int
+Stream_MessageQueue::flushData ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue::flushData"));
+
+  int result = 0;
+
+  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited::lock_);
+
+  for (ACE_Message_Block* message_block_p = inherited::head_;
+       message_block_p;
+       message_block_p = message_block_p->next ())
+  {
+    if (message_block_p->msg_type () > STREAM_MESSAGE_MAP_2)
+    {
+      // remove this block
+      if (message_block_p == inherited::head_)
+        inherited::head_ = message_block_p->next ();
+      else
+        message_block_p->prev ()->next (message_block_p->next ());
+      if (message_block_p == inherited::tail_)
+        inherited::tail_ = message_block_p->prev ();
+
+      // clean up
+      message_block_p->release ();
+
+      ++result;
+    } // end IF
+  } // end FOR
+
+  return result;
+}
+
+void
+Stream_MessageQueue::waitForIdleState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueue::waitForIdleState"));
 

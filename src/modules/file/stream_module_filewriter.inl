@@ -105,9 +105,11 @@ Stream_Module_FileWriter_T<SessionMessageType,
     case -1:
     {
       // *NOTE*: most probable cause: disk full
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_File_IO::send_n(%d): \"%m\", continuing\n"),
-                  message_inout->total_length ()));
+      int error = ACE_OS::last_error ();
+      if (error != ENOSPC)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_File_IO::send_n(%d): \"%m\", continuing\n"),
+                    message_inout->total_length ()));
       break;
     }
     default:

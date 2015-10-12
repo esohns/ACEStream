@@ -252,21 +252,6 @@ typedef Stream_Subscribers_t::iterator Stream_SubscribersIterator_t;
 
 typedef Common_ISubscribe_T<Stream_IStreamNotify_t> Stream_ISubscribe_t;
 
-struct Stream_ThreadID
-{
- inline Stream_ThreadID ()
-  : handle (ACE_INVALID_HANDLE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  , id (std::numeric_limits<unsigned long>::max ())
-#else
-  , id (-1)
-#endif
- {};
-
-  ACE_hthread_t handle;
-  ACE_thread_t  id;
-};
-
 typedef std::map<guint, Stream_ThreadID> Stream_PendingActions_t;
 typedef Stream_PendingActions_t::iterator Stream_PendingActionsIterator_t;
 typedef std::set<guint> Stream_CompletedActions_t;

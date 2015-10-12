@@ -34,10 +34,11 @@ class Stream_Export Stream_MessageQueue
                                     Common_TimePolicy_t>
 {
  public:
-  Stream_MessageQueue (unsigned int); // max number of queued buffers
+  Stream_MessageQueue (unsigned int); // maximum number of queued buffers
   virtual ~Stream_MessageQueue ();
 
   // implement Stream_IMessageQueue
+  virtual unsigned int flushData ();
   virtual void waitForIdleState () const;
 
  private:

@@ -314,7 +314,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
                 fileReader_.name ()));
     goto failed;
   } // end IF
-  fileReader_impl_p->reset ();
+  //fileReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)

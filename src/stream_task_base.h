@@ -23,10 +23,12 @@
 
 #include "ace/Global_Macros.h"
 #include "ace/Message_Block.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_task_base.h"
 
 #include "stream_itask.h"
+#include "stream_messagequeue.h"
 
 template <typename TaskSynchStrategyType,
           typename TimePolicyType,
@@ -42,7 +44,7 @@ class Stream_TaskBase_T
   virtual ~Stream_TaskBase_T ();
 
   // implement (part of) Stream_ITaskBase_T
-  // *NOTE*: these are just default (essentially NOP) implementations...
+  // *NOTE*: these are just default (essentially NOP) implementations
   virtual bool initialize (const void*); // configuration handle
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass this message downstream ?
@@ -64,6 +66,9 @@ class Stream_TaskBase_T
   virtual void handleControlMessage (ACE_Message_Block*, // control message
                                      bool&,              // return value: stop processing ?
                                      bool&);             // return value: pass message downstream ?
+
+  ACE_SYNCH_MUTEX     lock_;
+  Stream_MessageQueue queue_;
 
  private:
   typedef Common_TaskBase_T<TaskSynchStrategyType,

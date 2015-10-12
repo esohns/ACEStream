@@ -2795,6 +2795,8 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_quit_clicked_cb"));
 
+  int result = -1;
+
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (userData_in);
   //Stream_GTK_CBData* data_p = static_cast<Stream_GTK_CBData*> (userData_in);
@@ -2816,11 +2818,16 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   //} // end lock scope
 
   // step2: initiate shutdown sequence
-  int result = ACE_OS::raise (SIGINT);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  int signal = SIGINT;
+#else
+  int signal = SIGQUIT;
+#endif
+  result = ACE_OS::raise (signal);
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
-                SIGINT));
+                signal));
 
   // step3: stop GTK event processing
   // *NOTE*: triggering UI shutdown here is more consistent, compared to doing

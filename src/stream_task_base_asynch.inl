@@ -34,13 +34,9 @@ template <typename TimePolicyType,
 Stream_TaskBaseAsynch_T<TimePolicyType,
                         SessionMessageType,
                         ProtocolMessageType>::Stream_TaskBaseAsynch_T ()
- : threadID_ (0)
- , queue_ (STREAM_QUEUE_MAX_SLOTS)
+ : threadID_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::Stream_TaskBaseAsynch_T"));
-
-  // tell the task to use this message queue
-  inherited::msg_queue (&queue_);
 
   // set group ID for worker thread(s)
   // *TODO*: pass this in from outside...
@@ -56,22 +52,14 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::~Stream_TaskBaseAsynch_T"));
 
-  // flush/deactivate our queue (check whether it was empty)
-  int flushed_messages = 0;
-  flushed_messages = queue_.flush ();
-
-  // *NOTE*: this should probably NEVER happen !
-  // debug info
-  if (flushed_messages)
-  {
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("flushed %d message(s)...\n"),
-                flushed_messages));
-  } // end IF
-
-//   // *TODO*: check if this sequence actually works...
-//   queue_.deactivate ();
-//   queue_.wait ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (threadID_.handle != ACE_INVALID_HANDLE)
+    if (!CloseHandle (threadID_.handle))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
+                  threadID_.handle,
+                  ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
+#endif
 }
 
 template <typename TimePolicyType,
@@ -88,14 +76,14 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
 
   int result = -1;
 
-  // step1: (re-)activate() the queue
+  // step1: (re-)activate() the message queue
   // *NOTE*: the first time around, the queue will have been open()ed
   //         from within the default ctor; this sets it into an ACTIVATED state
   //         - hopefully, this is what is intended
   //         The second time (i.e. the task has been stopped/started, the queue
   //         will have been deactivated in the process, and getq() (see svc()
   //         below) will fail (ESHUTDOWN) --> (re-)activate() the queue
-  result = queue_.activate ();
+  result = inherited::queue_.activate ();
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -133,7 +121,8 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
                 ACE_TEXT ("failed to ACE_Task::activate(): \"%m\", aborting\n")));
     return -1;
   } // end IF
-  threadID_ = thread_ids[0];
+  threadID_.handle = thread_handles[0];
+  threadID_.id = thread_ids[0];
 
 //   if (inherited::module ())
 //   {
@@ -267,7 +256,8 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
   ACE_Message_Block* message_block_p = NULL;
   int result = 0;
   bool stop_processing = false;
-  while (inherited::getq (message_block_p, NULL) != -1) // blocking wait
+  while (inherited::getq (message_block_p,
+                          NULL) != -1) // blocking wait
   {
     if (message_block_p->msg_type () == ACE_Message_Block::MB_STOP)
     {
@@ -328,7 +318,7 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
   // delegate this to the queue
   try
   {
-    queue_.waitForIdleState ();
+    inherited::queue_.waitForIdleState ();
   }
   catch (...)
   {

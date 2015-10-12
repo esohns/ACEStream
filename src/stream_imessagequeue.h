@@ -27,6 +27,7 @@ class Stream_IMessageQueue
   virtual ~Stream_IMessageQueue () {}
 
   // exposed interface
+  virtual unsigned int flushData () = 0;
   virtual void waitForIdleState () const = 0;
 };
 

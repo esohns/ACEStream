@@ -24,6 +24,7 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
+#include "net_common.h"
 #include "net_iconnector.h"
 
 #include "net_client_defines.h"
@@ -216,7 +217,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         handle = reinterpret_cast<ACE_HANDLE> (sessionData_->sessionID);
 #else
-        handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
+        handle = static_cast<ACE_HANDLE> (sessionData_->sessionID);
 #endif
         configuration_.connection =
           configuration_.connectionManager->get (handle);
@@ -409,11 +410,6 @@ done:
       {
         // wait for data (!) processing to complete
         ACE_ASSERT (configuration_.stream);
-        configuration_.stream->waitForCompletion (false, // wait for worker(s) ?
-                                                  true); // wait for upstream ?
-
-        // *NOTE*: finalize the connection stream state so waitForCompletion()
-        //         does not block
         typename ConnectorType::STREAM_T* stream_p = NULL;
         typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
           dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (configuration_.connection);
@@ -429,14 +425,19 @@ done:
         } // end IF
         stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
-        stream_p->finished ();
 
         // *NOTE*: if the connection was closed abruptly, there may well be
         //         undispatched data in the connection stream. Flush it so
-        //         waitForCompletion() does not block
+        //         waitForCompletion() (see below) does not block
         Net_Connection_Status status = configuration_.connection->status ();
         if (status != NET_CONNECTION_STATUS_OK)
-          configuration_.stream->flush (true);
+          stream_p->flush (true);
+        configuration_.stream->waitForCompletion (false, // wait for worker(s) ?
+                                                  true); // wait for upstream ?
+
+        // *NOTE*: finalize the connection stream state so waitForCompletion()
+        //         does not block
+        stream_p->finished ();
         configuration_.connection->waitForCompletion (false); // data only
       } // end IF
 
@@ -490,10 +491,14 @@ unlink_close:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
-        configuration_.connection->close ();
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("closed connection to \"%s\"...\n"),
-                    ACE_TEXT (buffer)));
+        Net_Connection_Status status = configuration_.connection->status ();
+        if (status == NET_CONNECTION_STATUS_OK)
+        {
+          configuration_.connection->close ();
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("closed connection to \"%s\"...\n"),
+                      ACE_TEXT (buffer)));
+        } // end IF
       } // end IF
 release:
       if (configuration_.connection)

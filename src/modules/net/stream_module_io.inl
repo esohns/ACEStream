@@ -283,6 +283,9 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
   ACE_ASSERT (message_inout);
   ACE_ASSERT (isInitialized_);
 
+  Stream_Module_t* module_p = NULL;
+  Stream_Task_t* task_p = NULL;
+  Stream_Queue_t* queue_p = NULL;
   switch (message_inout->type ())
   {
     case STREAM_SESSION_BEGIN:
@@ -365,9 +368,9 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
         //typename ConnectorType::STREAM_T& stream_r =
         //  const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
         //Stream_Module_t* module_p = stream_r.head ();
-        Stream_Module_t* module_p = inherited::module ();
+        module_p = inherited::module ();
         ACE_ASSERT (module_p);
-        Stream_Task_t* task_p = module_p->reader ();
+        task_p = module_p->reader ();
         ACE_ASSERT (task_p);
         while (ACE_OS::strcmp (module_p->name (),
                                ACE_TEXT ("ACE_Stream_Head")) != 0)
@@ -388,8 +391,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("no head module reader task found, returning\n")));
           return;
-        } // end IF
-        Stream_Queue_t* queue_p = task_p->msg_queue ();
+        } // endStream_Module_t* module_p IF
+        queue_p = task_p->msg_queue ();
         if (!queue_p)
         {
           ACE_DEBUG ((LM_ERROR,
@@ -421,11 +424,11 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
 
       if (connection_)
       {
-        // *NOTE*: pulse the stream head queue so it does not fill up (the
-        //         generator module blocks in some scenarios)
-        Stream_Module_t* module_p = inherited::module ();
+        // *NOTE*: deactivate the stream head queue so it does not fill up
+        //         (otherwise the generator module could block in some cases)
+        module_p = inherited::module ();
         ACE_ASSERT (module_p);
-        Stream_Task_t* task_p = module_p->reader ();
+        task_p = module_p->reader ();
         ACE_ASSERT (task_p);
         while (ACE_OS::strcmp (module_p->name (),
                                ACE_TEXT ("ACE_Stream_Head")) != 0)
@@ -447,17 +450,17 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                       ACE_TEXT ("no head module reader task found, returning\n")));
           return;
         } // end IF
-        Stream_Queue_t* queue_p = task_p->msg_queue ();
+        queue_p = task_p->msg_queue ();
         if (!queue_p)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("no head module reader task queue found, returning\n")));
           return;
         } // end IF
-        result = queue_p->pulse ();
+        result = queue_p->deactivate ();
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Message_Queue::pulse(): \"%m\", continuing\n")));
+                      ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
 
         // wait for data processing to complete
         //typename ConnectorType::STREAM_T* stream_p = NULL;

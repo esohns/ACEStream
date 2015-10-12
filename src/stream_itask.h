@@ -44,6 +44,8 @@ class Stream_ITask_T
   virtual void handleSessionMessage (SessionMessageType*&,                 // session message handle
                                      bool&) = 0;                           // return value: pass message downstream ?
   virtual void handleProcessingError (const ACE_Message_Block* const) = 0; // corresp. message
+
+  virtual void waitForIdleState () const = 0;
 };
 
 #endif
