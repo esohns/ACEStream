@@ -55,6 +55,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
               false) // run svc() routine on start ? (passive only)
  , connection_ (NULL)
  , isInitialized_ (false)
+ , lock_ ()
  , statisticCollectionHandler_ (ACTION_COLLECT,
                                 this,
                                 false)
@@ -409,6 +410,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
     }
     case STREAM_SESSION_END:
     {
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+
       if (timerID_ != -1)
       {
         const void* act_p = NULL;
@@ -462,6 +465,22 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
 
+        // pass session end message downstream to prevent waitForCompletion()
+        // (see below) from blocking. This is currently an issue for inbound
+        // (server side) connections
+        result = inherited::put_next (message_inout, NULL);
+        if (result == -1)
+        {
+          int error = ACE_OS::last_error ();
+          if (error != ESHUTDOWN) // 10058: queue has been deactivate()d
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", continuing\n")));
+        } // end IF
+
+        // clean up
+        message_inout = NULL;
+        passMessageDownstream_out = false;
+
         // wait for data processing to complete
         //typename ConnectorType::STREAM_T* stream_p = NULL;
         //typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
@@ -479,10 +498,31 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
         //stream_p =
         //  &const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
         //stream_p->finished ();
-        connection_->waitForCompletion (false);
 
-        connection_->decrease ();
-        connection_ = NULL;
+        // *NOTE*: there is a subtle race condition here. When the connection
+        //         aborts, the reactor stop()s the connections' stream (through
+        //         handle_close(), which eventually lands here (state switch).
+        //         waitForCompletion() will wait for upstream, which could
+        //         deadlock when upstream blocks on the mutex above
+        //         --> release the mutex while waiting for upstream; grab a
+        //             reference to the connection so it does not go away early;
+        //             recheck/release the connection_ handle on return
+        ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (lock_);
+        typename ConnectionManagerType::CONNECTION_T* connection_p =
+          connection_;
+        connection_p->increase ();
+        {
+          ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX> > aGuard_2 (reverse_lock);
+
+          connection_p->waitForCompletion (true); // wait for threads ?
+        } // end lock scope
+        connection_p->decrease ();
+
+        if (connection_)
+        {
+          connection_->decrease ();
+          connection_ = NULL;
+        } // end IF
       } // end IF
 
       // reset reactor/proactor notification

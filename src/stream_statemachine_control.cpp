@@ -104,8 +104,8 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         // good case
         case STREAM_STATE_INITIALIZED:
         {
-          //           ACE_DEBUG ((LM_DEBUG,
-          //                       ACE_TEXT ("state switch: INVALID --> INITIALIZED\n")));
+          //ACE_DEBUG ((LM_DEBUG,
+          //            ACE_TEXT ("state switch: INVALID --> INITIALIZED\n")));
 
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
@@ -128,12 +128,11 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         // good case
         case STREAM_STATE_RUNNING:
         {
-          //           ACE_DEBUG ((LM_DEBUG,
-          //                       ACE_TEXT ("state switch: INITIALIZED --> RUNNING\n")));
+          //ACE_DEBUG ((LM_DEBUG,
+          //            ACE_TEXT ("state switch: INITIALIZED --> RUNNING\n")));
 
           // *WARNING*: falls through
         }
-        case STREAM_STATE_FINISHED: // !active
         case STREAM_STATE_INITIALIZED:
         {
           {
@@ -152,6 +151,7 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           return true;
         }
         // error case
+        case STREAM_STATE_FINISHED:
         case STREAM_STATE_PAUSED:
         case STREAM_STATE_STOPPED:
         default:
@@ -169,12 +169,9 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         case STREAM_STATE_STOPPED:
         case STREAM_STATE_FINISHED:
         {
-          //std::string newStateString;
-          //ControlState2String (newState_in,
-          //                     newStateString);
-//           ACE_DEBUG ((LM_DEBUG,
-//                       ACE_TEXT ("state switch: RUNNING --> %s\n"),
-//                       ACE_TEXT (newStateString.c_str())));
+          //ACE_DEBUG ((LM_DEBUG,
+          //            ACE_TEXT ("state switch: RUNNING --> %s\n"),
+          //            ACE_TEXT (state2String (newState_in).c_str ())));
 
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
@@ -259,8 +256,8 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           // signal waiting thread(s)
           if (newState_in == STREAM_STATE_FINISHED)
           {
-            // ACE_DEBUG ((LM_DEBUG,
-            //             ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
 
             result = condition_.broadcast ();
             if (result == -1)
@@ -302,7 +299,14 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           return true;
         }
         case STREAM_STATE_FINISHED: // *NOTE*: allow FINISHED --> FINISHED
+        {
+          result = condition_.broadcast ();
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n")));
+
           return true; // done
+        }
         // error case
         case STREAM_STATE_PAUSED:
         case STREAM_STATE_STOPPED:

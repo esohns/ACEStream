@@ -122,6 +122,9 @@ class Stream_Module_Net_IOWriter_T // --> output
 
   typename ConnectionManagerType::CONNECTION_T* connection_;
   bool                                          isInitialized_;
+  // *NOTE*: this lock prevents races during (ordered) shutdown
+  // *TODO*: remove surplus STREAM_SESSION_END messages
+  ACE_SYNCH_MUTEX                               lock_;
 
   // timer
   Stream_StatisticHandler_Reactor_t             statisticCollectionHandler_;

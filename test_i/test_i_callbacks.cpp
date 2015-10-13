@@ -1777,19 +1777,19 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
       (status_r == STREAM_STATE_PAUSED))
   {
     stream_p->pause (); // pause/unpause
-    if (!data_p->configuration->moduleHandlerConfiguration.active)
-    {
-      ACE_ASSERT (!data_p->progressData.pendingActions.empty ());
-      Stream_PendingActionsIterator_t iterator =
-        data_p->progressData.pendingActions.begin ();
-      if (status_r == STREAM_STATE_RUNNING)
-        result = ACE_Thread::suspend ((*iterator).second.handle);
-      else
-        result = ACE_Thread::resume ((*iterator).second.handle);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Thread::suspend/resume(): \"%m\", continuing\n")));
-    } // end ELSE
+    //if (!data_p->configuration->moduleHandlerConfiguration.active)
+    //{
+    //  ACE_ASSERT (!data_p->progressData.pendingActions.empty ());
+    //  Stream_PendingActionsIterator_t iterator =
+    //    data_p->progressData.pendingActions.begin ();
+    //  if (status_r == STREAM_STATE_RUNNING)
+    //    result = ACE_Thread::suspend ((*iterator).second.handle);
+    //  else
+    //    result = ACE_Thread::resume ((*iterator).second.handle);
+    //  if (result == -1)
+    //    ACE_DEBUG ((LM_ERROR,
+    //                ACE_TEXT ("failed to ACE_Thread::suspend/resume(): \"%m\", continuing\n")));
+    //} // end ELSE
 
     if (status_r == STREAM_STATE_RUNNING) // <-- image is "pause"
       gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PLAY);

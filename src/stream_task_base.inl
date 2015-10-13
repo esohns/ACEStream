@@ -317,7 +317,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
     // *NOTE*: tasks that are not part of a stream have no notion of the concept
     if (!inherited::module ())
     {
-//      ACE_DEBUG ((LM_DEBUG,
+//      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("cannot put_next(): not a module, continuing\n")));
 
       // clean up
@@ -328,8 +328,10 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       result = inherited::put_next (messageBlock_in, NULL);
       if (result == -1)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to put_next(): \"%m\", continuing\n")));
+        int error = ACE_OS::last_error ();
+        if (error != ESHUTDOWN) // 10058: queue has been deactivate()d
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", continuing\n")));
 
         // clean up
         messageBlock_in->release ();

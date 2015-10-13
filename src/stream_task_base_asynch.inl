@@ -302,6 +302,21 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
               ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
 done:
+  // *NOTE*: deactivate the queue so it does not accept new data
+  int result_2 = inherited::msg_queue_->deactivate ();
+  if (result_2 == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
+  result_2 = inherited::msg_queue_->flush ();
+  if (result_2 == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
+  //else if (inherited::mod_)
+  //  ACE_DEBUG ((LM_DEBUG,
+  //              ACE_TEXT ("\"%s\": flushed %d message(s)...\n"),
+  //              inherited::mod_->name (),
+  //              result_2));
+
   return result;
 }
 
@@ -326,72 +341,3 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
                 ACE_TEXT ("caught exception in Stream_IMessageQueue::waitForIdleState, continuing\n")));
   }
 }
-
-//template <typename TaskSynchType,
-//          typename TimePolicyType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType>
-//void
-//Stream_TaskBaseAsynch_T<TaskSynchType,
-//                        TimePolicyType,
-//                        SessionMessageType,
-//                        ProtocolMessageType>::shutdown ()
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::shutdown"));
-//
-//  int result = -1;
-//
-////   if (inherited::module ())
-////   {
-////     ACE_DEBUG ((LM_DEBUG,
-////                 ACE_TEXT ("initiating shutdown of worker thread(s) for module \"%s\"...\n"),
-////                 inherited::name ()));
-////   } // end IF
-////   else
-////   {
-////     ACE_DEBUG ((LM_DEBUG,
-////                 ACE_TEXT ("initiating shutdown of worker thread(s)...\n")));
-////   } // end ELSE
-//
-//  ACE_Message_Block* message_block_p = NULL;
-//  ACE_NEW_NORETURN (message_block_p,
-//                    ACE_Message_Block (0,                                  // size
-//                                       ACE_Message_Block::MB_STOP,         // type
-//                                       NULL,                               // continuation
-//                                       NULL,                               // data
-//                                       NULL,                               // buffer allocator
-//                                       NULL,                               // locking strategy
-//                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
-//                                       ACE_Time_Value::zero,               // execution time
-//                                       ACE_Time_Value::max_time,           // deadline time
-//                                       NULL,                               // data block allocator
-//                                       NULL));                             // message allocator)
-//  if (!message_block_p)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
-//    return;
-//  } // end IF
-//
-//  result = inherited::putq (message_block_p, NULL);
-//  if (result == -1)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
-//
-//    // clean up
-//    message_block_p->release ();
-//  } // end IF
-//
-////   if (inherited::module ())
-////   {
-////     ACE_DEBUG ((LM_DEBUG,
-////                 ACE_TEXT ("initiating shutdown of worker thread(s) for module \"%s\"...DONE\n"),
-////                 ACE_TEXT (inherited::name ())));
-////   } // end IF
-////   else
-////   {
-////     ACE_DEBUG ((LM_DEBUG,
-////                 ACE_TEXT ("initiating shutdown of worker thread(s)...DONE\n")));
-////   } // end ELSE
-//}

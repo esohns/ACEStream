@@ -53,6 +53,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
  , sessionData_ (NULL)
  , streamState_ (NULL)
  , autoStart_ (autoStart_in)
+ , sessionEndSent_ (false)
  , runSvcRoutineOnStart_ (runSvcRoutineOnStart_in)
  , threadID_ ()
 {
@@ -86,7 +87,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (threadID_.handle != ACE_INVALID_HANDLE)
-    if (!CloseHandle (threadID_.handle))
+    if (!::CloseHandle (threadID_.handle))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
                   threadID_.handle,
@@ -133,14 +134,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   inherited2::handleMessage (messageBlock_in,
                              stop_processing);
 
-//  // finished ?
-//  if (stop_processing)
-//  {
-//    // *WARNING*: messageBlock_in has already been released() at this point !
-
-//    stop (false);
-//  } // end IF
-
+  //return (stop_processing ? -1 : 0);
   return 0;
 }
 
@@ -201,7 +195,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     if (inherited2::module ())
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("auto-starting \"%s\"...\n"),
-                  ACE_TEXT (inherited2::name ())));
+                  inherited2::name ()));
     else
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("auto-starting...\n")));
@@ -860,7 +854,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
     // *TODO*: remove type inference
     if (configuration_.active ||
-        (runSvcRoutineOnStart_ && (thread_id != threadID_.id)))
+        (runSvcRoutineOnStart_ && !ACE_OS::thr_equal (thread_id,
+                                                      threadID_.id)))
     {
       if (configuration_.active)
       {
@@ -869,8 +864,10 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
       } // end IF
-      else if (thread_id != threadID_.id)
+      else
       {
+        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
+
         thread_id = threadID_.id;
         ACE_THR_FUNC_RETURN status;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1030,6 +1027,10 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   {
     case STREAM_STATE_INITIALIZED:
     {
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
+
+      sessionEndSent_ = false;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       if (threadID_.handle != ACE_INVALID_HANDLE)
         if (!::CloseHandle (threadID_.handle))
@@ -1067,7 +1068,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         } // end IF
         else
         {
-          // task object not active --> suspend the borrowed thread
+          // task object not active --> resume the borrowed thread
+          ACE_ASSERT (threadID_.handle != ACE_INVALID_HANDLE);
           result = ACE_Thread::resume (threadID_.handle);
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
@@ -1149,22 +1151,26 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
             inherited::state_ = STREAM_STATE_RUNNING;
           } // end lock scope
 
-          threadID_.id = ACE_Thread::self ();
-          ACE_Thread::self (threadID_.handle);
+          {
+            ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
+
+            threadID_.id = ACE_Thread::self ();
+            ACE_Thread::self (threadID_.handle);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-          HANDLE process_handle = ::GetCurrentProcess ();
-          if (!::DuplicateHandle (process_handle,
-                                  threadID_.handle,
-                                  process_handle,
-                                  &threadID_.handle,
-                                  0,
-                                  FALSE,
-                                  DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to DuplicateHandle(0x%@): \"%s\", continuing\n"),
-                        threadID_.handle,
-                        ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
+            HANDLE process_handle = ::GetCurrentProcess ();
+            if (!::DuplicateHandle (process_handle,
+                                    threadID_.handle,
+                                    process_handle,
+                                    &threadID_.handle,
+                                    0,
+                                    FALSE,
+                                    DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS))
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("failed to DuplicateHandle(0x%@): \"%s\", continuing\n"),
+                          threadID_.handle,
+                          ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
 #endif
+          } // end lock scope
 
           result = svc ();
           if (result == -1)
@@ -1200,6 +1206,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       else
       {
         // task object not active --> suspend the borrowed thread
+        ACE_ASSERT (threadID_.handle != ACE_INVALID_HANDLE);
         result = ACE_Thread::suspend (threadID_.handle);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
@@ -1214,7 +1221,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
       // *TODO*: remove type inference
       if (configuration_.active ||
-          (runSvcRoutineOnStart_  && (thread_id != threadID_.id)))
+          (runSvcRoutineOnStart_  && !ACE_OS::thr_equal (thread_id,
+                                                         threadID_.id)))
       {
         //// OK: drop a control message into the queue...
         //// *TODO*: use ACE_Stream::control() instead ?
@@ -1289,12 +1297,24 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         inherited::state_ = STREAM_STATE_FINISHED;
       } // end lock scope
 
-      // send final session message downstream
-      if (!putSessionMessage (STREAM_SESSION_END,
-                              sessionData_,
-                              false))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
+      // send final session message downstream ?
+      // *IMPORTANT NOTE*: as in 'passive' mode the transition STOPPED -->
+      //                   FINISHED is automatic (see above), and the stream may
+      //                   be stop()ed several times (safety precaution during
+      //                   shutdown), this transition could occur several times
+      //                   --> ensure that only one (!) session end message is
+      //                       generated per session
+      {
+        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
+
+        if (!sessionEndSent_)
+          if (!putSessionMessage (STREAM_SESSION_END,
+                                  sessionData_,
+                                  false))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
+        sessionEndSent_ = true;
+      } // end lock scope
 
 //       ACE_DEBUG ((LM_DEBUG,
 //                   ACE_TEXT ("stream processing complete\n")));

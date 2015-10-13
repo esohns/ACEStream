@@ -52,20 +52,19 @@ template <typename TimePolicyType,
 int
 Stream_TaskBaseSynch_T<TimePolicyType,
                        SessionMessageType,
-                       ProtocolMessageType>::put (ACE_Message_Block* mb_in,
-                                                  ACE_Time_Value* tv_in)
+                       ProtocolMessageType>::put (ACE_Message_Block* messageBlock_in,
+                                                  ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::put"));
 
-  ACE_UNUSED_ARG (tv_in);
+  ACE_UNUSED_ARG (timeout_in);
 
-  // NOTE: ignore this return value (it's only used in asynchronous mode...)
-  bool stopProcessing = false;
+  // borrow the calling thread to do the work
+  bool stop_processing = false;
+  inherited::handleMessage (messageBlock_in,
+                            stop_processing);
 
-  // "borrow" the calling thread to do the work...
-  inherited::handleMessage (mb_in,
-                            stopProcessing);
-
+  //return (stop_processing ? -1 : 0);
   return 0;
 }
 

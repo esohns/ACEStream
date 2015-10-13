@@ -68,10 +68,6 @@ class Stream_TaskBaseAsynch_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T (const Stream_TaskBaseAsynch_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&))
-
-  // helper methods
-  //// enqueue MB_STOP --> stop worker thread(s)
-  //void shutdown ();
 };
 
 // include template implementation

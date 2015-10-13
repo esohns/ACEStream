@@ -49,9 +49,12 @@ Stream_MessageQueue::flushData ()
 
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited::lock_);
 
-  for (ACE_Message_Block* message_block_p = inherited::head_;
-       message_block_p;
-       message_block_p = message_block_p->next ())
+  ACE_Message_Block* temp_p = NULL;
+  ACE_Message_Block* message_block_p = inherited::head_;
+  size_t bytes = 0;
+  size_t length = 0;
+  int result_2 = -1;
+  while (message_block_p)
   {
     if (message_block_p->msg_type () > STREAM_MESSAGE_MAP_2)
     {
@@ -63,12 +66,34 @@ Stream_MessageQueue::flushData ()
       if (message_block_p == inherited::tail_)
         inherited::tail_ = message_block_p->prev ();
 
+      temp_p = message_block_p;
+      message_block_p = message_block_p->next ();
+
       // clean up
-      message_block_p->release ();
+      temp_p->total_size_and_length (bytes,
+                                     length);
+      inherited::cur_bytes_ -= bytes;
+      inherited::cur_length_ -= length;
+      --inherited::cur_count_;
+      temp_p->release ();
 
       ++result;
+
+      continue;
     } // end IF
-  } // end FOR
+
+    message_block_p = message_block_p->next ();
+  } // end WHILE
+
+  // signal waiters ?
+  if (result &&
+      (inherited::cur_bytes_ <= inherited::low_water_mark_))
+  {
+    result_2 = inherited::signal_enqueue_waiters ();
+    if (result_2 == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Message_Queue::signal_enqueue_waiters(): \"%m\", continuing\n")));
+  } // end IF
 
   return result;
 }

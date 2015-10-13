@@ -53,6 +53,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
  , isInitialized_ (false)
  , isLinked_ (false)
  , isPassive_ (isPassive_in)
+ , lock_ ()
  , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::Stream_Module_Net_Target_T"));
@@ -406,6 +407,8 @@ done:
     }
     case STREAM_SESSION_END:
     {
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+
       if (configuration_.connection)
       {
         // wait for data (!) processing to complete
@@ -448,13 +451,16 @@ unlink_close:
         {
           // *TODO*: finished () (see above) already forwarded a session end
           //         message (on the linked stream)...
+          // *TODO*: this prevents the GTK close_all button from working
+          //         properly in the integration test, as the connection has not
+          //         yet been released when session close is notified to the
+          //         application
           result = inherited::put_next (message_inout, NULL);
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", continuing\n")));
 
           // clean up
-          //message_inout->release ();
           message_inout = NULL;
           passMessageDownstream_out = false;
 

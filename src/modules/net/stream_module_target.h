@@ -78,6 +78,9 @@ class Stream_Module_Net_Target_T
   bool                                  isInitialized_;
   bool                                  isLinked_;
   bool                                  isPassive_;
+  // *NOTE*: this lock prevents races during (ordered) shutdown
+  // *TODO*: remove surplus STREAM_SESSION_END messages
+  ACE_SYNCH_MUTEX                       lock_;
   SessionDataType*                      sessionData_;
 };
 

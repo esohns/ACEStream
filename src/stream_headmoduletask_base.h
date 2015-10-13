@@ -172,6 +172,7 @@ class Stream_HeadModuleTaskBase_T
   virtual Stream_Base_t* upstream () const;
 
   bool                autoStart_;
+  bool                sessionEndSent_;
   bool                runSvcRoutineOnStart_;
   Stream_ThreadID     threadID_;
 };
