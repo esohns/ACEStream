@@ -37,21 +37,6 @@
 #include "stream_session_data_base.h"
 #include "stream_statistichandler.h"
 
-struct Stream_ThreadID
-{
-  inline Stream_ThreadID ()
-    : handle (ACE_INVALID_HANDLE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    , id (std::numeric_limits<DWORD>::max ())
-#else
-    , id (-1)
-#endif
-  {};
-
-  ACE_hthread_t handle;
-  ACE_thread_t  id;
-};
-
 struct Stream_Statistic
 {
   inline Stream_Statistic ()

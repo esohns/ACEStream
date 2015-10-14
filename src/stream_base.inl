@@ -1087,10 +1087,10 @@ Stream_Base_T<TaskSynchType,
       //result = queue_p->wait ();
       message_count = queue_p->message_count ();
       if (!message_count) break;
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s writer: waiting to process ~%d byte(s) (in %u message(s))...\n"),
-                  module_p->name (),
-                  queue_p->message_bytes (), message_count));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s writer: waiting to process ~%d byte(s) (in %u message(s))...\n"),
+      //            module_p->name (),
+      //            queue_p->message_bytes (), message_count));
       result = ACE_OS::sleep (one_second);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -1125,10 +1125,10 @@ Stream_Base_T<TaskSynchType,
       //result = queue_p->wait ();
       message_count = queue_p->message_count ();
       if (!message_count) break;
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s reader: waiting to process ~%d byte(s) (in %u message(s))...\n"),
-                  (*iterator2)->name (),
-                  queue_p->message_bytes (), message_count));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s reader: waiting to process ~%d byte(s) (in %u message(s))...\n"),
+      //            (*iterator2)->name (),
+      //            queue_p->message_bytes (), message_count));
       result = ACE_OS::sleep (one_second);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
@@ -1695,17 +1695,53 @@ Stream_Base_T<TaskSynchType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
-              ProtocolMessageType>::finished ()
+              ProtocolMessageType>::finished (bool finishUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::finished"));
 
   int result = -1;
 
-  //// sanity check
-  //ACE_ASSERT (isRunning ());
-
-  // delegate to the head module
   MODULE_T* module_p = NULL;
+  STATEMACHINE_ICONTROL_T* control_impl_p = NULL;
+
+  // *NOTE*: if this stream has been linked (e.g. connection is part of another
+  //         stream), make sure to finished() the whole pipeline
+  if (upStream_ && finishUpStream_in)
+  {
+    // delegate to the head module
+    result = upStream_->top (module_p);
+    if ((result == -1) || !module_p)
+    {
+      //ACE_DEBUG ((LM_ERROR,
+      //            ACE_TEXT ("no head module found: \"%m\", continuing\n")));
+      goto _continue;
+    } // end IF
+
+    control_impl_p =
+      dynamic_cast<STATEMACHINE_ICONTROL_T*> (module_p->writer ());
+    if (!control_impl_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: dynamic_cast<Stream_StateMachine_IControl_T> failed, continuing\n"),
+                  module_p->name ()));
+      goto _continue;
+    } // end IF
+
+    try
+    {
+      control_impl_p->finished ();
+    }
+    catch (...)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: caught exception in Stream_StateMachine_IControl_T::finished(), continuing\n"),
+                  module_p->name ()));
+      goto _continue;
+    }
+  } // end IF
+
+_continue:
+  // delegate to the head module
   result = inherited::top (module_p);
   if ((result == -1) || !module_p)
   {
@@ -1714,7 +1750,7 @@ Stream_Base_T<TaskSynchType,
     return;
   } // end IF
 
-  STATEMACHINE_ICONTROL_T* control_impl_p =
+  control_impl_p =
       dynamic_cast<STATEMACHINE_ICONTROL_T*> (module_p->writer ());
   if (!control_impl_p)
   {

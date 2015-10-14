@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <limits>
 #include <string>
 
 #include "ace/OS.h"
@@ -34,7 +35,11 @@ template <typename TimePolicyType,
 Stream_TaskBaseAsynch_T<TimePolicyType,
                         SessionMessageType,
                         ProtocolMessageType>::Stream_TaskBaseAsynch_T ()
- : threadID_ ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ : threadID_ (std::numeric_limits<DWORD>::max (), ACE_INVALID_HANDLE)
+#else
+ : threadID_ (-1, ACE_INVALID_HANDLE)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::Stream_TaskBaseAsynch_T"));
 
@@ -53,12 +58,13 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::~Stream_TaskBaseAsynch_T"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (threadID_.handle != ACE_INVALID_HANDLE)
-    if (!CloseHandle (threadID_.handle))
+  ACE_hthread_t handle = threadID_.handle ();
+  if (handle != ACE_INVALID_HANDLE)
+    if (!::CloseHandle (handle))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CloseHandle(0x%@): \"%s\", continuing\n"),
-                  threadID_.handle,
-                  ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
+                  handle,
+                  ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
 #endif
 }
 
@@ -93,9 +99,9 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
 
   // step2: (try to) start a new worker thread
   ACE_thread_t thread_ids[1];
-  thread_ids[0] = 0;
+  ACE_OS::memset (thread_ids, 0, sizeof (thread_ids));
   ACE_hthread_t thread_handles[1];
-  thread_handles[0] = 0;
+  ACE_OS::memset (thread_handles, 0, sizeof (thread_handles));
   char thread_name[BUFSIZ];
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
   ACE_OS::strcpy (thread_name, ACE_TEXT_ALWAYS_CHAR (inherited::name ()));
@@ -121,8 +127,8 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
                 ACE_TEXT ("failed to ACE_Task::activate(): \"%m\", aborting\n")));
     return -1;
   } // end IF
-  threadID_.handle = thread_handles[0];
-  threadID_.id = thread_ids[0];
+  threadID_.handle (thread_handles[0]);
+  threadID_.id (thread_ids[0]);
 
 //   if (inherited::module ())
 //   {

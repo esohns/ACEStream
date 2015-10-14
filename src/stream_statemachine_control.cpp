@@ -175,6 +175,12 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
 
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
+
+            // *IMPORTANT NOTE*: make sure the transition RUNNING --> FINISHED
+            //                   is actually RUNNING --> STOPPED --> FINISHED
+            if (newState_in == STREAM_STATE_FINISHED)
+              inherited::change (STREAM_STATE_STOPPED);
+
             inherited::change (newState_in);
           } // end lock scope
 
@@ -188,8 +194,8 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           } // end IF
 
           // *IMPORTANT NOTE*: make sure the transition RUNNING
-          //                   [--> STOPPED] --> FINISHED
-          //                   works for the nonactive (!) case as well...
+          //                   [--> STOPPED] --> FINISHED works for the
+          //                   'passive' case as well
           if (inherited::state_ != STREAM_STATE_FINISHED)
             inherited::state_ = newState_in;
 
@@ -208,14 +214,12 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
       switch (newState_in)
       {
         // good case
-        case STREAM_STATE_PAUSED: // just like a tape-recorder...
-        case STREAM_STATE_RUNNING: // ...but also allow this to resume
-        case STREAM_STATE_STOPPED: // asynchronous (normal) mode
-        case STREAM_STATE_FINISHED: // synchronous (blocking) mode
+        case STREAM_STATE_PAUSED:  // behave like a tape recorder...
+        case STREAM_STATE_RUNNING: // ...but allow resume
+        case STREAM_STATE_STOPPED:
+        case STREAM_STATE_FINISHED:
         {
-          // handle a special case: PAUSED --> PAUSED is logically mapped to
-          // PAUSED --> RUNNING, just like a tape recorder...
-          // *IMPORTANT NOTE*: make sure children are aware of this behaviour
+          // map PAUSED --> PAUSED to PAUSED --> RUNNING
           Stream_StateMachine_ControlState new_state =
             ((newState_in == STREAM_STATE_PAUSED) ? STREAM_STATE_RUNNING
                                                   : newState_in);
@@ -226,6 +230,16 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
 
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
+
+            // *IMPORTANT NOTE*: the transition PAUSED --> [STOPPED/]FINISHED
+            //                   is actually PAUSED --> RUNNING [--> STOPPED]
+            //                   --> FINISHED
+            if ((new_state == STREAM_STATE_STOPPED) ||
+                (new_state == STREAM_STATE_FINISHED))
+              inherited::change (STREAM_STATE_RUNNING);
+            if (new_state == STREAM_STATE_FINISHED)
+              inherited::change (STREAM_STATE_STOPPED);
+
             inherited::change (new_state);
           } // end lock scope
 

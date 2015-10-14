@@ -47,6 +47,9 @@
 #include "test_i_source_common.h"
 #include "test_i_target_listener_common.h"
 
+// initialize statics
+static bool un_toggling_play_pause = false;
+
 ACE_THR_FUNC_RETURN
 stream_processing_function (void* arg_in)
 {
@@ -718,22 +721,23 @@ idle_update_progress_source_cb (gpointer userData_in)
   {
     iterator_2 = data_p->pendingActions.find (*iterator_3);
     ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
-    result = thread_manager_p->join ((*iterator_2).second.id, &exit_status);
+    ACE_thread_t thread_id = (*iterator_2).second.id ();
+    result = thread_manager_p->join (thread_id, &exit_status);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
-                  (*iterator_2).second.id));
+                  thread_id));
     else if (exit_status)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("thread %d has joined (status was: %d)...\n"),
-                  (*iterator_2).second.id,
+                  thread_id,
                   exit_status));
 #else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("thread %u has joined (status was: %@)...\n"),
-                  (*iterator_2).second.id,
+                  thread_id,
                   exit_status));
 #endif
     } // end IF
@@ -1440,21 +1444,24 @@ idle_update_progress_target_cb (gpointer userData_in)
     speed = data_p->statistic.bytesPerSecond;
   } // end lock scope
   std::string magnitude_string = ACE_TEXT_ALWAYS_CHAR ("byte(s)/s");
-  if (speed >= 1024.0F)
+  if (speed)
   {
-    speed /= 1024.0F;
-    magnitude_string = ACE_TEXT_ALWAYS_CHAR ("kbyte(s)/s");
+    if (speed >= 1024.0F)
+    {
+      speed /= 1024.0F;
+      magnitude_string = ACE_TEXT_ALWAYS_CHAR ("kbyte(s)/s");
+    } // end IF
+    if (speed >= 1024.0F)
+    {
+      speed /= 1024.0F;
+      magnitude_string = ACE_TEXT_ALWAYS_CHAR ("mbyte(s)/s");
+    } // end IF
+    result = ACE_OS::sprintf (buffer, ACE_TEXT ("%.2f %s"),
+                              speed, magnitude_string.c_str ());
+    if (result < 0)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_OS::sprintf(): \"%m\", continuing\n")));
   } // end IF
-  if (speed >= 1024.0F)
-  {
-    speed /= 1024.0F;
-    magnitude_string = ACE_TEXT_ALWAYS_CHAR ("mbyte(s)/s");
-  } // end IF
-  result = ACE_OS::sprintf (buffer, ACE_TEXT ("%.2f %s"),
-                            speed, magnitude_string.c_str ());
-  if (result < 0)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_OS::sprintf(): \"%m\", continuing\n")));
   gtk_progress_bar_set_text (progress_bar_p,
                              ACE_TEXT_ALWAYS_CHAR (buffer));
   gtk_progress_bar_pulse (progress_bar_p);
@@ -1721,10 +1728,9 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   STREAM_TRACE (ACE_TEXT ("::toggle_action_start_toggled_cb"));
 
   // handle untoggle --> PLAY
-  static bool un_toggling = false;
-  if (un_toggling)
+  if (un_toggling_play_pause)
   {
-    un_toggling = false;
+    un_toggling_play_pause = false;
     return; // done
   } // end IF
 
@@ -1745,7 +1751,8 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   ACE_ASSERT (iterator != data_p->builders.end ());
 
   Test_I_Source_ThreadData* thread_data_p = NULL;
-  Stream_ThreadID thread_id;
+  ACE_thread_t thread_id;
+  ACE_hthread_t thread_handle;
   ACE_TCHAR thread_name[BUFSIZ];
   const char* thread_name_2 = NULL;
   ACE_Thread_Manager* thread_manager_p = NULL;
@@ -1797,7 +1804,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
       gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PAUSE);
     return;
   } // end IF
-  un_toggling = true;
+  un_toggling_play_pause = true;
   gtk_toggle_action_set_active (action_in, FALSE); // untoggle
   gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PAUSE);
 
@@ -1914,8 +1921,8 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
                                (THR_NEW_LWP      |
                                 THR_JOINABLE     |
                                 THR_INHERIT_SCHED),              // flags
-                               &thread_id.id,                    // id
-                               &thread_id.handle,                // handle
+                               &thread_id,                       // id
+                               &thread_handle,                   // handle
                                ACE_DEFAULT_THREAD_PRIORITY,      // priority
                                COMMON_EVENT_THREAD_GROUP_ID + 2, // *TODO*: group id
                                NULL,                             // stack
@@ -1952,16 +1959,17 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
       ACE_THR_FUNC_RETURN exit_status;
       ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
       ACE_ASSERT (thread_manager_p);
-      result = thread_manager_p->join (thread_id.id, &exit_status);
+      result = thread_manager_p->join (thread_id, &exit_status);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
-                    thread_id.id));
+                    thread_id));
 
       goto clean;
     } // end IF
     thread_data_p->eventSourceID = event_source_id;
-    data_p->progressData.pendingActions[event_source_id] = thread_id;
+    data_p->progressData.pendingActions[event_source_id] =
+      ACE_Thread_ID (thread_id, thread_handle);
     //    ACE_DEBUG ((LM_DEBUG,
     //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
     //                event_source_id));
@@ -2019,13 +2027,18 @@ action_stop_activate_cb (GtkAction* action_in,
   ACE_ASSERT (stream_p);
   stream_p->stop (false);
 
-  GtkAction* action_p =
+  GtkToggleAction* toggle_action_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_stock_id (action_p, GTK_STOCK_MEDIA_PLAY);
+    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_START_NAME)));
+  ACE_ASSERT (toggle_action_p);
+  if (gtk_toggle_action_get_active (toggle_action_p))
+  {
+    un_toggling_play_pause = true;
+    gtk_toggle_action_set_active (toggle_action_p, FALSE);
+  } // end IF
+  gtk_action_set_stock_id (GTK_ACTION (toggle_action_p), GTK_STOCK_MEDIA_PLAY);
   gtk_action_set_sensitive (action_in, FALSE);
 } // action_stop_activate_cb
 
@@ -2056,6 +2069,8 @@ checkbutton_loop_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (spin_button_p);
   if (gtk_toggle_button_get_active (toggleButton_in))
     gtk_spin_button_set_value (spin_button_p, -1.0);
+  else if (gtk_spin_button_get_value_as_int (spin_button_p) == -1)
+    gtk_spin_button_set_value (spin_button_p, 0.0);
 } // checkbutton_loop_toggled_cb
 
 void

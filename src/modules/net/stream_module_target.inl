@@ -149,26 +149,6 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
   ACE_UNUSED_ARG (message_inout);
   ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // check wheter the connection is alive
-  if (configuration_.connection)
-  {
-    Net_Connection_Status status = configuration_.connection->status ();
-    if (status != NET_CONNECTION_STATUS_OK)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("connection %d closed (status was: %d), aborting session %d...\n"),
-                  configuration_.connection->id (),
-                  status,
-                  sessionData_->sessionID));
-
-      ACE_ASSERT (sessionData_);
-      ACE_ASSERT (sessionData_->lock);
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*sessionData_->lock);
-
-      sessionData_->aborted = true;
-    } // end IF
-  } // end IF
 }
 
 template <typename SessionMessageType,
@@ -438,9 +418,9 @@ done:
         configuration_.stream->waitForCompletion (false, // wait for worker(s) ?
                                                   true); // wait for upstream ?
 
-        // *NOTE*: finalize the connection stream state so waitForCompletion()
+        // *NOTE*: finalize the (connection) stream state so waitForCompletion()
         //         does not block
-        stream_p->finished ();
+        stream_p->finished (false);
         configuration_.connection->waitForCompletion (false); // data only
       } // end IF
 

@@ -457,22 +457,6 @@ Stream_Module_FileReader_T<SessionMessageType,
   while (inherited::getq (message_block_p,
                           &no_wait) == -1)
   {
-    // *TODO*: use a control message to handle abortions
-    // *TODO*: remove type inferences
-    {
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*inherited::sessionData_->lock);
-
-      if (inherited::sessionData_->aborted)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("session has been aborted, aborting\n")));
-
-        result = -1;
-
-        goto session_finished;
-      } // end IF
-    } // end lock scope
-
     // *TODO*: remove type inference
     message_p =
         allocateMessage (inherited::configuration_.streamConfiguration->bufferSize);

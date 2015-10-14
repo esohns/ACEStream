@@ -68,6 +68,7 @@ class Stream_Module_FileWriter_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T& operator= (const Stream_Module_FileWriter_T&))
 
   bool        isOpen_;
+  int         previousError_; // print (significant) errors message once only
   ACE_FILE_IO stream_;
 };
 

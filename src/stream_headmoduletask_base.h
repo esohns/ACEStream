@@ -125,16 +125,10 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: this method is threadsafe
   virtual void onChange (Stream_StateType_t); // new state
 
-  //// *NOTE*: functionally, this does the same as stop(), with the
-  ////         difference that stop() will wait for any worker(s)
-  ////         --> i.e. stop() MUST NOT be called within a worker thread itself;
-  ////             worker threads calls this to signal an end instead
-  //virtual void finished ();
-
-  ConfigurationType   configuration_;
-//  bool                isActive_;
-  SessionDataType*    sessionData_;
-  StreamStateType*    streamState_;
+  ConfigurationType configuration_;
+  //bool              isActive_;
+  SessionDataType*  sessionData_;
+  StreamStateType*  streamState_;
 
  private:
   typedef Stream_StateMachine_Control inherited;
@@ -171,10 +165,10 @@ class Stream_HeadModuleTaskBase_T
   virtual void upstream (Stream_Base_t*);
   virtual Stream_Base_t* upstream () const;
 
-  bool                autoStart_;
-  bool                sessionEndSent_;
-  bool                runSvcRoutineOnStart_;
-  Stream_ThreadID     threadID_;
+  bool              autoStart_;
+  bool              sessionEndSent_;
+  bool              runSvcRoutineOnStart_;
+  ACE_Thread_ID     threadID_;
 };
 
 // include template implementation

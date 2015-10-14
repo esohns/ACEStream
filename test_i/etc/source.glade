@@ -58,32 +58,14 @@
     <property name="skip_taskbar_hint">True</property>
     <property name="skip_pager_hint">True</property>
     <property name="deletable">False</property>
-    <property name="program_name">stream_source</property>
+    <property name="program_name">stream source</property>
     <property name="version">0.1</property>
-    <property name="copyright" translatable="yes">/***************************************************************************
- *   Copyright (C) 2009 by Erik Sohns   *
- *   eriksohns@123mail.org   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
-</property>
+    <property name="copyright" translatable="yes">Copyright (C) 2009 by Erik Sohns</property>
     <property name="website">http://www.github.com/esohns/libACEStream</property>
     <property name="website_label" translatable="yes">github project site</property>
     <property name="authors">Erik Sohns</property>
-    <property name="logo_icon_name">applications-internet</property>
+    <property name="wrap_license">True</property>
+    <property name="license_type">gpl-3-0</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog_about_vbox">
         <property name="visible">True</property>
@@ -206,7 +188,7 @@
                                   <object class="GtkSpinButton" id="spinbutton_session_messages">
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
-                                    <property name="can_focus">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="has_tooltip">True</property>
                                     <property name="tooltip_markup" translatable="yes">session messages</property>
                                     <property name="tooltip_text" translatable="yes">session messages</property>
@@ -227,7 +209,7 @@
                                   <object class="GtkSpinButton" id="spinbutton_data_messages">
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
-                                    <property name="can_focus">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="has_tooltip">True</property>
                                     <property name="tooltip_markup" translatable="yes">data messages</property>
                                     <property name="tooltip_text" translatable="yes">data messages</property>
@@ -267,7 +249,7 @@
                               <object class="GtkSpinButton" id="spinbutton_data">
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
-                                <property name="can_focus">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="has_tooltip">True</property>
                                 <property name="tooltip_markup" translatable="yes">bytes</property>
                                 <property name="tooltip_text" translatable="yes">bytes</property>
@@ -337,6 +319,8 @@
                                       <object class="GtkFileChooserButton" id="filechooserbutton_source">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="can_default">True</property>
+                                        <property name="receives_default">True</property>
                                         <property name="create_folders">False</property>
                                         <property name="local_only">False</property>
                                         <property name="preview_widget_active">False</property>
@@ -392,6 +376,8 @@
                                           <object class="GtkEntry" id="entry_destination">
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
+                                            <property name="can_default">True</property>
+                                            <property name="receives_default">True</property>
                                             <property name="tooltip_markup" translatable="yes">host</property>
                                             <property name="tooltip_text" translatable="yes">host</property>
                                             <property name="invisible_char">●</property>
@@ -416,6 +402,8 @@
                                           <object class="GtkSpinButton" id="spinbutton_port">
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
+                                            <property name="can_default">True</property>
+                                            <property name="receives_default">True</property>
                                             <property name="tooltip_markup" translatable="yes">port</property>
                                             <property name="tooltip_text" translatable="yes">port</property>
                                             <property name="max_length">5</property>
@@ -516,7 +504,8 @@
                                                             <property name="label" translatable="yes">TCP</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
-                                                            <property name="receives_default">False</property>
+                                                            <property name="can_default">True</property>
+                                                            <property name="receives_default">True</property>
                                                             <property name="relief">half</property>
                                                             <property name="focus_on_click">False</property>
                                                             <property name="xalign">0</property>
@@ -535,7 +524,8 @@
                                                             <property name="label" translatable="yes">UDP</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
-                                                            <property name="receives_default">False</property>
+                                                            <property name="can_default">True</property>
+                                                            <property name="receives_default">True</property>
                                                             <property name="relief">half</property>
                                                             <property name="focus_on_click">False</property>
                                                             <property name="xalign">0</property>
@@ -593,7 +583,7 @@
                                                             <property name="label" translatable="yes">asynchronous</property>
                                                             <property name="visible">True</property>
                                                             <property name="sensitive">False</property>
-                                                            <property name="can_focus">True</property>
+                                                            <property name="can_focus">False</property>
                                                             <property name="receives_default">False</property>
                                                             <property name="relief">half</property>
                                                             <property name="focus_on_click">False</property>
@@ -612,7 +602,7 @@
                                                             <property name="label" translatable="yes">loopback</property>
                                                             <property name="visible">True</property>
                                                             <property name="sensitive">False</property>
-                                                            <property name="can_focus">True</property>
+                                                            <property name="can_focus">False</property>
                                                             <property name="receives_default">False</property>
                                                             <property name="relief">half</property>
                                                             <property name="focus_on_click">False</property>
@@ -753,7 +743,8 @@
                                                         <property name="label" translatable="yes">l_oop</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
-                                                        <property name="receives_default">False</property>
+                                                        <property name="can_default">True</property>
+                                                        <property name="receives_default">True</property>
                                                         <property name="tooltip_markup" translatable="yes">loop forever</property>
                                                         <property name="tooltip_text" translatable="yes">loop forever</property>
                                                         <property name="relief">half</property>
@@ -859,6 +850,10 @@
                                 <property name="related_action">action_start</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="has_focus">True</property>
+                                <property name="is_focus">True</property>
+                                <property name="can_default">True</property>
+                                <property name="has_default">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="use_stock">True</property>
                                 <property name="focus_on_click">False</property>
@@ -934,7 +929,7 @@
                             <property name="width_request">600</property>
                             <property name="height_request">300</property>
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
+                            <property name="can_focus">False</property>
                             <property name="can_default">True</property>
                             <property name="receives_default">True</property>
                             <property name="editable">False</property>

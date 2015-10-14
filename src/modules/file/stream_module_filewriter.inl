@@ -39,6 +39,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
  : inherited ()
  , isOpen_ (false)
  , stream_ ()
+ , previousError_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::Stream_Module_FileWriter_T"));
 
@@ -106,10 +107,18 @@ Stream_Module_FileWriter_T<SessionMessageType,
     {
       // *NOTE*: most probable cause: disk full
       int error = ACE_OS::last_error ();
-      if (error != ENOSPC)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_File_IO::send_n(%d): \"%m\", continuing\n"),
-                    message_inout->total_length ()));
+      if (previousError_ &&
+          (error == previousError_))
+        break;
+      previousError_ = error;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_ASSERT (error == ERROR_DISK_FULL); // 112: no space left on device
+#else
+      ACE_ASSERT (error == ENOSPC);
+#endif
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_File_IO::send_n(%d): \"%m\", continuing\n"),
+                  message_inout->total_length ()));
       break;
     }
     default:

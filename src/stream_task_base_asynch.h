@@ -58,7 +58,7 @@ class Stream_TaskBaseAsynch_T
  protected:
   Stream_TaskBaseAsynch_T ();
 
-  Stream_ThreadID threadID_;
+  ACE_Thread_ID threadID_;
 
  private:
   typedef Stream_TaskBase_T<ACE_MT_SYNCH,

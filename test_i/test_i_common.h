@@ -252,7 +252,7 @@ typedef Stream_Subscribers_t::iterator Stream_SubscribersIterator_t;
 
 typedef Common_ISubscribe_T<Stream_IStreamNotify_t> Stream_ISubscribe_t;
 
-typedef std::map<guint, Stream_ThreadID> Stream_PendingActions_t;
+typedef std::map<guint, ACE_Thread_ID> Stream_PendingActions_t;
 typedef Stream_PendingActions_t::iterator Stream_PendingActionsIterator_t;
 typedef std::set<guint> Stream_CompletedActions_t;
 typedef Stream_CompletedActions_t::iterator Stream_CompletedActionsIterator_t;

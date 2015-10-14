@@ -97,13 +97,20 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::string path = configuration_path;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  std::string gtk_rc_file = path;
+  gtk_rc_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  gtk_rc_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-e          : Gtk .rc file [\"")
+            << gtk_rc_file
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : (target) file name [\"")
             << ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
-  std::string path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
@@ -138,7 +145,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING
-            << ACE_TEXT_ALWAYS_CHAR ("] {0 --> OFF}")
+            << ACE_TEXT_ALWAYS_CHAR ("] {0: off}")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
             << false
@@ -163,8 +170,9 @@ do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      unsigned int& bufferSize_out,
                      unsigned int& maximumNumberOfConnections_out,
-                     std::string& fileName_out,
-                     std::string& UIFile_out,
+                     std::string& gtkRcFile_out,
+                     std::string& outputFile_out,
+                     std::string& gtkGladeFile_out,
                      bool& useThreadPool_out,
                      bool& logToFile_out,
                      std::string& netWorkInterface_out,
@@ -182,7 +190,6 @@ do_processArguments (int argc_in,
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -196,12 +203,15 @@ do_processArguments (int argc_in,
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
+  gtkRcFile_out = path;
+  gtkRcFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  gtkRcFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
   maximumNumberOfConnections_out =
     TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS;
-  fileName_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
-  UIFile_out = path;
-  UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
+  outputFile_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  gtkGladeFile_out = path;
+  gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
   useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
   logToFile_out = false;
   netWorkInterface_out =
@@ -218,7 +228,7 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:c:f:g::hln:op:rs:tuvx:"),
+                              ACE_TEXT ("b:c:e:f:g::hln:op:rs:tuvx:"),
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -246,18 +256,23 @@ do_processArguments (int argc_in,
         converter >> maximumNumberOfConnections_out;
         break;
       }
+      case 'e':
+      {
+        gtkRcFile_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        break;
+      }
       case 'f':
       {
-        fileName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        outputFile_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
       case 'g':
       {
         ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
         if (opt_arg)
-          UIFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
+          gtkGladeFile_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
-          UIFile_out.clear ();
+          gtkGladeFile_out.clear ();
         break;
       }
       case 'h':
@@ -674,7 +689,7 @@ do_work (unsigned int bufferSize_in,
     } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    HWND window_p = GetConsoleWindow ();
+    HWND window_p = ::GetConsoleWindow ();
     if (!window_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -686,7 +701,7 @@ do_work (unsigned int bufferSize_in,
 
       return;
     } // end IF
-    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
+    BOOL was_visible_b = ::ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
 #endif
   } // end IF
@@ -1024,7 +1039,6 @@ ACE_TMAIN (int argc_in,
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
-  configuration_path = Common_File_Tools::getWorkingDirectory ();
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1037,13 +1051,16 @@ ACE_TMAIN (int argc_in,
   unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
   unsigned int maximum_number_of_connections =
     TEST_I_MAXIMUM_NUMBER_OF_OPEN_CONNECTIONS;
-  std::string file_name = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
-  std::string UI_definition_file_name = path;
-  UI_definition_file_name += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_definition_file_name +=
+  std::string gtk_rc_file = path;
+  gtk_rc_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  gtk_rc_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
+  std::string output_file = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  std::string gtk_glade_file = path;
+  gtk_glade_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  gtk_glade_file +=
       ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
   bool use_thread_pool = NET_EVENT_USE_THREAD_POOL;
   bool log_to_file = false;
@@ -1065,8 +1082,9 @@ ACE_TMAIN (int argc_in,
                             argv_in,
                             buffer_size,
                             maximum_number_of_connections,
-                            file_name,
-                            UI_definition_file_name,
+                            gtk_rc_file,
+                            output_file,
+                            gtk_glade_file,
                             use_thread_pool,
                             log_to_file,
                             network_interface,
@@ -1110,8 +1128,12 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
     use_thread_pool = true;
   } // end IF
-  if ((!UI_definition_file_name.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_file_name))           ||
+  if ((gtk_glade_file.empty () &&
+       !Common_File_Tools::isReadable (output_file))                       ||
+      (!gtk_glade_file.empty () &&
+       !Common_File_Tools::isReadable (gtk_glade_file))                    ||
+      //(!gtk_rc_file_name.empty () &&
+      // !Common_File_Tools::isReadable (gtk_rc_file_name))                   ||
       (use_thread_pool && !use_reactor)                                    ||
       (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool))
   {
@@ -1140,15 +1162,15 @@ ACE_TMAIN (int argc_in,
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
-        Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE_NAME),
-                                           ACE::basename (argv_in[0]));
-  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),                    // program name
-                                        log_file_name,                                 // log file name
-                                        false,                                         // log to syslog ?
-                                        false,                                         // trace messages ?
-                                        trace_information,                             // debug messages ?
-                                        (UI_definition_file_name.empty () ? NULL
-                                                                          : &logger))) // logger ?
+      Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE_NAME),
+                                         ACE::basename (argv_in[0]));
+  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),           // program name
+                                        log_file_name,                        // log file name
+                                        false,                                // log to syslog ?
+                                        false,                                // trace messages ?
+                                        trace_information,                    // debug messages ?
+                                        (gtk_glade_file.empty () ? NULL
+                                                                 : &logger))) // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
@@ -1255,11 +1277,12 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
+  gtk_cb_user_data.RCFiles.push_back (gtk_rc_file);
   //Common_UI_GladeDefinition ui_definition (argc_in,
   //                                         argv_in);
   Common_UI_GtkBuilderDefinition ui_definition (argc_in,
                                                 argv_in);
-  if (!UI_definition_file_name.empty ())
+  if (!gtk_glade_file.empty ())
     if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                                    argv_in,
                                                                    &gtk_cb_user_data,
@@ -1288,8 +1311,8 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (buffer_size,
            maximum_number_of_connections,
-           file_name,
-           UI_definition_file_name,
+           output_file,
+           gtk_glade_file,
            use_thread_pool,
            network_interface,
            use_loopback,
@@ -1380,7 +1403,7 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nivcsw));
 #else
   ACE_DEBUG ((LM_DEBUG,
-    ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
+              ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
               elapsed_time.real_time,
               elapsed_time.user_time,
               elapsed_time.system_time,

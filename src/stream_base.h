@@ -164,7 +164,7 @@ class Stream_Base_T
 
   bool isInitialized () const;
 
-  void finished ();
+  void finished (bool = true); // finish upstream (if any) ?
 
  protected:
   // convenient types
