@@ -130,9 +130,9 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
       } // end IF
     } // end FOR
 
-    if (!inherited::reset ())
+    if (!inherited::finalize ())
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Base_T::reset(): \"%m\", continuing\n")));
+                  ACE_TEXT ("failed to Stream_Base_T::finalize(): \"%m\", continuing\n")));
   } // end IF
 
   // allocate a new session state, reset stream

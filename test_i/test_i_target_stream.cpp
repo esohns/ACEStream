@@ -136,7 +136,12 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
 
   // allocate a new session state, reset stream
   inherited::initialize ();
-  ACE_ASSERT (inherited::sessionData_);
+  if (!inherited::sessionData_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to allocate session data, aborting\n")));
+    return false;
+  } // end IF
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   // *TODO*: remove type inferences
   inherited::sessionData_->fileName =
@@ -185,7 +190,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
 
   // ---------------------------------------------------------------------------
   ACE_ASSERT (configuration_in.moduleConfiguration);
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
+  //ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   if (configuration_in.module)
   {

@@ -365,9 +365,15 @@ Stream_Module_Net_Source_T<SessionMessageType,
           inherited::configuration_.connectionManager->get (handle);
         if (!inherited::configuration_.connection)
         {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to retrieve connection (handle was: 0x%@), returning\n"),
+                      handle));
+#else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
-                      session_data_p->sessionID));
+                      handle));
+#endif
           return;
         } // end IF
       } // end IF

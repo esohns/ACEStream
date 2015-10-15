@@ -204,9 +204,15 @@ Stream_Module_Net_Target_T<SessionMessageType,
           configuration_.connectionManager->get (handle);
         if (!configuration_.connection)
         {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to retrieve connection (handle was: 0x%@), returning\n"),
+                      handle));
+#else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
-                      sessionData_->sessionID));
+                      handle));
+#endif
 
           // clean up
           ACE_ASSERT (sessionData_->lock);
@@ -293,6 +299,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
             configuration_.connectionManager->get (handle);
         else
         {
+          // step1: wait for the connection to register with the manager
           // *TODO*: avoid tight loop here
           ACE_Time_Value timeout (NET_CLIENT_DEFAULT_ASYNCH_CONNECT_TIMEOUT, 0);
           //result = ACE_OS::sleep (timeout);
@@ -308,6 +315,16 @@ Stream_Module_Net_Target_T<SessionMessageType,
             if (configuration_.connection)
               break;
           } while (COMMON_TIME_NOW < deadline);
+
+          // step2: wait for the connection to finish initializing
+          Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
+          if (configuration_.connection)
+            do
+            {
+              status = configuration_.connection->status ();
+              if (status == NET_CONNECTION_STATUS_OK)
+                break;
+            } while (COMMON_TIME_NOW < deadline);
         } // end IF
         if (!configuration_.connection)
         {

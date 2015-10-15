@@ -128,24 +128,20 @@ Stream_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::reset"));
 
-  // sanity check
-  // *TODO*: cannot call isRunning(), as the stream may not be initialized
-//  ACE_ASSERT (!isRunning ());
+  bool result = false;
 
   // pop/close all modules
   // *NOTE*: will implicitly (blocking !) wait for any active worker threads
-  if (!finalize ())
-  {
+  result = finalize ();
+  if (!result)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::finalize(), aborting\n")));
-    return false;
-  } // end IF
+                ACE_TEXT ("failed to Stream_Base_T::finalize(), continuing\n")));
 
   // - reset reader/writers tasks for ALL modules
   // - re-initialize head/tail modules
   initialize ();
 
-  return true;
+  return result;
 }
 
 template <typename TaskSynchType,
@@ -1830,7 +1826,7 @@ Stream_Base_T<TaskSynchType,
   } // end IF
 
   // step1: iterator over modules which are NOT on the stream
-  //        --> close() these manually (before they do so in their dtors...)
+  //        --> close() these manually before they do so in their dtors
   //   ACE_DEBUG ((LM_DEBUG,
   //               ACE_TEXT ("deactivating offline module(s)...\n")));
 
@@ -1846,7 +1842,7 @@ Stream_Base_T<TaskSynchType,
     if ((*iterator)->next () == NULL)
     {
       //ACE_DEBUG ((LM_WARNING,
-      //            ACE_TEXT ("manually closing module: \"%s\"\n"),
+      //            ACE_TEXT ("closing module: \"%s\"\n"),
       //            module->name ()));
 
       try
@@ -1872,20 +1868,20 @@ Stream_Base_T<TaskSynchType,
   //               ACE_TEXT ("deactivating offline module(s)...DONE\n")));
 
   // step2: shutdown stream
-  // check the ACE documentation on ACE_Stream to see why this is needed !!!
+  // check the ACE documentation on ACE_Stream to see why this is needed
   // *TODO*: ONLY do this if stream_head != 0 !!! (warning: obsolete ?)
   // *NOTE*: will NOT destroy all modules in the current stream as this leads to
-  //         exceptions in debug builds under MS Windows (can't delete objects
-  //         in a different DLL where it was created...)
+  //         exceptions in debug builds under MS Windows (can't delete object
+  //         in a different DLL to where it was created...)
   //         --> do this manually !
-  //         all this does is call close() on each one (waits for any worker
+  //         all this does is call close() on each module (waits for any worker
   //         thread(s) to return)
   if (!finalize ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Base_T::finalize(): \"%m\", continuing\n")));
 
   // *NOTE*: every ACTIVE module will join with its worker thread in close()
-  //         --> ALL stream-related threads should have returned by now !
+  //         --> ALL stream-related threads should have returned by now
 }
 
 template <typename TaskSynchType,

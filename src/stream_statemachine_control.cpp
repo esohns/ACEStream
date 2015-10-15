@@ -137,6 +137,7 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
         {
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
+
             inherited::change (newState_in);
           } // end lock scope
 

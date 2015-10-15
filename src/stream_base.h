@@ -185,6 +185,7 @@ class Stream_Base_T
   // implement (part of) Common_IControl
   virtual void initialize ();
 
+  bool finalize ();
   // *NOTE*: derived classes should call this prior to module reinitialization
   //         (i.e. in their own initialize()); this function
   //         - pop/close()s push()ed modules, remove default head/tail modules
@@ -248,7 +249,6 @@ class Stream_Base_T
   // helper methods
   // wrap inherited::open/close() calls
   void deactivateModules ();
-  bool finalize ();
 
   std::string        name_;
 };

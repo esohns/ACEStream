@@ -666,9 +666,11 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::isRunning"));
 
-  const Stream_StateMachine_ControlState& status_r = inherited::current ();
-  return ((status_r == STREAM_STATE_PAUSED) ||
-          (status_r == STREAM_STATE_RUNNING));
+  Stream_StateMachine_ControlState status = inherited::current ();
+
+  ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("state is: %d\n"), status));
+
+  return ((status == STREAM_STATE_PAUSED) || (status == STREAM_STATE_RUNNING));
 }
 
 template <typename TaskSynchType,
