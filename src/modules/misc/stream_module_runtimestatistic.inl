@@ -360,7 +360,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     if (sessionData_)
     {
       ACE_ASSERT (sessionData_->lock);
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*sessionData_->lock);
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (*sessionData_->lock);
 
       // *TODO*: remove type inferences
       sessionData_->currentStatistic.bytesPerSecond =

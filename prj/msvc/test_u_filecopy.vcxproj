@@ -275,7 +275,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>D:\projects\ATCD\ACE\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
-      <AdditionalDependencies>User32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>msvcrt.lib;User32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AllowIsolation>
       </AllowIsolation>
       <EnableUAC>false</EnableUAC>

@@ -22,7 +22,7 @@
 #define STREAM_CACHEDMESSAGEALLOCATOR_H
 
 #include "ace/Malloc_T.h"
-#include "ace/Synch.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_cacheddatablockallocatorheap.h"
 #include "stream_iallocator.h"

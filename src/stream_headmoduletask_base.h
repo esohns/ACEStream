@@ -162,8 +162,8 @@ class Stream_HeadModuleTaskBase_T
 //  virtual void initialize ();
   virtual void flush (bool = false); // N/A
   virtual void rewind ();
-  virtual void upstream (Stream_Base_t*);
-  virtual Stream_Base_t* upstream () const;
+  virtual void upStream (Stream_Base_t*);
+  virtual Stream_Base_t* upStream () const;
 
   bool              autoStart_;
   bool              sessionEndSent_;

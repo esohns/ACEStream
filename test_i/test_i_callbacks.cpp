@@ -1864,7 +1864,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
   data_p->configuration->streamConfiguration.bufferSize =
-    gtk_spin_button_get_value_as_int (spin_button_p);
+    static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 
   // retrieve loop
   spin_button_p =
@@ -1957,8 +1957,6 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
 
       // clean up
       ACE_THR_FUNC_RETURN exit_status;
-      ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
-      ACE_ASSERT (thread_manager_p);
       result = thread_manager_p->join (thread_id, &exit_status);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,

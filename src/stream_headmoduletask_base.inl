@@ -762,9 +762,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::upstream (Stream_Base_t* upStream_in)
+                            SessionDataContainerType>::upStream (Stream_Base_t* upStream_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::upstream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::upStream"));
 
   ACE_UNUSED_ARG (upStream_in);
 
@@ -789,9 +789,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::upstream () const
+                            SessionDataContainerType>::upStream () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::upstream"));
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::upStream"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (NULL);

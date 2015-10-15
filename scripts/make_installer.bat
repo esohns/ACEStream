@@ -34,7 +34,7 @@ rem echo invalid file ^(was: "%NSISEXE%"^)^, exiting
 rem  goto Failed
 rem )
 
-set SOURCE_FILE="%~dp0\libACEStream.nsi"
+set SOURCE_FILE="%~dp0..\test_i\scripts\libACEStream.nsi"
 if NOT exist "%SOURCE_FILE%" (
  echo invalid file ^(was: "%SOURCE_FILE%"^)^, exiting
  goto Failed
@@ -55,7 +55,7 @@ if NOT exist "%TARGET_DIRECTORY%" (
  echo invalid directory ^(was: "%TARGET_DIRECTORY%"^)^, exiting
  goto Failed
 )
-for /R "%~dp0" %%f in (*.exe) do (
+for /R "%~dp0..\test_i\scripts" %%f in (*.exe) do (
   move /Y "%%f" %TARGET_DIRECTORY% >NUL
   if %ERRORLEVEL% NEQ 0 (
     echo failed to move file^(s^)^, exiting
@@ -81,3 +81,4 @@ exit /b %1
 
 :Error_Level
 call :Exit_Code %RC%
+

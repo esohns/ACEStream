@@ -220,7 +220,7 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
     inherited::shutdown ();
 
     // wait for the worker thread(s) to join
-    int result = inherited::wait ();
+    result = inherited::wait ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Task::wait (): \"%m\", aborting\n")));

@@ -690,7 +690,7 @@ Stream_Base_T<TaskSynchType,
       result = queue_p->flush ();
     } // end IF
     else
-      result = iqueue_p->flushData ();
+      result = static_cast<int> (iqueue_p->flushData ());
     if (result == -1)
       //ACE_DEBUG ((LM_ERROR,
       //            ACE_TEXT ("\"%s\":\"%s\" writer: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),
@@ -730,7 +730,7 @@ Stream_Base_T<TaskSynchType,
       result = queue_p->flush ();
     } // end IF
     else
-      result = iqueue_p->flushData ();
+      result = static_cast<int> (iqueue_p->flushData ());
     if (result == -1)
       //ACE_DEBUG ((LM_ERROR,
       //            ACE_TEXT ("\"%s\":\"%s\" reader: failed to ACE_Message_Queue::flush(): \"%m\", continuing\n"),

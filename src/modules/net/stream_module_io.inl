@@ -526,9 +526,9 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
       } // end IF
 
       // reset reactor/proactor notification
-      Stream_Module_t* module_p = inherited::module ();
+      module_p = inherited::module ();
       ACE_ASSERT (module_p);
-      Stream_Task_t* task_p = module_p->reader ();
+      task_p = module_p->reader ();
       ACE_ASSERT (task_p);
       while (ACE_OS::strcmp (module_p->name (),
                              ACE_TEXT ("ACE_Stream_Head")) != 0)
@@ -550,7 +550,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                     ACE_TEXT ("no head module reader task found, returning\n")));
         return;
       } // end IF
-      Stream_Queue_t* queue_p = task_p->msg_queue ();
+      queue_p = task_p->msg_queue ();
       if (!queue_p)
       {
         ACE_DEBUG ((LM_ERROR,

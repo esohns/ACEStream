@@ -536,13 +536,13 @@ Stream_Module_Net_Target_T<SessionMessageType,
                 ACE_TEXT ("invalid peer address (was: any), aborting\n")));
     return false;
   } // end IF
-  ACE_OS::memset (buffer, 0, sizeof (buffer));
-  result =
-    configuration_.configuration->socketConfiguration.peerAddress.addr_to_string (buffer,
-                                                                                  sizeof (buffer));
-  if (result == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
+  //ACE_OS::memset (buffer, 0, sizeof (buffer));
+  //result =
+  //  configuration_.configuration->socketConfiguration.peerAddress.addr_to_string (buffer,
+  //                                                                                sizeof (buffer));
+  //if (result == -1)
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
   if (isInitialized_)
   {
@@ -576,12 +576,11 @@ Stream_Module_Net_Target_T<SessionMessageType,
       } // end IF
       isLinked_ = false;
 
-      ACE_TCHAR buffer[BUFSIZ];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       ACE_INET_Addr local_address, peer_address;
       configuration_.connection->info (handle,
-                                                  local_address, peer_address);
+                                       local_address, peer_address);
       result = peer_address.addr_to_string (buffer,
                                             sizeof (buffer),
                                             1);
