@@ -21,6 +21,7 @@
 #include <deque>
 
 #include "stream_iallocator.h"
+#include "stream_imessagequeue.h"
 #include "stream_macros.h"
 #include "stream_session_data_base.h"
 #include "stream_session_message_base.h"
@@ -488,7 +489,7 @@ Stream_Base_T<TaskSynchType,
     //            ACE_TEXT ("%s: stopping upstream...done\n"),
     //            ACE_TEXT (name ().c_str ())));
   } // end IF
-  
+
   if (!isRunning ())
     goto wait;
 
@@ -657,7 +658,7 @@ Stream_Base_T<TaskSynchType,
   Stream_Task_t* task_p = NULL;
   Stream_Queue_t* queue_p = NULL;
   Stream_IMessageQueue* iqueue_p = NULL;
-  unsigned int number_of_messages = 0;
+//  unsigned int number_of_messages = 0;
   const Stream_Module_t* top_module_p =
     (upStream_ ? NULL
                : const_cast<Stream_Module_t*> (head_p)->next ());
@@ -677,11 +678,11 @@ Stream_Base_T<TaskSynchType,
       continue;
     queue_p = task_p->msg_queue ();
     ACE_ASSERT (queue_p);
-    number_of_messages = queue_p->message_count ();
+//    number_of_messages = queue_p->message_count ();
     iqueue_p = dynamic_cast<Stream_IMessageQueue*> (queue_p);
     if (!iqueue_p)
     {
-      // *NOTE*: most probably cause: module is upstream head
+      // *NOTE*: most probable cause: module is upstream head
       // *WARNING*: control/session messages are flushed here
       result = queue_p->flush ();
     } // end IF
@@ -717,11 +718,11 @@ Stream_Base_T<TaskSynchType,
       continue;
     queue_p = task_p->msg_queue ();
     ACE_ASSERT (queue_p);
-    number_of_messages = queue_p->message_count ();
+//    number_of_messages = queue_p->message_count ();
     iqueue_p = dynamic_cast<Stream_IMessageQueue*> (queue_p);
     if (!iqueue_p)
     {
-      // *NOTE*: most probably cause: module is upstream head
+      // *NOTE*: most probable cause: module is upstream head
       // *WARNING*: control/session messages are flushed here
       result = queue_p->flush ();
     } // end IF

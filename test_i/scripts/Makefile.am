@@ -1,0 +1,3 @@
+EXTRADIST = \
+  libACEStream.nsi
+

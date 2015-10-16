@@ -64,7 +64,7 @@ AC_PROG_RANLIB
 AM_PROG_AR
 
 # initialize other tools
-AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
+AM_INIT_AUTOMAKE([tar-ustar -Wall -Werror foreign subdir-objects])
 # build time sanity check...
 AM_SANITY_CHECK
 LT_INIT
@@ -258,7 +258,8 @@ AC_CONFIG_FILES([Makefile
                  test_u/filecopy/Makefile
                  test_u/filecopy/etc/Makefile
                  test_i/Makefile
-                 test_i/etc/Makefile])
+                 test_i/etc/Makefile
+		 test_i/scripts/Makefile])
 AC_CONFIG_FILES([scripts/libACEStream.pc
                  scripts/libACEStream.spec])
 

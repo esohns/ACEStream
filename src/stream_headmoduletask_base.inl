@@ -890,7 +890,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         else
           result = 0;
 #else
-        if (thread_id != -1)
+        if (static_cast<int> (thread_id) != -1)
         {
           result = ACE_Thread::join (thread_id, NULL, &status);
           threadID_.id (-1);
@@ -1055,7 +1055,11 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         {
           // task object not active --> resume the borrowed thread
           ACE_hthread_t handle = threadID_.handle ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_ASSERT (handle != ACE_INVALID_HANDLE);
+#else
+          ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
+#endif
           result = ACE_Thread::resume (handle);
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
@@ -1195,7 +1199,11 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       {
         // task object not active --> suspend the borrowed thread
         ACE_hthread_t handle = threadID_.handle ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_ASSERT (handle != ACE_INVALID_HANDLE);
+#else
+        ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
+#endif
         result = ACE_Thread::suspend (handle);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
@@ -1221,7 +1229,11 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         {
           // task object not active --> resume the borrowed thread
           ACE_hthread_t handle = threadID_.handle ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_ASSERT (handle != ACE_INVALID_HANDLE);
+#else
+          ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
+#endif
           result = ACE_Thread::resume (handle);
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,

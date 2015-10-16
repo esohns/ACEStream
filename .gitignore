@@ -60,3 +60,4 @@ build/
 Makefile.am.user
 
 *.opensdf
+/config.status
