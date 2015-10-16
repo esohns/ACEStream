@@ -36,10 +36,13 @@ enables portable approaches to (distributed) application design
 %setup -q
 
 %build
-PROJECT_ROOT_MODULES=/mnt/win_d/projects
+PROJECT_ROOT=/mnt/win_d/projects/@PACKAGE_NAME@
 %if %{?project_root:1}0
-  PROJECT_ROOT_MODULES=%{project_root}/modules
+  PROJECT_ROOT=%{project_root}
 %endif
+[ ! -d $PROJECT_ROOT ] && echo "ERROR: project directory not found, aborting" && exit 1
+PROJECT_ROOT_MODULES=$PROJECT_ROOT/modules
+[ ! -d $PROJECT_ROOT_MODULES ] && echo "ERROR: project git modules directory not found, aborting" && exit 1
 
 #rm -rf modules/ATCD
 #[ $? -ne 0 ] && echo "ERROR: failed to rm modules/ATCD, aborting" && exit 1
@@ -54,6 +57,32 @@ LIBCOMMON_ROOT=$PROJECT_ROOT_MODULES/libCommon
 [ ! -d $LIBCOMMON_ROOT ] && echo "ERROR: libCommon project not found, aborting" && exit 1
 ln -s  $LIBCOMMON_ROOT modules/libCommon
 [ $? -ne 0 ] && echo "ERROR: failed to link libCommon project, aborting" && exit 1
+
+MODULES_ROOT=src/modules
+[ ! -d $MODULES_ROOT ] && echo "ERROR: project modules directory not found, aborting" && exit 1
+MODULES_ROOT_NET_NETWORK_MODULES=$MODULES_ROOT/net/modules/libACENetwork/modules
+mkdir $MODULES_ROOT_NET_NETWORK_MODULES
+[ $? -ne 0 ] && echo "ERROR: failed to mkdir project net module git libACENetwork modules directory, aborting"
+[ ! -d $MODULES_ROOT_NET_MODULES ] && echo "ERROR: project net module git libACENetwork modules directory not found, aborting" && exit 1
+
+ln -s $ATCD_ROOT $MODULES_ROOT_NET_NETWORK_MODULES/ATCD
+[ $? -ne 0 ] && echo "ERROR: failed to link ATCD project, aborting" && exit 1
+ln -s $LIBCOMMON_ROOT $MODULES_ROOT_NET_NETWORK_MODULES/libCommon
+[ $? -ne 0 ] && echo "ERROR: failed to link libCommon project, aborting" && exit 1
+ln -s  $PROJECT_ROOT $MODULES_ROOT_NET_NETWORK_MODULES/libACEStream
+[ $? -ne 0 ] && echo "ERROR: failed to link libACEStream project, aborting" && exit 1
+
+TEST_I_ROOT_NETWORK_MODULES=test_i/modules/libACENetwork/modules
+mkdir $TEST_I_ROOT_NETWORK_MODULES
+[ $? -ne 0 ] && echo "ERROR: failed to mkdir project integration test git libACENetwork modules directory, aborting"
+[ ! -d $MODULES_ROOT_NET_NETWORK_MODULES ] && echo "ERROR: project integration test git libACENetwork modules directory not found, aborting" && exit 1
+
+ln -s $ATCD_ROOT $TEST_I_ROOT_NETWORK_MODULES/ATCD
+[ $? -ne 0 ] && echo "ERROR: failed to link ATCD project, aborting" && exit 1
+ln -s $LIBCOMMON_ROOT $TEST_I_ROOT_NETWORK_MODULES/libCommon
+[ $? -ne 0 ] && echo "ERROR: failed to link libCommon project, aborting" && exit 1
+ln -s  $PROJECT_ROOT $TEST_I_ROOT_NETWORK_MODULES/libACEStream
+[ $? -ne 0 ] && echo "ERROR: failed to link libACEStream project, aborting" && exit 1
 
 #./autogen.sh
 
@@ -70,14 +99,17 @@ make %{?_smp_mflags}
 %install
 #rm -rf %{buildroot} # redundant except for RHEL 5
 %make_install
-# *PORTABILITY*: this is highly platform-specific
-mkdir /var/log/@PACKAGE_NAME@
-[ $? -ne 0 ] && echo "ERROR: failed to mkdir \"@PACKAGE_NAME@\", aborting" && exit 1
-# *TODO*: specify package owner/group ?
-chmod go+w /var/log/@PACKAGE_NAME@
-[ $? -ne 0 ] && echo "ERROR: failed to chmod \"@PACKAGE_NAME@\", aborting" && exit 1
 #%makeinstall
 #libtool --finish /usr/lib64
+# *PORTABILITY*: this is highly platform-specific
+LOG_DIRECTORY=/var/log/@PACKAGE_NAME@
+if [ ! -d $LOG_DIRECTORY ]; then
+  mkdir $LOG_DIRECTORY
+  [ $? -ne 0 ] && echo "ERROR: failed to mkdir \"$LOG_DIRECTORY\", aborting" && exit 1
+  # *TODO*: specify package owner/group ?
+  chmod go+w $LOG_DIRECTORY
+  [ $? -ne 0 ] && echo "ERROR: failed to chmod \"@PACKAGE_NAME@\", aborting" && exit 1
+fi
 
 %clean
 rm -rf %{buildroot}

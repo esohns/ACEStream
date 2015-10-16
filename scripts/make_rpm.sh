@@ -1,6 +1,6 @@
 #!/bin/sh
 # author:      Erik Sohns <eriksohns@123mail.org>
-# this script creates a distribution RPM
+# this script creates a (distribution) RPM
 # *TODO*: it is neither portable nor particularly stable !
 # parameters:   - $1 ["debug"] || "release"
 #               - $2 ["tarball"] || "binary" || "source" || "all"
@@ -51,12 +51,10 @@ RPMBUILD_FLAGS="-ta"
 [ "${TYPE}" = "all" ] && RPMBUILD_FLAGS="-ba"
 
 # set target platform arguments for "rpmbuild"
-TARGET=""
-if [ "${PLATFORM}" != "" ]; then
-  TARGET="--target ${PLATFORM}"
-else
+if [ "${PLATFORM}" = "" ]; then
   PLATFORM=$(uname -m)
 fi
+TARGET="--target ${PLATFORM}"
 
 # remember current dir...
 pushd . >/dev/null 2>&1
@@ -76,6 +74,7 @@ for TARBALL in *.tar.gz; do
 #  mv ${TARBALL} ${LOWER_TARBALL}
 #  echo "INFO: created \"${LOWER_TARBALL}\"..."
 #  TARBALL=${LOWER_TARBALL}
+#*TODO*: add generated .spec file to the tarball (as 'Specfile'), so rpmbuild can find it
   if [ "${BUILD}" = "release" ]; then
     cp -f ${TARBALL} ${TARGET_DIRECTORY}
     [ $? -ne 0 ] && echo "ERROR: failed to copy distribution tarball, aborting" && exit 1
@@ -90,10 +89,10 @@ done
 echo "INFO: making distribution tarball...DONE"
 
 # make rpm
-SPEC_FILE=${BUILD_DIR}/scripts/libACENetwork.spec
+SPEC_FILE=${BUILD_DIRECTORY}/scripts/libACEStream.spec
 [ ! -f ${SPEC_FILE} ] && echo "ERROR: invalid .spec file \"${SPEC_FILE}\" (not a file), aborting" && exit 1
 CMD_LINE="${RPMBUILD_EXEC} ${RPMBUILD_FLAGS} --define='project_root ${PROJECT_DIRECTORY}' ${TARGET} ${SPEC_FILE}"
-if [ "${TYPE}" == "tarball" ]; then
+if [ "${TYPE}" = "tarball" ]; then
   CMD_LINE="${RPMBUILD_EXEC} ${RPMBUILD_FLAGS} ${TARBALL}"
 fi
 echo "INFO: making rpm (${TYPE})..."
@@ -122,3 +121,4 @@ echo "INFO: cleaning up ...DONE"
 
 # ...go back
 popd >/dev/null 2>&1
+

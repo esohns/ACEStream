@@ -57,3 +57,9 @@ SUBDIRS = \
   modules \
   .
 
+DIST_SUBDIRS = \
+  .
+if BUILD_MODULES
+  DIST_SUBDIRS += modules
+endif
+

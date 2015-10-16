@@ -5,7 +5,8 @@
 m4_define([M4_LIBACESTREAM_VERSION_MAJOR], [0])
 m4_define([M4_LIBACESTREAM_VERSION_MINOR], [0])
 m4_define([M4_LIBACESTREAM_VERSION_MICRO], [1])
-m4_define([M4_LIBACESTREAM_VERSION_DEVEL], [devel])
+dnl *TODO*: rpmbuild complains about the .spec file version string if it contains '-'
+#m4_define([M4_LIBACESTREAM_VERSION_DEVEL], [devel])
 m4_define([M4_LIBACESTREAM_VERSION],
           [M4_LIBACESTREAM_VERSION_MAJOR.M4_LIBACESTREAM_VERSION_MINOR.M4_LIBACESTREAM_VERSION_MICRO[]m4_ifset([M4_LIBACESTREAM_VERSION_DEVEL],-[M4_LIBACESTREAM_VERSION_DEVEL])])
 m4_define([M4_LIBACESTREAM_VERSION_API]  , [1])
@@ -24,10 +25,13 @@ m4_ifset([M4_LIBACESTREAM_VERSION_DEVEL],
 # (meta-)package name
 m4_define([M4_PACKAGE_NAME], [libACEStream])
 
+# maintainer email address
+m4_define([M4_MAINTAINER_EMAIL_ADDRESS], [eriksohns@123mail.org])
+
 AC_PREREQ([2.69])
 AC_INIT([M4_PACKAGE_NAME],
         [M4_LIBACESTREAM_VERSION],
-        [eriksohns@123mail.org],
+        [M4_MAINTAINER_EMAIL_ADDRESS],
         [M4_PACKAGE_NAME],
         [http://www.github.com/esohns/libACEStream])
 AC_CONFIG_AUX_DIR([aux_config])
