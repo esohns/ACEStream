@@ -86,7 +86,7 @@ class Stream_HeadModuleTaskBase_T
   virtual bool isRunning () const;
 
   virtual void pause ();
-  virtual const Stream_StateMachine_ControlState& status () const;
+  virtual Stream_StateMachine_ControlState status () const;
   // *NOTE*: waits for any worker threads to join
   virtual void waitForCompletion (bool = true,   // wait for any worker
                                                  // thread(s) ?

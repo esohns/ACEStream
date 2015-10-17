@@ -57,7 +57,7 @@ Test_I_Stream_Source_EventHandler::start (const Test_I_Stream_SessionData& sessi
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
   CBData_->progressData.size = sessionData_->size;
   CBData_->progressData.transferred = 0;
@@ -74,7 +74,7 @@ Test_I_Stream_Source_EventHandler::notify (const Test_I_Stream_Message& message_
   ACE_ASSERT (CBData_);
   ACE_ASSERT (sessionData_);
 
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
   CBData_->progressData.transferred += message_in.total_length ();
 
@@ -92,7 +92,7 @@ Test_I_Stream_Source_EventHandler::notify (const Test_I_Stream_SessionMessage& s
     ((sessionMessage_in.type () == STREAM_SESSION_STATISTIC) ? STREAM_GTKEVENT_STATISTIC
                                                              : STREAM_GKTEVENT_INVALID);
   {
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
     CBData_->eventStack.push_back (event);
   } // end lock scope
@@ -106,7 +106,7 @@ Test_I_Stream_Source_EventHandler::end ()
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
   guint event_source_id = g_idle_add (idle_end_source_UI_cb,
                                       CBData_);

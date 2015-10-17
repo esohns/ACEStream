@@ -126,7 +126,7 @@ template <typename HeaderType,
           typename ProtocolCommandType>
 class Stream_MessageBase_T
  : public Stream_MessageBase
- , public Common_IGet_T<HeaderType>
+// , public Common_IGet_T<HeaderType>
 // , public Common_IGet_T<ProtocolCommandType>
 {
   // grant access to specific ctors
@@ -142,9 +142,9 @@ class Stream_MessageBase_T
   virtual void initialize (// Stream_MessageBase members
                            ACE_Data_Block*); // data block to use
 
-  // implement Common_IGet_T
-  virtual const HeaderType& get () const;
-  virtual const ProtocolCommandType& command () const = 0; // return value: message type
+//  // implement Common_IGet_T
+  virtual HeaderType get () const;
+  virtual ProtocolCommandType command () const = 0; // return value: message type
 //  static std::string CommandType2String (ProtocolCommandType);
 
  protected:

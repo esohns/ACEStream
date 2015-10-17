@@ -668,8 +668,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
   Stream_StateMachine_ControlState status = inherited::current ();
 
-  ACE_DEBUG ((LM_DEBUG, ACE_TEXT ("state is: %d\n"), status));
-
   return ((status == STREAM_STATE_PAUSED) || (status == STREAM_STATE_RUNNING));
 }
 
@@ -809,7 +807,7 @@ template <typename TaskSynchType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType>
-const Stream_StateMachine_ControlState&
+Stream_StateMachine_ControlState
 Stream_HeadModuleTaskBase_T<TaskSynchType,
                             TimePolicyType,
                             SessionMessageType,
@@ -1328,17 +1326,22 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       //                   shutdown), this transition could occur several times
       //                   --> ensure that only one (!) session end message is
       //                       generated per session
+      bool send_end_message = false;
       {
         ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
 
         if (!sessionEndSent_)
-          if (!putSessionMessage (STREAM_SESSION_END,
-                                  sessionData_,
-                                  false))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
-        sessionEndSent_ = true;
+        {
+          sessionEndSent_ = true;
+          send_end_message = true;
+        } // end IF
       } // end lock scope
+      if (send_end_message)
+        if (!putSessionMessage (STREAM_SESSION_END,
+                                sessionData_,
+                                false))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
 
 //       ACE_DEBUG ((LM_DEBUG,
 //                   ACE_TEXT ("stream processing complete\n")));

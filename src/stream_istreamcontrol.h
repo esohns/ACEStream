@@ -48,7 +48,7 @@ class Stream_IStreamControl_T
   virtual void flush (bool = false) = 0; // flush upstream (if any) ?
   virtual void pause () = 0;
   virtual void rewind () = 0;
-  virtual const StatusType& status () const = 0;
+  virtual StatusType status () const = 0;
   virtual void waitForCompletion (bool = true,       // wait for any worker thread(s) ?
                                   bool = false) = 0; // wait for upstream (if any) ?
 

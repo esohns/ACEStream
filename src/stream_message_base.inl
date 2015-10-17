@@ -92,7 +92,7 @@ Stream_MessageBase_T<HeaderType,
 
 template <typename HeaderType,
           typename ProtocolCommandType>
-const HeaderType&
+HeaderType
 Stream_MessageBase_T<HeaderType,
                      ProtocolCommandType>::get () const
 {

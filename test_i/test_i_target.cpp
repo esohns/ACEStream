@@ -944,7 +944,12 @@ do_work (unsigned int bufferSize_in,
   //				g_source_remove(*iterator);
   //		} // end lock scope
   if (!UIDefinitionFile_in.empty ())
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+  {
+    result = COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task_Base::wait (): \"%m\", continuing\n")));
+  } // end IF
   timer_manager_p->stop ();
 
   // wait for connection processing to complete

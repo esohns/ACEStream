@@ -51,9 +51,8 @@ class Test_I_Stream_Message
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
 
-  // implement Test_I_Stream_MessageBase::Common_IGet_T
-  const Stream_HeaderType_t& get () const;
-  const Stream_CommandType_t& command () const; // return value: message type
+  // implement Stream_MessageBase_T
+  Stream_CommandType_t command () const; // return value: message type
 
   static std::string CommandType2String (Stream_CommandType_t);
 

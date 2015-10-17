@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "ace/Synch.h"
 #include "test_i_source_signalhandler.h"
 
 #include "ace/Log_Msg.h"

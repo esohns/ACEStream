@@ -897,7 +897,7 @@ template <typename TaskSynchType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-const StatusType&
+StatusType
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StatusType,

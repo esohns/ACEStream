@@ -107,7 +107,7 @@ class Stream_Base_T
   virtual void flush (bool = false);
   virtual void pause ();
   virtual void rewind ();
-  virtual const StatusType& status () const;
+  virtual StatusType status () const;
   virtual void waitForCompletion (bool = true,   // wait for any worker
                                                  // thread(s) ?
                                   bool = false); // wait for upstream (if any) ?

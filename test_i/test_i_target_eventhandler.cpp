@@ -55,7 +55,7 @@ Test_I_Stream_Target_EventHandler::start (const Test_I_Stream_SessionData& sessi
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
   CBData_->progressData.transferred = 0;
   CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
@@ -80,7 +80,7 @@ Test_I_Stream_Target_EventHandler::notify (const Test_I_Stream_Message& message_
   ACE_ASSERT (CBData_);
   ACE_ASSERT (sessionData_);
 
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
   CBData_->progressData.transferred += message_in.total_length ();
 
@@ -94,7 +94,7 @@ Test_I_Stream_Target_EventHandler::notify (const Test_I_Stream_SessionMessage& s
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
   Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
   switch (sessionMessage_in.type ())
@@ -108,7 +108,7 @@ Test_I_Stream_Target_EventHandler::notify (const Test_I_Stream_SessionMessage& s
       const Test_I_Stream_SessionData* session_data_p =
         session_data_container_r.getData ();
       if (session_data_p)
-	      CBData_->progressData.statistic = session_data_p->currentStatistic;
+        CBData_->progressData.statistic = session_data_p->currentStatistic;
       break;
     }
     default:
@@ -130,7 +130,7 @@ Test_I_Stream_Target_EventHandler::end ()
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (CBData_->lock);
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
 
