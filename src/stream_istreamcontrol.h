@@ -51,6 +51,7 @@ class Stream_IStreamControl_T
   virtual StatusType status () const = 0;
   virtual void waitForCompletion (bool = true,       // wait for any worker thread(s) ?
                                   bool = false) = 0; // wait for upstream (if any) ?
+  virtual void waitForIdleState () const = 0;
 
   virtual std::string name () const = 0;
   virtual const StateType& state () const = 0;

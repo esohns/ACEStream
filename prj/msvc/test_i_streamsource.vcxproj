@@ -329,79 +329,6 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="..\..\test_i\ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\test_i\stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_callbacks.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_message.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_module_eventhandler.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_session_message.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_source.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_source_eventhandler.cpp" />
-    <ClCompile Include="..\..\test_i\test_i_source_signalhandler.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_source_stream.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_target_stream.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\test_i\stdafx.h" />
-    <ClInclude Include="..\..\test_i\targetver.h" />
-    <ClInclude Include="..\..\test_i\test_i_callbacks.h" />
-    <ClInclude Include="..\..\test_i\test_i_common.h" />
-    <ClInclude Include="..\..\test_i\test_i_common_modules.h" />
-    <ClInclude Include="..\..\test_i\test_i_connection_common.h" />
-    <ClInclude Include="..\..\test_i\test_i_connection_manager_common.h" />
-    <ClInclude Include="..\..\test_i\test_i_defines.h" />
-    <ClInclude Include="..\..\test_i\test_i_message.h" />
-    <ClInclude Include="..\..\test_i\test_i_module_eventhandler.h" />
-    <ClInclude Include="..\..\test_i\test_i_session_message.h" />
-    <ClInclude Include="..\..\test_i\test_i_source_common.h" />
-    <ClInclude Include="..\..\test_i\test_i_source_eventhandler.h" />
-    <ClInclude Include="..\..\test_i\test_i_source_signalhandler.h" />
-    <ClInclude Include="..\..\test_i\test_i_source_stream.h" />
-    <ClInclude Include="..\..\test_i\test_i_target_stream.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\..\libACENetwork\prj\msvc\libACENetwork.vcxproj">
       <Project>{751d54c5-12bd-4771-9453-b9d3948ed025}</Project>
     </ProjectReference>
@@ -416,13 +343,85 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\test_i\etc\source.glade">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="..\..\test_i\test_i_source_stream.inl" />
+    <ClCompile Include="..\..\test_i\filestream\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\test_i\filestream\test_i_callbacks.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\test_i\filestream\test_i_message.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\test_i\filestream\test_i_module_eventhandler.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\test_i\filestream\test_i_session_message.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\test_i\filestream\test_i_source.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\test_i\filestream\test_i_source_eventhandler.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\test_i\filestream\test_i_source_signalhandler.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\test_i\filestream\test_i_source_stream.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\test_i\filestream\test_i_target_stream.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\test_i\etc\resources.rc">
+    <ClInclude Include="..\..\test_i\filestream\stdafx.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_callbacks.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_common.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_common_modules.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_connection_common.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_connection_manager_common.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_defines.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_message.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_module_eventhandler.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_session_message.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_source_common.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_source_eventhandler.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_source_signalhandler.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_source_stream.h" />
+    <ClInclude Include="..\..\test_i\filestream\test_i_target_stream.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\test_i\filestream\etc\source.glade" />
+    <None Include="..\..\test_i\filestream\test_i_source_stream.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\test_i\filestream\etc\resources.rc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

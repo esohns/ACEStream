@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "stdafx.h"
 
+#include "ace/Recursive_Thread_Mutex.h"
 #include "stream_statemachine_control.h"
 
 #include "ace/Guard_T.h"
@@ -59,7 +60,8 @@ Stream_StateMachine_Control::reset ()
 }
 
 bool
-Stream_StateMachine_Control::wait (const ACE_Time_Value* timeout_in)
+Stream_StateMachine_Control::wait (Stream_StateMachine_ControlState state_in,
+                                   const ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::wait"));
 
@@ -68,7 +70,7 @@ Stream_StateMachine_Control::wait (const ACE_Time_Value* timeout_in)
   {
     ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (inherited::stateLock_);
 
-    while (inherited::state_ != STREAM_STATE_FINISHED)
+    while (inherited::state_ != state_in)
     {
       result = condition_.wait (timeout_in);
       if (result == -1)
@@ -76,11 +78,16 @@ Stream_StateMachine_Control::wait (const ACE_Time_Value* timeout_in)
         int error = ACE_OS::last_error ();
         if (error != ETIME) // 137: timed out
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Condition::wait(%#T): \"%m\", continuing\n"),
+                      ACE_TEXT ("failed to ACE_Condition::wait(%#T): \"%m\", aborting\n"),
                       timeout_in));
+
+        return false; // timed out ?
       } // end IF
     } // end WHILE
   } // end lock scope
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("reached state \"%s\"...\n"),
+  //            ACE_TEXT (state2String (state_in).c_str ())));
 
   return true;
 }
@@ -90,7 +97,6 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control::change"));
 
-  int result = -1;
   ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> reverse_lock (inherited::stateLock_);
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (inherited::stateLock_);
@@ -133,28 +139,19 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
 
           // *WARNING*: falls through
         }
+        case STREAM_STATE_FINISHED: // *TODO*: remove this
         case STREAM_STATE_INITIALIZED:
+        case STREAM_STATE_STOPPED: // *TODO*: remove this
         {
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
-
             inherited::change (newState_in);
           } // end lock scope
-
-          if (newState_in == STREAM_STATE_FINISHED)
-          {
-            result = condition_.broadcast ();
-            if (result == -1)
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n")));
-          } // end IF
 
           return true;
         }
         // error case
-        case STREAM_STATE_FINISHED:
         case STREAM_STATE_PAUSED:
-        case STREAM_STATE_STOPPED:
         default:
           break;
       } // end SWITCH
@@ -177,28 +174,19 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
           {
             ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
 
-            // *IMPORTANT NOTE*: make sure the transition RUNNING --> FINISHED
-            //                   is actually RUNNING --> STOPPED --> FINISHED
-            if (newState_in == STREAM_STATE_FINISHED)
-              inherited::change (STREAM_STATE_STOPPED);
+            //// *IMPORTANT NOTE*: make sure the transition RUNNING --> FINISHED
+            ////                   is actually RUNNING --> STOPPED --> FINISHED
+            //if (newState_in == STREAM_STATE_FINISHED)
+            //  inherited::change (STREAM_STATE_STOPPED);
 
             inherited::change (newState_in);
           } // end lock scope
 
-          // signal waiting thread(s)
-          if (newState_in == STREAM_STATE_FINISHED)
-          {
-            result = condition_.broadcast ();
-            if (result == -1)
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n")));
-          } // end IF
-
-          // *IMPORTANT NOTE*: make sure the transition RUNNING
-          //                   [--> STOPPED] --> FINISHED works for the
-          //                   'passive' case as well
-          if (inherited::state_ != STREAM_STATE_FINISHED)
-            inherited::state_ = newState_in;
+          //// *IMPORTANT NOTE*: make sure the transition RUNNING
+          ////                   [--> STOPPED] --> FINISHED works for the
+          ////                   'passive' case as well
+          //if (inherited::state_ != STREAM_STATE_FINISHED)
+          //  inherited::state_ = newState_in;
 
           return true;
         }
@@ -268,17 +256,9 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
             inherited::change (newState_in);
           } // end lock scope
 
-          // signal waiting thread(s)
-          if (newState_in == STREAM_STATE_FINISHED)
-          {
-            //ACE_DEBUG ((LM_DEBUG,
-            //            ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
-
-            result = condition_.broadcast ();
-            if (result == -1)
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n")));
-          } // end IF
+//          if (newState_in == STREAM_STATE_FINISHED)
+//            ACE_DEBUG ((LM_DEBUG,
+//                        ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
 
           return true;
         }
@@ -311,15 +291,10 @@ Stream_StateMachine_Control::change (Stream_StateMachine_ControlState newState_i
             inherited::change (newState_in);
           } // end lock scope
 
-          return true;
+          // *WARNING*: falls through
         }
         case STREAM_STATE_FINISHED: // *NOTE*: allow FINISHED --> FINISHED
         {
-          result = condition_.broadcast ();
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n")));
-
           return true; // done
         }
         // error case

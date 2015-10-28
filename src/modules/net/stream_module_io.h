@@ -155,9 +155,10 @@ class Stream_Module_Net_IOReader_T // --> input
    Stream_Module_Net_IOReader_T ();
    virtual ~Stream_Module_Net_IOReader_T ();
 
+   // override some task-based members
    // implement (part of) Stream_ITaskBase_T
-   virtual void handleDataMessage (MessageType*&, // data message handle
-                                   bool&);        // return value: pass message downstream ?
+//   virtual void handleDataMessage (MessageType*&, // data message handle
+//                                   bool&);        // return value: pass message downstream ?
    virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                       bool&);               // return value: pass message downstream ?
 

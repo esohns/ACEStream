@@ -159,11 +159,13 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::close"));
 
+  int result = -1;
+
   // *IMPORTANT NOTE*: this method may be invoked
-  // - by an external thread closing down the active object
-  //    --> should NEVER happen as a module !
-  // - by the worker thread which calls this after returning from svc()
-  //    --> in this case, this should be a NOP...
+  //                   - by an external thread closing down the active object
+  //                     --> should NEVER happen as a module !
+  //                   - by the worker thread after returning from svc()
+  //                     --> in this case, this should be a NOP
   switch (arg_in)
   {
     // called from ACE_Task_Base on clean-up
@@ -180,6 +182,24 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
 //         ACE_DEBUG ((LM_DEBUG,
 //                     ACE_TEXT ("worker thread (ID: %t) leaving...\n")));
 //       } // end ELSE
+
+      if (inherited::thr_count_ == 0) // last thread ?
+      {
+        //// *NOTE*: deactivate the queue so it does not accept new data
+        //int result = inherited::msg_queue_->deactivate ();
+        //if (result == -1)
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
+        result = inherited::msg_queue_->flush ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
+        //else if (inherited::mod_)
+        //  ACE_DEBUG ((LM_DEBUG,
+        //              ACE_TEXT ("\"%s\": flushed %d message(s)...\n"),
+        //              inherited::mod_->name (),
+        //              result));
+      } // end IF
 
       // don't (need to) do anything...
       break;
@@ -229,22 +249,20 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
   return result;
 }
 
-//template <typename TaskSynchType,
-//          typename TimePolicyType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType>
-//int
-//Stream_TaskBaseAsynch_T<TaskSynchType,
-//                        TimePolicyType,
-//                        SessionMessageType,
-//                        ProtocolMessageType>::put (ACE_Message_Block* messageBlock_in,
-//                                                   ACE_Time_Value* timeout_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::put"));
-//
-//  // drop the message into the queue
-//  return inherited::putq (messageBlock_in, timeout_in);
-//}
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+int
+Stream_TaskBaseAsynch_T<TimePolicyType,
+                        SessionMessageType,
+                        ProtocolMessageType>::put (ACE_Message_Block* messageBlock_in,
+                                                   ACE_Time_Value* timeout_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::put"));
+
+  // drop the message into the queue
+  return inherited::putq (messageBlock_in, timeout_in);
+}
 
 template <typename TimePolicyType,
           typename SessionMessageType,
@@ -260,12 +278,17 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
   //              ACE_TEXT ("(%t) worker starting...\n")));
 
   ACE_Message_Block* message_block_p = NULL;
+  ACE_Message_Block::ACE_Message_Type message_type;
   int result = 0;
   bool stop_processing = false;
-  while (inherited::getq (message_block_p,
-                          NULL) != -1) // blocking wait
+  do
   {
-    if (message_block_p->msg_type () == ACE_Message_Block::MB_STOP)
+    result = inherited::getq (message_block_p, NULL);
+    if (result == -1) break; // error
+    ACE_ASSERT (message_block_p);
+
+    message_type = message_block_p->msg_type ();
+    if (message_type == ACE_Message_Block::MB_STOP)
     {
       if (inherited::thr_count_ > 1)
       {
@@ -278,51 +301,29 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
           // clean up
           message_block_p->release ();
         } // end IF
-      } // end IF
-      else
-      {
-        // clean up
-        message_block_p->release ();
-      } // end ELSE
 
-      goto done;
+        goto done; // closing...
+      } // end IF
+
+      // clean up
+      message_block_p->release ();
+
+      goto done; // done
     } // end IF
 
+    // process manually
     inherited::handleMessage (message_block_p,
                               stop_processing);
-
-    // finished ?
-    if (stop_processing)
-    {
-      // *WARNING*: message_block_p has already been released() at this point !
-
-      goto done;
-    } // end IF
+    if (stop_processing) // *NOTE*: message_block_p has already been processed
+      inherited::shutdown ();
 
     // initialize
     message_block_p = NULL;
-  } // end WHILE
-  result = -1;
-
+  } while (true);
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
 done:
-  // *NOTE*: deactivate the queue so it does not accept new data
-  int result_2 = inherited::msg_queue_->deactivate ();
-  if (result_2 == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
-  result_2 = inherited::msg_queue_->flush ();
-  if (result_2 == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
-  //else if (inherited::mod_)
-  //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("\"%s\": flushed %d message(s)...\n"),
-  //              inherited::mod_->name (),
-  //              result_2));
-
   return result;
 }
 
@@ -346,4 +347,33 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Stream_IMessageQueue::waitForIdleState, continuing\n")));
   }
+}
+
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+void
+Stream_TaskBaseAsynch_T<TimePolicyType,
+                        SessionMessageType,
+                        ProtocolMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                    bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::handleSessionMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (message_inout);
+
+  switch (message_inout->type ())
+  {
+    case STREAM_SESSION_END:
+    {
+      inherited::shutdown ();
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
 }

@@ -86,7 +86,7 @@ typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReporting
 struct Test_I_Configuration;
 struct Test_I_Stream_Configuration;
 struct Test_I_UserData
- : public Stream_UserData
+ : Stream_UserData
 {
   inline Test_I_UserData ()
    : Stream_UserData ()
@@ -106,12 +106,14 @@ struct Test_I_Stream_SessionData
    , connectionState (NULL)
    , fileName ()
    , size (0)
+   , targetFileName ()
    , userData (NULL)
   {};
 
   Test_I_ConnectionState* connectionState;
   std::string             fileName;
   unsigned int            size;
+  std::string             targetFileName;
   Test_I_UserData*        userData;
 };
 typedef Stream_SessionDataBase_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
@@ -163,19 +165,21 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , socketConfiguration (NULL)
    , socketHandlerConfiguration (NULL)
    , stream (NULL)
+   , targetFileName ()
   {};
 
   Test_I_Configuration*                     configuration;
   Test_I_IConnection_t*                     connection; // TCP target/IO module
   Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
   guint                                     contextID;
-  std::string                               fileName; // file reader/writer module
+  std::string                               fileName; // file reader module
   bool                                      inbound; // TCP IO module
   bool                                      passive;
   bool                                      printProgressDot;
   Net_SocketConfiguration*                  socketConfiguration;
   Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
   Test_I_StreamBase_t*                      stream;
+  std::string                               targetFileName; // file writer module
 };
 
 struct Stream_SignalHandlerConfiguration

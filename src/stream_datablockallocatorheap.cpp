@@ -72,16 +72,16 @@ Stream_DataBlockAllocatorHeap::malloc (size_t bytes_in)
     // - perform necessary initialization...
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
-                             ACE_Data_Block (bytes_in,                                 // size of data chunk
+                             ACE_Data_Block (bytes_in,                                            // size of data chunk
                                              // *TODO*: make this configurable ?
-                                             (bytes_in ? ACE_Message_Block::MB_DATA    // message type
+                                             (bytes_in ? ACE_Message_Block::MB_DATA               // message type
                                                        : ACE_Message_Block::MB_PROTO),
-                                             NULL,                                     // data --> use allocator !
-                                             heapAllocator_,                           // heap allocator
-                                             //NULL,                                   // no allocator --> allocate off the heap
+                                             NULL,                                                // data --> use allocator !
+                                             heapAllocator_,                                      // heap allocator
+                                             //NULL,                                                // no allocator --> allocate off the heap
                                              &Stream_DataBlockAllocatorHeap::referenceCountLock_, // reference count lock
-                                             0,                                        // flags: release (heap) memory in dtor
-                                             this));                                   // data block allocator
+                                             0,                                                   // flags: release (heap) memory in dtor
+                                             this));                                              // data block allocator
   }
   catch (...)
   {

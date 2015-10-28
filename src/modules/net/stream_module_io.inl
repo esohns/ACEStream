@@ -213,6 +213,7 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::handleDataMessage"));
 
+  // *TODO*: remove type inferences
   if (inherited::configuration_.inbound)
   {
     ACE_UNUSED_ARG (message_inout);
@@ -353,57 +354,54 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
 #endif
           return;
         } // end IF
-
-        // set up reactor/proactor notification
-        // *TODO*: find a way to retrieve the stream handle here
-        //typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
-        //  dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
-        //if (!socket_connection_p)
-        //{
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
-        //              connection_));
-        //  return;
-        //} // end IF
-        //typename ConnectorType::STREAM_T& stream_r =
-        //  const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
-        //Stream_Module_t* module_p = stream_r.head ();
-        module_p = inherited::module ();
-        ACE_ASSERT (module_p);
-        task_p = module_p->reader ();
-        ACE_ASSERT (task_p);
-        while (ACE_OS::strcmp (module_p->name (),
-                               ACE_TEXT ("ACE_Stream_Head")) != 0)
-        {
-          task_p = task_p->next ();
-          if (!task_p) break;
-          module_p = task_p->module ();
-        } // end WHILE
-        //if (!module_p)
-        //{
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("no head module found, returning\n")));
-        //  return;
-        //} // end IF
-        //Stream_Task_t* task_p = module_p->reader ();
-        if (!task_p)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("no head module reader task found, returning\n")));
-          return;
-        } // endStream_Module_t* module_p IF
-        queue_p = task_p->msg_queue ();
-        if (!queue_p)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("no head module reader task queue found, returning\n")));
-          return;
-        } // end IF
-        queue_p->notification_strategy (connection_->notification ());
-
-        //      // start profile timer...
-        //      profile_.start ();
       } // end IF
+
+      // set up reactor/proactor notification
+      // *TODO*: find a way to retrieve the stream handle here
+      //typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
+      //  dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
+      //if (!socket_connection_p)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
+      //              connection_));
+      //  return;
+      //} // end IF
+      //typename ConnectorType::STREAM_T& stream_r =
+      //  const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
+      //Stream_Module_t* module_p = stream_r.head ();
+      module_p = inherited::module ();
+      ACE_ASSERT (module_p);
+      task_p = module_p->reader ();
+      ACE_ASSERT (task_p);
+      while (ACE_OS::strcmp (module_p->name (),
+                             ACE_TEXT ("ACE_Stream_Head")) != 0)
+      {
+        task_p = task_p->next ();
+        if (!task_p) break;
+        module_p = task_p->module ();
+      } // end WHILE
+      //if (!module_p)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("no head module found, returning\n")));
+      //  return;
+      //} // end IF
+      //Stream_Task_t* task_p = module_p->reader ();
+      if (!task_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("no head module reader task found, returning\n")));
+        return;
+      } // endStream_Module_t* module_p IF
+      queue_p = task_p->msg_queue ();
+      if (!queue_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("no head module reader task queue found, returning\n")));
+        return;
+      } // end IF
+      queue_p->notification_strategy (connection_->notification ());
 
       break;
     }
@@ -943,34 +941,30 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
   } // end IF
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename AddressType,
-          typename ConnectionManagerType>
-void
-Stream_Module_Net_IOReader_T<SessionMessageType,
-                             MessageType,
-                             ConfigurationType,
-                             ModuleHandlerConfigurationType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             AddressType,
-                             ConnectionManagerType>::handleDataMessage (MessageType*& message_inout,
-                                                                        bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::handleDataMessage"));
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename AddressType,
+//          typename ConnectionManagerType>
+//void
+//Stream_Module_Net_IOReader_T<SessionMessageType,
+//                             MessageType,
+//                             ConfigurationType,
+//                             ModuleHandlerConfigurationType,
+//                             SessionDataType,
+//                             SessionDataContainerType,
+//                             AddressType,
+//                             ConnectionManagerType>::handleDataMessage (MessageType*& message_inout,
+//                                                                        bool& passMessageDownstream_out)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::handleDataMessage"));
 
-  ACE_UNUSED_ARG (message_inout);
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // sanity check(s)
-  ACE_ASSERT (message_inout);
-  ACE_ASSERT (isInitialized_);
-}
+//  ACE_UNUSED_ARG (message_inout);
+//  ACE_UNUSED_ARG (passMessageDownstream_out);
+//}
 
 template <typename SessionMessageType,
           typename MessageType,

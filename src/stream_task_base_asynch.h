@@ -46,14 +46,19 @@ class Stream_TaskBaseAsynch_T
   virtual ~Stream_TaskBaseAsynch_T ();
 
   // override task-based members
-  //virtual int put (ACE_Message_Block*, // data chunk
-  //                 ACE_Time_Value*);   // timeout value
-  virtual int open (void* = NULL);
   virtual int close (u_long = 0);
   virtual int module_closed (void);
+  virtual int open (void* = NULL);
+  virtual int put (ACE_Message_Block*,
+                   ACE_Time_Value*);
   virtual int svc (void);
 
+  // implement (part of) Common_ITask_T
   virtual void waitForIdleState () const;
+
+  // implement (part of) Stream_ITaskBase
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
 
  protected:
   Stream_TaskBaseAsynch_T ();

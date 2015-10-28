@@ -51,10 +51,12 @@ struct Stream_Filecopy_SessionData
    : Stream_SessionData ()
    , fileName ()
    , size (0)
+   , targetFileName ()
   {};
 
   std::string  fileName;
   unsigned int size;
+  std::string  targetFileName;
 };
 typedef Stream_SessionDataBase_T<Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
 

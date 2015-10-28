@@ -24,14 +24,6 @@
 #define LIBACESTREAM_HAVE_INTTYPES_H 1
 #endif
 
-/* Define to 1 if you have the `ACE' library (-lACE). */
-/* #undef HAVE_LIBACE */
-
-/* Define to 1 if you have the `pthread' library (-lpthread). */
-#ifndef LIBACESTREAM_HAVE_LIBPTHREAD
-#define LIBACESTREAM_HAVE_LIBPTHREAD 1
-#endif
-
 /* Define to 1 if you have the `localtime_r' function. */
 #ifndef LIBACESTREAM_HAVE_LOCALTIME_R
 #define LIBACESTREAM_HAVE_LOCALTIME_R 1
@@ -118,9 +110,6 @@
 #define LIBACESTREAM_HAVE_UNISTD_H 1
 #endif
 
-/* Define if a version suffix is present. */
-/* #undef HAVE_VERSION_DEVEL */
-
 /* Define to 1 if the system has the type `_Bool'. */
 #ifndef LIBACESTREAM_HAVE__BOOL
 #define LIBACESTREAM_HAVE__BOOL 1
@@ -130,11 +119,6 @@
    */
 #ifndef LIBACESTREAM_LT_OBJDIR
 #define LIBACESTREAM_LT_OBJDIR ".libs/"
-#endif
-
-/* meta-package-name */
-#ifndef LIBACESTREAM_META_PACKAGE_NAME
-#define LIBACESTREAM_META_PACKAGE_NAME "libACEStream"
 #endif
 
 /* Name of package */
@@ -154,7 +138,7 @@
 
 /* Define to the full name and version of this package. */
 #ifndef LIBACESTREAM_PACKAGE_STRING
-#define LIBACESTREAM_PACKAGE_STRING "libACEStream 0.0.1-devel"
+#define LIBACESTREAM_PACKAGE_STRING "libACEStream 0.0.1"
 #endif
 
 /* Define to the one symbol short name of this package. */
@@ -169,7 +153,7 @@
 
 /* Define to the version of this package. */
 #ifndef LIBACESTREAM_PACKAGE_VERSION
-#define LIBACESTREAM_PACKAGE_VERSION "0.0.1-devel"
+#define LIBACESTREAM_PACKAGE_VERSION "0.0.1"
 #endif
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -182,7 +166,7 @@
 
 /* Version number of package */
 #ifndef LIBACESTREAM_VERSION
-#define LIBACESTREAM_VERSION "0.0.1-devel"
+#define LIBACESTREAM_VERSION "0.0.1"
 #endif
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler

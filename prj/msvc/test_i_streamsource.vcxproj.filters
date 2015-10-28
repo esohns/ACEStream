@@ -15,100 +15,94 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\test_i\ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\test_i\stdafx.cpp">
+    <ClCompile Include="..\..\test_i\filestream\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_callbacks.cpp">
+    <ClCompile Include="..\..\test_i\filestream\test_i_callbacks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_message.cpp">
+    <ClCompile Include="..\..\test_i\filestream\test_i_message.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_module_eventhandler.cpp">
+    <ClCompile Include="..\..\test_i\filestream\test_i_module_eventhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_session_message.cpp">
+    <ClCompile Include="..\..\test_i\filestream\test_i_session_message.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_source.cpp">
+    <ClCompile Include="..\..\test_i\filestream\test_i_source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_source_signalhandler.cpp">
+    <ClCompile Include="..\..\test_i\filestream\test_i_source_eventhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_source_stream.cpp">
+    <ClCompile Include="..\..\test_i\filestream\test_i_source_signalhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_source_eventhandler.cpp">
+    <ClCompile Include="..\..\test_i\filestream\test_i_source_stream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\test_i_target_stream.cpp">
+    <ClCompile Include="..\..\test_i\filestream\test_i_target_stream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\test_i\stdafx.h">
+    <ClInclude Include="..\..\test_i\filestream\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\targetver.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_callbacks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_callbacks.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_common.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_common_modules.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_common_modules.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_connection_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_connection_common.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_connection_manager_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_connection_manager_common.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_defines.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_message.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_message.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_module_eventhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_module_eventhandler.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_session_message.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_session_message.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_source_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_source_signalhandler.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_source_eventhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_source_stream.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_source_signalhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_source_eventhandler.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_source_stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_target_stream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\test_i\test_i_source_common.h">
+    <ClInclude Include="..\..\test_i\filestream\test_i_target_stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\test_i\test_i_source_stream.inl">
+    <None Include="..\..\test_i\filestream\test_i_source_stream.inl">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\test_i\etc\source.glade">
+    <None Include="..\..\test_i\filestream\etc\source.glade">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\test_i\etc\resources.rc">
+    <ResourceCompile Include="..\..\test_i\filestream\etc\resources.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

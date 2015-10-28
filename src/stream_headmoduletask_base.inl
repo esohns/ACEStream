@@ -353,9 +353,6 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   ACE_Message_Block* message_block_p = NULL;
   bool               stop_processing = false;
 
-  // step0: increment thread count
-  ++inherited2::thr_count_;
-
   // step1: start processing incoming data...
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("entering processing loop...\n")));
@@ -397,9 +394,6 @@ session_finished:
 
   // signal the controller
   finished ();
-
-  // decrement thread count
-  --inherited2::thr_count_;
 
   return result;
 }
@@ -452,66 +446,27 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::handleControlMessage (ACE_Message_Block* controlMessage_in,
-                                                                             bool& stopProcessing_out,
+                            SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                              bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::handleControlMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::handleSessionMessage"));
 
-  // initialize return value(s)
-  stopProcessing_out = false;
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  switch (controlMessage_in->msg_type ())
+  // sanity check(s)
+  ACE_ASSERT (message_inout);
+
+  switch (message_inout->type ())
   {
-    case ACE_Message_Block::MB_STOP:
+    case STREAM_SESSION_END:
     {
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("received MB_STOP message, shutting down...\n")));
-
-      // clean up
-      passMessageDownstream_out = false;
-      controlMessage_in->release ();
-
-      // *NOTE*: forward a SESSION_END message to notify any modules downstream
-      stopProcessing_out = true;
-
+      inherited2::shutdown ();
       break;
     }
     default:
-    {
-      // ...otherwise, behave like a regular module...
-      inherited2::handleControlMessage (controlMessage_in,
-                                        stopProcessing_out,
-                                        passMessageDownstream_out);
-
       break;
-    }
   } // end SWITCH
-}
-
-template <typename TaskSynchType,
-          typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-void
-Stream_HeadModuleTaskBase_T<TaskSynchType,
-                            TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType,
-                            ConfigurationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType>::handleDataMessage (ProtocolMessageType*& message_inout,
-                                                                          bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::handleDataMessage"));
-
-  ACE_UNUSED_ARG (message_inout);
-  ACE_UNUSED_ARG (passMessageDownstream_out);
 }
 
 template <typename TaskSynchType,
@@ -558,7 +513,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
   configuration_ = configuration_in;
 
-//  inherited::change (STREAM_STATE_INITIALIZED);
+  inherited::change (STREAM_STATE_INITIALIZED);
 
   return true;
 }
@@ -850,7 +805,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   int result = -1;
 
   // step1: wait for final state
-  inherited::wait (NULL); // <-- block
+  inherited::wait (STREAM_STATE_FINISHED,
+                   NULL); // <-- block
 
   // step2: wait for worker(s) to join ?
   if (waitForThreads_in)
@@ -1004,6 +960,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onChange"));
 
   int result = -1;
+  ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> reverse_lock (inherited::stateLock_);
 
   switch (newState_in)
   {
@@ -1024,6 +981,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       threadID_.handle (ACE_INVALID_HANDLE);
       threadID_.id (std::numeric_limits<DWORD>::max ());
 #else
+      threadID_.handle (ACE_INVALID_HANDLE);
       threadID_.id (-1);
 #endif
 
@@ -1038,6 +996,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       // *NOTE*: implement tape-recorder logic:
       //         transition PAUSED --> PAUSED is mapped to PAUSED --> RUNNING
       //         --> check for this condition before doing anything else...
+      ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (inherited::stateLock_);
+
       if (inherited::state_ == STREAM_STATE_PAUSED)
       {
         // resume worker ?
@@ -1126,18 +1086,13 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         } // end IF
         else if (runSvcRoutineOnStart_)
         {
-          {
-            ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (stateLock_);
-
-            // *NOTE*: if the implementation is 'passive', the whole operation
-            //         pertaining to newState_in is processed 'inline' by the
-            //         calling thread and would complete before the state
-            //         actually has been set to 'running'
-            //         --> in this case set the state early
-            // *TODO*: this may not be the best way to implement that case (i.e. there
-            //         could be intermediate states...)
-            inherited::state_ = STREAM_STATE_RUNNING;
-          } // end lock scope
+          // *NOTE*: if the implementation is 'passive', the whole operation
+          //         pertaining to newState_in is processed 'inline' by the
+          //         calling thread and would complete before the state
+          //         actually has been set to 'running'
+          //         --> in this case set the state early
+          // *TODO*: this may not be the best way to implement that case
+          inherited::state_ = STREAM_STATE_RUNNING;
 
           {
             ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
@@ -1162,10 +1117,13 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
             threadID_.handle (handle);
           } // end lock scope
 
-          result = svc ();
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
+          {
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_RECURSIVE_MUTEX> > aGuard_2 (reverse_lock);
+            result = svc ();
+          } // end lock scope
+          //if (result == -1) // *NOTE*: most probable reason: session aborted
+          //  ACE_DEBUG ((LM_ERROR,
+          //              ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
 
   //        // send initial session message downstream...
   //        if (!putSessionMessage (STREAM_SESSION_END,
@@ -1213,6 +1171,8 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     case STREAM_STATE_STOPPED:
     {
       // resume worker ?
+      ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (inherited::stateLock_);
+
       if (inherited::state_ == STREAM_STATE_PAUSED)
       {
         // *TODO*: remove type inference
@@ -1291,13 +1251,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         //                threadID_, SIGKILL));
         //} // end IF
 
-        {
-          ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (stateLock_);
-
-          // *NOTE*: 'passive' mode; the finished() method waits for the stream
-          //         --> set the (intermediate) state early
-          inherited::state_ = STREAM_STATE_STOPPED;
-        } // end lock scope
+        // *NOTE*: 'passive' mode; the finished() method waits for the stream
+        //         --> set the (intermediate) state early
+        inherited::state_ = STREAM_STATE_STOPPED;
 
         // signal the controller
         finished ();
@@ -1315,14 +1271,15 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         //         which would deadlock if the implementation is 'passive'
         //         --> set the state early
         // *TODO*: this may not be the best way to handle that case (i.e. it
-        //         could introduce race conditions...)
+        //         could introduce other race conditions...)
         inherited::state_ = STREAM_STATE_FINISHED;
       } // end lock scope
 
       // send final session message downstream ?
-      // *IMPORTANT NOTE*: as in 'passive' mode the transition STOPPED -->
-      //                   FINISHED is automatic (see above), and the stream may
-      //                   be stop()ed several times (safety precaution during
+      // *IMPORTANT NOTE*: the transition STOPPED --> FINISHED is automatic (see
+      //                   above [*NOTE*: shutdown() MUST trigger this
+      //                   transition]). As the stream may be stop()ed several
+      //                   times (e.g. (safety/sanity) precaution during
       //                   shutdown), this transition could occur several times
       //                   --> ensure that only one (!) session end message is
       //                       generated per session

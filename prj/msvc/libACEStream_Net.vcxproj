@@ -111,7 +111,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;STREAM_BUILD_DLL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\modules\misc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>true</MinimalRebuild>
       <EnablePREfast>false</EnablePREfast>
@@ -147,7 +147,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;STREAM_BUILD_DLL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\modules\misc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnablePREfast>false</EnablePREfast>
       <AdditionalOptions>/vd0</AdditionalOptions>
@@ -185,7 +185,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;STREAM_BUILD_DLL;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\modules\misc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnablePREfast>false</EnablePREfast>
       <DebugInformationFormat>None</DebugInformationFormat>
@@ -242,7 +242,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;STREAM_BUILD_DLL;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\modules\misc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnablePREfast>false</EnablePREfast>
       <DebugInformationFormat>None</DebugInformationFormat>

@@ -46,6 +46,8 @@ class Stream_TaskBase_T
   // implement (part of) Stream_ITaskBase_T
   // *NOTE*: these are just default (essentially NOP) implementations
   virtual bool initialize (const void*); // configuration handle
+  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
+                                  bool&);                // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass this message downstream ?
   virtual void handleProcessingError (const ACE_Message_Block* const); // message handle
@@ -78,6 +80,10 @@ class Stream_TaskBase_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T (const Stream_TaskBase_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator= (const Stream_TaskBase_T&))
+
+  // override/hide ACE_Task_Base members
+  virtual int put (ACE_Message_Block*,
+                   ACE_Time_Value*);
 };
 
 // include template implementation

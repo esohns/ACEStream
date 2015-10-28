@@ -38,8 +38,8 @@ Stream_Module_FileWriter_T<SessionMessageType,
                            SessionDataType>::Stream_Module_FileWriter_T ()
  : inherited ()
  , isOpen_ (false)
- , stream_ ()
  , previousError_ (0)
+ , stream_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::Stream_Module_FileWriter_T"));
 
@@ -134,6 +134,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
 //                    bytes_transferred));
 
       // print progress dots ?
+      // *TODO*: remove type inferences
       if (configuration_.printProgressDot)
         std::cout << '.';
 
@@ -167,21 +168,21 @@ Stream_Module_FileWriter_T<SessionMessageType,
   {
     case STREAM_SESSION_BEGIN:
     {
-      // *TODO*: remove type inferences
       const typename SessionMessageType::SESSION_DATA_TYPE& session_data_container_r =
           message_inout->get ();
       const SessionDataType* session_data_p = session_data_container_r.getData ();
       ACE_ASSERT (session_data_p);
 
       std::string directory, file_name;
+      // *TODO*: remove type inferences
       directory =
-        (session_data_p->fileName.empty () ? configuration_.fileName.empty () ? Common_File_Tools::getTempDirectory ()
-                                                                              : configuration_.fileName
-                                           : session_data_p->fileName);
+        (session_data_p->targetFileName.empty () ? (configuration_.targetFileName.empty () ? Common_File_Tools::getTempDirectory ()
+                                                                                           : configuration_.targetFileName)
+                                                 : session_data_p->targetFileName);
       file_name =
-        (session_data_p->fileName.empty () ? configuration_.fileName.empty () ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
-                                                                              : configuration_.fileName
-                                           : session_data_p->fileName);
+        (session_data_p->targetFileName.empty () ? (configuration_.targetFileName.empty () ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
+                                                                                           : configuration_.targetFileName)
+                                                 : session_data_p->targetFileName);
       // sanity check(s)
       if (!Common_File_Tools::isDirectory (directory))
       {
@@ -244,15 +245,16 @@ Stream_Module_FileWriter_T<SessionMessageType,
         return;
       } // end IF
       ACE_FILE_Connector file_connector;
-      result = file_connector.connect (stream_,                 // stream
-                                       file_address,            // filename
-                                       NULL,                    // timeout (block)
-                                       ACE_Addr::sap_any,       // (local) filename: N/A
-                                       0,                       // reuse_addr: N/A
-                                       (O_CREAT |
-                                        O_TRUNC |
-                                        O_WRONLY),              // flags --> open
-                                       ACE_DEFAULT_FILE_PERMS); // permissions --> open
+      result =
+          file_connector.connect (stream_,                 // stream
+                                  file_address,            // filename
+                                  NULL,                    // timeout (block)
+                                  ACE_Addr::sap_any,       // (local) filename: N/A
+                                  0,                       // reuse_addr: N/A
+                                  (O_CREAT |
+                                   O_TRUNC |
+                                   O_WRONLY),              // flags --> open
+                                  ACE_DEFAULT_FILE_PERMS); // permissions --> open
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,

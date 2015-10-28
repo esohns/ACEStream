@@ -275,9 +275,9 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
           message_inout->get ();
       const typename SessionMessageType::SESSION_DATA_TYPE::SESSION_DATA_TYPE* session_data_p =
           session_data_container_r.getData ();
-      ACE_ASSERT (session_data_p);
-      sessionData_ =
-        const_cast<typename SessionMessageType::SESSION_DATA_TYPE::SESSION_DATA_TYPE*> (session_data_p);
+      if (session_data_p)
+        sessionData_ =
+            const_cast<typename SessionMessageType::SESSION_DATA_TYPE::SESSION_DATA_TYPE*> (session_data_p);
 
       // statistic reporting
       if (reportingInterval_ && (reportingInterval_ != 1))
@@ -739,16 +739,15 @@ Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_ReaderTask_T::put"));
 
   // pass the message to the sibling
-  ACE_Task_Base* sibling_base_p = inherited::sibling ();
-  if (!sibling_base_p)
+  ACE_Task_Base* task_base_p = inherited::sibling ();
+  if (!task_base_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no sibling task: \"%m\", aborting\n")));
     return -1;
   } // end IF
-  WRITER_TASK_T* sibling_p =
-    dynamic_cast<WRITER_TASK_T*> (sibling_base_p);
-  if (!sibling_p)
+  WRITER_TASK_T* writer_p = dynamic_cast<WRITER_TASK_T*> (task_base_p);
+  if (!writer_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to dynamic_cast<Net_Module_Statistic_WriterTask_t>: \"%m\", aborting\n")));
@@ -765,18 +764,18 @@ Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
   } // end IF
 
   {
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (sibling_p->lock_);
+    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (writer_p->lock_);
 
     // update counters...
-    sibling_p->outboundMessages_++;
-    sibling_p->outboundBytes_ += messageBlock_in->total_length ();
+    writer_p->outboundMessages_++;
+    writer_p->outboundBytes_ += messageBlock_in->total_length ();
 
-    sibling_p->byteCounter_ += messageBlock_in->total_length ();
+    writer_p->byteCounter_ += messageBlock_in->total_length ();
 
-    sibling_p->messageCounter_++;
+    writer_p->messageCounter_++;
 
     // add message to statistic...
-    sibling_p->messageTypeStatistic_[message_p->command ()]++;
+    writer_p->messageTypeStatistic_[message_p->command ()]++;
   } // end lock scope
 
   return inherited::put (messageBlock_in, timeValue_in);

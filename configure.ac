@@ -170,14 +170,16 @@ fi
 AM_COND_IF([BUILD_MODULES],
            [AC_CONFIG_SUBDIRS([modules/libCommon
                                src/modules/net/modules/libACENetwork
-                               test_i/modules/libACENetwork])])
+                               test_i/filestream/modules/libACENetwork
+                               test_i/http_get/modules/libACENetwork])])
 dnl AC_CONFIG_SUBDIRS([modules/ATCD
 dnl                    modules/libCommon
 dnl                    modules/libACENetwork])])
 AM_COND_IF([BUILD_MODULES],
            [AC_CONFIG_FILES([modules/Makefile
                              src/modules/net/modules/Makefile
-                             test_i/modules/Makefile])])
+                             test_i/filestream/modules/Makefile
+                             test_i/http_get/modules/Makefile])])
 
 # --> build (integration) tests ?
 AC_MSG_CHECKING([build (integration) tests])
@@ -258,12 +260,15 @@ AC_CONFIG_FILES([Makefile
                  src/modules/file/Makefile
                  src/modules/misc/Makefile
                  src/modules/net/Makefile
+                 src/modules/net/protocols/Makefile
                  test_u/Makefile
                  test_u/filecopy/Makefile
                  test_u/filecopy/etc/Makefile
                  test_i/Makefile
-                 test_i/etc/Makefile
-		 test_i/scripts/Makefile])
+                 test_i/filestream/Makefile
+                 test_i/filestream/etc/Makefile
+                 test_i/filestream/scripts/Makefile
+                 test_i/http_get/Makefile])
 AC_CONFIG_FILES([scripts/libACEStream.pc
                  scripts/libACEStream.spec])
 

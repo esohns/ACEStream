@@ -29,6 +29,7 @@
 //#include "ace/Task.h"
 #include "ace/Time_Value.h"
 
+#include "common_istatemachine.h"
 #include "common_time_common.h"
 
 #include "stream_defines.h"
@@ -36,6 +37,7 @@
 #include "stream_imodule.h"
 #include "stream_session_data_base.h"
 #include "stream_statistichandler.h"
+#include "stream_statemachine_control.h"
 
 struct Stream_Statistic
 {
@@ -137,6 +139,8 @@ typedef ACE_Module<ACE_MT_SYNCH,
                    Common_TimePolicy_t> Stream_Module_t;
 typedef ACE_Stream<ACE_MT_SYNCH,
                    Common_TimePolicy_t> Stream_Base_t;
+typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
+                            Common_TimePolicy_t> Stream_Iterator_t;
 
 struct Stream_ModuleConfiguration;
 struct Stream_ModuleHandlerConfiguration;
@@ -144,8 +148,7 @@ typedef Stream_IModule_T<ACE_MT_SYNCH,
                          Common_TimePolicy_t,
                          Stream_ModuleConfiguration,
                          Stream_ModuleHandlerConfiguration> Stream_IModule_t;
-typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
-                            Common_TimePolicy_t> Stream_Iterator_t;
+typedef Common_IStateMachine_T<Stream_StateMachine_ControlState> Stream_IStateMachine_t;
 
 struct Stream_Configuration
 {

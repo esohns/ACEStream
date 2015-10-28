@@ -55,7 +55,8 @@ libACEStream_Net_la_LDFLAGS = \
 
 SUBDIRS = \
   modules \
-  .
+  . \
+  protocols
 
 DIST_SUBDIRS = \
   .

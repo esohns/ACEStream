@@ -187,6 +187,10 @@ Stream_Module_Net_Target_T<SessionMessageType,
         const_cast<SessionDataType*> (session_data_container_r.getData ());
       ACE_ASSERT (sessionData_);
 
+      // sanity check(s)
+      if (configuration_.connection)
+        goto done;
+
       if (isPassive_)
       {
         // sanity check(s)
@@ -313,18 +317,34 @@ Stream_Module_Net_Target_T<SessionMessageType,
             configuration_.connection =
               configuration_.connectionManager->get (configuration_.socketConfiguration->peerAddress);
             if (configuration_.connection)
-              break;
-          } while (COMMON_TIME_NOW < deadline);
-
-          // step2: wait for the connection to finish initializing
-          Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
-          if (configuration_.connection)
-            do
             {
-              status = configuration_.connection->status ();
+              // step2: wait for the connection to finish initializing
+              Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
+              do
+              {
+                status = configuration_.connection->status ();
+                if (status == NET_CONNECTION_STATUS_OK)
+                  break;
+              } while (COMMON_TIME_NOW < deadline);
+
               if (status == NET_CONNECTION_STATUS_OK)
+              {
+                // step3: wait for the connection stream to finish initializing
+                typename ConnectorType::ISOCKET_CONNECTION_T* isocketconnection_p =
+                  dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (configuration_.connection);
+                if (!isocketconnection_p)
+                {
+                  ACE_DEBUG ((LM_ERROR,
+                              ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T>(0x%@), returning\n"),
+                              configuration_.connection));
+                  goto reset;
+                } // end IF
+                isocketconnection_p->wait (STREAM_STATE_RUNNING,
+                                           NULL); // <-- block
                 break;
-            } while (COMMON_TIME_NOW < deadline);
+              } // end IF
+            } // end IF
+          } while (COMMON_TIME_NOW < deadline);
         } // end IF
         if (!configuration_.connection)
         {
@@ -359,7 +379,7 @@ reset:
         if (!socket_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
+                      ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T>(0x%@): \"%m\", returning\n"),
                       configuration_.connection));
           goto close;
         } // end IF
@@ -376,8 +396,9 @@ reset:
           goto close;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("linked i/o streams...\n")));
+                    ACE_TEXT ("linked i/o streams\n")));
         isLinked_ = true;
+        //configuration_.stream->dump_state ();
 
         goto done;
 
@@ -395,6 +416,7 @@ close:
 
 done:
       // set session ID
+      ACE_ASSERT (configuration_.connection);
       // *TODO*: remove type inference
       ACE_ASSERT (sessionData_->lock);
       ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*sessionData_->lock);
@@ -416,7 +438,7 @@ done:
         if (!socket_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
+                      ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T> (0x%@): \"%m\", returning\n"),
                       configuration_.connection));
           if (!isPassive_)
             goto unlink_close;
@@ -466,7 +488,7 @@ unlink_close:
           if (!socket_connection_p)
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
+                        ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T> (0x%@): \"%m\", returning\n"),
                         configuration_.connection));
             return;
           } // end IF
@@ -478,7 +500,7 @@ unlink_close:
                         ACE_TEXT ("failed to Stream_Base_T::unlink(): \"%m\", continuing\n")));
           else
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("unlinked i/o streams...\n")));
+                        ACE_TEXT ("unlinked i/o streams\n")));
         } // end IF
         isLinked_ = false;
 
@@ -589,7 +611,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
           return false;
         } // end IF
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("unlinked i/o streams...\n")));
+                    ACE_TEXT ("unlinked i/o streams\n")));
       } // end IF
       isLinked_ = false;
 

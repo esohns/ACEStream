@@ -73,8 +73,6 @@ class Stream_HeadModuleTaskBase_T
   virtual int module_closed (void);
   virtual int svc (void);
 
-  virtual void waitForIdleState () const;
-
   // implement Stream_IModuleHandler_T
   virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&);
@@ -91,6 +89,8 @@ class Stream_HeadModuleTaskBase_T
   virtual void waitForCompletion (bool = true,   // wait for any worker
                                                  // thread(s) ?
                                   bool = false); // N/A
+  virtual void waitForIdleState () const;
+
   virtual std::string name () const;
   // *NOTE*: this is just a stub
   virtual const StreamStateType& state () const;
@@ -102,12 +102,6 @@ class Stream_HeadModuleTaskBase_T
   Stream_HeadModuleTaskBase_T (bool = false, // active object ?
                                bool = false, // auto-start ?
                                bool = true); // run svc() routine on start ? (passive only)
-
-  // *NOTE*: override: handle MB_STOP control messages to trigger shutdown of
-  //         the worker thread
-  virtual void handleControlMessage (ACE_Message_Block*, // control message
-                                     bool&,              // return value: stop processing ?
-                                     bool&);             // return value: pass message downstream ?
 
   // *TODO*: clean this API
   // convenience methods to send (session-specific) notifications downstream
@@ -155,8 +149,8 @@ class Stream_HeadModuleTaskBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T& operator= (const Stream_HeadModuleTaskBase_T&))
 
   // implement (part of) Stream_ITaskBase
-  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-                                  bool&);                // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
 
   // implement (part of) Stream_IStreamControl_T
 //  virtual void initialize ();

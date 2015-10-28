@@ -37,6 +37,7 @@
 #include "stream_istreamcontrol.h"
 #include "stream_statemachine_control.h"
 #include "stream_streammodule_base.h"
+#include "stream_itask.h"
 
 // forward declaration(s)
 class Stream_IAllocator;
@@ -80,6 +81,8 @@ class Stream_Base_T
                      TimePolicyType> STREAM_T;
   typedef ACE_Stream_Iterator<TaskSynchType,
                               TimePolicyType> ITERATOR_T;
+  typedef Stream_IStreamControl_T<StatusType,
+                                  StateType> ISTREAM_CONTROL_T;
   typedef StateType STATE_T;
   typedef SessionDataType SESSION_DATA_T;
 
@@ -111,6 +114,8 @@ class Stream_Base_T
   virtual void waitForCompletion (bool = true,   // wait for any worker
                                                  // thread(s) ?
                                   bool = false); // wait for upstream (if any) ?
+  virtual void waitForIdleState () const;
+
   virtual std::string name () const;
   virtual const StateType& state () const;
 
@@ -148,7 +153,7 @@ class Stream_Base_T
   //         --> avoid linking the outbound side of the stream for now
   // *WARNING*: this method is NOT (!) threadsafe in places
   //            --> handle with care !
-  virtual int link (STREAM_T&);
+  virtual int link (Stream_Base_t&);
   virtual int unlink (void);
 
   //// *NOTE*: the default implementation close(s) the removed module. This is not
@@ -175,8 +180,6 @@ class Stream_Base_T
   typedef Common_IInitialize_T<HandlerConfigurationType> IMODULEHANDLER_T;
   typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;
   typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
-  typedef Stream_IStreamControl_T<StatusType,
-                                  StateType> ISTREAM_CONTROL_T;
   typedef Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
 
   // *NOTE*: need to subclass this !
@@ -215,20 +218,13 @@ class Stream_Base_T
   StateType          state_;
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_
   //         --> use this instead
-  Stream_Base_t*     upStream_;
+  STREAM_T*          upStream_;
 
  private:
   typedef ACE_Stream<TaskSynchType,
                      TimePolicyType> inherited;
 
   // convenient types
-//  typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
-//                                      TimePolicyType,
-//                                      StreamStateType,
-//                                      SessionDataType,          // session data
-//                                      SessionDataContainerType, // (reference counted)
-//                                      SessionMessageType,
-//                                      ProtocolMessageType> HEADMODULE_TASK_T;
   typedef Stream_Base_T<TaskSynchType,
                         TimePolicyType,
                         StatusType,
@@ -241,6 +237,8 @@ class Stream_Base_T
                         SessionDataContainerType,
                         SessionMessageType,
                         ProtocolMessageType> OWN_TYPE_T;
+  typedef Stream_ITask_T<SessionMessageType,
+                         ProtocolMessageType> ITASK_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&))

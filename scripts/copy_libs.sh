@@ -88,12 +88,17 @@ done
 
 echo "copying framework libraries"
 LIB_DIR=".libs"
-SUB_DIRS="src src/modules/file src/modules/misc src/modules/net"
+SUB_DIRS="src
+src/modules/file
+src/modules/misc
+src/modules/net
+src/modules/net/protocols"
 #declare -a LIBS=("libACENetwork.so"
 LIBS="libACEStream.so
 libACEStream_File.so
 libACEStream_Misc.so
-libACEStream_Net.so"
+libACEStream_Net.so
+libACEStream_Net_Protocol_HTTP_Get.so"
 set -- $LIBS
 #i=0
 for DIR in $SUB_DIRS

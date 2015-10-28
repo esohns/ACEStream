@@ -63,12 +63,12 @@ class Stream_Export Stream_StateMachine_Control
   virtual void initialize ();
   virtual void reset ();
   // *NOTE*: users need to provide absolute values (i.e. deadline)
-  // *IMPORTANT NOTE*: upon return, processing has completed in the sense that
-  //                   all data has been enqueued onto the stream (e.g. a file
-  //                   has been read). Data processing may well still be ongoing
-  //                   at this stage
-  // *TODO*: allow waiting for discrete states
-  virtual bool wait (const ACE_Time_Value* = NULL); // timeout ? : block
+  // *IMPORTANT NOTE*: STREAM_STATE_FINISHED: processing has completed in the
+  //                   sense that all data has been enqueued onto the stream
+  //                   (e.g. a file has been read). Data processing may still be
+  //                   ongoing at this stage
+  virtual bool wait (Stream_StateMachine_ControlState,
+                     const ACE_Time_Value* = NULL); // timeout (absolute) ? : block
   virtual std::string state2String (Stream_StateMachine_ControlState) const;
 
   // implement Stream_StateMachine_IControl_T
@@ -76,10 +76,9 @@ class Stream_Export Stream_StateMachine_Control
 
  protected:
   // override (part of) Common_IStateMachine_T
-  // *NOTE*: only children can change state
-  // *WARNING*: PAUSED --> PAUSED is silently remapped to PAUSED --> RUNNING
-  //            in the model of a traditional tape recorder
-  //            --> children must implement the corresponding behavior !
+  // *NOTE*: PAUSED --> PAUSED is silently remapped to PAUSED --> RUNNING
+  //         in the model of a (traditional) tape recorder
+  //         --> derived classes must implement the corresponding behavior
   virtual bool change (Stream_StateMachine_ControlState); // new state
 
  private:

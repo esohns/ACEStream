@@ -101,13 +101,13 @@ stream_processing_function (void* arg_in)
   //  goto done;
   //} // end IF
   data_p->CBData->stream->start ();
-  if (!data_p->CBData->stream->isRunning ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Filecopy_Stream::start(): \"%m\", aborting\n")));
-    goto done;
-  } // end IF
-  data_p->CBData->stream->waitForCompletion ();
+  //if (!data_p->CBData->stream->isRunning ())
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Filecopy_Stream::start(): \"%m\", aborting\n")));
+  //  goto done;
+  //} // end IF
+  data_p->CBData->stream->waitForCompletion (true, false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -115,9 +115,9 @@ stream_processing_function (void* arg_in)
   result = NULL;
 #endif
 
-done:
+//done:
   { // synch access
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->CBData->lock);
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->CBData->lock);
     data_p->CBData->progressData.completedActions.insert (ACE_Thread::self ());
   } // end lock scope
 
@@ -314,7 +314,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   // step5: initialize updates
   {
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
 
     // schedule asynchronous updates of the log view
     guint event_source_id = g_timeout_add_seconds (1,
@@ -565,7 +565,7 @@ idle_update_log_display_cb (gpointer userData_in)
 
   gchar* converted_text = NULL;
   { // synch access
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
 
     // sanity check
     if (data_p->logStack.empty ()) return TRUE; // G_SOURCE_CONTINUE
@@ -646,7 +646,7 @@ idle_update_info_display_cb (gpointer userData_in)
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
   { // synch access
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
 
     if (data_p->eventStack.empty ()) return TRUE; // G_SOURCE_CONTINUE
 
@@ -747,7 +747,7 @@ idle_update_progress_cb (gpointer userData_in)
   ACE_ASSERT (progress_bar_p);
 
   // synch access
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->GTKState->lock);
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->GTKState->lock);
 
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
@@ -973,7 +973,7 @@ action_start_activate_cb (GtkAction* action_in,
   ACE_ASSERT (thread_manager_p);
 
   // *NOTE*: lock access to the progress report structures to avoid a race
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (data_p->lock);
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
   int result =
     thread_manager_p->spawn (::stream_processing_function,    // function
                              thread_data_p,                   // argument

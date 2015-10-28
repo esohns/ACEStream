@@ -50,7 +50,7 @@ class Stream_TaskBaseSynch_T
   virtual int close (u_long = 0);
   virtual int module_closed (void);
 
-  // this is a NOP (not an active object)
+  // *NOTE*: this is a NOP (not an active object)
   virtual void waitForIdleState () const;
 
  protected:
@@ -62,8 +62,8 @@ class Stream_TaskBaseSynch_T
                             SessionMessageType,
                             ProtocolMessageType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T (const Stream_TaskBaseSynch_T&));
-//   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T& operator= (const Stream_TaskBaseSynch_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T (const Stream_TaskBaseSynch_T&))
+//   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T& operator= (const Stream_TaskBaseSynch_T&))
 };
 
 // include template implementation

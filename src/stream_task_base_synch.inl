@@ -74,11 +74,11 @@ template <typename TimePolicyType,
 int
 Stream_TaskBaseSynch_T<TimePolicyType,
                        SessionMessageType,
-                       ProtocolMessageType>::open (void* args_in)
+                       ProtocolMessageType>::open (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::open"));
 
-  ACE_UNUSED_ARG (args_in);
+  ACE_UNUSED_ARG (arg_in);
 
 //   if (inherited::module ())
 //   {
@@ -108,7 +108,8 @@ Stream_TaskBaseSynch_T<TimePolicyType,
 
   ACE_UNUSED_ARG (arg_in);
 
-  // nothing to do...
+  // *NOTE*: just a stub, there's nothing to do
+
   return 0;
 }
 
@@ -138,5 +139,5 @@ Stream_TaskBaseSynch_T<TimePolicyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::waitForIdleState"));
 
-  // *NOTE*: just a stub, there's nothing to do...
+  // *NOTE*: just a stub, there's nothing to do
 }

@@ -405,19 +405,19 @@ Stream_Module_FileReader_T<SessionMessageType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::svc"));
 
   int result = -1;
+  int result_2 = -1;
   ACE_FILE_Addr file_address;
   ACE_FILE_Connector file_connector;
   ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait;
   ProtocolMessageType* message_p = NULL;
+  bool finished = false;
+  bool stop_processing = false;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_.streamConfiguration);
   ACE_ASSERT (!isOpen_);
-
-  // step0: increment thread count
-  inherited::thr_count_++;
 
   result = file_address.set (inherited::configuration_.fileName.c_str ());
   if (result == -1)
@@ -425,6 +425,10 @@ Stream_Module_FileReader_T<SessionMessageType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.fileName.c_str ())));
+
+    // signal the controller
+    inherited::finished ();
+
     goto done;
   } // end IF
   result =
@@ -440,6 +444,10 @@ Stream_Module_FileReader_T<SessionMessageType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", aborting\n"),
                 ACE_TEXT (inherited::configuration_.fileName.c_str ())));
+
+    // signal the controller
+    inherited::finished ();
+
     goto done;
   } // end IF
   isOpen_ = true;
@@ -454,9 +462,62 @@ Stream_Module_FileReader_T<SessionMessageType,
   no_wait = COMMON_TIME_NOW;
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (inherited::sessionData_->lock);
-  while (inherited::getq (message_block_p,
-                          &no_wait) == -1)
+  do
   {
+    result = inherited::getq (message_block_p,
+                              &no_wait);
+    if (result == 0)
+    {
+      ACE_ASSERT (message_block_p);
+      ACE_Message_Block::ACE_Message_Type message_type =
+        message_block_p->msg_type ();
+      if (message_type == ACE_Message_Block::MB_STOP)
+      {
+        // clean up
+        message_block_p->release ();
+        message_block_p = NULL;
+
+        // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
+        //         have been set at this stage
+
+        // signal the controller ?
+        if (!finished)
+        {
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("session aborted...\n")));
+
+          finished = true;
+          inherited::finished ();
+
+          continue;
+        } // end IF
+
+        break; // aborted
+      } // end IF
+
+      // process manually
+      inherited::handleMessage (message_block_p,
+                                stop_processing);
+    } // end IF
+    else if (result == -1)
+    {
+      int error = ACE_OS::last_error ();
+      if (error != EWOULDBLOCK) // Win32: 10035
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+
+        // signal the controller ?
+        if (!finished)
+        {
+          finished = true;
+          inherited::finished ();
+        } // end IF
+
+        break;
+      } // end IF
+    } // end IF
+
     // *TODO*: remove type inference
     message_p =
         allocateMessage (inherited::configuration_.streamConfiguration->bufferSize);
@@ -466,9 +527,11 @@ Stream_Module_FileReader_T<SessionMessageType,
                   ACE_TEXT ("allocateMessage(%d) failed: \"%m\", aborting\n"),
                   inherited::configuration_.streamConfiguration->bufferSize));
 
-      result = -1;
+      // signal the controller
+      finished = true;
+      inherited::finished ();
 
-      goto session_finished;
+      continue;
     } // end IF
 
     bytes_read = stream_.recv (message_p->wr_ptr (),
@@ -483,9 +546,13 @@ Stream_Module_FileReader_T<SessionMessageType,
         // clean up
         message_p->release ();
 
-        result = 0;
+        // signal the controller
+        finished = true;
+        inherited::finished ();
 
-        goto session_finished;
+        result_2 = 0;
+
+        break;
       }
       case -1:
       {
@@ -493,9 +560,11 @@ Stream_Module_FileReader_T<SessionMessageType,
                     ACE_TEXT ("failed to ACE_FILE_IO::recv(%d): \"%m\", aborting\n"),
                     message_p->capacity ()));
 
-        result = -1;
+        // signal the controller
+        finished = true;
+        inherited::finished ();
 
-        goto session_finished;
+        break;
       }
       default:
       {
@@ -509,22 +578,16 @@ Stream_Module_FileReader_T<SessionMessageType,
           // clean up
           message_p->release ();
 
-          goto session_finished;
+          // signal the controller
+          finished = true;
+          inherited::finished ();
         } // end IF
 
         break;
       }
     } // end SWITCH
-  } // end WHILE
-  ACE_ASSERT (message_block_p);
+  } while (true);
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("session aborted...\n")));
-
-  // clean up
-  message_block_p->release ();
-
-session_finished:
   result = stream_.close ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
@@ -536,13 +599,7 @@ session_finished:
               ACE_TEXT (inherited::configuration_.fileName.c_str ())));
 
 done:
-  // signal the controller
-  inherited::finished ();
-
-  // decrement thread count
-  inherited::thr_count_--;
-
-  return result;
+  return result_2;
 }
 
 template <typename SessionMessageType,
