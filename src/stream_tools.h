@@ -28,17 +28,22 @@
 
 #include "stream_exports.h"
 
+// definitions
+#define STREAM_TOOLS_STRFTIME_FORMAT "%Y_%m_%d_%H_%M_%S"
+// *NOTE*: '\0' doesn't count: 4 + 2 + 2 + 2 + 2 + 2 + 5 whitespaces
+#define STREAM_TOOLS_STRFTIME_SIZE   19
+
 class Stream_Export Stream_Tools
 {
  public:
-  // *WARNING*: beware, this uses localtime_r internally, so you should probably pass in a local time
-  // - uses strftime internally: "%Y_%m_%d_%H_%M_%S" (see manpage)
-  static std::string timestamp2LocalString (const ACE_Time_Value&); // timestamp
+  // *WARNING*: this uses localtime_r internally --> pass in a local time
+  //            - uses strftime() internally (see man page, format)
+  static std::string timeStamp2LocalString (const ACE_Time_Value&); // timestamp
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Tools ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_Tools (const Stream_Tools&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_Tools& operator= (const Stream_Tools&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_Tools ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Tools (const Stream_Tools&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Tools& operator= (const Stream_Tools&))
 };
 
 #endif

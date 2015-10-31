@@ -4,7 +4,8 @@
 #  *TODO*: repair test_i_template_instantiations.cpp so it works with
 #          -fno-implicit-templates
 AM_CPPFLAGS = \
-  -I$(top_srcdir)/modules/ATCD/ACE
+  -I$(top_srcdir)/modules/ATCD/ACE \
+  $(PKGXML2_CFLAGS)
 if VALGRIND_SUPPORT
   AM_CPPFLAGS += $(PKGVALGRIND_CFLAGS)
 endif
@@ -29,6 +30,10 @@ http_get_SOURCES = \
   test_i_defines.h \
   test_i_message.cpp \
   test_i_message.h \
+  test_i_module_htmlhandler.cpp \
+  test_i_module_htmlhandler.h \
+  test_i_module_htmlparser.cpp \
+  test_i_module_htmlparser.h \
   test_i_session_message.cpp \
   test_i_session_message.h \
   test_i_source.cpp \
@@ -64,6 +69,7 @@ http_get_LDFLAGS = \
   -L$(abs_builddir)/../../src/modules/net/protocols/.libs
 http_get_LDADD = \
   -lACE \
+  $(PKGXML2_LIBS) \
   -lCommon \
   -lACEStream \
   -lACEStream_File \

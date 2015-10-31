@@ -1,0 +1,2017 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <title>7-Tage-News | heise online
+    </title>
+    
+    
+
+
+
+<meta charset="utf-8">
+<meta name="publisher" content="Heise Medien" />
+<meta name="viewport" content="width=1175" />
+<link rel="alternate" media="only screen and (max-width: 640px)" href="//m.heise.de/newsticker/" id="mobil_variante" />
+
+<link rel="home" type="text/html" title="Startseite" href="/" />
+<link rel="copyright" title="Copyright" href="/impressum.html" />    
+        <!--googleoff: all-->
+    
+    <meta name="twitter:card"          content="summary" />
+    <meta name="twitter:site"          content="@heiseonline" />
+    <meta name="twitter:domain"        content="heise.de" />
+    
+    <meta property="og:title"          content="7-Tage-News" />
+    <meta property="og:type"           content="website" />
+    <meta property="og:locale"         content="de_DE" />
+    <meta property="og:url"            content="http://www.heise.de/newsticker/" />
+    <meta property="og:site_name"      content="heise online" />
+    <meta property="og:image"          content="http://www.heise.de/icons/ho/heise_online_facebook_social_graph.png" />
+
+    <!--googleon: all--><!--googleoff: all-->
+<meta name="generator" content="InterRed V15.5.4, http://www.interred.de/, InterRed GmbH" />
+<!--googleon: all-->
+
+    
+
+<script type="text/javascript" src="/js/mobile-deflect.min.js"></script>
+
+<script type="text/javascript">var _sf_startpt=(new Date()).getTime();</script>
+
+
+    
+<script type="text/javascript" src="/js/jquery/jquery-1.7.1.min.js"></script>
+    
+
+    
+<script type="text/javascript" src="/js/plugins/jquery-ui-1.8.18_cycle.custom.min.js"></script>
+    
+
+
+
+
+
+
+
+<script type="text/javascript" src="/js/plugins/jquery.equalheights.min.js"></script>
+
+
+<script type="text/javascript" src="/support/lib/teaser_linking.js"></script>
+
+
+<script type="text/javascript" src="/js/ho/link_inline_images.min.js"></script>
+
+
+
+
+
+<script type="text/javascript" src="//script.ioam.de/iam.js"></script>
+<script type="text/javascript" src="//ad.yieldlab.net/yp/66424,66430,66442,66444,66446?ts=20151031015848"></script>
+
+    
+<link href="/stil/standard2008.css?457d46a2e90e6e0323e2" rel="stylesheet" type="text/css">
+<link href="/stil/drucken.css?fead9096de1c0d0ca94e" rel="stylesheet" type="text/css" media="print">
+
+<link href="/stil/heise.css?44846d13812d41c74905" rel="stylesheet" type="text/css">
+
+
+    <!--googleoff: all-->
+    <link href="/favicon.ico" rel="icon">
+    <link rel="author" title="Kontakt" href="mailto:kontakt%40heise.de?subject=heise%20online">
+    <link rel="search" title="Suche" href="http://www.heise.de/suche/">
+    <link rel="alternate" type="application/atom+xml" title="Aktuelle News von heise online" href="http://www.heise.de/newsticker/heise-atom.xml">
+    <link rel="alternate" type="application/rss+xml" title="Aktuelle News von heise online (für ältere RSS-Reader)" href="http://www.heise.de/newsticker/heise.rdf">
+    <link rel="apple-touch-icon" sizes="60x60" href="/icons/ho/apple-touch-icon-60.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/ho/apple-touch-icon-120.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/icons/ho/apple-touch-icon-76.png">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/icons/ho/apple-touch-icon-152.png">
+    <meta name="application-name" content="heise online">
+    <meta name="msapplication-tooltip" content="heise online">
+    <meta name="msapplication-starturl" content="http://www.heise.de/">
+    <meta name="msapplication-TileColor" content="#999999">
+    <meta name="msapplication-square70x70logo" content="http://www.heise.de/icons/ho/windows_tiny.png">
+    <meta name="msapplication-square150x150logo" content="http://www.heise.de/icons/ho/windows_square.png">
+    <meta name="msapplication-wide310x150logo" content="http://www.heise.de/icons/ho/windows_wide.png">
+    <meta name="msapplication-square310x310logo" content="http://www.heise.de/icons/ho/windows_large.png">
+    <meta name="msapplication-notification" content="frequency=30;polling-uri=http://notifications.buildmypinnedsite.com/?feed=http://www.heise.de/newsticker/heise-atom.xml&amp;id=1;polling-uri2=http://notifications.buildmypinnedsite.com/?feed=http://www.heise.de/newsticker/heise-atom.xml&amp;id=2;polling-uri3=http://notifications.buildmypinnedsite.com/?feed=http://www.heise.de/newsticker/heise-atom.xml&amp;id=3;polling-uri4=http://notifications.buildmypinnedsite.com/?feed=http://www.heise.de/newsticker/heise-atom.xml&amp;id=4;polling-uri5=http://notifications.buildmypinnedsite.com/?feed=http://www.heise.de/newsticker/heise-atom.xml&amp;id=5; cycle=1">
+    <meta name="DC.creator" content="heise online">
+    <link rel="publisher" href="https://plus.google.com/+heiseonline">        <link href="/stil/ho/heiseonline2012.css?2d9d47d03f4bfb708b72" rel="stylesheet" type="text/css">
+    
+<script type="text/javascript">
+(function() {
+var useSSL = 'https:' == document.location.protocol;
+var src = (useSSL ? 'https:' : 'http:') +
+'//www.googletagservices.com/tag/js/gpt.js';
+document.write('<scr' + 'ipt src="' + src + '"></scr' + 'ipt>');
+})();
+</script>
+
+<script type="text/javascript">
+    function yl_get_pricerange(yield_id) {
+      if (typeof yield_id === "undefined" || yield_id == '' || typeof yl === "undefined" || yl.YpResult === "undefined") return;
+      var yp_pos = yield_id.split(',');
+      for (var index = 0; index < yp_pos.length; index++) {
+        var yp_res = yl.YpResult.get(yp_pos[index]);
+        if (typeof yp_res !== "undefined" && yp_res.pricerange) {
+          return yp_res.pricerange;
+        }
+      }
+    }
+
+    googletag.defineSlot("/6514/www.heise.de/newsticker/7-tage", [[500,500],[540,65]], "div-gpt-ad-1057950828-1")
+      .addService(googletag.pubads());
+
+    googletag.defineSlot("/6514/www.heise.de/newsticker/7-tage", [[300,250],[300,600],[336,280]], "div-gpt-ad-1057950828-2")
+      .addService(googletag.pubads()).setTargeting("pricerange", yl_get_pricerange('66446,66442'));
+
+    googletag.defineSlot("/6514/www.heise.de/newsticker/7-tage", [[468,60],[728,90],[970,250]], "div-gpt-ad-1057950828-3")
+      .addService(googletag.pubads()).setTargeting("pricerange", yl_get_pricerange('66430,66444'));
+
+    googletag.defineSlot("/6514/www.heise.de/newsticker/7-tage", [[160,600],[200,800]], "div-gpt-ad-1057950828-4")
+      .addService(googletag.pubads()).setTargeting("pricerange", yl_get_pricerange('66424'));
+
+googletag.pubads().enableSyncRendering();
+googletag.pubads().enableSingleRequest();
+googletag.enableServices();
+</script>
+
+
+
+</head>
+
+<body class=" ho" >
+
+
+
+
+
+
+<div class="heisetopnavi no-touch v14">
+    <div class="heisetopnavi_header">
+        <header role="banner">
+            <div class="heisetopnavi_login">
+                
+                    
+                    <script type="text/javascript" src="/js/ho/login.min.js?b95ff548618479fa491a"></script>
+                
+                <div id="navi_login">
+                    <p><a href="https://www.heise.de/userdb/sso?rm=show_login&amp;dirid=1&amp;objekt=/">Einloggen</a> auf heise online</p>
+                </div>
+            </div>
+            <div class="heisetopnavi_hover_legacy">
+                <nav role="navigation">
+                    <a href="/" class="heisetopnavi_logo" title="heise online">
+                        <img src="//www.heise.de/icons/ho/heise_online_logo_top.gif" alt="heise online" id="heisetopnavi_ho_logo_top_img">
+                    </a>
+                    <a href="#heisetopnavi_sub_container" class="heisetopnavi_button" aria-haspopup="true"></a>
+                    <div id="heisetopnavi_sub_container">
+                        <ul id="heisetopnavi_sub">
+                            <li class="new_list one">
+                                <ul>
+                                    <li class="heisetopnavi_ho"><a href="/" title="heise online – IT-News" name="dachzeile.ho.ho">News</a></li>
+                                    <li class="heisetopnavi_dev"><a href="/developer/" title="heise Developer – Informationen für Entwickler" name="dachzeile.ho.developer">heise Developer</a></li>
+                                    <li class="heisetopnavi_net"><a href="/netze/" title="heise Netze – Alles über Netzwerk-Technik" name="dachzeile.ho.netze">heise Netze</a></li>
+                                    <li class="heisetopnavi_op"><a href="/open/" title="heise open – Open Source im Unternehmen" name="dachzeile.ho.open">heise Open Source</a></li>
+                                    <li class="heisetopnavi_sec"><a href="/security/" title="heise Security – News, Dienste und Foren zum Thema Computer-Sicherheit" name="dachzeile.ho.security">heise Security</a></li>
+                                </ul>
+                            </li>
+                            <li class="new_list two">
+                                <ul>
+                                    <li class="heisetopnavi_ct"><a href="/ct/" title="c't – Magazin für Computertechnik" name="dachzeile.ho.ct">c't</a></li>
+                                    <li class="heisetopnavi_ix"><a href="/ix/" title="iX – Magazin für professionelle Informationstechnik" name="dachzeile.ho.ix">iX</a></li>
+                                    <li class="heisetopnavi_tr"><a href="/tr/" title="Technology Review – Das M.I.T.-Magazin für Innovation" name="dachzeile.ho.tr">Technology Review</a></li>
+                                    <li class="heisetopnavi_df"><a href="/foto/inhalt/" title="c't Digitale Fotografie" name="dachzeile.ho.digitale-fotografie">c't Digitale Fotografie</a></li>
+                                    <li class="heisetopnavi_mac"><a href="/mac-and-i/" title="Mac &amp; i – Nachrichten, Tests, Tipps und Meinungen rund um Apple" name="dachzeile.ho.mac-and-i">Mac &amp; i</a></li>
+                                    <li class="heisetopnavi_hh"><a href="/make/" title="Make – Kreativ mit Technik" name="dachzeile.ho.make">Make</a></li>
+                                </ul>
+                            </li>
+                            <li class="new_list three">
+                                <ul>
+                                    <li class="heisetopnavi_tp"><a href="/tp/" title="Telepolis" name="dachzeile.ho.tp">Telepolis</a></li>
+                                    <li class="heisetopnavi_aut"><a href="/autos/" title="heise Autos – News, Tests, Technik, Service rund ums Auto" name="dachzeile.ho.autos">heise Autos</a></li>
+                                    <li class="heisetopnavi_foto"><a href="/foto/" title="heise Foto – Das Online-Magazin rund ums digitale Bild" name="dachzeile.ho.foto">heise Foto</a></li>
+                                    <li class="heisetopnavi_tech"><a href="//www.techstage.de/" title="TechStage – News, Tests &amp; Praxis zu Smartphones und Tablets mit Android, iOS, Windows Phone &amp; Co." name="dachzeile.ho.techstage">TechStage</a></li>
+                                </ul>
+                            </li>
+                            <li class="new_list four">
+                                <ul>
+                                    <li class="heisetopnavi_swv"><a href="/download/" title="heise Download – Software zum Download fuer Windows, Mac, Linux, iPhone, Symbian, Android" name="dachzeile.ho.download">heise Download</a></li>
+                                    <li class="heisetopnavi_pvg"><a href="/preisvergleich/" title="Preisvergleich – Günstige Preise, Meinungen und Bewertungen zu vielen Produkten" name="dachzeile.ho.preisvergleich">Preisvergleich</a></li>
+                                    <li class="heisetopnavi_hbs"><a href="//business-services.heise.de/" title="heise Business Services – Produkte und Lösungen namhafter IT-Hersteller" name="dachzeile.ho.whitepapers">Whitepapers</a></li>
+                                    <li class="heisetopnavi_hbs"><a href="//business-services.heise.de/" title="heise Business Services – Produkte und Lösungen namhafter IT-Hersteller" name="dachzeile.ho.webcasts">Webcasts</a></li>
+                                    <li class="heisetopnavi_job"><a href="/jobs/" title="heise jobs – Jobbörse für qualifizierte Fach- und Führungskräfte aus der IT-Branche" name="dachzeile.ho.jobs">Stellenmarkt</a></li>
+                                    <li class="heisetopnavi_itm"><a href="/itmarkt/" title="IT-Markt – Branchenverzeichnis der IT-Fachhändler" name="dachzeile.ho.itmarkt">IT-Markt</a></li>
+                                    <li class="heisetopnavi_tarifr"><a href="/tarifrechner/" title="Tarifrechner – DSL, Mobiles Internet, Handy, Telefon, Strom, Gas" name="dachzeile.ho.tarifrechner">Tarifrechner</a></li>
+                                </ul>
+                            </li>
+                            <li class="new_list five">
+                                <ul>
+                                    <li class="heisetopnavi_shop"><a href="//shop.heise.de/" title="heise shop – IT Fachzeitschriften, Bücher, CD/DVD/Blu-ray" name="dachzeile.ho.shop">heise shop</a></li>
+                                    <li class="heisetopnavi_kio"><a href="//shop.heise.de/artikel-archiv/" title="Artikel-Archiv – c't, iX, Technology Review, Digitale Fotografie, Mac &amp; i, Make, Sonderhefte" name="dachzeile.ho.artikel-archiv">Artikel-Archiv</a></li>
+                                    <li class="heisetopnavi_abo"><a href="//shop.heise.de/abo" title="Abo – c't, iX, Technology Review, Digitale Fotografie, Mac &amp; i" name="dachzeile.ho.abo">Zeitschriften-Abo</a></li>
+                                    <li class="heisetopnavi_eve"><a href="/events/" title="heise Events – Konferenzen, Seminare, Workshops" name="dachzeile.ho.events">Veranstaltungen</a></li>
+                                    <li class="heisetopnavi_hmg"><a href="http://heise-gruppe.de/-1812545" title="Arbeiten bei heise – Heise als Arbeitgeber" name="dachzeile.ho.hmg">Arbeiten bei Heise</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+
+            
+
+            
+                
+                    
+                    
+            
+
+            <form accept-charset="utf-8" method="get" action="/suche/" id="heisetopnavi_search" role="search">
+                <fieldset>
+                    <input type="search" class="search_text" value="" name="q" placeholder="in heise online suchen" data-autocomplete="true" data-searchpath="/suche/" ><input type="image" src="//www.heise.de/icons/ho/heise_online_lupe.gif" alt="Los" class="search_submit" name="search_submit">
+                    <input type="hidden" class="search_hidden" value="search" name="rm">
+                </fieldset>
+            </form>
+        </header>
+    </div>
+    <div class="clear"></div>
+</div>
+
+<script type="text/javascript">
+if (typeof jQuery !== "undefined") {
+    jQuery(document).ready(function($) {
+        // Support Touch-Devices
+        $('.heisetopnavi_button').bind('touchstart', function(e) {
+            e.preventDefault();
+            if ($(e.target).is('a.heisetopnavi_button')) {
+                $(this).toggleClass('active');
+                $('.heisetopnavi header > nav').toggleClass('hover');
+            }
+        });
+
+        $('.heisetopnavi .heisetopnavi_button').click(function(e) {
+            e.preventDefault();
+        });
+
+        // Support Keyboard
+        $('.heisetopnavi .heisetopnavi_button').keyup(function(e) {
+            if (e.which == 13 && $(e.target).is('a.heisetopnavi_button')) {
+                $('.heisetopnavi .heisetopnavi_button').toggleClass('active');
+                $('.heisetopnavi header > nav').toggleClass('hover');
+            }
+        });
+
+        /*
+         * Open/Close Menu with JavaScript for more Usability
+         */
+
+        $('.heisetopnavi').removeClass('no-touch');
+
+        // Logo + Icon
+        $('.heisetopnavi .heisetopnavi_hover_legacy').mouseenter(function() {
+            var timeout_id = window.setTimeout(function() {
+                $('.heisetopnavi .heisetopnavi_button').addClass('active');
+                $('.heisetopnavi nav').addClass('hover');
+                $('body').addClass('refreshDOM');
+                $('body').removeClass('refreshDOM');
+            }, 300);
+            $(this).data('timeout_id', timeout_id);
+        });
+        $('.heisetopnavi .heisetopnavi_hover_legacy').mouseleave(function() {
+            var timeout_id = $(this).data('timeout_id');
+            window.clearTimeout(timeout_id);
+            timeout_id = window.setTimeout(function() {
+                $('.heisetopnavi .heisetopnavi_button').removeClass('active');
+                $('.heisetopnavi nav').removeClass('hover');
+                $('body').addClass('refreshDOM');
+                $('body').removeClass('refreshDOM');
+            }, 0);
+            $(this).data('timeout_id', timeout_id);
+        });
+    });
+
+    if (typeof heiseLogin != "undefined") {
+        heiseLogin.login_fill_navigation({});
+    }
+}
+</script>
+
+
+    <div id="container">
+        <div id="container_content">
+            <div id="logo_bereich" class="socialmedia">
+                <div class="logo">
+                        <a href="/" title="heise online News" class="channel_titel">News</a>
+                </div>
+                <ul class="navigation">
+                    <li><strong><a href="/newsticker/classic/" title="Newsticker Classic">Newsticker</a></strong></li>
+                    <li><strong><a href="/newsticker/" title="7-Tage-News">7-Tage-News</a></strong></li>
+                    <li><strong><a href="/newsticker/archiv/" title="Newsticker Archiv">Archiv</a></strong></li>
+                    <li><strong><a href="/forum/" title="Leserforum">Foren</a></strong></li>
+                </ul>
+                <ul class="sub_navigation_new">
+                    <li class="rss"         ><a href="/news-extern/news.html"               name="header.ho.sm.rss"         title="RSS-Feeds abonnieren">RSS</a></li>
+                    <li class="newsletter"  ><a href="/newsletter/"                         name="header.ho.sm.newsletter"  title="Newsletter abonnieren">Newsletter</a></li>
+                    <li class="google"      ><a href="https://plus.google.com/+heiseonline" name="header.ho.sm.google"      title="heise online auf Google+ folgen" target="_blank">Google+</a></li>
+                    <li class="facebook"    ><a href="https://www.facebook.com/heiseonline" name="header.ho.sm.facebook"    title="heise online auf Facebook folgen" target="_blank">Facebook</a></li>
+                    <li class="twitter"     ><a href="https://twitter.com/heiseonline"      name="header.ho.sm.twitter"     title="heise online auf Twitter folgen" target="_blank">Twitter</a></li>
+                    <li class="kontakt"><a href="/kontakt/" title="heise online Kontakt">Kontakt</a></li>
+                </ul>
+            </div>
+                            <div id="themen_aktuell" class="linear">
+                                <p>Topthemen:</p>
+                                <ol>
+                                    <li><a name="themen.ho.windows_10" href="/thema/Windows-10">Windows 10</a></li>
+                                    <li><a name="themen.ho.ios_9" href="/thema/iOS-9">iOS 9</a></li>
+                                    <li><a name="themen.ho.iphone_6s" href="/thema/iPhone-6s">iPhone 6s</a></li>
+                                    <li><a name="themen.ho.android" href="/thema/Android">Android</a></li>
+                                    <li><a name="themen.ho.galaxy_s6" href="/thema/Samsung-Galaxy-S6">Galaxy S6</a></li>
+                                    <li><a name="themen.ho.abgas-skandal" href="/thema/Abgas_Skandal">Abgas-Skandal</a></li>
+                                    <li><a name="themen.ho.surface" href="/thema/Microsoft-Surface">Surface</a></li>
+                                    <li><a name="themen.ho.oculus_rift" href="/thema/Oculus-Rift">Oculus Rift</a></li>
+                                    <li><a name="themen.ho.ubuntu" href="/thema/Ubuntu">Ubuntu</a></li>
+                                </ol>
+                            </div>
+                
+    <div id="breadcrumb">
+            <a href="/" title="heise online">heise online</a>
+        <span class="bread_gt">&gt;</span>
+                <span class="titel">News</span>
+        
+    </div>
+
+            <div id="mitte">
+                <div id="mitte_links">
+            <!--googleon: all-->
+            
+
+<div id="archiv_woche">
+    <h1>7-Tage-News</h1>
+            
+            <h4 class="published">30.10.2015</h4>
+            <ul>
+            <li>
+                <a href="/newsticker/meldung/Bericht-Grossbritannien-plant-Vorratsspeicherung-auch-von-Inhaltsdaten-2866494.html" title="Bericht: Großbritannien plant Vorratsspeicherung auch von Inhaltsdaten">Bericht: Großbritannien plant Vorratsspeicherung auch von Inhaltsdaten</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/EU-Kommission-hat-Bedenken-gegen-Deal-auf-britischem-Mobilfunkmarkt-2866490.html" title="EU-Kommission hat Bedenken gegen Deal auf britischem Mobilfunkmarkt">EU-Kommission hat Bedenken gegen Deal auf britischem Mobilfunkmarkt</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Bericht-Google-vereint-Android-und-Chrome-OS-2866487.html" title="Bericht: Google vereint Android und Chrome OS">Bericht: Google vereint Android und Chrome OS</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Journalistenverband-DJV-Haushaltsabgabe-fuer-Print-und-Onlinejournalismus-gefordert-2866275.html" title="Journalistenverband DJV: Haushaltsabgabe für Print- und Onlinejournalismus gefordert">Journalistenverband DJV: Haushaltsabgabe für Print- und Onlinejournalismus gefordert</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Kostenlose-Indie-Spieletipps-zum-Wochenende-2866447.html" title="Kostenlose Indie-Spieletipps zum Wochenende">Kostenlose Indie-Spieletipps zum Wochenende</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/iPhone-6s-GPS-Probleme-im-LTE-Netz-2866480.html" title="iPhone 6s: GPS-Probleme im LTE-Netz">iPhone 6s: GPS-Probleme im LTE-Netz</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Fahrdienstvermittler-Uber-zieht-sich-aus-Frankfurt-Hamburg-und-Duesseldorf-zurueck-2866434.html" title="Fahrdienstvermittler Uber zieht sich aus Frankfurt, Hamburg und Düsseldorf zurück">Fahrdienstvermittler Uber zieht sich aus Frankfurt, Hamburg und Düsseldorf zurück</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/BaFin-Strengere-Regeln-fuer-Online-Zahlungen-treten-in-Kraft-2866393.html" title=" BaFin: Strengere Regeln für Online-Zahlungen treten in Kraft"> BaFin: Strengere Regeln für Online-Zahlungen treten in Kraft</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Netzneutralitaet-Proteste-gegen-Telekom-Vorstoss-fuer-Internetmaut-2866390.html" title="Netzneutralität: Proteste gegen Telekom-Vorstoß für Internetmaut">Netzneutralität: Proteste gegen Telekom-Vorstoß für Internetmaut</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Nach-000webhost-Hack-13-Millionen-Nutzerdaten-im-Umlauf-2866249.html" title="Nach 000webhost-Hack: 13 Millionen Nutzerdaten im Umlauf">Nach 000webhost-Hack: 13 Millionen Nutzerdaten im Umlauf</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/iBooks-Preisabsprachen-Apple-zieht-vors-hoechste-US-Gericht-2866376.html" title="iBooks-Preisabsprachen: Apple zieht vors höchste US-Gericht">iBooks-Preisabsprachen: Apple zieht vors höchste US-Gericht</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Fatale-Sicherheitsluecken-in-Zwangsroutern-von-Vodafone-Kabel-Deutschland-2866037.html" title="Fatale Sicherheitslücken in Zwangsroutern von Vodafone/Kabel Deutschland">Fatale Sicherheitslücken in Zwangsroutern von Vodafone/Kabel Deutschland</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Hands-on-Das-neue-Apple-TV-im-Video-2866259.html" title="Hands-on: Das neue Apple TV im Video">Hands-on: Das neue Apple TV im Video</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Linux-Integration-des-IPC-Dienstes-Kdbus-vertagt-2866183.html" title="Linux: Integration des IPC-Dienstes Kdbus vertagt">Linux: Integration des IPC-Dienstes Kdbus vertagt</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/4-Jobtag-bei-Heise-Arbeitgeber-praesentieren-sich-Bewerbern-2866271.html" title="4. Jobtag bei Heise: Arbeitgeber präsentieren sich Bewerbern">4. Jobtag bei Heise: Arbeitgeber präsentieren sich Bewerbern</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/BND-NSA-Affaere-Sonderermittler-deckt-erhebliche-Maengel-und-Rechtsbruch-auf-2866243.html" title="BND/NSA-Affäre: Sonderermittler deckt erhebliche Mängel und Rechtsbruch auf">BND/NSA-Affäre: Sonderermittler deckt erhebliche Mängel und Rechtsbruch auf</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Upgrade-auf-Windows-10-ueberarbeitet-2866133.html" title="Upgrade auf Windows 10 überarbeitet">Upgrade auf Windows 10 überarbeitet</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Forschung-am-5G-Mobilfunk-Nokia-und-SK-Telecom-nutzen-Zentimeterwellen-fuer-19-GBit-s-2866100.html" title="Forschung am 5G-Mobilfunk: Nokia und SK-Telecom nutzen Zentimeterwellen für 19 GBit/s">Forschung am 5G-Mobilfunk: Nokia und SK-Telecom nutzen Zentimeterwellen für 19 GBit/s</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Zweite-Festnahme-im-Zusammenhang-mit-dem-TalkTalk-Hack-2866216.html" title="Zweite Festnahme im Zusammenhang mit dem TalkTalk-Hack">Zweite Festnahme im Zusammenhang mit dem TalkTalk-Hack</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Deutsche-Post-in-der-Klemme-Fehlerhafte-IT-und-globales-Frachtgeschaeft-verderben-Prognose-2866205.html" title="Deutsche Post in der Klemme: Fehlerhafte IT und globales Frachtgeschäft verderben Prognose">Deutsche Post in der Klemme: Fehlerhafte IT und globales Frachtgeschäft verderben Prognose</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Verschluesselt-chatten-mit-dem-Tor-Messenger-2866032.html" title="Verschlüsselt chatten mit dem Tor Messenger">Verschlüsselt chatten mit dem Tor Messenger</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Kinox-to-Mutmasslicher-Mitbetreiber-des-Streamingportals-vor-Gericht-2866166.html" title="Kinox.to: Mutmaßlicher Mitbetreiber des Streamingportals vor Gericht">Kinox.to: Mutmaßlicher Mitbetreiber des Streamingportals vor Gericht</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Amazon-Prime-Music-offenbar-kurz-vor-Deutschlandstart-2865970.html" title="Amazon Prime Music offenbar kurz vor Deutschlandstart">Amazon Prime Music offenbar kurz vor Deutschlandstart</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Jackpotting-Dieb-raeumt-Geldautomaten-in-Deutschland-per-USB-Stick-leer-2865909.html" title="Jackpotting: Dieb räumt Geldautomaten in Deutschland per USB-Stick leer">Jackpotting: Dieb räumt Geldautomaten in Deutschland per USB-Stick leer</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Onlinegeschaeft-treibt-deutschen-Einzelhandel-2865952.html" title="Onlinegeschäft treibt deutschen Einzelhandel">Onlinegeschäft treibt deutschen Einzelhandel</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Zwanzig-Jahre-Intel-Pentium-Pro-Eine-Prozessorarchitektur-von-Dauer-2865827.html" title="Zwanzig Jahre Intel Pentium Pro: Eine Prozessorarchitektur von Dauer">Zwanzig Jahre Intel Pentium Pro: Eine Prozessorarchitektur von Dauer</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Unabhaengiger-Kandidat-wird-neuer-SAP-Betriebsratschef-2865873.html" title="Unabhängiger Kandidat wird neuer SAP-Betriebsratschef">Unabhängiger Kandidat wird neuer SAP-Betriebsratschef</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/LinkedIn-absolviert-Quartal-besser-als-erwartet-2865855.html" title="LinkedIn absolviert Quartal besser als erwartet">LinkedIn absolviert Quartal besser als erwartet</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Gegen-den-Trend-RoboVM-verabschiedet-sich-von-Open-Source-2865751.html" title="Gegen den Trend: RoboVM verabschiedet sich von Open Source">Gegen den Trend: RoboVM verabschiedet sich von Open Source</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Stahl-Lobby-gegen-wirksame-Feinstaubfilter-2865753.html" title="Stahl-Lobby gegen wirksame Feinstaubfilter">Stahl-Lobby gegen wirksame Feinstaubfilter</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Microsoft-veroeffentlicht-Office-Online-Extension-fuer-Chrome-2865832.html" title="Microsoft veröffentlicht Office-Online-Extension für Chrome">Microsoft veröffentlicht Office-Online-Extension für Chrome</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Befehle-aus-Bayern-Vor-30-Jahren-begann-die-erste-deutsche-All-Mission-2864773.html" title="Befehle aus Bayern – Vor 30 Jahren begann die erste deutsche All-Mission">Befehle aus Bayern – Vor 30 Jahren begann die erste deutsche All-Mission</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Halloween-selbstgemacht-Aus-dem-Bastelkeller-des-Grauens-2861997.html" title="Halloween selbstgemacht: Aus dem Bastelkeller des Grauens">Halloween selbstgemacht: Aus dem Bastelkeller des Grauens</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            </ul>
+            <h4 class="published">29.10.2015</h4>
+            <ul>
+            <li>
+                <a href="/newsticker/meldung/Krankenkassen-wollen-eGK-Verweigerer-staerker-unter-Druck-setzen-2865807.html" title="Krankenkassen wollen eGK-Verweigerer stärker unter Druck setzen">Krankenkassen wollen eGK-Verweigerer stärker unter Druck setzen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Vectoring-Regulierer-legt-Regeln-fuer-Bitstrom-Zugang-fest-2865797.html" title="Vectoring: Regulierer legt Regeln für Bitstrom-Zugang fest">Vectoring: Regulierer legt Regeln für Bitstrom-Zugang fest</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Silicon-Secured-Memory-Oracle-fuehrt-neuen-Speicherschutz-ein-2865650.html" title="Silicon Secured Memory: Oracle führt neuen Speicherschutz ein">Silicon Secured Memory: Oracle führt neuen Speicherschutz ein</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Ego-Shooter-Insurgency-jetzt-auch-fuer-Linux-2865734.html" title="Ego-Shooter Insurgency jetzt auch für Linux">Ego-Shooter Insurgency jetzt auch für Linux</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Neues-Meldegesetz-mit-verbessertem-Datenschutz-tritt-in-Kraft-2865637.html" title="Neues Meldegesetz mit verbessertem Datenschutz tritt in
+008000
+ Kraft">Neues Meldegesetz mit verbessertem Datenschutz tritt in Kraft</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Certificate-Transparency-Google-setzt-Symantec-die-Pistole-auf-die-Brust-2864798.html" title="Certificate Transparency: Google setzt Symantec die Pistole auf die Brust">Certificate Transparency: Google setzt Symantec die Pistole auf die Brust</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Kostenlose-Backupsoftware-von-Veeam-kommt-fuer-Linux-2865377.html" title="Kostenlose Backupsoftware von Veeam kommt für Linux">Kostenlose Backupsoftware von Veeam kommt für Linux</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Sony-Pictures-Vorerst-keine-deutschen-Blu-rays-mit-Dolby-Atmos-Ton-2864713.html" title="Sony Pictures: Vorerst keine deutschen Blu-rays mit Dolby-Atmos-Ton">Sony Pictures: Vorerst keine deutschen Blu-rays mit Dolby-Atmos-Ton</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Mobilfunkanbieter-warnt-vor-WLAN-Unterstuetzung-in-iOS-9-2865492.html" title="Mobilfunkanbieter warnt vor &quot;WLAN-Unterstützung&quot; in iOS 9">Mobilfunkanbieter warnt vor &quot;WLAN-Unterstützung&quot; in iOS 9</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Motobot-Yamaha-entwickelt-Fahrroboter-2865428.html" title="Motobot: Yamaha entwickelt Fahrroboter">Motobot: Yamaha entwickelt Fahrroboter</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/EU-Parlament-verlangt-ID-Chip-fuer-zivile-Drohnen-2865416.html" title="EU-Parlament verlangt &quot;ID-Chip&quot; für zivile Drohnen">EU-Parlament verlangt &quot;ID-Chip&quot; für zivile Drohnen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Saudischer-Blogger-Badawi-erhaelt-Sacharow-Preis-des-EU-Parlaments-2865379.html" title="Saudischer Blogger Badawi erhält Sacharow-Preis des EU-Parlaments">Saudischer Blogger Badawi erhält Sacharow-Preis des EU-Parlaments</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Sunrise-Kalender-App-soll-in-Outlook-aufgehen-2865020.html" title="Sunrise: Kalender-App soll in Outlook aufgehen">Sunrise: Kalender-App soll in Outlook aufgehen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/NSA-Skandal-EU-Parlament-fordert-Aus-fuer-Massenueberwachung-und-Schutz-fuer-Snowden-2865326.html" title="NSA-Skandal: EU-Parlament fordert Aus für Massenüberwachung und Schutz für Snowden">NSA-Skandal: EU-Parlament fordert Aus für Massenüberwachung und Schutz für Snowden</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Netzneutralitaet-Telekom-Chef-will-Startups-zur-Kasse-bitten-2865381.html" title="Netzneutralität: Telekom-Chef will Startups zur Kasse bitten">Netzneutralität: Telekom-Chef will Startups zur Kasse bitten</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Sony-Schwarze-Zahlen-dank-Playstation-und-Kamera-Sensoren-2865010.html" title="Sony: Schwarze Zahlen dank Playstation und Kamera-Sensoren">Sony: Schwarze Zahlen dank Playstation und Kamera-Sensoren</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Googles-Internet-Ballons-kommen-nach-Indonesien-2864788.html" title="Googles Internet-Ballons kommen nach Indonesien">Googles Internet-Ballons kommen nach Indonesien</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Weiter-im-Java-Angriffsmodus-Ceylon-in-Version-1-2-veroeffentlicht-2864855.html" title="Weiter im Java-Angriffsmodus: Ceylon in Version 1.2 veröffentlicht">Weiter im Java-Angriffsmodus: Ceylon in Version 1.2 veröffentlicht</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Wolken-fuer-die-Cloud-IBM-will-den-Grossteil-der-Weather-Company-uebernehmen-2864670.html" title="Wolken für die Cloud: IBM will den Großteil der Weather Company übernehmen">Wolken für die Cloud: IBM will den Großteil der Weather Company übernehmen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Microsoft-Sabine-Bendiek-wird-neue-Deutschland-Chefin-2864871.html" title="Microsoft: Sabine Bendiek wird neue Deutschland-Chefin">Microsoft: Sabine Bendiek wird neue Deutschland-Chefin</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Deutsche-Paypal-Alternative-Paydirekt-Man-muss-nicht-immer-der-Erste-sein-2860919.html" title="Deutsche Paypal-Alternative Paydirekt: &quot;Man muss nicht immer der Erste sein&quot;">Deutsche Paypal-Alternative Paydirekt: &quot;Man muss nicht immer der Erste sein&quot;</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" /> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Computeruhren-Apple-Watch-beim-Marktanteil-deutlich-vorne-2864715.html" title="Computeruhren: Apple Watch beim Marktanteil deutlich vorne">Computeruhren: Apple Watch beim Marktanteil deutlich vorne</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Volltextsuche-Elasticsearch-2-0-ist-fertig-2864374.html" title="Volltextsuche: Elasticsearch 2.0 ist fertig">Volltextsuche: Elasticsearch 2.0 ist fertig</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Cassini-aus-dem-Wasserdampf-des-Saturnmonds-Enceladus-zurueck-2864732.html" title="Cassini aus dem Wasserdampf des Saturnmonds Enceladus zurück">Cassini aus dem Wasserdampf des Saturnmonds Enceladus zurück</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Internet-of-Things-Telekoms-Mobilfunknetz-fit-fuer-die-Kommunikation-mit-Sensoren-2864058.html" title="Internet of Things: Telekoms Mobilfunknetz fit für die Kommunikation mit Sensoren">Internet of Things: Telekoms Mobilfunknetz fit für die Kommunikation mit Sensoren</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Der-Linux-Kernel-4-4-bekommt-Langzeitpflege-2863275.html" title="Der Linux-Kernel 4.4 bekommt Langzeitpflege">Der Linux-Kernel 4.4 bekommt Langzeitpflege</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Samsung-macht-einen-kraeftigen-Gewinnsprung-2864239.html" title="Samsung macht einen kräftigen Gewinnsprung">Samsung macht einen kräftigen Gewinnsprung</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Militaer-Luftschiff-loest-sich-aus-Verankerung-Landung-nach-Irrflug-2863959.html" title="Militär-Luftschiff löst sich aus Verankerung - Landung nach Irrflug">Militär-Luftschiff löst sich aus Verankerung - Landung nach Irrflug</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Nintendo-Aktie-faellt-nach-Enttaeuschung-ueber-erste-Smartphone-App-2863555.html" title="Nintendo-Aktie fällt nach Enttäuschung über erste Smartphone-App">Nintendo-Aktie fällt nach Enttäuschung über erste Smartphone-App</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Kauf-von-Verivox-und-Werbeeinnahmen-befluegeln-ProSiebenSat-1-2863446.html" title="Kauf von Verivox und Werbeeinnahmen beflügeln ProSiebenSat.1">Kauf von Verivox und Werbeeinnahmen beflügeln ProSiebenSat.1</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Paypals-erste-Quartalszahlen-begeistern-Boerse-nicht-2863267.html" title="Paypals erste Quartalszahlen begeistern Börse nicht">Paypals erste Quartalszahlen begeistern Börse nicht</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Massgeschneidert-Neue-Optik-fuer-Outlook-unter-iOS-und-Android-2863258.html" title="Maßgeschneidert: Neue Optik für Outlook unter iOS und Android">Maßgeschneidert: Neue Optik für Outlook unter iOS und Android</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/ESA-Sonde-Rosetta-Erstmals-Sauerstoffmolekuele-bei-Kometen-entdeckt-2861429.html" title="ESA-Sonde Rosetta: Erstmals Sauerstoffmoleküle bei Kometen entdeckt">ESA-Sonde Rosetta: Erstmals Sauerstoffmoleküle bei Kometen entdeckt</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Sonos-Play-5-und-Trueplay-im-Hands-on-2863157.html" title="Sonos: Play:5 und Trueplay im Hands-on ">Sonos: Play:5 und Trueplay im Hands-on </a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Kleidung-aus-kuenstlicher-Spinnenseide-2854643.html" title="Kleidung aus künstlicher Spinnenseide">Kleidung aus künstlicher Spinnenseide</a>
+            </li>
+        
+            </ul>
+            <h4 class="published">28.10.2015</h4>
+            <ul>
+            <li>
+                <a href="/newsticker/meldung/Musikstreaming-Deezer-legt-Boersenplaene-auf-Eis-2863210.html" title="Musikstreaming: Deezer legt Börsenpläne auf Eis">Musikstreaming: Deezer legt Börsenpläne auf Eis</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/iOS-9-Nutzer-klagen-ueber-Touchscreen-Probleme-2863200.html" title="iOS 9: Nutzer klagen über Touchscreen-Probleme">iOS 9: Nutzer klagen über Touchscreen-Probleme</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Erste-Beta-von-Googles-gRPC-verfuegbar-2862634.html" title="Erste Beta von Googles gRPC verfügbar">Erste Beta von Googles gRPC verfügbar</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/EU-Kommission-Online-Haendler-duerfen-Kunden-nicht-benachteiligen-2863178.html" title="EU-Kommission: Online-Händler dürfen Kunden nicht benachteiligen">EU-Kommission: Online-Händler dürfen Kunden nicht benachteiligen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Global-Hawk-US-Drohnenflug-scheitert-offenbar-an-Frankreich-2863127.html" title="Global Hawk: US-Drohnenflug scheitert offenbar an Frankreich">Global Hawk: US-Drohnenflug scheitert offenbar an Frankreich</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/BlackBerry-will-Entwickler-bei-der-Stange-halten-2857902.html" title="BlackBerry will Entwickler bei der Stange halten">BlackBerry will Entwickler bei der Stange halten</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Ueberwachung-Frankreichs-Senat-winkt-Carte-Blanche-fuer-Geheimdienst-durch-2861992.html" title="Überwachung: Frankreichs Senat winkt Carte Blanche für Geheimdienst durch">Überwachung: Frankreichs Senat winkt Carte Blanche für Geheimdienst durch</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Gesetz-gegen-Routerzwang-Verbaende-appellieren-vor-Verabschiedung-an-Abgeordnete-2861324.html" title="Gesetz gegen Routerzwang: Verbände appellieren vor Verabschiedung an Abgeordnete">Gesetz gegen Routerzwang: Verbände appellieren vor Verabschiedung an Abgeordnete</a> <b class="update">Update</b>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Tuerkei-Regierungskritische-Sender-waehrend-Livebetriebs-gestuermt-2861913.html" title="Türkei: Regierungskritische Sender während Livebetriebs gestürmt">Türkei: Regierungskritische Sender während Livebetriebs gestürmt</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/18-000-Android-Apps-sollen-SMS-Nachrichten-ausspionieren-2860727.html" title="18.000 Android-Apps sollen SMS-Nachrichten ausspionieren">18.000 Android-Apps sollen SMS-Nachrichten ausspionieren</a> <b class="update">Update</b>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Apple-Jeder-Mac-spart-IBM-270-Dollar-2861855.html" title="Apple: Jeder Mac spart IBM 270 Dollar">Apple: Jeder Mac spart IBM 270 Dollar</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Webhosting-Server-von-Domainfactory-und-Host-Europe-ziehen-groesstenteils-nach-Frankreich-2861920.html" title="Webhosting: Server von Domainfactory und Host Europe ziehen größtenteils nach Frankreich">Webhosting: Server von Domainfactory und Host Europe ziehen größtenteils nach Frankreich</a> <b class="update">Update</b>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Medion-Akoya-E6418-Aldi-Notebook-mit-guter-Ausstattung-2861424.html" title="Medion Akoya E6418: Aldi-Notebook mit guter Ausstattung">Medion Akoya E6418: Aldi-Notebook mit guter Ausstattung</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Rundum-Soundformat-Auro-3D-Sony-ueberrascht-Heimcineasten-mit-Blu-ray-Ankuendigung-2860501.html" title="Rundum-Soundformat Auro-3D: Sony überrascht Heimcineasten mit Blu-ray-Ankündigung">Rundum-Soundformat Auro-3D: Sony überrascht Heimcineasten mit Blu-ray-Ankündigung</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/OpenStack-Summit-Neues-aus-dem-Docker-Umfeld-2860731.html" title="OpenStack Summit: Neues aus dem Docker-Umfeld">OpenStack Summit: Neues aus dem Docker-Umfeld</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/BND-Skandal-Angeblich-viele-kritische-Selektoren-gefunden-2860729.html" title="BND-Skandal: Angeblich viele kritische Selektoren gefunden">BND-Skandal: Angeblich viele kritische Selektoren gefunden</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Canon-leidet-unter-dem-Zuwachs-bei-spiegellosen-Systemen-2860725.html" title="Canon leidet unter dem Zuwachs bei spiegellosen Systemen">Canon leidet unter dem Zuwachs bei spiegellosen Systemen</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Abgas-Skandal-VW-will-entmanipulieren-aufklaeren-dezentraler-werden-sparen-und-ein-offeneres-2860719.html" title="Abgas-Skandal: VW will entmanipulieren, aufklären, dezentraler werden, sparen und ein offeneres Arbeitsklima">Abgas-Skandal: VW will entmanipulieren, aufklären, dezentraler werden, sparen und ein offeneres Arbeitsklima</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Schiedsverfahren-zum-Leistungsschutzrecht-gescheitert-2860714.html" title="Schiedsverfahren zum Leistungsschutzrecht gescheitert">Schiedsverfahren zum Leistungsschutzrecht gescheitert</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/iPhone-6s-als-Waage-App-Ablehnung-durch-Apple-2860723.html" title="iPhone 6s als Waage: App-Ablehnung durch Apple">iPhone 6s als Waage: App-Ablehnung durch Apple</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/US-Copyright-DMCA-erhaelt-kleine-Wohlfuehlzonen-fuer-3D-Drucker-Kfz-Software-DRM-und-mehr-2860693.html" title="US-Copyright: DMCA erhält kleine Wohlfühlzonen für 3D-Drucker, Kfz-Software, DRM und mehr">US-Copyright: DMCA erhält kleine Wohlfühlzonen für 3D-Drucker, Kfz-Software, DRM und mehr</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Telekom-Chef-Weniger-Regulierung-fuer-alle-2860647.html" title="Telekom-Chef: Weniger Regulierung für alle">Telekom-Chef: Weniger Regulierung für alle</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Freedom-House-Internetfreiheiten-weltweit-weiter-eingeschraenkt-2860552.html" title="Freedom House: Internetfreiheiten weltweit weiter eingeschränkt">Freedom House: Internetfreiheiten weltweit weiter eingeschränkt</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Razzia-gegen-Kaeufer-von-Schnueffel-Software-fuer-Android-Smartphones-2860638.html" title="Razzia gegen Käufer von Schnüffel-Software für Android-Smartphones">Razzia gegen Käufer von Schnüffel-Software für Android-Smartphones</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Microsoft-stellt-Pro-Pack-and-Media-Pack-fuer-Windows-8-x-ein-2860518.html" title="Microsoft stellt Pro Pack and Media Pack für Windows 8.x ein">Microsoft stellt Pro Pack and Media Pack für Windows 8.x ein</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Update-unbedingt-installieren-Joomla-im-Fokus-von-Angreifern-2860521.html" title="Update unbedingt installieren: Joomla im Fokus von Angreifern">Update unbedingt installieren: Joomla im Fokus von Angreifern</a> <b class="update">Update</b>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Nintendo-mit-Gewinn-Absatz-der-Wii-U-zieht-etwas-an-2860554.html" title="Nintendo mit Gewinn – Absatz der Wii U zieht etwas an">Nintendo mit Gewinn – Absatz der Wii U zieht etwas an</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Sony-uebernimmt-Toshibas-Bildsensorensparte-2860453.html" title="Sony übernimmt Toshibas Bildsensorensparte">Sony übernimmt Toshibas Bildsensorensparte</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Tuerkei-Kritischer-Medienkonzern-unter-staatliche-Kontrolle-gebracht-2860403.html" title="Türkei: Kritischer Medienkonzern unter staatliche Kontrolle gebracht">Türkei: Kritischer Medienkonzern unter staatliche Kontrolle gebracht</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/IBM-im-Visier-der-Boersenaufsicht-Aktie-unter-Druck-2860313.html" title="IBM im Visier der Börsenaufsicht – Aktie unter Druck">IBM im Visier der Börsenaufsicht – Aktie unter Druck</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Netzneutralitaet-Beschluss-des-EU-Parlaments-laesst-viele-Fragen-offen-2860299.html" title="Netzneutralität: Beschluss des EU-Parlaments lässt viele Fragen offen">Netzneutralität: Beschluss des EU-Parlaments lässt viele Fragen offen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Twitter-macht-Umsatzsprung-Aktie-rauscht-ab-2860273.html" title="Twitter macht Umsatzsprung – Aktie rauscht ab">Twitter macht Umsatzsprung – Aktie rauscht ab</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Apple-liefert-erneut-Rekordzahlen-iPhone-6s-laeuft-gut-2860265.html" title="Apple liefert erneut Rekordzahlen – iPhone 6s läuft gut">Apple liefert erneut Rekordzahlen – iPhone 6s läuft gut</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Bill-Gates-wird-60-Der-Mann-der-nicht-KI-Forscher-wurde-2860199.html" title="Bill Gates wird 60: Der Mann, der nicht KI-Forscher wurde">Bill Gates wird 60: Der Mann, der nicht KI-Forscher wurde</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            </ul>
+            <h4 class="published">27.10.2015</h4>
+            <ul>
+            <li>
+                <a href="/newsticker/meldung/Besser-bloggen-mit-c-t-wissen-2855322.html" title="Besser bloggen mit c't wissen">Besser bloggen mit c't wissen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Thueringen-will-WLAN-Anbieter-ganz-von-der-Stoererhaftung-befreien-2860225.html" title="Thüringen will WLAN-Anbieter ganz von der Störerhaftung befreien">Thüringen will WLAN-Anbieter ganz von der Störerhaftung befreien</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Oesterreich-Umstellung-bei-GSM-Frequenzen-Freitagnacht-2860117.html" title="Österreich: Umstellung bei GSM-Frequenzen Freitagnacht">Österreich: Umstellung bei GSM-Frequenzen Freitagnacht</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Auch-Garmin-bringt-Fitnessarmband-mit-integriertem-Pulsmesser-2860139.html" title="Auch Garmin bringt Fitnessarmband mit integriertem Pulsmesser">Auch Garmin bringt Fitnessarmband mit integriertem Pulsmesser</a> <b class="update">Update</b>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/App-Store-und-Apple-Music-Bezahlung-erstmals-per-Handy-Rechnung-moeglich-2860154.html" title="App Store und Apple Music: Bezahlung erstmals per Handy-Rechnung möglich">App Store und Apple Music: Bezahlung erstmals per Handy-Rechnung möglich</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Native-Instruments-integriert-fremde-Synthesizer-in-seine-Controller-2860145.html" title="Native Instruments integriert fremde Synthesizer in seine Controller">Native Instruments integriert fremde Synthesizer in seine Controller</a> <b class="update">Update</b>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Neues-fuer-SPARC-Oracle-stellt-M7-Systeme-vor-2860095.html" title="Neues für SPARC: Oracle stellt M7-Systeme vor">Neues für SPARC: Oracle stellt M7-Systeme vor</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Patch-ausser-der-Reihe-Adobe-schliesst-kritische-Luecke-in-Shockwave-2860125.html" title="Patch außer der Reihe: Adobe schließt kritische Lücke in Shockwave">Patch außer der Reihe: Adobe schließt kritische Lücke in Shockwave</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Auch-Walmart-will-Lieferdrohnen-testen-2860047.html" title="Auch Walmart will Lieferdrohnen testen">Auch Walmart will Lieferdrohnen testen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Patentstreit-um-Apples-A-Chips-Richter-segnet-Multi-Millionen-Dollar-Strafe-ab-2860055.html" title="Patentstreit um Apples A-Chips: Richter segnet Multi-Millionen-Dollar-Strafe ab">Patentstreit um Apples A-Chips: Richter segnet Multi-Millionen-Dollar-Strafe ab</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/iOS-Jailbreak-Team-Pangu-stellt-Freiheit-ueber-Geld-2859991.html" title="iOS-Jailbreak-Team Pangu stellt Freiheit über Geld">iOS-Jailbreak-Team Pangu stellt Freiheit über Geld</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/EU-Kommissarin-Safe-Harbor-ohne-Auswirkung-auf-Flug-und-Bankdatentransfer-2859995.html" title="EU-Kommissarin: Safe Harbor ohne Auswirkung auf Flug- und Bankdatentransfer">EU-Kommissarin: Safe Harbor ohne Auswirkung auf Flug- und Bankdatentransfer</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Arbeitnehmervertreter-und-Politiker-plaedieren-fuer-deutsche-Produktion-von-Akku-Zellen-fuer-Elektro-2859943.html" title="Arbeitnehmervertreter und Politiker plädieren für deutsche Produktion von Akku-Zellen für Elektro-Autos">Arbeitnehmervertreter und Politiker plädieren für deutsche Produktion von Akku-Zellen für Elektro-Autos</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/US-Konzern-uebernimmt-Dresdner-Halbleiterunternehmen-ZMDI-2859993.html" title="US-Konzern übernimmt Dresdner Halbleiterunternehmen ZMDI">US-Konzern übernimmt Dresdner Halbleiterunternehmen ZMDI</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Schwimmender-Roboter-ernaehrt-sich-von-Schmutz-im-Wasser-2855251.html" title="Schwimmender Roboter ernährt sich von Schmutz im Wasser">Schwimmender Roboter ernährt sich von Schmutz im Wasser</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/EU-Parlament-votiert-fuer-Netzneutralitaet-mit-grossen-Hintertueren-2859913.html" title="EU-Parlament votiert für &quot;Netzneutralität&quot; mit großen Hintertüren">EU-Parlament votiert für &quot;Netzneutralität&quot; mit großen Hintertüren</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Empfehlung-des-FBI-Bei-Erpressungs-Trojanern-klein-beigeben-und-einfach-bezahlen-2859151.html" title="Empfehlung des FBI: Bei Erpressungs-Trojanern klein beigeben und einfach bezahlen">Empfehlung des FBI: Bei Erpressungs-Trojanern klein beigeben und einfach bezahlen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Safe-Harbor-Deutsche-Datenschutzbehoerden-wollen-transatlantischen-Datenverkehr-teilweise-kappen-2859822.html" title="Safe Harbor: Deutsche Datenschutzbehörden wollen transatlantischen Datenverkehr teilweise kappen">Safe Harbor: Deutsche Datenschutzbehörden wollen transatlantischen Datenverkehr teilweise kappen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/LLVM-Community-diskutiert-ueber-Apache-Lizenz-2857932.html" title="LLVM-Community diskutiert über Apache-Lizenz">LLVM-Community diskutiert über Apache-Lizenz</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/IoT-Analytics-Cisco-will-sich-ParStream-einverleiben-2858813.html" title="IoT-Analytics: Cisco will sich ParStream einverleiben">IoT-Analytics: Cisco will sich ParStream einverleiben</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Facebook-konkurriert-mit-Google-Now-2859141.html" title="Facebook konkurriert mit Google Now">Facebook konkurriert mit Google Now</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Cloud-Software-OpenStack-Entwickler-arbeiten-in-Tokio-an-naechster-Version-2859098.html" title="Cloud-Software: OpenStack-Entwickler arbeiten in Tokio an nächster Version">Cloud-Software: OpenStack-Entwickler arbeiten in Tokio an nächster Version</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/USA-Drei-Personen-wegens-Schmuggels-von-Computer-Chips-verurteilt-2858818.html" title="USA: Drei Personen wegens Schmuggels von Computer-Chips verurteilt">USA: Drei Personen wegens Schmuggels von Computer-Chips verurteilt</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Software-definierte-Akkus-versprechen-mehr-Energie-fuer-Smartphones-2854588.html" title="Software-definierte Akkus versprechen mehr Energie für Smartphones">Software-definierte Akkus versprechen mehr Energie für Smartphones</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Hackerangriff-15-jaehriger-Verdaechtiger-im-Fall-TalkTalk-festgenommen-2858933.html" title="Hackerangriff: 15-jähriger Verdächtiger im Fall TalkTalk festgenommen">Hackerangriff: 15-jähriger Verdächtiger im Fall TalkTalk festgenommen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Audi-TT-Airbag-heimlich-ueber-Diagnose-Software-deaktiviert-2858815.html" title="Audi TT: Airbag heimlich über Diagnose-Software deaktiviert">Audi TT: Airbag heimlich über Diagnose-Software deaktiviert</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Behoerdendaten-in-Untergrundforum-angeboten-Mann-und-Frau-unter-Verdacht-2859041.html" title=" Behördendaten in Untergrundforum angeboten: Mann und Frau unter Verdacht"> Behördendaten in Untergrundforum angeboten: Mann und Frau unter Verdacht</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Firefox-Chef-zum-Tracking-Schutz-So-viel-blockieren-wie-moeglich-2857844.html" title="Firefox-Chef zum Tracking-Schutz: &quot;So viel blockieren wie möglich&quot;">Firefox-Chef zum Tracking-Schutz: &quot;So viel blockieren wie möglich&quot;</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Macoun-2015-Mac-und-iOS-Entwickler-auf-der-deutschen-Alternative-zur-WWDC-2858705.html" title="Macoun 2015: Mac- und iOS-Entwickler auf der deutschen Alternative zur WWDC">Macoun 2015: Mac- und iOS-Entwickler auf der deutschen Alternative zur WWDC</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/NASA-Sonde-Cassini-taucht-in-den-Wasserdampf-des-Saturnmonds-Enceladus-2858651.html" title="NASA-Sonde Cassini taucht in den Wasserdampf des Saturnmonds Enceladus">NASA-Sonde Cassini taucht in den Wasserdampf des Saturnmonds Enceladus</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/US-Automobilclub-Siri-lenkt-mehr-ab-als-Google-Now-2858624.html" title="US-Automobilclub: Siri lenkt mehr ab als Google Now">US-Automobilclub: Siri lenkt mehr ab als Google Now</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Hirnforschung-an-Nagern-dank-VR-2854584.html" title="Hirnforschung an Nagern dank VR">Hirnforschung an Nagern dank VR</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Opera-erneuert-seinen-Synchronisierungsdienst-2857918.html" title="Opera erneuert seinen Synchronisierungsdienst">Opera erneuert seinen Synchronisierungsdienst</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Paintracker-erkennt-ob-bewusstlose-Patienten-Schmerzen-haben-2854164.html" title="Paintracker erkennt, ob bewusstlose Patienten Schmerzen haben">Paintracker erkennt, ob bewusstlose Patienten Schmerzen haben</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Medizin-Hack-Arterien-in-3D-drucken-auf-dem-MakerBot-2857783.html" title="Medizin-Hack: Arterien in 3D drucken auf dem MakerBot">Medizin-Hack: Arterien in 3D drucken auf dem MakerBot</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            </ul>
+            <h4 class="published">26.10.2015</h4>
+            <ul>
+            <li>
+                <a href="/newsticker/meldung/Surface-Pro-4-Microsofts-Windows-Tablet-im-Hands-on-2857699.html" title="Surface Pro 4: Microsofts Windows-Tablet im Hands-on">Surface Pro 4: Microsofts Windows-Tablet im Hands-on</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Windows-10-Patch-fuer-Insider-Preview-sorgt-fuer-Aerger-2857801.html" title="Windows 1
+008000
+0: Patch für Insider Preview sorgt für Ärger">Windows 10: Patch für Insider Preview sorgt für Ärger</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/eBay-Plus-Flatrate-fuer-Schnellversand-verfuegbar-2857803.html" title="eBay Plus: Flatrate für Schnellversand verfügbar">eBay Plus: Flatrate für Schnellversand verfügbar</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/EMV-Verfahren-PIN-Pruefung-von-Kreditkarten-ausgetrickst-2855951.html" title="EMV-Verfahren: PIN-Prüfung von Kreditkarten ausgetrickst">EMV-Verfahren: PIN-Prüfung von Kreditkarten ausgetrickst</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/FDP-will-gegen-Vorratsdatenspeicherung-klagen-2857752.html" title="FDP will gegen Vorratsdatenspeicherung klagen">FDP will gegen Vorratsdatenspeicherung klagen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/China-Labor-Watch-Erneut-Vorwuerfe-gegen-Apples-Auftragsfertiger-Pegatron-2857796.html" title="China Labor Watch: Erneut Vorwürfe gegen Apples Auftragsfertiger Pegatron">China Labor Watch: Erneut Vorwürfe gegen Apples Auftragsfertiger Pegatron</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/l-f-11-Jaehrige-erwuerfelt-und-verkauft-starke-Passphrasen-2856793.html" title="l+f: 11-Jährige erwürfelt und verkauft starke Passphrasen">l+f: 11-Jährige erwürfelt und verkauft starke Passphrasen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/UN-Beauftragter-fordert-besseren-Schutz-von-Whistleblowern-2856013.html" title="UN-Beauftragter fordert besseren Schutz von Whistleblowern">UN-Beauftragter fordert besseren Schutz von Whistleblowern</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Unternehmen-und-Investoren-warnen-vor-Abschaffung-der-Netzneutralitaet-2856375.html" title="Unternehmen und Investoren warnen vor Abschaffung der Netzneutralität">Unternehmen und Investoren warnen vor Abschaffung der Netzneutralität</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Robo-Wunderkind-Smarte-Roboter-Bausteine-mit-Lego-Anschluss-2855610.html" title="Robo Wunderkind: Smarte Roboter-Bausteine mit Lego-Anschluss">Robo Wunderkind: Smarte Roboter-Bausteine mit Lego-Anschluss</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Nach-Hacker-Angriff-TalkTalk-wird-erpresst-Daten-waren-nicht-verschluesselt-2855026.html" title="Nach Hacker-Angriff: TalkTalk wird erpresst, Daten waren nicht verschlüsselt">Nach Hacker-Angriff: TalkTalk wird erpresst, Daten waren nicht verschlüsselt</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/c-t-Konferenz-Soziale-Netzwerke-effizient-nutzen-2855502.html" title="c’t-Konferenz: Soziale Netzwerke effizient nutzen">c’t-Konferenz: Soziale Netzwerke effizient nutzen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/EU-Digitalkommissar-Oettinger-legt-los-mit-dem-digitalen-Binnenmarkt-2855439.html" title="EU-Digitalkommissar Oettinger legt los mit dem digitalen Binnenmarkt">EU-Digitalkommissar Oettinger legt los mit dem digitalen Binnenmarkt</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Was-Freeware-Programme-zum-Mixen-von-Musik-taugen-2855359.html" title="Was Freeware-Programme zum Mixen von Musik taugen">Was Freeware-Programme zum Mixen von Musik taugen</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Datenfressende-WLAN-Assistenzfunktion-Sammelklage-gegen-Apple-2854971.html" title="Datenfressende WLAN-Assistenzfunktion: Sammelklage gegen Apple">Datenfressende WLAN-Assistenzfunktion: Sammelklage gegen Apple</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Y-Combinator-will-auch-forschen-2854556.html" title="Y Combinator will auch forschen">Y Combinator will auch forschen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Steve-Ballmer-Apple-Investment-1997-war-verrueckt-2854953.html" title="Steve Ballmer: Apple-Investment 1997 war &quot;verrückt&quot;">Steve Ballmer: Apple-Investment 1997 war &quot;verrückt&quot;</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Continental-Chef-Google-will-ins-Auto-und-nicht-ins-Autobaugeschaeft-2855021.html" title="Continental-Chef: Google will ins Auto und nicht ins Autobaugeschäft">Continental-Chef: Google will ins Auto und nicht ins Autobaugeschäft</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Auftakt-der-JavaOne-2015-Geburtstagsfeier-ohne-grosse-Neuigkeiten-2854895.html" title="Auftakt der JavaOne 2015: Geburtstagsfeier ohne große Neuigkeiten">Auftakt der JavaOne 2015: Geburtstagsfeier ohne große Neuigkeiten</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Datenschutz-Unternehmen-befuerchten-nichts-mehr-unter-Kontrolle-zu-haben-2854554.html" title="Datenschutz: &quot;Unternehmen befürchten, nichts mehr unter Kontrolle zu haben&quot;">Datenschutz: &quot;Unternehmen befürchten, nichts mehr unter Kontrolle zu haben&quot;</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Neue-Substanzklasse-aus-Deutschland-koennte-zum-Massenmedikament-werden-2854103.html" title="Neue Substanzklasse aus Deutschland könnte zum Massenmedikament werden">Neue Substanzklasse aus Deutschland könnte zum Massenmedikament werden</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Referendum-ueber-E-Voting-in-Bulgarien-offenbar-gescheitert-2854889.html" title="Referendum über E-Voting in Bulgarien offenbar gescheitert">Referendum über E-Voting in Bulgarien offenbar gescheitert</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Unsichere-App-TAN-Sparkasse-verteidigt-ihr-pushTAN-Banking-2854722.html" title="Unsichere App-TAN: Sparkasse verteidigt ihr pushTAN-Banking">Unsichere App-TAN: Sparkasse verteidigt ihr pushTAN-Banking</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Big-Brother-Awards-Austria-Doppelsieg-fuer-Staatsschutzgesetz-2854809.html" title="Big Brother Awards Austria: Doppelsieg für Staatsschutzgesetz">Big Brother Awards Austria: Doppelsieg für Staatsschutzgesetz</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Antennen-im-Eigenbau-aus-Abfall-Baumarkt-und-Verpackungsmaterial-2853993.html" title="Antennen im Eigenbau: aus Abfall, Baumarkt- und Verpackungsmaterial">Antennen im Eigenbau: aus Abfall, Baumarkt- und Verpackungsmaterial</a>
+            </li>
+        
+            </ul>
+            <h4 class="published">25.10.2015</h4>
+            <ul>
+            <li>
+                <a href="/newsticker/meldung/c-t-Digitale-Fotografie-Luftbildfotografie-schlaegt-Drohnenhype-2853454.html" title="c't Digitale Fotografie: Luftbildfotografie schlägt Drohnenhype">c't Digitale Fotografie: Luftbildfotografie schlägt Drohnenhype</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Ortungstechnik-gegen-Fahrraddiebe-gewinnt-Gruender-Wettbewerb-2854781.html" title="Ortungstechnik gegen Fahrraddiebe gewinnt Gründer-Wettbewerb">Ortungstechnik gegen Fahrraddiebe gewinnt Gründer-Wettbewerb</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Medienbericht-Uber-will-die-naechste-Milliarde-von-Investoren-2854764.html" title="Medienbericht: Uber will die nächste Milliarde von Investoren">Medienbericht: Uber will die nächste Milliarde von Investoren</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Zweites-Ermittlungsverfahren-wegen-NSA-Spionage-in-Deutschland-2854756.html" title="Zweites Ermittlungsverfahren wegen NSA-Spionage in Deutschland">Zweites Ermittlungsverfahren wegen NSA-Spionage in Deutschland</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Toshiba-soll-Kamerasensorsparte-an-Sony-verkaufen-2854741.html" title="Toshiba soll Kamerasensorsparte an Sony verkaufen">Toshiba soll Kamerasensorsparte an Sony verkaufen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Europaeischer-Cyber-Security-Month-geht-in-die-letzte-Runde-2854730.html" title="Europäischer Cyber Security Month geht in die letzte Runde">Europäischer Cyber Security Month geht in die letzte Runde</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Warner-verspricht-neuen-Termin-fuer-PC-Version-von-Batman-Arkham-Knight-2854737.html" title="Warner verspricht neuen Termin für PC-Version von &quot;Batman: Arkham Knight&quot;">Warner verspricht neuen Termin für PC-Version von &quot;Batman: Arkham Knight&quot;</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Pakistan-schaltet-Internet-und-Mobilfunknetz-nach-Anschlaegen-ab-2854732.html" title="Pakistan schaltet Internet und Mobilfunknetz nach Anschlägen ab">Pakistan schaltet Internet und Mobilfunknetz nach Anschlägen ab</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Noch-nicht-alle-Musik-Software-kompatibel-zu-OS-X-10-11-1-2854728.html" title="Noch nicht alle Musik-Software kompatibel zu OS X 10.11.1">Noch nicht alle Musik-Software kompatibel zu OS X 10.11.1</a> <b class="update">Update</b>
+            </li>
+        
+            <li>
+                    <img src="//2.f.ix.de/imgs/09/4/4/dfdc108a68363822.gif" width="42" height="15" alt="wwww"  />
+                <a href="/newsticker/meldung/Was-war-Was-wird-Von-freien-Piraten-und-anderen-Fallstricken-2854706.html" title="Was war. Was wird. Von freien Piraten und anderen Fallstricken.">Was war. Was wird. Von freien Piraten und anderen Fallstricken.</a>
+            </li>
+        
+            </ul>
+            <h4 class="published">24.10.2015</h4>
+            <ul>
+            <li>
+                <a href="/newsticker/meldung/Per-Live-Stream-Mimik-einer-Person-auf-eine-andere-uebertragen-2854668.html" title="Per Live-Stream: Mimik einer Person auf eine andere übertragen">Per Live-Stream: Mimik einer Person auf eine andere übertragen</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Cyber-Security-Challenge-Deutsches-Team-wird-Vize-Europameister-2854679.html" title="Cyber Security Challenge: Deutsches Team wird Vize-Europameister">Cyber Security Challenge: Deutsches Team wird Vize-Europameister</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Bitkom-gibt-Hilfe-fuer-Archivierung-2854672.html" title="Bitkom gibt Hilfe für Archivierung">Bitkom gibt Hilfe für Archivierung</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Surface-Book-Neue-Varianten-im-Microsoft-Store-2854656.html" title="Surface Book: Neue Varianten im Microsoft Store">Surface Book: Neue Varianten im Microsoft Store</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Unfreiwillige-Spende-Hass-Postings-helfen-Fluechtlingen-2854616.html" title=" Unfreiwillige Spende: Hass-Postings helfen Flüchtlingen"> Unfreiwillige Spende: Hass-Postings helfen Flüchtlingen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Axel-Springer-Einstweilige-Verfuegung-gegen-Adblock-Plus-2854649.html" title="Axel Springer: Einstweilige Verfügung gegen Adblock Plus">Axel Springer: Einstweilige Verfügung gegen Adblock Plus</a> <b class="update">Update</b>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Noch-148713-Mails-checken-2854613.html" title="Noch 148713 Mails checken?">Noch 148713 Mails checken?</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/iMacs-lernen-10-Bit-Farbwiedergabe-2854496.html" title="iMacs lernen 10-Bit-Farbwiedergabe">iMacs lernen 10-Bit-Farbwiedergabe</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Klage-gegen-NSA-Programm-Upstream-zurueckgewiesen-2854603.html" title="Klage gegen NSA-Programm Upstream zurückgewiesen">Klage gegen NSA-Programm Upstream zurückgewiesen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/c-t-uplink-8-9-Zurueck-in-die-Zukunft-SSL-Pinning-und-mTAN-Hacks-2854503.html" title="c't uplink 8.9: Zurück in die Zukunft, SSL-Pinning und mTAN-Hacks">c't uplink 8.9: Zurück in die Zukunft, SSL-Pinning und mTAN-Hacks</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            </ul>
+            <h4 class="published">23.10.2015</h4>
+            <ul>
+            <li>
+                <a href="/newsticker/meldung/TTIP-EU-und-USA-wollen-Abkommen-2016-besiegeln-2854549.html" title="TTIP: EU und USA wollen Abkommen 2016 besiegeln">TTIP: EU und USA wollen Abkommen 2016 besiegeln</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/BND-Operation-Eikonal-Freibrief-fuer-die-Telekom-aus-dem-Kanzleramt-2854406.html" title="BND-Operation Eikonal: &quot;Freibrief&quot; für die Telekom aus dem Kanzleramt">BND-Operation Eikonal: &quot;Freibrief&quot; für die Telekom aus dem Kanzleramt</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Windows-10-Versions-Upgrade-offenbar-am-2-November-2854231.html" title="Windows 10: Versions-Upgrade offenbar am 2. November">Windows 10: Versions-Upgrade offenbar am 2. November</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Malvertising-Kampagne-verteilt-Exploit-Kit-ueber-ebay-de-2853882.html" title="Malvertising-Kampagne verteilt Exploit-Kit über ebay.de">Malvertising-Kampagne verteilt Exploit-Kit über ebay.de</a> <b class="update">Update</b>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Programmieren-fuer-Fluechtlinge-Refugee-Hackathon-in-Berlin-2854394.html" title="Programmieren für Flüchtlinge: &quot;Refugee Hackathon&quot; in Berlin">Programmieren für Flüchtlinge: &quot;Refugee Hackathon&quot; in Berlin</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Web-Notifications-W3C-verabschiedet-Benachrichtigungsspezifikation-2854088.html" title="Web Notifications: W3C verabschiedet Benachrichtigungsspezifikation">Web Notifications: W3C verabschiedet Benachrichtigungsspezifikation</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Global-Hawk-US-Drohnen-durchqueren-deutschen-Luftraum-2854235.html" title="Global Hawk: US-Drohnen durchqueren deutschen Luftraum">Global Hawk: US-Drohnen durchqueren deutschen Luftraum</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Neues-Elektroschrott-Gesetz-Onlinehandel-muss-Altgeraete-entsorgen-2854294.html" title="Neues Elektroschrott-Gesetz: Onlinehandel muss Altgeräte entsorgen">Neues Elektroschrott-Gesetz: Onlinehandel muss Altgeräte entsorgen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Zeitlos-Neue-Angriffe-auf-NTP-verwirren-das-Klientel-von-Zeitservern-2853869.html" title="Zeitlos: Neue Angriffe auf NTP verwirren das Klientel von Zeitservern">Zeitlos: Neue Angriffe auf NTP verwirren das Klientel von Zeitservern</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/iX-Seminar-zu-SUSE-Linux-Enterprise-Server-12-2852093.html" title="iX-Seminar zu SUSE Linux Enterprise Server 12">iX-Seminar zu SUSE Linux Enterprise Server 12</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Western-Digital-Selbstverschluesselnde-Festplatten-leicht-knackbar-2853323.html" title="Western Digital: Selbstverschlüsselnde Festplatten leicht knackbar">Western Digital: Selbstverschlüsselnde Festplatten leicht knackbar</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Auch-Opel-koennte-Abgas-Pruefung-manipuliert-haben-2853995.html" title="Auch Opel könnte Abgas-Prüfung manipuliert haben">Auch Opel könnte Abgas-Prüfung manipuliert haben</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Facebook-Kein-Stau-beim-Loeschen-von-Hass-Postings-2853985.html" title="Facebook: Kein Stau beim Löschen von Hass-Postings">Facebook: Kein Stau beim Löschen von Hass-Postings</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Smartphone-mit-Zweitdisplay-Yota-wechselt-den-Besitzer-2853962.html" title="Smartphone mit Zweitdisplay: Yota wechselt den Besitzer">Smartphone mit Zweitdisplay: Yota wechselt den Besitzer</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/EU-Digitalkommissar-Oettinger-Europa-stirbt-in-der-Welt-medial-aus-2853880.html" title="EU-Digitalkommissar Oettinger: Europa stirbt in der Welt medial aus">EU-Digitalkommissar Oettinger: Europa stirbt in der Welt medial aus</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Stratos-II-Studenten-Rakete-aus-Delft-bricht-Hoehenrekord-2853806.html" title="Stratos II+: Studenten-Rakete aus Delft bricht Höhenrekord">Stratos II+: Studenten-Rakete aus Delft bricht Höhenrekord</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Elektroauto-von-Aston-Martin-Aus-Rapide-wird-RapidE-2853852.html" title="Elektroauto von Aston Martin: Aus Rapide wird RapidE">Elektroauto von Aston Martin: Aus Rapide wird RapidE</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/ICANN-Endspurt-fuer-die-Uebergabe-der-Netzaufsicht-2853819.html" title="ICANN: Endspurt für die Übergabe der Netzaufsicht">ICANN: Endspurt für die Übergabe der Netzaufsicht</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Instant-Wide-Neue-Sofortbildkamera-von-Lomo-2853737.html" title="Instant Wide: Neue Sofortbildkamera von Lomo">Instant Wide: Neue Sofortbildkamera von Lomo</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Wir-wollen-Amazon-angreifen-T-Systems-baut-Cloud-Angebote-aus-2853794.html" title="&quot;Wir wollen Amazon angreifen&quot;: T-Systems baut Cloud-Angebote aus">&quot;Wir wollen Amazon angreifen&quot;: T-Systems baut Cloud-Angebote aus</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Hacker-Angriff-auf-britischen-Provider-TalkTalk-2853748.html" title="Hacker-Angriff auf britischen Provider TalkTalk">Hacker-Angriff auf britischen Provider TalkTalk</a> <b class="update">Update</b>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Forscher-demontieren-App-TANs-der-Sparkasse-2853492.html" title="Forscher demontieren App-TANs der Sparkasse">Forscher demontieren App-TANs der Sparkasse</a> <img src="//2.f.ix.de/icons/ho/bilderstrecke.png"     width="17"  height="11" alt="Bilderstrecke" title="Bilderstrecke im Beitrag" /> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Search-FYI-Facebook-fuehrt-Inhaltssuche-ein-2853645.html" title="Search FYI: Facebook führt Inhaltssuche ein">Search FYI: Facebook führt Inhaltssuche ein</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/JVM-Sprachen-Kotlin-1-0-naehert-sich-der-Beta-Phase-2853571.html" title="JVM-Sprachen: Kotlin 1.0 nähert sich der Beta-Phase">JVM-Sprachen: Kotlin 1.0 nähert sich der Beta-Phase</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Microsoft-startet-schwach-ins-neue-Finanzjahr-2853568.html" title="Microsoft startet schwach ins neue Finanzjahr">Microsoft startet schwach ins neue Finanzjahr</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Gegen-Hirnalterung-Neues-Zellerzeugungsverfahren-wird-erprobt-2853551.html" title="Gegen Hirnalterung: Neues Zellerzeugungsverfahren wird erprobt">Gegen Hirnalterung: Neues Zellerzeugungsverfahren wird erprobt</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Amazon-verzueckt-Anleger-mit-Gewinn-2853581.html" title="Amazon verzückt Anleger mit Gewinn">Amazon verzückt Anleger mit Gewinn</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Ueberholspur-zur-Fusionsenergie-2853549.html" title="Überholspur zur Fusionsenergie">Überholspur zur Fusionsenergie</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Google-und-Alphabet-Sprudelnde-Gewinne-zum-Einstand-2853557.html" title="Google und Alphabet: Sprudelnde Gewinne zum Einstand ">Google und Alphabet: Sprudelnde Gewinne zum Einstand </a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Cloud-Computing-HP-strukturiert-Helion-um-2853530.html" title="Cloud Computing: HP strukturiert Helion um">Cloud Computing: HP strukturiert Helion um</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/Virtual-Reality-wird-serioes-New-York-Times-verteilt-eine-Million-VR-Pappbrillen-2853207.html" title="Virtual Reality wird seriös: New York Times verteilt eine Million VR-Pappbrillen">Virtual Reality wird seriös: New York Times verteilt eine Million VR-Pappbrillen</a>
+            </li>
+        
+            <li>
+                <a href="/newsticker/meldung/DucTT-Roehren-Inspektions-Roboter-aus-zwei-Tetraedern-2853267.html" title="DucTT: Röhren-Inspektions-Roboter aus zwei Tetraedern">DucTT: Röhren-Inspektions-Roboter aus zwei Tetraedern</a> <img src="//2.f.ix.de/icons/ho/video.png"             width="17"  height="11" alt="Video"         title="Video im Beitrag"         />
+            </li>
+        </ul>
+
+        <p class="weitere">
+            <a href="/newsticker/archiv/">Zum News-Archiv ...</a>
+        </p>
+
+</div>
+
+            <!--googleoff: all-->
+            <div class="adbottom clearfix">
+                <!--googleoff: index-->
+<!-- RSPEAK_STOP -->
+<a href="http://www.heise.de/mediadaten/online/" target="_blank" class="hinweis_anzeige">Anzeige</a><br><div id='div-gpt-ad-1057950828-1'>
+<script type='text/javascript'>
+googletag.display("div-gpt-ad-1057950828-1");
+</script>
+<noscript><div><a href="//pubads.g.doubleclick.net/gampad/jump?iu=%2F6514%2Fwww.heise.de%2Fnewsticker%2F7-tage%2F&c=1057950828&sz=500x500%7C540x65&tile=1" target="_blank"><img alt="" src="//pubads.g.doubleclick.net/gampad/ad?iu=%2F6514%2Fwww.heise.de%2Fnewsticker%2F7-tage%2F&c=1057950828&sz=500x500%7C540x65&tile=1" /></a></div></noscript>
+</div>
+
+<!-- RSPEAK_START -->
+<!--googleon: index--><!--googleoff: all-->
+            </div>
+                </div>
+                <div id="mitte_rechts">
+                            <!--googleoff: index-->
+<!-- RSPEAK_STOP -->
+<div  class="bcadv ISI_IGNORE bcadv_oben"><a href="http://www.heise.de/mediadaten/online/" target="_blank" class="hinweis_anzeige">Anzeige</a><br><div id='div-gpt-ad-1057950828-2'>
+<script type='text/javascript'>
+googletag.display("div-gpt-ad-1057950828-2");
+</script>
+<noscript><div><a href="//pubads.g.doubleclick.net/gampad/jump?iu=%2F6514%2Fwww.heise.de%2Fnewsticker%2F7-tage%2F&c=1057950828&sz=300x250%7C300x600%7C336x280&tile=2" target="_blank"><img alt="" src="//pubads.g.doubleclick.net/gampad/ad?iu=%2F6514%2Fwww.heise.de%2Fnewsticker%2F7-tage%2F&c=1057950828&sz=300x250%7C300x600%7C336x280&tile=2" /></a></div></noscript>
+</div>
+</div>
+<!-- RSPEAK_START -->
+<!--googleon: index--><!--googleoff: all--><!-- RSPEAK_STOP -->
+                            
+                                <!-- Top-News -->
+                                
+    <div class="teaser_liste_topnews">            <h4>Top-News</h4>        <ul>            <li><a href="/meldung/Netzneutralitaet-Proteste-gegen-Telekom-Vorstoss-fuer-Internetmaut-2866390.html" name="spalte.ho.topnews.1">Netzneutralität: Proteste gegen Telekom-Vorstoß für Internetmaut</a></li>            <li><a href="/meldung/Nach-000webhost-Hack-13-Millionen-Nutzerdaten-im-Umlauf-2866249.html" name="spalte.ho.topnews.2">Nach 000webhost-Hack: 13 Millionen Nutzerdaten im Umlauf</a></li>            <li><a href="/meldung/Fatale-Sicherheitsluecken-in-Zwangsroutern-von-Vodafone-Kabel-Deutschland-2866037.html" name="spalte.ho.topnews.3">Fatale Sicherheitslücken in Zwangsroutern von Vodafone/Kabel Deutschland</a></li>            <li><a href="/meldung/Hands-on-Das-neue-Apple-TV-im-Video-2866259.html" name="spalte.ho.topnews.4">Hands-on: Das neue Apple TV im Video</a></li>            <li><a href="/meldung/BND-NSA-Affaere-Sonderermittler-deckt-erhebliche-Maengel-und-Rechtsbruch-auf-2866243.html" name="spalte.ho.topnews.5">BND/NSA-Affäre: Sonderermittler deckt erhebliche Mängel und Rechtsbruch auf</a></li>        </ul>
+    </div>
+
+                            
+    <!-- tp_heise_all_incl_teaser_newsletter.html -->
+	<div id="teaser_newsletter_2014" class="ho medium" style="background-image: url(/imgs/02/1/2/5/5/4/2/0/newsletter_briefumschlag_ho_klein2-4b495d4dbd4ddf57.png);">
+
+		<h4>Top-Newsletter</h4>
+		<p class="teaser_newsletter_copy">Die wichtigsten Meldungen 2 ✕ wöchentlich.</p>
+
+		<form action="/newsletter/manage/topnewsletter-ho/confirm-subscription" id="teaser_newsletter_2014_form">
+			<div class="row">
+				<div class="col-2">
+					<input name="s_email" id="teaser_newsletter_2014_email" type="email" placeholder="E-Mail-Adresse" value="" />
+					<a id="newsletter_2014_privacy" class="privacy" href="/privacy/">Datenschutz</a>
+				</div>
+				<div class="col-1">
+					<button type="submit" id="teaser_newsletter_2014_submit" class="button full">Anmelden</button>
+				</div>
+			</div>
+		</form>
+	</div><!-- teaser_newsletter_2014 END -->
+<!-- tp_heise_all_incl_teaser_newsletter.html END -->
+
+
+
+                            
+    
+        <div class="teaser_right">
+            <p>
+                
+                    <a href="/mac-and-i/heft/2015/5/4/"  name="spalte.ho.teaser.rechts_2" >
+                        <img src="//2.f.ix.de/imgs/02/1/5/9/2/6/9/2/Titelbild85x120-bfdefc962786452f.jpeg" alt="" style="margin-bottom: 3px;" />
+                    </a><br />
+                
+                
+                
+                    
+                       <a href="/mac-and-i/heft/2015/5/4/"  name="spalte.ho.teaser.rechts_2"  >
+                    
+                    <b>Mac &amp; i Heft 5/2015</b>
+                    
+                        </a>
+                    
+                    <br />
+                
+                <span class="size80">OS X El Capitan, iOS 9, watchOS 2 im Detail • Time Machine für Fortgeschrittene • AirPlay nachrüsten • Angriff aus dem Stick • Drohnen  • Akkupacks • Apps für Kinder • Alle gegen Word • iPad als Mac-Display • iPad mini 4 • iPhone 6s und 6s Plus</span>
+            </p>
+            <div class="clear"></div>
+        </div>
+    
+
+
+
+                            
+    
+        <div class="teaser_right">
+            <p>
+                
+                    <a href="/tp/artikel/46/46425/1.html"  name="spalte.ho.teaser.rechts_3" >
+                        <img src="//2.f.ix.de/imgs/02/6/6/5/7/4/9/46425_0-02581102cc4a8aab.jpeg" alt="Telepolis: Medien" style="margin-bottom: 3px;" />
+                    </a><br />
+                
+                <b class="size80">Telepolis</b><br />
+                
+                    
+                       <a href="/tp/artikel/46/46425/1.html"  name="spalte.ho.teaser.rechts_3"  >
+                    
+                    <b>Fleisch, Wurst, Krebs: WHO rudert zurück</b>
+                    
+                        </a>
+                    
+                    <br />
+                
+                <span class="size80">Ernährungswissenschaftler warten auf Vollpublikation</span>
+            </p>
+            <div class="clear"></div>
+        </div>
+    
+
+
+
+                            
+    
+        <div class="teaser_right">
+            <p>
+                
+                    <a href="/ix/inhalt/2015/11/4/"  name="spalte.ho.teaser.rechts_4" >
+                        <img src="//2.f.ix.de/imgs/02/9/4/8/9/3/7/ix-2015-11-31fb7c92a0ab8c5a.jpeg" alt="" style="margin-bottom: 3px;" />
+                    </a><br />
+                
+                <b class="size80">iX 11/2015</b><br />
+                
+                    
+                       <a href="/ix/inhalt/2015/11/4/"  name="spalte.ho.teaser.rechts_4"  >
+                    
+                    <b>DevOps: Infrastrukur im Griff</b>
+                    
+                        </a>
+                    
+                    <br />
+                
+                <span class="size80">Development + Operations mit Ansible, Chef, Puppet &amp; Co.<br />
+<br />
+Außerdem: Sicherheitslinux Kali 2.0, C++14-Memory-Modell u.v.a.m.</span>
+            </p>
+            <div class="clear"></div>
+        </div>
+    
+
+
+
+                                    
+        <p class="us_ad">
+            <span><a href="/mediadaten/heise-online/" target="_blank" class="hinweis_anzeige">Anzeige</a></span><br>
+            <a href="http://pubads.g.doubleclick.net/gampad/clk?id=33600470&amp;iu=/6514/www.heise.de/clicktracking/usAd" target="_blank"><img src="//1.f.ix.de/imgs/02/1/5/7/4/0/0/8/nessus-de_336x200Static-73af420a4cd42e5e.png" width="336" height="200" alt=""></a>
+            <script type="text/javascript">
+            <!--//--><![CDATA[//><!--
+                (function (){
+                    var AVW = '<' + 'img id="avw_pixel_intern" src="/avw-bin/ivw/CP/barfoo/ho/2793048/0.gif?d=_ORD_" width="1" height="1" alt="">'.replace('_ORD_', Math.floor(Math.random()*1000000000)+1000000000);
+                    document.write(AVW);
+                })();
+            //--><!]]>
+            </script>
+            <noscript><img id="avw_pixel_intern" src="/avw-bin/ivw/CP/barfoo/ho/2793048/0.gif" width="1" height="1" alt=""></noscript>
+        </p>
+
+                                    
+    <div class="teaser_adliste">
+        <p><a href="/mediadaten/heise-online/" target="_blank" class="hinweis_anzeige">Anzeige</a></p>
+        <ul class="microsites">
+            <li>
+007994
+<a href="http://pubads.g.doubleclick.net/gampad/clk?id=32947190&amp;iu=/6514/www.heise.de/clicktracking/textlink" rel="nofollow" target="_blank">All Flash. No Limits - Storage Lösungen von HP</a></li>
+            <li><a href="http://pubads.g.doubleclick.net/gampad/clk?id=33734990&amp;iu=/6514/www.heise.de/clicktracking/textlink" rel="nofollow" target="_blank">Wie profitieren Mittelständler von Windows 10?</a></li>
+            <li><a href="http://pubads.g.doubleclick.net/gampad/clk?id=33650150&amp;iu=/6514/www.heise.de/clicktracking/textlink" rel="nofollow" target="_blank">Über 600 kostenlose eBooks für Bildung und Beruf </a></li>
+            <li><a href="http://pubads.g.doubleclick.net/gampad/clk?id=29918270&amp;iu=/6514/www.heise.de/clicktracking/textlink" rel="nofollow" target="_blank">Diese Nerd-Gadgets sind nicht für jeden Geschmack</a></li>
+            <li><a href="http://pubads.g.doubleclick.net/gampad/clk?id=34481630&amp;iu=/6514/www.heise.de/clicktracking/textlink" rel="nofollow" target="_blank">Mobile Apps einfach und schnell entwickeln</a></li>
+            <li><a href="http://pubads.g.doubleclick.net/gampad/clk?id=34489310&amp;iu=/6514/www.heise.de/clicktracking/textlink" rel="nofollow" target="_blank">iX-Webinar: Schlagabtausch vSphere vs. Hyper-V</a></li>
+            <li><a href="http://pubads.g.doubleclick.net/gampad/clk?id=34461590&amp;iu=/6514/www.heise.de/clicktracking/textlink" rel="nofollow" target="_blank">So wehren Sie DDoS-Attacken zuverlässig ab!</a></li>
+            <li><a href="http://pubads.g.doubleclick.net/gampad/clk?id=33920630&amp;iu=/6514/www.heise.de/clicktracking/textlink" rel="nofollow" target="_blank">So führen Sie Ihr IAM-Projekt zum Erfolg</a></li>
+            <li><a href="http://pubads.g.doubleclick.net/gampad/clk?id=34065590&amp;iu=/6514/www.heise.de/clicktracking/textlink" rel="nofollow" target="_blank">Wie Sie Ihre Stammdaten optimieren</a></li>
+            <li><a href="http://pubads.g.doubleclick.net/gampad/clk?id=34017590&amp;iu=/6514/www.heise.de/clicktracking/textlink" rel="nofollow" target="_blank">Jetzt online: „IT-Sicherheit im Unternehmen“</a></li>
+        </ul>
+    </div>
+
+                                
+                            <section id="jobware-teaser">
+    <p class="anzeige"><a target="_blank" href="/mediadaten/online/">Anzeige</a></p>
+    <header><a href="http://jobs.heise.de/" name="spalte.ho.jobs.logo">
+        <figure><img src="//1.f.ix.de/heisejobs/icons/jobs_logo.png"><figcaption>Der Stellenmarkt auf heise online.</figcaption></figure>
+    </a></header>
+    <ul>
+    <li><a href="http://jobs.heise.de/Job/Geschaeftsbereichskoordinator-in-CRM.26079691.html" name="spalte.ho.jobs.job1" target="heisejobs">
+            <p><b class="teaser-title">Geschäftsbereichskoordinator/in CRM</b>
+            Anforderungsdefinition in Zusammenarbeit mit den Fachabteilungen</p>
+            </a>
+        </li>
+    <li><a href="http://jobs.heise.de/Job/TeleService-Techniker-m-w.26079341.html" name="spalte.ho.jobs.job2" target="heisejobs">
+            <p><b class="teaser-title">TeleService Techniker (m/w)</b>
+            Telefonische und datentechnische Unterstützung für die Kunden und Servicetechniker</p>
+            </a>
+        </li>
+    <li><a href="http://jobs.heise.de/Job/Entwicklungsingenieur-Software-m-w-Webbasierte-Applikationen.26078961.html" name="spalte.ho.jobs.job3" target="heisejobs">
+            <p><b class="teaser-title">Entwicklungsingenieur Software (m/w) - Webbasierte Applikationen</b>
+            Analyse, Design, Implementierung und Verifikation von web­ba­sier­ten Anwendungen</p>
+            </a>
+        </li>
+    </ul>
+</section>
+
+
+                            
+    
+        <div class="teaser_right">
+            <p>
+                
+                    <a href="/meldung/Mondfotos-mit-2000-Millimetern-Bridge-Kamera-Nikon-Coolpix-P900-mit-83-fachem-Zoom-2564132.html"  name="spalte.ho.teaser.rechts_6" >
+                        <img src="//3.f.ix.de/imgs/02/1/0/6/2/4/8/8/Kamera-e70a96096e6ff782.png" alt="Nikon Coolpix P900: Mondfotos mit 2000 Millimetern" style="margin-bottom: 3px;" />
+                    </a><br />
+                
+                
+                
+                    
+                       <a href="/meldung/Mondfotos-mit-2000-Millimetern-Bridge-Kamera-Nikon-Coolpix-P900-mit-83-fachem-Zoom-2564132.html"  name="spalte.ho.teaser.rechts_6"  >
+                    
+                    <b>Mondfotos mit 2000 Millimetern</b>
+                    
+                        </a>
+                    
+                    <br />
+                
+                <span class="size80">Mit dem 83-fachen optischen Zoom will Nikon mit der Bridge-Kamera Coolpix P900 Maßstäbe setzen. Wenn selbst 2000 Millimeter Brennweite nicht reichen sollten, gibt es per Knopfdruck eine noch stärkere Telewirkung.</span>
+            </p>
+            <div class="clear"></div>
+        </div>
+    
+
+
+
+                            
+    
+        <div class="teaser_left">
+            <p>
+                
+                    <a href="/autos/artikel/Fahrbericht-Honda-NSX-2857912.html"  name="spalte.ho.teaser.rechts_7" >
+                        <img src="//1.f.ix.de/imgs/02/3/9/8/2/9/6/ir_engine-be271861eb0d6f47.jpeg" alt="Fahrbericht: Honda NSX " style="margin-bottom: 3px;" />
+                    </a><br />
+                
+                <b class="size80">heise Autos</b><br />
+                
+                    
+                       <a href="/autos/artikel/Fahrbericht-Honda-NSX-2857912.html"  name="spalte.ho.teaser.rechts_7"  >
+                    
+                    <b>Enhanced Experience</b>
+                    
+                        </a>
+                    
+                    <br />
+                
+                <span class="size80">Honda erlaubte uns eine kurze Probefahrt mit dem Erben der automobilen Legende NSX</span>
+            </p>
+            <div class="clear"></div>
+        </div>
+    
+
+
+
+                            
+                            
+    
+        <div class="teaser_left">
+            <p>
+                
+                    <a href="https://shop.heise.de/ct-wissen-raspberry-2015?pid=6001001173"  name="spalte.ho.teaser.rechts_9" >
+                        <img src="//2.f.ix.de/imgs/02/4/0/0/3/1/9/raspberry-pi-2-1d0e18ef36c7d05a.png" alt="" style="margin-bottom: 3px;" />
+                    </a><br />
+                
+                
+                
+                    
+                       <a href="https://shop.heise.de/ct-wissen-raspberry-2015?pid=6001001173"  name="spalte.ho.teaser.rechts_9"  >
+                    
+                    <b>c't wissen Raspberry Pi</b>
+                    
+                        </a>
+                    
+                    <br />
+                
+                <span class="size80">Vom einfach installierbaren Mediacenter über die Spielkonsole bis zum komplexen Programmierprojekt: in diesem Praxisratgeber finden Sie Basiswissen und unterschiedlich aufwenige Projekte für den Minirechner.</span>
+            </p>
+            <div class="clear"></div>
+        </div>
+    
+
+
+
+                            
+                            
+    <script type="text/javascript">
+        $(document).ready( function() {
+            $('div#teaser_top_beitrag').tabs();
+        });
+    </script>
+    <div id="teaser_top_beitrag">
+        <ul id="teaser_top_beitrag_titel">
+            <li><a href="#meistgelesen">Meistgelesene News</a></li>
+            <li><a href="#meistkommentiert">Meistkommentierte News</a></li>
+        </ul>
+        <div id="meistgelesen" >
+            <ul>
+                <li><a href="/meldung/Medion-Akoya-E6418-Aldi-Notebook-mit-guter-Ausstattung-2861424.html" name="spalte.ho.meistgelesen.1">Medion Akoya E6418: Aldi-Notebook mit guter Ausstattung</a></li>
+                <li><a href="/meldung/Jackpotting-Dieb-raeumt-Geldautomaten-in-Deutschland-per-USB-Stick-leer-2865909.html" name="spalte.ho.meistgelesen.2">Jackpotting: Dieb räumt Geldautomaten in Deutschland per USB-Stick leer</a></li>
+                <li><a href="/meldung/Bill-Gates-wird-60-Der-Mann-der-nicht-KI-Forscher-wurde-2860199.html" name="spalte.ho.meistgelesen.3">Bill Gates wird 60: Der Mann, der nicht KI-Forscher wurde</a></li>
+                <li><a href="/meldung/Netzneutralitaet-Telekom-Chef-will-Startups-zur-Kasse-bitten-2865381.html" name="spalte.ho.meistgelesen.4">Netzneutralität: Telekom-Chef will Startups zur Kasse bitten</a></li>
+                <li><a href="/meldung/Empfehlung-des-FBI-Bei-Erpressungs-Trojanern-klein-beigeben-und-einfach-bezahlen-2859151.html" name="spalte.ho.meistgelesen.5">Empfehlung des FBI: Bei Erpressungs-Trojanern klein beigeben und einfach bezahlen</a></li>
+            </ul>
+        </div>
+        <div id="meistkommentiert">
+            <ul>
+                <li><a href="/meldung/Netzneutralitaet-Telekom-Chef-will-Startups-zur-Kasse-bitten-2865381.html">Netzneutralität: Telekom-Chef will Startups zur Kasse bitten</a></li>
+                <li><a href="/meldung/Deutsche-Paypal-Alternative-Paydirekt-Man-muss-nicht-immer-der-Erste-sein-2860919.html">Deutsche Paypal-Alternative Paydirekt: "Man muss nicht immer der Erste sein"</a></li>
+                <li><a href="/meldung/Upgrade-auf-Windows-10-ueberarbeitet-2866133.html">Upgrade auf Windows 10 überarbeitet</a></li>
+                <li><a href="/meldung/Computeruhren-Apple-Watch-beim-Marktanteil-deutlich-vorne-2864715.html">Computeruhren: Apple Watch beim Marktanteil deutlich vorne</a></li>
+                <li><a href="/meldung/Jackpotting-Dieb-raeumt-Geldautomaten-in-Deutschland-per-USB-Stick-leer-2865909.html">Jackpotting: Dieb räumt Geldautomaten in Deutschland per USB-Stick leer</a></li>
+            </ul>
+        </div>
+    </div>
+<!--googleoff: all-->
+                            <div class="clear"></div>
+                            
+                            
+                            <div class="online-markt">
+    <p class="left">ONLINE MARKT</p>
+    <p class="right">Werbung</p>
+    
+    <div class="teaser_unternehmen">
+	<h5>Verbundene Unternehmen</h5>
+	<a href="http://www.fotoespresso.de/" rel="external" title="dpunkt.foto - Portal für Fotografie"><img src="//1.f.ix.de/icons/ho/dpunktfoto.gif" alt="dpunkt.foto - Portal für Fotografie" width="140" height="45" style="margin-left: 7px;" /></a>
+        <a href="http://www.seenby.de/" rel="external"><img src="//2.f.ix.de/icons/ho/seenby_logo.gif" alt="seenby Logo" width="150" height="41" style="margin-left: 7px;" /></a><br class="clear" />
+	<a title="MittelstandsWiki - Marktwirtschaft und Mittelstand" href="http://www.mittelstandswiki.de/" rel="external"><img src="//3.f.ix.de/icons/ho/mittelstandswiki.gif" alt="MittelstandsWiki - Marktwirtschaft und Mittelstand" width="280" height="30" /></a>
+    </div>
+</div>
+
+                            
+    <section class="teaser_preisvergleich_top10">
+	<header class="teaser_titel_preisvergleich">
+        <a href="http://www.heise.de/preisvergleich/" title="Recherche und Preisvergleich Top 10" name="rms.ho.preisvergleich">
+            Top-10 Preisvergleich
+        </a>
+    </header>
+
+
+<ol>
+    
+        <li>
+			<strong>
+	            <a href="http://www.heise.de/preisvergleich/a1290371.html" title="Intel Core i7-6700K, 4x 4.00GHz, boxed ohne Kühler (BX80662I76700K)" name="rms.ho.preisvergleich" class="top10 preisvergleich_top10_produkt">
+	                Intel Core i7-6700K
+	            </a>
+			</strong>
+            <a class="preisvergleich_top10_preis" href="http://www.heise.de/preisvergleich/a1290371.html" title="Intel Core i7-6700K, 4x 4.00GHz, boxed ohne Kühler (BX80662I76700K)" name="rms.ho.preisvergleich">
+                ab 379,85 €
+            </a>
+             <span class="preisvergleich_top10_kategorie">
+                Intel Sockel 1151
+            </span>
+        </li>
+    
+        <li>
+			<strong>
+	            <a href="http://www.heise.de/preisvergleich/a1194261.html" title="Samsung SSD 850 Evo 250GB, SATA (MZ-75E250B)" name="rms.ho.preisvergleich" class="top10 preisvergleich_top10_produkt">
+	                Samsung SSD 850 Evo 250GB
+	            </a>
+			</strong>
+            <a class="preisvergleich_top10_preis" href="http://www.heise.de/preisvergleich/a1194261.html" title="Samsung SSD 850 Evo 250GB, SATA (MZ-75E250B)" name="rms.ho.preisvergleich">
+                ab 83,28 €
+            </a>
+             <span class="preisvergleich_top10_kategorie">
+                Solid State Drives (SSDs)
+            </span>
+        </li>
+    
+        <li>
+			<strong>
+	            <a href="http://www.heise.de/preisvergleich/a1194263.html" title="Samsung SSD 850 Evo 500GB, SATA (MZ-75E500B)" name="rms.ho.preisvergleich" class="top10 preisvergleich_top10_produkt">
+	                Samsung SSD 850 Evo 500GB
+	            </a>
+			</strong>
+            <a class="preisvergleich_top10_preis" href="http://www.heise.de/preisvergleich/a1194263.html" title="Samsung SSD 850 Evo 500GB, SATA (MZ-75E500B)" name="rms.ho.preisvergleich">
+                ab 152,10 €
+            </a>
+             <span class="preisvergleich_top10_kategorie">
+                Solid State Drives (SSDs)
+            </span>
+        </li>
+    
+        <li>
+			<strong>
+	            <a href="http://www.heise.de/preisvergleich/a1290376.html" title="Intel Core i5-6600K, 4x 3.50GHz, boxed ohne Kühler (BX80662I56600K)" name="rms.ho.preisvergleich" class="top10 preisvergleich_top10_produkt">
+	                Intel Core i5-6600K
+	            </a>
+			</strong>
+            <a class="preisvergleich_top10_preis" href="http://www.heise.de/preisvergleich/a1290376.html" title="Intel Core i5-6600K, 4x 3.50GHz, boxed ohne Kühler (BX80662I56600K)" name="rms.ho.preisvergleich">
+                ab 255,08 €
+            </a>
+             <span class="preisvergleich_top10_kategorie">
+                Intel Sockel 1151
+            </span>
+        </li>
+    
+        <li>
+			<strong>
+	            <a href="http://www.heise.de/preisvergleich/a1204027.html" title="Seagate Archive HDD v2 8TB, SATA 6Gb/s (ST8000AS0002)" name="rms.ho.preisvergleich" class="top10 preisvergleich_top10_produkt">
+	                Seagate Archive HDD v2 8TB
+	            </a>
+			</strong>
+            <a class="preisvergleich_top10_preis" href="http://www.heise.de/preisvergleich/a1204027.html" title="Seagate Archive HDD v2 8TB, SATA 6Gb/s (ST8000AS0002)" name="rms.ho.preisvergleich">
+                ab 215,99 €
+            </a>
+             <span class="preisvergleich_top10_kategorie">
+                Hard Disk Drives (HDDs)
+            </span>
+        </li>
+    
+        <li>
+			<strong>
+	            <a href="http://www.heise.de/preisvergleich/a1327973.html" title="Samsung SSD 950 Pro 512GB, M.2 (MZ-V5P512BW)" name="rms.ho.preisvergleich" class="top10 preisvergleich_top10_produkt">
+	                Samsung SSD 950 Pro 512GB
+	            </a>
+			</strong>
+            <a class="preisvergleich_top10_preis" href="http://www.heise.de/preisvergleich/a1327973.html" title="Samsung SSD 950 Pro 512GB, M.2 (MZ-V5P512BW)" name="rms.ho.preisvergleich">
+                ab 328,18 €
+            </a>
+             <span class="preisvergleich_top10_kategorie">
+                Solid State Drives (SSDs)
+            </span>
+        </li>
+    
+        <li>
+			<strong>
+	            <a href="http://www.heise.de/preisvergleich/a1326323.html" title="Sapphire Radeon R9 390 Nitro + Backplate, 8GB GDDR5, DVI, HDMI, 3x DisplayPort, lite retail (11244-01-20G)" name="rms.ho.preisvergleich" class="top10 preisvergleich_top10_produkt">
+	                Sapphire Radeon R9 390 Nitro + Backplate
+	            </a>
+			</strong>
+            <a class="preisvergleich_top10_preis" href="http://www.heise.de/preisvergleich/a1326323.html" title="Sapphire Radeon R9 390 Nitro + Backplate, 8GB GDDR5, DVI, HDMI, 3x DisplayPort, lite retail (11244-01-20G)" name="rms.ho.preisvergleich">
+                ab 335,20 €
+            </a>
+             <span class="preisvergleich_top10_kategorie">
+                PCIe
+            </span>
+        </li>
+    
+        <li>
+			<strong>
+	            <a href="http://www.heise.de/preisvergleich/a1212071.html" title="Dell UltraSharp U2515H, 25&quot; (210-ADZG)" name="rms.ho.preisvergleich" class="top10 preisvergleich_top10_produkt">
+	                Dell UltraSharp U2515H
+	            </a>
+			</strong>
+            <a class="preisvergleich_top10_preis" href="http://www.heise.de/preisvergleich/a1212071.html" title="Dell UltraSharp U2515H, 25&quot; (210-ADZG)" name="rms.ho.preisvergleich">
+                ab 291,95 €
+            </a>
+             <span class="preisvergleich_top10_kategorie">
+                LCD-Monitore
+            </span>
+        </li>
+    
+        <li>
+			<strong>
+	            <a href="http://www.heise.de/preisvergleich/a1050218.html" title="Intel Core i5-4460, 4x 3.20GHz, boxed (BX80646I54460)" name="rms.ho.preisvergleich" class="top10 preisvergleich_top10_produkt">
+	                Intel Core i5-4460
+	            </a>
+			</strong>
+            <a class="preisvergleich_top10_preis" href="http://www.heise.de/preisvergleich/a1050218.html" title="Intel Core i5-4460, 4x 3.20GHz, boxed (BX80646I54460)" name="rms.ho.preisvergleich">
+                ab 167,94 €
+            </a>
+             <span class="preisvergleich_top10_kategorie">
+                Intel Sockel 1150
+            </span>
+        </li>
+    
+        <li>
+			<strong>
+	            <a href="http://www.heise.de/preisvergleich/a1275321.html" title="Intel Core i5-5675C, 4x 3.10GHz, boxed (BX80658I55675C)" name="rms.ho.preisvergleich" class="top10 preisvergleich_top10_produkt">
+	                Intel Core i5-5675C
+	            </a>
+			</strong>
+            <a class="preisvergleich_top10_preis" href="http://www.heise.de/preisvergleich/a1275321.html" title="Intel Core i5-5675C, 4x 3.10GHz, boxed (BX80658I55675C)" name="rms.ho.preisvergleich">
+                ab 219,99 €
+            </a>
+             <span class="preisvergleich_top10_kategorie">
+                Intel Sockel 1150
+            </span>
+        </li>
+    
+</ol>
+
+<form method="get" action="http://www.heise.de/preisvergleich/" id="sform">
+    <select name="in">
+    	<option value="">in allen Kategorien</option>
+        <option value="1">in Hardware</option>
+        <option value="2">in Software</option>
+        <option value="3">in Games</option>
+        <option value="4">in Video/Foto/TV</option>
+        <option value="5">in Telefon &amp; Co</option>
+        <option value="6">in Audio/HIFI</option>
+        <option value="7">in DVD</option>
+        <option value="8">in Haushalt</option>
+    </select>
+	<input type="search" name="fs" size="15" />
+	<input type="submit" value="Suchen" class="submit" />
+</form>
+
+
+    </section>
+
+
+                                
+    <div class="teaser_hbs">
+        <span><a href="/mediadaten/heise-online/" target="_blank" class="hinweis_anzeige">Anzeige</a></span>
+        <p>
+            <a href="http://www.heise.de/microsites/erfolgreiche-iam-projekte/home/158/490/" target="_blank"><img src="//2.f.ix.de/imgs/02/1/3/7/9/2/5/9/Dell_IAM_HBSAd_300x600_blau-e80c747e0a9f9fed.jpg" width="300" height="600" alt=""></a>
+        </p>
+    </div>
+
+                                
+                                <p class="us_ad clearfix">
+                                    <span><a href="/mediadaten/heise-online/" target="_blank" class="hinweis_anzeige">Anzeige</a></span><br>
+                                    <a href="http://pubads.g.doubleclick.net/gampad/clk?id=33074630&iu=/6514/www.heise.d
+e/clicktracking/usAd" target="_blank"><img src="//1.f.ix.de/icons/ho/gh_heise_usAd.jpg" alt="Geizhals Preisvergleich in Google Play" height="200" width="336"></a>
+                                </p>
+                            <div class="teaser_abdeckung"></div>
+                </div>
+            </div>
+            <div id="sitemap">
+                <ul class="navi_top_abschnitt">
+                    <li><a href="/"                           title="heise online"            class="navi_oben_ho"    name="footer.ho.ho">heise online</a></li>
+                    <li><a href="/ct/"                        title="c't"                     class="navi_oben_ct"    name="footer.ho.ct">c't Magazin</a></li>
+                    <li><a href="/ix/"                        title="iX"                      class="navi_oben_ix"    name="footer.ho.ix">iX Magazin</a></li>
+                    <li><a href="/tr/"                        title="Technology Review"       class="navi_oben_tr"    name="footer.ho.tr">Technology&nbsp;Review</a></li>
+                    <li><a href="/mac-and-i/"                 title="Mac &amp; i"             class="navi_oben_mac"   name="footer.ho.mac-and-i">Mac &amp; i</a></li>
+                </ul>
+                <ul class="navi_top_abschnitt">
+                    <li><a href="/tp/"                        title="Telepolis"               class="navi_oben_tp"    name="footer.ho.tp">Telepolis</a></li>
+                    <li><a href="/make/"                   title="Make"               class="navi_oben_hh"    name="footer.ho.make">Make</a></li>
+                    <li><a href="/foto/inhalt/"               title="Digitale Fotografie"     class="navi_oben_df"    name="footer.ho.digitale-fotografie">Digitale Fotografie</a></li>
+                    <li><a href="/autos/"                     title="heise Autos"             class="navi_oben_aut"    name="footer.ho.autos" >heise Autos</a></li>
+                    <li><a href="/developer/"                 title="heise Developer"         class="navi_oben_dev"    name="footer.ho.developer">heise Developer</a></li>
+                </ul>
+                <ul class="navi_top_abschnitt">
+                    <li><a href="/foto/"                      title="heise Foto"              class="navi_oben_foto"   name="footer.ho.foto">heise Foto</a></li>
+                    <li><a href="/netze/"                     title="heise Netze"             class="navi_oben_net"    name="footer.ho.netze">heise Netze</a></li>
+                    <li><a href="/open/"                      title="heise Open Source"       class="navi_oben_op"     name="footer.ho.open">Open Source</a></li>
+                    <li><a href="/security/"                  title="heise Security"          class="navi_oben_sec"    name="footer.ho.security">heise Security</a></li>
+                </ul>
+                <ul class="navi_top_abschnitt">
+                    <li><a href="/video/"                     title="heise Video"             class="navi_oben_video"  name="footer.ho.video">heise Video</a></li>
+                    <li><a href="http://www.techstage.de/"    title="TechStage"               class="navi_oben_tech"   name="footer.ho.techstage">TechStage</a></li>
+                    <li><a href="/download/"                  title="Software-Verzeichnis"    class="navi_oben_swv"    name="footer.ho.download">Download</a></li>
+                    <li><a href="/preisvergleich/"            title="Preisvergleich"          class="navi_oben_pvg"    name="footer.ho.preisvergleich">Preisvergleich</a></li>
+                    <li><a href="/jobs/"                      title="heise jobs"              class="navi_oben_job"    name="footer.ho.jobs">Stellenmarkt</a></li>
+                </ul>
+                <ul class="navi_top_abschnitt">
+                    <li><a href="/events/"                    title="heise Events"            class="navi_oben_eve"    name="footer.ho.events">Veranstaltungen</a></li>
+                    <li><a href="/itmarkt/"                   title="IT-Markt"                class="navi_oben_itm"    name="footer.ho.itmarkt">IT-Markt</a></li>
+                    <li><a href="http://business-services.heise.de/"               title="heise Business Services"       class="navi_oben_whi"    name="footer.ho.hbs">heise Business Services</a></li>
+                    <li><a href="http://tarifrechner.heise.de/" title="Tarifrechner"          class="navi_oben_tarifr" name="footer.ho.tarifrechner">Tarifrechner</a></li>
+                    <li><a href="http://shop.heise.de/"       title="heise-shop"              class="navi_oben_shop"   name="footer.ho.shop">Shop</a></li>
+                </ul>
+                <ul class="navi_top_abschnitt">
+                    <li><a href="//shop.heise.de/artikel-archiv/"            title="Artikel-Archiv"          class="navi_oben_kio"    name="footer.ho.artikel-archiv">Artikel-Archiv</a></li>
+                    <li><a href="https://abo.heise.de/"       title="Zeitschriften-Abo"       class="navi_oben_abo"    name="footer.ho.abo">Abo</a></li>
+                    <li><a href="/loseblattwerke/"            title="Loseblattwerke"                                   name="footer.ho.loseblattwerke">Loseblattwerke</a></li>
+                    <li><a href="/news-extern/news.html"   title="RSS"                name="footer.ho.rss">RSS</a></li>
+                </ul>
+                <ul class="navi_top_abschnitt">
+                    <li><a href="/forum/"                     title="Leserforum"                                       name="footer.ho.forum">Leserforum</a></li>
+                    <li><a href="/newsletter/"                title="Newsletter"                                       name="footer.ho.newsletter">Newsletter</a></li>
+                    <li><a href="/suche/"                     title="Suche"                                            name="footer.ho.suche">Suche</a></li>
+                    <li><a href="/netze/netzwerk-tools/imonitor-internet-stoerungen/"       title="iMonitor – Internet-Störungen" name="footer.ho.imonitor">iMonitor</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="bannerzone">
+            <div class="leaderboard"><div id='div-gpt-ad-1057950828-3'>
+<script type='text/javascript'>
+googletag.display("div-gpt-ad-1057950828-3");
+</script>
+<noscript><div><a href="//pubads.g.doubleclick.net/gampad/jump?iu=%2F6514%2Fwww.heise.de%2Fnewsticker%2F7-tage%2F&c=1057950828&sz=468x60%7C728x90%7C970x250&tile=3" target="_blank"><img alt="" src="//pubads.g.doubleclick.net/gampad/ad?iu=%2F6514%2Fwww.heise.de%2Fnewsticker%2F7-tage%2F&c=1057950828&sz=468x60%7C728x90%7C970x250&tile=3" /></a></div></noscript>
+</div>
+</div>
+            <div class="heiseadvert"></div>
+            <div class="skyscraper" ><div id='div-gpt-ad-1057950828-4'>
+<script type='text/javascript'>
+googletag.display("div-gpt-ad-1057950828-4");
+</script>
+<noscript><div><a href="//pubads.g.doubleclick.net/gampad/jump?iu=%2F6514%2Fwww.heise.de%2Fnewsticker%2F7-tage%2F&c=1057950828&sz=160x600%7C200x800&tile=4" target="_blank"><img alt="" src="//pubads.g.doubleclick.net/gampad/ad?iu=%2F6514%2Fwww.heise.de%2Fnewsticker%2F7-tage%2F&c=1057950828&sz=160x600%7C200x800&tile=4" /></a></div></noscript>
+</div>
+</div>
+            
+        </div>
+    </div>
+
+
+
+
+
+<div style="display: inline;"><img id="ivw_pixel_intern" src="/ivw-bin/ivw/CP/newsticker/?url=%2Fnewsticker%2F" width="1" height="1" alt="" /></div>
+    
+    
+
+    
+    <script type="text/javascript">
+    var iam_data = {
+        "st":"heise",
+        "cp":"news_7tage",
+        "sv":"in",
+        "co":"%2Fnewsticker%2F"
+    }
+    iom.c(iam_data);
+    </script>
+
+
+
+
+<!-- Webtrekk 3.2.2, (c) www.webtrekk.com -->
+    <script type="text/javascript" src="/js/ho/webtrekk-v3-bundle-heise-2013-01-21.js"></script>
+    <script type="text/javascript">
+    <!--
+    var pageConfig = {
+        linkTrack : "standard", // Activate Link Tracking    [link or standard]
+        heatmap : "0",          // Activate Heatmap Tracking [1 = on | 0 = off]
+        form : "0",             // Activate Form Tracking    [1 = on | 0 = off]
+        trackId : "288689636920174",
+        pixelSampling : "",
+        contentId: "www.heise.de.newsticker.startseite"
+    };
+    var wt = new webtrekkV3(pageConfig);
+    wt.contentGroup = {};
+    wt.contentGroup['1']  = "www.heise.de";
+    wt.contentGroup['2']  = "newsticker";
+    wt.contentGroup['3']  = "startseite";
+    
+    
+    
+    
+    
+    wt.contentGroup['9']  = "startseite";
+    wt.contentGroup['10'] = "startseite";
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+    
+
+    
+    
+
+    wt.heatmapRefpoint = 'container_content';
+    wt.sendinfo();
+
+    //-->
+    </script>
+    <noscript><div><img src="//prophet.heise.de/288689636920174/wt.pl?p=322,www.heise.de.newsticker.startseite&cg1=www.heise.de&cg10=startseite&cg2=newsticker&cg3=startseite&cg9=startseite" height="1" width="1" alt="" /></div></noscript>
+
+
+<!-- /Webtrekk -->
+
+
+
+    
+
+
+
+
+
+<script type="text/javascript">
+    function _heise_sf_section_from_pathname() {
+        var path    = window.location.pathname;
+        var section = path.split('/')[1] || 'homepage';
+        if ( path === '/newsticker/' || path === '/newsticker/classic/' || path === '/newsticker/archiv/' ) {
+            section = 'homepage';
+        }
+        return section;
+    }
+    var _sf_async_config={};
+    /** CONFIGURATION START **/
+    _sf_async_config.uid = 59838;
+    _sf_async_config.domain = 'heise.de';
+    _sf_async_config.useCanonical = false;
+    _sf_async_config.path = window.location.pathname;
+    _sf_async_config.sections = _heise_sf_section_from_pathname();
+    _sf_async_config.authors = 'die Redaktionen';
+    /** CONFIGURATION END **/
+    (function(){
+      function loadChartbeat() {
+        window._sf_endpt=(new Date()).getTime();
+        var e = document.createElement('script');
+        e.setAttribute('language', 'javascript');
+        e.setAttribute('type', 'text/javascript');
+        e.setAttribute('src', '//static.chartbeat.com/js/chartbeat_video.js');
+        document.body.appendChild(e);
+      }
+      var oldonload = window.onload;
+      window.onload = (typeof window.onload != 'function') ?
+         loadChartbeat : function() { oldonload(); loadChartbeat(); };
+    })();
+</script>
+
+
+
+
+
+    
+        
+
+	<ul id="navi_bottom">
+
+	
+		<li class="left"><a href="/Privacy-Policy-der-Heise-Medien-GmbH-Co-KG-4860.html">Datenschutzhinweis</a> </li>
+	
+
+	
+		<li class="left"><a href="/impressum.html">Impressum</a> </li>
+	
+
+	
+		<li class="left"><a href="/kontakt/">Kontakt</a></li>
+	
+
+	
+		<li class="left"><a href="/mediadaten/">Mediadaten</a> </li>
+	
+
+	
+		<li class="left"><a href="http://m.heise.de/">News mobil</a></li>
+	
+
+
+
+    
+        <li class="right"><a href="http://www.interred.de/" rel="external" style="margin-right: 0;">Content Management</a> by <b style="margin-right: 0.5em;">Inter<span class="tx_red">Red</span></b></li>
+    
+
+	
+		
+		<li class="right"><a href="http://www.plusline.de/">Hosted by Plus.line</a> </li>
+		
+		<li class="right"><a href="http://www.heise-medien.de/">Copyright © 2015 Heise Medien</a> </li>
+		
+	
+
+	
+</ul>
+
+    
+
+
+
+
+<script src="/js/suche/suche.js?4baa3ce03b335b1322e3"></script>
+
+<script src="/js/heise.min.js?b1c7d6456fc56997fdef"></script>
+
+
+</body>
+</html>
+<!-- Created with InterRed V15.5.4, http://www.interred.de/, by InterRed GmbH -->
+<!-- BID: 16, iBID: 1546878, CID: 31, iCID: 2746599 -->
+<!-- Link: $(LB16:Linktext)$ $(LC31:Linktext)$ -->
+<!-- Generiert: 2015-09-14 18:34:19 -->
+
+
+0
+

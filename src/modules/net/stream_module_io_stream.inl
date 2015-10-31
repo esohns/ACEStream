@@ -228,8 +228,10 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
   // allocate a new session state, reset stream
   inherited::initialize ();
   ACE_ASSERT (inherited::sessionData_);
+  SessionDataType* session_data_p =
+      &const_cast<SessionDataType&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  inherited::sessionData_->sessionID = configuration_in.sessionID;
+  session_data_p->sessionID = configuration_in.sessionID;
   //inherited::sessionData_->state =
   //  &const_cast<StateType&> (inherited::state ());
 
@@ -431,11 +433,13 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
+  SessionDataType& session_data_r =
+      const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
   // synch access
-  if (inherited::sessionData_->lock)
+  if (session_data_r.lock)
   {
-    result = inherited::sessionData_->lock->acquire ();
+    result = session_data_r.lock->acquire ();
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -444,11 +448,11 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
     } // end IF
   } // end IF
 
-  inherited::sessionData_->currentStatistic.timestamp = COMMON_TIME_NOW;
+  session_data_r.currentStatistic.timestamp = COMMON_TIME_NOW;
 
-  if (inherited::sessionData_->lock)
+  if (session_data_r.lock)
   {
-    result = inherited::sessionData_->lock->release ();
+    result = session_data_r.lock->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
@@ -491,5 +495,6 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
+
   ACE_NOTREACHED (return;)
 }

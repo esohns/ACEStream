@@ -26,17 +26,14 @@
 #include "ace/OS.h"
 #include "ace/Log_Msg.h"
 
-#include "common_defines.h"
-
 #include "stream_macros.h"
-#include "stream_defines.h"
 
 std::string
-Stream_Tools::timestamp2LocalString (const ACE_Time_Value& timestamp_in)
+Stream_Tools::timeStamp2LocalString (const ACE_Time_Value& timestamp_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Tools::Stream_Tools"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::timeStamp2LocalString"));
 
-  // init return value(s)
+  // initialize return value(s)
   std::string result;
 
   //ACE_Date_Time time_local(timestamp_in);
@@ -50,42 +47,37 @@ Stream_Tools::timestamp2LocalString (const ACE_Time_Value& timestamp_in)
   time_local.tm_year = -1;
   time_local.tm_wday = -1;
   time_local.tm_yday = -1;
-  time_local.tm_isdst = -1; // we expect localtime !!!
-  // *PORTABILITY*: this isn't entirely portable so we do an ugly hack...
+  time_local.tm_isdst = -1; // expect localtime !!!
+  // *PORTABILITY*: this isn't entirely portable so do an ugly hack
 #if !defined (ACE_WIN32) && !defined (ACE_WIN64)
   time_local.tm_gmtoff = 0;
   time_local.tm_zone = NULL;
 #endif
 
   // step1: compute UTC representation
-  time_t time_sec;
-  time_sec = timestamp_in.sec ();
+  time_t time_seconds = timestamp_in.sec ();
   // *PORTABILITY*: man page says we should call this before...
   ACE_OS::tzset ();
-  if (ACE_OS::localtime_r (&time_sec,
-                           &time_local) == NULL)
+  if (!ACE_OS::localtime_r (&time_seconds,
+                            &time_local))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::localtime_r(): \"%m\", aborting\n")));
-
     return result;
   } // end IF
 
   // step2: create string
-  // Note: '\0' doesn't count: 4 + 2 + 2 + 2 + 2 + 2 + 5 blanks
-  // *TODO*: rewrite this in C++...
+  // *TODO*: rewrite this in C++
   char time_string[BUFSIZ];
   if (ACE_OS::strftime (time_string,
                         sizeof (time_string),
-                        ACE_TEXT_ALWAYS_CHAR ("%Y_%m_%d_%H_%M_%S"),
-                        &time_local) != 19)
+                        ACE_TEXT_ALWAYS_CHAR (STREAM_TOOLS_STRFTIME_FORMAT),
+                        &time_local) != STREAM_TOOLS_STRFTIME_SIZE)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::strftime(): \"%m\", aborting\n")));
-
     return result;
   } // end IF
-
   result = time_string;
 
   // OK: append any usecs

@@ -75,6 +75,7 @@ stream_processing_function (void* arg_in)
   GtkStatusbar* statusbar_p = NULL;
   Test_I_StreamBase_t* stream_p = NULL;
   std::ostringstream converter;
+  const Test_I_Stream_SessionData_t* session_data_container_p = NULL;
   const Test_I_Stream_SessionData* session_data_p = NULL;
   unsigned int counter = 0;
   bool loop = data_p->CBData->loop;
@@ -136,10 +137,13 @@ loop:
                 ACE_TEXT ("failed to initialize stream: \"%m\", aborting\n")));
     goto done;
   } // end IF
-  session_data_p = &stream_p->sessionData ();
+  session_data_container_p = stream_p->get ();
+  ACE_ASSERT (session_data_container_p);
+  session_data_p = &session_data_container_p->get ();
+  ACE_ASSERT (session_data_p);
   converter.clear ();
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-  converter << session_data_p->sessionID;;
+  converter << session_data_p->sessionID;
 
   // generate context ID
   gdk_threads_enter ();

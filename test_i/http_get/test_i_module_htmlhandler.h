@@ -18,46 +18,57 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_MODULE_EVENTHANDLER_H
-#define TEST_I_MODULE_EVENTHANDLER_H
+#ifndef TEST_I_MODULE_HTMLHANDLER_H
+#define TEST_I_MODULE_HTMLHANDLER_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+//#include <libxml/HTMLparser.h>
+
 #include "common_time_common.h"
 
 #include "stream_common.h"
+#include "stream_imodule.h"
 #include "stream_streammodule_base.h"
-#include "stream_module_messagehandler.h"
 
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
-class Test_I_Stream_Module_EventHandler
- : public Stream_Module_MessageHandler_T<Test_I_Stream_SessionMessage,
-                                         Test_I_Stream_Message,
+// definitions
+#define HTMLHANDLER_XPATH_QUERY_STRING "/html/body/div[@id=\"container\"]/div[@id=\"container_content\"]/div[@id=\"mitte\"]/div[@id=\"mitte_links\"]/div[@id=\"archiv_woche\"]/ul/li/a"
 
-                                         Test_I_Stream_ModuleHandlerConfiguration,
-
-                                         Test_I_Stream_SessionData>
+class Test_I_Stream_Module_HTMLHandler
+ : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
+                                 Test_I_Stream_SessionMessage,
+                                 Test_I_Stream_Message>
+ , public Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration>
 {
  public:
-  Test_I_Stream_Module_EventHandler ();
-  virtual ~Test_I_Stream_Module_EventHandler ();
+  Test_I_Stream_Module_HTMLHandler ();
+  virtual ~Test_I_Stream_Module_HTMLHandler ();
 
-  // implement Common_IClone_T
-  virtual Stream_Module_t* clone ();
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (Test_I_Stream_Message*&, // data message handle
+                                  bool&);                  // return value: pass message downstream ?
+  // implement this so we can print overall statistics after session completes...
+  virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle
+                                     bool&);                         // return value: pass message downstream ?
+
+  // implement Stream_IModuleHandler_T
+  virtual const Test_I_Stream_ModuleHandlerConfiguration& get () const;
+  virtual bool initialize (const Test_I_Stream_ModuleHandlerConfiguration&);
 
  private:
-  typedef Stream_Module_MessageHandler_T<Test_I_Stream_SessionMessage,
-                                         Test_I_Stream_Message,
+  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
+                                 Test_I_Stream_SessionMessage,
+                                 Test_I_Stream_Message> inherited;
 
-                                         Test_I_Stream_ModuleHandlerConfiguration,
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_HTMLHandler (const Test_I_Stream_Module_HTMLHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_HTMLHandler& operator= (const Test_I_Stream_Module_HTMLHandler&))
 
-                                         Test_I_Stream_SessionData> inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler (const Test_I_Stream_Module_EventHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler& operator= (const Test_I_Stream_Module_EventHandler&))
+  Test_I_Stream_ModuleHandlerConfiguration configuration_;
+//  xmlDoc*                                  document_;
 };
 
 // declare module
@@ -65,6 +76,6 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task 
                               Common_TimePolicy_t,                      // time policy
                               Stream_ModuleConfiguration,               // module configuration type
                               Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_Stream_Module_EventHandler);       // writer type
+                              Test_I_Stream_Module_HTMLHandler);        // writer type
 
 #endif

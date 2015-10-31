@@ -65,7 +65,7 @@ class Stream_Base_T
  , public Stream_IStreamControl_T<StatusType,
                                   StateType>
  , public Common_IDumpState
-// , public Common_IGet_T<SessionDataType>
+// , public Common_IGetSet_T<SessionDataType>
 // , public Common_IInitialize_T<ConfigurationType>
  , public Common_IStatistic_T<StatisticContainerType>
 {
@@ -84,7 +84,10 @@ class Stream_Base_T
   typedef Stream_IStreamControl_T<StatusType,
                                   StateType> ISTREAM_CONTROL_T;
   typedef StateType STATE_T;
+  typedef SessionDataContainerType SESSION_DATA_CONTAINER_T;
   typedef SessionDataType SESSION_DATA_T;
+
+  using STREAM_T::get;
 
   // *NOTE*: this will try to sanely close down the stream:
   // 1: tell all worker threads to exit gracefully
@@ -125,9 +128,9 @@ class Stream_Base_T
   // implement Common_IDumpState
   virtual void dump_state () const;
 
-//  // implement Common_IGet_T
-//  virtual const SessionDataType& get () const;
-  const SessionDataType& sessionData () const;
+  // implement Common_IGetSet_T
+  virtual const SessionDataContainerType* get () const;
+  virtual void set (const SessionDataContainerType*);
 
 // // implement Common_IInitialize_T
   virtual bool initialize (const ConfigurationType&) = 0;
@@ -182,7 +185,6 @@ class Stream_Base_T
   typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
   typedef Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
 
-  // *NOTE*: need to subclass this !
   Stream_Base_T (const std::string&); // name
 
   // implement (part of) Common_IControl
@@ -202,23 +204,24 @@ class Stream_Base_T
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
 
-  // *NOTE*: children need to add handles to ALL of their modules to this container !
+  // *NOTE*: derived classes need to add handles to ALL of their modules to this
+  //         container !
   //ACE_DLList<MODULE_T> availableModules_;
-  MODULE_CONTAINER_T availableModules_;
+  MODULE_CONTAINER_T        availableModules_;
 
   // *NOTE*: children need to set this IF their initialization succeeded;
   //         otherwise, the dtor will NOT stop all worker threads before
   //         close()ing the modules...
-  bool               isInitialized_;
+  bool                      isInitialized_;
 
-  // *NOTE*: children need to initialize these !
-  Stream_IAllocator* allocator_;
-  ACE_SYNCH_MUTEX    lock_;
-  SessionDataType*   sessionData_;
-  StateType          state_;
+  // *NOTE*: derived classes need to initialize these !
+  Stream_IAllocator*        allocator_;
+  ACE_SYNCH_MUTEX           lock_;
+  SessionDataContainerType* sessionData_;
+  StateType                 state_;
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_
   //         --> use this instead
-  STREAM_T*          upStream_;
+  STREAM_T*                 upStream_;
 
  private:
   typedef ACE_Stream<TaskSynchType,
@@ -248,7 +251,7 @@ class Stream_Base_T
   // wrap inherited::open/close() calls
   void deactivateModules ();
 
-  std::string        name_;
+  std::string               name_;
 };
 
 // include template implementation

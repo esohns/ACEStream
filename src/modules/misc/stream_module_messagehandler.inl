@@ -210,11 +210,9 @@ Stream_Module_MessageHandler_T<SessionMessageType,
     {
       // forward the session data to any subscriber(s)
       // *TODO*: remove type inferences
-      const typename SessionMessageType::SESSION_DATA_TYPE& session_data_container_r =
+      const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
         message_inout->get ();
-      const SessionDataType* session_data_p =
-        session_data_container_r.getData ();
-      ACE_ASSERT (session_data_p);
+      const SessionDataType& session_data_r = session_data_container_r.get ();
 
       // synch access
       {
@@ -231,7 +229,7 @@ Stream_Module_MessageHandler_T<SessionMessageType,
         {
           try
           {
-            (*iterator++)->start (*session_data_p);
+            (*iterator++)->start (session_data_r);
           }
           catch (...)
           {

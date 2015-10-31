@@ -98,7 +98,7 @@ Stream_Base_T<TaskSynchType,
 
   // clean up
   if (sessionData_)
-    delete sessionData_;
+    sessionData_->decrease ();
 }
 
 template <typename TaskSynchType,
@@ -213,20 +213,34 @@ Stream_Base_T<TaskSynchType,
   // allocate session data
   if (sessionData_)
   {
-    delete sessionData_;
+    sessionData_->decrease ();
     sessionData_ = NULL;
   } // end IF
-  ACE_NEW_NORETURN (sessionData_,
+  SessionDataType* session_data_p = NULL;
+  ACE_NEW_NORETURN (session_data_p,
                     SessionDataType ());
-  if (!sessionData_)
+  if (!session_data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
     return;
   } // end IF
+  ACE_NEW_NORETURN (sessionData_,
+                    SessionDataContainerType (session_data_p,
+                                              true));
+  if (!sessionData_)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+
+    // clean up
+    delete session_data_p;
+
+    return;
+  } // end IF
   // *TODO*: remove type inferences
-  sessionData_->lock = &lock_;
-  state_.currentSessionData = sessionData_;
+  session_data_p->lock = &lock_;
+  state_.currentSessionData = session_data_p;
 
   try
   {
@@ -1527,7 +1541,7 @@ template <typename TaskSynchType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-const SessionDataType&
+const SessionDataContainerType*
 Stream_Base_T<TaskSynchType,
               TimePolicyType,
               StatusType,
@@ -1539,16 +1553,45 @@ Stream_Base_T<TaskSynchType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
-//              ProtocolMessageType>::get () const
-              ProtocolMessageType>::sessionData () const
+              ProtocolMessageType>::get () const
 {
-//  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::get"));
-  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::sessionData"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::get"));
 
-  // sanity check(s)
-  ACE_ASSERT (sessionData_);
+  return sessionData_;
+}
+template <typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+void
+Stream_Base_T<TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+              ProtocolMessageType>::set (const SessionDataContainerType* sessionData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::set"));
 
-  return *sessionData_;
+  // clean up
+  if (sessionData_)
+    sessionData_->decrease ();
+
+  sessionData_ = const_cast<SessionDataContainerType*> (sessionData_in);
 }
 
 template <typename TaskSynchType,
@@ -1639,6 +1682,24 @@ Stream_Base_T<TaskSynchType,
 
   ///////////////////////////////////////
 
+  // (re)set session data ?
+  OWN_TYPE_T* stream_p = dynamic_cast<OWN_TYPE_T*> (&upStream_in);
+  SessionDataContainerType* session_data_container_p = NULL;
+  if (!stream_p)
+    goto done;
+  session_data_container_p =
+      const_cast<SessionDataContainerType*> (stream_p->get ());
+  if (!session_data_container_p)
+    goto done;
+  if (sessionData_)
+    *sessionData_ = *session_data_container_p;
+  else
+  {
+    sessionData_ = session_data_container_p;
+    sessionData_->increase ();
+  } // end IF
+
+done:
   // *NOTE*: ACE_Stream::linked_us_ is currently private
   //         --> retain another handle
   // *TODO*: modify ACE to make this a protected member
@@ -2201,17 +2262,17 @@ Stream_Base_T<TaskSynchType,
 
   // *TODO*: remove type inferences
 
-  // allocate session data container
-  SessionDataContainerType* session_data_container_p = NULL;
-  ACE_NEW_NORETURN (session_data_container_p,
-                    SessionDataContainerType (sessionData_,
-                                              false));
-  if (!session_data_container_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", returning\n")));
-    return;
-  } // end IF
+//  // allocate session data container
+//  SessionDataContainerType* session_data_container_p = NULL;
+//  ACE_NEW_NORETURN (session_data_container_p,
+//                    SessionDataContainerType (sessionData_,
+//                                              false));
+//  if (!session_data_container_p)
+//  {
+//    ACE_DEBUG ((LM_CRITICAL,
+//                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", returning\n")));
+//    return;
+//  } // end IF
 
   // allocate SESSION_END session message
   SessionMessageType* message_p = NULL;
@@ -2219,28 +2280,29 @@ Stream_Base_T<TaskSynchType,
   {
     try
     { // *NOTE*: 0 --> session message
-      message_p =
-       static_cast<SessionMessageType*> (allocator_->malloc (0));
+      message_p = static_cast<SessionMessageType*> (allocator_->malloc (0));
     }
     catch (...)
     {
       ACE_DEBUG ((LM_CRITICAL,
                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), returning\n")));
 
-      // clean up
-      session_data_container_p->decrease ();
+//      // clean up
+//      session_data_container_p->decrease ();
 
       return;
     }
   } // end IF
   else
   {
-    // *NOTE*: session message assumes responsibility for
-    //         session_data_container_p
+    // *NOTE*: session message assumes responsibility for session data
+    //         --> add a reference
+    sessionData_->increase ();
     // *TODO*: remove type inference
     ACE_NEW_NORETURN (message_p,
                       SessionMessageType (STREAM_SESSION_END,
-                                          session_data_container_p,
+//                                          session_data_container_p,
+                                          sessionData_,
                                           state_.userData));
   } // end ELSE
   if (!message_p)
@@ -2249,17 +2311,20 @@ Stream_Base_T<TaskSynchType,
                 ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", returning\n")));
 
     // clean up
-    session_data_container_p->decrease ();
+//    session_data_container_p->decrease ();
+    sessionData_->decrease ();
 
     return;
   } // end IF
   if (allocator_)
   {
-    // *NOTE*: session message assumes responsibility for
-    //         session_data_container_p
+    // *NOTE*: session message assumes responsibility for session data
+    //         --> add a reference
+    sessionData_->increase ();
     // *TODO*: remove type inference
     message_p->initialize (STREAM_SESSION_END,
-                           session_data_container_p,
+//                           session_data_container_p,
+                           sessionData_,
                            state_.userData);
   } // end IF
 

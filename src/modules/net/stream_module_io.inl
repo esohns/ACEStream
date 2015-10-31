@@ -332,13 +332,13 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
 
         const SessionDataContainerType& session_data_container_r =
           message_inout->get ();
-        const SessionDataType* session_data_p =
-          session_data_container_r.getData ();
+        const SessionDataType& session_data_r =
+          session_data_container_r.get ();
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        handle = reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID);
+        handle = reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID);
 #else
-        handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
+        handle = static_cast<ACE_HANDLE> (session_data_r.sessionID);
 #endif
         connection_ = inherited::configuration_.connectionManager->get (handle);
         if (!connection_)
@@ -845,28 +845,30 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
   ACE_ASSERT (inherited::configuration_.streamConfiguration);
 
   // step1: update session state
+  SessionDataType& session_data_r =
+      const_cast<SessionDataType&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  inherited::sessionData_->currentStatistic = statisticData_in;
+  session_data_r.currentStatistic = statisticData_in;
 
   // *TODO*: attach stream state information to the session data
 
-  // step2: create session data object container
-  SessionDataContainerType* session_data_p = NULL;
-  ACE_NEW_NORETURN (session_data_p,
-                    SessionDataContainerType (inherited::sessionData_,
-                    false));
-  if (!session_data_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-    return false;
-  } // end IF
+//  // step2: create session data object container
+//  SessionDataContainerType* session_data_p = NULL;
+//  ACE_NEW_NORETURN (session_data_p,
+//                    SessionDataContainerType (inherited::sessionData_,
+//                    false));
+//  if (!session_data_p)
+//  {
+//    ACE_DEBUG ((LM_CRITICAL,
+//                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
+//    return false;
+//  } // end IF
 
   // step3: send the statistic data downstream
-  // *NOTE*: fire-and-forget session_data_p here
+//  // *NOTE*: fire-and-forget session_data_p here
   // *TODO*: remove type inference
   return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-                                       session_data_p,
+                                       *inherited::sessionData_,
                                        inherited::configuration_.streamConfiguration->messageAllocator);
 }
 
@@ -1003,14 +1005,14 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
 
       const SessionDataContainerType& session_data_container_r =
         message_inout->get ();
-      const SessionDataType* session_data_p =
-        session_data_container_r.getData ();
+      const SessionDataType& session_data_r =
+        session_data_container_r.get ();
       // *TODO*: remove type inference
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      handle = reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID);
+      handle = reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID);
 #else
-      handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
+      handle = static_cast<ACE_HANDLE> (session_data_r.sessionID);
 #endif
       ACE_ASSERT (handle != ACE_INVALID_HANDLE);
       connection_ = configuration_.connectionManager->get (handle);

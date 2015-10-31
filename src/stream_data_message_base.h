@@ -45,7 +45,7 @@ class Stream_DataMessageBase_T
 
   // *TODO*: clean this up !
   const DataType* const getData () const;
-  virtual const CommandType& command () const = 0; // return value: message type
+  virtual CommandType command () const = 0; // return value: message type
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -64,8 +64,8 @@ class Stream_DataMessageBase_T
   // *TODO*: these ctors are NOT threadsafe...
   Stream_DataMessageBase_T (ACE_Allocator*); // message allocator
   Stream_DataMessageBase_T (ACE_Data_Block*, // data block
-                            ACE_Allocator*); // message allocator
-
+                            ACE_Allocator*,  // message allocator
+                            bool = true);    // increment running message counter ?
  private:
   typedef Stream_MessageBase inherited;
 

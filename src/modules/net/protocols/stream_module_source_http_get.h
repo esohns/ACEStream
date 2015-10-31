@@ -34,6 +34,7 @@ class Stream_IAllocator;
 
 // definitions
 #define HTTP_COMMAND_GET_STRING                       "GET"
+#define HTTP_STATUS_BADREQUEST                        400
 #define HTTP_VERSION_STRING                           "HTTP/1.1"
 #define HTML_DEFAULT_SUFFIX                           ".html"
 #define STREAM_MODULE_NET_SOURCE_HTTP_GET_DEFAULT_URL "index.html"
@@ -54,8 +55,8 @@ class Stream_Module_Net_Source_HTTP_Get_T
                            const std::string&); // URL
 
   // implement (part of) Stream_ITaskBase
-  //virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-  //                                bool&);                // return value: pass message downstream ?
+  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
+                                  bool&);                // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -68,13 +69,43 @@ class Stream_Module_Net_Source_HTTP_Get_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T (const Stream_Module_Net_Source_HTTP_Get_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T& operator= (const Stream_Module_Net_Source_HTTP_Get_T&))
 
+  enum Stream_HTTP_Status_Code
+  {
+    STREAM_HTTP_STATUS_INVALID                 = -1,
+    /////////////////////////////////////
+    // success
+    STREAM_HTTP_STATUS_OK                      = 200,
+    /////////////////////////////////////
+    // redirection
+    STREAM_HTTP_STATUS_MULTIPLECHOICES         = 300,
+    STREAM_HTTP_STATUS_MOVEDPERMANENTLY        = 301,
+    STREAM_HTTP_STATUS_FOUND                   = 302,
+    STREAM_HTTP_STATUS_USEPROXY                = 305,
+    STREAM_HTTP_STATUS_TEMPORARYREDIRECT       = 307,
+    /////////////////////////////////////
+    // client error
+    STREAM_HTTP_STATUS_UNAUTHORIZED            = 401,
+    STREAM_HTTP_STATUS_FORBIDDEN               = 403,
+    STREAM_HTTP_STATUS_NOTFOUND                = 404,
+    STREAM_HTTP_STATUS_GONE                    = 410,
+    /////////////////////////////////////
+    // server error
+    STREAM_HTTP_STATUS_INTERNALSERVERERROR     = 500,
+    STREAM_HTTP_STATUS_BADGATEWAY              = 502,
+    STREAM_HTTP_STATUS_SERVICEUNAVAILABLE      = 503,
+    STREAM_HTTP_STATUS_GATEWAYTIMEOUT          = 504,
+    STREAM_HTTP_STATUS_HTTPVERSIONNOTSUPPORTED = 505
+  };
+
   // helper methods
-//  virtual int svc (void);
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
+  ProtocolMessageType* makeRequest (const std::string&); // URI
+  bool sendRequest (const std::string&); // URI
 
   Stream_IAllocator* allocator_;
+  bool               headerReceived_;
   bool               isInitialized_;
-  std::string        URL_;
+  std::string        URI_;
 };
 
 #include "stream_module_source_http_get.inl"

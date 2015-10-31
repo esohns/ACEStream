@@ -6,7 +6,8 @@ DEFS += \
   -DPACKAGE=\"@PACKAGE_NAME@\"
 
 AM_CPPFLAGS = \
-  -I$(top_srcdir)/modules/ATCD/ACE
+  -I$(top_srcdir)/modules/ATCD/ACE \
+  $(PKGXML2_CFLAGS)
 if VALGRIND_SUPPORT
 AM_CPPFLAGS += \
   $(PKGVALGRIND_CFLAGS)
@@ -15,6 +16,8 @@ endif
 noinst_HEADERS = \
   stdafx.h
 include_HEADERS = \
+  stream_module_htmlparser.h \
+  stream_module_htmlparser.inl \
   stream_module_messagehandler.h \
   stream_module_messagehandler.inl \
   stream_module_queuereader.h \
@@ -25,6 +28,9 @@ include_HEADERS = \
 lib_LTLIBRARIES = libACEStream_Misc.la
 
 libACEStream_Misc_la_SOURCES = \
+  stream_module_htmlparser.cpp \
+  stream_module_htmlparser.h \
+  stream_module_htmlparser.inl \
   stream_module_messagehandler.cpp \
   stream_module_messagehandler.h \
   stream_module_messagehandler.inl \

@@ -168,21 +168,20 @@ Stream_Module_FileWriter_T<SessionMessageType,
   {
     case STREAM_SESSION_BEGIN:
     {
-      const typename SessionMessageType::SESSION_DATA_TYPE& session_data_container_r =
+      const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
           message_inout->get ();
-      const SessionDataType* session_data_p = session_data_container_r.getData ();
-      ACE_ASSERT (session_data_p);
+      const SessionDataType& session_data_r = session_data_container_r.get ();
 
       std::string directory, file_name;
       // *TODO*: remove type inferences
       directory =
-        (session_data_p->targetFileName.empty () ? (configuration_.targetFileName.empty () ? Common_File_Tools::getTempDirectory ()
-                                                                                           : configuration_.targetFileName)
-                                                 : session_data_p->targetFileName);
+        (session_data_r.targetFileName.empty () ? (configuration_.targetFileName.empty () ? Common_File_Tools::getTempDirectory ()
+                                                                                          : configuration_.targetFileName)
+                                                : session_data_r.targetFileName);
       file_name =
-        (session_data_p->targetFileName.empty () ? (configuration_.targetFileName.empty () ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
-                                                                                           : configuration_.targetFileName)
-                                                 : session_data_p->targetFileName);
+        (session_data_r.targetFileName.empty () ? (configuration_.targetFileName.empty () ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
+                                                                                          : configuration_.targetFileName)
+                                                : session_data_r.targetFileName);
       // sanity check(s)
       if (!Common_File_Tools::isDirectory (directory))
       {

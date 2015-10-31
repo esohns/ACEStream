@@ -94,6 +94,32 @@ struct Stream_SessionData
    , startOfSession (ACE_Time_Value::zero)
    , userData (NULL)
   {};
+  inline Stream_SessionData& operator= (Stream_SessionData& rhs_in)
+  {
+    aborted = (aborted ? aborted : rhs_in.aborted);
+    currentStatistic =
+        (currentStatistic.timestamp == ACE_Time_Value::zero ? rhs_in.currentStatistic
+                                                            : currentStatistic);
+    lastCollectionTimestamp =
+        (lastCollectionTimestamp == ACE_Time_Value::zero ? rhs_in.lastCollectionTimestamp
+                                                         : lastCollectionTimestamp);
+    lock = rhs_in.lock;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    sessionID =
+        ((sessionID == reinterpret_cast<size_t> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
+                                                                      : sessionID);
+#else
+    sessionID =
+        ((sessionID == static_cast<size_t> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
+                                                                 : sessionID);
+#endif
+    startOfSession =
+        (startOfSession == ACE_Time_Value::zero ? rhs_in.startOfSession
+                                                : startOfSession);
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
 
   // *NOTE*: modules can set this to signal (internal) processing errors.
   //         The (stream / process) control logic may (or may not) then react to

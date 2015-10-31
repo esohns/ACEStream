@@ -52,6 +52,9 @@ Stream_SessionMessageBase_T<SessionDataType,
 
   // *NOTE*: assumes responsibility for the handle !
   sessionData_inout = NULL;
+
+//  if (sessionData_)
+//    sessionData_->increase ();
 }
 
 template <typename SessionDataType,
@@ -246,13 +249,14 @@ Stream_SessionMessageBase_T<SessionDataType,
   ACE_ASSERT (!userData_);
 
   isInitialized_ = true;
-  // *NOTE*: assumes responsibility for the handle !
   sessionData_ = sessionData_inout;
-  sessionData_inout = NULL;
   type_ = messageType_in;
   userData_ = userData_in;
 
   inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
+
+  // *NOTE*: assumes responsibility for the handle !
+  sessionData_inout = NULL;
 }
 
 template <typename SessionDataType,

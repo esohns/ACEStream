@@ -89,6 +89,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::~Stream_HeadModuleTaskBase_T"));
 
+  if (sessionData_)
+    sessionData_->decrease ();
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_hthread_t handle = threadID_.handle ();
   if (handle != ACE_INVALID_HANDLE)
@@ -175,7 +178,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   //} // end IF
 
   // step0: initialize this
-  sessionData_ = reinterpret_cast<SessionDataType*> (arg_in);
+  sessionData_ = reinterpret_cast<SessionDataContainerType*> (arg_in);
+  ACE_ASSERT (sessionData_);
+  sessionData_->increase ();
 
   // step1: (re-)activate() the message queue
   // *NOTE*: the first time around, the queue will have been open()ed
@@ -241,10 +246,10 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::close"));
 
   // *NOTE*: this method may be invoked
-  // - by an external thread closing down the active object
-  //    --> should NEVER happen as a module !
-  // - by the worker thread which calls this after returning from svc()
-  //    --> in this case, this should be a NOP...
+  //         - by an external thread closing down the active object
+  //           --> should NEVER happen as a module !
+  //         - by the worker thread which calls this after returning from svc()
+  //           --> in this case, this should be a NOP...
   switch (arg_in)
   {
     // called from ACE_Task_Base on clean-up
@@ -269,8 +274,9 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       // *WARNING*: SHOULD NEVER GET HERE
       // --> refer to module_closed () hook
       ACE_ASSERT (false);
-
       ACE_NOTSUP_RETURN (-1);
+
+      ACE_NOTREACHED (return -1;)
     }
     default:
     {
@@ -326,6 +332,12 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
     stop ();
   } // end IF
 
+  if (sessionData_)
+  {
+    sessionData_->decrease ();
+    sessionData_ = NULL;
+  } // end IF
+
   return 0;
 }
 
@@ -353,7 +365,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   ACE_Message_Block* message_block_p = NULL;
   bool               stop_processing = false;
 
-  // step1: start processing incoming data...
+  // step1: process data
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("entering processing loop...\n")));
 
@@ -373,7 +385,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
       result = 0;
 
-      goto session_finished;
+      goto done;
     } // end IF
 
     // clean up
@@ -384,15 +396,16 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
-session_finished:
-  // step2: send final session message downstream...
-  if (!putSessionMessage (STREAM_SESSION_END,
-                          sessionData_,
-                          false))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
+done:
+//  // step2: send final session message downstream
+//  ACE_ASSERT (sessionData_);
+//  if (!putSessionMessage (STREAM_SESSION_END,
+//                          *sessionData_,
+//                          false))
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
 
-  // signal the controller
+  // step3: signal the controller
   finished ();
 
   return result;
@@ -540,6 +553,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
 //  ACE_ASSERT (false);
 //  ACE_NOTSUP;
+
 //  ACE_NOTREACHED (return;)
 //}
 
@@ -563,9 +577,13 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::start"));
 
-  // *TODO*: remove type inferences
   if (sessionData_)
-    sessionData_->startOfSession = COMMON_TIME_NOW;
+  {
+    // *TODO*: remove type inference
+    SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (sessionData_->get ());
+    session_data_r.startOfSession = COMMON_TIME_NOW;
+  } // end IF
 
   // --> start a worker thread, if active
   inherited::change (STREAM_STATE_RUNNING);
@@ -648,6 +666,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
+
   ACE_NOTREACHED (return;)
 }
 
@@ -1028,10 +1047,11 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
       } // end IF
       else
       {
-        // send initial session message downstream...
-        if (!putSessionMessage (STREAM_SESSION_BEGIN, // type
-                                sessionData_,         // session data handle
-                                false))               // do not delete the session data
+        // send initial session message downstream
+        ACE_ASSERT (sessionData_);
+        if (!putSessionMessage (STREAM_SESSION_BEGIN,                                  // type
+                                *sessionData_,                                         // session data
+                                configuration_.streamConfiguration->messageAllocator)) // allocator
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
@@ -1294,11 +1314,14 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
         } // end IF
       } // end lock scope
       if (send_end_message)
-        if (!putSessionMessage (STREAM_SESSION_END,
-                                sessionData_,
-                                false))
+      {
+        ACE_ASSERT (sessionData_);
+        if (!putSessionMessage (STREAM_SESSION_END,                                    // session message type
+                                *sessionData_,                                         // session data
+                                configuration_.streamConfiguration->messageAllocator)) // allocator
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
+      } // end IF
 
 //       ACE_DEBUG ((LM_DEBUG,
 //                   ACE_TEXT ("stream processing complete\n")));
@@ -1333,7 +1356,7 @@ Stream_HeadModuleTaskBase_T<TaskSynchType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType>::putSessionMessage (Stream_SessionMessageType messageType_in,
-                                                                          SessionDataContainerType*& sessionData_inout,
+                                                                          SessionDataContainerType& sessionData_in,
                                                                           Stream_IAllocator* allocator_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putSessionMessage"));
@@ -1359,9 +1382,9 @@ allocate:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 
-      // clean up
-      sessionData_inout->decrease ();
-      sessionData_inout = NULL;
+//      // clean up
+//      sessionData_inout->decrease ();
+//      sessionData_inout = NULL;
 
       return false;
     }
@@ -1373,12 +1396,15 @@ allocate:
   } // end IF
   else
   {
-    // *IMPORTANT NOTE*: session message assumes responsibility for
-    //                   sessionData_inout
+//    // *IMPORTANT NOTE*: session message assumes responsibility for
+//    //                   sessionData_inout
+    sessionData_in.increase ();
+    SessionDataContainerType* session_data_container_p = &sessionData_in;
     // *TODO*: remove type inference
     ACE_NEW_NORETURN (session_message_p,
                       SessionMessageType (messageType_in,
-                                          sessionData_inout,
+//                                          sessionData_inout,
+                                          session_data_container_p,
                                           streamState_->userData));
   } // end ELSE
   if (!session_message_p)
@@ -1393,19 +1419,23 @@ allocate:
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
 
-    // clean up
-    sessionData_inout->decrease ();
-    sessionData_inout = NULL;
+//    // clean up
+//    sessionData_inout->decrease ();
+//    sessionData_inout = NULL;
+    sessionData_in.decrease ();
 
     return false;
   } // end IF
   if (allocator_in)
   {
-    // *IMPORTANT NOTE*: session message assumes responsibility for
-    //                   sessionData_inout
+//    // *IMPORTANT NOTE*: session message assumes responsibility for
+//    //                   sessionData_inout
+    sessionData_in.increase ();
+    SessionDataContainerType* session_data_container_p = &sessionData_in;
     // *TODO*: remove type inference
     session_message_p->initialize (messageType_in,
-                                   sessionData_inout,
+//                                   sessionData_inout,
+                                   session_data_container_p,
                                    streamState_->userData);
   } // end IF
 
@@ -1429,65 +1459,65 @@ allocate:
   return true;
 }
 
-template <typename TaskSynchType,
-          typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-bool
-Stream_HeadModuleTaskBase_T<TaskSynchType,
-                            TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType,
-                            ConfigurationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType>::putSessionMessage (Stream_SessionMessageType messageType_in,
-                                                                          SessionDataType* sessionData_in,
-                                                                          bool deleteSessionData_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putSessionMessage"));
+//template <typename TaskSynchType,
+//          typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//bool
+//Stream_HeadModuleTaskBase_T<TaskSynchType,
+//                            TimePolicyType,
+//                            SessionMessageType,
+//                            ProtocolMessageType,
+//                            ConfigurationType,
+//                            StreamStateType,
+//                            SessionDataType,
+//                            SessionDataContainerType>::putSessionMessage (Stream_SessionMessageType messageType_in,
+//                                                                          SessionDataType* sessionData_in,
+//                                                                          bool deleteSessionData_in) const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putSessionMessage"));
 
-  // sanity check(s)
-  // *TODO*: remove type inference
-  ACE_ASSERT (configuration_.streamConfiguration);
+//  // sanity check(s)
+//  // *TODO*: remove type inference
+//  ACE_ASSERT (configuration_.streamConfiguration);
 
-  // create session data
-  SessionDataContainerType* session_data_container_p = NULL;
-  switch (messageType_in)
-  {
-    case STREAM_SESSION_BEGIN:
-    case STREAM_SESSION_STEP:
-    case STREAM_SESSION_END:
-    {
-      ACE_NEW_NORETURN (session_data_container_p,
-                        SessionDataContainerType (sessionData_in,
-                                                  deleteSessionData_in));
-      if (!session_data_container_p)
-      {
-        ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-        return false;
-      } // end IF
+//  // create session data
+//  SessionDataContainerType* session_data_container_p = NULL;
+//  switch (messageType_in)
+//  {
+//    case STREAM_SESSION_BEGIN:
+//    case STREAM_SESSION_STEP:
+//    case STREAM_SESSION_END:
+//    {
+//      ACE_NEW_NORETURN (session_data_container_p,
+//                        SessionDataContainerType (sessionData_in,
+//                                                  deleteSessionData_in));
+//      if (!session_data_container_p)
+//      {
+//        ACE_DEBUG ((LM_CRITICAL,
+//                    ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
+//        return false;
+//      } // end IF
 
-      break;
-    }
-    case STREAM_SESSION_STATISTIC:
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown session message type (was: %d), aborting\n"),
-                  messageType_in));
-      return false;
-    }
-  } // end SWITCH
+//      break;
+//    }
+//    case STREAM_SESSION_STATISTIC:
+//    default:
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("invalid/unknown session message type (was: %d), aborting\n"),
+//                  messageType_in));
+//      return false;
+//    }
+//  } // end SWITCH
 
-  // *IMPORTANT NOTE*: "fire-and-forget" session_data_container_p
-  // *TODO*: remove type inference
-  return putSessionMessage (messageType_in,
-                            session_data_container_p,
-                            configuration_.streamConfiguration->messageAllocator);
-}
+//  // *IMPORTANT NOTE*: "fire-and-forget" session_data_container_p
+//  // *TODO*: remove type inference
+//  return putSessionMessage (messageType_in,
+//                            session_data_container_p,
+//                            configuration_.streamConfiguration->messageAllocator);
+//}

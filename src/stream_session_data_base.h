@@ -23,11 +23,13 @@
 
 #include "ace/Global_Macros.h"
 
+#include "common_iget.h"
 #include "common_referencecounter_base.h"
 
 template <typename DataType>
 class Stream_SessionDataBase_T
  : public Common_ReferenceCounterBase
+ , public Common_IGetSet_T<DataType>
 {
  public:
   Stream_SessionDataBase_T ();
@@ -35,23 +37,27 @@ class Stream_SessionDataBase_T
                             bool = false); // delete in dtor ?
   virtual ~Stream_SessionDataBase_T ();
 
-  // info
-  DataType* getData () const;
-
   // implement Common_IDumpState
   virtual void dump_state () const;
 
+  // implement Common_IGetSet_T
+  virtual const DataType& get () const;
+  virtual void set (const DataType&);
+
   // convenience types
-  typedef DataType SESSION_DATA_TYPE;
+  typedef DataType SESSION_DATA_T;
+
+  // override assignment (support merge semantics)
+  // *TODO*: enforce merge semantics
+  Stream_SessionDataBase_T& operator= (const Stream_SessionDataBase_T&);
 
  private:
   typedef Common_ReferenceCounterBase inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T (const Stream_SessionDataBase_T&))
-//  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T& operator= (const Stream_SessionDataBase_T&))
 
-  DataType* sessionData_;
-  bool      deleteSessionData_;
+  DataType* data_;
+  bool      delete_;
 };
 
 // include template implementation

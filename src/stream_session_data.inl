@@ -22,10 +22,10 @@
 #include "stream_tools.h"
 
 template <typename SessionDataType>
-Stream_SessionData_T<SessionDataType>::Stream_SessionData_T (const SessionDataType& sessionData_in)
- : sessionData_ (sessionData_in)
- ,  inherited (&sessionData_, // handle
-               false)         // delete on zero ?
+Stream_SessionData_T<SessionDataType>::Stream_SessionData_T (const SessionDataType& data_in)
+ : inherited (1,     // initial count
+              false) // delete on zero ?
+ , data_ (data_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::Stream_SessionData_T"));
 
@@ -39,25 +39,33 @@ Stream_SessionData_T<SessionDataType>::~Stream_SessionData_T ()
 }
 
 template <typename SessionDataType>
-const SessionDataType&
-Stream_SessionData_T<SessionDataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::get"));
-
-  return sessionData_;
-}
-
-template <typename SessionDataType>
 void
 Stream_SessionData_T::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::dump_state"));
 
-  // *TODO*: remove type inference
+  // *TODO*: remove type inferences
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("user data: %@, start of session: %s%s\n"),
-              userData_,
-              ACE_TEXT (Stream_Tools::timestamp2LocalString (startOfSession_).c_str()),
-              (userAbort_ ? ACE_TEXT(" [user abort !]")
-                          : ACE_TEXT(""))));
+              data_.userData,
+              ACE_TEXT (Stream_Tools::timestamp2LocalString (data_.startOfSession).c_str ()),
+              (data_.userAbort_ ? ACE_TEXT(" [user abort !]")
+                                : ACE_TEXT(""))));
+}
+
+template <typename SessionDataType>
+const SessionDataType&
+Stream_SessionData_T<SessionDataType>::get () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::get"));
+
+  return data_;
+}
+template <typename SessionDataType>
+void
+Stream_SessionData_T<SessionDataType>::set (const SessionDataType& data_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::set"));
+
+  data_ = data_in;
 }

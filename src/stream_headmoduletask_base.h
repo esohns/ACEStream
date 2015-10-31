@@ -106,23 +106,23 @@ class Stream_HeadModuleTaskBase_T
   // *TODO*: clean this API
   // convenience methods to send (session-specific) notifications downstream
   // *WARNING*: - handle with care -
-  bool putSessionMessage (Stream_SessionMessageType, // session message type
-                          SessionDataType*,          // data
-                          bool = false) const;       // delete session data ?
+//  bool putSessionMessage (Stream_SessionMessageType, // session message type
+//                          SessionDataType*,          // session data
+//                          bool = false) const;       // delete session data ?
   // *NOTE*: message assumes responsibility for the payload data container
   //         --> "fire-and-forget" SessionDataContainerType
   bool putSessionMessage (Stream_SessionMessageType,        // session message type
-                          SessionDataContainerType*&,       // data container
+                          SessionDataContainerType&,        // session data container
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
 
   // implement state machine callback
   // *NOTE*: this method is threadsafe
   virtual void onChange (Stream_StateType_t); // new state
 
-  ConfigurationType configuration_;
+  ConfigurationType         configuration_;
   //bool              isActive_;
-  SessionDataType*  sessionData_;
-  StreamStateType*  streamState_;
+  SessionDataContainerType* sessionData_;
+  StreamStateType*          streamState_;
 
  private:
   typedef Stream_StateMachine_Control inherited;
@@ -159,10 +159,10 @@ class Stream_HeadModuleTaskBase_T
   virtual void upStream (Stream_Base_t*);
   virtual Stream_Base_t* upStream () const;
 
-  bool              autoStart_;
-  bool              sessionEndSent_;
-  bool              runSvcRoutineOnStart_;
-  ACE_Thread_ID     threadID_;
+  bool                      autoStart_;
+  bool                      sessionEndSent_;
+  bool                      runSvcRoutineOnStart_;
+  ACE_Thread_ID             threadID_;
 };
 
 // include template implementation

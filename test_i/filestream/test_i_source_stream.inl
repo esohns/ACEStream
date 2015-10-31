@@ -236,6 +236,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   WRITER_T* netTarget_impl_p = NULL;
   Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Stream_Module_FileReader* fileReader_impl_p = NULL;
+  Test_I_Stream_SessionData* session_data_p = NULL;
 
   // ******************* Net Target ************************
   netTarget_.initialize (*configuration_in.moduleConfiguration);
@@ -331,9 +332,11 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   // -------------------------------------------------------------
 
   // *TODO*: remove type inferences
-  inherited::sessionData_->fileName =
+  session_data_p =
+      &const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+  session_data_p->fileName =
     configuration_in.moduleHandlerConfiguration->fileName;
-  inherited::sessionData_->size =
+  session_data_p->size =
     Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
   // set (session) message allocator
@@ -363,6 +366,8 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
+  Test_I_Stream_SessionData& session_data_r =
+      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
   Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
     dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
@@ -374,9 +379,9 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   } // end IF
 
   // synch access
-  if (inherited::sessionData_->lock)
+  if (session_data_r.lock)
   {
-    result = inherited::sessionData_->lock->acquire ();
+    result = session_data_r.lock->acquire ();
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -385,7 +390,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     } // end IF
   } // end IF
 
-  inherited::sessionData_->currentStatistic.timestamp = COMMON_TIME_NOW;
+  session_data_r.currentStatistic.timestamp = COMMON_TIME_NOW;
 
   // delegate to the statistics module...
   bool result_2 = false;
@@ -402,11 +407,11 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
   else
-    inherited::sessionData_->currentStatistic = data_out;
+    session_data_r.currentStatistic = data_out;
 
-  if (inherited::sessionData_->lock)
+  if (session_data_r.lock)
   {
-    result = inherited::sessionData_->lock->release ();
+    result = session_data_r.lock->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));

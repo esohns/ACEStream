@@ -410,7 +410,7 @@ Stream_Module_FileReader_T<SessionMessageType,
   ACE_FILE_Connector file_connector;
   ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
-  ACE_Time_Value no_wait;
+  ACE_Time_Value no_wait = COMMON_TIME_NOW;
   ProtocolMessageType* message_p = NULL;
   bool finished = false;
   bool stop_processing = false;
@@ -418,6 +418,9 @@ Stream_Module_FileReader_T<SessionMessageType,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_.streamConfiguration);
   ACE_ASSERT (!isOpen_);
+//  ACE_ASSERT (inherited::sessionData_);
+//  const SessionDataType& session_data_r = inherited::sessionData_->get ();
+//  ACE_ASSERT (session_data_r.lock);
 
   result = file_address.set (inherited::configuration_.fileName.c_str ());
   if (result == -1)
@@ -459,9 +462,6 @@ Stream_Module_FileReader_T<SessionMessageType,
   // step1: start processing data...
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("entering processing loop...\n")));
-  no_wait = COMMON_TIME_NOW;
-  ACE_ASSERT (inherited::sessionData_);
-  ACE_ASSERT (inherited::sessionData_->lock);
   do
   {
     result = inherited::getq (message_block_p,
@@ -681,27 +681,29 @@ Stream_Module_FileReader_T<SessionMessageType,
   ACE_ASSERT (inherited::configuration_.streamConfiguration);
 
   // step1: update session state
+  SessionDataType& session_data_r =
+      const_cast<SessionDataType&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  inherited::sessionData_->currentStatistic = statisticData_in;
+  session_data_r.currentStatistic = statisticData_in;
 
   // *TODO*: attach stream state information to the session data
 
-  // step2: create session data object container
-  SessionDataContainerType* session_data_p = NULL;
-  ACE_NEW_NORETURN (session_data_p,
-                    SessionDataContainerType (inherited::sessionData_,
-                                              false));
-  if (!session_data_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-    return false;
-  } // end IF
+//  // step2: create session data object container
+//  SessionDataContainerType* session_data_p = NULL;
+//  ACE_NEW_NORETURN (session_data_p,
+//                    SessionDataContainerType (inherited::sessionData_,
+//                                              false));
+//  if (!session_data_p)
+//  {
+//    ACE_DEBUG ((LM_CRITICAL,
+//                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
+//    return false;
+//  } // end IF
 
   // step3: send the statistic data downstream
-  // *NOTE*: fire-and-forget session_data_p here
+//  // *NOTE*: fire-and-forget session_data_p here
   // *TODO*: remove type inference
   return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-                                       session_data_p,
+                                       *inherited::sessionData_,
                                        inherited::configuration_.streamConfiguration->messageAllocator);
 }

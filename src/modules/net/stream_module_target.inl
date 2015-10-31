@@ -184,7 +184,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
       const SessionDataContainerType& session_data_container_r =
         message_inout->get ();
       sessionData_ =
-        const_cast<SessionDataType*> (session_data_container_r.getData ());
+        const_cast<SessionDataType*> (&session_data_container_r.get ());
       ACE_ASSERT (sessionData_);
 
       // sanity check(s)

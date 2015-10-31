@@ -21,6 +21,7 @@
 #ifndef TEST_I_COMMON_H
 #define TEST_I_COMMON_H
 
+#include <algorithm>
 #include <deque>
 #include <limits>
 #include <list>
@@ -29,6 +30,7 @@
 #include <string>
 
 #include "ace/Synch_Traits.h"
+#include "ace/Time_Value.h"
 
 #include "common.h"
 #include "common_inotify.h"
@@ -42,6 +44,7 @@
 #include "stream_session_data_base.h"
 #include "stream_statemachine_control.h"
 
+#include "stream_module_htmlparser.h"
 #include "stream_module_net_common.h"
 
 #include "net_defines.h"
@@ -65,6 +68,33 @@ typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 
 typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReportingHandler_t;
 
+enum Test_I_SAXParserState
+{
+  SAXPARSER_STATE_INVALID = -1,
+  /////////////////////////////////////
+  SAXPARSER_STATE_READ_DATE = 0,
+  SAXPARSER_STATE_READ_HEADLINE,
+  /////////////////////////////////////
+  SAXPARSER_STATE_READ_ITEM,
+  SAXPARSER_STATE_READ_ITEMS
+};
+struct Test_I_SAXParserContext
+ : Stream_Module_HTMLParser_SAXParserContextBase
+{
+  inline Test_I_SAXParserContext ()
+   : Stream_Module_HTMLParser_SAXParserContextBase ()
+   , currentHeadLine ()
+   , sessionData (NULL)
+   , state (SAXPARSER_STATE_INVALID)
+   , timeStamp ()
+  {};
+
+  std::string                currentHeadLine;
+  Test_I_Stream_SessionData* sessionData;
+  Test_I_SAXParserState      state;
+  ACE_Time_Value             timeStamp;
+};
+
 struct Test_I_Configuration;
 struct Test_I_Stream_Configuration;
 struct Test_I_UserData
@@ -80,19 +110,69 @@ struct Test_I_UserData
   Test_I_Stream_Configuration* streamConfiguration;
 };
 
+typedef std::list<std::string> Test_I_DataItems_t;
+typedef Test_I_DataItems_t::const_iterator Test_I_DataItemsIterator_t;
+typedef std::map<ACE_Time_Value, Test_I_DataItems_t> Test_I_Data_t;
+typedef Test_I_Data_t::const_iterator Test_I_DataConstIterator_t;
+typedef Test_I_Data_t::iterator Test_I_DataIterator_t;
+
 struct Test_I_Stream_SessionData
  : Stream_SessionData
 {
   inline Test_I_Stream_SessionData ()
    : Stream_SessionData ()
    , connectionState (NULL)
+   , data ()
+   , parserContext (NULL)
    , targetFileName ()
    , userData (NULL)
   {};
+  inline Test_I_Stream_SessionData& operator= (Test_I_Stream_SessionData& rhs_in)
+  {
+    Stream_SessionData::operator= (rhs_in);
 
-  Test_I_ConnectionState* connectionState;
-  std::string             targetFileName; // file writer module
-  Test_I_UserData*        userData;
+    connectionState = (connectionState ? connectionState : rhs_in.connectionState);
+    if (data.empty ()) data = rhs_in.data;
+    else
+    {
+      Test_I_DataIterator_t iterator;
+      Test_I_DataItemsIterator_t iterator_2;
+      for (Test_I_DataIterator_t iterator_3 = rhs_in.data.begin ();
+           iterator_3 != rhs_in.data.end ();
+           ++iterator_3)
+      {
+        iterator = data.find ((*iterator_3).first);
+        if (iterator == data.end ())
+        {
+          data.insert (*iterator_3);
+          continue;
+        } // end IF
+
+        for (Test_I_DataItemsIterator_t iterator_4 = (*iterator_3).second.begin ();
+             iterator_4 != (*iterator_3).second.end ();
+             ++iterator_4)
+        {
+          iterator_2 = std::find ((*iterator).second.begin (),
+                                  (*iterator).second.end (),
+                                  *iterator_4);
+          if (iterator_2 == (*iterator_3).second.end ())
+            (*iterator).second.push_back (*iterator_4);
+        } // end FOR
+      } // end FOR
+    } // end ELSE
+    parserContext = (parserContext ? parserContext : rhs_in.parserContext);
+    targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
+                                              : targetFileName);
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  Test_I_ConnectionState*  connectionState;
+  Test_I_Data_t            data; // html handler module
+  Test_I_SAXParserContext* parserContext; // html parser/handler module
+  std::string              targetFileName; // file writer module
+  Test_I_UserData*         userData;
 };
 typedef Stream_SessionDataBase_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 
@@ -137,6 +217,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , connectionManager (NULL)
    , hostName ()
    , inbound (true)
+   , mode (STREAM_MODULE_HTMLPARSER_SAX)
    , passive (false)
    , printProgressDot (false)
    , socketConfiguration (NULL)
@@ -151,6 +232,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
   std::string                               hostName; // net source module
   bool                                      inbound; // net io module
+  Stream_Module_HTMLParser_Mode             mode; // html parser module
   bool                                      passive; // net source module
   bool                                      printProgressDot; // file writer module
   Net_SocketConfiguration*                  socketConfiguration;

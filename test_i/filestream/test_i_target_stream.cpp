@@ -144,9 +144,11 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   } // end IF
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   // *TODO*: remove type inferences
-  inherited::sessionData_->fileName =
+  Test_I_Stream_SessionData& session_data_r =
+      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+  session_data_r.fileName =
     configuration_in.moduleHandlerConfiguration->fileName;
-  inherited::sessionData_->sessionID = configuration_in.sessionID;
+  session_data_r.sessionID = configuration_in.sessionID;
 
   // things to be done here:
   // [- initialize base class]
@@ -358,6 +360,8 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
+  Test_I_Stream_SessionData& session_data_r =
+        const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
   Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
     dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
@@ -369,9 +373,9 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   } // end IF
 
   // synch access
-  if (inherited::sessionData_->lock)
+  if (session_data_r.lock)
   {
-    result = inherited::sessionData_->lock->acquire ();
+    result = session_data_r.lock->acquire ();
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -380,7 +384,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
     } // end IF
   } // end IF
 
-  inherited::sessionData_->currentStatistic.timestamp = COMMON_TIME_NOW;
+  session_data_r.currentStatistic.timestamp = COMMON_TIME_NOW;
 
   // delegate to the statistics module...
   bool result_2 = false;
@@ -397,11 +401,11 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
   else
-    inherited::sessionData_->currentStatistic = data_out;
+    session_data_r.currentStatistic = data_out;
 
-  if (inherited::sessionData_->lock)
+  if (session_data_r.lock)
   {
-    result = inherited::sessionData_->lock->release ();
+    result = session_data_r.lock->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));

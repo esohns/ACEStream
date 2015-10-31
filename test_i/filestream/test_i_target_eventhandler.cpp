@@ -105,10 +105,10 @@ Test_I_Stream_Target_EventHandler::notify (const Test_I_Stream_SessionMessage& s
 
       const Test_I_Stream_SessionData_t& session_data_container_r =
         sessionMessage_in.get ();
-      const Test_I_Stream_SessionData* session_data_p =
-        session_data_container_r.getData ();
-      if (session_data_p)
-        CBData_->progressData.statistic = session_data_p->currentStatistic;
+      const Test_I_Stream_SessionData& session_data_r =
+        session_data_container_r.get ();
+      CBData_->progressData.statistic = session_data_r.currentStatistic;
+
       break;
     }
     default:

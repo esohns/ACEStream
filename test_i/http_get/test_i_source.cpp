@@ -54,6 +54,7 @@
 
 #include "test_i_common.h"
 #include "test_i_defines.h"
+#include "test_i_module_htmlhandler.h"
 
 #include "test_i_source_common.h"
 #include "test_i_source_signalhandler.h"
@@ -269,7 +270,7 @@ do_processArguments (int argc_in,
           converter >> port_out;
         } // end IF
         ACE_ASSERT (match_results[3].matched);
-        URI_out = match_results[3];
+//        URI_out = match_results[3];
 
         // step2: validate address/verify host name exists
         //        --> resolve
@@ -298,8 +299,10 @@ do_processArguments (int argc_in,
         } // end IF
 
         // step3: validate URI
+//        regex_string =
+//            ACE_TEXT_ALWAYS_CHAR ("^(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
         regex_string =
-            ACE_TEXT_ALWAYS_CHAR ("^(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
+            ACE_TEXT_ALWAYS_CHAR ("^(?:http://)?((.+\\.)+([^\\/]+))(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
         regex.assign (regex_string,
                       (std::regex_constants::ECMAScript |
                        std::regex_constants::icase));
@@ -487,6 +490,22 @@ do_work (unsigned int bufferSize_in,
       &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
 
+  Test_I_Stream_Module_HTMLHandler_Module html_handler (ACE_TEXT_ALWAYS_CHAR ("HTMLHandler"),
+                                                        NULL,
+                                                        true);
+  Test_I_Stream_Module_HTMLHandler* html_handler_p =
+    dynamic_cast<Test_I_Stream_Module_HTMLHandler*> (html_handler.writer ());
+  if (!html_handler_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_HTMLHandler> failed, returning\n")));
+
+    // clean up
+    delete stream_p;
+
+    return;
+  } // end IF
+
   Stream_AllocatorHeap heap_allocator;
   Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
@@ -551,7 +570,7 @@ do_work (unsigned int bufferSize_in,
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
-//  configuration.streamConfiguration.module = NULL;
+  configuration.streamConfiguration.module = &html_handler;
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
@@ -559,6 +578,8 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.printFinalReport = true;
   configuration.streamConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
+
+  html_handler_p->initialize (configuration.moduleHandlerConfiguration);
 
   // step0b: initialize event dispatch
   if (!Common_Tools::initializeEventDispatch (useReactor_in,

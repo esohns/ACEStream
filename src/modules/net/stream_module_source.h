@@ -121,6 +121,10 @@ class Stream_Module_Net_Source_T
   bool                                          isInitialized_;
   bool                                          isLinked_;
   bool                                          isPassive_;
+  // *NOTE*: this lock prevents races during (ordered) shutdown
+  // *TODO*: remove surplus STREAM_SESSION_END message(s)
+  ACE_SYNCH_MUTEX                               lock_;
+  bool                                          sessionEndInProgress_;
 
   // timer
   Stream_StatisticHandler_Reactor_t             statisticCollectionHandler_;

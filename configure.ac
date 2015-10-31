@@ -228,6 +228,8 @@ AC_FUNC_MALLOC
 # checks for libraries
 AM_COND_IF([VALGRIND_SUPPORT],
            [PKG_CHECK_MODULES([PKGVALGRIND], [valgrind])])
+PKG_CHECK_MODULES([PKGACE], [ACE])
+PKG_CHECK_MODULES([PKGXML2], [libxml-2.0])
 #PKG_CHECK_MODULES([PKGCURSES], [ncurses panel])
 #PKG_CHECK_MODULES([PKGSDL], [sdl SDL_mixer])
 dnl libgnomeui-2.0 >= 1.110.0

@@ -23,6 +23,9 @@
 
 #include "ace/Global_Macros.h"
 
+//#include <libxml/tree.h>
+
+//#include "stream_data_message_base.h"
 #include "stream_message_base.h"
 
 #include "test_i_common.h"
@@ -37,6 +40,8 @@ template <typename MessageType,
 
 class Test_I_Stream_Message
  : public Stream_MessageBase
+// : public Stream_DataMessageBase_T<xmlDoc,
+//                                   Stream_CommandType_t>
 {
   // grant access to specific private ctors...
   friend class Stream_MessageAllocatorHeapBase_T<Test_I_Stream_Message,
@@ -52,7 +57,7 @@ class Test_I_Stream_Message
   virtual ACE_Message_Block* duplicate (void) const;
 
   // implement Stream_MessageBase_T
-  Stream_CommandType_t command () const; // return value: message type
+  virtual Stream_CommandType_t command () const; // return value: message type
 
   static std::string CommandType2String (Stream_CommandType_t);
 
@@ -62,6 +67,8 @@ class Test_I_Stream_Message
   Test_I_Stream_Message (const Test_I_Stream_Message&);
 
  private:
+//  typedef Stream_DataMessageBase_T<xmlDoc,
+//                                   Stream_CommandType_t> inherited;
   typedef Stream_MessageBase inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message ())

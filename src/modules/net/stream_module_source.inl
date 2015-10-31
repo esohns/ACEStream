@@ -54,10 +54,11 @@ Stream_Module_Net_Source_T<SessionMessageType,
  : inherited (false, // active object ?
               false, // auto-start ?
               false) // run svc() routine on start ? (passive only)
- //, connection_ (NULL)
  , isInitialized_ (false)
  , isLinked_ (false)
  , isPassive_ (isPassive_in)
+ , lock_ ()
+ , sessionEndInProgress_ (false)
  , statisticCollectionHandler_ (ACTION_COLLECT,
                                 this,
                                 false)
@@ -325,8 +326,8 @@ Stream_Module_Net_Source_T<SessionMessageType,
     {
       const SessionDataContainerType& session_data_container_r =
           message_inout->get ();
-      SessionDataType* session_data_p =
-          const_cast<SessionDataType*> (session_data_container_r.getData ());
+      SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (session_data_container_r.get ());
 
       // sanity check(s)
       if (inherited::configuration_.connection)
@@ -364,9 +365,9 @@ Stream_Module_Net_Source_T<SessionMessageType,
         // *TODO*: remove type inference
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-        handle = reinterpret_cast<ACE_HANDLE> (session_data_p->sessionID);
+        handle = reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID);
 #else
-        handle = static_cast<ACE_HANDLE> (session_data_p->sessionID);
+        handle = static_cast<ACE_HANDLE> (session_data_r.sessionID);
 #endif
         ACE_ASSERT (handle != ACE_INVALID_HANDLE);
         inherited::configuration_.connection =
@@ -560,17 +561,26 @@ close:
 
 done:
       // set session ID
-      ACE_ASSERT (session_data_p);
       // *TODO*: remove type inferences
-      ACE_ASSERT (session_data_p->lock);
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_p->lock);
+      ACE_ASSERT (session_data_r.lock);
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_r.lock);
       if (inherited::configuration_.connection)
-        session_data_p->sessionID = inherited::configuration_.connection->id ();
+        session_data_r.sessionID = inherited::configuration_.connection->id ();
 
       break;
     }
     case STREAM_SESSION_END:
     {
+      // *NOTE*: when the connection is closed by the peer, the connection
+      //         handler will finished() the connection processing stream. As it
+      //         has been linked to the main processing stream, the 'session
+      //         end' message is propagated. When the processing stream is
+      //         finished() (see below), it sends a second session end message.
+      //         Catch this situation here and return early (there is nothing to
+      //         do)
+      if (sessionEndInProgress_)
+        break; // done
+
       if (timerID_ != -1)
       {
         const void* act_p = NULL;
@@ -584,8 +594,47 @@ done:
         timerID_ = -1;
       } // end IF
 
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+      sessionEndInProgress_ = true;
+
+      if (inherited::configuration_.connection)
+      {
+        // wait for data (!) processing to complete
+        ACE_ASSERT (inherited::configuration_.stream);
+        typename ConnectorType::STREAM_T* stream_p = NULL;
+        typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
+          dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (inherited::configuration_.connection);
+        if (!socket_connection_p)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T> (0x%@): \"%m\", returning\n"),
+                      inherited::configuration_.connection));
+          if (!isPassive_)
+            goto unlink_close;
+          else
+            goto release;
+        } // end IF
+        stream_p =
+          &const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
+
+        // *NOTE*: if the connection was closed abruptly, there may well be
+        //         undispatched data in the connection stream. Flush it so
+        //         waitForCompletion() (see below) does not block
+        Net_Connection_Status status =
+            inherited::configuration_.connection->status ();
+        if (status != NET_CONNECTION_STATUS_OK)
+          stream_p->flush (true);
+        // *NOTE*: finalize the processing stream state so
+        //         waitForCompletion() (see below) does not block
+        // *NOTE*: this (probably) also wakes up the (main) thread
+        inherited::configuration_.stream->finished (false); // finish upstream ?
+        inherited::configuration_.stream->waitForCompletion (false, // wait for worker(s) ?
+                                                             true); // wait for upstream ?
+      } // end IF
+
       if (!isPassive_ && inherited::configuration_.connection)
       {
+unlink_close:
         if (isLinked_)
         {
           ACE_ASSERT (inherited::configuration_.stream);
@@ -619,11 +668,14 @@ done:
                     ACE_TEXT ("closed connection to %s...\n"),
                     ACE_TEXT (buffer)));
       } // end IF
+release:
       if (inherited::configuration_.connection)
       {
         inherited::configuration_.connection->decrease ();
         inherited::configuration_.connection = NULL;
       } // end IF
+
+      sessionEndInProgress_ = false;
 
       break;
     }
@@ -857,27 +909,29 @@ Stream_Module_Net_Source_T<SessionMessageType,
   ACE_ASSERT (inherited::configuration_.streamConfiguration);
 
   // step1: update session state
+  SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  inherited::sessionData_->currentStatistic = statisticData_in;
+  session_data_r.currentStatistic = statisticData_in;
 
   // *TODO*: attach stream state information to the session data
 
-  // step2: create session data object container
-  SessionDataContainerType* session_data_p = NULL;
-  ACE_NEW_NORETURN (session_data_p,
-                    SessionDataContainerType (inherited::sessionData_,
-                                              false));
-  if (!session_data_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-    return false;
-  } // end IF
+//  // step2: create session data object container
+//  SessionDataContainerType* session_data_p = NULL;
+//  ACE_NEW_NORETURN (session_data_p,
+//                    SessionDataContainerType (inherited::sessionData_,
+//                                              false));
+//  if (!session_data_p)
+//  {
+//    ACE_DEBUG ((LM_CRITICAL,
+//                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
+//    return false;
+//  } // end IF
 
   // step3: send the statistic data downstream
-  // *NOTE*: fire-and-forget session_data_p here
+//  // *NOTE*: fire-and-forget session_data_p here
   // *TODO*: remove type inference
   return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-                                       session_data_p,
+                                       *inherited::sessionData_,
                                        inherited::configuration_.streamConfiguration->messageAllocator);
 }

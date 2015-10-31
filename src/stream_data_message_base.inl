@@ -103,9 +103,11 @@ template <typename DataType,
           typename CommandType>
 Stream_DataMessageBase_T<DataType,
                          CommandType>::Stream_DataMessageBase_T (ACE_Data_Block* dataBlock_in,
-                                                                 ACE_Allocator* messageAllocator_in)
+                                                                 ACE_Allocator* messageAllocator_in,
+                                                                 bool incrementMessageCounter_in)
  : inherited (dataBlock_in,
-              messageAllocator_in)
+              messageAllocator_in,
+              incrementMessageCounter_in)
  , data_ (NULL)
  , isInitialized_ (false)
 {
@@ -132,7 +134,8 @@ Stream_DataMessageBase_T<DataType,
   // clean up
   if (data_)
   {
-    // decrease reference counter...
+    // decrease reference counter
+    // *TODO*: remove type inference
     try
     {
       data_->decrease ();
@@ -165,7 +168,7 @@ Stream_DataMessageBase_T<DataType,
   // set return values
   data_inout = NULL;
 
-  // set our data block (if any)
+  // set data block (if any)
   if (dataBlock_in)
   {
     inherited::initialize (dataBlock_in);
@@ -201,6 +204,7 @@ Stream_DataMessageBase_T<DataType,
   // dump data...
   if (data_)
   {
+    // *TODO*: remove type inference
     try
     {
       data_->dump_state ();

@@ -31,9 +31,12 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T ()
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
- , httpGet_ (ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
+ , HTTPGet_ (ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
              NULL,
              false)
+ , HTMLParser_ (ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
+                NULL,
+                false)
  , fileWriter_ (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
                 NULL,
                 false)
@@ -47,7 +50,8 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T ()
   //         close()d
   inherited::availableModules_.push_front (&netSource_);
   inherited::availableModules_.push_front (&runtimeStatistic_);
-  inherited::availableModules_.push_front (&httpGet_);
+  inherited::availableModules_.push_front (&HTTPGet_);
+  inherited::availableModules_.push_front (&HTMLParser_);
   inherited::availableModules_.push_front (&fileWriter_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
@@ -79,6 +83,7 @@ Test_I_Source_Stream_T<ConnectorType>::ping ()
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
+
   ACE_NOTREACHED (return;)
 }
 
@@ -142,9 +147,11 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   // allocate a new session state, reset stream
   inherited::initialize ();
   ACE_ASSERT (inherited::sessionData_);
+  Test_I_Stream_SessionData& session_data_r =
+      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
-  inherited::sessionData_->targetFileName =
+  session_data_r.targetFileName =
       configuration_in.moduleHandlerConfiguration->targetFileName;
 
   // things to be done here:
@@ -242,9 +249,10 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   // ---------------------------------------------------------------------------
 
   Test_I_Stream_Module_FileWriter* fileWriter_impl_p = NULL;
-  Test_I_Stream_Module_HTTPGet* httpGet_impl_p = NULL;
+  Test_I_Stream_Module_HTTPGet* HTTPGet_impl_p = NULL;
   Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
-  WRITER_T* netSource_impl_p = NULL;
+  SOURCE_WRITER_T* netSource_impl_p = NULL;
+  Test_I_Stream_Module_HTMLParser* HTMLParser_impl_p = NULL;
 
   // ******************* File Writer ************************
   fileWriter_.initialize (*configuration_in.moduleConfiguration);
@@ -272,31 +280,57 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
     goto failed;
   } // end IF
 
+  // ******************* HTML Parser ************************
+  HTMLParser_.initialize (*configuration_in.moduleConfiguration);
+  HTMLParser_impl_p = dynamic_cast<Test_I_Stream_Module_HTMLParser*> (HTMLParser_.writer ());
+  if (!HTMLParser_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_HTMLParser> failed, aborting\n")));
+    goto failed;
+  } // end IF
+  // *TODO*: remove type inferences
+  if (!HTMLParser_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+                HTMLParser_.name ()));
+    goto failed;
+  } // end IF
+  result = inherited::push (&HTMLParser_);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
+                HTMLParser_.name ()));
+    goto failed;
+  } // end IF
+
   // ******************* HTTP Get ************************
-  httpGet_.initialize (*configuration_in.moduleConfiguration);
-  httpGet_impl_p =
-    dynamic_cast<Test_I_Stream_Module_HTTPGet*> (httpGet_.writer ());
-  if (!httpGet_impl_p)
+  HTTPGet_.initialize (*configuration_in.moduleConfiguration);
+  HTTPGet_impl_p =
+    dynamic_cast<Test_I_Stream_Module_HTTPGet*> (HTTPGet_.writer ());
+  if (!HTTPGet_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_HTTPGet> failed, aborting\n")));
     goto failed;
   } // end IF
   // *TODO*: remove type inferences
-  if (!httpGet_impl_p->initialize (configuration_in.messageAllocator,
+  if (!HTTPGet_impl_p->initialize (configuration_in.messageAllocator,
                                    configuration_in.moduleHandlerConfiguration->URL))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                httpGet_.name ()));
+                HTTPGet_.name ()));
     goto failed;
   } // end IF
-  result = inherited::push (&httpGet_);
+  result = inherited::push (&HTTPGet_);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                httpGet_.name ()));
+                HTTPGet_.name ()));
     goto failed;
   } // end IF
 
@@ -330,7 +364,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
 
   // ******************* Net Source ************************
   netSource_.initialize (*configuration_in.moduleConfiguration);
-  netSource_impl_p = dynamic_cast<WRITER_T*> (netSource_.writer ());
+  netSource_impl_p = dynamic_cast<SOURCE_WRITER_T*> (netSource_.writer ());
   if (!netSource_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -393,6 +427,8 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
+  Test_I_Stream_SessionData& session_data_r =
+      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
   Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
     dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
@@ -404,9 +440,9 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   } // end IF
 
   // synch access
-  if (inherited::sessionData_->lock)
+  if (session_data_r.lock)
   {
-    result = inherited::sessionData_->lock->acquire ();
+    result = session_data_r.lock->acquire ();
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -415,7 +451,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     } // end IF
   } // end IF
 
-  inherited::sessionData_->currentStatistic.timestamp = COMMON_TIME_NOW;
+  session_data_r.currentStatistic.timestamp = COMMON_TIME_NOW;
 
   // delegate to the statistics module...
   bool result_2 = false;
@@ -432,11 +468,11 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_IStatistic_T::collect(), aborting\n")));
   else
-    inherited::sessionData_->currentStatistic = data_out;
+    session_data_r.currentStatistic = data_out;
 
-  if (inherited::sessionData_->lock)
+  if (session_data_r.lock)
   {
-    result = inherited::sessionData_->lock->release ();
+    result = session_data_r.lock->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));

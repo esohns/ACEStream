@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.4.1, 2015-10-28T01:01:47. -->
+<!-- Written by QtCreator 3.4.1, 2015-10-31T01:59:20. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -431,7 +431,7 @@
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes">
      <value type="QString">LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/win_d/projects/libACEStream/build/debug/lib</value>
     </valuelist>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-l -t -u http://www.heise.de:80/newsticker/index.html</value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-l -t -u http://www.heise.de/newsticker/</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}/test_i/http_get/.libs/http_get</value>
     <value type="bool" key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal">false</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.WorkingDirectory">/mnt/win_d/projects/libACEStream/build/%{CurrentBuild:Name}</value>

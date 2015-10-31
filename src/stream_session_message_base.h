@@ -53,7 +53,7 @@ enum Stream_SessionMessageType
   STREAM_SESSION_INVALID
 };
 
-template <typename SessionDataType,
+template <typename SessionDataType, // (reference counted)
           typename UserDataType>
 class Stream_SessionMessageBase_T
  : public ACE_Message_Block
@@ -68,6 +68,7 @@ class Stream_SessionMessageBase_T
 
  public:
   // convenience types
+  typedef SessionDataType SESSION_DATA_T;
   typedef UserDataType USER_DATA_T;
 
   // *NOTE*: assumes responsibility for the second argument !
@@ -94,10 +95,6 @@ class Stream_SessionMessageBase_T
   // debug tools
   static void SessionMessageType2String (ACE_Message_Type, // message type
                                          std::string&);    // corresp. string
-
-  // convenience types
-  typedef SessionDataType SESSION_DATA_TYPE;
-  typedef UserDataType USER_DATA_TYPE;
 
  protected:
   // (copy) ctor to be used by duplicate()

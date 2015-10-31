@@ -24,32 +24,32 @@
 #include "ace/Global_Macros.h"
 
 #include "common_iget.h"
-
-#include "stream_session_data_base.h"
+#include "common_referencecounter_base.h"
 
 template <typename SessionDataType>
 class Stream_SessionData_T
- : public Stream_SessionDataBase_T<SessionDataType>
- , public Common_IGet_T<SessionDataType>
+ : public Common_ReferenceCounterBase
+ , public Common_IGetSet_T<SessionDataType>
 {
  public:
   Stream_SessionData_T (const SessionDataType&);
+  virtual ~Stream_SessionData_T ();
 
   // implement Common_IDumpState
   virtual void dump_state () const;
 
-  // implement Common_IGet_T
+  // implement Common_IGetSet_T
   virtual const SessionDataType& get () const;
+  virtual void set (const SessionDataType&);
 
  private:
-  typedef Stream_SessionDataBase_T<SessionDataType> inherited;
+  typedef Common_ReferenceCounterBase inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T (const Stream_SessionData_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T& operator= (const Stream_SessionData_T&))
-  virtual ~Stream_SessionData_T ();
 
-  SessionDataType sessionData_;
+  SessionDataType data_;
 };
 
 #endif

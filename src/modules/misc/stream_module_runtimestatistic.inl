@@ -271,13 +271,12 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     case STREAM_SESSION_BEGIN:
     {
       // *TODO*: remove type inferences
-      const typename SessionMessageType::SESSION_DATA_TYPE& session_data_container_r =
+      const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
           message_inout->get ();
-      const typename SessionMessageType::SESSION_DATA_TYPE::SESSION_DATA_TYPE* session_data_p =
-          session_data_container_r.getData ();
-      if (session_data_p)
-        sessionData_ =
-            const_cast<typename SessionMessageType::SESSION_DATA_TYPE::SESSION_DATA_TYPE*> (session_data_p);
+      const typename SessionMessageType::SESSION_DATA_T::SESSION_DATA_T& session_data_r =
+          session_data_container_r.get ();
+      sessionData_ =
+          &const_cast<typename SessionMessageType::SESSION_DATA_T::SESSION_DATA_T&> (session_data_r);
 
       // statistic reporting
       if (reportingInterval_ && (reportingInterval_ != 1))

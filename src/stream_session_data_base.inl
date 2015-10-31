@@ -19,25 +19,26 @@
  ***************************************************************************/
 
 #include "stream_macros.h"
+#include "stream_tools.h"
 
 template <typename DataType>
 Stream_SessionDataBase_T<DataType>::Stream_SessionDataBase_T ()
  : inherited (1,    // initial count
               true) // delete on zero ?
- , sessionData_ (NULL)
- , deleteSessionData_ (false)
+ , data_ (NULL)
+ , delete_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::Stream_SessionDataBase_T"));
 
 }
 
 template <typename DataType>
-Stream_SessionDataBase_T<DataType>::Stream_SessionDataBase_T (DataType* sessionData_in,
-                                                              bool deleteSessionData_in)
+Stream_SessionDataBase_T<DataType>::Stream_SessionDataBase_T (DataType* data_in,
+                                                              bool delete_in)
  : inherited (1,    // initial count
               true) // delete on zero ?
- , sessionData_ (sessionData_in)
- , deleteSessionData_ (deleteSessionData_in)
+ , data_ (data_in)
+ , delete_ (delete_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::Stream_SessionDataBase_T"));
 
@@ -48,18 +49,9 @@ Stream_SessionDataBase_T<DataType>::~Stream_SessionDataBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::~Stream_SessionDataBase_T"));
 
-  // clean up
-  if (deleteSessionData_)
-    delete sessionData_;
-}
-
-template <typename DataType>
-DataType*
-Stream_SessionDataBase_T<DataType>::getData () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::getData"));
-
-  return sessionData_;
+  // clean up ?
+  if (delete_)
+    delete data_;
 }
 
 template <typename DataType>
@@ -68,7 +60,75 @@ Stream_SessionDataBase_T<DataType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::dump_state"));
 
+  // sanity check(s)
+  ACE_ASSERT (data_);
+
+  // *TODO*: remove type inferences
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("session data: %@\n"),
-              sessionData_));
+              ACE_TEXT ("user data: %@, start of session: %s%s\n"),
+              data_->userData,
+              ACE_TEXT (Stream_Tools::timeStamp2LocalString (data_->startOfSession).c_str ()),
+              (data_->aborted ? ACE_TEXT(" [user abort !]")
+                              : ACE_TEXT(""))));
+}
+
+template <typename DataType>
+const DataType&
+Stream_SessionDataBase_T<DataType>::get () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::get"));
+
+  // sanity check(s)
+  ACE_ASSERT (data_);
+
+  return *data_;
+}
+template <typename DataType>
+void
+Stream_SessionDataBase_T<DataType>::set (const DataType& data_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::set"));
+
+  // merge ?
+  // *TODO*: enforce merge
+  DataType& data_r = const_cast<DataType&> (data_in);
+  if (data_)
+    data_r = *data_; // *WARNING*: this SHOULD be a merge operation !
+
+  // clean up ?
+  if (data_ && delete_)
+  {
+    delete data_;
+    data_ = NULL;
+
+    delete_ = false;
+  } // end IF
+
+  data_ = &const_cast<DataType&> (data_in);
+  delete_ = false; // never delete
+}
+
+template <typename DataType>
+Stream_SessionDataBase_T<DataType>&
+Stream_SessionDataBase_T<DataType>::operator= (const Stream_SessionDataBase_T& rhs_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::set"));
+
+  // merge ?
+  // *TODO*: enforce merge
+  DataType* data_p = const_cast<DataType*> (rhs_in.data_);
+  if (data_ && data_p)
+    *data_p = *data_; // *WARNING*: this SHOULD be a merge operation !
+
+  // clean up ?
+  if (data_ && delete_)
+  {
+    delete data_;
+    data_ = NULL;
+  } // end IF
+
+  data_ = rhs_in.data_;
+  delete_ = false; // never delete
+
+  return *this;
 }

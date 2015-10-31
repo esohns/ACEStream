@@ -34,6 +34,7 @@
 #include "test_i_common.h"
 #include "test_i_common_modules.h"
 #include "test_i_message.h"
+#include "test_i_module_htmlparser.h"
 #include "test_i_session_message.h"
 
 // forward declarations
@@ -105,12 +106,12 @@ class Test_I_Source_Stream_T
                                      Test_I_RuntimeStatistic_t,
                                      ////
                                      Test_I_Stream_InetConnectionManager_t,
-                                     ConnectorType> WRITER_T;
+                                     ConnectorType> SOURCE_WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                             // task synch type
                                          Common_TimePolicy_t,                      // time policy
                                          Stream_ModuleConfiguration,               // module configuration type
                                          Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                                         WRITER_T> SOURCE_MODULE_T;                // writer type
+                                         SOURCE_WRITER_T> SOURCE_MODULE_T;         // writer type
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
@@ -118,7 +119,8 @@ class Test_I_Source_Stream_T
   // modules
   SOURCE_MODULE_T                              netSource_;
   Test_I_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
-  Test_I_Stream_Module_HTTPGet_Module          httpGet_;
+  Test_I_Stream_Module_HTTPGet_Module          HTTPGet_;
+  Test_I_Stream_Module_HTMLParser_Module       HTMLParser_;
   Test_I_Stream_Module_FileWriter_Module       fileWriter_;
 };
 
