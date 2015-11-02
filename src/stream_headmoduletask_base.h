@@ -29,16 +29,19 @@
 
 #include "stream_imodule.h"
 #include "stream_istreamcontrol.h"
-#include "stream_messagequeue.h"
+//#include "stream_messagequeue.h"
 #include "stream_session_message_base.h"
 #include "stream_statemachine_control.h"
 #include "stream_task_base.h"
 
 // forward declaration(s)
 class ACE_Message_Block;
+class ACE_Time_Value;
 class Stream_IAllocator;
 
-template <typename TaskSynchType,
+template <typename LockType,
+          ///////////////////////////////
+          typename TaskSynchType,
           typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
@@ -50,7 +53,7 @@ template <typename TaskSynchType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_HeadModuleTaskBase_T
- : public Stream_StateMachine_Control
+ : public Stream_StateMachine_Control_T<LockType>
  , public Stream_TaskBase_T<TaskSynchType,
                             TimePolicyType,
                             SessionMessageType,
@@ -99,7 +102,9 @@ class Stream_HeadModuleTaskBase_T
   virtual bool initialize (const StreamStateType&);
 
  protected:
-  Stream_HeadModuleTaskBase_T (bool = false, // active object ?
+  Stream_HeadModuleTaskBase_T (LockType*,    // lock handle
+                               //////////
+                               bool = false, // active object ?
                                bool = false, // auto-start ?
                                bool = true); // run svc() routine on start ? (passive only)
 
@@ -125,14 +130,16 @@ class Stream_HeadModuleTaskBase_T
   StreamStateType*          streamState_;
 
  private:
-  typedef Stream_StateMachine_Control inherited;
+  typedef Stream_StateMachine_Control_T<LockType> inherited;
   typedef Stream_TaskBase_T<TaskSynchType,
                             TimePolicyType,
                             SessionMessageType,
                             ProtocolMessageType> inherited2;
 
   // convenient types
-  typedef Stream_HeadModuleTaskBase_T<TaskSynchType,
+  typedef Stream_HeadModuleTaskBase_T<LockType,
+                                      ///
+                                      TaskSynchType,
                                       TimePolicyType,
                                       SessionMessageType,
                                       ProtocolMessageType,
@@ -160,8 +167,8 @@ class Stream_HeadModuleTaskBase_T
   virtual Stream_Base_t* upStream () const;
 
   bool                      autoStart_;
-  bool                      sessionEndSent_;
   bool                      runSvcRoutineOnStart_;
+  bool                      sessionEndSent_;
   ACE_Thread_ID             threadID_;
 };
 

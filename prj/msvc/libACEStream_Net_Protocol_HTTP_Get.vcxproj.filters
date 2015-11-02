@@ -29,6 +29,9 @@
     <ClInclude Include="..\..\src\modules\net\protocols\stream_module_source_http_get.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\modules\net\protocols\stream_net_http_exports.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\modules\net\protocols\stream_module_source_http_get.inl">

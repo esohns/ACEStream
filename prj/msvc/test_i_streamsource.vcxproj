@@ -122,7 +122,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;STREAM_HAS_DLL;DEBUG_DEBUGGER;HAVE_CONFIG_H;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\..\libCommon\src\ui;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\src\modules\net;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <EnablePREfast>false</EnablePREfast>
       <AdditionalOptions>/vd0</AdditionalOptions>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -136,6 +136,9 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <ShowIncludes />
       <ErrorReporting>Send</ErrorReporting>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <SmallerTypeCheck>true</SmallerTypeCheck>
+      <StringPooling>false</StringPooling>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -176,6 +179,10 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <ShowIncludes />
       <ErrorReporting>Send</ErrorReporting>
+      <MinimalRebuild>false</MinimalRebuild>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <SmallerTypeCheck>true</SmallerTypeCheck>
+      <StringPooling>false</StringPooling>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -211,9 +218,10 @@
       <OmitFramePointers>true</OmitFramePointers>
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FloatingPointModel>Strict</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <FloatingPointExceptions>true</FloatingPointExceptions>
-      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <CreateHotpatchableImage>
+      </CreateHotpatchableImage>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
       <OmitDefaultLibName>true</OmitDefaultLibName>
@@ -224,6 +232,7 @@
       <DisableLanguageExtensions>
       </DisableLanguageExtensions>
       <ShowIncludes />
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -278,9 +287,10 @@
       <OmitFramePointers>true</OmitFramePointers>
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FloatingPointModel>Strict</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <FloatingPointExceptions>true</FloatingPointExceptions>
-      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <CreateHotpatchableImage>
+      </CreateHotpatchableImage>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
       <OmitDefaultLibName>true</OmitDefaultLibName>
@@ -291,6 +301,7 @@
       <DisableLanguageExtensions>
       </DisableLanguageExtensions>
       <ShowIncludes />
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

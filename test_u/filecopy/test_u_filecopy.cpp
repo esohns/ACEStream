@@ -49,7 +49,7 @@
 #include "stream_macros.h"
 
 #ifdef HAVE_CONFIG_H
-#include "libacestream_config.h"
+#include "libACEStream_config.h"
 #endif
 
 #include "test_u_common.h"

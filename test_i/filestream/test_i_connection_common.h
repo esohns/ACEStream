@@ -27,6 +27,7 @@
 #include "ace/Netlink_Addr.h"
 #endif
 #include "ace/SOCK_Connector.h"
+#include "ace/Synch_Traits.h"
 
 #include "stream_common.h"
 
@@ -71,7 +72,9 @@ struct Test_I_Stream_SocketHandlerConfiguration;
 
 /////////////////////////////////////////
 
-typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
+typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
+                                      ///
+                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ///
                                       Stream_StateMachine_ControlState,

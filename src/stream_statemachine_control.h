@@ -27,37 +27,20 @@
 
 #include "common_statemachine_base.h"
 
-#include "stream_exports.h"
+#include "stream_statemachine_common.h"
 
-enum Stream_StateMachine_ControlState
-{
-  STREAM_STATE_INVALID = -1,
-  STREAM_STATE_INITIALIZED = 0,
-  STREAM_STATE_RUNNING,
-  STREAM_STATE_PAUSED,
-  STREAM_STATE_STOPPED,
-  STREAM_STATE_FINISHED,
-  /////////////////////////////////////
-  STREAM_STATE_MAX
-};
+// forward declarations
+class ACE_Time_Value;
 
-template <typename StateType>
-class Stream_StateMachine_IControl_T
- : virtual public Common_IStateMachine_T<Stream_StateMachine_ControlState>
-{
- public:
-  virtual ~Stream_StateMachine_IControl_T () {}
-
-  virtual void finished () = 0;
-};
-
-class Stream_Export Stream_StateMachine_Control
- : public Common_StateMachine_Base_T<Stream_StateMachine_ControlState>
+template <typename LockType>
+class Stream_StateMachine_Control_T
+ : public Common_StateMachine_Base_T<LockType,
+                                     Stream_StateMachine_ControlState>
  , public Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState>
 {
  public:
-  Stream_StateMachine_Control ();
-  virtual ~Stream_StateMachine_Control ();
+  Stream_StateMachine_Control_T (LockType*); // lock handle
+  virtual ~Stream_StateMachine_Control_T ();
 
   // implement (part of) Common_IStateMachine_T
   virtual void initialize ();
@@ -75,6 +58,11 @@ class Stream_Export Stream_StateMachine_Control
   virtual void finished ();
 
  protected:
+  // convenient types
+  typedef Common_StateMachine_Base_T<LockType,
+                                     Stream_StateMachine_ControlState> COMMON_STATEMACHINE_T;
+  using COMMON_STATEMACHINE_T::initialize;
+
   // override (part of) Common_IStateMachine_T
   // *NOTE*: PAUSED --> PAUSED is silently remapped to PAUSED --> RUNNING
   //         in the model of a (traditional) tape recorder
@@ -82,13 +70,15 @@ class Stream_Export Stream_StateMachine_Control
   virtual bool change (Stream_StateMachine_ControlState); // new state
 
  private:
-  typedef Common_StateMachine_Base_T<Stream_StateMachine_ControlState> inherited;
+  typedef Common_StateMachine_Base_T<LockType,
+                                     Stream_StateMachine_ControlState> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control (const Stream_StateMachine_Control&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control& operator= (const Stream_StateMachine_Control&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control_T (const Stream_StateMachine_Control_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control_T& operator= (const Stream_StateMachine_Control_T&))
 };
 
-// convenience types
-typedef Stream_StateMachine_ControlState Stream_StateType_t;
+// include template implementation
+#include "stream_statemachine_control.inl"
 
 #endif

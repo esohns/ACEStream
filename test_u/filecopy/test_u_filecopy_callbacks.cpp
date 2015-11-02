@@ -940,7 +940,12 @@ action_start_activate_cb (GtkAction* action_in,
     return;
   } // end IF
   thread_data_p->CBData = data_p;
-  thread_data_p->sessionID = data_p->stream->sessionData ().sessionID;
+  const Stream_Filecopy_SessionData_t* session_data_container_p =
+    data_p->stream->get ();
+  ACE_ASSERT (session_data_container_p);
+  const Stream_Filecopy_SessionData& session_data_r =
+    session_data_container_p->get ();
+  thread_data_p->sessionID = session_data_r.sessionID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
 #else

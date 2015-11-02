@@ -22,7 +22,8 @@
 
 #include "stream_macros.h"
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -36,7 +37,8 @@ template <typename TaskSynchType,
           typename ProtocolMessageType,
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IO_Stream_T<TaskSynchType,
+Stream_Module_Net_IO_Stream_T<LockType,
+                              TaskSynchType,
                               TimePolicyType,
                               StatusType,
                               StateType,
@@ -76,7 +78,8 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
      (*iterator)->next (NULL);
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -90,7 +93,8 @@ template <typename TaskSynchType,
           typename ProtocolMessageType,
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IO_Stream_T<TaskSynchType,
+Stream_Module_Net_IO_Stream_T<LockType,
+                              TaskSynchType,
                               TimePolicyType,
                               StatusType,
                               StateType,
@@ -110,7 +114,8 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
   inherited::shutdown ();
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -125,7 +130,8 @@ template <typename TaskSynchType,
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IO_Stream_T<TaskSynchType,
+Stream_Module_Net_IO_Stream_T<LockType,
+                              TaskSynchType,
                               TimePolicyType,
                               StatusType,
                               StateType,
@@ -147,7 +153,8 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
   ACE_NOTREACHED (return;)
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -162,7 +169,8 @@ template <typename TaskSynchType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
-Stream_Module_Net_IO_Stream_T<TaskSynchType,
+Stream_Module_Net_IO_Stream_T<LockType,
+                              TaskSynchType,
                               TimePolicyType,
                               StatusType,
                               StateType,
@@ -226,7 +234,13 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
   } // end IF
 
   // allocate a new session state, reset stream
-  inherited::initialize ();
+  if (!inherited::initialize (configuration_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT (inherited::name ().c_str ())));
+    return false;
+  } // end IF
   ACE_ASSERT (inherited::sessionData_);
   SessionDataType* session_data_p =
       &const_cast<SessionDataType&> (inherited::sessionData_->get ());
@@ -396,7 +410,8 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
   return true;
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -411,7 +426,8 @@ template <typename TaskSynchType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
-Stream_Module_Net_IO_Stream_T<TaskSynchType,
+Stream_Module_Net_IO_Stream_T<LockType,
+                              TaskSynchType,
                               TimePolicyType,
                               StatusType,
                               StateType,
@@ -461,7 +477,8 @@ Stream_Module_Net_IO_Stream_T<TaskSynchType,
   return true;
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -476,7 +493,8 @@ template <typename TaskSynchType,
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IO_Stream_T<TaskSynchType,
+Stream_Module_Net_IO_Stream_T<LockType,
+                              TaskSynchType,
                               TimePolicyType,
                               StatusType,
                               StateType,

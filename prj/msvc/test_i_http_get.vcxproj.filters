@@ -21,22 +21,22 @@
     <ClCompile Include="..\..\test_i\http_get\test_i_message.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\http_get\test_i_module_eventhandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\test_i\http_get\test_i_session_message.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\test_i\http_get\test_i_source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\http_get\test_i_source_eventhandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\test_i\http_get\test_i_source_signalhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\test_i\http_get\test_i_source_stream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test_i\http_get\test_i_module_htmlhandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test_i\http_get\test_i_module_htmlparser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,16 +62,10 @@
     <ClInclude Include="..\..\test_i\http_get\test_i_message.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\http_get\test_i_module_eventhandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\test_i\http_get\test_i_session_message.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\test_i\http_get\test_i_source_common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\test_i\http_get\test_i_source_eventhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\test_i\http_get\test_i_source_signalhandler.h">
@@ -81,6 +75,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\test_i\http_get\targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test_i\http_get\test_i_module_htmlhandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test_i\http_get\test_i_module_htmlparser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -21,105 +21,105 @@
 
 #include "stream_module_htmlparser.h"
 
-void
-startDocument (void* userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::startDocument"));
-
-  ACE_UNUSED_ARG (userData_in);
-
-  // *TODO*
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-void
-endDocument (void* userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::endDocument"));
-
-  ACE_UNUSED_ARG (userData_in);
-
-  // *TODO*
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-void
-characters (void* userData_in,
-            const xmlChar* string_in,
-            int length_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::characters"));
-
-  ACE_UNUSED_ARG (userData_in);
-  ACE_UNUSED_ARG (string_in);
-  ACE_UNUSED_ARG (length_in);
-
-  // *TODO*
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-void
-startElement (void* userData_in,
-              const xmlChar* name_in,
-              const xmlChar** attributes_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::startElement"));
-
-  ACE_UNUSED_ARG (userData_in);
-  ACE_UNUSED_ARG (name_in);
-  ACE_UNUSED_ARG (attributes_in);
-
-  // *TODO*
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-void
-endElement (void* userData_in,
-            const xmlChar* name_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::endElement"));
-
-  ACE_UNUSED_ARG (userData_in);
-  ACE_UNUSED_ARG (name_in);
-
-  // *TODO*
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-xmlEntityPtr
-getEntity (void* userData_in,
-           const xmlChar* name_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::getEntity"));
-
-  ACE_UNUSED_ARG (userData_in);
-  ACE_UNUSED_ARG (name_in);
-
-  // *TODO*
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (NULL);
-
-  ACE_NOTREACHED (return NULL;)
-}
+//void
+//SAXDefaultStartDocument (void* userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::SAXDefaultStartDocument"));
+//
+//  ACE_UNUSED_ARG (userData_in);
+//
+//  // *TODO*
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//
+//  ACE_NOTREACHED (return;)
+//}
+//void
+//SAXDefaultEndDocument (void* userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::SAXDefaultEndDocument"));
+//
+//  ACE_UNUSED_ARG (userData_in);
+//
+//  // *TODO*
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//
+//  ACE_NOTREACHED (return;)
+//}
+//void
+//SAXDefaultCharacters (void* userData_in,
+//                      const xmlChar* string_in,
+//                      int length_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::SAXDefaultCharacters"));
+//
+//  ACE_UNUSED_ARG (userData_in);
+//  ACE_UNUSED_ARG (string_in);
+//  ACE_UNUSED_ARG (length_in);
+//
+//  // *TODO*
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//
+//  ACE_NOTREACHED (return;)
+//}
+//void
+//SAXDefaultStartElement (void* userData_in,
+//                        const xmlChar* name_in,
+//                        const xmlChar** attributes_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::SAXDefaultStartElement"));
+//
+//  ACE_UNUSED_ARG (userData_in);
+//  ACE_UNUSED_ARG (name_in);
+//  ACE_UNUSED_ARG (attributes_in);
+//
+//  // *TODO*
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//
+//  ACE_NOTREACHED (return;)
+//}
+//void
+//SAXDefaultEndElement (void* userData_in,
+//                      const xmlChar* name_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::SAXDefaultEndElement"));
+//
+//  ACE_UNUSED_ARG (userData_in);
+//  ACE_UNUSED_ARG (name_in);
+//
+//  // *TODO*
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//
+//  ACE_NOTREACHED (return;)
+//}
+//xmlEntityPtr
+//SAXDefaultGetEntity (void* userData_in,
+//                     const xmlChar* name_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::SAXDefaultGetEntity"));
+//
+//  ACE_UNUSED_ARG (userData_in);
+//  ACE_UNUSED_ARG (name_in);
+//
+//  // *TODO*
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (NULL);
+//
+//  ACE_NOTREACHED (return NULL;)
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void
-Stream_Module_HTMLParser_XMLErrorCallback (void* context_in,
-                                           const char* message_in,
-                                           ...)
+SAXDefaultErrorCallback (void* context_in,
+                         const char* message_in,
+                         ...)
 {
-  STREAM_TRACE (ACE_TEXT ("::Stream_Module_HTMLParser_XMLErrorCallback"));
+  STREAM_TRACE (ACE_TEXT ("::SAXDefaultErrorCallback"));
 
   ACE_TCHAR buffer[BUFSIZ];
   va_list arguments;
@@ -132,17 +132,17 @@ Stream_Module_HTMLParser_XMLErrorCallback (void* context_in,
   va_end (arguments);
 
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("Stream_Module_HTMLParser_XMLErrorCallback: %s\n"),
+              ACE_TEXT ("SAXDefaultErrorCallback: %s\n"),
               buffer));
 }
 
 void
-Stream_Module_HTMLParser_XMLStructuredErrorCallback (void* userData_in,
-                                                     xmlErrorPtr error_in)
+SAXDefaultStructuredErrorCallback (void* userData_in,
+                                   xmlErrorPtr error_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::Stream_Module_HTMLParser_XMLStructuredErrorCallback"));
+  STREAM_TRACE (ACE_TEXT ("::SAXDefaultStructuredErrorCallback"));
 
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("Stream_Module_HTMLParser_XMLStructuredErrorCallback: %s\n"),
+              ACE_TEXT ("SAXDefaultStructuredErrorCallback: %s\n"),
               ACE_TEXT (error_in->message)));
 }

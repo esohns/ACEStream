@@ -41,7 +41,9 @@
 #include "test_i_session_message.h"
 
 // declare module(s)
-typedef Stream_Module_Net_IOWriter_T<Test_I_Stream_SessionMessage,
+typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_MUTEX,
+                                     ////
+                                     Test_I_Stream_SessionMessage,
                                      Test_I_Stream_Message,
                                      ////
                                      Test_I_Stream_ModuleHandlerConfiguration,

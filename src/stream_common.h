@@ -140,10 +140,13 @@ struct Stream_State
 {
   inline Stream_State ()
    : currentSessionData (NULL)
+   , stateMachineLock (NULL, // name
+                       NULL) // attributes
    , userData (NULL)
   {};
 
   Stream_SessionData* currentSessionData;
+  ACE_SYNCH_MUTEX     stateMachineLock;
   Stream_UserData*    userData;
 };
 
@@ -232,10 +235,12 @@ struct Stream_ModuleHandlerConfiguration
 {
   inline Stream_ModuleHandlerConfiguration ()
    : active (false)
+   , stateMachineLock (NULL)
    , streamConfiguration (NULL)
   {};
 
   bool                  active; // *NOTE*: applies to head modules only
+  ACE_SYNCH_MUTEX*      stateMachineLock;
   Stream_Configuration* streamConfiguration;
 };
 

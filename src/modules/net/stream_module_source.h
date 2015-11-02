@@ -30,7 +30,9 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
-template <typename SessionMessageType,
+template <typename LockType,
+          ///////////////////////////////
+          typename SessionMessageType,
           typename ProtocolMessageType,
           ///////////////////////////////
           typename ConfigurationType,
@@ -45,7 +47,9 @@ template <typename SessionMessageType,
           typename ConnectionManagerType,
           typename ConnectorType>
 class Stream_Module_Net_Source_T
- : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+ : public Stream_HeadModuleTaskBase_T<LockType,
+                                      ///
+                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
@@ -68,7 +72,8 @@ class Stream_Module_Net_Source_T
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+  using Stream_HeadModuleTaskBase_T<LockType,
+                                    ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     SessionMessageType,
                                     ProtocolMessageType,
@@ -96,7 +101,9 @@ class Stream_Module_Net_Source_T
   virtual void report () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+  typedef Stream_HeadModuleTaskBase_T<LockType,
+                                      ///
+                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,

@@ -25,9 +25,10 @@
 #include "stream_macros.h"
 #include "stream_session_data_base.h"
 #include "stream_session_message_base.h"
-#include "stream_statemachine_control.h"
+//#include "stream_statemachine_control.h"
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -39,7 +40,8 @@ template <typename TaskSynchType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -69,7 +71,8 @@ Stream_Base_T<TaskSynchType,
 
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -81,7 +84,8 @@ template <typename TaskSynchType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType>
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -101,7 +105,8 @@ Stream_Base_T<TaskSynchType,
     sessionData_->decrease ();
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -114,7 +119,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 bool
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -145,7 +151,8 @@ Stream_Base_T<TaskSynchType,
   return result;
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -158,7 +165,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -296,7 +304,8 @@ Stream_Base_T<TaskSynchType,
   isInitialized_ = true;
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -309,7 +318,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 bool
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -350,7 +360,8 @@ Stream_Base_T<TaskSynchType,
   return (result == 0);
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -363,7 +374,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -423,7 +435,8 @@ Stream_Base_T<TaskSynchType,
   }
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -436,7 +449,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -548,7 +562,8 @@ wait:
     waitForCompletion ();
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -561,7 +576,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 bool
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -613,7 +629,8 @@ Stream_Base_T<TaskSynchType,
   return false;
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -626,7 +643,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -761,7 +779,8 @@ Stream_Base_T<TaskSynchType,
   } // end FOR
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -774,7 +793,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -827,7 +847,8 @@ Stream_Base_T<TaskSynchType,
   }
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -840,7 +861,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -899,7 +921,8 @@ Stream_Base_T<TaskSynchType,
   }
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -912,7 +935,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 StatusType
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -965,7 +989,8 @@ Stream_Base_T<TaskSynchType,
   return result;
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -978,7 +1003,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1159,7 +1185,8 @@ Stream_Base_T<TaskSynchType,
   } // end FOR
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1172,7 +1199,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1351,7 +1379,8 @@ Stream_Base_T<TaskSynchType,
   } // end FOR
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1364,7 +1393,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 std::string
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1382,7 +1412,8 @@ Stream_Base_T<TaskSynchType,
   return name_;
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1395,7 +1426,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 const StateType&
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1413,7 +1445,8 @@ Stream_Base_T<TaskSynchType,
   return state_;
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1426,7 +1459,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1446,7 +1480,8 @@ Stream_Base_T<TaskSynchType,
 
   upStream_ = upStream_in;
 }
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1459,7 +1494,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 Stream_Base_t*
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1477,7 +1513,8 @@ Stream_Base_T<TaskSynchType,
   return upStream_;
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1490,7 +1527,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1529,7 +1567,8 @@ Stream_Base_T<TaskSynchType,
               ACE_TEXT (stream_layout.c_str ())));
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1542,7 +1581,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 const SessionDataContainerType*
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1559,7 +1599,8 @@ Stream_Base_T<TaskSynchType,
 
   return sessionData_;
 }
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1572,7 +1613,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1594,7 +1636,52 @@ Stream_Base_T<TaskSynchType,
   sessionData_ = const_cast<SessionDataContainerType*> (sessionData_in);
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+bool
+Stream_Base_T<LockType,
+              TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+              ProtocolMessageType>::initialize (const ConfigurationType& configuration_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
+
+  ConfigurationType& configuration_r =
+    const_cast<ConfigurationType&> (configuration_inout);
+
+  // *TODO*: remove type inference
+  // sanity check(s)
+  ACE_ASSERT (configuration_r.moduleHandlerConfiguration);
+  configuration_r.moduleHandlerConfiguration->stateMachineLock =
+    &state_.stateMachineLock;
+
+  initialize ();
+
+  return true;
+}
+
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1607,7 +1694,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 int
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1707,7 +1795,8 @@ done:
 
   return 0;
 }
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1720,7 +1809,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 int
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1902,7 +1992,8 @@ Stream_Base_T<TaskSynchType,
 //  return -1;
 //}
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1915,7 +2006,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 bool
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -1984,7 +2076,8 @@ Stream_Base_T<TaskSynchType,
   return true;
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -1997,7 +2090,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 bool
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -2015,7 +2109,8 @@ Stream_Base_T<TaskSynchType,
   return isInitialized_;
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -2028,7 +2123,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -2117,7 +2213,8 @@ _continue:
   }
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -2130,7 +2227,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,
@@ -2232,7 +2330,8 @@ Stream_Base_T<TaskSynchType,
   //         --> ALL stream-related threads should have returned by now
 }
 
-template <typename TaskSynchType,
+template <typename LockType,
+          typename TaskSynchType,
           typename TimePolicyType,
           typename StatusType,
           typename StateType,
@@ -2245,7 +2344,8 @@ template <typename TaskSynchType,
           typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Base_T<TaskSynchType,
+Stream_Base_T<LockType,
+              TaskSynchType,
               TimePolicyType,
               StatusType,
               StateType,

@@ -42,7 +42,9 @@
 #include "test_i_session_message.h"
 
 // declare module(s)
-typedef Stream_Module_FileReader_T<Test_I_Stream_SessionMessage,
+typedef Stream_Module_FileReader_T<ACE_SYNCH_MUTEX,
+                                   //////
+                                   Test_I_Stream_SessionMessage,
                                    Test_I_Stream_Message,
                                    //////
                                    Test_I_Stream_ModuleHandlerConfiguration,
@@ -59,7 +61,9 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task 
                               Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Stream_Module_FileReader);         // writer type
 
-typedef Stream_Module_Net_IOWriter_T<Test_I_Stream_SessionMessage,
+typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_MUTEX,
+                                     //////
+                                     Test_I_Stream_SessionMessage,
                                      Test_I_Stream_Message,
                                      ////
                                      Test_I_Stream_ModuleHandlerConfiguration,

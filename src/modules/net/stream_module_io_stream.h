@@ -28,7 +28,9 @@
 
 #include "stream_module_io.h"
 
-template <typename TaskSynchType,
+template <typename LockType,                 // 
+          ///////////////////////////////
+          typename TaskSynchType,
           typename TimePolicyType,
           ///////////////////////////////
           typename StatusType,
@@ -49,7 +51,9 @@ template <typename TaskSynchType,
           typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IO_Stream_T
- : public Stream_Base_T<TaskSynchType,
+ : public Stream_Base_T<LockType,
+                        /////////////////
+                        TaskSynchType,
                         TimePolicyType,
                         /////////////////
                         StatusType,
@@ -82,7 +86,9 @@ class Stream_Module_Net_IO_Stream_T
   void ping ();
 
  private:
-  typedef Stream_Base_T<TaskSynchType,
+  typedef Stream_Base_T<LockType,
+                        /////////////////
+                        TaskSynchType,
                         TimePolicyType,
                         /////////////////
                         StatusType,
@@ -101,7 +107,9 @@ class Stream_Module_Net_IO_Stream_T
                         ProtocolMessageType> inherited;
 
   // convenient types
-  typedef Stream_Module_Net_IO_Stream_T<TaskSynchType,
+  typedef Stream_Module_Net_IO_Stream_T<LockType,
+  
+                                        TaskSynchType,
                                         TimePolicyType,
 
                                         StatusType,
@@ -122,7 +130,9 @@ class Stream_Module_Net_IO_Stream_T
                                         AddressType,
                                         ConnectionManagerType> OWN_TYPE_T;
 
-  typedef Stream_Module_Net_IOWriter_T<SessionMessageType,
+  typedef Stream_Module_Net_IOWriter_T<LockType,
+                                       //
+                                       SessionMessageType,
                                        ProtocolMessageType,
                                        //
                                        HandlerConfigurationType,

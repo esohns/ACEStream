@@ -36,7 +36,9 @@
 #include "test_u_filecopy_session_message.h"
 
 // declare module(s)
-typedef Stream_Module_FileReader_T<Stream_Filecopy_SessionMessage,
+typedef Stream_Module_FileReader_T<ACE_SYNCH_MUTEX,
+                                   //////
+                                   Stream_Filecopy_SessionMessage,
                                    Stream_Filecopy_Message,
                                    //////
                                    Stream_Test_U_ModuleHandlerConfiguration,

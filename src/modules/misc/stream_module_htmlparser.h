@@ -32,28 +32,35 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_misc_exports.h"
+
 // SAX callbacks
-void startDocument (void*); // user data
-void endDocument (void*); // user data
-void characters (void*,          // user data
-                 const xmlChar*, // string
-                 int);           // length
-void startElement (void*,            // user data
-                   const xmlChar*,   // name
-                   const xmlChar**); // attributes
-void endElement (void*,           // user data
-                 const xmlChar*); // name
-xmlEntityPtr getEntity (void*,           // user data
-                        const xmlChar*); // name
+//void Stream_Export
+//SAXDefaultStartDocument (void*); // user data
+//void Stream_Export
+//SAXDefaultEndDocument (void*); // user data
+//void Stream_Export
+//SAXDefaultCharacters (void*,          // user data
+//                      const xmlChar*, // string
+//                      int);           // length
+//void Stream_Export
+//SAXDefaultStartElement (void*,            // user data
+//                        const xmlChar*,   // name
+//                        const xmlChar**); // attributes
+//void Stream_Export
+//SAXDefaultEndElement (void*,           // user data
+//                      const xmlChar*); // name
+//xmlEntityPtr Stream_Export
+//SAXDefaultSGetEntity (void*,           // user data
+//                      const xmlChar*); // name
 
-void
-Stream_Module_HTMLParser_XMLErrorCallback (void*,       // context
-                                           const char*, // message
-                                           ...);        // arguments
-void
-Stream_Module_HTMLParser_XMLStructuredErrorCallback (void*,        // user data
-                                                     xmlErrorPtr); // error
-
+void STREAM_MISC_Export
+SAXDefaultErrorCallback (void*,       // context
+                         const char*, // message
+                         ...);        // arguments
+void STREAM_MISC_Export
+SAXDefaultStructuredErrorCallback (void*,        // user data
+                                   xmlErrorPtr); // error
 
 // definitions
 #define STREAM_MODULE_HTMLPARSER_DEFAULT_MODE STREAM_MODULE_HTMLPARSER_DOM

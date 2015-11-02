@@ -32,7 +32,8 @@
 
 #include "stream_module_net_common.h"
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -41,7 +42,8 @@ template <typename SessionMessageType,
           typename StatisticContainerType,
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IOWriter_T<SessionMessageType,
+Stream_Module_Net_IOWriter_T<LockType,
+                             SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
                              StreamStateType,
@@ -50,7 +52,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
                              StatisticContainerType,
                              AddressType,
                              ConnectionManagerType>::Stream_Module_Net_IOWriter_T ()
- : inherited (false, // active object ?
+ : inherited (NULL,  // lock handle
+              false, // active object ?
               false, // auto-start ?
               false) // run svc() routine on start ? (passive only)
  , connection_ (NULL)
@@ -65,7 +68,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -74,7 +78,8 @@ template <typename SessionMessageType,
           typename StatisticContainerType,
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IOWriter_T<SessionMessageType,
+Stream_Module_Net_IOWriter_T<LockType,
+                             SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
                              StreamStateType,
@@ -127,7 +132,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
   } // end IF
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -137,7 +143,8 @@ template <typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
-Stream_Module_Net_IOWriter_T<SessionMessageType,
+Stream_Module_Net_IOWriter_T<LockType,
+                             SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
                              StreamStateType,
@@ -190,7 +197,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
   return true;
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -200,7 +208,8 @@ template <typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IOWriter_T<SessionMessageType,
+Stream_Module_Net_IOWriter_T<LockType,
+                             SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
                              StreamStateType,
@@ -251,7 +260,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
   } // end IF
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -261,7 +271,8 @@ template <typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IOWriter_T<SessionMessageType,
+Stream_Module_Net_IOWriter_T<LockType,
+                             SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
                              StreamStateType,
@@ -563,7 +574,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -573,7 +585,8 @@ template <typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
-Stream_Module_Net_IOWriter_T<SessionMessageType,
+Stream_Module_Net_IOWriter_T<LockType,
+                             SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
                              StreamStateType,
@@ -608,7 +621,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
   return true;
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -618,7 +632,8 @@ template <typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IOWriter_T<SessionMessageType,
+Stream_Module_Net_IOWriter_T<LockType,
+                             SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
                              StreamStateType,
@@ -636,7 +651,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
   ACE_NOTREACHED (return;)
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -646,7 +662,8 @@ template <typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IOWriter_T<SessionMessageType,
+Stream_Module_Net_IOWriter_T<LockType,
+                             SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
                              StreamStateType,
@@ -665,7 +682,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
 
   ACE_NOTREACHED (return;)
 }
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -675,7 +693,8 @@ template <typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 Stream_Base_t*
-Stream_Module_Net_IOWriter_T<SessionMessageType,
+Stream_Module_Net_IOWriter_T<LockType,
+                             SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
                              StreamStateType,
@@ -758,7 +777,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
 //  return result;
 //}
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -768,7 +788,8 @@ template <typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 ProtocolMessageType*
-Stream_Module_Net_IOWriter_T<SessionMessageType,
+Stream_Module_Net_IOWriter_T<LockType,
+                             SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
                              StreamStateType,
@@ -817,7 +838,8 @@ Stream_Module_Net_IOWriter_T<SessionMessageType,
   return message_out;
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -827,7 +849,8 @@ template <typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
-Stream_Module_Net_IOWriter_T<SessionMessageType,
+Stream_Module_Net_IOWriter_T<LockType,
+                             SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
                              StreamStateType,

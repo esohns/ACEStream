@@ -135,7 +135,13 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   } // end IF
 
   // allocate a new session state, reset stream
-  inherited::initialize ();
+  if (!inherited::initialize (configuration_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT (inherited::name ().c_str ())));
+    return false;
+  } // end IF
   if (!inherited::sessionData_)
   {
     ACE_DEBUG ((LM_ERROR,

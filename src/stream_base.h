@@ -35,14 +35,16 @@
 
 #include "stream_common.h"
 #include "stream_istreamcontrol.h"
-#include "stream_statemachine_control.h"
+//#include "stream_statemachine_control.h"
 #include "stream_streammodule_base.h"
 #include "stream_itask.h"
 
 // forward declaration(s)
 class Stream_IAllocator;
 
-template <typename TaskSynchType,
+template <typename LockType,
+          ///////////////////////////////
+          typename TaskSynchType,
           typename TimePolicyType,
           ///////////////////////////////
           typename StatusType,
@@ -132,8 +134,10 @@ class Stream_Base_T
   virtual const SessionDataContainerType* get () const;
   virtual void set (const SessionDataContainerType*);
 
-// // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&) = 0;
+//  // implement Common_IInitialize_T
+  // *IMPORTANT NOTE*: this (also) sets the stream state machine lock in the
+  //                   module handler configuration !
+  virtual bool initialize (const ConfigurationType&);
 
   //// override ACE_Stream method(s)
   // *NOTE*: the default ACE_Stream impementation of link() joins writer A to
@@ -187,9 +191,6 @@ class Stream_Base_T
 
   Stream_Base_T (const std::string&); // name
 
-  // implement (part of) Common_IControl
-  virtual void initialize ();
-
   bool finalize ();
   // *NOTE*: derived classes should call this prior to module reinitialization
   //         (i.e. in their own initialize()); this function
@@ -228,7 +229,8 @@ class Stream_Base_T
                      TimePolicyType> inherited;
 
   // convenient types
-  typedef Stream_Base_T<TaskSynchType,
+  typedef Stream_Base_T<LockType,
+                        TaskSynchType,
                         TimePolicyType,
                         StatusType,
                         StateType,
@@ -248,6 +250,9 @@ class Stream_Base_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&))
 
   // helper methods
+  // implement (part of) Common_IControl
+  virtual void initialize ();
+
   // wrap inherited::open/close() calls
   void deactivateModules ();
 

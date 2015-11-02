@@ -33,7 +33,8 @@
 
 #include "stream_module_net_common.h"
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -42,7 +43,8 @@ template <typename SessionMessageType,
           typename StatisticContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Stream_Module_Net_Source_T<SessionMessageType,
+Stream_Module_Net_Source_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -51,7 +53,8 @@ Stream_Module_Net_Source_T<SessionMessageType,
                            StatisticContainerType,
                            ConnectionManagerType,
                            ConnectorType>::Stream_Module_Net_Source_T (bool isPassive_in)
- : inherited (false, // active object ?
+ : inherited (NULL,  // lock handle
+              false, // active object ?
               false, // auto-start ?
               false) // run svc() routine on start ? (passive only)
  , isInitialized_ (false)
@@ -68,7 +71,8 @@ Stream_Module_Net_Source_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -77,7 +81,8 @@ template <typename SessionMessageType,
           typename StatisticContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Stream_Module_Net_Source_T<SessionMessageType,
+Stream_Module_Net_Source_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -149,7 +154,8 @@ Stream_Module_Net_Source_T<SessionMessageType,
     inherited::configuration_.connection->decrease ();
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -159,7 +165,8 @@ template <typename SessionMessageType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
-Stream_Module_Net_Source_T<SessionMessageType,
+Stream_Module_Net_Source_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -286,7 +293,8 @@ Stream_Module_Net_Source_T<SessionMessageType,
 //  ACE_ASSERT (isInitialized_);
 //}
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -296,7 +304,8 @@ template <typename SessionMessageType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
-Stream_Module_Net_Source_T<SessionMessageType,
+Stream_Module_Net_Source_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -684,7 +693,8 @@ release:
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -694,7 +704,8 @@ template <typename SessionMessageType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
-Stream_Module_Net_Source_T<SessionMessageType,
+Stream_Module_Net_Source_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -729,7 +740,8 @@ Stream_Module_Net_Source_T<SessionMessageType,
   return true;
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -739,7 +751,8 @@ template <typename SessionMessageType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
-Stream_Module_Net_Source_T<SessionMessageType,
+Stream_Module_Net_Source_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -822,7 +835,8 @@ Stream_Module_Net_Source_T<SessionMessageType,
 //  return result;
 //}
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -832,7 +846,8 @@ template <typename SessionMessageType,
           typename ConnectionManagerType,
           typename ConnectorType>
 ProtocolMessageType*
-Stream_Module_Net_Source_T<SessionMessageType,
+Stream_Module_Net_Source_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -881,7 +896,8 @@ Stream_Module_Net_Source_T<SessionMessageType,
   return message_out;
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -891,7 +907,8 @@ template <typename SessionMessageType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
-Stream_Module_Net_Source_T<SessionMessageType,
+Stream_Module_Net_Source_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,

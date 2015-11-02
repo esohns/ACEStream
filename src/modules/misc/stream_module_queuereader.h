@@ -33,7 +33,9 @@
 // forward declarations
 class ACE_Message_Queue_Base;
 
-template <typename SessionMessageType,
+template <typename LockType,                 // connection stream state machine lock
+          ///////////////////////////////
+          typename SessionMessageType,
           typename ProtocolMessageType,
           ///////////////////////////////
           typename ConfigurationType,
@@ -45,7 +47,9 @@ template <typename SessionMessageType,
           ///////////////////////////////
           typename StatisticContainerType>
 class Stream_Module_QueueReader_T
- : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+ : public Stream_HeadModuleTaskBase_T<LockType,
+                                      ///
+                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
@@ -66,7 +70,8 @@ class Stream_Module_QueueReader_T
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+  using Stream_HeadModuleTaskBase_T<LockType,
+                                    ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     SessionMessageType,
                                     ProtocolMessageType,
@@ -95,7 +100,9 @@ class Stream_Module_QueueReader_T
   virtual void report () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+  typedef Stream_HeadModuleTaskBase_T<LockType,
+                                      ///
+                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,

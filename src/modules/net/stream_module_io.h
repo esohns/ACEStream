@@ -31,7 +31,9 @@
 #include "stream_headmoduletask_base.h"
 #include "stream_task_base_synch.h"
 
-template <typename SessionMessageType,
+template <typename LockType,
+          ///////////////////////////////
+          typename SessionMessageType,
           typename ProtocolMessageType,
           ///////////////////////////////
           typename ConfigurationType,
@@ -46,7 +48,9 @@ template <typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IOWriter_T // --> output
- : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+ : public Stream_HeadModuleTaskBase_T<LockType,
+                                      ///
+                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
@@ -66,7 +70,8 @@ class Stream_Module_Net_IOWriter_T // --> output
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+  using Stream_HeadModuleTaskBase_T<LockType,
+                                    ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     SessionMessageType,
                                     ProtocolMessageType,
@@ -97,7 +102,9 @@ class Stream_Module_Net_IOWriter_T // --> output
   virtual Stream_Base_t* upStream () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+  typedef Stream_HeadModuleTaskBase_T<LockType,
+                                      ///
+                                      ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,

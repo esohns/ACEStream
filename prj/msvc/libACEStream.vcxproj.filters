@@ -206,6 +206,9 @@
     <ClInclude Include="..\..\src\stream_tools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\stream_statemachine_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\stream_base.inl">
@@ -257,6 +260,9 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\stream_task_base_synch.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\src\stream_statemachine_control.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

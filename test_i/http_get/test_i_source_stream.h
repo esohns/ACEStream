@@ -42,7 +42,9 @@ class Stream_IAllocator;
 
 template <typename ConnectorType>
 class Test_I_Source_Stream_T
- : public Stream_Base_T<ACE_MT_SYNCH,
+ : public Stream_Base_T<ACE_SYNCH_MUTEX,
+                        /////////////////
+                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         /////////////////
                         Stream_StateMachine_ControlState,
@@ -76,7 +78,9 @@ class Test_I_Source_Stream_T
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_MT_SYNCH,
+  typedef Stream_Base_T<ACE_SYNCH_MUTEX,
+                        /////////////////
+                        ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         /////////////////
                         Stream_StateMachine_ControlState,
@@ -93,7 +97,9 @@ class Test_I_Source_Stream_T
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
                         Test_I_Stream_SessionMessage,
                         Test_I_Stream_Message> inherited;
-  typedef Stream_Module_Net_Source_T<Test_I_Stream_SessionMessage,
+  typedef Stream_Module_Net_Source_T<ACE_SYNCH_MUTEX,
+                                     ////
+                                     Test_I_Stream_SessionMessage,
                                      Test_I_Stream_Message,
                                      ////
                                      Test_I_Stream_ModuleHandlerConfiguration,

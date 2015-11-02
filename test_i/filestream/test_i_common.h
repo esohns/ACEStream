@@ -132,7 +132,9 @@ struct Test_I_Stream_SocketHandlerConfiguration
 
 // forward declarations
 struct Test_I_Configuration;
-typedef Stream_Base_T<ACE_MT_SYNCH,
+typedef Stream_Base_T<ACE_SYNCH_MUTEX,
+                      /////////////////
+                      ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       /////////////////
                       Stream_StateMachine_ControlState,
@@ -205,9 +207,11 @@ struct Test_I_Stream_Configuration
 };
 
 struct Test_I_Stream_State
+ : Stream_State
 {
   inline Test_I_Stream_State ()
-   : currentSessionData (NULL)
+   : Stream_State ()
+   , currentSessionData (NULL)
    , userData (NULL)
   {};
 

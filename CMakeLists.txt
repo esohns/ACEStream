@@ -1,159 +1,139 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required (VERSION 2.8)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../chance/dice
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../../common)
+# options
+#set (CMAKE_VERBOSE_MAKEFILE ON)
 
-#configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+set (VERSION_MAJOR 0)
+set (VERSION_MINOR 0)
+set (VERSION_MICRO 1)
+set (VERSION_DEVEL devel)
+set (VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO})
+if (VERSION_DEVEL)
+ unset (VERSION)
+ set (VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}-${VERSION_DEVEL})
+endif ()
 
-########### next target ###############
-set(RPG_Stream_LIB_SRCS
-    rpg_stream.cpp
-    rpg_stream.h
-    rpg_stream_allocatorheap.cpp
-    rpg_stream_allocatorheap.h
-    rpg_stream_cachedallocatorheap.cpp
-    rpg_stream_cachedallocatorheap.h
-    rpg_stream_base.cpp
-    rpg_stream_base.h
-    rpg_stream_base.i
-    rpg_stream_counter.cpp
-    rpg_stream_counter.h
-    rpg_stream_data_message_base.cpp
-    rpg_stream_data_message_base.h
-    rpg_stream_data_message_base.i
-    rpg_stream_datablockallocatorheap.cpp
-    rpg_stream_datablockallocatorheap.h
-    rpg_stream_cacheddatablockallocatorheap.cpp
-    rpg_stream_cacheddatablockallocatorheap.h
-    rpg_stream_defines.h
-    rpg_stream_exports.h
-    rpg_stream_headmoduletask.cpp
-    rpg_stream_headmoduletask.h
-    rpg_stream_headmoduletask_base.cpp
-    rpg_stream_headmoduletask_base.h
-    rpg_stream_headmoduletask_base.i
-    rpg_stream_iallocator.h
-    rpg_stream_imessagequeue.h
-    rpg_stream_irefcount.h
-    rpg_stream_istreamcontrol.h
-    rpg_stream_itask.h
-    rpg_stream_itask_base.h
-    rpg_stream_message_base.cpp
-    rpg_stream_message_base.h
-    rpg_stream_messageallocatorheap.cpp
-    rpg_stream_messageallocatorheap.h
-    rpg_stream_cachedmessageallocatorheap.cpp
-    rpg_stream_cachedmessageallocatorheap.h
-    rpg_stream_messageallocatorheap_base.cpp
-    rpg_stream_messageallocatorheap_base.h
-    rpg_stream_messageallocatorheap_base.i
-    rpg_stream_cachedmessageallocatorheap_base.cpp
-    rpg_stream_cachedmessageallocatorheap_base.h
-    rpg_stream_cachedmessageallocatorheap_base.i
-    rpg_stream_messagequeue.cpp
-    rpg_stream_messagequeue.h
-    rpg_stream_messagequeue_base.cpp
-    rpg_stream_messagequeue_base.h
-    rpg_stream_module.cpp
-    rpg_stream_module.h
-    rpg_stream_session_config.cpp
-    rpg_stream_session_config.h
-    rpg_stream_session_config_base.cpp
-    rpg_stream_session_config_base.h
-    rpg_stream_session_config_base.i
-    rpg_stream_session_message.cpp
-    rpg_stream_session_message.h
-    rpg_stream_session_message_base.cpp
-    rpg_stream_session_message_base.h
-    rpg_stream_session_message_base.i
-    rpg_stream_statemachine_control.cpp
-    rpg_stream_statemachine_control.h
-    rpg_stream_streammodule.cpp
-    rpg_stream_streammodule.h
-    rpg_stream_streammodule.i
-    rpg_stream_streammodule_base.cpp
-    rpg_stream_streammodule_base.h
-    rpg_stream_streammodule_base.i
-    rpg_stream_task.cpp
-    rpg_stream_task.h
-    rpg_stream_task_asynch.cpp
-    rpg_stream_task_asynch.h
-    rpg_stream_task_base.cpp
-    rpg_stream_task_base.h
-    rpg_stream_task_base.i
-    rpg_stream_task_base_asynch.cpp
-    rpg_stream_task_base_asynch.h
-    rpg_stream_task_base_asynch.i
-    rpg_stream_task_base_synch.cpp
-    rpg_stream_task_base_synch.h
-    rpg_stream_task_base_synch.i
-    rpg_stream_task_synch.cpp
-    rpg_stream_task_synch.h
-    rpg_stream_tools.cpp
-    rpg_stream_tools.h)
+cmake_policy (SET CMP0048 NEW) # allow project VERSION
+project (ACEStream
+         VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+         LANGUAGES CXX C)
 
-if (CMAKE_COMPILER_IS_GNUCC)
-    set_source_files_properties(${RPG_Stream_LIB_SRCS} PROPERTIES COMPILE_FLAGS "-g -march=i686 -Wall")
-endif()
-set_source_files_properties(${RPG_Stream_LIB_SRCS} PROPERTIES COMPILE_DEFINITIONS RPG_STREAM_BUILD_DLL)
+# override the installation directories ?
+set (INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
+set (INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
+set (INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
+if (WIN32 AND NOT CYGWIN)
+ set (DEF_INSTALL_CMAKE_DIR CMake)
+else ()
+ set (DEF_INSTALL_CMAKE_DIR lib/CMake/FooBar)
+endif ()
+set (INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 
-add_library(RPG_Stream SHARED ${RPG_Stream_LIB_SRCS})
+# make relative paths absolute (needed later on)
+foreach (path LIB BIN INCLUDE CMAKE)
+ set (var INSTALL_${path}_DIR)
+ if (NOT IS_ABSOLUTE "${${var}}")
+  set (${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
+ endif ()
+endforeach ()
 
-set_target_properties(RPG_Stream PROPERTIES VERSION 1.0.0 SOVERSION 1)
+# Export the package for use from the build-tree
+# (this registers the build-tree with a global CMake-registry)
+export (PACKAGE lib${PROJECT_NAME})
 
-########### install files ###############
-install(FILES
-        rpg_stream.h
-        rpg_stream_allocatorheap.h
-        rpg_stream_cachedallocatorheap.h
-        rpg_stream_base.h
-        rpg_stream_base.i
-        rpg_stream_counter.h
-        rpg_stream_data_message_base.h
-        rpg_stream_data_message_base.i
-        rpg_stream_datablockallocatorheap.h
-        rpg_stream_cacheddatablockallocatorheap.h
-        rpg_stream_defines.h
-        rpg_stream_exports.h
-        rpg_stream_headmoduletask.h
-        rpg_stream_headmoduletask_base.h
-        rpg_stream_headmoduletask_base.i
-        rpg_stream_iallocator.h
-        rpg_stream_imessagequeue.h
-        rpg_stream_irefcount.h
-        rpg_stream_istreamcontrol.h
-        rpg_stream_itask.h
-        rpg_stream_itask_base.h
-        rpg_stream_message_base.h
-        rpg_stream_messageallocatorheap.h
-        rpg_stream_cachedmessageallocatorheap.h
-        rpg_stream_messageallocatorheap_base.h
-        rpg_stream_messageallocatorheap_base.i
-        rpg_stream_cachedmessageallocatorheap_base.h
-        rpg_stream_cachedmessageallocatorheap_base.i
-        rpg_stream_messagequeue.h
-        rpg_stream_messagequeue_base.h
-        rpg_stream_module.h
-        rpg_stream_session_config.h
-        rpg_stream_session_config_base.h
-        rpg_stream_session_config_base.i
-        rpg_stream_session_message.h
-        rpg_stream_session_message_base.h
-        rpg_stream_session_message_base.i
-        rpg_stream_statemachine_control.h
-        rpg_stream_streammodule.h
-        rpg_stream_streammodule.i
-        rpg_stream_streammodule_base.h
-        rpg_stream_streammodule_base.i
-        rpg_stream_task.h
-        rpg_stream_task_asynch.h
-        rpg_stream_task_base.h
-        rpg_stream_task_base.i
-        rpg_stream_task_base_asynch.h
-        rpg_stream_task_base_asynch.i
-        rpg_stream_task_base_synch.h
-        rpg_stream_task_base_synch.i
-        rpg_stream_task_synch.h
-        rpg_stream_tools.h
-        DESTINATION include)
-install(TARGETS RPG_Stream LIBRARY DESTINATION lib)
+# Create the libACEStreamConfig.cmake and libACEStreamConfigVersion.cmake files
+file (RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR}")
+# ... for the build tree
+set (CONF_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
+configure_file (${PROJECT_NAME}Config.cmake.in "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
+# ... for the install tree
+set (CONF_INCLUDE_DIRS "\${LIBACESTREAM_CMAKE_DIR}/${REL_INCLUDE_DIR}")
+configure_file (${PROJECT_NAME}Config.cmake.in "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake" @ONLY)
+# ... for both
+configure_file (${PROJECT_NAME}ConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake" @ONLY)
+
+# Install the libACEStreamConfig.cmake and libACEStreamConfigVersion.cmake
+install (FILES
+         "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
+         "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+         DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
+# Install the export set for use with the install-tree
+install (EXPORT ${PROJECT_NAME}Targets
+         DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
+
+set (PACKAGE ${PROJECT_NAME})
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.in.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_config.h
+                @ONLY)
+#add_custom_target (${PROJECT_NAME}_config)
+#set_target_properties (${PROJECT_NAME}_config PROPERTIES
+#                       PUBLIC_HEADER "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_config.h")
+
+install (FILES "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_config.h"
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         COMPONENT dev)
+
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
+ if (CMAKE_COMPILER_IS_GNUCXX)
+  add_compile_options (-g)
+  add_compile_options (-O0)
+  add_compile_options (-fno-inline)
+ endif ()
+ add_definitions (-D_DEBUG)
+#  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS _DEBUG)
+else ()
+ if (CMAKE_COMPILER_IS_GNUCXX)
+  add_compile_options (-O3)
+ endif ()
+ add_definitions (-DACE_NDEBUG)
+#  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS ACE_NDEBUG)
+endif ()
+
+option (TRACING
+        "enable tracing" OFF)
+if (TRACING)
+ add_definitions (-DACESTREAM_NTRACE=0)
+#  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS ACESTREAM_NTRACE=0)
+else ()
+ add_definitions (-DACESTREAM_NTRACE=1)
+#  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS ACESTREAM_NTRACE=1)
+endif ()
+
+option (VALGRIND_SUPPORT
+        "enable valgrind support" OFF)
+if (VALGRIND_SUPPORT)
+ include (CheckIncludeFiles)
+ check_include_files (valgrind/valgrind.h HAVE_VALGRIND_H)
+#  include (CheckLibraryExists)
+#  check_library_exists (libvalgrind "" "" HAVE_LIB_VALGRIND)
+ include (FindPkgConfig)
+ pkg_check_modules (PKGVALGRIND REQUIRED libvalgrind)
+ add_definitions (-DLIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
+#  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
+endif ()
+
+if (CMAKE_COMPILER_IS_GNUCXX)
+ add_compile_options (-ansi)
+ add_compile_options (-std=c++11)
+ add_compile_options (-Wall)
+ set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS} -g")
+ add_definitions (-D_GNU_SOURCE)
+#  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS _GNU_SOURCE)
+endif ()
+
+option (BUILD_MODULES
+        "build (git) sub-modules" OFF)
+
+# build a CPack driven installer package
+include (InstallRequiredSystemLibraries)
+set (CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
+set (CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
+set (CPACK_PACKAGE_VERSION_PATCH ${VERSION_MICRO})
+set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
+set (CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README)
+
+include (CPack)
+
+add_subdirectory (src)
+add_subdirectory (test_u)
+add_subdirectory (test_i)

@@ -82,7 +82,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
                            ModuleHandlerConfigurationType,
                            SessionDataType,
                            ParserContextType>::handleDataMessage (MessageType*& message_inout,
-                                                                bool& passMessageDownstream_out)
+                                                                  bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::handleDataMessage"));
 
@@ -305,11 +305,11 @@ Stream_Module_HTMLParser_T<SessionMessageType,
                 inherited::mod_->name (),
                 parser_options, result));
 
-  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::Stream_Module_HTMLParser_XMLErrorCallback);
+  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::SAXDefaultErrorCallback);
   xmlSetGenericErrorFunc (parserContext_.parserContext,
-                          &::Stream_Module_HTMLParser_XMLErrorCallback);
+                          &::SAXDefaultErrorCallback);
   xmlSetStructuredErrorFunc (parserContext_.parserContext,
-                             &::Stream_Module_HTMLParser_XMLStructuredErrorCallback);
+                             &::SAXDefaultStructuredErrorCallback);
 
   isInitialized_ = true;
 

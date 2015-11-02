@@ -28,14 +28,16 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_FileReader_T<SessionMessageType,
+Stream_Module_FileReader_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -43,13 +45,15 @@ Stream_Module_FileReader_T<SessionMessageType,
                            SessionDataContainerType,
                            StatisticContainerType>::Stream_Module_FileReader_T (bool isActive_in,
                                                                                 bool autoStart_in)
- : inherited (isActive_in,
-              autoStart_in,
-              true) // *NOTE*: when working in 'passive' mode, enabling this
-                    //         utilizes the calling thread. Note that this
-                    //         renders state transitions during processing a
-                    //         tricky affair, as the thread holds the lock
-                    //         --> check carefully
+ : inherited (NULL,         // lock handle
+              isActive_in,  // active ?
+              autoStart_in, // auto-start ?
+              true)         // *NOTE*: when working in 'passive' mode, enabling
+                            //         this utilizes the calling thread. Note
+                            //         that this potentially renders state
+                            //         transitions during processing a tricky
+                            //         affair, as the calling thread may be
+                            //         holding the lock --> check carefully
  , isInitialized_ (false)
  , isOpen_ (false)
  , stream_ ()
@@ -62,14 +66,16 @@ Stream_Module_FileReader_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_FileReader_T<SessionMessageType,
+Stream_Module_FileReader_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -106,7 +112,8 @@ Stream_Module_FileReader_T<SessionMessageType,
   } // end IF
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -114,7 +121,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_FileReader_T<SessionMessageType,
+Stream_Module_FileReader_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -272,7 +280,8 @@ Stream_Module_FileReader_T<SessionMessageType,
 //  } // end SWITCH
 //}
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -280,7 +289,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_FileReader_T<SessionMessageType,
+Stream_Module_FileReader_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -313,7 +323,8 @@ Stream_Module_FileReader_T<SessionMessageType,
   return true;
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -321,7 +332,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 void
-Stream_Module_FileReader_T<SessionMessageType,
+Stream_Module_FileReader_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -337,7 +349,8 @@ Stream_Module_FileReader_T<SessionMessageType,
   ACE_NOTREACHED (return;)
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -345,7 +358,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 void
-Stream_Module_FileReader_T<SessionMessageType,
+Stream_Module_FileReader_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -362,7 +376,8 @@ Stream_Module_FileReader_T<SessionMessageType,
 
   ACE_NOTREACHED (return;)
 }
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -370,7 +385,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Base_t*
-Stream_Module_FileReader_T<SessionMessageType,
+Stream_Module_FileReader_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -386,7 +402,8 @@ Stream_Module_FileReader_T<SessionMessageType,
   ACE_NOTREACHED (return NULL;)
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -394,7 +411,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 int
-Stream_Module_FileReader_T<SessionMessageType,
+Stream_Module_FileReader_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -602,7 +620,8 @@ done:
   return result_2;
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -610,7 +629,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 ProtocolMessageType*
-Stream_Module_FileReader_T<SessionMessageType,
+Stream_Module_FileReader_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,
@@ -657,7 +677,8 @@ Stream_Module_FileReader_T<SessionMessageType,
   return message_out;
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -665,7 +686,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_FileReader_T<SessionMessageType,
+Stream_Module_FileReader_T<LockType,
+                           SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
                            StreamStateType,

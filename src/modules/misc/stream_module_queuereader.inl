@@ -18,22 +18,24 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/Guard_T.h"
+//#include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
 
 #include "common_timer_manager_common.h"
 
-#include "stream_session_message_base.h"
 #include "stream_macros.h"
+#include "stream_session_message_base.h"
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_QueueReader_T<SessionMessageType,
+Stream_Module_QueueReader_T<LockType,
+                            SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
                             StreamStateType,
@@ -41,7 +43,8 @@ Stream_Module_QueueReader_T<SessionMessageType,
                             SessionDataContainerType,
                             StatisticContainerType>::Stream_Module_QueueReader_T (bool isActive_in,
                                                                                   bool autoStart_in)
- : inherited (isActive_in,
+ : inherited (NULL,
+              isActive_in,
               autoStart_in,
               true)
  , isInitialized_ (false)
@@ -54,14 +57,16 @@ Stream_Module_QueueReader_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_QueueReader_T<SessionMessageType,
+Stream_Module_QueueReader_T<LockType,
+                            SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
                             StreamStateType,
@@ -90,7 +95,8 @@ Stream_Module_QueueReader_T<SessionMessageType,
   } // end IF
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -98,7 +104,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_QueueReader_T<SessionMessageType,
+Stream_Module_QueueReader_T<LockType,
+                            SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
                             StreamStateType,
@@ -226,7 +233,8 @@ Stream_Module_QueueReader_T<SessionMessageType,
 //  } // end SWITCH
 //}
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -234,7 +242,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_QueueReader_T<SessionMessageType,
+Stream_Module_QueueReader_T<LockType,
+                            SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
                             StreamStateType,
@@ -267,7 +276,8 @@ Stream_Module_QueueReader_T<SessionMessageType,
   return true;
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -275,7 +285,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 void
-Stream_Module_QueueReader_T<SessionMessageType,
+Stream_Module_QueueReader_T<LockType,
+                            SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
                             StreamStateType,
@@ -291,7 +302,8 @@ Stream_Module_QueueReader_T<SessionMessageType,
   ACE_NOTREACHED (return;)
 }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -299,7 +311,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 int
-Stream_Module_QueueReader_T<SessionMessageType,
+Stream_Module_QueueReader_T<LockType,
+                            SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
                             StreamStateType,
@@ -393,7 +406,8 @@ done:
 //   return message_out;
 // }
 
-template <typename SessionMessageType,
+template <typename LockType,
+          typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamStateType,
@@ -401,7 +415,8 @@ template <typename SessionMessageType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_QueueReader_T<SessionMessageType,
+Stream_Module_QueueReader_T<LockType,
+                            SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
                             StreamStateType,

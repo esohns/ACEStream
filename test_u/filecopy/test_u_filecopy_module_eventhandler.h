@@ -28,6 +28,7 @@
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
+
 #include "stream_module_messagehandler.h"
 
 #include "test_u_filecopy_message.h"
@@ -36,9 +37,9 @@
 class Stream_Filecopy_Module_EventHandler
  : public Stream_Module_MessageHandler_T<Stream_Filecopy_SessionMessage,
                                          Stream_Filecopy_Message,
-                                         
+
                                          Stream_ModuleHandlerConfiguration,
-                                         
+
                                          Stream_Filecopy_SessionData>
 {
  public:
@@ -51,9 +52,9 @@ class Stream_Filecopy_Module_EventHandler
  private:
   typedef Stream_Module_MessageHandler_T<Stream_Filecopy_SessionMessage,
                                          Stream_Filecopy_Message,
-                                         
+
                                          Stream_ModuleHandlerConfiguration,
-                                         
+
                                          Stream_Filecopy_SessionData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler (const Stream_Filecopy_Module_EventHandler&))
