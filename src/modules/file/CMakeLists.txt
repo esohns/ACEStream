@@ -11,7 +11,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
-set (libACEStream_File_LIB_SRCS
+set (${PROJECT_NAME}_File_LIB_SRCS
      stream_module_filereader.cpp
      stream_module_filereader.h
      stream_module_filereader.inl
@@ -22,7 +22,7 @@ set (libACEStream_File_LIB_SRCS
      stdafx.cpp
      stdafx.h)
 
-add_library (${PROJECT_NAME}_File SHARED ${libACEStream_File_LIB_SRCS})
+add_library (${PROJECT_NAME}_File SHARED ${ACEStream_File_LIB_SRCS})
 
 add_dependencies (${PROJECT_NAME}_File Common)
 add_dependencies (${PROJECT_NAME}_File ${PROJECT_NAME})

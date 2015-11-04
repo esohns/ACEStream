@@ -58,10 +58,10 @@ ipch/
 *.suo
 *.vcxproj.user
 *.log
+*.opensdf
+
 build/
 
 # qtcreator
 Makefile.am.user
-
-*.opensdf
-/config.status
+CMakeLists.txt.user

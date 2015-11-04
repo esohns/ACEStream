@@ -35,6 +35,7 @@
 #include "test_i_common_modules.h"
 #include "test_i_message.h"
 #include "test_i_module_htmlparser.h"
+#include "test_i_module_htmlwriter.h"
 #include "test_i_session_message.h"
 
 // forward declarations
@@ -127,7 +128,7 @@ class Test_I_Source_Stream_T
   Test_I_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
   Test_I_Stream_Module_HTTPGet_Module          HTTPGet_;
   Test_I_Stream_Module_HTMLParser_Module       HTMLParser_;
-  Test_I_Stream_Module_FileWriter_Module       fileWriter_;
+  Test_I_Stream_Module_HTMLWriter_Module       HTMLWriter_;
 };
 
 // include template implementation

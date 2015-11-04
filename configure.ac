@@ -260,6 +260,7 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/modules/Makefile
                  src/modules/file/Makefile
+                 src/modules/html/Makefile
                  src/modules/misc/Makefile
                  src/modules/net/Makefile
                  src/modules/net/protocols/Makefile

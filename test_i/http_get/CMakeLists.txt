@@ -115,6 +115,7 @@ else ()
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/html)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net/protocols)
@@ -129,10 +130,10 @@ set (http_get_EXE_SRCS
      test_i_defines.h
      test_i_message.cpp
      test_i_message.h
-     test_i_module_htmlhandler.cpp
-     test_i_module_htmlhandler.h
      test_i_module_htmlparser.cpp
      test_i_module_htmlparser.h
+     test_i_module_htmlwriter.cpp
+     test_i_module_htmlwriter.h
      test_i_session_message.cpp
      test_i_session_message.h
      test_i_source.cpp
@@ -156,7 +157,7 @@ target_link_libraries (http_get ${ACE_LIBRARY})
 target_link_libraries (http_get ${PKG_GTK_GLADE_LIBRARIES})
 target_link_libraries (http_get Common)
 target_link_libraries (http_get ACEStream)
-target_link_libraries (http_get ACEStream_Misc)
+target_link_libraries (http_get ACEStream_HTML)
 #target_link_libraries (http_get ACENetwork)
 #target_link_libraries (http_get ACENetwork_Client)
 target_link_libraries (http_get ${ACENETWORK_LIB})

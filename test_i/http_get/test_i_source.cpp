@@ -50,11 +50,12 @@
 #include "libACEStream_config.h"
 #endif
 
+#include "stream_module_filewriter.h"
+
 #include "net_common_tools.h"
 
 #include "test_i_common.h"
 #include "test_i_defines.h"
-#include "test_i_module_htmlhandler.h"
 
 #include "test_i_source_common.h"
 #include "test_i_source_signalhandler.h"
@@ -490,15 +491,15 @@ do_work (unsigned int bufferSize_in,
       &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
 
-  Test_I_Stream_Module_HTMLHandler_Module html_handler (ACE_TEXT_ALWAYS_CHAR ("HTMLHandler"),
-                                                        NULL,
-                                                        true);
-  Test_I_Stream_Module_HTMLHandler* html_handler_p =
-    dynamic_cast<Test_I_Stream_Module_HTMLHandler*> (html_handler.writer ());
-  if (!html_handler_p)
+  Test_I_Stream_Module_FileWriter_Module file_writer (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+                                                      NULL,
+                                                      true);
+  Test_I_Stream_Module_FileWriter* file_writer_p =
+    dynamic_cast<Test_I_Stream_Module_FileWriter*> (file_writer.writer ());
+  if (!file_writer_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_HTMLHandler> failed, returning\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_FileWriter> failed, returning\n")));
 
     // clean up
     delete stream_p;
@@ -570,7 +571,7 @@ do_work (unsigned int bufferSize_in,
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
-  configuration.streamConfiguration.module = &html_handler;
+  configuration.streamConfiguration.module = &file_writer;
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
@@ -579,7 +580,7 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
 
-  html_handler_p->initialize (configuration.moduleHandlerConfiguration);
+  file_writer_p->initialize (configuration.moduleHandlerConfiguration);
 
   // step0b: initialize event dispatch
   if (!Common_Tools::initializeEventDispatch (useReactor_in,

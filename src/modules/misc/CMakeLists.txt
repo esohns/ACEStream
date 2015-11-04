@@ -5,23 +5,13 @@ cmake_minimum_required (VERSION 2.8)
 #find_library (HAVE_LIB_ACE libACE)
 ##add_dependencies (libCommon ACE)
 
-include (FindPkgConfig)
-#pkg_check_modules (PKG_ACE REQUIRED ACE)
-pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
-
 #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ATCD/ACE)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
-if (UNIX)
- include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
-endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
-set (libACEStream_Misc_LIB_SRCS
-     stream_module_htmlparser.cpp
-     stream_module_htmlparser.h
-     stream_module_htmlparser.inl
+set (${PROJECT_NAME}_Misc_LIB_SRCS
      stream_module_messagehandler.cpp
      stream_module_messagehandler.h
      stream_module_messagehandler.inl
@@ -35,7 +25,7 @@ set (libACEStream_Misc_LIB_SRCS
      stdafx.cpp
      stdafx.h)
 
-add_library (${PROJECT_NAME}_Misc SHARED ${libACEStream_Misc_LIB_SRCS})
+add_library (${PROJECT_NAME}_Misc SHARED ${ACEStream_Misc_LIB_SRCS})
 
 add_dependencies (${PROJECT_NAME}_Misc Common)
 add_dependencies (${PROJECT_NAME}_Misc ${PROJECT_NAME})
@@ -53,8 +43,6 @@ export (TARGETS ${PROJECT_NAME}_Misc
 
 ############### install files ################
 install (FILES
-         stream_module_htmlparser.h
-         stream_module_htmlparser.inl
          stream_module_messagehandler.h
          stream_module_messagehandler.inl
          stream_module_queuereader.h

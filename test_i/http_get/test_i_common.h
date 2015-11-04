@@ -45,6 +45,7 @@
 #include "stream_statemachine_control.h"
 
 #include "stream_module_htmlparser.h"
+
 #include "stream_module_net_common.h"
 
 #include "net_defines.h"
@@ -68,12 +69,49 @@ typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 
 typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReportingHandler_t;
 
+struct Test_I_DataItem
+{
+ inline Test_I_DataItem ()
+  : description ()
+  , URI ()
+ {};
+ inline bool operator== (Test_I_DataItem rhs_in)
+ {
+   return URI == rhs_in.URI;
+ };
+
+ std::string description;
+ std::string URI;
+};
+typedef std::list<Test_I_DataItem> Test_I_DataItems_t;
+typedef Test_I_DataItems_t::const_iterator Test_I_DataItemsIterator_t;
+typedef std::map<ACE_Time_Value, Test_I_DataItems_t> Test_I_PageData_t;
+typedef Test_I_PageData_t::const_reverse_iterator Test_I_PageDataReverseConstIterator_t;
+typedef Test_I_PageData_t::iterator Test_I_PageDataIterator_t;
+struct Test_I_DataSet
+{
+  inline Test_I_DataSet ()
+   : pageData ()
+   , title ()
+  {};
+
+  Test_I_PageData_t pageData;
+  std::string       title;
+};
+typedef std::list<Test_I_DataSet> Test_I_DataSets_t;
+typedef Test_I_DataSets_t::const_iterator Test_I_DataSetsIterator_t;
+
 enum Test_I_SAXParserState
 {
   SAXPARSER_STATE_INVALID = -1,
   /////////////////////////////////////
-  SAXPARSER_STATE_READ_DATE = 0,
-  SAXPARSER_STATE_READ_HEADLINE,
+  SAXPARSER_STATE_IN_HEAD = 0,
+  SAXPARSER_STATE_IN_HTML,
+  SAXPARSER_STATE_IN_BODY,
+  /////////////////////////////////////
+  SAXPARSER_STATE_READ_DATE,
+  SAXPARSER_STATE_READ_DESCRIPTION,
+  SAXPARSER_STATE_READ_TITLE,
   /////////////////////////////////////
   SAXPARSER_STATE_READ_ITEM,
   SAXPARSER_STATE_READ_ITEMS
@@ -83,13 +121,13 @@ struct Test_I_SAXParserContext
 {
   inline Test_I_SAXParserContext ()
    : Stream_Module_HTMLParser_SAXParserContextBase ()
-   , currentHeadLine ()
+   , dataItem ()
    , sessionData (NULL)
    , state (SAXPARSER_STATE_INVALID)
    , timeStamp ()
   {};
 
-  std::string                currentHeadLine;
+  Test_I_DataItem            dataItem;
   Test_I_Stream_SessionData* sessionData;
   Test_I_SAXParserState      state;
   ACE_Time_Value             timeStamp;
@@ -110,12 +148,6 @@ struct Test_I_UserData
   Test_I_Stream_Configuration* streamConfiguration;
 };
 
-typedef std::list<std::string> Test_I_DataItems_t;
-typedef Test_I_DataItems_t::const_iterator Test_I_DataItemsIterator_t;
-typedef std::map<ACE_Time_Value, Test_I_DataItems_t> Test_I_Data_t;
-typedef Test_I_Data_t::const_iterator Test_I_DataConstIterator_t;
-typedef Test_I_Data_t::iterator Test_I_DataIterator_t;
-
 struct Test_I_Stream_SessionData
  : Stream_SessionData
 {
@@ -132,19 +164,19 @@ struct Test_I_Stream_SessionData
     Stream_SessionData::operator= (rhs_in);
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
-    if (data.empty ()) data = rhs_in.data;
+    if (data.pageData.empty ()) data = rhs_in.data;
     else
     {
-      Test_I_DataIterator_t iterator;
+      Test_I_PageDataIterator_t iterator;
       Test_I_DataItemsIterator_t iterator_2;
-      for (Test_I_DataIterator_t iterator_3 = rhs_in.data.begin ();
-           iterator_3 != rhs_in.data.end ();
+      for (Test_I_PageDataIterator_t iterator_3 = rhs_in.data.pageData.begin ();
+           iterator_3 != rhs_in.data.pageData.end ();
            ++iterator_3)
       {
-        iterator = data.find ((*iterator_3).first);
-        if (iterator == data.end ())
+        iterator = data.pageData.find ((*iterator_3).first);
+        if (iterator == data.pageData.end ())
         {
-          data.insert (*iterator_3);
+          data.pageData.insert (*iterator_3);
           continue;
         } // end IF
 
@@ -169,7 +201,7 @@ struct Test_I_Stream_SessionData
   }
 
   Test_I_ConnectionState*  connectionState;
-  Test_I_Data_t            data; // html handler module
+  Test_I_DataSet           data; // html handler module
   Test_I_SAXParserContext* parserContext; // html parser/handler module
   std::string              targetFileName; // file writer module
   Test_I_UserData*         userData;

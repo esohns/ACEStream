@@ -37,7 +37,7 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T ()
  , HTMLParser_ (ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
                 NULL,
                 false)
- , fileWriter_ (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+ , HTMLWriter_ (ACE_TEXT_ALWAYS_CHAR ("HTMLWriter"),
                 NULL,
                 false)
 {
@@ -52,7 +52,7 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T ()
   inherited::availableModules_.push_front (&runtimeStatistic_);
   inherited::availableModules_.push_front (&HTTPGet_);
   inherited::availableModules_.push_front (&HTMLParser_);
-  inherited::availableModules_.push_front (&fileWriter_);
+  inherited::availableModules_.push_front (&HTMLWriter_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -254,35 +254,35 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Stream_Module_FileWriter* fileWriter_impl_p = NULL;
+  Test_I_Stream_Module_HTMLWriter* HTMLWriter_impl_p = NULL;
+  Test_I_Stream_Module_HTMLParser* HTMLParser_impl_p = NULL;
   Test_I_Stream_Module_HTTPGet* HTTPGet_impl_p = NULL;
   Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   SOURCE_WRITER_T* netSource_impl_p = NULL;
-  Test_I_Stream_Module_HTMLParser* HTMLParser_impl_p = NULL;
 
-  // ******************* File Writer ************************
-  fileWriter_.initialize (*configuration_in.moduleConfiguration);
-  fileWriter_impl_p =
-    dynamic_cast<Test_I_Stream_Module_FileWriter*> (fileWriter_.writer ());
-  if (!fileWriter_impl_p)
+  // ******************* HTML Writer ************************
+  HTMLWriter_.initialize (*configuration_in.moduleConfiguration);
+  HTMLWriter_impl_p =
+    dynamic_cast<Test_I_Stream_Module_HTMLWriter*> (HTMLWriter_.writer ());
+  if (!HTMLWriter_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_FileWriter> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_HTMLWriter> failed, aborting\n")));
     goto failed;
   } // end IF
-  if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  if (!HTMLWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                fileWriter_.name ()));
+                HTMLWriter_.name ()));
     goto failed;
   } // end IF
-  result = inherited::push (&fileWriter_);
+  result = inherited::push (&HTMLWriter_);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                fileWriter_.name ()));
+                HTMLWriter_.name ()));
     goto failed;
   } // end IF
 

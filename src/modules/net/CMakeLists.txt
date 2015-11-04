@@ -25,7 +25,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/clien
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
-set (libACEStream_Net_LIB_SRCS
+set (${PROJECT_NAME}_Net_LIB_SRCS
      stream_module_io.cpp
      stream_module_io.h
      stream_module_io.inl
@@ -43,12 +43,7 @@ set (libACEStream_Net_LIB_SRCS
      stdafx.cpp
      stdafx.h)
 
-#if (CMAKE_COMPILER_IS_GNUCC)
-#    set_source_files_properties (${libACEStream_Net_LIB_SRCS} PROPERTIES COMPILE_FLAGS "-g -Wall")
-#endif ()
-set_source_files_properties (${libACEStream_Net_LIB_SRCS} PROPERTIES COMPILE_DEFINITIONS STREAM_BUILD_DLL)
-
-add_library (${PROJECT_NAME}_Net SHARED ${libACEStream_Net_LIB_SRCS})
+add_library (${PROJECT_NAME}_Net SHARED ${ACEStream_Net_LIB_SRCS})
 
 add_dependencies (${PROJECT_NAME}_Net Common)
 add_dependencies (${PROJECT_NAME}_Net ${PROJECT_NAME})
