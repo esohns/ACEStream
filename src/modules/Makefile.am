@@ -1,4 +1,5 @@
 SUBDIRS = \
+  db \
   file \
   html \
   misc \

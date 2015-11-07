@@ -330,17 +330,17 @@ Stream_Module_Net_Target_T<SessionMessageType,
               if (status == NET_CONNECTION_STATUS_OK)
               {
                 // step3: wait for the connection stream to finish initializing
-                typename ConnectorType::ISOCKET_CONNECTION_T* isocketconnection_p =
+                typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p =
                   dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (configuration_.connection);
-                if (!isocketconnection_p)
+                if (!isocket_connection_p)
                 {
                   ACE_DEBUG ((LM_ERROR,
                               ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T>(0x%@), returning\n"),
                               configuration_.connection));
                   goto reset;
                 } // end IF
-                isocketconnection_p->wait (STREAM_STATE_RUNNING,
-                                           NULL); // <-- block
+                isocket_connection_p->wait (STREAM_STATE_RUNNING,
+                                            NULL); // <-- block
                 break;
               } // end IF
             } // end IF
@@ -374,9 +374,9 @@ reset:
           break;
 
         typename ConnectorType::STREAM_T* stream_p = NULL;
-        typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
+        typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p =
           dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (configuration_.connection);
-        if (!socket_connection_p)
+        if (!isocket_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T>(0x%@): \"%m\", returning\n"),
@@ -384,7 +384,7 @@ reset:
           goto close;
         } // end IF
         stream_p =
-          &const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
+          &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
         ACE_ASSERT (configuration_.stream);
         result = stream_p->link (*configuration_.stream);
         if (result == -1)

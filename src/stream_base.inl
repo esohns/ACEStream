@@ -1780,12 +1780,19 @@ Stream_Base_T<LockType,
   if (!session_data_container_p)
     goto done;
   if (sessionData_)
-    *sessionData_ = *session_data_container_p;
-  else
   {
-    sessionData_ = session_data_container_p;
-    sessionData_->increase ();
+    SessionDataType& session_data_r =
+      const_cast<SessionDataType&> (sessionData_->get ());
+    SessionDataType& session_data_2 =
+      const_cast<SessionDataType&> (session_data_container_p->get ());
+    // *NOTE*: the idea is to 'merge' the data...
+    session_data_2 += session_data_r;
+
+    // clean up
+    sessionData_->decrease ();
   } // end IF
+  session_data_container_p->increase ();
+  sessionData_ = session_data_container_p;
 
 done:
   // *NOTE*: ACE_Stream::linked_us_ is currently private

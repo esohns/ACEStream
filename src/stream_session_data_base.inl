@@ -18,13 +18,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "ace/Log_Msg.h"
+
 #include "stream_macros.h"
 #include "stream_tools.h"
 
 template <typename DataType>
 Stream_SessionDataBase_T<DataType>::Stream_SessionDataBase_T ()
- : inherited (1,    // initial count
-              true) // delete on zero ?
+ //: inherited (1,    // initial count
+ //             true) // delete on zero ?
+ : inherited (1) // initial count
  , data_ (NULL)
  , delete_ (false)
 {
@@ -35,8 +38,9 @@ Stream_SessionDataBase_T<DataType>::Stream_SessionDataBase_T ()
 template <typename DataType>
 Stream_SessionDataBase_T<DataType>::Stream_SessionDataBase_T (DataType* data_in,
                                                               bool delete_in)
- : inherited (1,    // initial count
-              true) // delete on zero ?
+ //: inherited (1,    // initial count
+ //             true) // delete on zero ?
+ : inherited (1) // initial count
  , data_ (data_in)
  , delete_ (delete_in)
 {
@@ -109,26 +113,76 @@ Stream_SessionDataBase_T<DataType>::set (const DataType& data_in)
 }
 
 template <typename DataType>
-Stream_SessionDataBase_T<DataType>&
-Stream_SessionDataBase_T<DataType>::operator= (const Stream_SessionDataBase_T& rhs_in)
+unsigned int
+Stream_SessionDataBase_T<DataType>::increase ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::set"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::increase"));
 
-  // merge ?
-  // *TODO*: enforce merge
-  DataType* data_p = const_cast<DataType*> (rhs_in.data_);
-  if (data_ && data_p)
-    *data_p = *data_; // *WARNING*: this SHOULD be a merge operation !
+  //ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-  // clean up ?
-  if (data_ && delete_)
-  {
-    delete data_;
-    data_ = NULL;
-  } // end IF
-
-  data_ = rhs_in.data_;
-  delete_ = false; // never delete
-
-  return *this;
+  return static_cast<unsigned int> (inherited::increment ());
 }
+
+template <typename DataType>
+unsigned int
+Stream_SessionDataBase_T<DataType>::decrease ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::decrease"));
+
+  long result = inherited::decrement ();
+
+  if (result == 0)
+    delete this;
+
+  return static_cast<unsigned int> (result);
+}
+
+template <typename DataType>
+unsigned int
+Stream_SessionDataBase_T<DataType>::count () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::count"));
+
+  //ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+
+  return static_cast<unsigned int> (inherited::refcount_.value ());
+}
+
+template <typename DataType>
+void
+Stream_SessionDataBase_T<DataType>::wait (unsigned int count_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::wait"));
+
+  ACE_UNUSED_ARG (count_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+
+//template <typename DataType>
+//Stream_SessionDataBase_T<DataType>&
+//Stream_SessionDataBase_T<DataType>::operator= (const Stream_SessionDataBase_T& rhs_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_SessionDataBase_T::set"));
+//
+//  // merge ?
+//  // *TODO*: enforce merge
+//  DataType* data_p = const_cast<DataType*> (rhs_in.data_);
+//  if (data_ && data_p)
+//    *data_p += *data_; // *WARNING*: this SHOULD be a merge operation !
+//
+//  // clean up ?
+//  if (data_ && delete_)
+//  {
+//    delete data_;
+//    data_ = NULL;
+//  } // end IF
+//
+//  data_ = rhs_in.data_;
+//  delete_ = false; // never delete
+//
+//  return *this;
+//}

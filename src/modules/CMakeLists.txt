@@ -1,3 +1,4 @@
+add_subdirectory (db)
 add_subdirectory (file)
 add_subdirectory (html)
 add_subdirectory (misc)

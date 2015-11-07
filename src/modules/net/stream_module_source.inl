@@ -487,17 +487,17 @@ Stream_Module_Net_Source_T<LockType,
               if (status == NET_CONNECTION_STATUS_OK)
               {
                 // step3: wait for the connection stream to finish initializing
-                typename ConnectorType::ISOCKET_CONNECTION_T* isocketconnection_p =
+                typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p =
                   dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (inherited::configuration_.connection);
-                if (!isocketconnection_p)
+                if (!isocket_connection_p)
                 {
                   ACE_DEBUG ((LM_ERROR,
                               ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T>(0x%@), returning\n"),
                               inherited::configuration_.connection));
                   goto reset;
                 } // end IF
-                isocketconnection_p->wait (STREAM_STATE_RUNNING,
-                                           NULL); // <-- block
+                isocket_connection_p->wait (STREAM_STATE_RUNNING,
+                                            NULL); // <-- block
                 break;
               } // end IF
             } // end IF
@@ -528,17 +528,17 @@ reset:
           goto done;
 
         typename ConnectorType::STREAM_T* stream_p = NULL;
-        typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
+        typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p =
             dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (inherited::configuration_.connection);
-        if (!socket_connection_p)
+        if (!isocket_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (%@): \"%m\", returning\n"),
+                      ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (0x%@): \"%m\", returning\n"),
                       inherited::configuration_.connection));
           goto close;
         } // end IF
         stream_p =
-            &const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
+            &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
         ACE_ASSERT (inherited::configuration_.stream);
         result = inherited::configuration_.stream->link (*stream_p);
         if (result == -1)
@@ -611,9 +611,9 @@ done:
         // wait for data (!) processing to complete
         ACE_ASSERT (inherited::configuration_.stream);
         typename ConnectorType::STREAM_T* stream_p = NULL;
-        typename ConnectorType::ISOCKET_CONNECTION_T* socket_connection_p =
+        typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p =
           dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (inherited::configuration_.connection);
-        if (!socket_connection_p)
+        if (!isocket_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T> (0x%@): \"%m\", returning\n"),
@@ -624,7 +624,7 @@ done:
             goto release;
         } // end IF
         stream_p =
-          &const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
+          &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
 
         // *NOTE*: if the connection was closed abruptly, there may well be
         //         undispatched data in the connection stream. Flush it so

@@ -20,8 +20,10 @@ cmake_minimum_required (VERSION 2.8)
 #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ATCD/ACE)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src/client_server)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
@@ -50,7 +52,9 @@ add_dependencies (${PROJECT_NAME}_Net ${PROJECT_NAME})
 
 #target_link_libraries (${PROJECT_NAME}_Net libACEStream)
 #target_link_libraries (${PROJECT_NAME}_Net libCommon)
-#target_link_libraries (${PROJECT_NAME}_Net ${ACE_LIBRARY})
+if (WIN32)
+ target_link_libraries (${PROJECT_NAME}_Net ${ACE_LIBRARY})
+endif ()
 
 set_target_properties (${PROJECT_NAME}_Net PROPERTIES DEFINE_SYMBOL STREAM_NET_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Net PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

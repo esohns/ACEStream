@@ -94,15 +94,16 @@ struct Stream_SessionData
    , startOfSession (ACE_Time_Value::zero)
    , userData (NULL)
   {};
-  inline Stream_SessionData& operator= (Stream_SessionData& rhs_in)
+  inline Stream_SessionData& operator+= (Stream_SessionData& rhs_in)
   {
+    // *NOTE*: the idea is to 'merge' the data...
     aborted = (aborted ? aborted : rhs_in.aborted);
     currentStatistic =
-        (currentStatistic.timestamp == ACE_Time_Value::zero ? rhs_in.currentStatistic
-                                                            : currentStatistic);
+        ((currentStatistic.timestamp > rhs_in.currentStatistic.timestamp) ? currentStatistic
+                                                                          : rhs_in.currentStatistic);
     lastCollectionTimestamp =
-        (lastCollectionTimestamp == ACE_Time_Value::zero ? rhs_in.lastCollectionTimestamp
-                                                         : lastCollectionTimestamp);
+        ((lastCollectionTimestamp > rhs_in.lastCollectionTimestamp) ? lastCollectionTimestamp
+                                                                    : rhs_in.lastCollectionTimestamp);
     lock = rhs_in.lock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     sessionID =
@@ -114,8 +115,8 @@ struct Stream_SessionData
                                                                  : sessionID);
 #endif
     startOfSession =
-        (startOfSession == ACE_Time_Value::zero ? rhs_in.startOfSession
-                                                : startOfSession);
+        (startOfSession > rhs_in.startOfSession ? startOfSession
+                                                : rhs_in.startOfSession);
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;

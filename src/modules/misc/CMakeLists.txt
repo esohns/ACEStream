@@ -32,7 +32,9 @@ add_dependencies (${PROJECT_NAME}_Misc ${PROJECT_NAME})
 
 #target_link_libraries (${PROJECT_NAME}_Misc libACEStream)
 #target_link_libraries (${PROJECT_NAME}_Misc libCommon)
-#target_link_libraries (${PROJECT_NAME}_Misc ${ACE_LIBRARY})
+if (WIN32)
+ target_link_libraries (${PROJECT_NAME}_Misc ${ACE_LIBRARY})
+endif ()
 
 set_target_properties (${PROJECT_NAME}_Misc PROPERTIES DEFINE_SYMBOL STREAM_MISC_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Misc PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

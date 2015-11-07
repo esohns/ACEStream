@@ -109,6 +109,20 @@ struct Test_I_Stream_SessionData
    , targetFileName ()
    , userData (NULL)
   {};
+  inline Test_I_Stream_SessionData& operator+= (Test_I_Stream_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data...
+    Stream_SessionData::operator+= (rhs_in);
+
+    connectionState = (connectionState ? connectionState : rhs_in.connectionState);
+    fileName = (fileName.empty () ? rhs_in.fileName : fileName);
+    size = ((size == 0) ? rhs_in.size : size);
+    targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
+                                              : targetFileName);
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
 
   Test_I_ConnectionState* connectionState;
   std::string             fileName;

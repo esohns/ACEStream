@@ -129,6 +129,7 @@ SAXDefaultErrorCallback (void* context_in,
                                   sizeof (buffer),
 //                                  sizeof (buffer) / sizeof (buffer[0]),
                                   message_in, arguments);
+  ACE_UNUSED_ARG (length);
   va_end (arguments);
 
   ACE_DEBUG ((LM_ERROR,

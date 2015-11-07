@@ -259,6 +259,7 @@ AC_CONFIG_FILES([Makefile
                  scripts/Makefile
                  src/Makefile
                  src/modules/Makefile
+                 src/modules/db/Makefile
                  src/modules/file/Makefile
                  src/modules/html/Makefile
                  src/modules/misc/Makefile

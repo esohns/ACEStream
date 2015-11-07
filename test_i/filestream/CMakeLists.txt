@@ -60,46 +60,72 @@ if (NOT EXISTS ${ACEStream_DIR})
  message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
 endif ()
 
-# *TODO*: avoid circular dependency
-#find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES libNetwork/cmake
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${ACENetwork_DIR})
-# message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
-#endif ()
 #string (TOLOWER "${CMAKE_BUILD_TYPE}" BUILD_TYPE)
-find_library (ACENETWORK_LIB
-              ACENetwork
-              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
-#              PATH_SUFFIXES build/${BUILD_TYPE}/src/.libs
-              PATH_SUFFIXES cmake/src
-              NO_DEFAULT_PATH)
-if (NOT EXISTS ${ACENETWORK_LIB})
- message (FATAL_ERROR "could not find library \"ACENetwork\", aborting")
+if (UNIX)
+ find_library (ACENETWORK_LIB
+               ACENetwork
+               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
+#               PATH_SUFFIXES build/${BUILD_TYPE}/src/.libs
+               PATH_SUFFIXES cmake/src
+               NO_DEFAULT_PATH)
+ if (NOT EXISTS ${ACENETWORK_LIB})
+  message (FATAL_ERROR "could not find library \"ACENetwork\", aborting")
+ endif ()
+elseif (WIN32)
+# *TODO*: avoid circular dependency
+ find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+               REQUIRED
+               CONFIG
+               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
+               PATH_SUFFIXES libACENetwork/cmake
+               NO_DEFAULT_PATH)
+ if (NOT EXISTS ${ACENetwork_DIR})
+  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
+ endif ()
+# find_library (ACENETWORK_LIB
+#               libACENetwork.lib
+#               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
+##               PATH_SUFFIXES build/${BUILD_TYPE}/src/.libs
+#               PATH_SUFFIXES cmake/src
+#               NO_DEFAULT_PATH)
+ set (ACENETWORK_LIB libACENetwork.lib)
 endif ()
 
-#find_package (ACENetwork_Client ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES libNetwork/cmake
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${ACENetwork_Client_DIR})
-# message (FATAL_ERROR "could not find package \"ACENetwork_Client\", aborting")
-#endif ()
-find_library (ACENETWORK_CLIENT_LIB
-              ACENetwork_Client
-              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
-#              PATH_SUFFIXES build/${BUILD_TYPE}/src/client_server/.libs
-              PATH_SUFFIXES cmake/src/client_server
-              NO_DEFAULT_PATH)
-if (NOT EXISTS ${ACENETWORK_CLIENT_LIB})
- message (FATAL_ERROR "could not find library \"ACENetwork_Client\", aborting")
+if (UNIX)
+ find_library (ACENETWORK_CLIENT_LIB
+               ACENetwork_Client
+               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
+#               PATH_SUFFIXES build/${BUILD_TYPE}/src/client_server/.libs
+               PATH_SUFFIXES cmake/src/client_server
+               NO_DEFAULT_PATH)
+ if (NOT EXISTS ${ACENETWORK_CLIENT_LIB})
+  message (FATAL_ERROR "could not find library \"ACENetwork_Client\", aborting")
+ endif ()
+elseif (WIN32)
+# find_package (ACENetwork_Client ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+#               REQUIRED
+#               CONFIG
+#               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
+#               PATH_SUFFIXES libACENetwork/cmake
+#               NO_DEFAULT_PATH)
+# if (NOT EXISTS ${ACENetwork_Client_DIR})
+#  message (FATAL_ERROR "could not find package \"ACENetwork_Client\", aborting")
+# endif ()
+ set (ACENETWORK_CLIENT_LIB libACENetwork_Client.lib)
+ set (ACENETWORK_SERVER_LIB libACENetwork_Server.lib)
 endif ()
 
+if (UNIX)
+ find_library (ACENETWORK_SERVER_LIB
+               ACENetwork_Server
+               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
+#               PATH_SUFFIXES build/${BUILD_TYPE}/src/client_server/.libs
+               PATH_SUFFIXES cmake/src/client_server
+               NO_DEFAULT_PATH)
+ if (NOT EXISTS ${ACENETWORK_SERVER_LIB})
+  message (FATAL_ERROR "could not find library \"ACENetwork_Server\", aborting")
+ endif ()
+elseif (WIN32)
 #find_package (ACENetwork_Server ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 #              REQUIRED
 #              CONFIG
@@ -109,14 +135,6 @@ endif ()
 #if (NOT EXISTS ${ACENetwork_Server_DIR})
 # message (FATAL_ERROR "could not find package \"ACENetwork_Server\", aborting")
 #endif ()
-find_library (ACENETWORK_SERVER_LIB
-              ACENetwork_Server
-              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
-#              PATH_SUFFIXES build/${BUILD_TYPE}/src/client_server/.libs
-              PATH_SUFFIXES cmake/src/client_server
-              NO_DEFAULT_PATH)
-if (NOT EXISTS ${ACENETWORK_SERVER_LIB})
- message (FATAL_ERROR "could not find library \"ACENetwork_Server\", aborting")
 endif ()
 
 add_definitions (-DHAVE_CONFIG_H)
@@ -131,7 +149,17 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
 else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
- include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
+# *TODO*: repair pkgconfig support
+# include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/atk-1.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/pango-1.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/cairo)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/glib-2.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gdk-pixbuf-2.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-2.0/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gtk-2.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
@@ -180,14 +208,25 @@ add_executable (filesource ${filesource_EXE_SRCS} etc/resources.rc etc/source.gl
 
 target_link_libraries (filesource ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (filesource ${ACE_LIBRARY})
-target_link_libraries (filesource ${PKG_GTK_GLADE_LIBRARIES})
+if (UNIX)
+ target_link_libraries (filesource ${PKG_GTK_GLADE_LIBRARIES})
+elseif (WIN32)
+# *TODO*: repair WIN32 pkgconfig support
+ target_link_libraries (filesource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gio-2.0.lib)
+ target_link_libraries (filesource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
+ target_link_libraries (filesource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gobject-2.0.lib)
+# target_link_libraries (filesource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gthread-2.0.lib)
+ target_link_libraries (filesource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/pango-1.0.lib)
+ target_link_libraries (filesource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gdk-win32-2.0.lib)
+ target_link_libraries (filesource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
+endif ()
 target_link_libraries (filesource Common)
+# *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
+set_target_properties (filesource PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 target_link_libraries (filesource CommonUI)
 target_link_libraries (filesource ACEStream)
-#target_link_libraries (filesource ACENetwork)
+target_link_libraries (filesource ACENetwork)
 #target_link_libraries (filesource ACENetwork_Client)
-target_link_libraries (filesource ${ACENETWORK_LIB})
-target_link_libraries (filesource ${ACENETWORK_CLIENT_LIB})
 
 install (TARGETS filesource
          EXPORT ${PROJECT_NAME}Targets
@@ -227,6 +266,8 @@ set (filetarget_EXE_SRCS
      stdafx.cpp
      stdafx.h)
 
+set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
+
 add_executable (filetarget ${filetarget_EXE_SRCS} etc/resources.rc etc/target.glade)
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
@@ -234,14 +275,25 @@ add_executable (filetarget ${filetarget_EXE_SRCS} etc/resources.rc etc/target.gl
 
 target_link_libraries (filetarget ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (filetarget ${ACE_LIBRARY})
-target_link_libraries (filetarget ${PKG_GTK_GLADE_LIBRARIES})
+if (UNIX)
+ target_link_libraries (filetarget ${PKG_GTK_GLADE_LIBRARIES})
+elseif (WIN32)
+# *TODO*: repair WIN32 pkgconfig support
+ target_link_libraries (filetarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gio-2.0.lib)
+ target_link_libraries (filetarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
+ target_link_libraries (filetarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gobject-2.0.lib)
+# target_link_libraries (filetarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gthread-2.0.lib)
+ target_link_libraries (filetarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/pango-1.0.lib)
+ target_link_libraries (filetarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gdk-win32-2.0.lib)
+ target_link_libraries (filetarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
+endif ()
 target_link_libraries (filetarget Common)
+# *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
+set_target_properties (filetarget PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 target_link_libraries (filetarget CommonUI)
 target_link_libraries (filetarget ACEStream)
-#target_link_libraries (filetarget ACENetwork)
+target_link_libraries (filetarget ACENetwork)
 #target_link_libraries (filetarget ACENetwork_Client)
-target_link_libraries (filetarget ${ACENETWORK_LIB})
-target_link_libraries (filetarget ${ACENETWORK_SERVER_LIB})
 
 install (TARGETS filetarget
          EXPORT ${PROJECT_NAME}Targets

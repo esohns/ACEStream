@@ -35,6 +35,7 @@ elseif (WIN32)
  set (ACE_LIB_FILE ACE${LIB_FILE_SUFFIX}.lib)
  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
                PATHS ENV ACE_ROOT
+#               PATH_SUFFIXES lib\\${CMAKE_CFG_INTDIR}\\Win32
                PATH_SUFFIXES lib\\${CMAKE_BUILD_TYPE}\\Win32
                DOC "searching for ${ACE_LIB_FILE}")
 endif ()
@@ -42,6 +43,7 @@ endif ()
 if (NOT ACE_LIBRARY)
  message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
 endif ()
+add_definitions (-DACE_HAS_DLL)
 
 #include (FindPkgConfig)
 #pkg_check_modules (PKGACE REQUIRED ACE)
@@ -55,6 +57,7 @@ find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 if (NOT EXISTS ${Common_DIR})
  message (FATAL_ERROR "could not find package \"Common\", aborting")
 endif ()
+add_definitions (-DCOMMON_HAS_DLL)
 
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
@@ -159,7 +162,9 @@ add_dependencies (${PROJECT_NAME} Common)
 set_target_properties (${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL STREAM_BUILD_DLL)
 set_target_properties (${PROJECT_NAME} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
-#target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
+if (WIN32)
+ target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
+endif ()
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}

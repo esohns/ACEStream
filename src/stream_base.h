@@ -47,7 +47,7 @@ template <typename LockType,
           typename TaskSynchType,
           typename TimePolicyType,
           ///////////////////////////////
-          typename StatusType,
+          typename StatusType, // (state machine) status
           typename StateType,
           ///////////////////////////////
           typename ConfigurationType,

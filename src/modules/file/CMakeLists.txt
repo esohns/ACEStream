@@ -29,7 +29,9 @@ add_dependencies (${PROJECT_NAME}_File ${PROJECT_NAME})
 
 #target_link_libraries (${PROJECT_NAME}_File libACEStream)
 #target_link_libraries (${PROJECT_NAME}_File libCommon)
-#target_link_libraries (${PROJECT_NAME}_File ${ACE_LIBRARY})
+if (WIN32)
+ target_link_libraries (${PROJECT_NAME}_File ${ACE_LIBRARY})
+endif ()
 
 set_target_properties (${PROJECT_NAME}_File PROPERTIES DEFINE_SYMBOL STREAM_FILE_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_File PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)

@@ -22,14 +22,19 @@
 #define STREAM_SESSION_DATA_BASE_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Refcountable_T.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
-#include "common_referencecounter_base.h"
+#include "common_ireferencecount.h"
+//#include "common_referencecounter_base.h"
 
 template <typename DataType>
 class Stream_SessionDataBase_T
- : public Common_ReferenceCounterBase
+ //: public Common_ReferenceCounterBase
+ : public ACE_Refcountable_T<ACE_SYNCH_MUTEX>
  , public Common_IGetSet_T<DataType>
+ , public Common_IReferenceCount
 {
  public:
   Stream_SessionDataBase_T ();
@@ -44,15 +49,24 @@ class Stream_SessionDataBase_T
   virtual const DataType& get () const;
   virtual void set (const DataType&);
 
+  // exposed interface
+  virtual unsigned int increase ();
+  virtual unsigned int decrease ();
+  virtual unsigned int count () const;
+  // *NOTE*: should block iff the count is > 0, and wait until the count reaches
+  //         x the next time
+  virtual void wait (unsigned int = 0);
+
   // convenience types
   typedef DataType SESSION_DATA_T;
 
-  // override assignment (support merge semantics)
-  // *TODO*: enforce merge semantics
-  Stream_SessionDataBase_T& operator= (const Stream_SessionDataBase_T&);
+  //// override assignment (support merge semantics)
+  //// *TODO*: enforce merge semantics
+  //Stream_SessionDataBase_T& operator= (const Stream_SessionDataBase_T&);
 
  private:
-  typedef Common_ReferenceCounterBase inherited;
+  //typedef Common_ReferenceCounterBase inherited;
+  typedef ACE_Refcountable_T<ACE_SYNCH_MUTEX> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T (const Stream_SessionDataBase_T&))
 
