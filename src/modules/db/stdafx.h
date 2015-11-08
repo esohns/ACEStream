@@ -34,6 +34,8 @@
 //#include "ace/Task.h"
 
 #if defined (_MSC_VER)
+#define uint unsigned int
+#define ulong unsigned long
 #include <mysql.h>
 #else
 #include <mysql/mysql.h>

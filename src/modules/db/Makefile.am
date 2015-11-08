@@ -15,27 +15,35 @@ endif
 noinst_HEADERS = \
   stdafx.h
 include_HEADERS = \
-  stream_module_filereader.h \
-  stream_module_filereader.inl \
-  stream_module_filewriter.h \
-  stream_module_filewriter.inl
+  stream_db_exports.h \
+  stream_module_db_common.h \
+  stream_module_db_defines.h \
+  stream_module_db_tools.h \
+  stream_module_mysqlreader.h \
+  stream_module_mysqlreader.inl \
+  stream_module_mysqlwriter.h \
+  stream_module_mysqlwriter.inl
 
-lib_LTLIBRARIES = libACEStream_File.la
+lib_LTLIBRARIES = libACEStream_Database.la
 
-libACEStream_File_la_SOURCES = \
-  stream_module_filereader.cpp \
-  stream_module_filereader.h \
-  stream_module_filereader.inl \
-  stream_module_filewriter.cpp \
-  stream_module_filewriter.h \
-  stream_module_filewriter.inl
+libACEStream_Database_la_SOURCES = \
+  stream_db_exports.h \
+  stream_module_db_common.h \
+  stream_module_db_defines.h \
+  stream_module_db_tools.cpp \
+  stream_module_db_tools.h \
+  stream_module_mysqlreader.cpp \
+  stream_module_mysqlreader.h \
+  stream_module_mysqlreader.inl \
+  stream_module_mysqlwriter.cpp \
+  stream_module_mysqlwriter.h \
+  stream_module_mysqlwriter.inl
 #  stdafx.cpp \
 #  stdafx.h
 
-libACEStream_File_la_CPPFLAGS = \
+libACEStream_Database_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   -I$(top_srcdir)/modules/libCommon/src \
   -I$(srcdir)/../..
-libACEStream_File_la_LDFLAGS = \
+libACEStream_Database_la_LDFLAGS = \
   -version-info @LIBACESTREAM_LT_VERSION_INFO@
-

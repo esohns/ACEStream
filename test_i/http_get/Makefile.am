@@ -30,10 +30,12 @@ http_get_SOURCES = \
   test_i_defines.h \
   test_i_message.cpp \
   test_i_message.h \
-  test_i_module_htmlhandler.cpp \
-  test_i_module_htmlhandler.h \
+  test_i_module_databasewriter.cpp \
+  test_i_module_databasewriter.h \
   test_i_module_htmlparser.cpp \
   test_i_module_htmlparser.h \
+  test_i_module_htmlwriter.cpp \
+  test_i_module_htmlwriter.h \
   test_i_session_message.cpp \
   test_i_session_message.h \
   test_i_source.cpp \

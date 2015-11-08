@@ -20,8 +20,10 @@ elseif (WIN32)
  unset (MYSQL_LIB_FILE)
  set (MYSQL_LIB_FILE libmysql.lib)
  find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
-               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql
-               PATH_SUFFIXES lib
+#               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql
+#               PATH_SUFFIXES lib
+               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2
+               PATH_SUFFIXES cmake/libmysql/Debug
                DOC "searching for \"${MYSQL_LIB_FILE}\"")
 endif ()
 if (NOT MYSQL_LIBRARY)
@@ -35,20 +37,26 @@ if (UNIX)
 # include_directories (${PKG_PKG_MYSQL_INCLUDE_DIRS})
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql/include)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/cmake/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/include)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
 set (${PROJECT_NAME}_Database_LIB_SRCS
+     stream_db_exports.h
+     stream_module_db_common.h
+     stream_module_db_defines.h
+     stream_module_db_tools.cpp
+     stream_module_db_tools.h
      stream_module_mysqlreader.cpp
      stream_module_mysqlreader.h
      stream_module_mysqlreader.inl
      stream_module_mysqlwriter.cpp
      stream_module_mysqlwriter.h
      stream_module_mysqlwriter.inl
-     stream_db_exports.h
      stdafx.cpp
      stdafx.h)
 
@@ -73,11 +81,14 @@ export (TARGETS ${PROJECT_NAME}_Database
 
 ############### install files ################
 install (FILES
+         stream_db_exports.h
+         stream_module_db_common.h
+         stream_module_db_defines.h
+         stream_module_db_tools.h
          stream_module_mysqlreader.h
          stream_module_mysqlreader.inl
          stream_module_mysqlwriter.h
          stream_module_mysqlwriter.inl
-         stream_db_exports.h
          DESTINATION include)
 install (TARGETS ${PROJECT_NAME}_Database
          EXPORT ${PROJECT_NAME}Targets

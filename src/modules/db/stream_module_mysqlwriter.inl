@@ -26,14 +26,16 @@
 
 #include "stream_macros.h"
 
+#include "stream_module_db_defines.h"
+
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType>
 Stream_Module_MySQLWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::Stream_Module_MySQLWriter_T ()
+                            MessageType,
+                            ModuleHandlerConfigurationType,
+                            SessionDataType>::Stream_Module_MySQLWriter_T ()
  : inherited ()
  , cleanLibrary_ (false)
  , isInitialized_ (false)
@@ -48,9 +50,9 @@ template <typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType>
 Stream_Module_MySQLWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::~Stream_Module_MySQLWriter_T ()
+                            MessageType,
+                            ModuleHandlerConfigurationType,
+                            SessionDataType>::~Stream_Module_MySQLWriter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::~Stream_Module_MySQLWriter_T"));
 
@@ -61,44 +63,43 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
     mysql_library_end ();
 }
 
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionDataType>
+//void
+//Stream_Module_MySQLWriter_T<SessionMessageType,
+//                            MessageType,
+//                            ModuleHandlerConfigurationType,
+//                            SessionDataType>::handleDataMessage (MessageType*& message_inout,
+//                                                                 bool& passMessageDownstream_out)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::handleDataMessage"));
+//
+//  ssize_t bytes_written = -1;
+//
+//  // don't care (implies yes per default, if part of a stream)
+//  ACE_UNUSED_ARG (passMessageDownstream_out);
+//
+//  // sanity check(s)
+//  if (!connection_)
+//  {
+////    ACE_DEBUG ((LM_ERROR,
+////                ACE_TEXT ("failed to open db connection, returning\n")));
+//    return;
+//  } // end IF
+//}
+
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType>
 void
 Stream_Module_MySQLWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::handleDataMessage (MessageType*& message_inout,
-                                                                bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::handleDataMessage"));
-
-  ssize_t bytes_written = -1;
-
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // sanity check(s)
-  if (!connection_)
-  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to open db connection, returning\n")));
-    return;
-  } // end IF
-
-}
-
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
-void
-Stream_Module_MySQLWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                   bool& passMessageDownstream_out)
+                            MessageType,
+                            ModuleHandlerConfigurationType,
+                            SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::handleSessionMessage"));
 
@@ -120,11 +121,13 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
     {
       // sanity check(s)
       ACE_ASSERT (state_);
+      ACE_ASSERT (configuration_.socketConfiguration);
 
       ACE_TCHAR buffer[BUFSIZ];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result = configuration_.peerAddress.addr_to_string (buffer,
-                                                          sizeof (buffer));
+      result =
+        configuration_.socketConfiguration->peerAddress.addr_to_string (buffer,
+                                                                        sizeof (buffer));
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -136,12 +139,13 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
       } // end IF
       ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
-      result = configuration_.peerAddress.get_host_address (host_address,
-                                                            sizeof (host_address));
-      if (result == -1)
+      const char* result_p =
+        configuration_.socketConfiguration->peerAddress.get_host_addr (host_address,
+                                                                       sizeof (host_address));
+      if (!result_p || (result_p != host_address))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::get_host_address(\"%s\"): \"%m\", aborting\n"),
+                    ACE_TEXT ("failed to ACE_INET_Addr::get_host_addr(\"%s\"): \"%m\", aborting\n"),
                     ACE_TEXT (buffer)));
 
         session_data_r.aborted = true;
@@ -161,7 +165,7 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
                                             // seconds (instead of wait_timeout
                                             // seconds) of inactivity
            //CLIENT_LOCAL_FILES           | // enable LOAD_LOCAL_DATA handling
-           CLIENT_MULTI_RESULTS);//         | // client can handle multiple result
+           CLIENT_MULTI_RESULTS         | // client can handle multiple result
                                             // sets from multiple-statement
                                             // executions/stored procedures
            //CLIENT_MULTI_STATEMENTS      | // client may send multiple
@@ -174,26 +178,35 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
            //CLIENT_SSL                   | // use SSL. Do NOT set this
                                             // manually, use mysql_ssl_set()
                                             // instead
-           //CLIENT_REMEMBER_OPTIONS);      // remember options specified by
+           CLIENT_REMEMBER_OPTIONS);        // remember options specified by
                                             // calls to mysql_options()
-      MYSQL* result_p =
-          mysql_real_connect (state_,                                        // state handle
-                              host_address,                                  // host name/address
-                              configuration_.DBUser.c_str (),                // db user
-                              configuration_.DBPassword.c_str (),            // db password (non-encrypted)
-                              configuration_.DBDatabase.c_str (),            // db database
-                              configuration_.peerAddress.get_port_number (), // port
-                              NULL,                                          // (UNIX) socket/named pipe
-                              client_flags);                                 // client flags
-      if (result_p != state_)
+      const char* user_name_string_p =
+        (configuration_.loginOptions.user.empty () ? NULL // <-- current user (Unix) : options file (?)
+                                                   : configuration_.loginOptions.user.c_str ());
+      const char* password_string_p =
+        (configuration_.loginOptions.password.empty () ? NULL // <-- (user table ?, options file (?))
+                                                       : configuration_.loginOptions.password.c_str ());
+      const char* database_name_string_p =
+        (configuration_.loginOptions.database.empty () ? NULL // <-- default database : options file (?)
+                                                       : configuration_.loginOptions.database.c_str ());
+      MYSQL* result_2 =
+        mysql_real_connect (state_,                 // state handle
+                            host_address,           // host name/address
+                            user_name_string_p,     // db user
+                            password_string_p,      // db password (non-encrypted)
+                            database_name_string_p, // db database
+                            configuration_.socketConfiguration->peerAddress.get_port_number (), // port
+                            NULL,                   // (UNIX) socket/named pipe
+                            client_flags);          // client flags
+      if (result_2 != state_)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to mysql_real_connect(\"%s\",\"%s\",\"%s\",\"%s\"): \"%s\", aborting\n"),
                     ACE_TEXT (buffer),
-                    ACE_TEXT (configuration_.DBUser.c_str ()),
-                    ACE_TEXT (configuration_.DBPassword.c_str ()),
-                    ACE_TEXT (configuration_.DBDatabase.c_str ()),
-                    ACE_TEXT (mysql_error (&mysql))));
+                    ACE_TEXT (user_name_string_p),
+                    ACE_TEXT (password_string_p),
+                    ACE_TEXT (database_name_string_p),
+                    ACE_TEXT (mysql_error (state_))));
 
         session_data_r.aborted = true;
 
@@ -240,26 +253,61 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
         return; // nothing to do
 
       std::string query_string = ACE_TEXT_ALWAYS_CHAR ("INSERT INTO ");
-      query_string << configuration_.DBTable.c_str ()
-                   << ACE_TEXT_ALWAYS_CHAR ("VALUES (");
+      query_string += configuration_.dataBaseTable
+                   += ACE_TEXT_ALWAYS_CHAR ("VALUES (");
       for (Test_I_PageDataIterator_t iterator = session_data_r.data.pageData.begin ();
            iterator != session_data_r.data.pageData.end ();
            ++iterator)
       {
-        query_string << ACE_TEXT_ALWAYS_CHAR (",");
+        query_string += ACE_TEXT_ALWAYS_CHAR (",");
 
-        query_string << ACE_TEXT_ALWAYS_CHAR ("),(");
+        query_string += ACE_TEXT_ALWAYS_CHAR ("),(");
       } // end FOR
-      query_string << ACE_TEXT_ALWAYS_CHAR (");");
+      query_string += ACE_TEXT_ALWAYS_CHAR (")");
 
-      result = mysql_query (state_,
-                            query_string.c_str ());
-      /* Fetch in reverse = descending order! */
-      res->afterLast();
-      while (res->previous())
-        cout << "\t... MySQL counts: " << res->getInt("id") << endl;
-      delete res;
+      result = mysql_real_query (state_,
+                                 query_string.c_str (),
+                                 query_string.size ());
+      if (result)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to mysql_real_query(\"%s\"): \"%s\", aborting\n"),
+                    ACE_TEXT (query_string.c_str ()),
+                    ACE_TEXT (mysql_error (state_))));
 
+        session_data_r.aborted = true;
+
+        goto close;
+      } // end IF
+      my_ulonglong result_2 = mysql_affected_rows (state_);
+      if (result_2 != session_data_r.data.pageData.size ())
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("failed to store %u data record(s) (result was: %u), continuing\n"),
+                    session_data_r.data.pageData.size (), result_2));
+        goto commit;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("stored %u data record(s)...\n"),
+                  session_data_r.data.pageData.size (), result_2));
+
+commit:
+    //my_bool result_3 = mysql_commit (state_);
+    //if (result_3)
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to mysql_commit(): \"%s\", aborting\n"),
+    //              ACE_TEXT (mysql_error (state_))));
+
+    //  session_data_r.aborted = true;
+
+    //  goto close;
+    //} // end IF
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("committed %u data record(s)...\n"),
+    //            session_data_r.data.pageData.size (), result_2));
+
+close:
       mysql_close (state_);
       state_ = NULL;
       ACE_DEBUG ((LM_DEBUG,
@@ -278,9 +326,9 @@ template <typename SessionMessageType,
           typename SessionDataType>
 bool
 Stream_Module_MySQLWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
+                            MessageType,
+                            ModuleHandlerConfigurationType,
+                            SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::initialize"));
 
@@ -327,42 +375,78 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
     return false;
   } // end IF
 
-  // *TODO*: set options
+  // [MYSQL_DEFAULT_AUTH [/ MYSQL_ENABLE_CLEARTEXT_PLUGIN]]
+  // [MYSQL_OPT_BIND]
+  // MYSQL_OPT_CONNECT_TIMEOUT
+  // [MYSQL_OPT_NAMED_PIPE] // win32
+  // MYSQL_OPT_PROTOCOL
+  // MYSQL_OPT_READ_TIMEOUT
+  // MYSQL_OPT_RECONNECT
+  // MYSQL_OPT_WRITE_TIMEOUT
+  // [MYSQL_READ_DEFAULT_FILE / MYSQL_READ_DEFAULT_GROUP]
+  // [MYSQL_SET_CHARSET_NAME / MYSQL_AUTODETECT_CHARSET_NAME]
+//  char* argument_p = configuration_.DBOptionFileName.c_str ();
+  unsigned int timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_CONNECT;
+  mysql_option option = MYSQL_OPT_CONNECT_TIMEOUT;
+  //result = mysql_options (state_,
+  //                        option,
+  //                        &timeout);
+  //if (result) goto error;
+  //mysql_protocol_type protocol = MYSQL_PROTOCOL_TCP;
   //      switch (configuration_.transportLayer)
   //      {
   //        case NET_TRANSPORT_LAYER_TCP:
-  //          connection_string = ACE_TEXT_ALWAYS_CHAR ("tcp"); break;
+  //          protocol = MYSQL_PROTOCOL_TCP; break;
   //        case NET_TRANSPORT_LAYER_UDP:
-  //          connection_string = ACE_TEXT_ALWAYS_CHAR ("udp"); break;
   //        default:
   //        {
   //          ACE_DEBUG ((LM_ERROR,
   //                      ACE_TEXT ("invalid/unknown transport layer type (was: %d), aborting\n")));
-
-  //          session_data_r.aborted = true;
-
-  //          return;
+  //          return false;
   //        }
   //      } // end SWITCH
-  //      connection_string += ACE_TEXT_ALWAYS_CHAR ("://");
-  //      connection_string += ACE_TEXT_ALWAYS_CHAR (buffer);
-  // MYSQL_OPT_PROTOCOL, MYSQL_SET_CHARSET_NAME, MYSQL_OPT_RECONNECT...
-//  char* argument_p = configuration_.DBOptionFileName.c_str ();
+  //option = MYSQL_OPT_PROTOCOL;
+  //result = mysql_options (state_,
+  //                        option,
+  //                        &protocol);
+  //if (result) goto error;
+  timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_READ;
+  option = MYSQL_OPT_READ_TIMEOUT;
   result = mysql_options (state_,
-                          MYSQL_READ_DEFAULT_FILE,
-                          configuration_.DBOptionFileName.c_str ());
-  if (result)
+                          option,
+                          &timeout);
+  if (result) goto error;
+  my_bool value_b = MODULE_DB_MYSQL_DEFAULT_RECONNECT;
+  option = MYSQL_OPT_RECONNECT;
+  result = mysql_options (state_,
+                          option,
+                          &value_b);
+  if (result) goto error;
+  timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_WRITE;
+  option = MYSQL_OPT_WRITE_TIMEOUT;
+  result = mysql_options (state_,
+                          option,
+                          &timeout);
+  if (result) goto error;
+  if (!configuration_.dataBaseOptionsFileName.empty ())
   {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("failed to mysql_options(MYSQL_READ_DEFAULT_FILE,\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (configuration_.DBOptionFileName.c_str ()),
-                ACE_TEXT (mysql_error (state_))));
-    return false;
+    option = MYSQL_READ_DEFAULT_FILE;
+    result = mysql_options (state_,
+                            option,
+                            configuration_.dataBaseOptionsFileName.c_str ());
+    if (result) goto error;
   } // end IF
 
   isInitialized_ = true;
 
   return true;
+
+error:
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("failed to mysql_options(%d): \"%s\", aborting\n"),
+              option,
+              ACE_TEXT (mysql_error (state_))));
+  return false;
 }
 template <typename SessionMessageType,
           typename MessageType,
@@ -370,9 +454,9 @@ template <typename SessionMessageType,
           typename SessionDataType>
 const ModuleHandlerConfigurationType&
 Stream_Module_MySQLWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::get () const
+                            MessageType,
+                            ModuleHandlerConfigurationType,
+                            SessionDataType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::get"));
 

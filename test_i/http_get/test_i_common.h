@@ -44,6 +44,8 @@
 #include "stream_session_data_base.h"
 #include "stream_statemachine_control.h"
 
+#include "stream_module_db_common.h"
+
 #include "stream_module_htmlparser.h"
 
 #include "stream_module_net_common.h"
@@ -249,8 +251,11 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , configuration (NULL)
    , connection (NULL)
    , connectionManager (NULL)
+   , dataBaseOptionsFileName ()
+   , dataBaseTable ()
    , hostName ()
    , inbound (true)
+   , loginOptions ()
    , mode (STREAM_MODULE_HTMLPARSER_SAX)
    , passive (false)
    , printProgressDot (false)
@@ -264,8 +269,11 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   Test_I_Configuration*                     configuration;
   Test_I_IConnection_t*                     connection; // TCP target/IO module
   Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
+  std::string                               dataBaseOptionsFileName; // db writer module
+  std::string                               dataBaseTable; // db writer module
   std::string                               hostName; // net source module
   bool                                      inbound; // net io module
+  Stream_Module_DataBase_LoginOptions       loginOptions; // db writer module
   Stream_Module_HTMLParser_Mode             mode; // html parser module
   bool                                      passive; // net source module
   bool                                      printProgressDot; // file writer module
@@ -338,7 +346,8 @@ struct Test_I_Configuration
   bool                                     useReactor;
 };
 
+typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
 typedef Stream_MessageAllocatorHeapBase_T<Test_I_Stream_Message,
-                                          Test_I_Stream_SessionMessage> Stream_MessageAllocator_t;
+                                          Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;
 
 #endif

@@ -50,8 +50,8 @@ class Stream_Module_MySQLWriter_T
   virtual ~Stream_Module_MySQLWriter_T ();
 
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  //virtual void handleDataMessage (MessageType*&, // data message handle
+  //                                bool&);        // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -61,6 +61,7 @@ class Stream_Module_MySQLWriter_T
 
  protected:
   ModuleHandlerConfigurationType configuration_;
+  MYSQL*                         state_;
 
  private:
   typedef Stream_TaskBaseAsynch_T<Common_TimePolicy_t,
@@ -72,7 +73,6 @@ class Stream_Module_MySQLWriter_T
 
   bool   cleanLibrary_;
   bool   isInitialized_;
-  MYSQL* state_;
 };
 
 #include "stream_module_mysqlwriter.inl"

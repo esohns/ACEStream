@@ -25,7 +25,10 @@
 
 //#include "net_common.h"
 
-#define TEST_I_DEFAULT_OUTPUT_FILE                   "output.tmp"
+#define TEST_I_DEFAULT_OUTPUT_DB                     "news"
+#define TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE        "options.cnf"
+#define TEST_I_DEFAULT_OUTPUT_DB_TABLE               "page"
+#define TEST_I_DEFAULT_OUTPUT_FILE                   "output.html"
 #define TEST_I_THREAD_NAME                           "stream processor"
 
 #define TEST_I_DEFAULT_BUFFER_SIZE                   16384 // bytes

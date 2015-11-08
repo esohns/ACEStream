@@ -50,6 +50,29 @@ pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
 # endif ()
 #endif ()
 
+#pkg_check_modules (PKG_MYSQL REQUIRED libmysql)
+# *TODO*: add dependencies
+set (MYSQL_LIB_FILE libmysqlclient.so)
+if (UNIX)
+ find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
+               PATHS /usr/lib
+               PATH_SUFFIXES x86_64-linux-gnu
+               DOC "searching for \"${MYSQL_LIB_FILE}\"")
+elseif (WIN32)
+ unset (MYSQL_LIB_FILE)
+ set (MYSQL_LIB_FILE libmysql.lib)
+ find_library (MYSQL_LIBRARY ${MYSQL_LIB_FILE}
+#               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql
+#               PATH_SUFFIXES lib
+               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2
+               PATH_SUFFIXES cmake/libmysql/Debug
+               DOC "searching for \"${MYSQL_LIB_FILE}\"")
+endif ()
+if (NOT MYSQL_LIBRARY)
+ message (FATAL_ERROR "could not find libmysql (was: \"${MYSQL_LIB_FILE}\"), aborting")
+endif ()
+#add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
+
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
@@ -69,6 +92,7 @@ find_package (ACEStream ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 if (NOT EXISTS ${ACEStream_DIR})
  message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
 endif ()
+add_definitions (-DSTREAM_DB_HAS_DLL)
 
 #string (TOLOWER "${CMAKE_BUILD_TYPE}" BUILD_TYPE)
 if (UNIX)
@@ -124,6 +148,7 @@ add_definitions (-DHAVE_CONFIG_H)
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ATCD/ACE)
  include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
+ include_directories (${PKG_MYSQL_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
@@ -133,14 +158,19 @@ else ()
 # *TODO*: repair pkgconfig support
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.1/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/glib-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gtk-2.0)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
+ # *TODO*: repair pkgconfig support
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/include)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/glib-2.0)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gtk-2.0)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/db)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/html)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
@@ -157,19 +187,21 @@ set (http_get_EXE_SRCS
      test_i_defines.h
      test_i_message.cpp
      test_i_message.h
+     test_i_module_databasewriter.cpp
+     test_i_module_databasewriter.h
      test_i_module_htmlparser.cpp
      test_i_module_htmlparser.h
      test_i_module_htmlwriter.cpp
      test_i_module_htmlwriter.h
      test_i_session_message.cpp
      test_i_session_message.h
-     test_i_source.cpp
-     test_i_source_common.h
-     test_i_source_signalhandler.cpp
-     test_i_source_signalhandler.h
-     test_i_source_stream.cpp
-     test_i_source_stream.h
-     test_i_source_stream.inl
+     test_i_http_get.cpp
+     test_i_http_get_common.h
+     test_i_http_get_signalhandler.cpp
+     test_i_http_get_signalhandler.h
+     test_i_http_get_stream.cpp
+     test_i_http_get_stream.h
+     test_i_http_get_stream.inl
 #  test_i_template_instantiations.cpp
      stdafx.cpp
      stdafx.h)
@@ -189,9 +221,11 @@ elseif (WIN32)
 # *TODO*: repair pkgconfig support
  #target_link_libraries (http_get ${LIBXML2_LIBRARY})
  target_link_libraries (http_get ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1/.libs/libxml2.dll.a)
+ target_link_libraries (http_get ${MYSQL_LIBRARY})
 endif ()
 target_link_libraries (http_get Common)
 target_link_libraries (http_get ACEStream)
+target_link_libraries (http_get ACEStream_Database)
 target_link_libraries (http_get ACEStream_HTML)
 target_link_libraries (http_get ACENetwork)
 #target_link_libraries (http_get ACENetwork_Client)
