@@ -135,7 +135,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
                            ModuleHandlerConfigurationType,
                            SessionDataType,
                            ParserContextType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                   bool& passMessageDownstream_out)
+                                                                     bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::handleSessionMessage"));
 

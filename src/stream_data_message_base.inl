@@ -43,17 +43,7 @@ template <typename DataType,
           typename CommandType>
 Stream_DataMessageBase_T<DataType,
                          CommandType>::Stream_DataMessageBase_T (DataType*& data_inout)
- : inherited (0,                                  // size
-              STREAM_MESSAGE_OBJECT,              // type
-              NULL,                               // continuation
-              NULL,                               // data
-              NULL,                               // buffer allocator
-              NULL,                               // locking strategy
-              ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
-              ACE_Time_Value::zero,               // execution time
-              ACE_Time_Value::max_time,           // deadline time
-              NULL,                               // data block allocator
-              NULL)                               // message block allocator
+ : inherited ()
  , data_ (data_inout)
  , isInitialized_ (true)
 {

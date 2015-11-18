@@ -49,7 +49,7 @@ enum Stream_MessageType_t
   STREAM_MESSAGE_MAP_2 = 0x300,                      // data
   // *** data ***
   STREAM_MESSAGE_DATA,   // protocol data
-  STREAM_MESSAGE_OBJECT, // (OO) message object type (--> can be downcast dynamically)
+  STREAM_MESSAGE_OBJECT, // (OO) message object type (--> dynamic type)
   // *** data - END ***
   STREAM_MESSAGE_MAP_3 = 0x400,                      // protocol
   // *** protocol ***
@@ -85,10 +85,13 @@ class Stream_Export Stream_MessageBase
                                   std::string&);    // return value: type string
 
  protected:
-  Stream_MessageBase (unsigned int); // size
+  typedef ACE_Message_Block MESSAGE_BLOCK_T;
 
-//   // ctor(s) for MB_STREAM_DATA
-//   Stream_MessageBase(const unsigned long&); // total size of message data (off-wire)
+  // ctor(s) for STREAM_MESSAGE_OBJECT
+  Stream_MessageBase ();
+
+  // ctor(s) for MB_STREAM_DATA
+  Stream_MessageBase (unsigned int); // size
   // copy ctor, to be used by derivates
   Stream_MessageBase (const Stream_MessageBase&);
   // *NOTE*: to be used by message allocators...
@@ -104,7 +107,6 @@ class Stream_Export Stream_MessageBase
  private:
   typedef ACE_Message_Block inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase& operator= (const Stream_MessageBase&))
 
   // overrides from ACE_Message_Block

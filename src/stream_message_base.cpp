@@ -30,6 +30,26 @@
 // initialize statics
 ACE_Atomic_Op<ACE_Thread_Mutex, unsigned int> Stream_MessageBase::currentID = 0;
 
+Stream_MessageBase::Stream_MessageBase ()
+ : inherited (0,
+              STREAM_MESSAGE_OBJECT,
+              NULL,
+              NULL,
+              NULL,
+              NULL,
+              ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
+              ACE_Time_Value::zero,
+              ACE_Time_Value::max_time,
+              NULL,
+              NULL)
+  , messageID_ (0)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase::Stream_MessageBase"));
+
+  ++currentID;
+  messageID_ = currentID.value ();
+}
+
 Stream_MessageBase::Stream_MessageBase (unsigned int requestedSize_in)
  : inherited (requestedSize_in,
               ACE_Message_Block::MB_DATA,
