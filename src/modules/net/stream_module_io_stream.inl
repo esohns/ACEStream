@@ -51,8 +51,8 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               SessionMessageType,
                               ProtocolMessageType,
                               AddressType,
-                              ConnectionManagerType>::Stream_Module_Net_IO_Stream_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("NetIOStream"))
+                              ConnectionManagerType>::Stream_Module_Net_IO_Stream_T (const std::string& name_in)
+ : inherited (name_in)
  , IO_ (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
         NULL,
         false)

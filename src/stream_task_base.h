@@ -22,13 +22,16 @@
 #define STREAM_TASK_BASE_H
 
 #include "ace/Global_Macros.h"
-#include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_task_base.h"
 
 #include "stream_itask.h"
 #include "stream_messagequeue.h"
+
+// forward declarations
+class ACE_Message_Block;
+class ACE_Time_Value;
 
 template <typename TaskSynchStrategyType,
           typename TimePolicyType,

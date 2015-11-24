@@ -88,6 +88,7 @@ class Stream_Base_T
   typedef StateType STATE_T;
   typedef SessionDataContainerType SESSION_DATA_CONTAINER_T;
   typedef SessionDataType SESSION_DATA_T;
+  typedef ProtocolMessageType PROTOCOL_DATA_T;
 
   using STREAM_T::get;
 

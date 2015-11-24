@@ -73,8 +73,12 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/..)
 
 ############## next target ################
 set (${PROJECT_NAME}_LIB_SRCS
+     stream_allocatorbase.cpp
+     stream_allocatorbase.h
+     stream_allocatorbase.inl
      stream_allocatorheap.cpp
      stream_allocatorheap.h
+     stream_allocatorheap.inl
      stream_base.cpp
      stream_base.h
      stream_base.inl
@@ -90,12 +94,14 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_cacheddatablockallocatorheap.h
      stream_cachedallocatorheap.cpp
      stream_cachedallocatorheap.h
+     stream_cachedallocatorheap.inl
      stream_common.h
      stream_data_message_base.cpp
      stream_data_message_base.h
      stream_data_message_base.inl
      stream_datablockallocatorheap.cpp
      stream_datablockallocatorheap.h
+     stream_datablockallocatorheap.inl
      stream_defines.h
      stream_exports.h
      stream_headmoduletask_base.cpp
@@ -172,7 +178,10 @@ export (TARGETS ${PROJECT_NAME}
 
 ############### install files ################
 install (FILES
+         stream_allocatorbase.h
+         stream_allocatorbase.inl
          stream_allocatorheap.h
+         stream_allocatorheap.inl
          stream_base.h
          stream_base.inl
          stream_cachedmessageallocator.h
@@ -182,10 +191,12 @@ install (FILES
          stream_cachedmessageallocatorheap.h
          stream_cacheddatablockallocatorheap.h
          stream_cachedallocatorheap.h
+         stream_cachedallocatorheap.inl
          stream_common.h
          stream_data_message_base.h
          stream_data_message_base.inl
          stream_datablockallocatorheap.h
+         stream_datablockallocatorheap.inl
          stream_defines.h
          stream_exports.h
          stream_headmoduletask_base.h

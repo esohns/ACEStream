@@ -87,6 +87,7 @@
     <GenerateManifest>false</GenerateManifest>
     <EmbedManifest>false</EmbedManifest>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <RunCodeAnalysis>false</RunCodeAnalysis>
@@ -136,8 +137,9 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <FloatingPointExceptions>true</FloatingPointExceptions>
-      <OpenMPSupport>false</OpenMPSupport>
-      <DisableLanguageExtensions />
+      <OpenMPSupport>
+      </OpenMPSupport>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <ShowIncludes />
       <ErrorReporting>Send</ErrorReporting>
@@ -148,7 +150,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
-      <AdditionalDependencies>User32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Advapi32.lib;Secur32.lib;Shell32.lib;User32.lib;Userenv.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <RandomizedBaseAddress />
@@ -156,6 +158,7 @@
       <TurnOffAssemblyGeneration />
       <Profile>true</Profile>
       <LinkErrorReporting>SendErrorReport</LinkErrorReporting>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -187,8 +190,9 @@
       <OmitFramePointers>false</OmitFramePointers>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <FloatingPointExceptions>true</FloatingPointExceptions>
-      <OpenMPSupport>false</OpenMPSupport>
-      <DisableLanguageExtensions />
+      <OpenMPSupport>
+      </OpenMPSupport>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <ShowIncludes />
       <ErrorReporting>Send</ErrorReporting>
@@ -372,6 +376,9 @@
     <ProjectReference Include="..\..\..\libACENetwork\prj\msvc\libACENetwork.vcxproj">
       <Project>{751d54c5-12bd-4771-9453-b9d3948ed025}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\libACENetwork\prj\msvc\libACENetwork_Server.vcxproj">
+      <Project>{4ba6e9ea-9f26-462e-b799-8ed2b7b5ba3d}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\libCommon\prj\msvc\libCommon.vcxproj">
       <Project>{78a90d08-4e40-4ed4-8f75-393ac6526158}</Project>
     </ProjectReference>
@@ -380,6 +387,15 @@
     </ProjectReference>
     <ProjectReference Include="libACEStream.vcxproj">
       <Project>{c7a3ee44-14f9-413a-b311-5a77ba5a4edd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libACEStream_File.vcxproj">
+      <Project>{e3f74bbc-9c33-4aa0-8262-145f4157851e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libACEStream_Misc.vcxproj">
+      <Project>{3e4afa58-c97e-482f-8565-230a1c906269}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libACEStream_Net.vcxproj">
+      <Project>{37cbf857-0aa3-4382-93d0-f3063d71bd21}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

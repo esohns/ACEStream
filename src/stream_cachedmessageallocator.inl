@@ -23,18 +23,20 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
-Stream_CachedMessageAllocator_T<MessageType,
-SessionMessageType>::Stream_CachedMessageAllocator_T (unsigned int maximumNumberOfMessages_in,
-                                                      ACE_Allocator* allocator_in)
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
+                                SessionMessageType>::Stream_CachedMessageAllocator_T (unsigned int maximumNumberOfMessages_in,
+                                                                                      ACE_Allocator* allocator_in)
  : dataBlockAllocator_ ((maximumNumberOfMessages_in ? maximumNumberOfMessages_in
                                                     : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES),
                         allocator_in)
  , messageAllocator_ (maximumNumberOfMessages_in ? maximumNumberOfMessages_in
                                                  : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES)
  , sessionMessageAllocator_ (maximumNumberOfMessages_in ? maximumNumberOfMessages_in
-                                                        :STREAM_QUEUE_DEFAULT_CACHED_MESSAGES)
+                                                        : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::Stream_CachedMessageAllocator_T"));
 
@@ -45,19 +47,23 @@ SessionMessageType>::Stream_CachedMessageAllocator_T (unsigned int maximumNumber
                 STREAM_QUEUE_DEFAULT_CACHED_MESSAGES));
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::~Stream_CachedMessageAllocator_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::~Stream_CachedMessageAllocator_T"));
 
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 bool
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::block ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::block"));
@@ -65,10 +71,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   return dataBlockAllocator_.block ();
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 void*
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::malloc (size_t bytes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::malloc"));
@@ -93,7 +101,7 @@ Stream_CachedMessageAllocator_T<MessageType,
                 ACE_TEXT ("unable to allocate ACE_Data_Block(%u), aborting\n"),
                 bytes_in));
     return NULL;
-  }
+  } // end IF
 
   // *NOTE*: must clean up data block beyond this point !
 
@@ -143,10 +151,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   return message_p;
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 void*
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::calloc (size_t bytes_in,
                                                              char initialValue_in)
 {
@@ -180,10 +190,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   return result_p;
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 void
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::free (void* handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::free"));
@@ -202,10 +214,12 @@ Stream_CachedMessageAllocator_T<MessageType,
     sessionMessageAllocator_.free (handle_in);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 size_t
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::cache_depth () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::cache_depth"));
@@ -213,10 +227,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   return dataBlockAllocator_.cache_depth ();
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 size_t
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::cache_size () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::cache_size"));
@@ -226,10 +242,12 @@ Stream_CachedMessageAllocator_T<MessageType,
 
 /////////////////////////////////////////
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 void*
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::calloc (size_t,
                                                              size_t,
                                                              char)
@@ -239,10 +257,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (NULL);
 }
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::remove (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::remove"));
@@ -251,10 +271,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::bind (const char*, void*, int)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::bind"));
@@ -262,10 +284,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (-1);
 }
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::trybind (const char*, void*&)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::trybind"));
@@ -273,10 +297,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (-1);
 }
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::find (const char*, void*&)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::find"));
@@ -284,10 +310,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (-1);
 }
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::find (const char*)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::find"));
@@ -295,10 +323,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (-1);
 }
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::unbind (const char*)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::unbind"));
@@ -306,10 +336,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (-1);
 }
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::unbind (const char*, void*&)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::unbind"));
@@ -318,10 +350,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::sync (ssize_t, int)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::sync"));
@@ -329,10 +363,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (-1);
 }
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::sync (void*, size_t, int)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::sync"));
@@ -341,10 +377,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::protect (ssize_t, int)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::protect"));
@@ -352,10 +390,12 @@ Stream_CachedMessageAllocator_T<MessageType,
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (-1);
 }
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::protect (void*, size_t, int)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::protect"));
@@ -367,10 +407,12 @@ Stream_CachedMessageAllocator_T<MessageType,
 /////////////////////////////////////////
 
 #if defined (ACE_HAS_MALLOC_STATS)
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 void
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::print_stats (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::print_stats"));
@@ -380,10 +422,12 @@ Stream_CachedMessageAllocator_T<MessageType,
 }
 #endif /* ACE_HAS_MALLOC_STATS */
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 void
-Stream_CachedMessageAllocator_T<MessageType,
+Stream_CachedMessageAllocator_T<ConfigurationType,
+                                MessageType,
                                 SessionMessageType>::dump (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::dump"));

@@ -578,7 +578,7 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  Stream_AllocatorHeap heap_allocator;
+  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
   Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?

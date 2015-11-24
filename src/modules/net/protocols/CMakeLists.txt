@@ -6,7 +6,11 @@ cmake_minimum_required (VERSION 2.8)
 ##add_dependencies (libCommon ACE)
 
 #include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ATCD/ACE)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../../ATCD/ACE)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libACENetwork/src)
+#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libACENetwork/src/protocol/http)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../../libACENetwork/src)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../../libACENetwork/src/protocol/http)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 

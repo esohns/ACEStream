@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "ace/Reactor.h"
+#include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 #include "ace/Time_Value.h"
 
@@ -27,6 +27,7 @@
 
 #include "stream_defines.h"
 #include "stream_session_message_base.h"
+#include "stream_tools.h"
 
 template <typename TaskSynchStrategyType,
           typename TimePolicyType,
@@ -265,9 +266,8 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 //       message = static_cast<Stream_MessageBase*>(mb_in);
       if (!message_p)
       {
-        std::string type_string;
-        Stream_MessageBase::MessageType2String (messageBlock_in->msg_type (),
-                                                type_string);
+        std::string type_string =
+          Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
         Stream_Module_t* module_p = inherited::module ();
         if (module_p)
           ACE_DEBUG ((LM_ERROR,
@@ -302,7 +302,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
         if (inherited::module ())
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": caught an exception in handleDataMessage() (message ID: %u), continuing\n"),
-                      ACE_TEXT (inherited::name ()),
+                      inherited::name (),
                       message_p->getID ()));
         else
           ACE_DEBUG ((LM_ERROR,
@@ -325,10 +325,8 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       }
       catch (...)
       {
-        std::string type_string;
-        Stream_MessageBase::MessageType2String (messageBlock_in->msg_type (),
-                                                type_string);
-
+        std::string type_string =
+          Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
         if (inherited::module ())
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": caught an exception in handleControlMessage() (type was: \"%s\"), continuing\n"),

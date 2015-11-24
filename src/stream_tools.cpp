@@ -26,10 +26,11 @@
 #include "ace/OS.h"
 #include "ace/Log_Msg.h"
 
+#include "stream_common.h"
 #include "stream_macros.h"
 
 std::string
-Stream_Tools::timeStamp2LocalString (const ACE_Time_Value& timestamp_in)
+Stream_Tools::timeStamp2LocalString (const ACE_Time_Value& timeStamp_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Tools::timeStamp2LocalString"));
 
@@ -55,7 +56,7 @@ Stream_Tools::timeStamp2LocalString (const ACE_Time_Value& timestamp_in)
 #endif
 
   // step1: compute UTC representation
-  time_t time_seconds = timestamp_in.sec ();
+  time_t time_seconds = timeStamp_in.sec ();
   // *PORTABILITY*: man page says we should call this before...
   ACE_OS::tzset ();
   if (!ACE_OS::localtime_r (&time_seconds,
@@ -81,13 +82,41 @@ Stream_Tools::timeStamp2LocalString (const ACE_Time_Value& timestamp_in)
   result = time_string;
 
   // OK: append any usecs
-  if (timestamp_in.usec ())
+  if (timeStamp_in.usec ())
   {
     std::ostringstream converter;
-    converter << timestamp_in.usec ();
+    converter << timeStamp_in.usec ();
     result += ACE_TEXT_ALWAYS_CHAR (".");
     result += converter.str ();
   } // end IF
+
+  return result;
+}
+
+std::string
+Stream_Tools::messageType2String (Stream_MessageType messageType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::messageType2String"));
+
+  // initialize return value(s)
+  std::string result = ACE_TEXT_ALWAYS_CHAR ("INVALID_TYPE");
+
+  switch (messageType_in)
+  {
+    case STREAM_MESSAGE_SESSION:
+      result = ACE_TEXT_ALWAYS_CHAR ("MESSAGE_SESSION"); break;
+    case STREAM_MESSAGE_DATA:
+      result = ACE_TEXT_ALWAYS_CHAR ("MESSAGE_DATA"); break;
+    case STREAM_MESSAGE_OBJECT:
+      result = ACE_TEXT_ALWAYS_CHAR ("MESSAGE_OBJECT"); break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown message type (type: \"%d\"), aborting\n"),
+                  messageType_in));
+      break;
+    }
+  } // end SWITCH
 
   return result;
 }

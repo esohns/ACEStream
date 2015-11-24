@@ -35,16 +35,19 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 class Test_I_Stream_SessionMessage;
-template <typename MessageType,
+template <typename AllocatorConfigurationType,
+          typename MessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Stream_Message
- : public Stream_MessageBase
+ : public Stream_MessageBase_T<Stream_AllocatorConfiguration>
 // : public Stream_DataMessageBase_T<xmlDoc,
 //                                   Stream_CommandType_t>
 {
   // grant access to specific private ctors...
-  friend class Stream_MessageAllocatorHeapBase_T<Test_I_Stream_Message,
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+
+                                                 Test_I_Stream_Message,
                                                  Test_I_Stream_SessionMessage>;
 
  public:
@@ -69,7 +72,7 @@ class Test_I_Stream_Message
  private:
 //  typedef Stream_DataMessageBase_T<xmlDoc,
 //                                   Stream_CommandType_t> inherited;
-  typedef Stream_MessageBase inherited;
+  typedef Stream_MessageBase_T<Stream_AllocatorConfiguration> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message ())
   // *NOTE*: to be used by message allocators...

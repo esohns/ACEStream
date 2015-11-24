@@ -81,6 +81,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -103,9 +104,9 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>DEBUG_DEBUGGER;HAVE_CONFIG_H;STREAM_HAS_DLL;COMMON_HAS_DLL;WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG_DEBUGGER;HAVE_CONFIG_H;STREAM_HTML_HAS_DLL;STREAM_HAS_DLL;COMMON_HAS_DLL;COMMON_HAS_DLL;WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src\modules\net;$(ProjectDir)..\..\src\modules\net\protocols;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\html;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src\modules\net;$(ProjectDir)..\..\src\modules\net\protocols;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -115,14 +116,21 @@
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <StringPooling>false</StringPooling>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalOptions>-Zm64 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zm64 %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <OpenMPSupport>
+      </OpenMPSupport>
+      <BrowseInformation>true</BrowseInformation>
+      <ShowIncludes />
+      <ErrorReporting>Send</ErrorReporting>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Advapi32.lib;Secur32.lib;Shell32.lib;Userenv.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkErrorReporting>SendErrorReport</LinkErrorReporting>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -131,9 +139,9 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>DEBUG_DEBUGGER;HAVE_CONFIG_H;STREAM_HAS_DLL;WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG_DEBUGGER;HAVE_CONFIG_H;STREAM_HTML_HAS_DLL;STREAM_HAS_DLL;COMMON_HAS_DLL;WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src\modules\net;$(ProjectDir)..\..\src\modules\net\protocols;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\html;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src\modules\net;$(ProjectDir)..\..\src\modules\net\protocols;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -144,6 +152,13 @@
       <StringPooling>false</StringPooling>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalOptions>-Zm64 %(AdditionalOptions)</AdditionalOptions>
+      <OmitFramePointers>false</OmitFramePointers>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <OpenMPSupport>
+      </OpenMPSupport>
+      <BrowseInformation>true</BrowseInformation>
+      <ShowIncludes />
+      <ErrorReporting>Send</ErrorReporting>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,6 +166,7 @@
       <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkErrorReporting>SendErrorReport</LinkErrorReporting>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -161,9 +177,9 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>HAVE_CONFIG_H;STREAM_HAS_DLL;COMMON_HAS_DLL;NDEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;STREAM_HTML_HAS_DLL;STREAM_HAS_DLL;COMMON_HAS_DLL;COMMON_HAS_DLL;NDEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;_CONSOLE;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src\modules\net;$(ProjectDir)..\..\src\modules\net\protocols;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\html;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src\modules\net;$(ProjectDir)..\..\src\modules\net\protocols;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
       <FloatingPointExceptions>true</FloatingPointExceptions>
@@ -192,9 +208,9 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>HAVE_CONFIG_H;STREAM_HAS_DLL;NDEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAVE_CONFIG_H;STREAM_HTML_HAS_DLL;STREAM_HAS_DLL;COMMON_HAS_DLL;NDEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;_CONSOLE;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src\modules\net;$(ProjectDir)..\..\src\modules\net\protocols;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libCommon\src;$(ProjectDir)..\..\src;$(ProjectDir)..\..\include;$(ProjectDir)..\..\src\modules\file;$(ProjectDir)..\..\src\modules\html;$(ProjectDir)..\..\src\modules\misc;$(ProjectDir)..\..\..\libACENetwork\src;$(ProjectDir)..\..\..\libACENetwork\src\client_server;$(ProjectDir)..\..\src\modules\net;$(ProjectDir)..\..\src\modules\net\protocols;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
       <FloatingPointExceptions>true</FloatingPointExceptions>
@@ -228,8 +244,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\http_get\test_i_module_htmlhandler.cpp" />
     <ClCompile Include="..\..\test_i\http_get\test_i_module_htmlparser.cpp" />
+    <ClCompile Include="..\..\test_i\http_get\test_i_module_htmlwriter.cpp" />
     <ClCompile Include="..\..\test_i\http_get\test_i_session_message.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
@@ -264,8 +280,8 @@
     <ClInclude Include="..\..\test_i\http_get\test_i_connection_manager_common.h" />
     <ClInclude Include="..\..\test_i\http_get\test_i_defines.h" />
     <ClInclude Include="..\..\test_i\http_get\test_i_message.h" />
-    <ClInclude Include="..\..\test_i\http_get\test_i_module_htmlhandler.h" />
     <ClInclude Include="..\..\test_i\http_get\test_i_module_htmlparser.h" />
+    <ClInclude Include="..\..\test_i\http_get\test_i_module_htmlwriter.h" />
     <ClInclude Include="..\..\test_i\http_get\test_i_session_message.h" />
     <ClInclude Include="..\..\test_i\http_get\test_i_source_common.h" />
     <ClInclude Include="..\..\test_i\http_get\test_i_source_signalhandler.h" />
@@ -287,14 +303,8 @@
     <ProjectReference Include="libACEStream.vcxproj">
       <Project>{c7a3ee44-14f9-413a-b311-5a77ba5a4edd}</Project>
     </ProjectReference>
-    <ProjectReference Include="libACEStream_File.vcxproj">
-      <Project>{e3f74bbc-9c33-4aa0-8262-145f4157851e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="libACEStream_Misc.vcxproj">
-      <Project>{3e4afa58-c97e-482f-8565-230a1c906269}</Project>
-    </ProjectReference>
-    <ProjectReference Include="libACEStream_Net.vcxproj">
-      <Project>{37cbf857-0aa3-4382-93d0-f3063d71bd21}</Project>
+    <ProjectReference Include="libACEStream_HTML.vcxproj">
+      <Project>{28b9c33a-066f-4968-aeb0-4d13d7ea593b}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

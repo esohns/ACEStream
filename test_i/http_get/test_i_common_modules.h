@@ -101,7 +101,8 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                // task s
                           Test_I_Stream_Module_Statistic_WriterTask_t, // writer type
                           Test_I_Stream_Module_RuntimeStatistic);      // name
 
-typedef Stream_Module_Net_Source_HTTP_Get_T<Test_I_Stream_SessionMessage,
+typedef Stream_Module_Net_Source_HTTP_Get_T<Test_I_Stream_ModuleHandlerConfiguration,
+                                            Test_I_Stream_SessionMessage,
                                             Test_I_Stream_Message> Test_I_Stream_Module_HTTPGet;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
                               Common_TimePolicy_t,                      // time policy

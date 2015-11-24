@@ -21,12 +21,10 @@
 #ifndef STREAM_COMMON_H
 #define STREAM_COMMON_H
 
-//#include "ace/Message_Queue.h"
-//#include "ace/Module.h"
+#include "ace/Message_Block.h"
 #include "ace/Notification_Strategy.h"
 #include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
-//#include "ace/Task.h"
 #include "ace/Time_Value.h"
 
 #include "common_istatemachine.h"
@@ -38,6 +36,43 @@
 #include "stream_session_data_base.h"
 #include "stream_statistichandler.h"
 #include "stream_statemachine_control.h"
+
+enum Stream_MessageType : int
+{
+  // *NOTE*: see "ace/Message_Block.h" for details
+  STREAM_MESSAGE_MAP = ACE_Message_Block::MB_USER, // session (== 0x200)
+  // *** control ***
+  STREAM_MESSAGE_SESSION,
+  // *** control - END ***
+  STREAM_MESSAGE_MAP_2 = 0x300,                    // data
+  // *** data ***
+  STREAM_MESSAGE_DATA,                             // protocol data
+  STREAM_MESSAGE_OBJECT,                           // (OO) message object type (--> dynamic type)
+  // *** data - END ***
+  STREAM_MESSAGE_MAP_3 = 0x400,                    // protocol
+  // *** protocol ***
+  // *** protocol - END ***
+  ///////////////////////////////////////
+  STREAM_MESSAGE_MAX,
+  STREAM_MESSAGE_INVALID
+};
+
+enum Stream_SessionMessageType
+{
+  // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
+  STREAM_SESSION_MESSAGE_MAP = ACE_Message_Block::MB_USER + 1,
+  // *** control ***
+  STREAM_SESSION_BEGIN,
+  STREAM_SESSION_STEP,
+  STREAM_SESSION_END,
+  // *** control - END ***
+  // *** data ***
+  STREAM_SESSION_STATISTIC,
+  // *** data - END ***
+  ///////////////////////////////////////
+  STREAM_SESSION_MAX,
+  STREAM_SESSION_INVALID
+};
 
 struct Stream_Statistic
 {
@@ -179,6 +214,17 @@ typedef Stream_IModule_T<ACE_MT_SYNCH,
                          Stream_ModuleConfiguration,
                          Stream_ModuleHandlerConfiguration> Stream_IModule_t;
 typedef Common_IStateMachine_T<Stream_StateMachine_ControlState> Stream_IStateMachine_t;
+
+struct Stream_AllocatorConfiguration
+{
+  inline Stream_AllocatorConfiguration ()
+   : buffer (0)
+  {};
+
+  // *NOTE*: add bytes to each malloc(), override as needed
+  //         (e.g. flex requires extra 2 YY_END_OF_BUFFER_CHARs)
+  unsigned int buffer;
+};
 
 struct Stream_Configuration
 {

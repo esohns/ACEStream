@@ -18,50 +18,63 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_CACHEDALLOCATORHEAP_H
-#define STREAM_CACHEDALLOCATORHEAP_H
+#ifndef Stream_CachedAllocatorHeap_T_H
+#define Stream_CachedAllocatorHeap_T_H
 
+#include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Malloc_T.h"
 #include "ace/Synch_Traits.h"
 
-#include "stream_exports.h"
-#include "stream_iallocator.h"
+#include "stream_allocatorbase.h"
 
-class Stream_Export Stream_CachedAllocatorHeap
- : public Stream_IAllocator,
-   public ACE_Dynamic_Cached_Allocator<ACE_SYNCH_MUTEX>
+template <typename ConfigurationType>
+class Stream_CachedAllocatorHeap_T
+ : public Stream_AllocatorBase_T<ConfigurationType>
+ , public ACE_Dynamic_Cached_Allocator<ACE_SYNCH_MUTEX>
 {
  public:
-  Stream_CachedAllocatorHeap (unsigned int,  // pool size
-                              unsigned int); // chunk size
-  virtual ~Stream_CachedAllocatorHeap ();
+  Stream_CachedAllocatorHeap_T (unsigned int,  // pool size
+                                unsigned int); // chunk size
+  virtual ~Stream_CachedAllocatorHeap_T ();
 
   // implement Stream_IAllocator
   virtual bool block (); // return value: block when full ?
 
   // *IMPORTANT NOTE*: need to implement these as ACE_Dynamic_Cached_Allocator
   // doesn't implement them as virtual (BUG)
-  inline virtual void* malloc (size_t numBytes_in)
+  inline virtual void* malloc (size_t bytes_in)
   {
-    return inherited::malloc (numBytes_in);
+    // *TODO*: remove type inference
+    size_t number_of_bytes = bytes_in + inherited::configuration_.buffer;
+    return inherited2::malloc (number_of_bytes);
   };
   inline virtual void free (void* pointer_in)
   {
-    return inherited::free (pointer_in);
+    return inherited2::free (pointer_in);
   };
 
   // *NOTE*: these return the amount of allocated (heap) memory...
   virtual size_t cache_depth () const;
   virtual size_t cache_size () const;
 
+  // implement Common_IDumpState
+  virtual void dump_state () const;
+
  private:
-  typedef ACE_Dynamic_Cached_Allocator<ACE_SYNCH_MUTEX> inherited;
+  typedef Stream_AllocatorBase_T<ConfigurationType> inherited;
+  typedef ACE_Dynamic_Cached_Allocator<ACE_SYNCH_MUTEX> inherited2;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_CachedAllocatorHeap (const Stream_CachedAllocatorHeap&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_CachedAllocatorHeap& operator= (const Stream_CachedAllocatorHeap&));
+  // convenient types
+  typedef Stream_CachedAllocatorHeap_T<ConfigurationType> OWN_TYPE_T;
 
-  unsigned int poolSize_;
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedAllocatorHeap_T (const Stream_CachedAllocatorHeap_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedAllocatorHeap_T& operator= (const Stream_CachedAllocatorHeap_T&))
+
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;
 };
+
+// include template implementation
+#include "stream_cachedallocatorheap.inl"
 
 #endif

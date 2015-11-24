@@ -48,6 +48,7 @@
 
 #include "stream_module_net_common.h"
 
+#include "net_configuration.h"
 #include "net_defines.h"
 
 #include "test_i_connection_common.h"
@@ -263,7 +264,9 @@ struct Test_I_Configuration
   bool                                     useReactor;
 };
 
-typedef Stream_MessageAllocatorHeapBase_T<Test_I_Stream_Message,
+typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+
+                                          Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage> Stream_MessageAllocator_t;
 
 typedef Common_INotify_T<Test_I_Stream_SessionData,

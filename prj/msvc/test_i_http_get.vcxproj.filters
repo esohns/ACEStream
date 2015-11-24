@@ -33,10 +33,10 @@
     <ClCompile Include="..\..\test_i\http_get\test_i_source_stream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\http_get\test_i_module_htmlhandler.cpp">
+    <ClCompile Include="..\..\test_i\http_get\test_i_module_htmlparser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test_i\http_get\test_i_module_htmlparser.cpp">
+    <ClCompile Include="..\..\test_i\http_get\test_i_module_htmlwriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,10 +77,10 @@
     <ClInclude Include="..\..\test_i\http_get\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\http_get\test_i_module_htmlhandler.h">
+    <ClInclude Include="..\..\test_i\http_get\test_i_module_htmlparser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test_i\http_get\test_i_module_htmlparser.h">
+    <ClInclude Include="..\..\test_i\http_get\test_i_module_htmlwriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

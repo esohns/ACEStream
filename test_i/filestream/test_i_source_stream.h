@@ -21,6 +21,8 @@
 #ifndef TEST_I_SOURCE_STREAM_H
 #define TEST_I_SOURCE_STREAM_H
 
+#include <string>
+
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -62,7 +64,7 @@ class Test_I_Source_Stream_T
                         Test_I_Stream_Message>
 {
  public:
-  Test_I_Source_Stream_T ();
+  Test_I_Source_Stream_T (const std::string&); // name
   virtual ~Test_I_Source_Stream_T ();
 
   // implement Common_IInitialize_T
@@ -114,6 +116,7 @@ class Test_I_Source_Stream_T
                                          Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
                                          WRITER_T> TARGET_MODULE_T;                // writer type
 
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
 

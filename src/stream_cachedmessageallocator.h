@@ -27,7 +27,9 @@
 #include "stream_cacheddatablockallocatorheap.h"
 #include "stream_iallocator.h"
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          ///////////////////////////////
+          typename MessageType,
           typename SessionMessageType>
 class Stream_CachedMessageAllocator_T
  : public Stream_IAllocator
@@ -39,26 +41,23 @@ class Stream_CachedMessageAllocator_T
   virtual ~Stream_CachedMessageAllocator_T ();
 
   // implement Stream_IAllocator
-  virtual bool block (); // return value: block when full ?
+  virtual bool block (); // return value: block when empty ?
   // *NOTE*: returns a pointer to <MessageType>...
-  // *NOTE: passing a value of 0 will return a <SessionMessageType>
+  // *NOTE: passing '0' will return a <SessionMessageType>
   // *TODO*: the way message IDs are implemented, they can be truly unique
-  // only IF allocation is synchronized...
+  //         only IF allocation is synchronized...
   virtual void* malloc (size_t); // bytes
   virtual size_t cache_depth () const; // return value: #bytes allocated
   virtual size_t cache_size  () const; // return value: #inflight ACE_Message_Blocks
 
   // *NOTE*: returns a pointer to <MessageType>/<SessionMessageType>
-  // --> see above
+  //         --> see above
   virtual void* calloc (size_t,       // bytes
                         char = '\0'); // initial value
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocator_T (const Stream_CachedMessageAllocator_T&));
-  // *NOTE*: apparently, ACE_UNIMPLEMENTED_FUNC gets confused with more than one template parameter...
-//   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T<MessageType,
-//                                                          SessionMessageType>& operator= (const Stream_CachedMessageAllocatorHeapBase_T<MessageType,
-//                                                                                          SessionMessageType>&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocator_T (const Stream_CachedMessageAllocator_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocator_T& operator= (const Stream_CachedMessageAllocator_T&))
 
   virtual void* calloc (size_t,
                         size_t,

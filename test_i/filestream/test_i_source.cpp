@@ -453,21 +453,22 @@ do_work (unsigned int bufferSize_in,
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   // step0a: initialize configuration and stream
+  std::string stream_name = ACE_TEXT_ALWAYS_CHAR ("SourceStream");
   Test_I_Configuration configuration;
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
   if (useReactor_in)
     ACE_NEW_NORETURN (CBData_in.stream,
-                      Test_I_Source_TCPStream_t ());
+                      Test_I_Source_TCPStream_t (stream_name));
   else
     ACE_NEW_NORETURN (CBData_in.stream,
-                      Test_I_Source_AsynchTCPStream_t ());
+                      Test_I_Source_AsynchTCPStream_t (stream_name));
   if (useReactor_in)
     ACE_NEW_NORETURN (CBData_in.UDPStream,
-                      Test_I_Source_UDPStream_t ());
+                      Test_I_Source_UDPStream_t (stream_name));
   else
     ACE_NEW_NORETURN (CBData_in.UDPStream,
-                      Test_I_Source_AsynchUDPStream_t ());
+                      Test_I_Source_AsynchUDPStream_t (stream_name));
   if (!CBData_in.stream || !CBData_in.UDPStream)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -479,7 +480,7 @@ do_work (unsigned int bufferSize_in,
     &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
 
-  Stream_AllocatorHeap heap_allocator;
+  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
   Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?

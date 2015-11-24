@@ -21,6 +21,8 @@
 #ifndef STREAM_MODULE_NET_IO_STREAM_H
 #define STREAM_MODULE_NET_IO_STREAM_H
 
+#include <string>
+
 #include "ace/Global_Macros.h"
 
 #include "stream_base.h"
@@ -28,7 +30,7 @@
 
 #include "stream_module_io.h"
 
-template <typename LockType,                 // 
+template <typename LockType,
           ///////////////////////////////
           typename TaskSynchType,
           typename TimePolicyType,
@@ -72,7 +74,7 @@ class Stream_Module_Net_IO_Stream_T
                         ProtocolMessageType>
 {
  public:
-  Stream_Module_Net_IO_Stream_T ();
+  Stream_Module_Net_IO_Stream_T (const std::string&); // name
   virtual ~Stream_Module_Net_IO_Stream_T ();
 
   // implement Common_IInitialize_T
@@ -165,6 +167,7 @@ class Stream_Module_Net_IO_Stream_T
                                 READER_T,                  // reader type
                                 WRITER_T> IO_MODULE_T;     // writer type
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T (const Stream_Module_Net_IO_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T& operator= (const Stream_Module_Net_IO_Stream_T&))
 

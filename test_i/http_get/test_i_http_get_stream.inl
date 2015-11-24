@@ -202,6 +202,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   // ---------------------------------------------------------------------------
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_in.moduleConfiguration);
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   if (configuration_in.module)
   {
@@ -323,8 +324,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
     goto failed;
   } // end IF
   // *TODO*: remove type inferences
-  if (!HTTPGet_impl_p->initialize (configuration_in.messageAllocator,
-                                   configuration_in.moduleHandlerConfiguration->URL))
+  if (!HTTPGet_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),

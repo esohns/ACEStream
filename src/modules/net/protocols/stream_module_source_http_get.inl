@@ -28,42 +28,48 @@
 #include "stream_iallocator.h"
 #include "stream_macros.h"
 
-template <typename SessionMessageType,
+#include "http_codes.h"
+#include "http_defines.h"
+#include "http_tools.h"
+
+template <typename ConfigurationType,
+          typename SessionMessageType,
           typename ProtocolMessageType>
-Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
+Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType, 
+                                    SessionMessageType,
                                     ProtocolMessageType>::Stream_Module_Net_Source_HTTP_Get_T ()
  : inherited ()
- , allocator_ (NULL)
+ , configuration_ ()
  , headerReceived_ (false)
  , isInitialized_ (false)
- , URI_ (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_NET_SOURCE_HTTP_GET_DEFAULT_URL))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::Stream_Module_Net_Source_HTTP_Get_T"));
 
 }
 
-template <typename SessionMessageType,
+template <typename ConfigurationType,
+          typename SessionMessageType,
           typename ProtocolMessageType>
-Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
+Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType, 
+                                    SessionMessageType,
                                     ProtocolMessageType>::~Stream_Module_Net_Source_HTTP_Get_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::~Stream_Module_Net_Source_HTTP_Get_T"));
 
 }
 
-template <typename SessionMessageType,
+template <typename ConfigurationType,
+          typename SessionMessageType,
           typename ProtocolMessageType>
 bool
-Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
-                                    ProtocolMessageType>::initialize (Stream_IAllocator* allocator_in,
-                                                                      const std::string& URI_in)
+Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType, 
+                                    SessionMessageType,
+                                    ProtocolMessageType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::initialize"));
 
-  allocator_ = allocator_in;
+  configuration_ = configuration_in;
   headerReceived_ = false;
-  if (!URI_in.empty ())
-    URI_ = URI_in;
   // *TODO*: validate URI
 
   isInitialized_ = true;
@@ -71,10 +77,12 @@ Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
   return true;
 }
 
-template <typename SessionMessageType,
+template <typename ConfigurationType,
+          typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
+Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType, 
+                                    SessionMessageType,
                                     ProtocolMessageType>::handleDataMessage (ProtocolMessageType*& message_inout,
                                                                              bool& passMessageDownstream_out)
 {
@@ -126,9 +134,9 @@ Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
   converter << match_results[2].str ();
   int http_response_status;
   converter >> http_response_status;
-  switch (static_cast<Stream_HTTP_Status_Code> (http_response_status))
+  switch (static_cast<HTTP_Status_t> (http_response_status))
   {
-    case STREAM_HTTP_STATUS_OK:
+    case HTTP_Codes::HTTP_STATUS_OK:
     {
       // skip over response
       std::string doctype;
@@ -161,11 +169,10 @@ Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
 
       break;
     }
-    case STREAM_HTTP_STATUS_MULTIPLECHOICES:
-    case STREAM_HTTP_STATUS_MOVEDPERMANENTLY:
-    case STREAM_HTTP_STATUS_FOUND:
-    case STREAM_HTTP_STATUS_USEPROXY:
-    case STREAM_HTTP_STATUS_TEMPORARYREDIRECT:
+    case HTTP_Codes::HTTP_STATUS_MULTIPLECHOICES:
+    case HTTP_Codes::HTTP_STATUS_MOVEDPERMANENTLY:
+    case HTTP_Codes::HTTP_STATUS_MOVEDTEMPORARILY:
+    case HTTP_Codes::HTTP_STATUS_NOTMODIFIED:
     {
       // step1: redirected --> extract location
       std::string location;
@@ -195,10 +202,10 @@ Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
                     ACE_TEXT ("invalid HTTP response (missing \"Location\"), returning\n")));
         return;
       } // end IF
-
+      // *TODO*: remove type inference
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("\"%s\" has been redirected to \"%s\" (status was: %d)\n"),
-                  ACE_TEXT (URI_.c_str ()), ACE_TEXT (location.c_str ()),
+                  ACE_TEXT (configuration_.URL.c_str ()), ACE_TEXT (location.c_str ()),
                   http_response_status));
 
       // *TODO*: sending a (second) request here does not work...
@@ -227,10 +234,12 @@ Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
   headerReceived_ = true;
 }
 
-template <typename SessionMessageType,
+template <typename ConfigurationType,
+          typename SessionMessageType,
           typename ProtocolMessageType>
 void
-Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
+Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType, 
+                                    SessionMessageType,
                                     ProtocolMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                 bool& passMessageDownstream_out)
 {
@@ -251,13 +260,13 @@ Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
       headerReceived_ = false;
 
       // send HTTP Get request
-      if (!sendRequest (URI_))
+      if (!sendRequest (configuration_.URL))
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to send HTTP request \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (URI_.c_str ())));
+                    ACE_TEXT (configuration_.URL.c_str ())));
         return;
       } // end IF
 
@@ -268,10 +277,12 @@ Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
+template <typename ConfigurationType,
+          typename SessionMessageType,
           typename ProtocolMessageType>
 ProtocolMessageType*
-Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
+Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType, 
+                                    SessionMessageType,
                                     ProtocolMessageType>::allocateMessage (unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::allocateMessage"));
@@ -279,13 +290,16 @@ Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
   // initialize return value(s)
   ProtocolMessageType* message_out = NULL;
 
-  if (allocator_)
+  // sanity check(s)
+  ACE_ASSERT (configuration_.streamConfiguration);
+
+  if (configuration_.streamConfiguration->messageAllocator)
   {
     try
     {
       // *TODO*: remove type inference
       message_out =
-          static_cast<ProtocolMessageType*> (allocator_->malloc (requestedSize_in));
+        static_cast<ProtocolMessageType*> (configuration_.streamConfiguration->messageAllocator->malloc (requestedSize_in));
     }
     catch (...)
     {
@@ -310,73 +324,71 @@ Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
   return message_out;
 }
 
-template <typename SessionMessageType,
+template <typename ConfigurationType,
+          typename SessionMessageType,
           typename ProtocolMessageType>
 ProtocolMessageType*
-Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
+Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType, 
+                                    SessionMessageType,
                                     ProtocolMessageType>::makeRequest (const std::string& URI_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::makeRequest"));
 
+  int result = -1;
+
   // sanity check(s)
-  ACE_ASSERT (URI_in.size () < BUFSIZ);
+  ACE_ASSERT (configuration_.socketHandlerConfiguration);
 
   // initialize return value(s)
-  // *TODO*: estimate a reasonable buffer size
-  ProtocolMessageType* message_out = allocateMessage (BUFSIZ);
+  // *TODO*: remove type inference
+  ProtocolMessageType* message_out =
+    allocateMessage (configuration_.socketHandlerConfiguration->PDUSize);
   if (!message_out)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Net_Source_HTTP_Get_T::allocateMessage(%u), aborting\n"),
-                BUFSIZ));
+                configuration_.socketHandlerConfiguration->PDUSize));
     return NULL;
   } // end IF
 
-  unsigned int offset =
-      ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_GET_STRING));
-  ACE_OS::memcpy (message_out->wr_ptr (),
-                  ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_GET_STRING),
-                  offset);
-  ACE_OS::memcpy (message_out->wr_ptr () + offset,
-                  ACE_TEXT_ALWAYS_CHAR (" "),
-                  1);
-  offset += 1;
-//      ACE_ASSERT (message_out->space () > URI_in.size ());
-  ACE_OS::memcpy (message_out->wr_ptr () + offset,
-                  URI_in.c_str (),
-                  URI_in.size ());
-  offset += URI_in.size ();
-  ACE_OS::memcpy (message_out->wr_ptr () + offset,
-                  ACE_TEXT_ALWAYS_CHAR (" "),
-                  1);
-  offset += 1;
-  unsigned int length =
-      ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (HTTP_VERSION_STRING));
-  ACE_OS::memcpy (message_out->wr_ptr () + offset,
-                  ACE_TEXT_ALWAYS_CHAR (HTTP_VERSION_STRING),
-                  length);
-  offset += length;
-  ACE_OS::memcpy (message_out->wr_ptr () + offset,
-                  ACE_TEXT_ALWAYS_CHAR ("\r\n"), // CRLF
-                  2);
-  offset += 2;
-  message_out->wr_ptr (offset);
+  // step1: request line
+  std::string buffer = HTTP_Tools::Method2String (HTTP_Codes::HTTP_METHOD_GET);
+  buffer += ACE_TEXT_ALWAYS_CHAR (" ");
+  buffer += URI_in;
+  buffer += ACE_TEXT_ALWAYS_CHAR (" ");
+  buffer += ACE_TEXT_ALWAYS_CHAR (HTTP_VERSION_STRING_PREFIX);
+  buffer += HTTP_Tools::Version2String (HTTP_Codes::HTTP_VERSION_1_1);
+  buffer += ACE_TEXT_ALWAYS_CHAR ("\r\n");
+  // step2: separator
+  buffer += ACE_TEXT_ALWAYS_CHAR ("\r\n");
+
+  result = message_out->copy (buffer.c_str (),
+                              buffer.size ());
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", aborting\n")));
+
+    // clean up
+    message_out->release ();
+
+    return NULL;
+  } // end IF
 
   return message_out;
 }
 
-template <typename SessionMessageType,
+template <typename ConfigurationType,
+          typename SessionMessageType,
           typename ProtocolMessageType>
 bool
-Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
+Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType, 
+                                    SessionMessageType,
                                     ProtocolMessageType>::sendRequest (const std::string& URI_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::sendRequest"));
 
   int result = -1;
-
-  // sanity check(s)
-  ACE_ASSERT (URI_in.size () < BUFSIZ);
 
   // initialize return value(s)
   // *TODO*: estimate a reasonable buffer size
@@ -389,11 +401,11 @@ Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
     return false;
   } // end IF
 
-  // step1: send data
+  // send data
   result = inherited::reply (message_p);
+  ACE_ASSERT (inherited::mod_);
   if (result == -1)
   {
-    ACE_ASSERT (inherited::mod_);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::reply(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
@@ -405,36 +417,6 @@ Stream_Module_Net_Source_HTTP_Get_T<SessionMessageType,
   } // end IF
   message_p = NULL;
 
-  message_p = allocateMessage (BUFSIZ);
-  if (!message_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Net_Source_HTTP_Get_T::allocateMessage(%u), aborting\n"),
-                BUFSIZ));
-    return false;
-  } // end IF
-
-  ACE_OS::memcpy (message_p->wr_ptr (),
-                  ACE_TEXT_ALWAYS_CHAR ("\r\n"), // CRLF
-                  2);
-  message_p->wr_ptr (2);
-
-  // step2: send CRLF
-  result = inherited::reply (message_p);
-  if (result == -1)
-  {
-    ACE_ASSERT (inherited::mod_);
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Task::reply(): \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-
-    // clean up
-    message_p->release ();
-
-    return false;
-  } // end IF
-
-  ACE_ASSERT (inherited::mod_);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: dispatched HTTP Get (URI was: \"%s\")\n"),
               inherited::mod_->name (),

@@ -21,6 +21,8 @@
 #ifndef TEST_I_TARGET_STREAM_H
 #define TEST_I_TARGET_STREAM_H
 
+#include <string>
+
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -60,7 +62,7 @@ class Test_I_Target_Stream
                         Test_I_Stream_Message>
 {
  public:
-  Test_I_Target_Stream ();
+  Test_I_Target_Stream (const std::string&); // name
   virtual ~Test_I_Target_Stream ();
 
   // implement Common_IInitialize_T
@@ -95,6 +97,7 @@ class Test_I_Target_Stream
                         Test_I_Stream_SessionMessage,
                         Test_I_Stream_Message> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 

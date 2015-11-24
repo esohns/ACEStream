@@ -23,8 +23,8 @@
 #include "stream_macros.h"
 
 template <typename ConnectorType>
-Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"))
+Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string& name_in)
+ : inherited (name_in)
  , fileReader_ (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
                 NULL,
                 false)

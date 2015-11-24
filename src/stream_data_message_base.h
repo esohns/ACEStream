@@ -30,13 +30,18 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
-template <typename DataType,
+template <typename AllocatorConfigurationType,
+          ///////////////////////////////
+          typename DataType,
           typename CommandType>
 class Stream_DataMessageBase_T
- : public Stream_MessageBase
+ : public Stream_MessageBase_T<AllocatorConfigurationType>
 {
  public:
   virtual ~Stream_DataMessageBase_T ();
+
+  // convenient types
+  typedef DataType DATA_T;
 
   // initialization-after-construction
   // *NOTE*: assumes lifecycle responsibility for the first argument
@@ -52,25 +57,30 @@ class Stream_DataMessageBase_T
 
  protected:
   Stream_DataMessageBase_T (unsigned int); // size
-  // *NOTE*: assume lifetime responsibility for the argument !
-  // *WARNING*: this ctor doesn't allocate a buffer off the heap...
+  // *NOTE*: assumes responsibility for the argument !
+  // *WARNING*: this ctor doesn't allocate a buffer off the heap
   Stream_DataMessageBase_T (DataType*&); // data handle
   // copy ctor, to be used by derived::duplicate()
   // *WARNING*: while the clone inherits a "shallow copy" of the referenced
-  // data block, it will NOT inherit the attached data --> use init()...
-  Stream_DataMessageBase_T (const Stream_DataMessageBase_T&);
+  //            data block, it will NOT inherit the attached data
+  //            --> use initialize()
+  Stream_DataMessageBase_T (const Stream_DataMessageBase_T<AllocatorConfigurationType,
+                                                           
+                                                           DataType,
+                                                           CommandType>&);
 
-  // *NOTE*: to be used by message allocators...
-  // *TODO*: these ctors are NOT threadsafe...
+  // *NOTE*: to be used by message allocators
+  // *TODO*: these ctors are NOT thread-safe
   Stream_DataMessageBase_T (ACE_Allocator*); // message allocator
   Stream_DataMessageBase_T (ACE_Data_Block*, // data block
                             ACE_Allocator*,  // message allocator
                             bool = true);    // increment running message counter ?
  private:
-  typedef Stream_MessageBase inherited;
+  typedef Stream_MessageBase_T<AllocatorConfigurationType> inherited;
 
   // convenient typedefs
-  typedef Stream_DataMessageBase_T<DataType,
+  typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
+                                   DataType,
                                    CommandType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T ())

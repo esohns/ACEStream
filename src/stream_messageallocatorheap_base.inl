@@ -24,13 +24,14 @@
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
-#include "stream_allocatorheap.h"
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::Stream_MessageAllocatorHeapBase_T (unsigned int maximumNumberOfMessages_in,
-                                                                                          Stream_AllocatorHeap* allocator_in,
+                                                                                          HEAP_ALLOCATOR_T* allocator_in,
                                                                                           bool block_in)
  : inherited ()
  , block_ (block_in)
@@ -56,30 +57,36 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
 
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::~Stream_MessageAllocatorHeapBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::~Stream_MessageAllocatorHeapBase_T"));
 
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 bool
-Stream_MessageAllocatorHeapBase_T<MessageType,
-                                  SessionMessageType > ::block ()
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
+                                  SessionMessageType>::block ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::block"));
 
   return block_;
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 void*
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::malloc (size_t bytes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::malloc"));
@@ -168,10 +175,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   return message_p;
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 void*
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::calloc (size_t bytes_in,
                                                                char initialValue_in)
 {
@@ -224,10 +233,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   return message_p;
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 void
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::free (void* handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::free"));
@@ -245,10 +256,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
                 ACE_TEXT ("failed to ACE_Thread_Semaphore::release(): \"%m\", continuing\n")));
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 size_t
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::cache_depth () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::cache_depth"));
@@ -256,10 +269,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   return dataBlockAllocator_.cache_depth ();
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 size_t
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::cache_size () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::cache_size"));
@@ -267,10 +282,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   return poolSize_.value ();
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 void
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::dump_state"));
@@ -278,10 +295,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   return dataBlockAllocator_.dump_state ();
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 void*
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::calloc (size_t numElements_in,
                                                                size_t sizePerElement_in,
                                                                char initialValue_in)
@@ -297,10 +316,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   ACE_NOTSUP_RETURN (NULL);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::remove (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::remove"));
@@ -310,10 +331,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::bind (const char* name_in,
                                                              void* pointer_in,
                                                              int duplicates_in)
@@ -329,10 +352,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::trybind (const char* name_in,
                                                                 void*& pointer_in)
 {
@@ -346,10 +371,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::find (const char* name_in,
                                                              void*& pointer_in)
 {
@@ -363,10 +390,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::find (const char* name_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::find"));
@@ -378,10 +407,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::unbind (const char* name_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::unbind"));
@@ -393,10 +424,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::unbind (const char* name_in,
                                                                void*& pointer_in)
 {
@@ -410,10 +443,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::sync (ssize_t length_in,
                                                              int flags_in)
 {
@@ -427,10 +462,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::sync (void* address_in,
                                                              size_t length_in,
                                                              int flags_in)
@@ -446,10 +483,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::protect (ssize_t length_in,
                                                                 int protection_in)
 {
@@ -463,10 +502,12 @@ Stream_MessageAllocatorHeapBase_T<MessageType,
   ACE_NOTSUP_RETURN (-1);
 }
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          typename MessageType,
           typename SessionMessageType>
 int
-Stream_MessageAllocatorHeapBase_T<MessageType,
+Stream_MessageAllocatorHeapBase_T<ConfigurationType,
+                                  MessageType,
                                   SessionMessageType>::protect (void* address_in,
                                                                 size_t length_in,
                                                                 int protection_in)

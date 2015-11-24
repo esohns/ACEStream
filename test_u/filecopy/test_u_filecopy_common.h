@@ -84,7 +84,9 @@ struct Stream_Filecopy_Configuration
   Stream_Filecopy_SignalHandlerConfiguration signalHandlerConfiguration;
 };
 
-typedef Stream_MessageAllocatorHeapBase_T<Stream_Filecopy_Message,
+typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+
+                                          Stream_Filecopy_Message,
                                           Stream_Filecopy_SessionMessage> Stream_Filecopy_MessageAllocator_t;
 
 typedef Common_INotify_T<Stream_Filecopy_SessionData,

@@ -32,15 +32,20 @@
 // forward declaration(s)
 class ACE_Allocator;
 class Test_I_Stream_Message;
-template <typename MessageType,
+template <typename AllocatorConfigurationType,
+          typename MessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Stream_SessionMessage
- : public Stream_SessionMessageBase_T<Test_I_Stream_SessionData_t,
+ : public Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+                                      ///
+                                      Test_I_Stream_SessionData_t,
                                       Test_I_UserData>
 {
   // grant access to specific private ctors...
-  friend class Stream_MessageAllocatorHeapBase_T<Test_I_Stream_Message,
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  
+                                                 Test_I_Stream_Message,
                                                  Test_I_Stream_SessionMessage>;
 
  public:
@@ -55,7 +60,9 @@ class Test_I_Stream_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Test_I_Stream_SessionData_t,
+  typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration, 
+                                      ///
+                                      Test_I_Stream_SessionData_t,
                                       Test_I_UserData> inherited;
 
   // copy ctor to be used by duplicate()

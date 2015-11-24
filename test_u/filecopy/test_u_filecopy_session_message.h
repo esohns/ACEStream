@@ -34,15 +34,20 @@
 // forward declaratation(s)
 class ACE_Allocator;
 class Stream_Filecopy_Message;
-template <typename MessageType,
+template <typename AllocatorConfigurationType,
+          typename MessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_Filecopy_SessionMessage
- : public Stream_SessionMessageBase_T<Stream_Filecopy_SessionData_t,
+ : public Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+                                      ///
+                                      Stream_Filecopy_SessionData_t,
                                       Stream_UserData>
 {
   // grant access to specific private ctors...
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_Filecopy_Message,
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+
+                                                 Stream_Filecopy_Message,
                                                  Stream_Filecopy_SessionMessage>;
 
  public:
@@ -57,7 +62,9 @@ class Stream_Filecopy_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Stream_Filecopy_SessionData_t,
+  typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+                                      ///
+                                      Stream_Filecopy_SessionData_t,
                                       Stream_UserData> inherited;
 
   // copy ctor to be used by duplicate()

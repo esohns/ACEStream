@@ -31,7 +31,6 @@
 #include "common_idumpstate.h"
 
 #include "stream_common.h"
-#include "stream_exports.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_message_base.h"
 
@@ -39,37 +38,22 @@
 class ACE_Data_Block;
 class ACE_Allocator;
 
-enum Stream_MessageType_t
-{
-  // *NOTE*: see "ace/Message_Block.h" for details
-  STREAM_MESSAGE_MAP   = ACE_Message_Block::MB_USER, // session (== 0x200)
-  // *** control ***
-  STREAM_MESSAGE_SESSION,
-  // *** control - END ***
-  STREAM_MESSAGE_MAP_2 = 0x300,                      // data
-  // *** data ***
-  STREAM_MESSAGE_DATA,   // protocol data
-  STREAM_MESSAGE_OBJECT, // (OO) message object type (--> dynamic type)
-  // *** data - END ***
-  STREAM_MESSAGE_MAP_3 = 0x400,                      // protocol
-  // *** protocol ***
-  // *** protocol - END ***
-  ///////////////////////////////////////
-  STREAM_MESSAGE_MAX,
-  STREAM_MESSAGE_INVALID
-};
-
-class Stream_Export Stream_MessageBase
+template <typename AllocatorConfigurationType>
+class Stream_MessageBase_T
  : public ACE_Message_Block,
    public Common_IDumpState
 {
   // grant access to specific ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_MessageBase,
-                                                 Stream_SessionMessageBase_T<Stream_SessionData,
+  friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
+
+                                                 Stream_MessageBase_T,
+                                                 Stream_SessionMessageBase_T<AllocatorConfigurationType,
+
+                                                                             Stream_SessionData,
                                                                              Stream_UserData> >;
 
  public:
-  virtual ~Stream_MessageBase ();
+  virtual ~Stream_MessageBase_T ();
 
   // info
   unsigned int getID () const;
@@ -80,42 +64,40 @@ class Stream_Export Stream_MessageBase
   // reset atomic id generator
   static void resetMessageIDGenerator ();
 
-  // helper methods
-  static void MessageType2String (ACE_Message_Type, // as returned by msg_type()
-                                  std::string&);    // return value: type string
-
  protected:
   typedef ACE_Message_Block MESSAGE_BLOCK_T;
 
   // ctor(s) for STREAM_MESSAGE_OBJECT
-  Stream_MessageBase ();
+  Stream_MessageBase_T ();
 
   // ctor(s) for MB_STREAM_DATA
-  Stream_MessageBase (unsigned int); // size
+  Stream_MessageBase_T (unsigned int); // size
   // copy ctor, to be used by derivates
-  Stream_MessageBase (const Stream_MessageBase&);
+  Stream_MessageBase_T (const Stream_MessageBase_T<AllocatorConfigurationType>&);
   // *NOTE*: to be used by message allocators...
-  Stream_MessageBase (ACE_Data_Block*, // data block
-                      ACE_Allocator*,  // message allocator
-                      bool = true);    // increment running message counter ?
-  Stream_MessageBase (ACE_Allocator*); // message allocator
+  Stream_MessageBase_T (ACE_Data_Block*, // data block
+                        ACE_Allocator*,  // message allocator
+                        bool = true);    // increment running message counter ?
+  Stream_MessageBase_T (ACE_Allocator*); // message allocator
 
   // used for pre-allocated messages...
-  void initialize (ACE_Data_Block*          // data block to use
+  void initialize (ACE_Data_Block*             // data block to use
                    /*const ACE_Time_Value&*/); // scheduled execution time
 
  private:
   typedef ACE_Message_Block inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase& operator= (const Stream_MessageBase&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_T& operator= (const Stream_MessageBase_T&))
+
+  // convenient types
+  typedef Stream_MessageBase_T<AllocatorConfigurationType> OWN_TYPE_T;
 
   // overrides from ACE_Message_Block
   // *IMPORTANT NOTE*: children ALWAYS need to override this too !
   virtual ACE_Message_Block* duplicate (void) const;
 
   // atomic ID generator
-  static ACE_Atomic_Op<ACE_SYNCH_MUTEX,
-                       unsigned int> currentID;
+  static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentID;
 
   unsigned int messageID_;
 };
@@ -124,24 +106,32 @@ class Stream_Export Stream_MessageBase
 
 #include "common_iget.h"
 
-template <typename HeaderType,
+template <typename AllocatorConfigurationType,
+          ///////////////////////////////
+          typename HeaderType,
           typename ProtocolCommandType>
-class Stream_MessageBase_T
- : public Stream_MessageBase
+class Stream_MessageBase_2
+ : public Stream_MessageBase_T<AllocatorConfigurationType>
 // , public Common_IGet_T<HeaderType>
 // , public Common_IGet_T<ProtocolCommandType>
 {
   // grant access to specific ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_MessageBase_T<HeaderType,
+  friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
+
+                                                 Stream_MessageBase_2<AllocatorConfigurationType,
+
+                                                                      HeaderType,
                                                                       ProtocolCommandType>,
-                                                 Stream_SessionMessageBase_T<Stream_SessionData,
+                                                 Stream_SessionMessageBase_T<AllocatorConfigurationType,
+    
+                                                                             Stream_SessionData,
                                                                              Stream_UserData> >;
 
  public:
-  virtual ~Stream_MessageBase_T ();
+  virtual ~Stream_MessageBase_2 ();
 
   // used for pre-allocated messages...
-  virtual void initialize (// Stream_MessageBase members
+  virtual void initialize (// Stream_MessageBase_T members
                            ACE_Data_Block*); // data block to use
 
 //  // implement Common_IGet_T
@@ -150,20 +140,20 @@ class Stream_MessageBase_T
 //  static std::string CommandType2String (ProtocolCommandType);
 
  protected:
-  Stream_MessageBase_T (unsigned int); // size
+  Stream_MessageBase_2 (unsigned int); // size
 
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
-  Stream_MessageBase_T (const Stream_MessageBase_T&);
+  Stream_MessageBase_2 (const Stream_MessageBase_2&);
   // *NOTE*: to be used by allocators...
-  Stream_MessageBase_T (ACE_Data_Block*, // data block to use
+  Stream_MessageBase_2 (ACE_Data_Block*, // data block to use
                         ACE_Allocator*); // message allocator
 
  private:
-  typedef Stream_MessageBase inherited;
+  typedef Stream_MessageBase_T<AllocatorConfigurationType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_T& operator= (const Stream_MessageBase_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_2 ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_2& operator= (const Stream_MessageBase_2&))
 
   bool isInitialized_;
 };

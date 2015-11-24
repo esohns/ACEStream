@@ -36,24 +36,9 @@
 class ACE_Allocator;
 class Stream_MessageBase;
 
-enum Stream_SessionMessageType
-{
-  // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
-  STREAM_SESSION_MESSAGE_MAP = ACE_Message_Block::MB_USER + 1,
-  // *** control ***
-  STREAM_SESSION_BEGIN,
-  STREAM_SESSION_STEP,
-  STREAM_SESSION_END,
-  // *** control - END ***
-  // *** data ***
-  STREAM_SESSION_STATISTIC,
-  // *** data - END ***
-  ///////////////////////////////////////
-  STREAM_SESSION_MAX,
-  STREAM_SESSION_INVALID
-};
-
-template <typename SessionDataType, // (reference counted)
+template <typename AllocatorConfigurationType,
+          ///////////////////////////////
+          typename SessionDataType, // (reference counted)
           typename UserDataType>
 class Stream_SessionMessageBase_T
  : public ACE_Message_Block
@@ -62,8 +47,12 @@ class Stream_SessionMessageBase_T
     // , public Common_IGet_T<UserDataType>
 {
   // grant access to specific ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_MessageBase,
-                                                 Stream_SessionMessageBase_T<Stream_SessionData,
+  friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
+                                                 
+                                                 Stream_MessageBase,
+                                                 Stream_SessionMessageBase_T<AllocatorConfigurationType, 
+                                                                             
+                                                                             Stream_SessionData,
                                                                              Stream_UserData> >;
 
  public:
@@ -98,7 +87,9 @@ class Stream_SessionMessageBase_T
 
  protected:
   // (copy) ctor to be used by duplicate()
-   Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<SessionDataType,
+   Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<AllocatorConfigurationType,
+
+                                                                  SessionDataType,
                                                                   UserDataType>&);
 
   // *NOTE*: these may be used by message allocators...
@@ -116,7 +107,9 @@ class Stream_SessionMessageBase_T
   typedef ACE_Message_Block inherited;
 
   // convenient types
-  typedef Stream_SessionMessageBase_T<SessionDataType,
+  typedef Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                                      ///
+                                      SessionDataType,
                                       UserDataType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T ())

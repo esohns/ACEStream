@@ -397,7 +397,7 @@ do_work (unsigned int bufferSize_in,
                                &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
 
-  Stream_AllocatorHeap heap_allocator;
+  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
   Stream_Filecopy_MessageAllocator_t message_allocator (TEST_U_STREAM_FILECOPY_MAX_MESSAGES, // maximum #buffers
                                                         &heap_allocator,                     // heap allocator handle
                                                         true);                               // block ?

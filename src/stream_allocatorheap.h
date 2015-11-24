@@ -18,26 +18,24 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_ALLOCATORHEAP_H
-#define STREAM_ALLOCATORHEAP_H
+#ifndef Stream_AllocatorHeap_T_H
+#define Stream_AllocatorHeap_T_H
 
 #include "ace/Atomic_Op.h"
+#include "ace/Global_Macros.h"
 #include "ace/Malloc_Allocator.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_idumpstate.h"
+#include "stream_allocatorbase.h"
 
-#include "stream_exports.h"
-#include "stream_iallocator.h"
-
-class Stream_Export Stream_AllocatorHeap
- : public ACE_New_Allocator
- , public Stream_IAllocator
- , public Common_IDumpState
+template <typename ConfigurationType>
+class Stream_AllocatorHeap_T
+ : public Stream_AllocatorBase_T<ConfigurationType>
+ , public ACE_New_Allocator
 {
  public:
-  Stream_AllocatorHeap ();
-  virtual ~Stream_AllocatorHeap ();
+  Stream_AllocatorHeap_T ();
+  virtual ~Stream_AllocatorHeap_T ();
 
   // override (part of) ACE_Allocator
   virtual void* calloc (size_t,       // bytes
@@ -57,37 +55,16 @@ class Stream_Export Stream_AllocatorHeap
   virtual void dump_state () const;
 
  private:
-  typedef ACE_New_Allocator inherited;
+  typedef Stream_AllocatorBase_T<ConfigurationType> inherited;
+  typedef ACE_New_Allocator inherited2;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorHeap (const Stream_AllocatorHeap&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorHeap& operator= (const Stream_AllocatorHeap&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorHeap_T (const Stream_AllocatorHeap_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorHeap_T& operator= (const Stream_AllocatorHeap_T&))
 
-  // these methods are ALL no-ops and will FAIL ! --> hide from user
-  virtual int remove (void);
-  virtual int bind (const char*, // name
-                    void*,       // pointer
-                    int = 0);    // duplicates
-  virtual int trybind (const char*, // name
-                       void*&);     // pointer
-  virtual int find (const char*, // name
-                    void*&);     // pointer
-  virtual int find (const char*); // name
-  virtual int unbind (const char*); // name
-  virtual int unbind (const char*, // name
-                      void*&);     // pointer
-  virtual int sync (ssize_t = -1,   // length
-                    int = MS_SYNC); // flags
-  virtual int sync (void*,          // address
-                    size_t,         // length
-                    int = MS_SYNC); // flags
-  virtual int protect (ssize_t = -1,     // length
-                       int = PROT_RDWR); // protection
-  virtual int protect (void*,            // address
-                       size_t,           // length
-                       int = PROT_RDWR); // protection
-
-  ACE_Atomic_Op<ACE_SYNCH_MUTEX,
-                unsigned int> poolSize_;
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;
 };
+
+// include template implementation
+#include "stream_allocatorheap.inl"
 
 #endif

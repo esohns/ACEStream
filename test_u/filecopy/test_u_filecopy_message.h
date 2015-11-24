@@ -32,14 +32,17 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 class Stream_Filecopy_SessionMessage;
-template <typename MessageType,
+template <typename AllocatorConfigurationType,
+          typename MessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_Filecopy_Message
- : public Stream_MessageBase
+ : public Stream_MessageBase_T<Stream_AllocatorConfiguration>
 {
   // grant access to specific private ctors...
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_Filecopy_Message,
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+                                                 
+                                                 Stream_Filecopy_Message,
                                                  Stream_Filecopy_SessionMessage>;
 
  public:
@@ -63,7 +66,7 @@ class Stream_Filecopy_Message
   Stream_Filecopy_Message (const Stream_Filecopy_Message&);
 
  private:
-  typedef Stream_MessageBase inherited;
+  typedef Stream_MessageBase_T<Stream_AllocatorConfiguration> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Message ())
   // *NOTE*: to be used by message allocators...

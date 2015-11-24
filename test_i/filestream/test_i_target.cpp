@@ -484,7 +484,7 @@ do_work (unsigned int bufferSize_in,
                                       : NET_TRANSPORTLAYER_TCP);
   configuration.useReactor = useReactor_in;
 
-  Stream_AllocatorHeap heap_allocator;
+  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
   Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?

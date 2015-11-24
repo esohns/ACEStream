@@ -26,9 +26,11 @@
 #include "stream_macros.h"
 #include "stream_message_base.h"
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
-Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
                             UserDataType>::Stream_SessionMessageBase_T (Stream_SessionMessageType messageType_in,
                                                                         SessionDataType*& sessionData_inout,
                                                                         UserDataType* userData_in)
@@ -57,9 +59,11 @@ Stream_SessionMessageBase_T<SessionDataType,
 //    sessionData_->increase ();
 }
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
-Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
                             UserDataType>::Stream_SessionMessageBase_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
  , isInitialized_ (false)
@@ -77,9 +81,11 @@ Stream_SessionMessageBase_T<SessionDataType,
   inherited::reset ();
 }
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
-Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
                             UserDataType>::Stream_SessionMessageBase_T (ACE_Data_Block* dataBlock_in,
                                                                         ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) data block
@@ -100,10 +106,13 @@ Stream_SessionMessageBase_T<SessionDataType,
   inherited::reset ();
 }
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
-Stream_SessionMessageBase_T<SessionDataType,
-                            UserDataType>::Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
+                            UserDataType>::Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<AllocatorConfigurationType, 
+                                                                                                          SessionDataType,
                                                                                                           UserDataType>& message_in)
  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of the data block
               0,                                    // "own" the duplicate
@@ -127,9 +136,11 @@ Stream_SessionMessageBase_T<SessionDataType,
   inherited::wr_ptr (message_in.wr_ptr ());
 }
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
-Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
                             UserDataType>::~Stream_SessionMessageBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::~Stream_SessionMessageBase_T"));
@@ -151,10 +162,12 @@ Stream_SessionMessageBase_T<SessionDataType,
   inherited::priority_ = std::numeric_limits<unsigned long>::min ();
 }
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
 Stream_SessionMessageType
-Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
                             UserDataType>::type () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::type"));
@@ -162,10 +175,12 @@ Stream_SessionMessageBase_T<SessionDataType,
   return type_;
 }
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
 const SessionDataType&
-Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
                             UserDataType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::get"));
@@ -177,10 +192,12 @@ Stream_SessionMessageBase_T<SessionDataType,
   return SessionDataType ();
 }
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
 const UserDataType&
-Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
                             UserDataType>::data () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::data"));
@@ -192,10 +209,12 @@ Stream_SessionMessageBase_T<SessionDataType,
   return UserDataType ();
 }
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
 ACE_Message_Block*
-Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
                             UserDataType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::duplicate"));
@@ -234,10 +253,12 @@ Stream_SessionMessageBase_T<SessionDataType,
   return message_p;
 }
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
 void
-Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
                             UserDataType>::initialize (Stream_SessionMessageType messageType_in,
                                                        SessionDataType*& sessionData_inout,
                                                        UserDataType* userData_in)
@@ -259,10 +280,12 @@ Stream_SessionMessageBase_T<SessionDataType,
   sessionData_inout = NULL;
 }
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
 void
-Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
                             UserDataType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::dump_state"));
@@ -288,10 +311,12 @@ Stream_SessionMessageBase_T<SessionDataType,
   } // end IF
 }
 
-template <typename SessionDataType,
+template <typename AllocatorConfigurationType,
+          typename SessionDataType,
           typename UserDataType>
 void
-Stream_SessionMessageBase_T<SessionDataType,
+Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                            SessionDataType,
                             UserDataType>::SessionMessageType2String (ACE_Message_Type messageType_in,
                                                                       std::string& string_out)
 {

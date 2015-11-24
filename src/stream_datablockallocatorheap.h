@@ -18,31 +18,35 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DATABLOCKALLOCATORHEAP_H
-#define STREAM_DATABLOCKALLOCATORHEAP_H
+#ifndef Stream_DataBlockAllocatorHeap_T_H
+#define Stream_DataBlockAllocatorHeap_T_H
 
 #include "ace/Atomic_Op.h"
 #include "ace/Lock_Adapter_T.h"
 #include "ace/Malloc_Allocator.h"
-#include "ace/Thread_Mutex.h"
-//#include "ace/Synch.h"
+#include "ace/Synch_Traits.h"
 
 #include "common_idumpstate.h"
 
+#include "stream_allocatorheap.h"
 #include "stream_exports.h"
 #include "stream_iallocator.h"
 
-// forward declarations
-class Stream_AllocatorHeap;
-
-class Stream_Export Stream_DataBlockAllocatorHeap
+template <typename ConfigurationType>
+class Stream_DataBlockAllocatorHeap_T
  : public ACE_New_Allocator
  , public Stream_IAllocator
  , public Common_IDumpState
 {
  public:
-  Stream_DataBlockAllocatorHeap (Stream_AllocatorHeap*); // (heap) memory allocator...
-  virtual ~Stream_DataBlockAllocatorHeap ();
+  // convenient types
+  typedef Stream_AllocatorHeap_T<ConfigurationType> HEAP_ALLOCATOR_T;
+  // *NOTE*: serialize access to ACE_Data_Block reference counts, which may
+  //         be modified concurrently by multiple threads
+  typedef ACE_Lock_Adapter<ACE_SYNCH_MUTEX> DATABLOCK_LOCK_T;
+
+  Stream_DataBlockAllocatorHeap_T (HEAP_ALLOCATOR_T*); // (heap) memory allocator...
+  virtual ~Stream_DataBlockAllocatorHeap_T ();
 
   // implement Stream_IAllocator
   virtual bool block (); // return value: block when full ?
@@ -60,25 +64,24 @@ class Stream_Export Stream_DataBlockAllocatorHeap
   // implement Common_IDumpState
   virtual void dump_state () const;
 
-  // some convenience typedefs --> save us some typing...
-  // *NOTE*: serialize access to ACE_Data_Block reference count which may
-  // be decremented from multiple threads...
-  typedef ACE_Lock_Adapter<ACE_Thread_Mutex> DATABLOCK_LOCK_TYPE;
-
   // locking
-  // *NOTE*: currently, ALL data blocks use one static lock (OK for stream usage)...
-  // *TODO*: consider using a lock-per-message strategy...
-  static DATABLOCK_LOCK_TYPE referenceCountLock_;
+  // *NOTE*: currently, ALL data blocks use one static lock (OK for single-
+  //         streamed scenarios)
+  // *TODO*: consider using a lock-per-message strategy
+  static DATABLOCK_LOCK_T referenceCountLock_;
 
  private:
   typedef ACE_New_Allocator inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap (const Stream_DataBlockAllocatorHeap&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap& operator= (const Stream_DataBlockAllocatorHeap&));
+  // convenient types
+  typedef Stream_DataBlockAllocatorHeap_T<ConfigurationType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap_T (const Stream_DataBlockAllocatorHeap_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap_T& operator= (const Stream_DataBlockAllocatorHeap_T&))
 
   // these methods are ALL no-ops and will FAIL !
-  // *NOTE*: this method is a no-op and just returns NULL
-  // since the free list only works with fixed sized entities
+  // *NOTE*: this method is a no-op and just returns NULL since the free list
+  //         only works with fixed sized entities
   virtual void* calloc (size_t,       // # elements (not used)
                         size_t,       // bytes/element (not used)
                         char = '\0'); // initial value (not used)
@@ -105,9 +108,11 @@ class Stream_Export Stream_DataBlockAllocatorHeap
                        size_t,           // length
                        int = PROT_RDWR); // protection
 
-  Stream_AllocatorHeap*       heapAllocator_;
-  ACE_Atomic_Op<ACE_Thread_Mutex,
-                unsigned int> poolSize_;
+  HEAP_ALLOCATOR_T*                             heapAllocator_;
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;
 };
+
+// include template implementation
+#include "stream_datablockallocatorheap.inl"
 
 #endif

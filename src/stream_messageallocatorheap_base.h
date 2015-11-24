@@ -35,7 +35,9 @@
 // forward declarations
 class Stream_AllocatorHeap;
 
-template <typename MessageType,
+template <typename ConfigurationType,
+          ///////////////////////////////
+          typename MessageType,
           typename SessionMessageType>
 class Stream_MessageAllocatorHeapBase_T
  : public ACE_New_Allocator
@@ -43,8 +45,12 @@ class Stream_MessageAllocatorHeapBase_T
  , public Common_IDumpState
 {
  public:
+  // convenient types
+  typedef Stream_AllocatorHeap_T<ConfigurationType> HEAP_ALLOCATOR_T;
+  typedef Stream_DataBlockAllocatorHeap_T<ConfigurationType> DATABLOCK_ALLOCATOR_T;
+
   Stream_MessageAllocatorHeapBase_T (unsigned int = std::numeric_limits<unsigned int>::max (), // total number of concurrent messages
-                                     Stream_AllocatorHeap* = NULL,                             // (heap) memory allocator handle
+                                     HEAP_ALLOCATOR_T* = NULL,                                 // (heap) memory allocator handle
                                      bool = true);                                             // block until a buffer is available ?
   virtual ~Stream_MessageAllocatorHeapBase_T ();
 
@@ -103,13 +109,12 @@ class Stream_MessageAllocatorHeapBase_T
                        size_t,           // length
                        int = PROT_RDWR); // protection
 
-  bool                            block_;
-  Stream_DataBlockAllocatorHeap   dataBlockAllocator_;
-  ACE_Thread_Semaphore            freeMessageCounter_;
+  bool                                          block_;
+  DATABLOCK_ALLOCATOR_T                         dataBlockAllocator_;
+  ACE_Thread_Semaphore                          freeMessageCounter_;
   // *NOTE*: only the (unsigned) 'long' specialization may have support the
-  //         interlocked echange_add  (see ace/Atomic_Op.h)
-  ACE_Atomic_Op<ACE_SYNCH_MUTEX,
-                unsigned long>    poolSize_;
+  //         interlocked exchange_add  (see ace/Atomic_Op.h)
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;
 };
 
 // include template implementation

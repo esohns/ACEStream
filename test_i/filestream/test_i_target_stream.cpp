@@ -27,8 +27,8 @@
 
 #include "test_i_source_stream.h"
 
-Test_I_Target_Stream::Test_I_Target_Stream ()
- : inherited (ACE_TEXT_ALWAYS_CHAR ("TargetStream"))
+Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
+ : inherited (name_in)
  , netReader_ (ACE_TEXT_ALWAYS_CHAR ("NetReader"),
                NULL,
                false)
