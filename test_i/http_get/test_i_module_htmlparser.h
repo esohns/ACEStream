@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_STREAM_MODULE_HTMLPARSER_H
-#define TEST_I_STREAM_MODULE_HTMLPARSER_H
+#ifndef TEST_I_STREAM_HTMLPARSER_H
+#define TEST_I_STREAM_HTMLPARSER_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -59,7 +59,7 @@ void
 structuredErrorCallback (void*,        // user data
                          xmlErrorPtr); // error
 
-class Test_I_Stream_Module_HTMLParser
+class Test_I_Stream_HTMLParser
  : public Stream_Module_HTMLParser_T<Test_I_Stream_SessionMessage,
                                      Test_I_Stream_Message,
                                      ////
@@ -70,12 +70,12 @@ class Test_I_Stream_Module_HTMLParser
                                      Test_I_SAXParserContext>
 {
  public:
-  Test_I_Stream_Module_HTMLParser ();
-  virtual ~Test_I_Stream_Module_HTMLParser ();
+  Test_I_Stream_HTMLParser ();
+  virtual ~Test_I_Stream_HTMLParser ();
 
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (Test_I_Stream_Message*&, // data message handle
-                                  bool&);                  // return value: pass message downstream ?
+//  virtual void handleDataMessage (Test_I_Stream_Message*&, // data message handle
+//                                  bool&);                  // return value: pass message downstream ?
   virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle
                                      bool&);                         // return value: pass message downstream ?
 
@@ -89,8 +89,8 @@ class Test_I_Stream_Module_HTMLParser
                                      Test_I_Stream_SessionData,
                                      Test_I_SAXParserContext> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_HTMLParser (const Test_I_Stream_Module_HTMLParser&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_HTMLParser& operator= (const Test_I_Stream_Module_HTMLParser&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser (const Test_I_Stream_HTMLParser&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser& operator= (const Test_I_Stream_HTMLParser&))
 
   // helper methods
   virtual bool initializeSAXParser ();
@@ -101,6 +101,6 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task 
                               Common_TimePolicy_t,                      // time policy
                               Stream_ModuleConfiguration,               // module configuration type
                               Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_Stream_Module_HTMLParser);         // writer type
+                              Test_I_Stream_HTMLParser);                // writer type
 
 #endif

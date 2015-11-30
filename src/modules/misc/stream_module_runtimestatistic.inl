@@ -45,7 +45,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
                                      SessionDataType,
                                      SessionDataContainerType>::Stream_Module_Statistic_WriterTask_T ()
  : inherited ()
- , isInitialized_ (false)
+ , initialized_ (false)
  , resetTimeoutHandler_ (this)
  , resetTimeoutHandlerID_ (-1)
  , localReportingHandler_ (ACTION_REPORT,
@@ -56,7 +56,6 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
  , sendStatisticMessages_ (false)
  , printFinalReport_ (false)
  , lock_ ()
- , sessionData_ (NULL)
  , inboundMessages_ (0)
  , outboundMessages_ (0)
  , sessionMessages_ (0)
@@ -68,6 +67,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
  , lastBytesPerSecondCount_ (0)
  , messageTypeStatistic_ ()
  , allocator_ (NULL)
+ , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::Stream_Module_Statistic_WriterTask_T"));
 
@@ -92,8 +92,11 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::~Stream_Module_Statistic_WriterTask_T"));
 
-  // clean up
   finiTimers (true);
+
+  // clean up
+  if (sessionData_)
+    sessionData_->decrease ();
 }
 
 template <typename TaskSynchType,
@@ -120,7 +123,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::initialize"));
 
   // sanity check(s)
-  if (isInitialized_)
+  if (initialized_)
   {
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("re-initializing...\n")));
@@ -151,7 +154,13 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     } // end lock scope
     allocator_ = NULL;
 
-    isInitialized_ = false;
+    if (sessionData_)
+    {
+      sessionData_->decrease ();
+      sessionData_ = NULL;
+    } // end IF
+
+    initialized_ = false;
   } // end IF
 
   reportingInterval_ = reportingInterval_in;
@@ -181,7 +190,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   printFinalReport_ = printFinalReport_in;
   allocator_ = allocator_in;
 
-  isInitialized_ = true;
+  initialized_ = true;
 
   return true;
 }
@@ -254,7 +263,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 
   // sanity check(s)
   ACE_ASSERT (message_inout);
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (initialized_);
 
   {
     ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
@@ -271,12 +280,9 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     case STREAM_SESSION_BEGIN:
     {
       // *TODO*: remove type inferences
-      const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
-          message_inout->get ();
-      const typename SessionMessageType::SESSION_DATA_T::SESSION_DATA_T& session_data_r =
-          session_data_container_r.get ();
       sessionData_ =
-          &const_cast<typename SessionMessageType::SESSION_DATA_T::SESSION_DATA_T&> (session_data_r);
+          &const_cast<typename SessionMessageType::SESSION_DATA_T&> (message_inout->get ());
+      sessionData_->increase ();
 
       // statistic reporting
       if (reportingInterval_ && (reportingInterval_ != 1))
@@ -315,6 +321,13 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
       // session finished --> print overall statistic ?
       if (printFinalReport_)
         finalReport ();
+
+      // clean up
+      if (sessionData_)
+      {
+        sessionData_->decrease ();
+        sessionData_ = NULL;
+      } // end IF
 
       break;
     }
@@ -358,13 +371,15 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     // update session data
     if (sessionData_)
     {
-      ACE_ASSERT (sessionData_->lock);
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (*sessionData_->lock);
+      typename SessionMessageType::SESSION_DATA_T::DATA_T& session_data_r =
+          const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
+      ACE_ASSERT (session_data_r.lock);
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (*session_data_r.lock);
 
       // *TODO*: remove type inferences
-      sessionData_->currentStatistic.bytesPerSecond =
+      session_data_r.currentStatistic.bytesPerSecond =
         static_cast<float> (lastBytesPerSecondCount_);
-      sessionData_->currentStatistic.messagesPerSecond =
+      session_data_r.currentStatistic.messagesPerSecond =
         static_cast<float> (lastMessagesPerSecondCount_);
     } // end IF
   } // end lock scope
@@ -433,17 +448,35 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::report"));
 
+  int result = -1;
+  typename SessionMessageType::SESSION_DATA_T::DATA_T* session_data_p = NULL;
+  if (sessionData_)
+    session_data_p =
+        &const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
+
   if (sendStatisticMessages_ &&
       (reportingInterval_ != 1))
     const_cast<OWN_TYPE_T*> (this)->sendStatistic ();
 
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
+  if (session_data_p)
+    if (session_data_p->lock);
+    {
+      result = session_data_p->lock->acquire ();
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", returning\n")));
+        return;
+      } // end IF
+    } // end IF
+
   // *TODO*: remove type inferences
   ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("*** [session: %u] RUNTIME STATISTICS ***\n--> Stream Statistics <--\n messages/sec: %u\n messages total [in/out]): %u/%u (data: %.2f%%)\n bytes/sec: %u\n bytes total: %.0f\n--> Cache Statistics <--\n current cache usage [%u messages / %u byte(s) allocated]\n*** RUNTIME STATISTICS ***\\END\n"),
-              (sessionData_ ? sessionData_->sessionID
-                            : std::numeric_limits<unsigned int>::max ()),
+              (session_data_p ? session_data_p->sessionID
+                              : std::numeric_limits<unsigned int>::max ()),
               lastMessagesPerSecondCount_,
               inboundMessages_, outboundMessages_,
               (static_cast<float> (inboundMessages_ + outboundMessages_) /
@@ -453,6 +486,15 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
               (inboundBytes_ + outboundBytes_),
               (allocator_ ? allocator_->cache_size () : 0),
               (allocator_ ? allocator_->cache_depth () : 0)));
+
+  if (session_data_p)
+    if (session_data_p->lock);
+    {
+      result = session_data_p->lock->release ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+    } // end IF
 }
 
 template <typename TaskSynchType,
@@ -475,16 +517,34 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::finalReport"));
 
-  {
+  int result = -1;
+  typename SessionMessageType::SESSION_DATA_T::DATA_T* session_data_p = NULL;
+  if (sessionData_)
+    session_data_p =
+        &const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
+
+  { // synch access
     ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+
+    if (session_data_p)
+      if (session_data_p->lock)
+      {
+        result = session_data_p->lock->acquire ();
+        if (result == -1)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", returning\n")));
+          return;
+        } // end IF
+      } // end IF
 
     if ((inboundMessages_ + outboundMessages_))
     {
       // *TODO*: remove type inferences
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("*** [session: %u] SESSION STATISTIC ***\ntotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
-                  (sessionData_ ? sessionData_->sessionID
-                                : std::numeric_limits<unsigned int>::max ()),
+                  (session_data_p ? session_data_p->sessionID
+                                  : std::numeric_limits<unsigned int>::max ()),
                   inboundMessages_, outboundMessages_));
 
       std::string protocol_string;
@@ -501,6 +561,15 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
                 ACE_TEXT ("------------------------------------------\ntotal byte(s) [in/out]: %.0f/%.0f\nbytes/s: %u\n"),
                 inboundBytes_, outboundBytes_,
                 lastBytesPerSecondCount_)); // *TODO*: compute average
+
+    if (session_data_p)
+      if (session_data_p->lock)
+      {
+        result = session_data_p->lock->release ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+      } // end IF
   } // end lock scope
 }
 
@@ -576,17 +645,10 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::sendStatistic"));
 
-  // create session data
-  SessionDataContainerType* session_data_container_p = NULL;
-  ACE_NEW_NORETURN (session_data_container_p,
-                    SessionDataContainerType (const_cast<SessionDataType*> (sessionData_),
-                                              false));
-  if (!session_data_container_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", returning\n")));
-    return;
-  } // end IF
+  typename SessionMessageType::SESSION_DATA_T::DATA_T* session_data_p = NULL;
+  if (sessionData_)
+    session_data_p =
+        &const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
 
   // create session message
   SessionMessageType* session_message_p = NULL;
@@ -603,28 +665,25 @@ allocate:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), returning\n")));
-
-      // clean up
-      session_data_container_p->decrease ();
-
       return;
     }
 
     // keep retrying ?
     if (!session_message_p &&
         !allocator_->block ())
-        goto allocate;
+      goto allocate;
   } // end IF
   else
   {
-    // *IMPORTANT NOTE*: session message assumes responsibility for
-    //                   session_data_container_p
+    if (sessionData_)
+      sessionData_->increase ();
+
     // *TODO*: remove type inference
     ACE_NEW_NORETURN (session_message_p,
                       SessionMessageType (STREAM_SESSION_STATISTIC,
-                                          session_data_container_p,
-                                          (sessionData_ ? sessionData_->userData
-                                                        : NULL)));
+                                          sessionData_,
+                                          (session_data_p ? session_data_p->userData
+                                                          : NULL)));
   } // end ELSE
   if (!session_message_p)
   {
@@ -638,20 +697,18 @@ allocate:
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", returning\n")));
 
-    // clean up
-    session_data_container_p->decrease ();
-
     return;
   } // end IF
   if (allocator_)
   {
-    // *IMPORTANT NOTE*: session message assumes responsibility for
-    //                   session_data_container_p
+    if (sessionData_)
+      sessionData_->increase ();
+
     // *TODO*: remove type inference
     session_message_p->initialize (STREAM_SESSION_STATISTIC,
-                                   session_data_container_p,
-                                   (sessionData_ ? sessionData_->userData
-                                                 : NULL));
+                                   sessionData_,
+                                   (session_data_p ? session_data_p->userData
+                                                   : NULL));
   } // end IF
 
   // pass message downstream...

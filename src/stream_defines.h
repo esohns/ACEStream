@@ -40,6 +40,13 @@
 #define STREAM_MODULE_DEFAULT_HEAD_THREADS     1
 #define STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME "stream dispatch"
 
+// modules (generic)
+#define STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES  false
+
+// (f)lex / yacc(/bison)
+#define STREAM_DEFAULT_LEX_TRACE               false
+#define STREAM_DEFAULT_YACC_TRACE              false
+
 // stream
 #define STREAM_STATISTIC_COLLECTION            60 // second(s) [0: off]
 #define STREAM_DEFAULT_STATISTIC_REPORTING     0  // second(s) [0: off]

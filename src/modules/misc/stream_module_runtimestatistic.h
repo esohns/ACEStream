@@ -170,7 +170,7 @@ class Stream_Module_Statistic_WriterTask_T
   void finiTimers (bool = true); // cancel both timers ? (false --> cancel only localReportingHandlerID_)
   void sendStatistic ();
 
-  bool                              isInitialized_;
+  bool                              initialized_;
 
   // timer stuff
   Stream_ResetCounterHandler        resetTimeoutHandler_;
@@ -183,7 +183,6 @@ class Stream_Module_Statistic_WriterTask_T
 
   // *DATA STATISTIC*
   mutable ACE_SYNCH_MUTEX           lock_;
-  SessionDataType*                  sessionData_;
 
   // *NOTE*: data messages == (messageCounter_ - sessionMessages_)
   unsigned int                      inboundMessages_;
@@ -206,6 +205,8 @@ class Stream_Module_Statistic_WriterTask_T
 
   // *CACHE STATISTIC*
   Stream_IAllocator*                allocator_;
+
+  SessionDataContainerType*         sessionData_;
 };
 
 // include template implementation

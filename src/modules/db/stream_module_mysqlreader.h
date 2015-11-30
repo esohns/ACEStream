@@ -67,7 +67,9 @@ class Stream_Module_MySQLReader_T
 {
  public:
   Stream_Module_MySQLReader_T (bool = false,  // active object ?
-                               bool = false); // auto-start ?
+                               bool = false,  // auto-start ?
+                               //////////
+                               bool = false); // manage library ?
   virtual ~Stream_Module_MySQLReader_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -104,6 +106,9 @@ class Stream_Module_MySQLReader_T
   virtual void upStream (Stream_Base_t*);
   virtual Stream_Base_t* upStream () const;
 
+ protected:
+  MYSQL*                            state_;
+
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
                                       ///
@@ -129,7 +134,7 @@ class Stream_Module_MySQLReader_T
   bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
   bool                              isInitialized_;
-  MYSQL*                            state_;
+  bool                              manageLibrary_;
 
   // timer
   Stream_StatisticHandler_Reactor_t statisticCollectionHandler_;

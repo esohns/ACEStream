@@ -22,6 +22,7 @@
 
 #include "ace/Log_Msg.h"
 #include "ace/Malloc_Base.h"
+#include "ace/Time_Value.h"
 
 #include "stream_macros.h"
 #include "stream_message_base.h"
@@ -32,7 +33,7 @@ template <typename AllocatorConfigurationType,
 Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionDataType,
                             UserDataType>::Stream_SessionMessageBase_T (Stream_SessionMessageType messageType_in,
-                                                                        SessionDataType*& sessionData_inout,
+                                                                        SessionDataType*& data_inout,
                                                                         UserDataType* userData_in)
  : inherited (0,                                  // size
               STREAM_SESSION_MESSAGE_MAP,         // type
@@ -45,18 +46,18 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
               ACE_Time_Value::max_time,           // deadline time
               NULL,                               // data block allocator
               NULL)                               // message block allocator
- , isInitialized_ (true)
- , sessionData_ (sessionData_inout)
+ , data_ (data_inout)
+ , initialized_ (true)
  , type_ (messageType_in)
  , userData_ (userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
-  // *NOTE*: assumes responsibility for the handle !
-  sessionData_inout = NULL;
+  // *NOTE*: ctor assumes responsibility for the handle !
+  data_inout = NULL;
 
-//  if (sessionData_)
-//    sessionData_->increase ();
+//  if (data_)
+//    data_->increase ();
 }
 
 template <typename AllocatorConfigurationType,
@@ -66,8 +67,8 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionDataType,
                             UserDataType>::Stream_SessionMessageBase_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
- , isInitialized_ (false)
- , sessionData_ (NULL)
+ , data_ (NULL)
+ , initialized_ (false)
  , type_ (STREAM_SESSION_INVALID)
  , userData_ (NULL)
 {
@@ -91,8 +92,8 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) data block
               0,                   // flags --> also "free" data block in dtor
               messageAllocator_in) // re-use the same allocator
- , isInitialized_ (false)
- , sessionData_ (NULL)
+ , data_ (NULL)
+ , initialized_ (false)
  , type_ (STREAM_SESSION_INVALID)
  , userData_ (NULL)
 {
@@ -111,14 +112,14 @@ template <typename AllocatorConfigurationType,
           typename UserDataType>
 Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionDataType,
-                            UserDataType>::Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<AllocatorConfigurationType, 
+                            UserDataType>::Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<AllocatorConfigurationType,
                                                                                                           SessionDataType,
                                                                                                           UserDataType>& message_in)
  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of the data block
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
- , isInitialized_ (message_in.isInitialized_)
- , sessionData_ (message_in.sessionData_)
+ , data_ (message_in.data_)
+ , initialized_ (message_in.initialized_)
  , type_ (message_in.type_)
  , userData_ (message_in.userData_)
 {
@@ -126,8 +127,8 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 
   // increment reference counter
   // *TODO*: clean this up !
-  if (sessionData_)
-    sessionData_->increase ();
+  if (data_)
+    data_->increase ();
 
   inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
 
@@ -145,12 +146,12 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::~Stream_SessionMessageBase_T"));
 
-  isInitialized_ = false;
-  if (sessionData_)
+  if (data_)
   {
-    sessionData_->decrease ();
-    sessionData_ = NULL;
+    data_->decrease ();
+    data_ = NULL;
   } // end IF
+  initialized_ = false;
   type_ = STREAM_SESSION_INVALID;
   userData_ = NULL;
 
@@ -185,8 +186,8 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::get"));
 
-  if (sessionData_)
-    return *sessionData_;
+  if (data_)
+    return *data_;
 
   ACE_ASSERT (false);
   return SessionDataType ();
@@ -260,24 +261,24 @@ void
 Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionDataType,
                             UserDataType>::initialize (Stream_SessionMessageType messageType_in,
-                                                       SessionDataType*& sessionData_inout,
+                                                       SessionDataType*& data_inout,
                                                        UserDataType* userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::initialize"));
 
-  ACE_ASSERT (!isInitialized_);
-  ACE_ASSERT (!sessionData_);
+  ACE_ASSERT (!data_);
+  ACE_ASSERT (!initialized_);
   ACE_ASSERT (!userData_);
 
-  isInitialized_ = true;
-  sessionData_ = sessionData_inout;
+  data_ = data_inout;
+  initialized_ = true;
   type_ = messageType_in;
   userData_ = userData_in;
 
   inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
 
-  // *NOTE*: assumes responsibility for the handle !
-  sessionData_inout = NULL;
+  // *NOTE*: instance assumes responsibility for the handle !
+  data_inout = NULL;
 }
 
 template <typename AllocatorConfigurationType,
@@ -291,17 +292,17 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::dump_state"));
 
   std::string type_string;
-  SessionMessageType2String (type_,
-                             type_string);
+  OWN_TYPE_T::MessageType2String (type_,
+                                  type_string);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("session message type: \"%s\"\n"),
               ACE_TEXT (type_string.c_str ())));
 
-  if (sessionData_)
+  if (data_)
   {
     try
     {
-      sessionData_->dump_state ();
+      data_->dump_state ();
     }
     catch (...)
     {
@@ -317,15 +318,15 @@ template <typename AllocatorConfigurationType,
 void
 Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionDataType,
-                            UserDataType>::SessionMessageType2String (ACE_Message_Type messageType_in,
-                                                                      std::string& string_out)
+                            UserDataType>::MessageType2String (ACE_Message_Block::ACE_Message_Type type_in,
+                                                               std::string& string_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::SessionMessageType2String"));
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::MessageType2String"));
 
   // initialize return value(s)
   string_out = ACE_TEXT_ALWAYS_CHAR ("INVALID_TYPE");
 
-  switch (messageType_in)
+  switch (type_in)
   {
     // *** control ***
     case STREAM_SESSION_BEGIN:
@@ -352,8 +353,8 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown message type: \"%u\", aborting\n"),
-                  messageType_in));
+                  ACE_TEXT ("invalid/unknown message type (was: %d), aborting\n"),
+                  type_in));
       break;
     }
   } // end SWITCH

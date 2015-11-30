@@ -123,7 +123,7 @@ class Stream_MessageBase_2
                                                                       HeaderType,
                                                                       ProtocolCommandType>,
                                                  Stream_SessionMessageBase_T<AllocatorConfigurationType,
-    
+
                                                                              Stream_SessionData,
                                                                              Stream_UserData> >;
 

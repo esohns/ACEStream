@@ -30,8 +30,8 @@
 #include "ace/Synch_Traits.h"
 
 #include "stream_common.h"
-
 #include "stream_module_io_stream.h"
+#include "stream_session_data.h"
 
 #include "net_asynch_tcpsockethandler.h"
 #include "net_common.h"
@@ -54,7 +54,7 @@ typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 struct Test_I_Stream_Configuration;
 struct Test_I_Stream_ModuleHandlerConfiguration;
 struct Test_I_Stream_SessionData;
-typedef Stream_SessionDataBase_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
+typedef Stream_SessionData_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 struct Test_I_Stream_State;
 struct Test_I_UserData;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,

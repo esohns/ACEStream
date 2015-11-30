@@ -28,13 +28,13 @@
 
 #include "common_istatistic.h"
 
-enum Stream_StatisticAction_t
+enum Stream_StatisticActionType
 {
-  ACTION_INVALID = -1,
-  ACTION_COLLECT,
+  ACTION_COLLECT = 0,
   ACTION_REPORT,
-  /////////////////////////////////////
-  ACTION_MAX
+  ///////////////////////////////////////
+  ACTION_MAX,
+  ACTION_INVALID
 };
 
 template <typename StatisticContainerType>
@@ -42,11 +42,12 @@ class Stream_StatisticHandler_Reactor_T
  : public ACE_Event_Handler
 {
  public:
-  typedef Common_IStatistic_T<StatisticContainerType> Stream_IStatistic_t;
+  // convenient typedefs
+  typedef Common_IStatistic_T<StatisticContainerType> ISTATISTIC_T;
 
-  Stream_StatisticHandler_Reactor_T (Stream_StatisticAction_t, // handler action
-                                     Stream_IStatistic_t*,     // interface handle
-                                     bool = false);            // report on collect ?
+  Stream_StatisticHandler_Reactor_T (Stream_StatisticActionType,                   // handler action
+                                     Common_IStatistic_T<StatisticContainerType>*, // interface handle
+                                     bool = false);                                // report on collect ?
   virtual ~Stream_StatisticHandler_Reactor_T ();
 
   // implement specific behaviour
@@ -56,13 +57,13 @@ class Stream_StatisticHandler_Reactor_T
  private:
   typedef ACE_Event_Handler inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Reactor_T ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Reactor_T (const Stream_StatisticHandler_Reactor_T&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Reactor_T& operator= (const Stream_StatisticHandler_Reactor_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Reactor_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Reactor_T (const Stream_StatisticHandler_Reactor_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Reactor_T& operator= (const Stream_StatisticHandler_Reactor_T&))
 
-  Stream_StatisticAction_t action_;
-  Stream_IStatistic_t*     interfaceHandle_;
-  bool                     reportOnCollect_;
+  Stream_StatisticActionType action_;
+  ISTATISTIC_T*              interfaceHandle_;
+  bool                       reportOnCollect_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,11 +73,12 @@ class Stream_StatisticHandler_Proactor_T
  : public ACE_Handler
 {
  public:
-  typedef Common_IStatistic_T<StatisticContainerType> Stream_IStatistic_t;
+  // convenient typedefs
+  typedef Common_IStatistic_T<StatisticContainerType> ISTATISTIC_T;
 
-  Stream_StatisticHandler_Proactor_T (Stream_StatisticAction_t, // handler action
-                                      Stream_IStatistic_t*,     // interface handle
-                                      bool = false);            // report on collect ?
+  Stream_StatisticHandler_Proactor_T (Stream_StatisticActionType,                   // handler action
+                                      Common_IStatistic_T<StatisticContainerType>*, // interface handle
+                                      bool = false);                                // report on collect ?
   virtual ~Stream_StatisticHandler_Proactor_T ();
 
   // implement specific behaviour
@@ -86,13 +88,13 @@ class Stream_StatisticHandler_Proactor_T
  private:
   typedef ACE_Handler inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T (const Stream_StatisticHandler_Proactor_T&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T& operator= (const Stream_StatisticHandler_Proactor_T&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T (const Stream_StatisticHandler_Proactor_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_StatisticHandler_Proactor_T& operator= (const Stream_StatisticHandler_Proactor_T&))
 
-  Stream_StatisticAction_t action_;
-  Stream_IStatistic_t*     interfaceHandle_;
-  bool                     reportOnCollect_;
+  Stream_StatisticActionType action_;
+  ISTATISTIC_T*              interfaceHandle_;
+  bool                       reportOnCollect_;
 };
 
 // include template implementation

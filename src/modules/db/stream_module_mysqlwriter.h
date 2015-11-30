@@ -71,8 +71,8 @@ class Stream_Module_MySQLWriter_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLWriter_T (const Stream_Module_MySQLWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLWriter_T& operator= (const Stream_Module_MySQLWriter_T&))
 
-  bool   cleanLibrary_;
-  bool   isInitialized_;
+  bool                           isInitialized_;
+  bool                           manageLibrary_;
 };
 
 #include "stream_module_mysqlwriter.inl"

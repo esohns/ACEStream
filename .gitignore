@@ -61,6 +61,7 @@ ipch/
 *.opensdf
 
 build/
+bak/
 
 # qtcreator
 Makefile.am.user

@@ -32,7 +32,7 @@
 
 #include "stream_common.h"
 #include "stream_messageallocatorheap_base.h"
-#include "stream_session_data_base.h"
+#include "stream_session_data.h"
 
 #include "test_u_common.h"
 
@@ -58,7 +58,7 @@ struct Stream_Filecopy_SessionData
   unsigned int size;
   std::string  targetFileName;
 };
-typedef Stream_SessionDataBase_T<Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
+typedef Stream_SessionData_T<Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
 
 struct Stream_Filecopy_SignalHandlerConfiguration
 {

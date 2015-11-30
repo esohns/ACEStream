@@ -35,7 +35,7 @@
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
-class Test_I_Stream_Module_DataBaseWriter
+class Test_I_Stream_DataBaseWriter
  : public Stream_Module_MySQLWriter_T<Test_I_Stream_SessionMessage,
                                       Test_I_Stream_Message,
                                       ///
@@ -44,8 +44,8 @@ class Test_I_Stream_Module_DataBaseWriter
                                       Test_I_Stream_SessionData>
 {
  public:
-  Test_I_Stream_Module_DataBaseWriter ();
-  virtual ~Test_I_Stream_Module_DataBaseWriter ();
+  Test_I_Stream_DataBaseWriter ();
+  virtual ~Test_I_Stream_DataBaseWriter ();
 
   // implement (part of) Stream_ITaskBase
   virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle
@@ -59,8 +59,8 @@ class Test_I_Stream_Module_DataBaseWriter
                                       ///
                                       Test_I_Stream_SessionData> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_DataBaseWriter (const Test_I_Stream_Module_DataBaseWriter&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_DataBaseWriter& operator= (const Test_I_Stream_Module_DataBaseWriter&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_DataBaseWriter (const Test_I_Stream_DataBaseWriter&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_DataBaseWriter& operator= (const Test_I_Stream_DataBaseWriter&))
 
   //bool commit_;
 };
@@ -70,6 +70,6 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task 
                               Common_TimePolicy_t,                      // time policy
                               Stream_ModuleConfiguration,               // module configuration type
                               Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_Stream_Module_DataBaseWriter);     // writer type
+                              Test_I_Stream_DataBaseWriter);            // writer type
 
 #endif

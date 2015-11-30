@@ -180,6 +180,7 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
                           BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("href")), // name
                           BAD_CAST (URL.c_str ()));    // value
           ACE_ASSERT (attribute_p);
+          ACE_UNUSED_ARG (attribute_p);
         } // end FOR
       } // end FOR
 

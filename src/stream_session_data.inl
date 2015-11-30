@@ -18,54 +18,80 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "ace/Log_Msg.h"
+
 #include "stream_macros.h"
 #include "stream_tools.h"
 
-template <typename SessionDataType>
-Stream_SessionData_T<SessionDataType>::Stream_SessionData_T (const SessionDataType& data_in)
- : inherited (1,     // initial count
-              false) // delete on zero ?
- , data_ (data_in)
+template <typename DataType>
+Stream_SessionData_T<DataType>::Stream_SessionData_T ()
+ : inherited (1,    // initial count
+              true) // delete on zero ?
+ , data_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::Stream_SessionData_T"));
 
 }
+template <typename DataType>
+Stream_SessionData_T<DataType>::Stream_SessionData_T (DataType*& data_inout)
+ : inherited (1,    // initial count
+              true) // delete on zero ?
+ , data_ (data_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::Stream_SessionData_T"));
 
-template <typename SessionDataType>
-Stream_SessionData_T<SessionDataType>::~Stream_SessionData_T ()
+  data_inout = NULL;
+}
+
+template <typename DataType>
+Stream_SessionData_T<DataType>::~Stream_SessionData_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::~Stream_SessionData_T"));
 
+  if (data_)
+    delete data_;
 }
 
-template <typename SessionDataType>
+template <typename DataType>
 void
-Stream_SessionData_T::dump_state () const
+Stream_SessionData_T<DataType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::dump_state"));
+
+  // sanity check(s)
+  ACE_ASSERT (data_);
 
   // *TODO*: remove type inferences
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("user data: %@, start of session: %s%s\n"),
-              data_.userData,
-              ACE_TEXT (Stream_Tools::timestamp2LocalString (data_.startOfSession).c_str ()),
-              (data_.userAbort_ ? ACE_TEXT(" [user abort !]")
-                                : ACE_TEXT(""))));
+              data_->userData,
+              ACE_TEXT (Stream_Tools::timeStamp2LocalString (data_->startOfSession).c_str ()),
+              (data_->aborted ? ACE_TEXT(" [aborted]") : ACE_TEXT(""))));
 }
 
-template <typename SessionDataType>
-const SessionDataType&
-Stream_SessionData_T<SessionDataType>::get () const
+template <typename DataType>
+const DataType&
+Stream_SessionData_T<DataType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::get"));
 
-  return data_;
+  if (data_)
+    return *data_;
+
+  ACE_ASSERT (false);
+  return DataType ();
 }
-template <typename SessionDataType>
+template <typename DataType>
 void
-Stream_SessionData_T<SessionDataType>::set (const SessionDataType& data_in)
+Stream_SessionData_T<DataType>::set (const DataType& data_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::set"));
 
-  data_ = data_in;
+  // clean up
+  if (data_)
+    delete data_;
+
+  data_ = &const_cast<DataType&> (data_in);
+
+  inherited::refcount_.exchange (1);
 }

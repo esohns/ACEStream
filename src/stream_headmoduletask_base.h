@@ -71,7 +71,7 @@ class Stream_HeadModuleTaskBase_T
                    ACE_Time_Value*);   // timeout value
   // *IMPORTANT NOTE*: (if any,) the argument is assumed to be of type
   //                   SessionDataType* !
-  virtual int open (void* = NULL);
+  virtual int open (void* = NULL); // session data handle
   virtual int close (u_long = 0);
   virtual int module_closed (void);
   virtual int svc (void);
@@ -106,7 +106,8 @@ class Stream_HeadModuleTaskBase_T
                                //////////
                                bool = false, // active object ?
                                bool = false, // auto-start ?
-                               bool = true); // run svc() routine on start ? (passive only)
+                               bool = true,  // run svc() routine on start ? (passive only)
+                               bool = true); // generate session messages ?
 
   // *TODO*: clean this API
   // convenience methods to send (session-specific) notifications downstream
@@ -166,7 +167,9 @@ class Stream_HeadModuleTaskBase_T
   virtual void upStream (Stream_Base_t*);
   virtual Stream_Base_t* upStream () const;
 
+  bool                      active_;
   bool                      autoStart_;
+  bool                      generateSessionMessages_;
   bool                      runSvcRoutineOnStart_;
   bool                      sessionEndSent_;
   ACE_Thread_ID             threadID_;

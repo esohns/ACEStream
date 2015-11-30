@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-//#include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 
@@ -48,16 +47,18 @@ Stream_HeadModuleTaskBase_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType>::Stream_HeadModuleTaskBase_T (LockType* lock_in,
-                                                                                    bool isActive_in,
+                                                                                    bool active_in,
                                                                                     bool autoStart_in,
-                                                                                    bool runSvcRoutineOnStart_in)
+                                                                                    bool runSvcRoutineOnStart_in,
+                                                                                    bool generateSessionMessages_in)
  : inherited (lock_in)
  , inherited2 ()
  , configuration_ ()
-// , isActive_ (isActive_in)
  , sessionData_ (NULL)
  , streamState_ (NULL)
+ , active_ (active_in)
  , autoStart_ (autoStart_in)
+ , generateSessionMessages_ (generateSessionMessages_in)
  , runSvcRoutineOnStart_ (runSvcRoutineOnStart_in)
  , sessionEndSent_ (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -67,9 +68,6 @@ Stream_HeadModuleTaskBase_T<LockType,
 #endif
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
-
-  // *TODO*: remove type inference
-  configuration_.active = isActive_in;
 
   // set group ID for worker thread(s)
   inherited2::grp_id (STREAM_MODULE_TASK_GROUP_ID);
@@ -136,8 +134,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   int result = -1;
 
   // if active, simply drop the message into the queue
-  // *TODO*: remove type inference
-  if (configuration_.active)
+  if (inherited2::thr_count_)
   {
     result = inherited2::putq (messageBlock_in, timeout_in);
     if (result == -1)
@@ -550,9 +547,12 @@ Stream_HeadModuleTaskBase_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
 
   // sanity check(s)
+  // *TODO*: remove type inference
   ACE_ASSERT (configuration_in.stateMachineLock);
 
   configuration_ = configuration_in;
+  // *TODO*: remove type inference
+  active_ = configuration_in.active;
 
   // *TODO*: remove type inference
   bool result = inherited::initialize (*configuration_.stateMachineLock);
@@ -888,13 +888,13 @@ Stream_HeadModuleTaskBase_T<LockType,
   if (waitForThreads_in)
   {
     ACE_thread_t thread_id = ACE_Thread::self ();
+    size_t number_of_threads = inherited2::thr_count_;
 
-    // *TODO*: remove type inference
-    if (configuration_.active ||
+    if (number_of_threads ||
         (runSvcRoutineOnStart_ && !ACE_OS::thr_equal (thread_id,
                                                       threadID_.id ())))
     {
-      if (configuration_.active)
+      if (number_of_threads)
       {
         result = inherited2::wait ();
         if (result == -1)
@@ -1087,9 +1087,10 @@ Stream_HeadModuleTaskBase_T<LockType,
 
       if (inherited::state_ == STREAM_STATE_PAUSED)
       {
+        size_t number_of_threads = inherited2::thr_count_;
+
         // resume worker ?
-        // *TODO*: remove type inference
-        if (configuration_.active)
+        if (number_of_threads)
         {
           result = inherited2::resume ();
           if (result == -1)
@@ -1115,19 +1116,21 @@ Stream_HeadModuleTaskBase_T<LockType,
       } // end IF
       else
       {
-        // send initial session message downstream
-        ACE_ASSERT (sessionData_);
-        if (!putSessionMessage (STREAM_SESSION_BEGIN,                                  // type
-                                *sessionData_,                                         // session data
-                                configuration_.streamConfiguration->messageAllocator)) // allocator
+        // send initial session message downstream ?
+        if (generateSessionMessages_)
         {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
-          break;
+          ACE_ASSERT (sessionData_);
+          if (!putSessionMessage (STREAM_SESSION_BEGIN,                                  // type
+                                  *sessionData_,                                         // session data
+                                  configuration_.streamConfiguration->messageAllocator)) // allocator
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
+            break;
+          } // end IF
         } // end IF
 
-        // *TODO*: remove type inference
-        if (configuration_.active)
+        if (active_)
         {
           // OK: start worker
           ACE_hthread_t thread_handles[1];
@@ -1229,10 +1232,10 @@ Stream_HeadModuleTaskBase_T<LockType,
     }
     case STREAM_STATE_PAUSED:
     {
-      // suspend the worker(s) ?
+      size_t number_of_threads = inherited2::thr_count_;
 
-      // *TODO*: remove type inference
-      if (configuration_.active)
+      // suspend the worker(s) ?
+      if (number_of_threads)
       {
         result = inherited2::suspend ();
         if (result == -1)
@@ -1261,10 +1264,12 @@ Stream_HeadModuleTaskBase_T<LockType,
       // resume worker ?
       ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*inherited::stateLock_);
 
+      size_t number_of_threads = inherited2::thr_count_;
+
       if (inherited::state_ == STREAM_STATE_PAUSED)
       {
         // *TODO*: remove type inference
-        if (configuration_.active)
+        if (number_of_threads)
         {
           result = inherited2::resume ();
           if (result == -1)
@@ -1290,7 +1295,7 @@ Stream_HeadModuleTaskBase_T<LockType,
       ACE_thread_t thread_id = ACE_Thread::self ();
 
       // *TODO*: remove type inference
-      if (configuration_.active ||
+      if (number_of_threads ||
           (runSvcRoutineOnStart_  && !ACE_OS::thr_equal (thread_id,
                                                          threadID_.id ())))
       {
@@ -1368,9 +1373,9 @@ Stream_HeadModuleTaskBase_T<LockType,
       //                   above [*NOTE*: shutdown() MUST trigger this
       //                   transition]). As the stream may be stop()ed several
       //                   times (e.g. (safety/sanity) precaution during
-      //                   shutdown), this transition could occur several times
-      //                   --> ensure that only one (!) session end message is
-      //                       generated per session
+      //                   shutdown), this transition COULD occur several times
+      //                   --> ensure that (at most) one (!) session end message
+      //                       is generated per session
       bool send_end_message = false;
       {
         ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
@@ -1381,7 +1386,8 @@ Stream_HeadModuleTaskBase_T<LockType,
           send_end_message = true;
         } // end IF
       } // end lock scope
-      if (send_end_message)
+      if (generateSessionMessages_ &&
+          send_end_message)
       {
         ACE_ASSERT (sessionData_);
         if (!putSessionMessage (STREAM_SESSION_END,                                    // session message type

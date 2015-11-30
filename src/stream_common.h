@@ -33,7 +33,7 @@
 #include "stream_defines.h"
 #include "stream_iallocator.h"
 #include "stream_imodule.h"
-#include "stream_session_data_base.h"
+#include "stream_session_data.h"
 #include "stream_statistichandler.h"
 #include "stream_statemachine_control.h"
 
@@ -282,16 +282,26 @@ struct Stream_ModuleHandlerConfiguration
 {
   inline Stream_ModuleHandlerConfiguration ()
    : active (false)
+   , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
    , stateMachineLock (NULL)
    , streamConfiguration (NULL)
+   , traceParsing (STREAM_DEFAULT_YACC_TRACE)
+   , traceScanning (STREAM_DEFAULT_LEX_TRACE)
   {};
 
-  bool                  active; // *NOTE*: applies to head modules only
+  bool                  active; // *NOTE*: head module(s)
+  // *NOTE*: this option may be useful for (downstream) modules that only work
+  //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
+  bool                  crunchMessages;
+
   ACE_SYNCH_MUTEX*      stateMachineLock;
+
   Stream_Configuration* streamConfiguration;
+  bool                  traceParsing;  // debug yacc (bison) ?
+  bool                  traceScanning; // debug (f)lex ?
 };
 
-typedef Stream_SessionDataBase_T<Stream_SessionData> Stream_SessionData_t;
+typedef Stream_SessionData_T<Stream_SessionData> Stream_SessionData_t;
 
 typedef Stream_StatisticHandler_Reactor_T<Stream_Statistic> Stream_StatisticHandler_Reactor_t;
 typedef Stream_StatisticHandler_Proactor_T<Stream_Statistic> Stream_StatisticHandler_Proactor_t;

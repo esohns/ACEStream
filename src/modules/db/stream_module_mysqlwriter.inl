@@ -37,12 +37,24 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
                             ModuleHandlerConfigurationType,
                             SessionDataType>::Stream_Module_MySQLWriter_T ()
  : inherited ()
- , cleanLibrary_ (false)
- , isInitialized_ (false)
  , state_ (NULL)
+ , isInitialized_ (false)
+ , manageLibrary_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::Stream_Module_MySQLWriter_T"));
 
+  //  int result = -1;
+
+  //  if (manageLibrary_)
+  //  {
+  //    result = mysql_library_init (0,     // argc
+  //                                 NULL,  // argv
+  //                                 NULL); // groups
+  //    if (result)
+  //      ACE_DEBUG ((LM_DEBUG,
+  //                  ACE_TEXT ("failed to mysql_library_init(): \"%s\", aborting\n"),
+  //                  ACE_TEXT (mysql_error (NULL))));
+  //  } // end IF
 }
 
 template <typename SessionMessageType,
@@ -59,7 +71,7 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
   if (state_)
     mysql_close (state_);
 
-  if (cleanLibrary_)
+  if (manageLibrary_)
     mysql_library_end ();
 }
 
@@ -255,15 +267,16 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
       std::string query_string = ACE_TEXT_ALWAYS_CHAR ("INSERT INTO ");
       query_string += configuration_.dataBaseTable
                    += ACE_TEXT_ALWAYS_CHAR ("VALUES (");
-      for (Test_I_PageDataIterator_t iterator = session_data_r.data.pageData.begin ();
-           iterator != session_data_r.data.pageData.end ();
-           ++iterator)
-      {
-        query_string += ACE_TEXT_ALWAYS_CHAR (",");
+//      for (Test_I_PageDataIterator_t iterator = session_data_r.data.pageData.begin ();
+//           iterator != session_data_r.data.pageData.end ();
+//           ++iterator)
+//      {
+//        query_string += ACE_TEXT_ALWAYS_CHAR (",");
 
-        query_string += ACE_TEXT_ALWAYS_CHAR ("),(");
-      } // end FOR
+//        query_string += ACE_TEXT_ALWAYS_CHAR ("),(");
+//      } // end FOR
       query_string += ACE_TEXT_ALWAYS_CHAR (")");
+      my_ulonglong result_2 = 0;
 
       result = mysql_real_query (state_,
                                  query_string.c_str (),
@@ -279,7 +292,7 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
 
         goto close;
       } // end IF
-      my_ulonglong result_2 = mysql_affected_rows (state_);
+      result_2 = mysql_affected_rows (state_);
       if (result_2 != session_data_r.data.pageData.size ())
       {
         ACE_DEBUG ((LM_WARNING,
@@ -338,7 +351,7 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
 
   // step0: initialize library ?
   static bool first_run = true;
-  if (first_run)
+  if (first_run && manageLibrary_)
   {
     result = mysql_library_init (0,     // argc
                                  NULL,  // argv
@@ -350,7 +363,6 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
                   ACE_TEXT (mysql_error (NULL))));
       return false;
     } // end IF
-    cleanLibrary_ = true;
     first_run = false;
   } // end IF
 
@@ -388,6 +400,7 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
 //  char* argument_p = configuration_.DBOptionFileName.c_str ();
   unsigned int timeout = MODULE_DB_MYSQL_DEFAULT_TIMEOUT_CONNECT;
   mysql_option option = MYSQL_OPT_CONNECT_TIMEOUT;
+  my_bool value_b = false;
   //result = mysql_options (state_,
   //                        option,
   //                        &timeout);
@@ -416,7 +429,7 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
                           option,
                           &timeout);
   if (result) goto error;
-  my_bool value_b = MODULE_DB_MYSQL_DEFAULT_RECONNECT;
+  value_b = MODULE_DB_MYSQL_DEFAULT_RECONNECT;
   option = MYSQL_OPT_RECONNECT;
   result = mysql_options (state_,
                           option,

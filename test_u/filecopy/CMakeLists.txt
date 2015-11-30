@@ -11,7 +11,7 @@ if (UNIX)
  if (DEFINED ENV{ACE_ROOT})
   find_library (ACE_LIBRARY ${ACE_LIB_FILE}
                 PATHS ENV ACE_ROOT
-                PATH_SUFFIXES build/linux/lib
+                PATH_SUFFIXES lib
                 DOC "searching for ${ACE_LIB_FILE}")
  else ()
   find_library (ACE_LIBRARY ${ACE_LIB_FILE}
@@ -69,11 +69,11 @@ add_definitions (-DSTREAM_HAS_DLL)
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ATCD/ACE)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
 if (UNIX)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
  include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
 elseif (WIN32)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
  # *TODO*: repair pkgconfig support
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/atk-1.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/pango-1.0)
@@ -140,8 +140,10 @@ elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
 endif ()
 target_link_libraries (${EXECUTABLE} Common)
-# *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
-set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+if (WIN32)
+ # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
+ set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+endif ()
 target_link_libraries (${EXECUTABLE} CommonUI)
 target_link_libraries (${EXECUTABLE} ACEStream)
 

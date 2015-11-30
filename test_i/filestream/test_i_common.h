@@ -43,7 +43,7 @@
 #include "stream_base.h"
 #include "stream_common.h"
 #include "stream_messageallocatorheap_base.h"
-#include "stream_session_data_base.h"
+#include "stream_session_data.h"
 #include "stream_statemachine_control.h"
 
 #include "stream_module_net_common.h"
@@ -131,7 +131,7 @@ struct Test_I_Stream_SessionData
   std::string             targetFileName;
   Test_I_UserData*        userData;
 };
-typedef Stream_SessionDataBase_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
+typedef Stream_SessionData_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 
 struct Test_I_Stream_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration

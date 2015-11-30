@@ -22,7 +22,6 @@
 #define STREAM_MODULE_HTMLPARSER_H
 
 #include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
 
 #include <libxml/HTMLparser.h>
 #include <libxml/tree.h>

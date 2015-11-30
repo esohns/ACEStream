@@ -11,7 +11,7 @@ if (UNIX)
  if (DEFINED ENV{ACE_ROOT})
   find_library (ACE_LIBRARY ${ACE_LIB_FILE}
                 PATHS ENV ACE_ROOT
-                PATH_SUFFIXES build/linux/lib
+                PATH_SUFFIXES lib
                 DOC "searching for ${ACE_LIB_FILE}")
  else ()
   find_library (ACE_LIBRARY ${ACE_LIB_FILE}
@@ -95,62 +95,27 @@ endif ()
 add_definitions (-DSTREAM_DB_HAS_DLL)
 
 #string (TOLOWER "${CMAKE_BUILD_TYPE}" BUILD_TYPE)
-if (UNIX)
- find_library (ACENETWORK_LIB
-               ACENetwork
-               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
-#               PATH_SUFFIXES build/${BUILD_TYPE}/src/.libs
-               PATH_SUFFIXES cmake/src
-               NO_DEFAULT_PATH)
- if (NOT EXISTS ${ACENETWORK_LIB})
-  message (FATAL_ERROR "could not find library \"ACENetwork\", aborting")
- endif ()
-elseif (WIN32)
-# *TODO*: avoid circular dependency
- find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-               REQUIRED
-               CONFIG
-               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-               PATH_SUFFIXES libACENetwork/cmake
-               NO_DEFAULT_PATH)
- if (NOT EXISTS ${ACENetwork_DIR})
-  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
- endif ()
- set (ACENETWORK_LIB libACENetwork.lib)
- set (ACENETWORK_PROTOCOL_HTTP_LIB libACENetwork_Protocol_HTTP.lib)
- set (ACENETWORK_CLIENT_LIB libACENetwork_Client.lib)
-endif ()
-
-if (UNIX)
- find_library (ACENETWORK_CLIENT_LIB
-               ACENetwork_Client
-               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
-#               PATH_SUFFIXES build/${BUILD_TYPE}/src/client_server/.libs
-               PATH_SUFFIXES cmake/src/client_server
-               NO_DEFAULT_PATH)
- if (NOT EXISTS ${ACENETWORK_CLIENT_LIB})
-  message (FATAL_ERROR "could not find library \"ACENetwork_Client\", aborting")
- endif ()
-#elseif (WIN32)
-##find_package (ACENetwork_Client ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-##              REQUIRED
-##              CONFIG
-##              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-##              PATH_SUFFIXES libNetwork/cmake
-##              NO_DEFAULT_PATH)
-##if (NOT EXISTS ${ACENetwork_Client_DIR})
-## message (FATAL_ERROR "could not find package \"ACENetwork_Client\", aborting")
-##endif ()
-# set (ACENETWORK_CLIENT_LIB libACENetwork_Client.lib)
+find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+              REQUIRED
+              CONFIG
+              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
+              PATH_SUFFIXES libACENetwork/cmake
+              NO_DEFAULT_PATH)
+if (NOT EXISTS ${ACENetwork_DIR})
+ message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
 endif ()
 
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ATCD/ACE)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
  include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
  include_directories (${PKG_MYSQL_INCLUDE_DIRS})
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/protocol/http)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
 else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
 # include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
@@ -164,20 +129,17 @@ else ()
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/glib-2.0)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gtk-2.0)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/protocol/http)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
 endif ()
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/db)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/html)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/protocol/http)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/protocol/http)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net/protocols)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
@@ -216,8 +178,10 @@ add_executable (http_get ${http_get_EXE_SRCS})
 #add_dependencies (${PROJECT_NAME} Common)
 
 target_link_libraries (http_get ${CMAKE_THREAD_LIBS_INIT})
-# *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
-set_target_properties (http_get PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+if (WIN32)
+ # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
+ set_target_properties (http_get PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+endif ()
 target_link_libraries (http_get ${ACE_LIBRARY})
 if (UNIX)
  target_link_libraries (http_get ${PKG_GTK_GLADE_LIBRARIES})
@@ -225,8 +189,8 @@ elseif (WIN32)
 # *TODO*: repair pkgconfig support
  #target_link_libraries (http_get ${LIBXML2_LIBRARY})
  target_link_libraries (http_get ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1/.libs/libxml2.dll.a)
- target_link_libraries (http_get ${MYSQL_LIBRARY})
 endif ()
+target_link_libraries (http_get ${MYSQL_LIBRARY})
 target_link_libraries (http_get Common)
 target_link_libraries (http_get ACEStream)
 target_link_libraries (http_get ACEStream_Database)

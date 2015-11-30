@@ -25,6 +25,8 @@
 
 #include "stream_macros.h"
 
+#include "http_tools.h"
+
 Test_I_Stream_Message::Test_I_Stream_Message (unsigned int size_in)
  : inherited (size_in)
 {
@@ -119,20 +121,27 @@ Test_I_Stream_Message::duplicate (void) const
   return message_p;
 }
 
-Stream_CommandType_t
+HTTP_Method_t
 Test_I_Stream_Message::command () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Message::command"));
 
-  return ACE_Message_Block::MB_DATA;
+  // sanity check(s)
+  if (!inherited::initialized_)
+    return HTTP_Codes::HTTP_METHOD_INVALID;
+  ACE_ASSERT (inherited::data_);
+
+  const Test_I_MessageData& data_r = inherited::data_->get ();
+
+  return (data_r.HTTPRecord ? data_r.HTTPRecord->method
+                            : HTTP_Codes::HTTP_METHOD_INVALID);
 }
 
 std::string
-Test_I_Stream_Message::CommandType2String (Stream_CommandType_t command_in)
+Test_I_Stream_Message::CommandType2String (HTTP_Method_t method_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Message::CommandType2String"));
 
-  ACE_UNUSED_ARG (command_in);
-
-  return ACE_TEXT_ALWAYS_CHAR ("MB_DATA");
+  return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE)
+                                                       : HTTP_Tools::Method2String (method_in));
 }

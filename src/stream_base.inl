@@ -20,10 +20,10 @@
 
 #include <deque>
 
+#include "stream_data_base.h"
 #include "stream_iallocator.h"
 #include "stream_imessagequeue.h"
 #include "stream_macros.h"
-#include "stream_session_data_base.h"
 #include "stream_session_message_base.h"
 //#include "stream_statemachine_control.h"
 
@@ -233,9 +233,13 @@ Stream_Base_T<LockType,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
     return;
   } // end IF
+  // *TODO*: remove type inferences
+  session_data_p->lock = &lock_;
+  state_.currentSessionData = session_data_p;
+
+  // *IMPORTANT NOTE*: fire-and-forget API (session_data_p)
   ACE_NEW_NORETURN (sessionData_,
-                    SessionDataContainerType (session_data_p,
-                                              true));
+                    SessionDataContainerType (session_data_p));
   if (!sessionData_)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -246,9 +250,6 @@ Stream_Base_T<LockType,
 
     return;
   } // end IF
-  // *TODO*: remove type inferences
-  session_data_p->lock = &lock_;
-  state_.currentSessionData = session_data_p;
 
   try
   {

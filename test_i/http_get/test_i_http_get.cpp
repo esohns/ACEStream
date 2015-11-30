@@ -108,8 +108,8 @@ do_printUsage (const std::string& programName_in)
             << database_options_file
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : write to database [")
-            << ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d          : write to database [")
+            << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-e [STRING] : write to database table [")
@@ -168,7 +168,7 @@ do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      unsigned int& bufferSize_out,
                      std::string& dataBaseOptionsFileName_out,
-                     std::string& outputDataBase_out,
+                     bool& outputToDataBase_out,
                      std::string& outputDataBaseTable_out,
                      std::string& outputFileName_out,
                      std::string& hostName_out,
@@ -209,7 +209,7 @@ do_processArguments (int argc_in,
   dataBaseOptionsFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   dataBaseOptionsFileName_out +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE);
-  outputDataBase_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB);
+  outputToDataBase_out = false;
   outputDataBaseTable_out =
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_TABLE);
   outputFileName_out = path;
@@ -230,7 +230,7 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:c:d:e:f:lors:tu:vx:z:"),
+                              ACE_TEXT ("b:c:de:f:lors:tu:vx:z:"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -258,7 +258,7 @@ do_processArguments (int argc_in,
       }
       case 'd':
       {
-        outputDataBase_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        outputToDataBase_out = true;
         break;
       }
       case 'e':
@@ -516,7 +516,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 void
 do_work (unsigned int bufferSize_in,
          const std::string& dataBaseOptionsFileName_in,
-         const std::string& dataBase_in,
+         bool dataBase_in,
          const std::string& dataBaseTable_in,
          const std::string& fileName_in,
          const std::string& hostName_in,
@@ -554,14 +554,14 @@ do_work (unsigned int bufferSize_in,
   configuration.useReactor = useReactor_in;
 
   Stream_Module_t* module_p = NULL;
-  Test_I_Stream_Module_DataBaseWriter_Module database_writer (ACE_TEXT_ALWAYS_CHAR ("DataBaseWriter"),
-                                                              NULL,
-                                                              true);
-  Test_I_Stream_Module_FileWriter_Module file_writer (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
-                                                      NULL,
-                                                      true);
+  Test_I_Stream_DataBaseWriter_Module database_writer (ACE_TEXT_ALWAYS_CHAR ("DataBaseWriter"),
+                                                       NULL,
+                                                       true);
+  Test_I_Stream_FileWriter_Module file_writer (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+                                               NULL,
+                                               true);
   module_p = &file_writer;
-  if (!dataBase_in.empty ())
+  if (dataBase_in)
     module_p = &database_writer;
   Test_I_IModuleHandler_t* module_handler_p =
     dynamic_cast<Test_I_IModuleHandler_t*> (module_p->writer ());
@@ -578,7 +578,7 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<Test_I_AllocatorConfiguration> heap_allocator;
   Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
@@ -946,7 +946,7 @@ ACE_TMAIN (int argc_in,
   database_options_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   database_options_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_OPTIONS_FILE);
-  std::string output_database = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB);
+  bool output_to_database = false;
   std::string output_database_table =
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_TABLE);
   std::string path = configuration_path;
@@ -972,7 +972,7 @@ ACE_TMAIN (int argc_in,
                             argv_in,
                             buffer_size,
                             database_options_file,
-                            output_database,
+                            output_to_database,
                             output_database_table,
                             output_file,
                             host_name,
@@ -1018,7 +1018,8 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
     use_thread_pool = true;
   } // end IF
-  if ((!database_options_file.empty () &&
+  if ((output_to_database && output_database_table.empty ())                ||
+      (!database_options_file.empty () &&
        !Common_File_Tools::isReadable (database_options_file))              ||
       host_name.empty ()                                                    ||
       (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool) ||
@@ -1163,7 +1164,7 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (buffer_size,
            database_options_file,
-           output_database,
+           output_to_database,
            output_database_table,
            output_file,
            host_name,

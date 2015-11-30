@@ -28,6 +28,9 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
  , netSource_ (ACE_TEXT_ALWAYS_CHAR ("NetSource"),
                NULL,
                false)
+ , HTTPMarshal_ (ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
+                 NULL,
+                 false)
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
@@ -49,6 +52,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
   inherited::availableModules_.push_front (&netSource_);
+  inherited::availableModules_.push_front (&HTTPMarshal_);
   inherited::availableModules_.push_front (&runtimeStatistic_);
   inherited::availableModules_.push_front (&HTTPGet_);
   inherited::availableModules_.push_front (&HTMLParser_);
@@ -256,9 +260,10 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   // ---------------------------------------------------------------------------
 
   //Test_I_Stream_Module_HTMLWriter* HTMLWriter_impl_p = NULL;
-  Test_I_Stream_Module_HTMLParser* HTMLParser_impl_p = NULL;
-  Test_I_Stream_Module_HTTPGet* HTTPGet_impl_p = NULL;
-  Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
+  Test_I_Stream_HTMLParser* HTMLParser_impl_p = NULL;
+  Test_I_Stream_HTTPGet* HTTPGet_impl_p = NULL;
+  Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
+  Test_I_Stream_HTTP_Parser* HTTPParser_impl_p = NULL;
   SOURCE_WRITER_T* netSource_impl_p = NULL;
 
   //// ******************* HTML Writer ************************
@@ -268,7 +273,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   //if (!HTMLWriter_impl_p)
   //{
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_HTMLWriter> failed, aborting\n")));
+  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_HTMLWriter*> failed, aborting\n")));
   //  goto failed;
   //} // end IF
   //if (!HTMLWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
@@ -289,11 +294,11 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
 
   // ******************* HTML Parser ************************
   HTMLParser_.initialize (*configuration_in.moduleConfiguration);
-  HTMLParser_impl_p = dynamic_cast<Test_I_Stream_Module_HTMLParser*> (HTMLParser_.writer ());
+  HTMLParser_impl_p = dynamic_cast<Test_I_Stream_HTMLParser*> (HTMLParser_.writer ());
   if (!HTMLParser_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_HTMLParser> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_HTMLParser*> failed, aborting\n")));
     goto failed;
   } // end IF
   // *TODO*: remove type inferences
@@ -316,11 +321,11 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   // ******************* HTTP Get ************************
   HTTPGet_.initialize (*configuration_in.moduleConfiguration);
   HTTPGet_impl_p =
-    dynamic_cast<Test_I_Stream_Module_HTTPGet*> (HTTPGet_.writer ());
+    dynamic_cast<Test_I_Stream_HTTPGet*> (HTTPGet_.writer ());
   if (!HTTPGet_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_HTTPGet> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_HTTPGet*> failed, aborting\n")));
     goto failed;
   } // end IF
   // *TODO*: remove type inferences
@@ -343,11 +348,11 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   // ******************* Runtime Statistics ************************
   runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
   runtimeStatistic_impl_p =
-      dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+      dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_RuntimeStatistic> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_RuntimeStatistic*> failed, aborting\n")));
     goto failed;
   } // end IF
   if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
@@ -365,6 +370,33 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
                 runtimeStatistic_.name ()));
+    goto failed;
+  } // end IF
+
+  // ******************* HTTP Marshal ************************
+  HTTPMarshal_.initialize (*configuration_in.moduleConfiguration);
+  HTTPParser_impl_p =
+    dynamic_cast<Test_I_Stream_HTTP_Parser*> (HTTPMarshal_.writer ());
+  if (!HTTPParser_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_HTTP_Parser*> failed, aborting\n")));
+    goto failed;
+  } // end IF
+  // *TODO*: remove type inferences
+  if (!HTTPParser_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+                HTTPMarshal_.name ()));
+    goto failed;
+  } // end IF
+  result = inherited::push (&HTTPMarshal_);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
+                HTTPMarshal_.name ()));
     goto failed;
   } // end IF
 
@@ -436,12 +468,12 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
   Test_I_Stream_SessionData& session_data_r =
       const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
-  Test_I_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl =
+    dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Statistic_WriterTask_t> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -493,12 +525,12 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::report"));
 
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
+//   Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl = NULL;
+//   runtimeStatistic_impl = dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> (//runtimeStatistic_.writer ());
 //   if (!runtimeStatistic_impl)
 //   {
 //     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
+//                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> failed, returning\n")));
 //
 //     return;
 //   } // end IF

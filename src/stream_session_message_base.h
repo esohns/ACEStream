@@ -34,11 +34,12 @@
 
 // forward declarations
 class ACE_Allocator;
+class ACE_Data_Block;
 class Stream_MessageBase;
 
 template <typename AllocatorConfigurationType,
           ///////////////////////////////
-          typename SessionDataType, // (reference counted)
+          typename SessionDataType, // implements Common_IReferenceCount !
           typename UserDataType>
 class Stream_SessionMessageBase_T
  : public ACE_Message_Block
@@ -48,26 +49,26 @@ class Stream_SessionMessageBase_T
 {
   // grant access to specific ctors
   friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
-                                                 
+
                                                  Stream_MessageBase,
-                                                 Stream_SessionMessageBase_T<AllocatorConfigurationType, 
-                                                                             
-                                                                             Stream_SessionData,
-                                                                             Stream_UserData> >;
+                                                 Stream_SessionMessageBase_T<AllocatorConfigurationType,
+
+                                                                             SessionDataType,
+                                                                             UserDataType> >;
 
  public:
   // convenience types
   typedef SessionDataType SESSION_DATA_T;
   typedef UserDataType USER_DATA_T;
 
-  // *NOTE*: assumes responsibility for the second argument !
+  // *IMPORTANT NOTE*: fire-and-forget API (second argument)
   Stream_SessionMessageBase_T (Stream_SessionMessageType,
                                SessionDataType*&, // in/out
                                UserDataType*);
   virtual ~Stream_SessionMessageBase_T ();
 
   // initialization-after-construction
-  // *NOTE*: assumes responsibility for the second argument !
+  // *IMPORTANT NOTE*: fire-and-forget API (second argument)
   void initialize (Stream_SessionMessageType,
                    SessionDataType*&, // in/out
                    UserDataType*);
@@ -82,8 +83,8 @@ class Stream_SessionMessageBase_T
   virtual void dump_state () const;
 
   // debug tools
-  static void SessionMessageType2String (ACE_Message_Type, // message type
-                                         std::string&);    // corresp. string
+  static void MessageType2String (ACE_Message_Block::ACE_Message_Type, // message type
+                                  std::string&);                       // corresp. string
 
  protected:
   // (copy) ctor to be used by duplicate()
@@ -92,14 +93,13 @@ class Stream_SessionMessageBase_T
                                                                   SessionDataType,
                                                                   UserDataType>&);
 
-  // *NOTE*: these may be used by message allocators...
-  // *WARNING*: these ctors are NOT threadsafe...
+  // *NOTE*: to be used by message allocators...
   Stream_SessionMessageBase_T (ACE_Allocator*); // message allocator
   Stream_SessionMessageBase_T (ACE_Data_Block*, // data block
                                ACE_Allocator*); // message allocator
 
-  bool                      isInitialized_;
-  SessionDataType*          sessionData_;
+  SessionDataType*          data_;
+  bool                      initialized_;
   Stream_SessionMessageType type_;
   UserDataType*             userData_;
 
@@ -116,7 +116,7 @@ class Stream_SessionMessageBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T& operator= (const Stream_SessionMessageBase_T&))
 
   // override from ACE_Message_Block
-  // *WARNING*: any children need to override this too !
+  // *WARNING*: any derived classes need to override this !
   virtual ACE_Message_Block* duplicate (void) const;
 };
 

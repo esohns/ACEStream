@@ -31,6 +31,8 @@
 
 #include "stream_module_source.h"
 
+#include "http_module_parser.h"
+
 #include "test_i_common.h"
 #include "test_i_common_modules.h"
 #include "test_i_message.h"
@@ -124,11 +126,12 @@ class Test_I_HTTPGet_Stream_T
   ACE_UNIMPLEMENTED_FUNC (Test_I_HTTPGet_Stream_T& operator= (const Test_I_HTTPGet_Stream_T&))
 
   // modules
-  SOURCE_MODULE_T                              netSource_;
-  Test_I_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
-  Test_I_Stream_Module_HTTPGet_Module          HTTPGet_;
-  Test_I_Stream_Module_HTMLParser_Module       HTMLParser_;
-  //Test_I_Stream_Module_HTMLWriter_Module       HTMLWriter_;
+  SOURCE_MODULE_T                       netSource_;
+  Test_I_Stream_HTTP_Marshal_Module     HTTPMarshal_;
+  Test_I_Stream_RuntimeStatistic_Module runtimeStatistic_;
+  Test_I_Stream_HTTPGet_Module          HTTPGet_;
+  Test_I_Stream_HTMLParser_Module       HTMLParser_;
+  //Test_I_Stream_HTMLWriter_Module       HTMLWriter_;
 };
 
 // include template implementation

@@ -21,7 +21,7 @@ if (UNIX)
  if (DEFINED ENV{ACE_ROOT})
   find_library (ACE_LIBRARY ${ACE_LIB_FILE}
                 PATHS ENV ACE_ROOT
-                PATH_SUFFIXES build/linux/lib
+                PATH_SUFFIXES lib
                 DOC "searching for ${ACE_LIB_FILE}")
  else ()
   find_library (ACE_LIBRARY ${ACE_LIB_FILE}
@@ -63,7 +63,7 @@ add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ATCD/ACE)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ACE)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src)
 else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../ATCD/ACE)
@@ -96,6 +96,9 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_cachedallocatorheap.h
      stream_cachedallocatorheap.inl
      stream_common.h
+     stream_data_base.cpp
+     stream_data_base.h
+     stream_data_base.inl
      stream_data_message_base.cpp
      stream_data_message_base.h
      stream_data_message_base.inl
@@ -132,9 +135,6 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_session_data.cpp
      stream_session_data.h
      stream_session_data.inl
-     stream_session_data_base.cpp
-     stream_session_data_base.h
-     stream_session_data_base.inl
      stream_session_message_base.cpp
      stream_session_message_base.h
      stream_session_message_base.inl
@@ -193,6 +193,8 @@ install (FILES
          stream_cachedallocatorheap.h
          stream_cachedallocatorheap.inl
          stream_common.h
+         stream_data_base.h
+         stream_data_base.inl
          stream_data_message_base.h
          stream_data_message_base.inl
          stream_datablockallocatorheap.h
@@ -219,8 +221,6 @@ install (FILES
          stream_resetcounterhandler.h
          stream_session_data.h
          stream_session_data.inl
-         stream_session_data_base.h
-         stream_session_data_base.inl
          stream_session_message_base.h
          stream_session_message_base.inl
          stream_statemachine_control.h

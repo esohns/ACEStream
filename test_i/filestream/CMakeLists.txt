@@ -11,7 +11,7 @@ if (UNIX)
  if (DEFINED ENV{ACE_ROOT})
   find_library (ACE_LIBRARY ${ACE_LIB_FILE}
                 PATHS ENV ACE_ROOT
-                PATH_SUFFIXES build/linux/lib
+                PATH_SUFFIXES lib
                 DOC "searching for ${ACE_LIB_FILE}")
  else ()
   find_library (ACE_LIBRARY ${ACE_LIB_FILE}
@@ -60,88 +60,21 @@ if (NOT EXISTS ${ACEStream_DIR})
  message (FATAL_ERROR "could not find package \"ACEStream\", aborting")
 endif ()
 
-#string (TOLOWER "${CMAKE_BUILD_TYPE}" BUILD_TYPE)
-if (UNIX)
- find_library (ACENETWORK_LIB
-               ACENetwork
-               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
-#               PATH_SUFFIXES build/${BUILD_TYPE}/src/.libs
-               PATH_SUFFIXES cmake/src
-               NO_DEFAULT_PATH)
- if (NOT EXISTS ${ACENETWORK_LIB})
-  message (FATAL_ERROR "could not find library \"ACENetwork\", aborting")
- endif ()
-elseif (WIN32)
-# *TODO*: avoid circular dependency
- find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-               REQUIRED
-               CONFIG
-               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-               PATH_SUFFIXES libACENetwork/cmake
-               NO_DEFAULT_PATH)
- if (NOT EXISTS ${ACENetwork_DIR})
-  message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
- endif ()
-# find_library (ACENETWORK_LIB
-#               libACENetwork.lib
-#               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
-##               PATH_SUFFIXES build/${BUILD_TYPE}/src/.libs
-#               PATH_SUFFIXES cmake/src
-#               NO_DEFAULT_PATH)
- set (ACENETWORK_LIB libACENetwork.lib)
-endif ()
-
-if (UNIX)
- find_library (ACENETWORK_CLIENT_LIB
-               ACENetwork_Client
-               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
-#               PATH_SUFFIXES build/${BUILD_TYPE}/src/client_server/.libs
-               PATH_SUFFIXES cmake/src/client_server
-               NO_DEFAULT_PATH)
- if (NOT EXISTS ${ACENETWORK_CLIENT_LIB})
-  message (FATAL_ERROR "could not find library \"ACENetwork_Client\", aborting")
- endif ()
-elseif (WIN32)
-# find_package (ACENetwork_Client ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#               REQUIRED
-#               CONFIG
-#               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
-#               PATH_SUFFIXES libACENetwork/cmake
-#               NO_DEFAULT_PATH)
-# if (NOT EXISTS ${ACENetwork_Client_DIR})
-#  message (FATAL_ERROR "could not find package \"ACENetwork_Client\", aborting")
-# endif ()
- set (ACENETWORK_CLIENT_LIB libACENetwork_Client.lib)
- set (ACENETWORK_SERVER_LIB libACENetwork_Server.lib)
-endif ()
-
-if (UNIX)
- find_library (ACENETWORK_SERVER_LIB
-               ACENetwork_Server
-               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork ${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork
-#               PATH_SUFFIXES build/${BUILD_TYPE}/src/client_server/.libs
-               PATH_SUFFIXES cmake/src/client_server
-               NO_DEFAULT_PATH)
- if (NOT EXISTS ${ACENETWORK_SERVER_LIB})
-  message (FATAL_ERROR "could not find library \"ACENetwork_Server\", aborting")
- endif ()
-elseif (WIN32)
-#find_package (ACENetwork_Server ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
-#              REQUIRED
-#              CONFIG
-#              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../..
-#              PATH_SUFFIXES libNetwork/cmake
-#              NO_DEFAULT_PATH)
-#if (NOT EXISTS ${ACENetwork_Server_DIR})
-# message (FATAL_ERROR "could not find package \"ACENetwork_Server\", aborting")
-#endif ()
+find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+              REQUIRED
+              CONFIG
+              PATHS ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
+              PATH_SUFFIXES libACENetwork/cmake
+              NO_DEFAULT_PATH)
+if (NOT EXISTS ${ACENetwork_DIR})
+ message (FATAL_ERROR "could not find package \"ACENetwork\", aborting")
 endif ()
 
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 if (UNIX)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ATCD/ACE)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
  include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
@@ -221,8 +154,10 @@ elseif (WIN32)
  target_link_libraries (filesource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
 endif ()
 target_link_libraries (filesource Common)
-# *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
-set_target_properties (filesource PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+if (WIN32)
+ # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
+ set_target_properties (filesource PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+endif ()
 target_link_libraries (filesource CommonUI)
 target_link_libraries (filesource ACEStream)
 target_link_libraries (filesource ACENetwork)
@@ -288,8 +223,10 @@ elseif (WIN32)
  target_link_libraries (filetarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
 endif ()
 target_link_libraries (filetarget Common)
-# *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
-set_target_properties (filetarget PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+if (WIN32)
+ # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
+ set_target_properties (filetarget PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+endif ()
 target_link_libraries (filetarget CommonUI)
 target_link_libraries (filetarget ACEStream)
 target_link_libraries (filetarget ACENetwork)

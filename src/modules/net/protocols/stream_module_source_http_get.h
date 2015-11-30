@@ -30,6 +30,7 @@
 #include "stream_task_base_synch.h"
 
 // forward declarations
+struct HTTP_Record;
 class Stream_IAllocator;
 
 // definitions
@@ -70,10 +71,14 @@ class Stream_Module_Net_Source_HTTP_Get_T
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   ProtocolMessageType* makeRequest (const std::string&); // URI
   bool sendRequest (const std::string&); // URI
+  // *NOTE*: (if possible,) this advances the read pointer to skip over the HTTP
+  //         entity head
+  HTTP_Record* parseResponse (ProtocolMessageType&);
 
   ConfigurationType configuration_;
-  bool              headerReceived_;
-  bool              isInitialized_;
+  bool              initialized_;
+  bool              responseParsed_;
+  bool              responseReceived_;
 };
 
 #include "stream_module_source_http_get.inl"

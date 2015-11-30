@@ -25,6 +25,7 @@
 #include "common_file_tools.h"
 #include "common_timer_manager_common.h"
 
+#include "stream_defines.h"
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
@@ -44,7 +45,9 @@ Stream_Module_MySQLReader_T<LockType,
                            SessionDataType,
                            SessionDataContainerType,
                            StatisticContainerType>::Stream_Module_MySQLReader_T (bool isActive_in,
-                                                                                 bool autoStart_in)
+                                                                                 bool autoStart_in,
+
+                                                                                 bool manageLibrary_in)
  : inherited (NULL,         // lock handle
               isActive_in,  // active ?
               autoStart_in, // auto-start ?
@@ -54,8 +57,9 @@ Stream_Module_MySQLReader_T<LockType,
                             //         transitions during processing a tricky
                             //         affair, as the calling thread may be
                             //         holding the lock --> check carefully
- , isInitialized_ (false)
  , state_ (NULL)
+ , isInitialized_ (false)
+ , manageLibrary_ (manageLibrary_in)
  , statisticCollectionHandler_ (ACTION_COLLECT,
                                 this,
                                 false)
@@ -63,6 +67,18 @@ Stream_Module_MySQLReader_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::Stream_Module_MySQLReader_T"));
 
+//  int result = -1;
+
+//  if (manageLibrary_)
+//  {
+//    result = mysql_library_init (0,     // argc
+//                                 NULL,  // argv
+//                                 NULL); // groups
+//    if (result)
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("failed to mysql_library_init(): \"%s\", aborting\n"),
+//                  ACE_TEXT (mysql_error (NULL))));
+//  } // end IF
 }
 
 template <typename LockType,
@@ -105,7 +121,7 @@ Stream_Module_MySQLReader_T<LockType,
   if (state_)
     mysql_close (state_);
 
-  if (cleanLibrary_)
+  if (manageLibrary_)
     mysql_library_end ();
 }
 
@@ -133,7 +149,7 @@ Stream_Module_MySQLReader_T<LockType,
 
   // step0: initialize library ?
   static bool first_run = true;
-  if (first_run)
+  if (first_run && manageLibrary_)
   {
     result = mysql_library_init (0,     // argc
                                  NULL,  // argv
@@ -145,7 +161,6 @@ Stream_Module_MySQLReader_T<LockType,
                   ACE_TEXT (mysql_error (NULL))));
       return false;
     } // end IF
-    cleanLibrary_ = true;
     first_run = false;
   } // end IF
 
@@ -177,14 +192,14 @@ Stream_Module_MySQLReader_T<LockType,
 
   //  mysql_thread_init ();
   //  my_init ();
-    state_ = mysql_init (NULL);
-    if (!state_)
-    {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("failed to mysql_init(): \"%s\", aborting\n"),
-                  ACE_TEXT (mysql_error (NULL))));
-      return false;
-    } // end IF
+  state_ = mysql_init (NULL);
+  if (!state_)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("failed to mysql_init(): \"%s\", aborting\n"),
+                ACE_TEXT (mysql_error (NULL))));
+    return false;
+  } // end IF
 
     // *TODO*: set options
     //      switch (configuration_.transportLayer)
@@ -209,12 +224,12 @@ Stream_Module_MySQLReader_T<LockType,
   //  char* argument_p = configuration_.DBOptionFileName.c_str ();
   result = mysql_options (state_,
                           MYSQL_READ_DEFAULT_FILE,
-                          configuration_.DBOptionFileName.c_str ());
+                          configuration_in.DBOptionFileName.c_str ());
   if (result)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("failed to mysql_options(MYSQL_READ_DEFAULT_FILE,\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (configuration_.DBOptionFileName.c_str ()),
+                ACE_TEXT (configuration_in.DBOptionFileName.c_str ()),
                 ACE_TEXT (mysql_error (state_))));
     return false;
   } // end IF
@@ -283,14 +298,19 @@ Stream_Module_MySQLReader_T<LockType,
   ACE_ASSERT (message_inout);
   ACE_ASSERT (isInitialized_);
 
+  const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
+      message_inout->get ();
+  SessionDataType& session_data_r =
+      const_cast<SessionDataType&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
-    case SESSION_BEGIN:
+    case STREAM_SESSION_BEGIN:
     {
+
       if (inherited::configuration_.streamConfiguration->statisticReportingInterval)
       {
         // schedule regular statistics collection...
-        ACE_Time_Value interval (STREAM_STATISTICS_COLLECTION, 0);
+        ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION, 0);
         ACE_ASSERT (timerID_ == -1);
         ACE_Event_Handler* handler_p = &statisticCollectionHandler_;
         timerID_ =
@@ -315,8 +335,9 @@ Stream_Module_MySQLReader_T<LockType,
 
       ACE_TCHAR buffer[BUFSIZ];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result = configuration_.peerAddress.addr_to_string (buffer,
-                                                          sizeof (buffer));
+      result =
+          inherited::configuration_.peerAddress.addr_to_string (buffer,
+                                                                sizeof (buffer));
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -328,8 +349,9 @@ Stream_Module_MySQLReader_T<LockType,
       } // end IF
       ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
-      result = configuration_.peerAddress.get_host_address (host_address,
-                                                            sizeof (host_address));
+      result =
+          inherited::configuration_.peerAddress.get_host_address (host_address,
+                                                                  sizeof (host_address));
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -369,23 +391,23 @@ Stream_Module_MySQLReader_T<LockType,
            //CLIENT_REMEMBER_OPTIONS);      // remember options specified by
                                             // calls to mysql_options()
       MYSQL* result_p =
-          mysql_real_connect (state_,                                        // state handle
-                              host_address,                                  // host name/address
-                              configuration_.DBUser.c_str (),                // db user
-                              configuration_.DBPassword.c_str (),            // db password (non-encrypted)
-                              configuration_.DBDatabase.c_str (),            // db database
-                              configuration_.peerAddress.get_port_number (), // port
-                              NULL,                                          // (UNIX) socket/named pipe
-                              client_flags);                                 // client flags
+          mysql_real_connect (state_,                                                   // state handle
+                              host_address,                                             // host name/address
+                              inherited::configuration_.DBUser.c_str (),                // db user
+                              inherited::configuration_.DBPassword.c_str (),            // db password (non-encrypted)
+                              inherited::configuration_.DBDatabase.c_str (),            // db database
+                              inherited::configuration_.peerAddress.get_port_number (), // port
+                              NULL,                                                     // (UNIX) socket/named pipe
+                              client_flags);                                            // client flags
       if (result_p != state_)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to mysql_real_connect(\"%s\",\"%s\",\"%s\",\"%s\"): \"%s\", aborting\n"),
                     ACE_TEXT (buffer),
-                    ACE_TEXT (configuration_.DBUser.c_str ()),
-                    ACE_TEXT (configuration_.DBPassword.c_str ()),
-                    ACE_TEXT (configuration_.DBDatabase.c_str ()),
-                    ACE_TEXT (mysql_error (&mysql))));
+                    ACE_TEXT (inherited::configuration_.DBUser.c_str ()),
+                    ACE_TEXT (inherited::configuration_.DBPassword.c_str ()),
+                    ACE_TEXT (inherited::configuration_.DBDatabase.c_str ()),
+                    ACE_TEXT (mysql_error (state_))));
 
         session_data_r.aborted = true;
 
@@ -425,7 +447,7 @@ Stream_Module_MySQLReader_T<LockType,
 
       break;
     }
-    case SESSION_END:
+    case STREAM_SESSION_END:
     {
       if (timerID_ != -1)
       {
@@ -612,19 +634,48 @@ Stream_Module_MySQLReader_T<LockType,
   ACE_ASSERT (state_);
 
   std::string query_string = ACE_TEXT_ALWAYS_CHAR ("SELECT * FROM ");
-  query_string << configuration_.DBTable.c_str ();
+  query_string += inherited::configuration_.DBTable;
+  MYSQL_RES* result_p = NULL;
+  bool free_result = false;
+  unsigned int number_of_fields = 0;
+  unsigned long* field_lengths_p = NULL;
+  MYSQL_ROW row;
+  result = mysql_real_query (state_,
+                             query_string.c_str (),
+                             query_string.size ());
+  if (result)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to mysql_real_query(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT (query_string.c_str ()),
+                ACE_TEXT (mysql_error (state_))));
 
-  result = mysql_query (state_,
-                        query_string.c_str ());
-  /* Fetch in reverse = descending order! */
-  res->afterLast();
-  while (res->previous())
-    cout << "\t... MySQL counts: " << res->getInt("id") << endl;
-  delete res;
+    // signal the controller
+    finished = true;
+    inherited::finished ();
+
+    goto done;
+  } // end IF
+  result_p = mysql_use_result (state_);
+  if (!result_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to mysql_use_result(): \"%s\", aborting\n"),
+                ACE_TEXT (mysql_error (state_))));
+
+    // signal the controller
+    finished = true;
+    inherited::finished ();
+
+    goto done;
+  } // end IF
+  free_result = true;
+  number_of_fields = mysql_num_fields (result_p);
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened file stream \"%s\" (%u byte(s))...\n"),
-              ACE_TEXT (inherited::configuration_.fileName.c_str ()),
-              Common_File_Tools::size (inherited::configuration_.fileName)));
+              ACE_TEXT ("loaded DB table \"%s\" (%u record(s) in %u fields)...\n"),
+              ACE_TEXT (inherited::configuration_.DBTable.c_str ()),
+              mysql_num_rows (result_p),
+              number_of_fields));
 
   // step1: start processing data...
 //   ACE_DEBUG ((LM_DEBUG,
@@ -701,61 +752,45 @@ Stream_Module_MySQLReader_T<LockType,
       continue;
     } // end IF
 
-    bytes_read = stream_.recv (message_p->wr_ptr (),
-                               message_p->capacity ());
-    switch (bytes_read)
+    row = mysql_fetch_row (result_p);
+    if (!row)
     {
-      case 0:
-      {
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("finished reading file...\n")));
+      unsigned int error = mysql_errno (state_);
+      if (error)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to mysql_fetch_row(): \"%s\", aborting\n"),
+                    ACE_TEXT (mysql_error (state_))));
 
-        // clean up
-        message_p->release ();
+      // signal the controller
+      finished = true;
+      inherited::finished ();
 
-        // signal the controller
-        finished = true;
-        inherited::finished ();
-
+      if (!error)
         result_2 = 0;
 
-        break;
-      }
-      case -1:
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_FILE_IO::recv(%d): \"%m\", aborting\n"),
-                    message_p->capacity ()));
+      continue; // done
+    } // end IF
+    field_lengths_p = mysql_fetch_lengths (result_p);
+    if (!field_lengths_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to mysql_fetch_lengths(): \"%s\", aborting\n"),
+                  ACE_TEXT (mysql_error (state_))));
 
-        // signal the controller
-        finished = true;
-        inherited::finished ();
+      // signal the controller
+      finished = true;
+      inherited::finished ();
 
-        break;
-      }
-      default:
-      {
-        message_p->wr_ptr (static_cast<size_t> (bytes_read));
-        result = inherited::put_next (message_p, NULL);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));
+      continue;
+    } // end IF
 
-          // clean up
-          message_p->release ();
-
-          // signal the controller
-          finished = true;
-          inherited::finished ();
-        } // end IF
-
-        break;
-      }
-    } // end SWITCH
+    // *TODO*
   } while (true);
 
 done:
+  if (free_result)
+    mysql_free_result (result_p);
+
   return result_2;
 }
 

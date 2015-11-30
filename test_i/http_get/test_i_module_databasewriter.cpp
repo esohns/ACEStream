@@ -25,25 +25,25 @@
 
 #include "stream_module_db_tools.h"
 
-Test_I_Stream_Module_DataBaseWriter::Test_I_Stream_Module_DataBaseWriter ()
+Test_I_Stream_DataBaseWriter::Test_I_Stream_DataBaseWriter ()
  : inherited ()
  //, commit_ (false)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_DataBaseWriter::Test_I_Stream_Module_DataBaseWriter"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_DataBaseWriter::Test_I_Stream_DataBaseWriter"));
 
 }
 
-Test_I_Stream_Module_DataBaseWriter::~Test_I_Stream_Module_DataBaseWriter ()
+Test_I_Stream_DataBaseWriter::~Test_I_Stream_DataBaseWriter ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_DataBaseWriter::~Test_I_Stream_Module_DataBaseWriter"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_DataBaseWriter::~Test_I_Stream_DataBaseWriter"));
 
 }
 
 void
-Test_I_Stream_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
+Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
                                                            bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_DataBaseWriter::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_DataBaseWriter::handleSessionMessage"));
 
   int result = -1;
 
@@ -251,6 +251,7 @@ Test_I_Stream_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_Session
       std::string timestamp_string;
       char buffer[BUFSIZ];
       unsigned int number_of_records = 0;
+      my_ulonglong result_3 = false;
       for (Test_I_PageDataIterator_t iterator = session_data_r.data.pageData.begin ();
            iterator != session_data_r.data.pageData.end ();
            ++iterator)
@@ -305,7 +306,7 @@ Test_I_Stream_Module_DataBaseWriter::handleSessionMessage (Test_I_Stream_Session
 
         goto close;
       } // end IF
-      my_ulonglong result_3 = mysql_affected_rows (state_);
+      result_3 = mysql_affected_rows (state_);
       if (result_3 != number_of_records)
       {
         ACE_DEBUG ((LM_WARNING,

@@ -23,8 +23,8 @@
 #include "stream_macros.h"
 
 template <typename StatisticContainerType>
-Stream_StatisticHandler_Reactor_T<StatisticContainerType>::Stream_StatisticHandler_Reactor_T (Stream_StatisticAction_t action_in,
-                                                                                              Stream_IStatistic_t* interfaceHandle_in,
+Stream_StatisticHandler_Reactor_T<StatisticContainerType>::Stream_StatisticHandler_Reactor_T (Stream_StatisticActionType action_in,
+                                                                                              Common_IStatistic_T<StatisticContainerType>* interfaceHandle_in,
                                                                                               bool reportOnCollect_in)
  : inherited (NULL,                           // use default reactor
               ACE_Event_Handler::LO_PRIORITY) // priority
@@ -108,8 +108,8 @@ Stream_StatisticHandler_Reactor_T<StatisticContainerType>::handle_timeout (const
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename StatisticContainerType>
-Stream_StatisticHandler_Proactor_T<StatisticContainerType>::Stream_StatisticHandler_Proactor_T (Stream_StatisticAction_t action_in,
-                                                                                                Stream_IStatistic_t* interfaceHandle_in,
+Stream_StatisticHandler_Proactor_T<StatisticContainerType>::Stream_StatisticHandler_Proactor_T (Stream_StatisticActionType action_in,
+                                                                                                Common_IStatistic_T<StatisticContainerType>* interfaceHandle_in,
                                                                                                 bool reportOnCollect_in)
  : inherited ()
  , action_ (action_in)

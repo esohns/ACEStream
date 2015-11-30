@@ -23,10 +23,9 @@
 
 #include "ace/Global_Macros.h"
 
-//#include <libxml/tree.h>
+#include "stream_data_message_base.h"
 
-//#include "stream_data_message_base.h"
-#include "stream_message_base.h"
+#include "http_codes.h"
 
 #include "test_i_common.h"
 
@@ -40,12 +39,13 @@ template <typename AllocatorConfigurationType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Stream_Message
- : public Stream_MessageBase_T<Stream_AllocatorConfiguration>
-// : public Stream_DataMessageBase_T<xmlDoc,
-//                                   Stream_CommandType_t>
+ : public Stream_DataMessageBase_T<Test_I_AllocatorConfiguration,
+                                   //////
+                                   Test_I_MessageData_t,
+                                   HTTP_Method_t>
 {
   // grant access to specific private ctors...
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<Test_I_AllocatorConfiguration,
 
                                                  Test_I_Stream_Message,
                                                  Test_I_Stream_SessionMessage>;
@@ -60,19 +60,20 @@ class Test_I_Stream_Message
   virtual ACE_Message_Block* duplicate (void) const;
 
   // implement Stream_MessageBase_T
-  virtual Stream_CommandType_t command () const; // return value: message type
+  virtual HTTP_Method_t command () const; // return value: message type
 
-  static std::string CommandType2String (Stream_CommandType_t);
+  static std::string CommandType2String (HTTP_Method_t);
 
  protected:
-  // copy ctor to be used by duplicate() and child classes
+  // copy ctor to be used by duplicate() and derived classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
   Test_I_Stream_Message (const Test_I_Stream_Message&);
 
  private:
-//  typedef Stream_DataMessageBase_T<xmlDoc,
-//                                   Stream_CommandType_t> inherited;
-  typedef Stream_MessageBase_T<Stream_AllocatorConfiguration> inherited;
+  typedef Stream_DataMessageBase_T<Test_I_AllocatorConfiguration,
+                                   //////
+                                   Test_I_MessageData_t,
+                                   HTTP_Method_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message ())
   // *NOTE*: to be used by message allocators...

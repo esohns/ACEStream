@@ -23,6 +23,8 @@
 
 #include "ace/Global_Macros.h"
 
+#include "common_iget.h"
+
 #include "stream_message_base.h"
 
 // forward declarations
@@ -32,10 +34,11 @@ class ACE_Message_Block;
 
 template <typename AllocatorConfigurationType,
           ///////////////////////////////
-          typename DataType,
+          typename DataType, // *NOTE*: inherits Common_IReferenceCount !
           typename CommandType>
 class Stream_DataMessageBase_T
  : public Stream_MessageBase_T<AllocatorConfigurationType>
+ , public Common_IGet_T<DataType>
 {
  public:
   virtual ~Stream_DataMessageBase_T ();
@@ -44,12 +47,14 @@ class Stream_DataMessageBase_T
   typedef DataType DATA_T;
 
   // initialization-after-construction
-  // *NOTE*: assumes lifecycle responsibility for the first argument
+  // *IMPORTANT NOTE*: fire-and-forget API (first argument)
   void initialize (DataType*&,              // data handle
                    ACE_Data_Block* = NULL); // buffer
+  bool isInitialized () const;
 
-  // *TODO*: clean this up !
-  const DataType* const getData () const;
+  // implement Common_IGet_T
+  virtual const DataType& get () const;
+
   virtual CommandType command () const = 0; // return value: message type
 
   // implement Common_IDumpState
@@ -57,7 +62,7 @@ class Stream_DataMessageBase_T
 
  protected:
   Stream_DataMessageBase_T (unsigned int); // size
-  // *NOTE*: assumes responsibility for the argument !
+  // *IMPORTANT NOTE*: fire-and-forget API
   // *WARNING*: this ctor doesn't allocate a buffer off the heap
   Stream_DataMessageBase_T (DataType*&); // data handle
   // copy ctor, to be used by derived::duplicate()
@@ -65,7 +70,7 @@ class Stream_DataMessageBase_T
   //            data block, it will NOT inherit the attached data
   //            --> use initialize()
   Stream_DataMessageBase_T (const Stream_DataMessageBase_T<AllocatorConfigurationType,
-                                                           
+
                                                            DataType,
                                                            CommandType>&);
 
@@ -75,6 +80,10 @@ class Stream_DataMessageBase_T
   Stream_DataMessageBase_T (ACE_Data_Block*, // data block
                             ACE_Allocator*,  // message allocator
                             bool = true);    // increment running message counter ?
+
+  DataType* data_;
+  bool      initialized_;
+
  private:
   typedef Stream_MessageBase_T<AllocatorConfigurationType> inherited;
 
@@ -88,9 +97,6 @@ class Stream_DataMessageBase_T
 
   // overriden from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const = 0;
-
-  DataType* data_;
-  bool      isInitialized_;
 };
 
 // include template implementation

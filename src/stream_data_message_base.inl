@@ -34,7 +34,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
                          CommandType>::Stream_DataMessageBase_T (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
  , data_ (NULL)
- , isInitialized_ (false)
+ , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
@@ -48,7 +48,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
                          CommandType>::Stream_DataMessageBase_T (DataType*& data_inout)
  : inherited ()
  , data_ (data_inout)
- , isInitialized_ (true)
+ , initialized_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
@@ -66,16 +66,16 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
                                                                                                 CommandType>& message_in)
  : inherited (message_in)
  , data_ (NULL)
- , isInitialized_ (false)
+ , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
   // maintain the same message type
-  msg_type (message_in.msg_type ());
+  inherited::msg_type (message_in.msg_type ());
 
   // ... and read/write pointers
-  rd_ptr (message_in.rd_ptr ());
-  wr_ptr (message_in.wr_ptr ());
+  inherited::rd_ptr (message_in.rd_ptr ());
+  inherited::wr_ptr (message_in.wr_ptr ());
 }
 
 template <typename AllocatorConfigurationType,
@@ -86,7 +86,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
                          CommandType>::Stream_DataMessageBase_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
  , data_ (NULL)
- , isInitialized_ (false)
+ , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
@@ -94,7 +94,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
   inherited::msg_type (STREAM_MESSAGE_OBJECT);
 
   // reset read/write pointers
-  reset ();
+  this->reset ();
 }
 
 template <typename AllocatorConfigurationType,
@@ -109,7 +109,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
               messageAllocator_in,
               incrementMessageCounter_in)
  , data_ (NULL)
- , isInitialized_ (false)
+ , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
@@ -117,7 +117,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
   inherited::msg_type (STREAM_MESSAGE_OBJECT);
 
   // reset read/write pointers
-  reset ();
+  this->reset ();
 }
 
 template <typename AllocatorConfigurationType,
@@ -150,7 +150,20 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
     data_ = NULL;
   } // end IF
 
-  isInitialized_ = false;
+  initialized_ = false;
+}
+
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+bool
+Stream_DataMessageBase_T<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::isInitialized () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::isInitialized"));
+
+  return initialized_;
 }
 
 template <typename AllocatorConfigurationType,
@@ -164,8 +177,15 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::initialize"));
 
-  ACE_ASSERT (!isInitialized_);
+  // sanity check(s)
   ACE_ASSERT (data_inout);
+
+  if (initialized_)
+  {
+    // *TODO*: remove type inferences
+    data_->decrease ();
+    data_ = NULL;
+  } // end IF
 
   // *TODO*: remove type inferences
   data_inout->increase ();
@@ -183,22 +203,25 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
     inherited::msg_type (STREAM_MESSAGE_OBJECT);
   } // end IF
 
-  isInitialized_ = true;
+  initialized_ = true;
 }
 
 template <typename AllocatorConfigurationType,
           typename DataType,
           typename CommandType>
-const DataType* const
+const DataType&
 Stream_DataMessageBase_T<AllocatorConfigurationType,
                          DataType,
-                         CommandType>::getData () const
+                         CommandType>::get () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::getData"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::get"));
 
-  ACE_ASSERT (isInitialized_);
+  // sanity check(s)
+  if (!initialized_)
+    return DataType ();
+  ACE_ASSERT (data_);
 
-  return data_;
+  return *data_;
 }
 
 template <typename AllocatorConfigurationType,
@@ -214,9 +237,8 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
   // dump data...
   if (data_)
   {
-    // *TODO*: remove type inference
     try
-    {
+    { // *TODO*: remove type inference
       data_->dump_state ();
     }
     catch (...)

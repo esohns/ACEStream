@@ -18,29 +18,43 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_SESSION_DATA_BASE_H
-#define STREAM_SESSION_DATA_BASE_H
+#ifndef STREAM_DATA_BASE_H
+#define STREAM_DATA_BASE_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Refcountable_T.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_idumpstate.h"
 #include "common_iget.h"
 #include "common_ireferencecount.h"
-//#include "common_referencecounter_base.h"
+
+//#include "stream_data_message_base.h"
+
+//// forward declarations
+//template <typename AllocatorConfigurationType,
+//          typename DataType,
+//          typename CommandType>
+//class Stream_DataMessageBase_T;
 
 template <typename DataType>
-class Stream_SessionDataBase_T
- //: public Common_ReferenceCounterBase
+class Stream_DataBase_T
  : public ACE_Refcountable_T<ACE_SYNCH_MUTEX>
  , public Common_IGetSet_T<DataType>
  , public Common_IReferenceCount
+ , public Common_IDumpState
 {
+// friend class Stream_DataMessageBase_T<AllocatorConfigurationType,
+//                                       Stream_DataBase_T<DataType>,
+//                                       CommandType>;
+
  public:
-  Stream_SessionDataBase_T ();
-  Stream_SessionDataBase_T (DataType*,     // (session) data
-                            bool = false); // delete in dtor ?
-  virtual ~Stream_SessionDataBase_T ();
+  Stream_DataBase_T ();
+  // *IMPORTANT NOTE*: fire-and-forget API
+  Stream_DataBase_T (DataType*&,   // (session) data
+                     bool = true); // delete in dtor ?
+  // *TODO*: make this private ASAP !
+  virtual ~Stream_DataBase_T ();
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -58,23 +72,23 @@ class Stream_SessionDataBase_T
   virtual void wait (unsigned int = 0);
 
   // convenience types
-  typedef DataType SESSION_DATA_T;
+  typedef DataType DATA_T;
 
   //// override assignment (support merge semantics)
   //// *TODO*: enforce merge semantics
-  //Stream_SessionDataBase_T& operator= (const Stream_SessionDataBase_T&);
+  //Stream_DataBase_T& operator= (const Stream_DataBase_T&);
 
  private:
-  //typedef Common_ReferenceCounterBase inherited;
   typedef ACE_Refcountable_T<ACE_SYNCH_MUTEX> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionDataBase_T (const Stream_SessionDataBase_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataBase_T (const Stream_DataBase_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataBase_T& operator= (const Stream_DataBase_T&))
 
   DataType* data_;
   bool      delete_;
 };
 
 // include template implementation
-#include "stream_session_data_base.inl"
+#include "stream_data_base.inl"
 
 #endif

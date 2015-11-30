@@ -32,6 +32,8 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
+#include <libxml/tree.h>
+
 #include "common.h"
 #include "common_inotify.h"
 #include "common_istatistic.h"
@@ -40,8 +42,9 @@
 
 #include "stream_base.h"
 #include "stream_common.h"
+#include "stream_data_base.h"
 #include "stream_messageallocatorheap_base.h"
-#include "stream_session_data_base.h"
+#include "stream_session_data.h"
 #include "stream_statemachine_control.h"
 
 #include "stream_module_db_common.h"
@@ -52,6 +55,9 @@
 
 #include "net_configuration.h"
 #include "net_defines.h"
+
+#include "http_common.h"
+#include "http_defines.h"
 
 #include "test_i_connection_common.h"
 #include "test_i_connection_manager_common.h"
@@ -71,6 +77,37 @@ typedef int Stream_CommandType_t;
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 
 typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReportingHandler_t;
+
+struct Test_I_AllocatorConfiguration
+ : Stream_AllocatorConfiguration
+{
+  inline Test_I_AllocatorConfiguration ()
+   : Stream_AllocatorConfiguration ()
+  {
+    // *NOTE*: this facilitates (message block) data buffers to be scanned with
+    //         'flex's yy_scan_buffer() method
+    buffer = HTTP_FLEX_BUFFER_BOUNDARY_SIZE;
+  };
+};
+
+struct Test_I_MessageData
+{
+  inline Test_I_MessageData ()
+   : HTTPRecord (NULL)
+   , HTMLDocument (NULL)
+  {};
+  inline ~Test_I_MessageData ()
+  {
+    if (HTTPRecord)
+      delete HTTPRecord;
+    if (HTMLDocument)
+      xmlFreeDoc (HTMLDocument);
+  };
+
+  HTTP_Record* HTTPRecord;
+  xmlDocPtr    HTMLDocument;
+};
+typedef Stream_DataBase_T<Test_I_MessageData> Test_I_MessageData_t;
 
 struct Test_I_DataItem
 {
@@ -209,7 +246,7 @@ struct Test_I_Stream_SessionData
   std::string              targetFileName; // file writer module
   Test_I_UserData*         userData;
 };
-typedef Stream_SessionDataBase_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
+typedef Stream_SessionData_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 
 struct Test_I_Stream_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
@@ -265,11 +302,17 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , stream (NULL)
    , targetFileName ()
    , URL ()
-  {};
+  {
+    crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES; // HTTP parser module
+
+    traceParsing = HTTP_DEFAULT_YACC_TRACE; // HTTP parser module
+    traceScanning = HTTP_DEFAULT_LEX_TRACE; // HTTP parser module
+  };
 
   Test_I_Configuration*                     configuration;
   Test_I_IConnection_t*                     connection; // TCP target/IO module
   Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
+  bool                                      crunchMessages; // HTTP parser module
   std::string                               dataBaseOptionsFileName; // db writer module
   std::string                               dataBaseTable; // db writer module
   std::string                               hostName; // net source module
@@ -348,7 +391,7 @@ struct Test_I_Configuration
 };
 
 typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<Test_I_AllocatorConfiguration,
 
                                           Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;

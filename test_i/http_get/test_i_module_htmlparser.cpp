@@ -37,6 +37,8 @@ errorCallback (void* userData_in,
 {
   STREAM_TRACE (ACE_TEXT ("::errorCallback"));
 
+  int result = -1;
+
   Test_I_SAXParserContext* data_p =
       static_cast<Test_I_SAXParserContext*> (userData_in);
 
@@ -47,10 +49,11 @@ errorCallback (void* userData_in,
   va_list arguments;
 
   va_start (arguments, message_in);
-  int length = ACE_OS::vsnprintf (buffer,
-                                  sizeof (buffer),
-//                                  sizeof (buffer) / sizeof (buffer[0]),
-                                  message_in, arguments);
+  result = ACE_OS::vsnprintf (buffer,
+                              sizeof (buffer),
+//                            sizeof (buffer) / sizeof (buffer[0]),
+                              message_in, arguments);
+  ACE_UNUSED_ARG (result);
   va_end (arguments);
 
   ACE_DEBUG ((LM_ERROR,
@@ -71,71 +74,110 @@ structuredErrorCallback (void* userData_in,
               ACE_TEXT (error_in->message)));
 }
 
-Test_I_Stream_Module_HTMLParser::Test_I_Stream_Module_HTMLParser ()
+Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser ()
  : inherited ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_HTMLParser::Test_I_Stream_Module_HTMLParser"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::Test_I_Stream_HTMLParser"));
 
 }
 
-Test_I_Stream_Module_HTMLParser::~Test_I_Stream_Module_HTMLParser ()
+Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_HTMLParser::~Test_I_Stream_Module_HTMLParser"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser"));
 
 }
 
-void
-Test_I_Stream_Module_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_inout,
-                                                    bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_HTMLParser::handleDataMessage"));
+//void
+//Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_inout,
+//                                             bool& passMessageDownstream_out)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::handleDataMessage"));
 
-  int result = -1;
+//  int result = -1;
+//  MessageType* message_p = message_inout;
+//  xmlParserErrors error;
+//  bool complete = false;
 
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
+//  // don't care (implies yes per default, if part of a stream)
+//  ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (message_inout);
-  ACE_ASSERT (inherited::parserContext_.parserContext);
+//  // sanity check(s)
+//  ACE_ASSERT (message_inout);
+//  ACE_ASSERT (parserContext_.parserContext);
 
-  result =
-      htmlParseChunk (inherited::parserContext_.parserContext, // context
-                      message_inout->rd_ptr (),                // chunk
-                      message_inout->length (),                // size
-                      0);                                      // terminate ?
-  if (result)
-  {
-//    xmlParserErrors error = static_cast<xmlParserErrors> (result);
-//    ACE_DEBUG ((LM_WARNING,
-//                ACE_TEXT ("failed to htmlParseChunk() (status was: %d), continuing\n"),
-//                error));
-
-    xmlCtxtResetLastError (inherited::parserContext_.parserContext);
-  } // end IF
-//  result = htmlParseChunk(parserContext_, ACE_TEXT_ALWAYS_CHAR (""), 0, 1);
-//  if (result)
+//  do
 //  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to htmlParseChunk() (status was: %d), returning\n"),
-//                result));
-//    return;
-//  } // end IF
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("parsing HTML (message ID: %d, %d byte(s))...\n"),
+//                message_p->getID (),
+//                message_p->length ()));
 
-//  if (!parserContext_->wellFormed)
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("HTML document not well formed, continuing\n")));
-//  if (parserContext_->errNo)
-//    ACE_DEBUG ((LM_WARNING,
-//                ACE_TEXT ("HTML document had errors (errno was: %d), continuing\n"),
-//                parserContext_->errNo));
-}
+//    result = htmlParseChunk (parserContext_.parserContext, // context
+//                             message_p->rd_ptr (),         // chunk
+//                             message_p->length (),         // size
+//                             0);                           // terminate ?
+//    if (result)
+//    {
+//      error = static_cast<xmlParserErrors> (result);
+//      ACE_DEBUG ((LM_WARNING,
+//                  ACE_TEXT ("failed to htmlParseChunk() (status was: %d), continuing\n"),
+//                  error));
+//    } // end IF
+//    message_p = message_p->cont ();
+
+//    // *TODO*: this depends on (upstream) HTTP parser behavior --> remove
+//    if ((message_p->length () == 0) && (message_p->cont () == NULL))
+//    {
+//      complete = true;
+//      break; // done
+//    } // end IF
+//  } while (true);
+
+//  if (complete)
+//  {
+//    result = htmlParseChunk (parserContext_.parserContext,
+//                             ACE_TEXT_ALWAYS_CHAR (""),
+//                             0,
+//                             1);
+//    if (result)
+//    {
+//      error = static_cast<xmlParserErrors> (result);
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to htmlParseChunk() (status was: %d), continuing\n"),
+//                  error));
+//    } // end IF
+
+//    if (!parserContext_.parserContext->wellFormed)
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("HTML document not well formed, continuing\n")));
+//    if (parserContext_.parserContext->errNo)
+//      ACE_DEBUG ((LM_WARNING,
+//                  ACE_TEXT ("HTML document had errors: \"%s\", continuing\n"),
+//                  ACE_TEXT (ACE_OS::strerror (parserContext_.parserContext->errNo))));
+
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("parsing HTML...DONE\n")));
+
+//    const typename MessageType::DATA_T& data_container_r =
+//        message_inout->get ();
+//    typename MessageType::DATA_T::DATA_T& data_r =
+//        const_cast<typename MessageType::DATA_T::DATA_T&> (data_container_r.get ());
+//    ACE_ASSERT (!data_r.HTMLDocument);
+//    data_r.HTMLDocument = parserContext_.parserContext->myDoc;
+////    data_r.HTMLDocument = xmlCopyDoc (parserContext_.parserContext->myDoc);
+////    if (!data_r.HTMLDocument)
+////      ACE_DEBUG ((LM_ERROR,
+////                  ACE_TEXT ("failed to xmlCopyDoc(): \"%m\", continuing\n")));
+//    parserContext_.parserContext->myDoc = NULL;
+//    xmlClearParserCtxt (parserContext_.parserContext);
+//  } // end IF
+//}
 
 void
-Test_I_Stream_Module_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
+Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
                                                        bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_HTMLParser::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -196,9 +238,9 @@ Test_I_Stream_Module_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMess
 }
 
 bool
-Test_I_Stream_Module_HTMLParser::initialize (const Test_I_Stream_ModuleHandlerConfiguration& configuration_in)
+Test_I_Stream_HTMLParser::initialize (const Test_I_Stream_ModuleHandlerConfiguration& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_HTMLParser::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (configuration_in.mode == STREAM_MODULE_HTMLPARSER_SAX);
@@ -219,9 +261,9 @@ Test_I_Stream_Module_HTMLParser::initialize (const Test_I_Stream_ModuleHandlerCo
 }
 
 bool
-Test_I_Stream_Module_HTMLParser::initializeSAXParser ()
+Test_I_Stream_HTMLParser::initializeSAXParser ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_HTMLParser::initializeSAXParser"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::initializeSAXParser"));
 
   // set necessary SAX parser callbacks
   // *IMPORTANT NOTE*: the default SAX callbacks expect xmlParserCtxtPtr as user

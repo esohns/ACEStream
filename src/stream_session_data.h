@@ -23,33 +23,57 @@
 
 #include "ace/Global_Macros.h"
 
+#include "common_idumpstate.h"
 #include "common_iget.h"
 #include "common_referencecounter_base.h"
 
-template <typename SessionDataType>
+//#include "stream_session_message_base.h"
+
+//// forward declarations
+//template <typename AllocatorConfigurationType,
+//          typename SessionDataType,
+//          typename UserDataType>
+//class Stream_SessionMessageBase_T;
+
+template <typename DataType>
 class Stream_SessionData_T
  : public Common_ReferenceCounterBase
- , public Common_IGetSet_T<SessionDataType>
+ , public Common_IGetSet_T<DataType>
+ , public Common_IDumpState
 {
+// friend class Stream_SessionMessageBase_T<AllocatorConfigurationType,
+//                                          Stream_SessionData_T<SessionDataType>,
+//                                          UserDataType>;
+
  public:
-  Stream_SessionData_T (const SessionDataType&);
+  // convenience types
+  typedef DataType DATA_T;
+
+  Stream_SessionData_T ();
+  // *IMPORTANT NOTE*: fire-and-forget API
+  Stream_SessionData_T (DataType*&); // session data handle
+  // *TODO*: make this private ASAP !
   virtual ~Stream_SessionData_T ();
 
   // implement Common_IDumpState
   virtual void dump_state () const;
 
   // implement Common_IGetSet_T
-  virtual const SessionDataType& get () const;
-  virtual void set (const SessionDataType&);
+  virtual const DataType& get () const;
+  // *IMPORTANT NOTE*: fire-and-forget API
+  // *WARNING*: reference count is (re)set to 1 !
+  virtual void set (const DataType&); // session data handle
 
  private:
   typedef Common_ReferenceCounterBase inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T (const Stream_SessionData_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T& operator= (const Stream_SessionData_T&))
 
-  SessionDataType data_;
+  DataType* data_;
 };
+
+// include template implementation
+#include "stream_session_data.inl"
 
 #endif
