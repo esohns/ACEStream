@@ -12,8 +12,9 @@ check_function_exists (strerror HAVE_FUNC_STRERROR)
 check_function_exists (tzset HAVE_FUNC_TZSET)
 
 if (UNIX)
- include (CheckLibraryExists)
- check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
+# include (CheckLibraryExists)
+# check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
+ find_package (Threads REQUIRED)
 endif ()
 
 set (ACE_LIB_FILE libACE.so)
@@ -36,12 +37,14 @@ elseif (WIN32)
  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
                PATHS ENV ACE_ROOT
 #               PATH_SUFFIXES lib\\${CMAKE_CFG_INTDIR}\\Win32
-               PATH_SUFFIXES lib\\${CMAKE_BUILD_TYPE}\\Win32
+               PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
                DOC "searching for ${ACE_LIB_FILE}")
 endif ()
 #if (NOT EXISTS ACE_LIBRARY)
 if (NOT ACE_LIBRARY)
  message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
+else ()
+ message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
 endif ()
 add_definitions (-DACE_HAS_DLL)
 
@@ -66,7 +69,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ACE)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/libCommon/src)
 else ()
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../ATCD/ACE)
+ include_directories ($ENV{ACE_ROOT})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../libCommon/src)
 endif ()
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/..)

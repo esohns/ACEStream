@@ -25,17 +25,18 @@ elseif (WIN32)
  set (ACE_LIB_FILE ACE${LIB_FILE_SUFFIX}.lib)
  find_library (ACE_LIBRARY ${ACE_LIB_FILE}
                PATHS ENV ACE_ROOT
-               PATH_SUFFIXES lib\\${CMAKE_BUILD_TYPE}\\Win32
+               PATH_SUFFIXES lib lib\\${CMAKE_BUILD_TYPE}\\Win32
                DOC "searching for ${ACE_LIB_FILE}"
                NO_DEFAULT_PATH)
 endif ()
 #if (NOT EXISTS ACE_LIBRARY)
 if (NOT ACE_LIBRARY)
  message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
+else ()
+ message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
 endif ()
 
 include (FindPkgConfig)
-#pkg_check_modules (PKGACE REQUIRED ACE)
 pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
 
 #if (WIN32)
@@ -117,7 +118,7 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/protocol/http)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
 else ()
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
+ include_directories ($ENV{ACE_ROOT})
 # include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 # *TODO*: repair pkgconfig support
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.1/include)
@@ -173,9 +174,6 @@ set (http_get_EXE_SRCS
      stdafx.h)
 
 add_executable (http_get ${http_get_EXE_SRCS})
-
-#add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
-#add_dependencies (${PROJECT_NAME} Common)
 
 target_link_libraries (http_get ${CMAKE_THREAD_LIBS_INIT})
 if (WIN32)

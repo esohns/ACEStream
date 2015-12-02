@@ -1,16 +1,8 @@
 cmake_minimum_required (VERSION 2.8)
 
-#include (CheckLibraryExists)
-#check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
-#find_library (HAVE_LIB_ACE libACE)
-##add_dependencies (libCommon ACE)
-
 include (FindPkgConfig)
-#pkg_check_modules (PKG_ACE REQUIRED ACE)
 pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
 
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ATCD/ACE)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
 if (UNIX)
  include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 elseif (WIN32)
@@ -41,8 +33,6 @@ add_library (${PROJECT_NAME}_HTML SHARED ${ACEStream_HTML_LIB_SRCS})
 add_dependencies (${PROJECT_NAME}_HTML Common)
 add_dependencies (${PROJECT_NAME}_HTML ${PROJECT_NAME})
 
-#target_link_libraries (${PROJECT_NAME}_HTML libACEStream)
-#target_link_libraries (${PROJECT_NAME}_HTML libCommon)
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_HTML ${ACE_LIBRARY})
 endif ()

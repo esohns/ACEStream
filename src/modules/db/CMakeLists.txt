@@ -1,12 +1,6 @@
 cmake_minimum_required (VERSION 2.8)
 
-#include (CheckLibraryExists)
-#check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
-#find_library (HAVE_LIB_ACE libACE)
-##add_dependencies (libCommon ACE)
-
 #include (FindPkgConfig)
-#pkg_check_modules (PKG_ACE REQUIRED ACE)
 #pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
 
 # *TODO*: add dependencies
@@ -31,8 +25,6 @@ if (NOT MYSQL_LIBRARY)
 endif ()
 #add_dependencies (${PROJECT_NAME}_Database libmysqlpp.so)
 
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ATCD/ACE)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
 if (UNIX)
 # include_directories (${PKG_PKG_MYSQL_INCLUDE_DIRS})
 elseif (WIN32)
@@ -42,7 +34,6 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libmysql_2/include)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
-#include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
 set (${PROJECT_NAME}_Database_LIB_SRCS
@@ -65,8 +56,6 @@ add_library (${PROJECT_NAME}_Database SHARED ${ACEStream_Database_LIB_SRCS})
 add_dependencies (${PROJECT_NAME}_Database Common)
 add_dependencies (${PROJECT_NAME}_Database ${PROJECT_NAME})
 
-#target_link_libraries (${PROJECT_NAME}_Database libACEStream)
-#target_link_libraries (${PROJECT_NAME}_Database libCommon)
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Database ${ACE_LIBRARY})
  target_link_libraries (${PROJECT_NAME}_Database ${MYSQL_LIBRARY})

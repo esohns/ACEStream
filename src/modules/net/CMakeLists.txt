@@ -1,10 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
 
-#include (CheckLibraryExists)
-#check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
-#find_library (HAVE_LIB_ACE libACE)
-##add_dependencies (libCommon ACE)
-
 # *TODO*: add dependencies
 #find_package (libACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 #              REQUIRED
@@ -15,15 +10,15 @@ cmake_minimum_required (VERSION 2.8)
 #if (NOT EXISTS ${libACENetwork_DIR})
 # message (FATAL_ERROR "could not find libACENetwork, aborting")
 #endif ()
-##add_dependencies (libCommon ACE)
 
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ATCD/ACE)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src/client_server)
+if (UNIX)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
+elseif (WIN32)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libACENetwork/src/client_server)
+endif ()
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
@@ -50,8 +45,6 @@ add_library (${PROJECT_NAME}_Net SHARED ${ACEStream_Net_LIB_SRCS})
 add_dependencies (${PROJECT_NAME}_Net Common)
 add_dependencies (${PROJECT_NAME}_Net ${PROJECT_NAME})
 
-#target_link_libraries (${PROJECT_NAME}_Net libACEStream)
-#target_link_libraries (${PROJECT_NAME}_Net libCommon)
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Net ${ACE_LIBRARY})
 endif ()

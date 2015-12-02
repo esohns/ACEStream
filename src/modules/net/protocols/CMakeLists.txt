@@ -1,16 +1,10 @@
 cmake_minimum_required (VERSION 2.8)
 
-#include (CheckLibraryExists)
-#check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
-#find_library (HAVE_LIB_ACE libACE)
-##add_dependencies (libCommon ACE)
-
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ATCD/ACE)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../../ATCD/ACE)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libACENetwork/src)
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libACENetwork/src/protocol/http)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../../libACENetwork/src)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../../libACENetwork/src/protocol/http)
+if (UNIX)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/libACENetwork/src/protocol/http)
+elseif (WIN32)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../../libACENetwork/src/protocol/http)
+endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
@@ -27,10 +21,8 @@ add_library (${PROJECT_NAME}_Net_Protocol_HTTPGet SHARED ${ACEStream_Net_Protoco
 
 add_dependencies (${PROJECT_NAME}_Net_Protocol_HTTPGet Common)
 add_dependencies (${PROJECT_NAME}_Net_Protocol_HTTPGet ${PROJECT_NAME})
-#add_dependencies (${PROJECT_NAME}_Net_Protocol_HTTPGet ${PROJECT_NAME}_Net)
+add_dependencies (${PROJECT_NAME}_Net_Protocol_HTTPGet ${PROJECT_NAME}_Net)
 
-#target_link_libraries (${PROJECT_NAME}_Net_Protocol_HTTPGet libACEStream)
-#target_link_libraries (${PROJECT_NAME}_Net_Protocol_HTTPGet libCommon)
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Net_Protocol_HTTPGet ${ACE_LIBRARY})
 endif ()

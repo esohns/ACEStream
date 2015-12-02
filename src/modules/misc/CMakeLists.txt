@@ -1,12 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
 
-#include (CheckLibraryExists)
-#check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
-#find_library (HAVE_LIB_ACE libACE)
-##add_dependencies (libCommon ACE)
-
-#include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../modules/ATCD/ACE)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
@@ -30,8 +23,6 @@ add_library (${PROJECT_NAME}_Misc SHARED ${ACEStream_Misc_LIB_SRCS})
 add_dependencies (${PROJECT_NAME}_Misc Common)
 add_dependencies (${PROJECT_NAME}_Misc ${PROJECT_NAME})
 
-#target_link_libraries (${PROJECT_NAME}_Misc libACEStream)
-#target_link_libraries (${PROJECT_NAME}_Misc libCommon)
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Misc ${ACE_LIBRARY})
 endif ()

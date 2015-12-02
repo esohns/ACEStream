@@ -461,7 +461,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
   if (session_data_p)
-    if (session_data_p->lock);
+    if (session_data_p->lock)
     {
       result = session_data_p->lock->acquire ();
       if (result == -1)
@@ -488,7 +488,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
               (allocator_ ? allocator_->cache_depth () : 0)));
 
   if (session_data_p)
-    if (session_data_p->lock);
+    if (session_data_p->lock)
     {
       result = session_data_p->lock->release ();
       if (result == -1)
