@@ -25,6 +25,7 @@
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
+#include "common_timer_manager_common.h"
 
 #include "stream_macros.h"
 

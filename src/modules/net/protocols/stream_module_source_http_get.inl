@@ -375,7 +375,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   message_p = NULL;
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: dispatched HTTP Get (URI was: \"%s\")\n"),
+              ACE_TEXT ("%s: dispatched HTTP GET (URI was: \"%s\")\n"),
               inherited::mod_->name (),
               ACE_TEXT (URI_in.c_str ())));
 
