@@ -316,7 +316,6 @@
     <ClCompile Include="..\..\src\stream_module_base.cpp" />
     <ClCompile Include="..\..\src\stream_resetcounterhandler.cpp" />
     <ClCompile Include="..\..\src\stream_session_data.cpp" />
-    <ClCompile Include="..\..\src\stream_session_data_base.cpp" />
     <ClCompile Include="..\..\src\stream_session_message_base.cpp" />
     <ClCompile Include="..\..\src\stream_statemachine_control.cpp" />
     <ClCompile Include="..\..\src\stream_statistichandler.cpp" />
@@ -354,7 +353,6 @@
     <ClInclude Include="..\..\src\stream_module_base.h" />
     <ClInclude Include="..\..\src\stream_resetcounterhandler.h" />
     <ClInclude Include="..\..\src\stream_session_data.h" />
-    <ClInclude Include="..\..\src\stream_session_data_base.h" />
     <ClInclude Include="..\..\src\stream_session_message_base.h" />
     <ClInclude Include="..\..\src\stream_statemachine_common.h" />
     <ClInclude Include="..\..\src\stream_statemachine_control.h" />
@@ -376,7 +374,6 @@
     <None Include="..\..\src\stream_message_base.inl" />
     <None Include="..\..\src\stream_module_base.inl" />
     <None Include="..\..\src\stream_session_data.inl" />
-    <None Include="..\..\src\stream_session_data_base.inl" />
     <None Include="..\..\src\stream_session_message_base.inl" />
     <None Include="..\..\src\stream_statemachine_control.inl" />
     <None Include="..\..\src\stream_statistichandler.inl" />

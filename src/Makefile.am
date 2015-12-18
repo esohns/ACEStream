@@ -6,7 +6,7 @@ DEFS += \
   -DPACKAGE=\"@PACKAGE_NAME@\"
 
 AM_CPPFLAGS = \
-  -I$(top_srcdir)/modules/ATCD/ACE
+  -I$(top_srcdir)/modules/ACE
 if VALGRIND_SUPPORT
 AM_CPPFLAGS += \
   $(PKGVALGRIND_CFLAGS)
@@ -15,20 +15,29 @@ endif
 noinst_HEADERS = \
   stdafx.h
 include_HEADERS = \
+  stream_allocatorbase.h \
+  stream_allocatorbase.inl \
   stream_allocatorheap.h \
+  stream_allocatorheap.inl \
   stream_base.h \
   stream_base.inl \
+  stream_cachedallocatorheap.h \
+  stream_cachedallocatorheap.inl \
+  stream_cacheddatablockallocatorheap.h \
   stream_cachedmessageallocator.h \
   stream_cachedmessageallocator.inl \
+  stream_cachedmessageallocatorheap.h \
   stream_cachedmessageallocatorheap_base.h \
   stream_cachedmessageallocatorheap_base.inl \
   stream_cachedmessageallocatorheap.h \
   stream_cacheddatablockallocatorheap.h \
-  stream_cachedallocatorheap.h \
   stream_common.h \
+  stream_data_base.h \
+  stream_data_base.inl \
+  stream_datablockallocatorheap.h \
+  stream_datablockallocatorheap.inl \
   stream_data_message_base.h \
   stream_data_message_base.inl \
-  stream_datablockallocatorheap.h \
   stream_defines.h \
   stream_exports.h \
   stream_headmoduletask_base.h \
@@ -39,10 +48,10 @@ include_HEADERS = \
   stream_istreamcontrol.h \
   stream_itask.h \
   stream_macros.h \
-  stream_message_base.h \
-  stream_message_base.inl \
   stream_messageallocatorheap_base.h \
   stream_messageallocatorheap_base.inl \
+  stream_message_base.h \
+  stream_message_base.inl \
   stream_messagequeue.h \
   stream_messagequeue_base.h \
   stream_messagequeue_base.inl \
@@ -56,6 +65,7 @@ include_HEADERS = \
   stream_session_message_base.h \
   stream_session_message_base.inl \
   stream_statemachine_control.h \
+  stream_statemachine_control.inl \
   stream_statistichandler.h \
   stream_statistichandler.inl \
   stream_streammodule_base.h \
@@ -71,14 +81,25 @@ include_HEADERS = \
 lib_LTLIBRARIES = libACEStream.la
 
 libACEStream_la_SOURCES = \
+  stream_allocatorbase.cpp \
+  stream_allocatorbase.h \
+  stream_allocatorbase.inl \
   stream_allocatorheap.cpp \
   stream_allocatorheap.h \
+  stream_allocatorheap.inl \
   stream_base.cpp \
   stream_base.h \
   stream_base.inl \
+  stream_cachedallocatorheap.cpp \
+  stream_cachedallocatorheap.h \
+  stream_cachedallocatorheap.inl \
+  stream_cacheddatablockallocatorheap.cpp \
+  stream_cacheddatablockallocatorheap.h \
   stream_cachedmessageallocator.cpp \
   stream_cachedmessageallocator.h \
   stream_cachedmessageallocator.inl \
+  stream_cachedmessageallocatorheap.cpp \
+  stream_cachedmessageallocatorheap.h \
   stream_cachedmessageallocatorheap_base.cpp \
   stream_cachedmessageallocatorheap_base.h \
   stream_cachedmessageallocatorheap_base.inl \
@@ -86,14 +107,16 @@ libACEStream_la_SOURCES = \
   stream_cachedmessageallocatorheap.h \
   stream_cacheddatablockallocatorheap.cpp \
   stream_cacheddatablockallocatorheap.h \
-  stream_cachedallocatorheap.cpp \
-  stream_cachedallocatorheap.h \
   stream_common.h \
+  stream_data_base.cpp \
+  stream_data_base.h \
+  stream_data_base.inl \
+  stream_datablockallocatorheap.cpp \
+  stream_datablockallocatorheap.h \
+  stream_datablockallocatorheap.inl \
   stream_data_message_base.cpp \
   stream_data_message_base.h \
   stream_data_message_base.inl \
-  stream_datablockallocatorheap.cpp \
-  stream_datablockallocatorheap.h \
   stream_defines.h \
   stream_exports.h \
   stream_headmoduletask_base.cpp \
@@ -105,21 +128,19 @@ libACEStream_la_SOURCES = \
   stream_istreamcontrol.h \
   stream_itask.h \
   stream_macros.h \
-  stream_message_base.cpp \
-  stream_message_base.h \
-  stream_message_base.inl \
   stream_messageallocatorheap_base.cpp \
   stream_messageallocatorheap_base.h \
   stream_messageallocatorheap_base.inl \
-  stream_messagequeue.cpp \
+  stream_message_base.cpp \
+  stream_message_base.h \
+  stream_message_base.inl \
   stream_messagequeue.h \
   stream_messagequeue_base.cpp \
   stream_messagequeue_base.h \
   stream_messagequeue_base.inl \
   stream_module_base.cpp \
-  stream_module_base.inl \
   stream_module_base.h \
-  stream_resetcounterhandler.cpp \
+  stream_module_base.inl \
   stream_resetcounterhandler.h \
   stream_session_data.cpp \
   stream_session_data.h \
@@ -132,6 +153,7 @@ libACEStream_la_SOURCES = \
   stream_session_message_base.inl \
   stream_statemachine_control.cpp \
   stream_statemachine_control.h \
+  stream_statemachine_control.inl \
   stream_statistichandler.cpp \
   stream_statistichandler.h \
   stream_statistichandler.inl \

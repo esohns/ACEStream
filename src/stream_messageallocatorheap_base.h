@@ -33,7 +33,8 @@
 #include "stream_datablockallocatorheap.h"
 
 // forward declarations
-class Stream_AllocatorHeap;
+template <typename AllocatorConfigurationType>
+class Stream_AllocatorHeap_T;
 
 template <typename ConfigurationType,
           ///////////////////////////////
@@ -113,7 +114,7 @@ class Stream_MessageAllocatorHeapBase_T
   DATABLOCK_ALLOCATOR_T                         dataBlockAllocator_;
   ACE_Thread_Semaphore                          freeMessageCounter_;
   // *NOTE*: only the (unsigned) 'long' specialization may have support the
-  //         interlocked exchange_add  (see ace/Atomic_Op.h)
+  //         interlocked exchange_add (see ace/Atomic_Op.h)
   ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;
 };
 
