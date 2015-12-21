@@ -197,7 +197,8 @@ Stream_Module_Base_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::reset"));
 
-  // OK: (re-)set our reader and writer tasks...
+  // (re-)set reader and writer tasks after ACE_Module::close ()
+  // *NOTE*: ACE_Module::close() is invoked implicitly by ACE_Stream::remove()
   inherited::writer (writer_,
                      inherited::M_DELETE_NONE);
 

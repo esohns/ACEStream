@@ -434,18 +434,19 @@ Stream_Module_FileReader_T<LockType,
   bool stop_processing = false;
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration);
   ACE_ASSERT (!isOpen_);
 //  ACE_ASSERT (inherited::sessionData_);
 //  const SessionDataType& session_data_r = inherited::sessionData_->get ();
 //  ACE_ASSERT (session_data_r.lock);
 
-  result = file_address.set (inherited::configuration_.fileName.c_str ());
+  result = file_address.set (inherited::configuration_->fileName.c_str ());
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (inherited::configuration_.fileName.c_str ())));
+                ACE_TEXT (inherited::configuration_->fileName.c_str ())));
 
     // signal the controller
     inherited::finished ();
@@ -464,7 +465,7 @@ Stream_Module_FileReader_T<LockType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (inherited::configuration_.fileName.c_str ())));
+                ACE_TEXT (inherited::configuration_->fileName.c_str ())));
 
     // signal the controller
     inherited::finished ();
@@ -474,8 +475,8 @@ Stream_Module_FileReader_T<LockType,
   isOpen_ = true;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("opened file stream \"%s\" (%u byte(s))...\n"),
-              ACE_TEXT (inherited::configuration_.fileName.c_str ()),
-              Common_File_Tools::size (inherited::configuration_.fileName)));
+              ACE_TEXT (inherited::configuration_->fileName.c_str ()),
+              Common_File_Tools::size (inherited::configuration_->fileName)));
 
   // step1: start processing data...
 //   ACE_DEBUG ((LM_DEBUG,
@@ -538,12 +539,12 @@ Stream_Module_FileReader_T<LockType,
 
     // *TODO*: remove type inference
     message_p =
-        allocateMessage (inherited::configuration_.streamConfiguration->bufferSize);
+        allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("allocateMessage(%d) failed: \"%m\", aborting\n"),
-                  inherited::configuration_.streamConfiguration->bufferSize));
+                  inherited::configuration_->streamConfiguration->bufferSize));
 
       // signal the controller
       finished = true;
@@ -610,11 +611,11 @@ Stream_Module_FileReader_T<LockType,
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
-                ACE_TEXT (inherited::configuration_.fileName.c_str ())));
+                ACE_TEXT (inherited::configuration_->fileName.c_str ())));
   isOpen_ = false;
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("closed file stream \"%s\"...\n"),
-              ACE_TEXT (inherited::configuration_.fileName.c_str ())));
+              ACE_TEXT (inherited::configuration_->fileName.c_str ())));
 
 done:
   return result_2;
@@ -641,18 +642,20 @@ Stream_Module_FileReader_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::allocateMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+  ACE_ASSERT (inherited::configuration_);
+  // *TODO*: remove type inference
+  ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
   // initialize return value(s)
   ProtocolMessageType* message_out = NULL;
 
-  if (inherited::configuration_.streamConfiguration->messageAllocator)
+  if (inherited::configuration_->streamConfiguration->messageAllocator)
   {
     try
     {
       // *TODO*: remove type inference
       message_out =
-          static_cast<ProtocolMessageType*> (inherited::configuration_.streamConfiguration->messageAllocator->malloc (requestedSize_in));
+          static_cast<ProtocolMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
     }
     catch (...)
     {
@@ -698,9 +701,10 @@ Stream_Module_FileReader_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::putStatisticMessage"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::sessionData_);
-  // *TODO*: remove type inferences
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+  // *TODO*: remove type inference
+  ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
   // step1: update session state
   SessionDataType& session_data_r =
@@ -727,5 +731,5 @@ Stream_Module_FileReader_T<LockType,
   // *TODO*: remove type inference
   return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
                                        *inherited::sessionData_,
-                                       inherited::configuration_.streamConfiguration->messageAllocator);
+                                       inherited::configuration_->streamConfiguration->messageAllocator);
 }

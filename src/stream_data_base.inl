@@ -24,8 +24,6 @@
 
 template <typename DataType>
 Stream_DataBase_T<DataType>::Stream_DataBase_T ()
- //: inherited (1,    // initial count
- //             true) // delete on zero ?
  : inherited (1) // initial count
  , data_ (NULL)
  , delete_ (true)
@@ -37,8 +35,6 @@ Stream_DataBase_T<DataType>::Stream_DataBase_T ()
 template <typename DataType>
 Stream_DataBase_T<DataType>::Stream_DataBase_T (DataType*& data_inout,
                                                 bool delete_in)
- //: inherited (1,    // initial count
- //             true) // delete on zero ?
  : inherited (1) // initial count
  , data_ (data_inout)
  , delete_ (delete_in)
@@ -53,7 +49,6 @@ Stream_DataBase_T<DataType>::~Stream_DataBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::~Stream_DataBase_T"));
 
-  // clean up ?
   if (delete_)
     delete data_;
 }

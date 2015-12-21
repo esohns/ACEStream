@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include <iostream>
+#include <regex>
+#include <sstream>
 
 #include "ace/FILE_Addr.h"
 #include "ace/FILE_Connector.h"
@@ -235,30 +237,109 @@ Stream_Module_FileWriter_T<SessionMessageType,
                     ACE_TEXT ("overwriting existing target file \"%s\"\n"),
                     ACE_TEXT (file_name.c_str ())));
 
-      ACE_FILE_Addr file_address;
-      result = file_address.set (file_name.c_str ());
-      if (result == -1)
+      if (!Common_File_Tools::open (file_name,  // FQ file name
+                                    (O_CREAT |
+                                     O_TRUNC |
+                                     O_WRONLY), // flags
+                                    stream_))   // stream
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_FILE_Addr::set(\"%s\"): \"%m\", returning\n"),
+                    ACE_TEXT ("failed to Common_File_Tools::open(\"%s\"), returning\n"),
                     ACE_TEXT (file_name.c_str ())));
         return;
       } // end IF
-      ACE_FILE_Connector file_connector;
-      result =
-          file_connector.connect (stream_,                 // stream
-                                  file_address,            // filename
-                                  NULL,                    // timeout (block)
-                                  ACE_Addr::sap_any,       // (local) filename: N/A
-                                  0,                       // reuse_addr: N/A
-                                  (O_CREAT |
-                                   O_TRUNC |
-                                   O_WRONLY),              // flags --> open
-                                  ACE_DEFAULT_FILE_PERMS); // permissions --> open
+      isOpen_ = true;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("opened file stream \"%s\"...\n"),
+                  ACE_TEXT (file_name.c_str ())));
+
+      break;
+    }
+    case STREAM_SESSION_STEP:
+    {
+      ACE_FILE_Addr file_address;
+      result = stream_.get_local_addr (file_address);
       if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n")));
+      ACE_TCHAR buffer[PATH_MAX];
+      ACE_OS::memset (buffer, 0, sizeof (buffer));
+      result = file_address.addr_to_string (buffer, sizeof (buffer));
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n")));
+
+      if (isOpen_)
+      {
+        ACE_FILE_Info file_info;
+        ACE_OS::memset (&file_info, 0, sizeof (file_info));
+        result = stream_.get_info (file_info);
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_FILE_IO::get_info(): \"%m\", continuing\n")));
+
+        result = stream_.close ();
+        if (result == -1)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_File_Stream::close(): \"%m\", returning\n")));
+          return;
+        } // end IF
+        isOpen_ = false;
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("closed file stream \"%s\" (wrote: %u byte(s))...\n"),
+                    ACE_TEXT (buffer),
+                    static_cast<unsigned int> (file_info.size_)));
+      } // end IF
+
+      unsigned int file_index = 0;
+      std::stringstream converter;
+
+      std::string regex_string =
+        ACE_TEXT_ALWAYS_CHAR ("^([^_.]+)(?:_([[:digit:]]+))?(\\..+)$");
+      std::regex regex (regex_string,
+                        std::regex::ECMAScript);
+      std::cmatch match_results;
+      if (!std::regex_match (buffer,
+                             match_results,
+                             regex,
+                             std::regex_constants::match_default))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_FILE_Connector::connect(\"%s\"): \"%m\", returning\n"),
+                    ACE_TEXT ("invalid file name (was: \"%s\"), returning\n"),
+                    buffer));
+        return;
+      } // end IF
+      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+
+      ACE_ASSERT (match_results[1].matched);
+      std::string file_name = match_results.str (1);
+      if (match_results[2].matched)
+      {
+        converter << match_results.str (2);
+        converter >> file_index;
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      } // end IF
+      converter << ++file_index;
+      file_name += '_';
+      file_name += converter.str ();
+      if (match_results[3].matched)
+        file_name += match_results.str (3);
+
+      if (Common_File_Tools::isReadable (file_name))
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("overwriting existing target file \"%s\"\n"),
+                    ACE_TEXT (file_name.c_str ())));
+
+      if (!Common_File_Tools::open (file_name,  // FQ file name
+                                    (O_CREAT |
+                                     O_TRUNC |
+                                     O_WRONLY), // flags
+                                    stream_))   // stream
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Common_File_Tools::open(\"%s\"), returning\n"),
                     ACE_TEXT (file_name.c_str ())));
         return;
       } // end IF
@@ -290,6 +371,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_FILE_IO::get_info(): \"%m\", continuing\n")));
+
         result = stream_.close ();
         if (result == -1)
         {

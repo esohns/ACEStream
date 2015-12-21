@@ -710,10 +710,10 @@ idle_update_progress_source_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->GTKState->builders.end ());
 
-  GtkProgressBar* progress_bar_p =
+  GtkProgressBar* progressbar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-  ACE_ASSERT (progress_bar_p);
+  ACE_ASSERT (progressbar_p);
 
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
@@ -785,7 +785,7 @@ idle_update_progress_source_cb (gpointer userData_in)
     fraction_d =
       static_cast<double> (data_p->transferred) / static_cast<double> (data_p->size);
   } // end IF
-  gtk_progress_bar_set_fraction (progress_bar_p, fraction_d);
+  gtk_progress_bar_set_fraction (progressbar_p, fraction_d);
 
   // --> reschedule
   return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
@@ -1013,13 +1013,13 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   gtk_spin_button_set_value (spin_button_p,
                               static_cast<double> (data_p->configuration->streamConfiguration.bufferSize));
 
-  GtkProgressBar* progress_bar_p =
+  GtkProgressBar* progressbar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-  ACE_ASSERT (progress_bar_p);
+  ACE_ASSERT (progressbar_p);
   gint width, height;
-  gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
-  gtk_progress_bar_set_pulse_step (progress_bar_p,
+  gtk_widget_get_size_request (GTK_WIDGET (progressbar_p), &width, &height);
+  gtk_progress_bar_set_pulse_step (progressbar_p,
                                    1.0 / static_cast<double> (width));
 
   // step4: initialize text view, setup auto-scrolling
@@ -1812,7 +1812,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
     return;
   } // end IF
   un_toggling_play_pause = true;
-  gtk_toggle_action_set_active (action_in, FALSE); // untoggle
+  gtk_toggle_action_set_active (action_in, false); // untoggle
   gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PAUSE);
 
   // step0: modify widgets
@@ -1820,7 +1820,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
     GTK_TABLE (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TABLE_OPTIONS_NAME)));
   ACE_ASSERT (table_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (table_p), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (table_p), false);
 
   GtkAction* action_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -1828,7 +1828,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_STOP_NAME)));
   ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, TRUE);
+  gtk_action_set_sensitive (action_p, true);
 
   // step1: set up progress reporting
   data_p->progressData.transferred = 0;
@@ -1838,7 +1838,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
   ACE_ASSERT (progress_bar_p);
   gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
 
-  //// step2: initialize processing stream
+  // step2: update configuration
   // retrieve port number
   GtkSpinButton* spin_button_p =
     //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
@@ -2465,11 +2465,11 @@ action_listen_activate_cb (GtkAction* action_in,
     } // end SWITCH
 
     // start progress reporting
-    GtkProgressBar* progress_bar_p =
+    GtkProgressBar* progressbar_p =
       GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-    ACE_ASSERT (progress_bar_p);
-    gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), TRUE);
+    ACE_ASSERT (progressbar_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), TRUE);
 
     ACE_ASSERT (!data_p->progressEventSourceID);
     {
@@ -2532,13 +2532,13 @@ action_listen_activate_cb (GtkAction* action_in,
       data_p->eventSourceIds.erase (data_p->progressEventSourceID);
       data_p->progressEventSourceID = 0;
     } // end lock scope
-    GtkProgressBar* progress_bar_p =
+    GtkProgressBar* progressbar_p =
       GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-    ACE_ASSERT (progress_bar_p);
+    ACE_ASSERT (progressbar_p);
     // *NOTE*: this disables "activity mode" (in Gtk2)
-    gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
-    gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), FALSE);
+    gtk_progress_bar_set_fraction (progressbar_p, 0.0);
+    gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
   } // end ELSE
 } // action_listen_activate_cb
 

@@ -448,18 +448,18 @@ done:
         stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
 
-        // *NOTE*: if the connection was closed abruptly, there may well be
-        //         undispatched data in the connection stream. Flush it so
-        //         waitForCompletion() (see below) does not block
-        Net_Connection_Status status = configuration_.connection->status ();
-        if (status != NET_CONNECTION_STATUS_OK)
-          stream_p->flush (true);
-        configuration_.stream->waitForCompletion (false, // wait for worker(s) ?
-                                                  true); // wait for upstream ?
+        //// *NOTE*: if the connection was closed abruptly, there may well be
+        ////         undispatched data in the connection stream. Flush it so
+        ////         waitForCompletion() (see below) does not block
+        //Net_Connection_Status status = configuration_.connection->status ();
+        //if (status != NET_CONNECTION_STATUS_OK)
+        //  stream_p->flush (true);
+        //configuration_.stream->waitForCompletion (false, // wait for worker(s) ?
+        //                                          true); // wait for upstream ?
 
         // *NOTE*: finalize the (connection) stream state so waitForCompletion()
         //         does not block
-        stream_p->finished (false);
+        stream_p->finished (false); // finish upstream ?
         configuration_.connection->waitForCompletion (false); // data only
       } // end IF
 

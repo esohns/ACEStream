@@ -33,7 +33,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_T (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
- , data_ (NULL)
+ , data_ ()
  , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
@@ -45,15 +45,13 @@ template <typename AllocatorConfigurationType,
           typename CommandType>
 Stream_DataMessageBase_T<AllocatorConfigurationType,
                          DataType,
-                         CommandType>::Stream_DataMessageBase_T (DataType*& data_inout)
+                         CommandType>::Stream_DataMessageBase_T (DataType& data_in)
  : inherited ()
- , data_ (data_inout)
+ , data_ (data_in)
  , initialized_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
-  // set return values
-  data_inout = NULL;
 }
 
 template <typename AllocatorConfigurationType,
@@ -65,7 +63,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
                                                                                                 DataType,
                                                                                                 CommandType>& message_in)
  : inherited (message_in)
- , data_ (NULL)
+ , data_ ()
  , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
@@ -85,7 +83,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
- , data_ (NULL)
+ , data_ ()
  , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
@@ -108,7 +106,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
  : inherited (dataBlock_in,
               messageAllocator_in,
               incrementMessageCounter_in)
- , data_ (NULL)
+ , data_ ()
  , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
@@ -128,6 +126,228 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
                          CommandType>::~Stream_DataMessageBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::~Stream_DataMessageBase_T"));
+
+  // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
+  //                   (see e.g. stream_cachedmessageallocator.cpp:172)
+  inherited::priority_ = std::numeric_limits<unsigned long>::max ();
+
+  initialized_ = false;
+}
+
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+bool
+Stream_DataMessageBase_T<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::isInitialized () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::isInitialized"));
+
+  return initialized_;
+}
+
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+void
+Stream_DataMessageBase_T<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::initialize (DataType& data_in,
+                                                   ACE_Data_Block* dataBlock_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::initialize"));
+
+  data_ = data_in;
+
+  // set data block (if any)
+  if (dataBlock_in)
+  {
+    inherited::initialize (dataBlock_in);
+
+    // (re)set correct message type
+    inherited::msg_type (STREAM_MESSAGE_OBJECT);
+  } // end IF
+
+  initialized_ = true;
+}
+
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+const DataType&
+Stream_DataMessageBase_T<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::get () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::get"));
+
+  return data_;
+}
+
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+void
+Stream_DataMessageBase_T<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::dump_state () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::dump_state"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+
+//template <typename DataType,
+//          typename CommandType>
+//ACE_Message_Block*
+//Stream_DataMessageBase_T<DataType,
+//                         CommandType>::duplicate (void) const
+//{
+//STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::duplicate"));
+
+//  own_type* new_message = NULL;
+
+//  // create a new <Stream_DataMessageBase_T> that contains unique copies of
+//  // the message block fields, but a reference counted duplicate of
+//  // the <ACE_Data_Block>.
+
+//  // if there is no allocator, use the standard new and delete calls.
+//  if (message_block_allocator_ == NULL)
+//    ACE_NEW_RETURN (new_message,
+//                    own_type (*this), // invoke copy ctor
+//                    NULL);
+
+//  ACE_NEW_MALLOC_RETURN (new_message,
+//                         static_cast<own_type*> (message_block_allocator_->malloc (capacity ())),
+//                         own_type (*this), // invoke copy ctor
+//                         NULL);
+
+//  // increment the reference counts of all the continuation messages
+//  if (cont_)
+//  {
+//    new_message->cont_ = cont_->duplicate ();
+
+//    // when things go wrong, release all resources and return
+//    if (new_message->cont_ == 0)
+//    {
+//      new_message->release ();
+//      new_message = NULL;
+//    } // end IF
+//  } // end IF
+
+//  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+
+//  return new_message;
+//}
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+Stream_DataMessageBase_2<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::Stream_DataMessageBase_2 (unsigned int requestedSize_in)
+ : inherited (requestedSize_in)
+ , data_ (NULL)
+ , initialized_ (false)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
+
+}
+
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+Stream_DataMessageBase_2<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::Stream_DataMessageBase_2 (DataType*& data_inout)
+ : inherited ()
+ , data_ (data_inout)
+ , initialized_ (true)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
+
+  // set return values
+  data_inout = NULL;
+}
+
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+Stream_DataMessageBase_2<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::Stream_DataMessageBase_2 (const Stream_DataMessageBase_2<AllocatorConfigurationType,
+                                                                 DataType,
+                                                                 CommandType>& message_in)
+ : inherited (message_in)
+ , data_ (NULL)
+ , initialized_ (false)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
+
+  // maintain the same message type
+  inherited::msg_type (message_in.msg_type ());
+
+  // ... and read/write pointers
+  inherited::rd_ptr (message_in.rd_ptr ());
+  inherited::wr_ptr (message_in.wr_ptr ());
+}
+
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+Stream_DataMessageBase_2<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::Stream_DataMessageBase_2 (ACE_Allocator* messageAllocator_in)
+ : inherited (messageAllocator_in) // message block allocator
+ , data_ (NULL)
+ , initialized_ (false)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
+
+  // set correct message type
+  inherited::msg_type (STREAM_MESSAGE_OBJECT);
+
+  // reset read/write pointers
+  this->reset ();
+}
+
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+Stream_DataMessageBase_2<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::Stream_DataMessageBase_2 (ACE_Data_Block* dataBlock_in,
+                                                                 ACE_Allocator* messageAllocator_in,
+                                                                 bool incrementMessageCounter_in)
+ : inherited (dataBlock_in,
+              messageAllocator_in,
+              incrementMessageCounter_in)
+ , data_ (NULL)
+ , initialized_ (false)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
+
+  // set correct message type
+  inherited::msg_type (STREAM_MESSAGE_OBJECT);
+
+  // reset read/write pointers
+  this->reset ();
+}
+
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+Stream_DataMessageBase_2<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::~Stream_DataMessageBase_2 ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::~Stream_DataMessageBase_2"));
 
   // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
   //                   (see e.g. stream_cachedmessageallocator.cpp:172)
@@ -157,11 +377,11 @@ template <typename AllocatorConfigurationType,
           typename DataType,
           typename CommandType>
 bool
-Stream_DataMessageBase_T<AllocatorConfigurationType,
+Stream_DataMessageBase_2<AllocatorConfigurationType,
                          DataType,
                          CommandType>::isInitialized () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::isInitialized"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::isInitialized"));
 
   return initialized_;
 }
@@ -170,12 +390,12 @@ template <typename AllocatorConfigurationType,
           typename DataType,
           typename CommandType>
 void
-Stream_DataMessageBase_T<AllocatorConfigurationType,
+Stream_DataMessageBase_2<AllocatorConfigurationType,
                          DataType,
                          CommandType>::initialize (DataType*& data_inout,
                                                    ACE_Data_Block* dataBlock_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (data_inout);
@@ -187,7 +407,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
     data_ = NULL;
   } // end IF
 
-  // *TODO*: remove type inferences
+    // *TODO*: remove type inferences
   data_inout->increase ();
   data_ = data_inout;
 
@@ -210,11 +430,11 @@ template <typename AllocatorConfigurationType,
           typename DataType,
           typename CommandType>
 const DataType&
-Stream_DataMessageBase_T<AllocatorConfigurationType,
+Stream_DataMessageBase_2<AllocatorConfigurationType,
                          DataType,
                          CommandType>::get () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::get"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::get"));
 
   // sanity check(s)
   if (!initialized_)
@@ -228,11 +448,11 @@ template <typename AllocatorConfigurationType,
           typename DataType,
           typename CommandType>
 void
-Stream_DataMessageBase_T<AllocatorConfigurationType,
+Stream_DataMessageBase_2<AllocatorConfigurationType,
                          DataType,
                          CommandType>::dump_state () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::dump_state"));
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::dump_state"));
 
   // dump data...
   if (data_)
@@ -247,21 +467,21 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
                   ACE_TEXT ("caught exception in dump_state(), continuing")));
     }
   } // end IF
-//   //delegate to base
-//   inherited::dump_state ();
+    //   //delegate to base
+    //   inherited::dump_state ();
 }
 
 //template <typename DataType,
 //          typename CommandType>
 //ACE_Message_Block*
-//Stream_DataMessageBase_T<DataType,
+//Stream_DataMessageBase_2<DataType,
 //                         CommandType>::duplicate (void) const
 //{
-//STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::duplicate"));
+//STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::duplicate"));
 
 //  own_type* new_message = NULL;
 
-//  // create a new <Stream_DataMessageBase_T> that contains unique copies of
+//  // create a new <Stream_DataMessageBase_2> that contains unique copies of
 //  // the message block fields, but a reference counted duplicate of
 //  // the <ACE_Data_Block>.
 

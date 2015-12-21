@@ -30,6 +30,8 @@
 //#include "common_iget.h"
 #include "common_time_common.h"
 
+#include "stream_common.h"
+
 // forward declarations
 typedef ACE_Stream<ACE_MT_SYNCH,
                    Common_TimePolicy_t> Stream_Base_t;
@@ -43,9 +45,10 @@ class Stream_IStreamControl_T
  public:
   inline virtual ~Stream_IStreamControl_T () {};
 
+  virtual void control (Stream_ControlType, // control type
+                        bool = false) = 0;  // forward upstream ?
   // *NOTE*: this flushes the pipeline, dropping any (session-)data
-  // *TODO*: it may be better to remove this and use stop/waitForCompletion only
-  virtual void flush (bool = false) = 0; // flush upstream (if any) ?
+  //virtual void flush (bool = false) = 0; // flush upstream (if any) ?
   virtual void pause () = 0;
   virtual void rewind () = 0;
   virtual StatusType status () const = 0;

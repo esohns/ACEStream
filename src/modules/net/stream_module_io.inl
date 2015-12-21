@@ -222,8 +222,11 @@ Stream_Module_Net_IOWriter_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::handleDataMessage"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
   // *TODO*: remove type inferences
-  if (inherited::configuration_.inbound)
+  if (inherited::configuration_->inbound)
   {
     ACE_UNUSED_ARG (message_inout);
     ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -291,8 +294,9 @@ Stream_Module_Net_IOWriter_T<LockType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration);
   ACE_ASSERT (message_inout);
   ACE_ASSERT (isInitialized_);
 
@@ -303,7 +307,7 @@ Stream_Module_Net_IOWriter_T<LockType,
   {
     case STREAM_SESSION_BEGIN:
     {
-      if (inherited::configuration_.streamConfiguration->statisticReportingInterval)
+      if (inherited::configuration_->streamConfiguration->statisticReportingInterval)
       {
         // schedule regular statistics collection...
         ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION, 0);
@@ -339,7 +343,7 @@ Stream_Module_Net_IOWriter_T<LockType,
       if (!connection_)
       {
         // sanity check(s)
-        ACE_ASSERT (inherited::configuration_.connectionManager);
+        ACE_ASSERT (inherited::configuration_->connectionManager);
 
         const SessionDataContainerType& session_data_container_r =
           message_inout->get ();
@@ -351,7 +355,7 @@ Stream_Module_Net_IOWriter_T<LockType,
 #else
         handle = static_cast<ACE_HANDLE> (session_data_r.sessionID);
 #endif
-        connection_ = inherited::configuration_.connectionManager->get (handle);
+        connection_ = inherited::configuration_->connectionManager->get (handle);
         if (!connection_)
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -863,9 +867,10 @@ Stream_Module_Net_IOWriter_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::putStatisticMessage"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::sessionData_);
-  // *TODO*: remove type inferences
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+  // *TODO*: remove type inference
+  ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
   // step1: update session state
   SessionDataType& session_data_r =
@@ -892,7 +897,7 @@ Stream_Module_Net_IOWriter_T<LockType,
   // *TODO*: remove type inference
   return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
                                        *inherited::sessionData_,
-                                       inherited::configuration_.streamConfiguration->messageAllocator);
+                                       inherited::configuration_->streamConfiguration->messageAllocator);
 }
 
 /////////////////////////////////////////

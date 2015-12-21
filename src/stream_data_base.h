@@ -29,14 +29,6 @@
 #include "common_iget.h"
 #include "common_ireferencecount.h"
 
-//#include "stream_data_message_base.h"
-
-//// forward declarations
-//template <typename AllocatorConfigurationType,
-//          typename DataType,
-//          typename CommandType>
-//class Stream_DataMessageBase_T;
-
 template <typename DataType>
 class Stream_DataBase_T
  : public ACE_Refcountable_T<ACE_SYNCH_MUTEX>

@@ -74,6 +74,14 @@ enum Stream_SessionMessageType
   STREAM_SESSION_INVALID
 };
 
+enum Stream_ControlType
+{
+  STREAM_CONTROL_STEP = 0,
+  ///////////////////////////////////////
+  STREAM_CONTROL_MAX,
+  STREAM_CONTROL_INVALID
+};
+
 struct Stream_Statistic
 {
   inline Stream_Statistic ()

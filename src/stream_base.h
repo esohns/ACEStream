@@ -23,19 +23,17 @@
 
 #include <deque>
 
-//#include "ace/Containers_T.h"
 #include "ace/Global_Macros.h"
 #include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_idumpstate.h"
 //#include "common_iget.h"
-#include "common_iinitialize.h"
+//#include "common_iinitialize.h"
 #include "common_istatistic.h"
 
 #include "stream_common.h"
 #include "stream_istreamcontrol.h"
-//#include "stream_statemachine_control.h"
 #include "stream_streammodule_base.h"
 #include "stream_itask.h"
 
@@ -113,7 +111,9 @@ class Stream_Base_T
                      bool = true); // locked access ?
   virtual bool isRunning () const;
 
-  virtual void flush (bool = false);
+  virtual void control (Stream_ControlType, // control type
+                        bool = false);      // forward upstream ?
+  //virtual void flush (bool = false);
   virtual void pause ();
   virtual void rewind ();
   virtual StatusType status () const;

@@ -53,7 +53,7 @@ Stream_HeadModuleTaskBase_T<LockType,
                                                                                     bool generateSessionMessages_in)
  : inherited (lock_in)
  , inherited2 ()
- , configuration_ ()
+ , configuration_ (NULL)
  , sessionData_ (NULL)
  , streamState_ (NULL)
  , active_ (active_in)
@@ -139,7 +139,8 @@ Stream_HeadModuleTaskBase_T<LockType,
     result = inherited2::putq (messageBlock_in, timeout_in);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", aborting\n")));
+                  ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
+                  inherited2::name ()));
     return result;
   } // end IF
 
@@ -522,7 +523,10 @@ Stream_HeadModuleTaskBase_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::get"));
 
-  return configuration_;
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  return *configuration_;
 }
 template <typename LockType,
           typename TaskSynchType,
@@ -550,12 +554,12 @@ Stream_HeadModuleTaskBase_T<LockType,
   // *TODO*: remove type inference
   ACE_ASSERT (configuration_in.stateMachineLock);
 
-  configuration_ = configuration_in;
   // *TODO*: remove type inference
   active_ = configuration_in.active;
+  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
   // *TODO*: remove type inference
-  bool result = inherited::initialize (*configuration_.stateMachineLock);
+  bool result = inherited::initialize (*configuration_->stateMachineLock);
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -593,6 +597,56 @@ Stream_HeadModuleTaskBase_T<LockType,
 
 //  ACE_NOTREACHED (return;)
 //}
+
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+void
+Stream_HeadModuleTaskBase_T<LockType,
+                            TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType>::control (Stream_ControlType control_in,
+                                                                bool /* forwardUpStream_in */)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::control"));
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->streamConfiguration);
+  ACE_ASSERT (sessionData_);
+
+  switch (control_in)
+  {
+    case STREAM_CONTROL_STEP:
+    {
+      if (!putSessionMessage (STREAM_SESSION_STEP,
+                              *sessionData_,
+                              configuration_->streamConfiguration->messageAllocator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(STREAM_SESSION_STEP), returning\n"),
+                    inherited2::name ()));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown control (was: %d), returning\n"),
+                  control_in));
+      return;
+    }
+  } // end IF
+}
 
 template <typename LockType,
           typename TaskSynchType,
@@ -687,33 +741,33 @@ Stream_HeadModuleTaskBase_T<LockType,
   return ((status == STREAM_STATE_PAUSED) || (status == STREAM_STATE_RUNNING));
 }
 
-template <typename LockType,
-          typename TaskSynchType,
-          typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-void
-Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
-                            TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType,
-                            ConfigurationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType>::flush (bool /* flushUpStream_in */)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
+//template <typename LockType,
+//          typename TaskSynchType,
+//          typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//void
+//Stream_HeadModuleTaskBase_T<LockType,
+//                            TaskSynchType,
+//                            TimePolicyType,
+//                            SessionMessageType,
+//                            ProtocolMessageType,
+//                            ConfigurationType,
+//                            StreamStateType,
+//                            SessionDataType,
+//                            SessionDataContainerType>::flush (bool /* flushUpStream_in */)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//
+//  ACE_NOTREACHED (return;)
+//}
 
 template <typename LockType,
           typename TaskSynchType,
@@ -1045,6 +1099,9 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::stateLock_);
+  ACE_ASSERT (configuration_);
+  // *TODO*: remove type inference
+  ACE_ASSERT (configuration_->streamConfiguration);
 
   int result = -1;
   ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (*inherited::stateLock_);
@@ -1120,9 +1177,9 @@ Stream_HeadModuleTaskBase_T<LockType,
         if (generateSessionMessages_)
         {
           ACE_ASSERT (sessionData_);
-          if (!putSessionMessage (STREAM_SESSION_BEGIN,                                  // type
-                                  *sessionData_,                                         // session data
-                                  configuration_.streamConfiguration->messageAllocator)) // allocator
+          if (!putSessionMessage (STREAM_SESSION_BEGIN,                                   // type
+                                  *sessionData_,                                          // session data
+                                  configuration_->streamConfiguration->messageAllocator)) // allocator
           {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
@@ -1390,9 +1447,9 @@ Stream_HeadModuleTaskBase_T<LockType,
           send_end_message)
       {
         ACE_ASSERT (sessionData_);
-        if (!putSessionMessage (STREAM_SESSION_END,                                    // session message type
-                                *sessionData_,                                         // session data
-                                configuration_.streamConfiguration->messageAllocator)) // allocator
+        if (!putSessionMessage (STREAM_SESSION_END,                                     // session message type
+                                *sessionData_,                                          // session data
+                                configuration_->streamConfiguration->messageAllocator)) // allocator
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
       } // end IF

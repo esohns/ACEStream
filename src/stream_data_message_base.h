@@ -34,7 +34,7 @@ class ACE_Message_Block;
 
 template <typename AllocatorConfigurationType,
           ///////////////////////////////
-          typename DataType, // *NOTE*: inherits Common_IReferenceCount !
+          typename DataType,
           typename CommandType>
 class Stream_DataMessageBase_T
  : public Stream_MessageBase_T<AllocatorConfigurationType>
@@ -42,6 +42,75 @@ class Stream_DataMessageBase_T
 {
  public:
   virtual ~Stream_DataMessageBase_T ();
+
+  // convenient types
+  typedef DataType DATA_T;
+
+  // initialization-after-construction
+  // *IMPORTANT NOTE*: fire-and-forget API (first argument)
+  void initialize (DataType&,               // data
+                   ACE_Data_Block* = NULL); // buffer
+  bool isInitialized () const;
+
+  // implement Common_IGet_T
+  virtual const DataType& get () const;
+
+  virtual CommandType command () const = 0; // return value: message type
+
+  // implement Common_IDumpState
+  virtual void dump_state () const;
+
+ protected:
+  Stream_DataMessageBase_T (unsigned int); // size
+  // *IMPORTANT NOTE*: fire-and-forget API
+  // *WARNING*: this ctor doesn't allocate a buffer off the heap
+  Stream_DataMessageBase_T (DataType&); // data handle
+  // copy ctor, to be used by derived::duplicate()
+  // *WARNING*: while the clone inherits a "shallow copy" of the referenced
+  //            data block, it will NOT inherit the attached data
+  //            --> use initialize()
+  Stream_DataMessageBase_T (const Stream_DataMessageBase_T<AllocatorConfigurationType,
+
+                                                           DataType,
+                                                           CommandType>&);
+
+  // *NOTE*: to be used by message allocators
+  // *TODO*: these ctors are NOT thread-safe
+  Stream_DataMessageBase_T (ACE_Allocator*); // message allocator
+  Stream_DataMessageBase_T (ACE_Data_Block*, // data block
+                            ACE_Allocator*,  // message allocator
+                            bool = true);    // increment running message counter ?
+
+  DataType data_;
+  bool     initialized_;
+
+ private:
+  typedef Stream_MessageBase_T<AllocatorConfigurationType> inherited;
+
+  // convenient typedefs
+  typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
+                                   DataType,
+                                   CommandType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T& operator= (const Stream_DataMessageBase_T&))
+
+  // overriden from ACE_Message_Block
+  virtual ACE_Message_Block* duplicate (void) const = 0;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename AllocatorConfigurationType,
+          ///////////////////////////////
+          typename DataType, // *NOTE*: inherits Common_IReferenceCount !
+          typename CommandType>
+class Stream_DataMessageBase_2
+  : public Stream_MessageBase_T<AllocatorConfigurationType>
+  , public Common_IGet_T<DataType>
+{
+ public:
+  virtual ~Stream_DataMessageBase_2 ();
 
   // convenient types
   typedef DataType DATA_T;
@@ -61,23 +130,23 @@ class Stream_DataMessageBase_T
   virtual void dump_state () const;
 
  protected:
-  Stream_DataMessageBase_T (unsigned int); // size
-  // *IMPORTANT NOTE*: fire-and-forget API
-  // *WARNING*: this ctor doesn't allocate a buffer off the heap
-  Stream_DataMessageBase_T (DataType*&); // data handle
-  // copy ctor, to be used by derived::duplicate()
-  // *WARNING*: while the clone inherits a "shallow copy" of the referenced
-  //            data block, it will NOT inherit the attached data
-  //            --> use initialize()
-  Stream_DataMessageBase_T (const Stream_DataMessageBase_T<AllocatorConfigurationType,
+  Stream_DataMessageBase_2 (unsigned int); // size
+                                           // *IMPORTANT NOTE*: fire-and-forget API
+                                           // *WARNING*: this ctor doesn't allocate a buffer off the heap
+  Stream_DataMessageBase_2 (DataType*&); // data handle
+                                         // copy ctor, to be used by derived::duplicate()
+                                         // *WARNING*: while the clone inherits a "shallow copy" of the referenced
+                                         //            data block, it will NOT inherit the attached data
+                                         //            --> use initialize()
+  Stream_DataMessageBase_2 (const Stream_DataMessageBase_2<AllocatorConfigurationType,
 
                                                            DataType,
                                                            CommandType>&);
 
   // *NOTE*: to be used by message allocators
   // *TODO*: these ctors are NOT thread-safe
-  Stream_DataMessageBase_T (ACE_Allocator*); // message allocator
-  Stream_DataMessageBase_T (ACE_Data_Block*, // data block
+  Stream_DataMessageBase_2 (ACE_Allocator*); // message allocator
+  Stream_DataMessageBase_2 (ACE_Data_Block*, // data block
                             ACE_Allocator*,  // message allocator
                             bool = true);    // increment running message counter ?
 
@@ -88,12 +157,12 @@ class Stream_DataMessageBase_T
   typedef Stream_MessageBase_T<AllocatorConfigurationType> inherited;
 
   // convenient typedefs
-  typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
+  typedef Stream_DataMessageBase_2<AllocatorConfigurationType,
                                    DataType,
                                    CommandType> OWN_TYPE_T;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T& operator= (const Stream_DataMessageBase_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_2 ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_2& operator= (const Stream_DataMessageBase_2&))
 
   // overriden from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const = 0;

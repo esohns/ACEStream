@@ -29,7 +29,6 @@
 
 #include "stream_imodule.h"
 #include "stream_istreamcontrol.h"
-//#include "stream_messagequeue.h"
 #include "stream_session_message_base.h"
 #include "stream_statemachine_control.h"
 #include "stream_task_base.h"
@@ -81,6 +80,8 @@ class Stream_HeadModuleTaskBase_T
   virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_IStreamControl_T
+  virtual void control (Stream_ControlType, // control type
+                        bool = false);      // N/A
   virtual void start ();
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true); // locked access ?
@@ -125,7 +126,7 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: this method is threadsafe
   virtual void onChange (Stream_StateType_t); // new state
 
-  ConfigurationType         configuration_;
+  ConfigurationType*        configuration_;
   //bool              isActive_;
   SessionDataContainerType* sessionData_;
   StreamStateType*          streamState_;
@@ -161,8 +162,8 @@ class Stream_HeadModuleTaskBase_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement (part of) Stream_IStreamControl_T
-//  virtual void initialize ();
-  virtual void flush (bool = false); // N/A
+  //virtual void initialize ();
+  //virtual void flush (bool = false); // N/A
   virtual void rewind ();
   virtual void upStream (Stream_Base_t*);
   virtual Stream_Base_t* upStream () const;

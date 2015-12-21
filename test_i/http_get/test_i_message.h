@@ -39,7 +39,7 @@ template <typename AllocatorConfigurationType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Stream_Message
- : public Stream_DataMessageBase_T<Test_I_AllocatorConfiguration,
+ : public Stream_DataMessageBase_2<Test_I_AllocatorConfiguration,
                                    //////
                                    Test_I_MessageData_t,
                                    HTTP_Method_t>
@@ -70,7 +70,7 @@ class Test_I_Stream_Message
   Test_I_Stream_Message (const Test_I_Stream_Message&);
 
  private:
-  typedef Stream_DataMessageBase_T<Test_I_AllocatorConfiguration,
+  typedef Stream_DataMessageBase_2<Test_I_AllocatorConfiguration,
                                    //////
                                    Test_I_MessageData_t,
                                    HTTP_Method_t> inherited;

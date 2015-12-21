@@ -296,7 +296,8 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", aborting\n")));
+                      ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
+                      inherited::name ()));
 
           // clean up
           message_block_p->release ();
