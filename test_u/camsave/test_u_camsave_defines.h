@@ -32,12 +32,16 @@
 
 #define TEST_U_STREAM_UI_GTKEVENT_RESOLUTION                 200 // ms --> 5 FPS
 #define TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME                 "action_cut"
+#define TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME              "action_report"
 #define TEST_U_STREAM_UI_GTK_ADJUSTMENT_NAME                 "scrolledwindow_vadjustment"
 #define TEST_U_STREAM_UI_GTK_BUTTONBOX_ACTIONS_NAME          "vbuttonbox"
 #define TEST_U_STREAM_UI_GTK_BUTTON_ABOUT_NAME               "about"
 #define TEST_U_STREAM_UI_GTK_BUTTON_CLEAR_NAME               "clear"
 #define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME              "report"
 #define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME                "quit"
+#define TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME            "combobox_format"
+#define TEST_U_STREAM_UI_GTK_COMBOBOX_RATE_NAME              "combobox_rate"
+#define TEST_U_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME        "combobox_resolution"
 #define TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME            "combobox_source"
 #define TEST_U_STREAM_UI_GTK_DIALOG_ABOUT_NAME               "dialog_about"
 #define TEST_U_STREAM_UI_GTK_DIALOG_MAIN_NAME                "dialog_main"
@@ -45,6 +49,9 @@
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_destination"
 #define TEST_U_STREAM_UI_GTK_HBOX_OPTIONS_NAME               "hbox_options"
+#define TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME           "liststore_format"
+#define TEST_U_STREAM_UI_GTK_LISTSTORE_RATE_NAME             "liststore_rate"
+#define TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME       "liststore_resolution"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME           "liststore_source"
 #define TEST_U_STREAM_UI_GTK_PANGO_LOG_FONT_DESCRIPTION      "Monospace 8"
 #define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_BASE            "#FFFFFF" // white

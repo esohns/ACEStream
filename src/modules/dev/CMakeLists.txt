@@ -109,7 +109,7 @@ add_dependencies (${PROJECT_NAME}_Device ${PROJECT_NAME})
 
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device ${ACE_LIBRARY})
- target_link_libraries (${PROJECT_NAME}_Device ${MYSQL_LIBRARY})
+ target_link_libraries (${PROJECT_NAME}_Device strmiids.lib)
 endif ()
 
 set_target_properties (${PROJECT_NAME}_Device PROPERTIES DEFINE_SYMBOL STREAM_DEV_BUILD_DLL)

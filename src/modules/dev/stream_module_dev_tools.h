@@ -21,25 +21,51 @@
 #ifndef STREAM_MODULE_DEV_TOOLS_H
 #define STREAM_MODULE_DEV_TOOLS_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <map>
+#endif
 #include <string>
 
 #include "ace/Global_Macros.h"
 #include "ace/Time_Value.h"
 
-#include "stream_dev_exports.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "dshow.h"
+#endif
 
-// forward declarations
-struct _AMMediaType;
+#include "stream_dev_exports.h"
 
 class Stream_Dev_Export Stream_Module_Device_Tools
 {
  public:
+   static void initialize ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   static void deleteMediaType (struct _AMMediaType*&); // handle
+  static std::string mediaSubTypeToString (const GUID&); // GUID
+#endif
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_Tools (const Stream_Module_Device_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_Tools& operator= (const Stream_Module_Device_Tools&))
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct less_guid
+  {
+    bool operator() (const GUID& lhs_in, const GUID& rhs_in) const
+    {
+      //ACE_ASSERT (lhs_in.Data2 == rhs_in.Data2);
+      //ACE_ASSERT (lhs_in.Data3 == rhs_in.Data3);
+      //ACE_ASSERT (*(long long*)lhs_in.Data4 == *(long long*)rhs_in.Data4);
+
+      return (lhs_in.Data1 < rhs_in.Data1);
+    }
+  };
+  typedef std::map<GUID, std::string, less_guid> GUID2STRING_MAP_T;
+  typedef GUID2STRING_MAP_T::const_iterator GUID2STRING_MAP_ITERATOR_T;
+  static GUID2STRING_MAP_T Stream_MediaSubType2StringMap;
+#endif
 };
 
 #endif

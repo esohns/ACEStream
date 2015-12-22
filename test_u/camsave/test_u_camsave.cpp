@@ -361,6 +361,351 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 #endif
 }
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+bool
+do_initialize_directshow (const std::string& deviceName_in,
+                          ICaptureGraphBuilder2*& ICaptureGraphBuilder2_inout,
+                          IAMStreamConfig*& IAMStreamConfig_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
+
+  // initialize return value(s)
+  if (ICaptureGraphBuilder2_inout)
+  {
+    ICaptureGraphBuilder2_inout->Release ();
+    ICaptureGraphBuilder2_inout = NULL;
+  } // end IF
+  if (IAMStreamConfig_inout)
+  {
+    IAMStreamConfig_inout->Release ();
+    IAMStreamConfig_inout = NULL;
+  } // end IF
+
+  Stream_Module_Device_Tools::initialize ();
+
+  HRESULT result =
+    CoCreateInstance (CLSID_CaptureGraphBuilder2, NULL,
+                      CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2,
+                      (void**)&ICaptureGraphBuilder2_inout);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(CLSID_CaptureGraphBuilder2): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (ICaptureGraphBuilder2_inout);
+
+  IGraphBuilder* builder_p = NULL;
+  result = CoCreateInstance (CLSID_FilterGraph, NULL,
+                             CLSCTX_INPROC_SERVER, IID_IGraphBuilder,
+                             (void**)&builder_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    ICaptureGraphBuilder2_inout->Release ();
+    ICaptureGraphBuilder2_inout = NULL;
+
+    return false;
+  } // end IF
+  ACE_ASSERT (builder_p);
+
+  result = ICaptureGraphBuilder2_inout->SetFiltergraph (builder_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ICaptureGraphBuilder2::SetFiltergraph(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    builder_p->Release ();
+    ICaptureGraphBuilder2_inout->Release ();
+    ICaptureGraphBuilder2_inout = NULL;
+
+    return false;
+  } // end IF
+
+  ICreateDevEnum* enumerator_p = NULL;
+  result = CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
+                             CLSCTX_INPROC_SERVER, IID_PPV_ARGS (&enumerator_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    builder_p->Release ();
+    ICaptureGraphBuilder2_inout->Release ();
+    ICaptureGraphBuilder2_inout = NULL;
+
+    return false;
+  } // end IF
+  ACE_ASSERT (enumerator_p);
+
+  IEnumMoniker* enum_moniker_p = NULL;
+  result =
+    enumerator_p->CreateClassEnumerator (CLSID_VideoInputDeviceCategory,
+                                         &enum_moniker_p,
+                                         0);
+  if (result != S_OK)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(CLSID_VideoInputDeviceCategory): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    enumerator_p->Release ();
+    builder_p->Release ();
+    ICaptureGraphBuilder2_inout->Release ();
+    ICaptureGraphBuilder2_inout = NULL;
+
+    result = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
+    return false;
+  } // end IF
+  ACE_ASSERT (enum_moniker_p);
+  enumerator_p->Release ();
+
+  IMoniker* moniker_p = NULL;
+  IPropertyBag* properties_p = NULL;
+  VARIANT variant;
+  while (enum_moniker_p->Next (1, &moniker_p, NULL) == S_OK)
+  {
+    ACE_ASSERT (moniker_p);
+
+    properties_p = NULL;
+    result = moniker_p->BindToStorage (0, 0, IID_PPV_ARGS (&properties_p));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      enum_moniker_p->Release ();
+      moniker_p->Release ();
+      builder_p->Release ();
+      ICaptureGraphBuilder2_inout->Release ();
+      ICaptureGraphBuilder2_inout = NULL;
+
+      return false;
+    } // end IF
+    ACE_ASSERT (properties_p);
+
+    VariantInit (&variant);
+    result = properties_p->Read (L"FriendlyName", &variant, 0);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPropertyBag::Read(FriendlyName): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      enum_moniker_p->Release ();
+      moniker_p->Release ();
+      properties_p->Release ();
+      builder_p->Release ();
+      ICaptureGraphBuilder2_inout->Release ();
+      ICaptureGraphBuilder2_inout = NULL;
+
+      return false;
+    } // end IF
+    properties_p->Release ();
+    ACE_Wide_To_Ascii converter (variant.bstrVal);
+    VariantClear (&variant);
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("found capture device: \"%s\"...\n"),
+                ACE_TEXT (converter.char_rep ())));
+
+    if (deviceName_in.empty () ||
+        (ACE_OS::strcmp (deviceName_in.c_str (),
+                         converter.char_rep ()) == 0))
+      break;
+
+    moniker_p->Release ();
+    moniker_p = NULL;
+  } // end WHILE
+  enum_moniker_p->Release ();
+  if (moniker_p)
+  {
+    IBaseFilter* filter_p = NULL;
+    result = moniker_p->BindToObject (0, 0, IID_IBaseFilter,
+                                      (void**)&filter_p);
+    moniker_p->Release ();
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMoniker::BindToObject(IID_IBaseFilter): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      builder_p->Release ();
+      ICaptureGraphBuilder2_inout->Release ();
+      ICaptureGraphBuilder2_inout = NULL;
+
+      return false;
+    } // end IF
+    ACE_ASSERT (filter_p);
+
+    result = builder_p->AddFilter (filter_p,
+                                   MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+      builder_p->Release ();
+      ICaptureGraphBuilder2_inout->Release ();
+      ICaptureGraphBuilder2_inout = NULL;
+
+      return false;
+    } // end IF
+
+    IEnumPins* enumerator_p = NULL;
+    result = filter_p->EnumPins (&enumerator_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+ 
+      // clean up
+      filter_p->Release ();
+      builder_p->Release ();
+      ICaptureGraphBuilder2_inout->Release ();
+      ICaptureGraphBuilder2_inout = NULL;
+
+      return false;
+    } // end IF
+    filter_p->Release ();
+    ACE_ASSERT (enumerator_p);
+
+    IPin* pin_p = NULL;
+    PIN_DIRECTION pin_direction;
+    IKsPropertySet* property_set_p = NULL;
+    GUID GUID_i;
+    DWORD returned_size = 0;
+    std::ostringstream converter;
+    std::string rate_string;
+    while (enumerator_p->Next (1, &pin_p, NULL) == S_OK)
+    {
+      ACE_ASSERT (pin_p);
+
+      result = pin_p->QueryDirection (&pin_direction);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+        // clean up
+        pin_p->Release ();
+        enumerator_p->Release ();
+        builder_p->Release ();
+        ICaptureGraphBuilder2_inout->Release ();
+        ICaptureGraphBuilder2_inout = NULL;
+
+        return false;
+      } // end IF
+      if (pin_direction != PINDIR_OUTPUT)
+      {
+        pin_p->Release ();
+        pin_p = NULL;
+
+        continue;
+      } // end IF
+      property_set_p = NULL;
+      result = pin_p->QueryInterface (IID_PPV_ARGS (&property_set_p));
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPin::QueryInterface(IKsPropertySet): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+        // clean up
+        pin_p->Release ();
+        enumerator_p->Release ();
+        builder_p->Release ();
+        ICaptureGraphBuilder2_inout->Release ();
+        ICaptureGraphBuilder2_inout = NULL;
+
+        return false;
+      } // end IF
+      ACE_ASSERT (property_set_p);
+      result = property_set_p->Get (AMPROPSETID_Pin, AMPROPERTY_PIN_CATEGORY,
+                                    NULL, 0,
+                                    &GUID_i, sizeof (GUID), &returned_size);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+        // clean up
+        property_set_p->Release ();
+        pin_p->Release ();
+        enumerator_p->Release ();
+        builder_p->Release ();
+        ICaptureGraphBuilder2_inout->Release ();
+        ICaptureGraphBuilder2_inout = NULL;
+
+        return false;
+      } // end IF
+      ACE_ASSERT (returned_size == sizeof (GUID));
+      if (GUID_i == PIN_CATEGORY_CAPTURE)
+        break;
+
+      property_set_p->Release ();
+      pin_p->Release ();
+      pin_p = NULL;
+    } // end WHILE
+    enumerator_p->Release ();
+    if (!pin_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("0x%@: no capture pin found, aborting\n"),
+                  filter_p));
+
+      // clean up
+      builder_p->Release ();
+      ICaptureGraphBuilder2_inout->Release ();
+      ICaptureGraphBuilder2_inout = NULL;
+
+      return false;
+    } // end IF
+
+    result = pin_p->QueryInterface (IID_IAMStreamConfig,
+                                    (void**)&IAMStreamConfig_inout);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      pin_p->Release ();
+      builder_p->Release ();
+      ICaptureGraphBuilder2_inout->Release ();
+      ICaptureGraphBuilder2_inout = NULL;
+
+      return false;
+    } // end IF
+    pin_p->Release ();
+    ACE_ASSERT (IAMStreamConfig_inout);
+  } // end IF
+  builder_p->Release ();
+
+  return true;
+}
+#endif
+
 void
 do_work (unsigned int bufferSize_in,
          const std::string& fileName_in,
@@ -378,6 +723,37 @@ do_work (unsigned int bufferSize_in,
   Stream_CamSave_Configuration configuration;
   CBData_in.configuration = &configuration;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //HRESULT hresult = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  //if (FAILED (hresult))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", returning\n"),
+  //              ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
+  //  return;
+  //} // end IF
+
+  if (!do_initialize_directshow (configuration.streamConfiguration.moduleHandlerConfiguration_2.device,
+                                 configuration.streamConfiguration.moduleHandlerConfiguration_2.builder,
+                                 CBData_in.streamConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
+
+    //// clean up
+    //CoUninitialize ();
+
+    return;
+  } // end IF
+  ACE_ASSERT (configuration.streamConfiguration.moduleHandlerConfiguration_2.builder);
+  ACE_ASSERT (CBData_in.streamConfiguration);
+#endif
+
+  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+  Stream_CamSave_MessageAllocator_t message_allocator (TEST_U_STREAM_CAMSAVE_MAX_MESSAGES, // maximum #buffers
+                                                       &heap_allocator,                    // heap allocator handle
+                                                       true);                              // block ?
+  Stream_CamSave_Stream stream;
   Stream_CamSave_EventHandler ui_event_handler (&CBData_in);
   Stream_CamSave_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                            NULL,
@@ -388,16 +764,12 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_EventHandler> failed, returning\n")));
-    return;
+    goto clean;
   } // end IF
   event_handler_p->initialize (&CBData_in.subscribers,
                                &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
 
-  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
-  Stream_CamSave_MessageAllocator_t message_allocator (TEST_U_STREAM_CAMSAVE_MAX_MESSAGES, // maximum #buffers
-                                                       &heap_allocator,                    // heap allocator handle
-                                                       true);                              // block ?
   // ********************** module configuration data **************************
   configuration.streamConfiguration.moduleHandlerConfiguration_2.active =
       !UIDefinitionFile_in.empty ();
@@ -434,12 +806,11 @@ do_work (unsigned int bufferSize_in,
                                         previousSignalActions_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
-    return;
+                ACE_TEXT ("failed to Common_Tools::initializeSignals(), returning\n")));
+    goto clean;
   } // end IF
 
   // step0f: (initialize) processing stream
-  Stream_CamSave_Stream stream;
 
   // event loop(s):
   // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
@@ -467,7 +838,7 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
-      return;
+      goto clean;
     } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -480,7 +851,7 @@ do_work (unsigned int bufferSize_in,
       // clean up
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
 
-      return;
+      goto clean;
     } // end IF
     BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
@@ -491,8 +862,8 @@ do_work (unsigned int bufferSize_in,
     if (!stream.initialize (configuration.streamConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to initialize stream, aborting\n")));
-      return;
+                  ACE_TEXT ("failed to initialize stream, returning\n")));
+      goto clean;
     } // end IF
 
     // *NOTE*: this will block until the file has been copied...
@@ -531,6 +902,17 @@ do_work (unsigned int bufferSize_in,
   //				 iterator++)
   //			g_source_remove(*iterator);
   //	} // end lock scope
+
+clean:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (configuration.streamConfiguration.moduleHandlerConfiguration_2.windowController)
+    configuration.streamConfiguration.moduleHandlerConfiguration_2.windowController->Release ();
+  if (configuration.streamConfiguration.moduleHandlerConfiguration_2.builder)
+    configuration.streamConfiguration.moduleHandlerConfiguration_2.builder->Release ();
+  if (CBData_in.streamConfiguration)
+    CBData_in.streamConfiguration->Release ();
+  //CoUninitialize ();
+#endif
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));

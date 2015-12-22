@@ -44,7 +44,9 @@
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct ICaptureGraphBuilder2;
 struct IMediaSample;
+struct IAMStreamConfig;
 struct IVideoWindow;
 #endif
 class Stream_IAllocator;
@@ -102,6 +104,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    : Stream_ModuleHandlerConfiguration ()
    , active (false)
    , area ()
+   , builder (NULL)
    , contextID (0)
    , device ()
    , printProgressDot (true)
@@ -110,14 +113,15 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , windowController (NULL)
   {};
 
-  bool          active;
-  GdkRectangle  area;
-  guint         contextID;
-  std::string   device;
-  bool          printProgressDot;
-  std::string   targetFileName;
-  HWND          window;
-  IVideoWindow* windowController;
+  bool                   active;
+  GdkRectangle           area;
+  ICaptureGraphBuilder2* builder;
+  guint                  contextID;
+  std::string            device;
+  bool                   printProgressDot;
+  std::string            targetFileName;
+  HWND                   window;
+  IVideoWindow*          windowController;
 };
 
 struct Stream_CamSave_StreamConfiguration
@@ -188,23 +192,21 @@ struct Stream_CamSave_GTK_CBData
   inline Stream_CamSave_GTK_CBData ()
    : Stream_Test_U_GTK_CBData ()
    , configuration (NULL)
-   , COMInitialized (false)
    , progressData ()
    , progressEventSourceID (0)
    , stream (NULL)
    , subscribers ()
    , subscribersLock ()
+   , streamConfiguration (NULL)
   {};
 
   Stream_CamSave_Configuration*   configuration;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  bool                            COMInitialized;
-#endif
   Stream_CamSave_GTK_ProgressData progressData;
   guint                           progressEventSourceID;
   Stream_CamSave_Stream*          stream;
   Stream_CamSave_Subscribers_t    subscribers;
   ACE_SYNCH_RECURSIVE_MUTEX       subscribersLock;
+  IAMStreamConfig*                streamConfiguration;
 };
 
 struct Stream_CamSave_ThreadData

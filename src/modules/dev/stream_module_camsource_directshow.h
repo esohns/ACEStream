@@ -135,11 +135,11 @@ class Stream_Module_CamSource_DirectShow_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_CamSource_DirectShow_T& operator= (const Stream_Module_CamSource_DirectShow_T&))
 
   // helper methods
-  bool initialize_DirectShow (const std::string&,      // (source) device name (FriendlyName)
-                              const HWND,              // (target) window handle
-                              const GdkRectangle&,     // (target) window area
-                              ICaptureGraphBuilder2*&, // return value: capture graph handle
-                              IVideoWindow*&);         // return value: window control handle
+  bool initialize_DirectShow (const std::string&,     // (source) device name (FriendlyName)
+                              const HWND,             // (target) window handle
+                              const GdkRectangle&,    // (target) window area
+                              ICaptureGraphBuilder2*, // capture graph handle
+                              IVideoWindow*&);        // return value: window control handle
 
   virtual int svc (void);
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
@@ -155,7 +155,7 @@ class Stream_Module_CamSource_DirectShow_T
 
   // DirectShow
   bool                              isFirst_;
-  ICaptureGraphBuilder2*            ICaptureGraphBuilder2_;
+  //ICaptureGraphBuilder2*            ICaptureGraphBuilder2_;
   IMediaControl*                    IMediaControl_;
   IMediaEventEx*                    IMediaEventEx_;
   //IVideoWindow*                     IVideoWindow_;

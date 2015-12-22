@@ -8,6 +8,7 @@
         <property name="label" translatable="yes">Record</property>
         <property name="short_label" translatable="yes">Record</property>
         <property name="stock_id">gtk-media-record</property>
+        <property name="sensitive">False</property>
         <signal name="toggled" handler="action_listen_activate_cb" swapped="no"/>
       </object>
       <accelerator key="r"/>
@@ -26,10 +27,28 @@
       <object class="GtkAction" id="action_report">
         <property name="label" translatable="yes">Report</property>
         <property name="short_label" translatable="yes">Report</property>
-        <property name="stock_id">gtk-file</property>
+        <property name="stock_id">gtk-new</property>
         <signal name="activate" handler="action_report_activate_cb" swapped="no"/>
       </object>
       <accelerator key="t"/>
+    </child>
+    <child>
+      <object class="GtkAction" id="action_lowlight">
+        <property name="label" translatable="yes">LowLight</property>
+        <property name="short_label" translatable="yes">low light compensation</property>
+        <property name="stock_id">gtk-yes</property>
+        <signal name="activate" handler="action_lowlight_activate_cb" swapped="no"/>
+      </object>
+      <accelerator key="l"/>
+    </child>
+    <child>
+      <object class="GtkAction" id="action_reset">
+        <property name="label" translatable="yes">Reset</property>
+        <property name="short_label" translatable="yes">Reset</property>
+        <property name="stock_id">gtk-revert-to-saved</property>
+        <signal name="activate" handler="action_reset_activate_cb" swapped="no"/>
+      </object>
+      <accelerator key="d"/>
     </child>
   </object>
   <object class="GtkAdjustment" id="adjustment_buffersize">
@@ -146,16 +165,6 @@
       </object>
     </child>
   </object>
-  <object class="GtkImage" id="image_record">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-media-record</property>
-  </object>
-  <object class="GtkImage" id="image_report">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-file</property>
-  </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -195,6 +204,7 @@
                               <object class="GtkVButtonBox" id="vbuttonbox_actions">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="homogeneous">True</property>
                                 <property name="layout_style">start</property>
                                 <child>
                                   <object class="GtkToggleButton" id="record">
@@ -225,8 +235,8 @@
                                     <property name="can_focus">True</property>
                                     <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
-                                    <property name="image">image_cut</property>
                                     <property name="use_underline">True</property>
+                                    <property name="use_stock">True</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="xalign">0</property>
                                     <property name="yalign">0</property>
@@ -244,7 +254,6 @@
                                     <property name="can_focus">True</property>
                                     <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
-                                    <property name="image">image_report</property>
                                     <property name="use_underline">True</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="xalign">0</property>
@@ -449,11 +458,15 @@
                                     <child>
                                       <object class="GtkComboBox" id="combobox_source">
                                         <property name="visible">True</property>
+                                        <property name="sensitive">False</property>
                                         <property name="can_focus">True</property>
+                                        <property name="tooltip_markup" translatable="yes">capture device</property>
+                                        <property name="tooltip_text" translatable="yes">capture device</property>
                                         <property name="model">liststore_source</property>
                                         <property name="focus_on_click">False</property>
                                         <property name="id_column">0</property>
                                         <property name="active_id">device</property>
+                                        <signal name="changed" handler="combobox_source_changed_cb" swapped="no"/>
                                       </object>
                                     </child>
                                   </object>
@@ -497,6 +510,8 @@
                                         <property name="can_focus">True</property>
                                         <property name="can_default">True</property>
                                         <property name="receives_default">True</property>
+                                        <property name="tooltip_markup" translatable="yes">destination file/folder</property>
+                                        <property name="tooltip_text" translatable="yes">destination file/folder</property>
                                         <property name="action">save</property>
                                         <property name="do_overwrite_confirmation">True</property>
                                         <property name="local_only">False</property>
@@ -548,6 +563,129 @@
                                       <object class="GtkVBox" id="vbox_misc_options">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <child>
+                                          <object class="GtkFrame" id="frame_basic">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label_xalign">0</property>
+                                            <child>
+                                              <object class="GtkAlignment" id="alignment_basic">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">False</property>
+                                                <child>
+                                                  <object class="GtkVBox" id="vbox_basic">
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">False</property>
+                                                    <property name="homogeneous">True</property>
+                                                    <child>
+                                                      <object class="GtkComboBox" id="combobox_format">
+                                                        <property name="visible">True</property>
+                                                        <property name="sensitive">False</property>
+                                                        <property name="can_focus">False</property>
+                                                        <property name="tooltip_markup" translatable="yes">format</property>
+                                                        <property name="tooltip_text" translatable="yes">format</property>
+                                                        <property name="model">liststore_format</property>
+                                                        <property name="id_column">0</property>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="expand">False</property>
+                                                        <property name="fill">True</property>
+                                                        <property name="position">0</property>
+                                                      </packing>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkComboBox" id="combobox_resolution">
+                                                        <property name="visible">True</property>
+                                                        <property name="sensitive">False</property>
+                                                        <property name="can_focus">False</property>
+                                                        <property name="tooltip_markup" translatable="yes">resolution</property>
+                                                        <property name="tooltip_text" translatable="yes">resolution</property>
+                                                        <property name="model">liststore_resolution</property>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="expand">False</property>
+                                                        <property name="fill">True</property>
+                                                        <property name="position">1</property>
+                                                      </packing>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkComboBox" id="combobox_rate">
+                                                        <property name="visible">True</property>
+                                                        <property name="sensitive">False</property>
+                                                        <property name="can_focus">False</property>
+                                                        <property name="tooltip_markup" translatable="yes">frame rate</property>
+                                                        <property name="tooltip_text" translatable="yes">frame rate</property>
+                                                        <property name="model">liststore_rate</property>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="expand">False</property>
+                                                        <property name="fill">True</property>
+                                                        <property name="position">2</property>
+                                                      </packing>
+                                                    </child>
+                                                  </object>
+                                                </child>
+                                              </object>
+                                            </child>
+                                            <child type="label">
+                                              <object class="GtkLabel" id="label_basic">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">False</property>
+                                                <property name="use_markup">True</property>
+                                              </object>
+                                            </child>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">0</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkFrame" id="frame_advanced">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label_xalign">0</property>
+                                            <child>
+                                              <object class="GtkAlignment" id="alignment_advanced">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">False</property>
+                                                <child>
+                                                  <object class="GtkTable" id="table_advanced">
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">False</property>
+                                                    <property name="homogeneous">True</property>
+                                                    <child>
+                                                      <object class="GtkCheckButton" id="checkbutton_lowlight">
+                                                        <property name="related_action">action_lowlight</property>
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="receives_default">False</property>
+                                                        <property name="tooltip_markup" translatable="yes">low-light compensation</property>
+                                                        <property name="tooltip_text" translatable="yes">low-light compensation</property>
+                                                        <property name="use_stock">True</property>
+                                                        <property name="xalign">0</property>
+                                                        <property name="draw_indicator">False</property>
+                                                      </object>
+                                                    </child>
+                                                  </object>
+                                                </child>
+                                              </object>
+                                            </child>
+                                            <child type="label">
+                                              <object class="GtkLabel" id="label_advanced">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">False</property>
+                                                <property name="use_markup">True</property>
+                                              </object>
+                                            </child>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">1</property>
+                                          </packing>
+                                        </child>
                                         <child>
                                           <object class="GtkFrame" id="frame_other_options_2">
                                             <property name="visible">True</property>
@@ -618,7 +756,36 @@
                                           <packing>
                                             <property name="expand">False</property>
                                             <property name="fill">False</property>
-                                            <property name="position">1</property>
+                                            <property name="position">2</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkHButtonBox" id="hbuttonbox_tools">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="layout_style">start</property>
+                                            <child>
+                                              <object class="GtkButton" id="button_reset">
+                                                <property name="related_action">action_reset</property>
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">True</property>
+                                                <property name="receives_default">True</property>
+                                                <property name="tooltip_markup" translatable="yes">reset capture device</property>
+                                                <property name="tooltip_text" translatable="yes">reset capture device</property>
+                                                <property name="use_stock">True</property>
+                                                <property name="focus_on_click">False</property>
+                                              </object>
+                                              <packing>
+                                                <property name="expand">False</property>
+                                                <property name="fill">True</property>
+                                                <property name="position">0</property>
+                                              </packing>
+                                            </child>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">3</property>
                                           </packing>
                                         </child>
                                       </object>
@@ -886,20 +1053,51 @@
       <action-widget response="0">quit</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkImage" id="image_cut">
+  <object class="GtkImage" id="image_record">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="stock">gtk-cut</property>
+    <property name="stock">gtk-media-record</property>
+  </object>
+  <object class="GtkImage" id="image_report">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-file</property>
   </object>
   <object class="GtkImage" id="image_stop">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-stop</property>
   </object>
+  <object class="GtkListStore" id="liststore_format">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name GUID -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_rate">
+    <columns>
+      <!-- column-name text -->
+      <column type="guint"/>
+      <!-- column-name interval -->
+      <column type="guint"/>
+    </columns>
+  </object>
   <object class="GtkListStore" id="liststore_source">
     <columns>
-      <!-- column-name device -->
+      <!-- column-name text -->
       <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_resolution">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name width -->
+      <column type="guint"/>
+      <!-- column-name height -->
+      <column type="guint"/>
     </columns>
   </object>
   <object class="GtkAdjustment" id="scrolledwindow_hadjustment">

@@ -65,8 +65,12 @@ Stream_CamSave_Message::~Stream_CamSave_Message ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message::~Stream_CamSave_Message"));
 
-  // release media sample
-  inherited::data_.sample->Release ();
+  // release media sample ?
+  if (inherited::data_.sample)
+  {
+    inherited::data_.sample->Release ();
+    inherited::data_.sample = NULL;
+  } // end IF
 }
 
 ACE_Message_Block*

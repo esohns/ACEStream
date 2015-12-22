@@ -22,6 +22,7 @@
 #include "test_u_camsave_callbacks.h"
 
 #include <limits>
+#include <set>
 #include <sstream>
 
 #include "ace/Guard_T.h"
@@ -29,6 +30,8 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "dshow.h"
+#include "Dvdmedia.h"
+//#include "streams.h"
 
 #include "gdk/gdkwin32.h"
 #endif
@@ -40,6 +43,8 @@
 #include "common_ui_tools.h"
 
 #include "stream_macros.h"
+
+#include "stream_module_dev_defines.h"
 
 #include "test_u_camsave_common.h"
 #include "test_u_camsave_defines.h"
@@ -56,17 +61,7 @@ load_capture_devices (GtkListStore* listStore_in)
   gtk_list_store_clear (listStore_in);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HRESULT result_2;
-
-  result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    return false;
-  } // end IF
-
+  HRESULT result_2 = E_FAIL;
   ICreateDevEnum* enumerator_p = NULL;
   result_2 =
     CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
@@ -74,8 +69,9 @@ load_capture_devices (GtkListStore* listStore_in)
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n")));
-    goto win32_clean;
+                ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    return false;
   } // end IF
   ACE_ASSERT (enumerator_p);
 
@@ -87,16 +83,12 @@ load_capture_devices (GtkListStore* listStore_in)
   if (result_2 != S_OK)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(CLSID_VideoInputDeviceCategory): \"%s\", aborting\n")));
-
-    // clean up
-    enumerator_p->Release ();
-
+                ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(CLSID_VideoInputDeviceCategory): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     //result_2 = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
-    goto win32_clean;
+    goto error;
   } // end IF
   ACE_ASSERT (enum_moniker_p);
-  enumerator_p->Release ();
 
   IMoniker* moniker_p = NULL;
   IPropertyBag* properties_p = NULL;
@@ -111,8 +103,9 @@ load_capture_devices (GtkListStore* listStore_in)
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n")));
-      goto win32_clean;
+                  ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
     } // end IF
     ACE_ASSERT (properties_p);
 
@@ -121,8 +114,9 @@ load_capture_devices (GtkListStore* listStore_in)
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IPropertyBag::Read(Description/FriendlyName): \"%s\", aborting\n")));
-      goto win32_clean;
+                  ACE_TEXT ("failed to IPropertyBag::Read(Description/FriendlyName): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
     } // end IF
     properties_p->Release ();
     properties_p = NULL;
@@ -138,20 +132,330 @@ load_capture_devices (GtkListStore* listStore_in)
   } // end WHILE
   result = true;
 
-win32_clean:
-  if (enum_moniker_p)
-    enum_moniker_p->Release ();
-  if (moniker_p)
-    moniker_p->Release ();
+error:
   if (properties_p)
     properties_p->Release ();
-
-  CoUninitialize ();
+  if (moniker_p)
+    moniker_p->Release ();
+  if (enum_moniker_p)
+    enum_moniker_p->Release ();
+  if (enumerator_p)
+    enumerator_p->Release ();
 #else
 #endif
 
   return result;
 }
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct less_guid
+{
+  bool operator() (const GUID& lhs_in, const GUID& rhs_in) const
+  {
+    //ACE_ASSERT (lhs_in.Data2 == rhs_in.Data2);
+    //ACE_ASSERT (lhs_in.Data3 == rhs_in.Data3);
+    //ACE_ASSERT (*(long long*)lhs_in.Data4 == *(long long*)rhs_in.Data4);
+
+    return (lhs_in.Data1 < rhs_in.Data1);
+  }
+};
+
+bool
+load_formats (IAMStreamConfig* IAMStreamConfig_in,
+              GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_formats"));
+
+  // sanity check(s)
+  ACE_ASSERT (IAMStreamConfig_in);
+  ACE_ASSERT (listStore_in);
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  HRESULT result;
+  int count = 0, size = 0;
+  std::set<GUID, less_guid> GUIDs;
+  std::string media_subtype_string;
+  std::string GUID_stdstring;
+  result = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  AM_MEDIA_TYPE* media_type_p = NULL;
+  struct _VIDEO_STREAM_CONFIG_CAPS capabilities;
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  for (int i = 0; i < count; ++i)
+  {
+    media_type_p = NULL;
+    result = IAMStreamConfig_in->GetStreamCaps (i,
+                                                &media_type_p,
+                                                (BYTE*)&capabilities);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
+                  i,
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return false;
+    } // end IF
+    ACE_ASSERT (media_type_p);
+    if ((media_type_p->formattype != FORMAT_VideoInfo) &&
+        (media_type_p->formattype != FORMAT_VideoInfo2))
+    {
+      //DeleteMediaType (media_type_p);
+      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      continue;
+    } // end IF
+
+    // *NOTE*: FORMAT_VideoInfo2 types do not work with the Video Renderer
+    //         directly --> insert the Overlay Mixer
+    GUIDs.insert (media_type_p->subtype);
+
+    //DeleteMediaType (media_type_p);
+    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  } // end FOR
+
+  GtkTreeIter iterator;
+  OLECHAR GUID_string[39];
+  ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
+  for (std::set<GUID, less_guid>::const_iterator iterator_2 = GUIDs.begin ();
+       iterator_2 != GUIDs.end ();
+       ++iterator_2)
+  {
+    count = StringFromGUID2 (*iterator_2,
+                             GUID_string, sizeof (GUID_string));
+    ACE_ASSERT (count == 39);
+    ACE_Wide_To_Ascii converter (GUID_string);
+    GUID_stdstring = converter.char_rep ();
+    gtk_list_store_append (listStore_in, &iterator);
+    media_subtype_string =
+      Stream_Module_Device_Tools::mediaSubTypeToString (*iterator_2);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, media_subtype_string.c_str (),
+                        1, GUID_stdstring.c_str (),
+                        -1);
+  } // end FOR
+
+  return true;
+}
+
+bool
+load_resolutions (IAMStreamConfig* IAMStreamConfig_in,
+                  const GUID& mediaSubType_in,
+                  GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_resolutions"));
+
+  // sanity check(s)
+  ACE_ASSERT (IAMStreamConfig_in);
+  ACE_ASSERT (listStore_in);
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  HRESULT result;
+  int count = 0, size = 0;
+  result = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  AM_MEDIA_TYPE* media_type_p = NULL;
+  struct _VIDEO_STREAM_CONFIG_CAPS capabilities;
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  std::set<std::pair<unsigned int, unsigned int> > resolutions;
+  for (int i = 0; i < count; ++i)
+  {
+    media_type_p = NULL;
+    result = IAMStreamConfig_in->GetStreamCaps (i,
+                                                &media_type_p,
+                                                (BYTE*)&capabilities);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
+                  i,
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return false;
+    } // end IF
+    ACE_ASSERT (media_type_p);
+    if (media_type_p->subtype != mediaSubType_in)
+    {
+      //DeleteMediaType (media_type_p);
+      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      continue;
+    } // end IF
+    if (media_type_p->formattype == FORMAT_VideoInfo)
+    {
+      video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
+      resolutions.insert (std::make_pair (video_info_header_p->bmiHeader.biWidth,
+                                          video_info_header_p->bmiHeader.biHeight));
+    } // end IF
+    else if (media_type_p->formattype == FORMAT_VideoInfo2)
+    {
+      // *NOTE*: these media subtypes do not work with the Video Renderer
+      //         directly --> insert the Overlay Mixer
+      video_info_header2_p = (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
+      resolutions.insert (std::make_pair (video_info_header_p->bmiHeader.biWidth,
+                                          video_info_header_p->bmiHeader.biHeight));
+    } // end ELSE IF
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid AM_MEDIA_TYPE, aborting\n")));
+
+      // clean up
+      //DeleteMediaType (media_type_p);
+      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+      return false;
+    } // end ELSE
+    //DeleteMediaType (media_type_p);
+    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  } // end WHILE
+  GtkTreeIter iterator;
+  std::ostringstream converter;
+  for (std::set<std::pair<unsigned int, unsigned int> >::const_iterator iterator_2 = resolutions.begin ();
+       iterator_2 != resolutions.end ();
+       ++iterator_2)
+  {
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << (*iterator_2).first;
+    converter << 'x';
+    converter << (*iterator_2).second;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, (*iterator_2).first,
+                        2, (*iterator_2).second,
+                        -1);
+  } // end FOR
+
+  return true;
+}
+
+bool
+load_rates (IAMStreamConfig* IAMStreamConfig_in,
+            const GUID& mediaSubType_in,
+            unsigned int width_in,
+            GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_rates"));
+
+  // sanity check(s)
+  ACE_ASSERT (IAMStreamConfig_in);
+  ACE_ASSERT (listStore_in);
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  HRESULT result;
+  int count = 0, size = 0;
+  result = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  AM_MEDIA_TYPE* media_type_p = NULL;
+  struct _VIDEO_STREAM_CONFIG_CAPS capabilities;
+  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  unsigned int frame_duration;
+  std::set<std::pair<unsigned int, unsigned int> > frame_rates;
+  for (int i = 0; i < count; ++i)
+  {
+    media_type_p = NULL;
+    result = IAMStreamConfig_in->GetStreamCaps (i,
+                                                &media_type_p,
+                                                (BYTE*)&capabilities);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
+                  i,
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return false;
+    } // end IF
+    ACE_ASSERT (media_type_p);
+    if (media_type_p->subtype != mediaSubType_in)
+    {
+      //DeleteMediaType (media_type_p);
+      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      continue;
+    } // end IF
+    if (media_type_p->formattype == FORMAT_VideoInfo)
+    {
+      video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
+      if (video_info_header_p->bmiHeader.biWidth != width_in)
+      {
+        //DeleteMediaType (media_type_p);
+        Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+        continue;
+      } // end IF
+      else
+        frame_duration =
+          static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
+    } // end IF
+    else if (media_type_p->formattype == FORMAT_VideoInfo2)
+    {
+      video_info_header2_p = (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
+      if (video_info_header2_p->bmiHeader.biWidth != width_in)
+      {
+        //DeleteMediaType (media_type_p);
+        Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+        continue;
+      } // end IF
+      else
+        frame_duration =
+          static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
+    } // end ELSEIF
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid AM_MEDIA_TYPE, aborting\n")));
+
+      // clean up
+      //DeleteMediaType (media_type_p);
+      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+      return false;
+    } // end IF
+    frame_rates.insert (std::make_pair (10000000 / static_cast<unsigned int> (capabilities.MinFrameInterval),
+                                        frame_duration));
+    //DeleteMediaType (media_type_p);
+    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  } // end WHILE
+  GtkTreeIter iterator;
+  for (std::set<std::pair<unsigned int, unsigned int> >::const_iterator iterator_2 = frame_rates.begin ();
+       iterator_2 != frame_rates.end ();
+       ++iterator_2)
+  {
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, (*iterator_2).first,
+                        1, (*iterator_2).second,
+                        -1);
+  } // end FOR
+
+  return true;
+}
+#endif
+
+/////////////////////////////////////////
 
 ACE_THR_FUNC_RETURN
 stream_processing_function (void* arg_in)
@@ -272,6 +576,17 @@ idle_initialize_UI_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->builders.end ());
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HRESULT hresult = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  if (FAILED (hresult))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
+    return false;
+  } // end IF
+#endif
+
   // step1: initialize dialog window(s)
   GtkWidget* dialog_p =
   //  GTK_WIDGET (glade_xml_get_widget ((*iterator).second.second,
@@ -326,7 +641,6 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
-  // make it sort the channels by #members...
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
                                         1, GTK_SORT_DESCENDING);
   if (!load_capture_devices (list_store_p))
@@ -353,17 +667,98 @@ idle_initialize_UI_cb (gpointer userData_in)
   // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
-
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
                                   //"cell-background", 0,
                                   //"text", 1,
                                   "text", 0,
                                   NULL);
-
-  gint n_rows =
-    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
-  if (n_rows)
-    gtk_combo_box_set_active (combo_box_p, 0);
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
+  ACE_ASSERT (list_store_p);
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        1, GTK_SORT_DESCENDING);
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
+  ACE_ASSERT (combo_box_p);
+  //gtk_combo_box_set_model (combo_box_p,
+  //                         GTK_TREE_MODEL (list_store_p));
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              true);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  //"cell-background", 0,
+                                  //"text", 1,
+                                  "text", 0,
+                                  NULL);
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
+  ACE_ASSERT (list_store_p);
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        1, GTK_SORT_ASCENDING);
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
+  ACE_ASSERT (combo_box_p);
+  //gtk_combo_box_set_model (combo_box_p,
+  //                         GTK_TREE_MODEL (list_store_p));
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              true);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  //"cell-background", 0,
+                                  //"text", 1,
+                                  "text", 0,
+                                  NULL);
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
+  ACE_ASSERT (list_store_p);
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        1, GTK_SORT_DESCENDING);
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_RATE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  //gtk_combo_box_set_model (combo_box_p,
+  //                         GTK_TREE_MODEL (list_store_p));
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              true);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  //"cell-background", 0,
+                                  //"text", 1,
+                                  "text", 0,
+                                  NULL);
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -587,28 +982,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (result_2);
 
   // step6b: connect custom signals
-  //gtk_builder_connect_signals ((*iterator).second.second,
-  //                             userData_in);
-
-  //GObject* object_p =
-  //    gtk_builder_get_object ((*iterator).second.second,
-  //                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_START_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 = g_signal_connect (object_p,
-  //                           ACE_TEXT_ALWAYS_CHAR ("clicked"),
-  //                           G_CALLBACK (button_start_clicked_cb),
-  //                           userData_in);
-  //ACE_ASSERT (result_2);
-  //object_p =
-  //    gtk_builder_get_object ((*iterator).second.second,
-  //                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_BUTTON_STOP_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 =
-  //    g_signal_connect (object_p,
-  //                      ACE_TEXT_ALWAYS_CHAR ("clicked"),
-  //                      G_CALLBACK (button_stop_clicked_cb),
-  //                      userData_in);
-  //ACE_ASSERT (result_2);
   GObject* object_p =
     gtk_builder_get_object ((*iterator).second.second,
                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME));
@@ -626,6 +999,57 @@ idle_initialize_UI_cb (gpointer userData_in)
     g_signal_connect (object_p,
                       ACE_TEXT_ALWAYS_CHAR ("activate"),
                       G_CALLBACK (action_cut_activate_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("activate"),
+                      G_CALLBACK (action_report_activate_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+
+  object_p =
+      gtk_builder_get_object ((*iterator).second.second,
+                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+      g_signal_connect (object_p,
+                        ACE_TEXT_ALWAYS_CHAR ("changed"),
+                        G_CALLBACK (combobox_source_changed_cb),
+                        userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("changed"),
+                      G_CALLBACK (combobox_format_changed_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("changed"),
+                      G_CALLBACK (combobox_resolution_changed_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_RATE_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("changed"),
+                      G_CALLBACK (combobox_rate_changed_cb),
                       userData_in);
   ACE_ASSERT (result_2);
 
@@ -707,22 +1131,23 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // step11: initialize COM ?
-  HRESULT result_3 = S_FALSE;
-  if (!data_p->COMInitialized)
+  // step11: select default capture source (if any)
+  //         --> populate the options comboboxes
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
+  ACE_ASSERT (list_store_p);
+  gint n_rows =
+    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
+  if (n_rows)
   {
-    result_3 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-    if (FAILED (result_3))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
-      return G_SOURCE_REMOVE;
-    } // end IF
-    data_p->COMInitialized = true;
+    combo_box_p =
+      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+    ACE_ASSERT (combo_box_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
+    gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
-#endif
 
   return G_SOURCE_REMOVE;
 }
@@ -742,12 +1167,7 @@ idle_finalize_UI_cb (gpointer userData_in)
   gtk_main_quit ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // uninitialize COM ?
-  if (data_p->COMInitialized)
-  {
-    CoUninitialize ();
-    data_p->COMInitialized = false;
-  } // end IF
+  CoUninitialize ();
 #endif
 
   return G_SOURCE_REMOVE;
@@ -1076,6 +1496,11 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
 
+  GtkVBox* box_p =
+    GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
+                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_OPTIONS_NAME)));
+  ACE_ASSERT (box_p);
+
   // toggle record/stop ?
   const Stream_StateMachine_ControlState& status_r =
     data_p->stream->status ();
@@ -1105,16 +1530,13 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
     gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
 
     gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_RECORD);
+    gtk_widget_set_sensitive (GTK_WIDGET (box_p), true);
 
     return;
   } // end IF
-  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
 
   // step0: modify widgets
-  GtkVBox* box_p =
-    GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
-                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_OPTIONS_NAME)));
-  ACE_ASSERT (box_p);
+  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
   gtk_widget_set_sensitive (GTK_WIDGET (box_p), false);
 
   GtkAction* action_p =
@@ -1310,9 +1732,8 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
 
 error:
   gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_RECORD);
-  gtk_widget_set_sensitive (GTK_WIDGET (box_p), TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (box_p), true);
 } // toggle_action_record_activate_cb
-
 void
 action_cut_activate_cb (GtkAction* action_in,
                         gpointer userData_in)
@@ -1329,6 +1750,19 @@ action_cut_activate_cb (GtkAction* action_in,
   data_p->stream->control (STREAM_CONTROL_STEP,
                            false);
 } // action_cut_activate_cb
+void
+action_report_activate_cb (GtkAction* action_in,
+                           gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::action_report_activate_cb"));
+
+  Stream_CamSave_GTK_CBData* data_p =
+    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->stream);
+} // action_report_activate_cb
 
 // -----------------------------------------------------------------------------
 
@@ -1462,6 +1896,717 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 
   return FALSE;
 } // button_quit_clicked_cb
+
+void
+combobox_source_changed_cb (GtkWidget* widget_in,
+                            gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::combobox_source_changed_cb"));
+
+  Stream_CamSave_GTK_CBData* data_p =
+    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+    return; // <-- nothing selected
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
+  ACE_ASSERT (list_store_p);
+  GValue value = {0,};
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            0, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string filter_string = g_value_get_string (&value);
+  g_value_unset (&value);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (data_p->streamConfiguration)
+  {
+    data_p->streamConfiguration->Release ();
+    data_p->streamConfiguration = NULL;
+  } // end IF
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+  IGraphBuilder* builder_p = NULL;
+  HRESULT result =
+    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder->GetFiltergraph (&builder_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+  ACE_ASSERT (builder_p);
+  IEnumFilters* enumerator_p = NULL;
+  result = builder_p->EnumFilters (&enumerator_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    builder_p->Release ();
+
+    return;
+  } // end IF
+  ACE_ASSERT (enumerator_p);
+  IBaseFilter* filter_p = NULL;
+  while (S_OK == enumerator_p->Next (1, &filter_p, NULL))
+  {
+    ACE_ASSERT (filter_p);
+    result = builder_p->RemoveFilter (filter_p);
+    enumerator_p->Reset ();
+
+    filter_p->Release ();
+    filter_p = NULL;
+  } // end WHILE
+  enumerator_p->Release ();
+  if (data_p->streamConfiguration)
+  {
+    data_p->streamConfiguration->Release ();
+    data_p->streamConfiguration = NULL;
+  } // end IF
+
+  ICreateDevEnum* enumerator_2 = NULL;
+  result = CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
+                             CLSCTX_INPROC_SERVER, IID_PPV_ARGS (&enumerator_2));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    builder_p->Release ();
+
+    return;
+  } // end IF
+  ACE_ASSERT (enumerator_2);
+  IEnumMoniker* enum_moniker_p = NULL;
+  result =
+    enumerator_2->CreateClassEnumerator (CLSID_VideoInputDeviceCategory,
+                                         &enum_moniker_p,
+                                         0);
+  if (result != S_OK)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(CLSID_VideoInputDeviceCategory): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    enumerator_2->Release ();
+    builder_p->Release ();
+
+    result = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
+    return;
+  } // end IF
+  ACE_ASSERT (enum_moniker_p);
+  enumerator_2->Release ();
+
+  IMoniker* moniker_p = NULL;
+  IPropertyBag* properties_p = NULL;
+  VARIANT variant;
+  while (enum_moniker_p->Next (1, &moniker_p, NULL) == S_OK)
+  {
+    ACE_ASSERT (moniker_p);
+
+    properties_p = NULL;
+    result = moniker_p->BindToStorage (0, 0, IID_PPV_ARGS (&properties_p));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      builder_p->Release ();
+      enum_moniker_p->Release ();
+      moniker_p->Release ();
+
+      return;
+    } // end IF
+    ACE_ASSERT (properties_p);
+
+    VariantInit (&variant);
+    result = properties_p->Read (L"FriendlyName", &variant, 0);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPropertyBag::Read(FriendlyName): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      builder_p->Release ();
+      enum_moniker_p->Release ();
+      moniker_p->Release ();
+      properties_p->Release ();
+
+      return;
+    } // end IF
+    properties_p->Release ();
+    ACE_Wide_To_Ascii converter (variant.bstrVal);
+    VariantClear (&variant);
+
+    if (ACE_OS::strcmp (filter_string.c_str (),
+                        converter.char_rep ()) == 0)
+      break;
+
+    moniker_p->Release ();
+    moniker_p = NULL;
+  } // end WHILE
+  enum_moniker_p->Release ();
+  if (!moniker_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("capture device not found (was: \"%s\", returning\n"),
+                ACE_TEXT (filter_string.c_str ())));
+
+    // clean up
+    builder_p->Release ();
+
+    return;
+  } // end IF
+  result = moniker_p->BindToObject (0, 0, IID_IBaseFilter,
+                                    (void**)&filter_p);
+  moniker_p->Release ();
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMoniker::BindToObject(IID_IBaseFilter): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    builder_p->Release ();
+
+    return;
+  } // end IF
+  ACE_ASSERT (filter_p);
+  result = builder_p->AddFilter (filter_p,
+                                 MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", returning\n")));
+
+    // clean up
+    filter_p->Release ();
+
+    return;
+  } // end IF
+
+  IEnumPins* enumerator_3 = NULL;
+  result = filter_p->EnumPins (&enumerator_3);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    filter_p->Release ();
+
+    return;
+  } // end IF
+  filter_p->Release ();
+  ACE_ASSERT (enumerator_3);
+
+  IPin* pin_p = NULL;
+  PIN_DIRECTION pin_direction;
+  IKsPropertySet* property_set_p = NULL;
+  GUID GUID_i;
+  DWORD returned_size = 0;
+  std::ostringstream converter;
+  std::string rate_string;
+  while (enumerator_3->Next (1, &pin_p, NULL) == S_OK)
+  {
+    ACE_ASSERT (pin_p);
+
+    result = pin_p->QueryDirection (&pin_direction);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      pin_p->Release ();
+      enumerator_3->Release ();
+
+      return;
+    } // end IF
+    if (pin_direction != PINDIR_OUTPUT)
+    {
+      pin_p->Release ();
+      pin_p = NULL;
+
+      continue;
+    } // end IF
+    property_set_p = NULL;
+    result = pin_p->QueryInterface (IID_PPV_ARGS (&property_set_p));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPin::QueryInterface(IKsPropertySet): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      pin_p->Release ();
+      enumerator_3->Release ();
+
+      return;
+    } // end IF
+    ACE_ASSERT (property_set_p);
+    result = property_set_p->Get (AMPROPSETID_Pin, AMPROPERTY_PIN_CATEGORY,
+                                  NULL, 0,
+                                  &GUID_i, sizeof (GUID), &returned_size);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      property_set_p->Release ();
+      pin_p->Release ();
+      enumerator_3->Release ();
+
+      return;
+    } // end IF
+    ACE_ASSERT (returned_size == sizeof (GUID));
+    if (GUID_i == PIN_CATEGORY_CAPTURE)
+      break;
+
+    property_set_p->Release ();
+    pin_p->Release ();
+    pin_p = NULL;
+  } // end WHILE
+  enumerator_3->Release ();
+  if (!pin_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("0x%@: no capture pin found, returning\n"),
+                filter_p));
+    return;
+  } // end IF
+
+  result = pin_p->QueryInterface (IID_IAMStreamConfig,
+                                  (void**)&data_p->streamConfiguration);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    pin_p->Release ();
+    builder_p->Release ();
+
+    return;
+  } // end IF
+  pin_p->Release ();
+  ACE_ASSERT (data_p->streamConfiguration);
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
+  ACE_ASSERT (list_store_p);
+  if (!load_formats (data_p->streamConfiguration,
+                     list_store_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_formats(), returning\n")));
+
+    // clean up
+    builder_p->Release ();
+
+    return;
+  } // end IF
+  builder_p->Release ();
+#endif
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
+  ACE_ASSERT (list_store_p);
+  gint n_rows =
+    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
+  if (n_rows)
+  {
+    GtkComboBox* combo_box_p =
+      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
+    ACE_ASSERT (combo_box_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
+    gtk_combo_box_set_active (combo_box_p, 0);
+  } // end IF
+
+  GtkToggleAction* toggle_action_p =
+    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
+  ACE_ASSERT (toggle_action_p);
+  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
+} // combobox_source_changed_cb
+
+void
+combobox_format_changed_cb (GtkWidget* widget_in,
+                            gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::combobox_format_changed_cb"));
+
+  Stream_CamSave_GTK_CBData* data_p =
+    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->streamConfiguration);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+    return;
+  } // end IF
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
+  ACE_ASSERT (list_store_p);
+  GValue value = {0,};
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  GUID GUID_i;
+  ACE_OS::memset (&GUID_i, 0, sizeof (GUID));
+  HRESULT result = E_FAIL;
+#if defined (OLE2ANSI)
+  result =
+    CLSIDFromString (g_value_get_string (&value),
+                     &GUID_i);
+#else
+  result =
+    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (g_value_get_string (&value)),
+                     &GUID_i);
+#endif
+  g_value_unset (&value);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
+  ACE_ASSERT (list_store_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  AM_MEDIA_TYPE* media_type_p = NULL;
+  result = data_p->streamConfiguration->GetFormat (&media_type_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+  ACE_ASSERT (media_type_p);
+  media_type_p->subtype = GUID_i;
+  result = data_p->streamConfiguration->SetFormat (media_type_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    //DeleteMediaType (media_type_p);
+    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+    return;
+  } // end IF
+  //DeleteMediaType (media_type_p);
+  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  if (!load_resolutions (data_p->streamConfiguration,
+                         GUID_i,
+                         list_store_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_resolutions(), returning\n")));
+    return;
+  } // end IF
+#endif
+  gint n_rows =
+    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
+  if (n_rows)
+  {
+    GtkComboBox* combo_box_p =
+      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
+    ACE_ASSERT (combo_box_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
+    gtk_combo_box_set_active (combo_box_p, 0);
+  } // end IF
+} // combobox_source_changed_cb
+
+void
+combobox_resolution_changed_cb (GtkWidget* widget_in,
+                                gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::combobox_resolution_changed_cb"));
+
+  Stream_CamSave_GTK_CBData* data_p =
+    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->streamConfiguration);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  GtkTreeIter iterator_2;
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
+  ACE_ASSERT (combo_box_p);
+  if (!gtk_combo_box_get_active_iter (combo_box_p,
+                                      &iterator_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+    return;
+  } // end IF
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
+  ACE_ASSERT (list_store_p);
+  GValue value = {0,};
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  GUID GUID_i;
+  ACE_OS::memset (&GUID_i, 0, sizeof (GUID));
+  HRESULT result = E_FAIL;
+#if defined (OLE2ANSI)
+  result =
+    CLSIDFromString (g_value_get_string (&value),
+                     &GUID_i);
+#else
+  result =
+    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (g_value_get_string (&value)),
+                     &GUID_i);
+#endif
+  g_value_unset (&value);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+  {
+    //ACE_DEBUG ((LM_ERROR,
+    //            ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+    return;
+  } // end IF
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
+  ACE_ASSERT (list_store_p);
+  GValue value_2 = {0,};
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            2, &value_2);
+  ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
+  unsigned int width = g_value_get_uint (&value);
+  g_value_unset (&value);
+  unsigned int height = g_value_get_uint (&value_2);
+  g_value_unset (&value_2);
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
+  ACE_ASSERT (list_store_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  AM_MEDIA_TYPE* media_type_p = NULL;
+  result = data_p->streamConfiguration->GetFormat (&media_type_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+  ACE_ASSERT (media_type_p);
+  if (media_type_p->formattype == FORMAT_VideoInfo)
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
+    video_info_header_p->bmiHeader.biWidth = width;
+    video_info_header_p->bmiHeader.biHeight = height;
+  } // end IF
+  else if (media_type_p->formattype == FORMAT_VideoInfo2)
+  {
+    // *NOTE*: these media subtypes do not work with the Video Renderer
+    //         directly --> insert the Overlay Mixer
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
+    video_info_header2_p->bmiHeader.biWidth = width;
+    video_info_header2_p->bmiHeader.biHeight = height;
+  } // end ELSE IF
+  result = data_p->streamConfiguration->SetFormat (media_type_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    //DeleteMediaType (media_type_p);
+    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+    return;
+  } // end IF
+  //DeleteMediaType (media_type_p);
+  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  if (!load_rates (data_p->streamConfiguration,
+                   GUID_i,
+                   width,
+                   list_store_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_rates(), returning\n")));
+    return;
+  } // end IF
+#endif
+  gint n_rows =
+    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
+  if (n_rows)
+  {
+    GtkComboBox* combo_box_p =
+      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_RATE_NAME)));
+    ACE_ASSERT (combo_box_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
+    gtk_combo_box_set_active (combo_box_p, 0);
+  } // end IF
+} // combobox_resolution_changed_cb
+
+void
+combobox_rate_changed_cb (GtkWidget* widget_in,
+                          gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::combobox_rate_changed_cb"));
+
+  Stream_CamSave_GTK_CBData* data_p =
+    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->streamConfiguration);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_2))
+  {
+    //ACE_DEBUG ((LM_ERROR,
+    //            ACE_TEXT ("failed to gtk_combo_box_get_active_iter(), returning\n")));
+    return;
+  } // end IF
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
+  ACE_ASSERT (list_store_p);
+  GValue value = {0,};
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
+  unsigned int frame_interval = g_value_get_uint (&value);
+  g_value_unset (&value);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  AM_MEDIA_TYPE* media_type_p = NULL;
+  HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+  ACE_ASSERT (media_type_p);
+  if (media_type_p->formattype == FORMAT_VideoInfo)
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
+    video_info_header_p->AvgTimePerFrame = frame_interval;
+  } // end IF
+  else if (media_type_p->formattype == FORMAT_VideoInfo2)
+  {
+    // *NOTE*: these media subtypes do not work with the Video Renderer
+    //         directly --> insert the Overlay Mixer
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
+    video_info_header2_p->AvgTimePerFrame = frame_interval;
+  } // end ELSE IF
+  result = data_p->streamConfiguration->SetFormat (media_type_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    //DeleteMediaType (media_type_p);
+    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+    return;
+  } // end IF
+    //DeleteMediaType (media_type_p);
+  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+#endif
+} // combobox_rate_changed_cb
 
 void
 drawingarea_configure_event_cb (GtkWindow* window_in,

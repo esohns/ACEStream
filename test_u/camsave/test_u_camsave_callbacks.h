@@ -25,8 +25,24 @@
 
 #include "gtk/gtk.h"
 
+// forward declarations
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct IAMStreamConfig;
+#endif
+
 // helper functions
 bool load_capture_devices (GtkListStore*);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+bool load_formats (IAMStreamConfig*, // filter handle
+                   GtkListStore*);   // return value: supported media subtypes
+bool load_resolutions (IAMStreamConfig*, // stream config handle
+                       const GUID&,      // media subtype
+                       GtkListStore*);   // return value: supported resolutions
+bool load_rates (IAMStreamConfig*, // stream config handle
+                 const GUID&,      // media subtype
+                 unsigned int,     // resolution (width)
+                 GtkListStore*);   // return value: supported rates
+#endif
 
 // thread functions
 ACE_THR_FUNC_RETURN stream_processing_function (void*);
@@ -48,10 +64,14 @@ extern "C"
 #endif /* __cplusplus */
 // callbacks
 G_MODULE_EXPORT void action_cut_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT gint button_report_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void action_report_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void combobox_format_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void combobox_resolution_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void combobox_rate_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void drawingarea_configure_event_cb (GtkWindow*, GdkEvent*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
