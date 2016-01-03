@@ -46,12 +46,13 @@
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 
-#include "stream_allocatorheap.h"
-#include "stream_macros.h"
-
 #ifdef HAVE_CONFIG_H
 #include "libACEStream_config.h"
 #endif
+#include "stream_allocatorheap.h"
+#include "stream_macros.h"
+
+#include "stream_module_dev_tools.h"
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
@@ -75,6 +76,8 @@ do_printUsage (const std::string& programName_in)
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
   configuration_path = Common_File_Tools::getWorkingDirectory ();
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -114,7 +117,7 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT ("-s [VALUE]   : statistic reporting interval (second(s)) [")
+  std::cout << ACE_TEXT ("-s [VALUE]              : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING
             << ACE_TEXT ("] {0 --> OFF})")
             << std::endl;
@@ -157,6 +160,8 @@ do_processArguments (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
   configuration_path = Common_File_Tools::getWorkingDirectory ();
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -267,14 +272,14 @@ do_processArguments (int argc_in,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("unrecognized option \"%s\", aborting\n"),
-                    ACE_TEXT (argumentParser.last_option ())));
+                    argumentParser.last_option ()));
         return false;
       }
       case 0:
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("found long option \"%s\", aborting\n"),
-                    ACE_TEXT (argumentParser.long_option ())));
+                    argumentParser.long_option ()));
         return false;
       }
       default:
@@ -369,340 +374,58 @@ do_initialize_directshow (const std::string& deviceName_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
-  // initialize return value(s)
-  if (ICaptureGraphBuilder2_inout)
-  {
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
-  } // end IF
-  if (IAMStreamConfig_inout)
-  {
-    IAMStreamConfig_inout->Release ();
-    IAMStreamConfig_inout = NULL;
-  } // end IF
+  //HRESULT hresult = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  //if (FAILED (hresult))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
+  //  return false;
+  //} // end IF
 
   Stream_Module_Device_Tools::initialize ();
 
-  HRESULT result =
-    CoCreateInstance (CLSID_CaptureGraphBuilder2, NULL,
-                      CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2,
-                      (void**)&ICaptureGraphBuilder2_inout);
-  if (FAILED (result))
+  if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
+                                                    ICaptureGraphBuilder2_inout,
+                                                    IAMStreamConfig_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(CLSID_CaptureGraphBuilder2): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(), aborting\n")));
     return false;
   } // end IF
-  ACE_ASSERT (ICaptureGraphBuilder2_inout);
-
-  IGraphBuilder* builder_p = NULL;
-  result = CoCreateInstance (CLSID_FilterGraph, NULL,
-                             CLSCTX_INPROC_SERVER, IID_IGraphBuilder,
-                             (void**)&builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
-
-    return false;
-  } // end IF
-  ACE_ASSERT (builder_p);
-
-  result = ICaptureGraphBuilder2_inout->SetFiltergraph (builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder2::SetFiltergraph(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
-
-    return false;
-  } // end IF
-
-  ICreateDevEnum* enumerator_p = NULL;
-  result = CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
-                             CLSCTX_INPROC_SERVER, IID_PPV_ARGS (&enumerator_p));
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
-
-    return false;
-  } // end IF
-  ACE_ASSERT (enumerator_p);
-
-  IEnumMoniker* enum_moniker_p = NULL;
-  result =
-    enumerator_p->CreateClassEnumerator (CLSID_VideoInputDeviceCategory,
-                                         &enum_moniker_p,
-                                         0);
-  if (result != S_OK)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(CLSID_VideoInputDeviceCategory): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    enumerator_p->Release ();
-    builder_p->Release ();
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
-
-    result = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
-    return false;
-  } // end IF
-  ACE_ASSERT (enum_moniker_p);
-  enumerator_p->Release ();
-
-  IMoniker* moniker_p = NULL;
-  IPropertyBag* properties_p = NULL;
-  VARIANT variant;
-  while (enum_moniker_p->Next (1, &moniker_p, NULL) == S_OK)
-  {
-    ACE_ASSERT (moniker_p);
-
-    properties_p = NULL;
-    result = moniker_p->BindToStorage (0, 0, IID_PPV_ARGS (&properties_p));
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      enum_moniker_p->Release ();
-      moniker_p->Release ();
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
-
-      return false;
-    } // end IF
-    ACE_ASSERT (properties_p);
-
-    VariantInit (&variant);
-    result = properties_p->Read (L"FriendlyName", &variant, 0);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IPropertyBag::Read(FriendlyName): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      enum_moniker_p->Release ();
-      moniker_p->Release ();
-      properties_p->Release ();
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
-
-      return false;
-    } // end IF
-    properties_p->Release ();
-    ACE_Wide_To_Ascii converter (variant.bstrVal);
-    VariantClear (&variant);
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("found capture device: \"%s\"...\n"),
-                ACE_TEXT (converter.char_rep ())));
-
-    if (deviceName_in.empty () ||
-        (ACE_OS::strcmp (deviceName_in.c_str (),
-                         converter.char_rep ()) == 0))
-      break;
-
-    moniker_p->Release ();
-    moniker_p = NULL;
-  } // end WHILE
-  enum_moniker_p->Release ();
-  if (moniker_p)
-  {
-    IBaseFilter* filter_p = NULL;
-    result = moniker_p->BindToObject (0, 0, IID_IBaseFilter,
-                                      (void**)&filter_p);
-    moniker_p->Release ();
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMoniker::BindToObject(IID_IBaseFilter): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
-
-      return false;
-    } // end IF
-    ACE_ASSERT (filter_p);
-
-    result = builder_p->AddFilter (filter_p,
-                                   MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
-
-      return false;
-    } // end IF
-
-    IEnumPins* enumerator_p = NULL;
-    result = filter_p->EnumPins (&enumerator_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
- 
-      // clean up
-      filter_p->Release ();
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
-
-      return false;
-    } // end IF
-    filter_p->Release ();
-    ACE_ASSERT (enumerator_p);
-
-    IPin* pin_p = NULL;
-    PIN_DIRECTION pin_direction;
-    IKsPropertySet* property_set_p = NULL;
-    GUID GUID_i;
-    DWORD returned_size = 0;
-    std::ostringstream converter;
-    std::string rate_string;
-    while (enumerator_p->Next (1, &pin_p, NULL) == S_OK)
-    {
-      ACE_ASSERT (pin_p);
-
-      result = pin_p->QueryDirection (&pin_direction);
-      if (FAILED (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-        // clean up
-        pin_p->Release ();
-        enumerator_p->Release ();
-        builder_p->Release ();
-        ICaptureGraphBuilder2_inout->Release ();
-        ICaptureGraphBuilder2_inout = NULL;
-
-        return false;
-      } // end IF
-      if (pin_direction != PINDIR_OUTPUT)
-      {
-        pin_p->Release ();
-        pin_p = NULL;
-
-        continue;
-      } // end IF
-      property_set_p = NULL;
-      result = pin_p->QueryInterface (IID_PPV_ARGS (&property_set_p));
-      if (FAILED (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IPin::QueryInterface(IKsPropertySet): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-        // clean up
-        pin_p->Release ();
-        enumerator_p->Release ();
-        builder_p->Release ();
-        ICaptureGraphBuilder2_inout->Release ();
-        ICaptureGraphBuilder2_inout = NULL;
-
-        return false;
-      } // end IF
-      ACE_ASSERT (property_set_p);
-      result = property_set_p->Get (AMPROPSETID_Pin, AMPROPERTY_PIN_CATEGORY,
-                                    NULL, 0,
-                                    &GUID_i, sizeof (GUID), &returned_size);
-      if (FAILED (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-        // clean up
-        property_set_p->Release ();
-        pin_p->Release ();
-        enumerator_p->Release ();
-        builder_p->Release ();
-        ICaptureGraphBuilder2_inout->Release ();
-        ICaptureGraphBuilder2_inout = NULL;
-
-        return false;
-      } // end IF
-      ACE_ASSERT (returned_size == sizeof (GUID));
-      if (GUID_i == PIN_CATEGORY_CAPTURE)
-        break;
-
-      property_set_p->Release ();
-      pin_p->Release ();
-      pin_p = NULL;
-    } // end WHILE
-    enumerator_p->Release ();
-    if (!pin_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("0x%@: no capture pin found, aborting\n"),
-                  filter_p));
-
-      // clean up
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
-
-      return false;
-    } // end IF
-
-    result = pin_p->QueryInterface (IID_IAMStreamConfig,
-                                    (void**)&IAMStreamConfig_inout);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      pin_p->Release ();
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
-
-      return false;
-    } // end IF
-    pin_p->Release ();
-    ACE_ASSERT (IAMStreamConfig_inout);
-  } // end IF
-  builder_p->Release ();
 
   return true;
+}
+
+void
+do_finalize_directshow (Stream_CamSave_GTK_CBData& CBData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
+
+  HRESULT result = E_FAIL;
+  if (CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController)
+  {
+    result =
+      CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController->put_Owner (NULL);
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IVideoWindow::put_Owner(NULL): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController->Release ();
+    CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController = NULL;
+  } // end IF
+  if (CBData_in.streamConfiguration)
+  {
+    CBData_in.streamConfiguration->Release ();
+    CBData_in.streamConfiguration = NULL;
+  } // end IF
+  if (CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.builder)
+  {
+    CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.builder->Release ();
+    CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.builder = NULL;
+  } // end IF
+
+  //CoUninitialize ();
 }
 #endif
 
@@ -724,15 +447,6 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //HRESULT hresult = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-  //if (FAILED (hresult))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", returning\n"),
-  //              ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
-  //  return;
-  //} // end IF
-
   if (!do_initialize_directshow (configuration.streamConfiguration.moduleHandlerConfiguration_2.device,
                                  configuration.streamConfiguration.moduleHandlerConfiguration_2.builder,
                                  CBData_in.streamConfiguration))
@@ -905,13 +619,7 @@ do_work (unsigned int bufferSize_in,
 
 clean:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (configuration.streamConfiguration.moduleHandlerConfiguration_2.windowController)
-    configuration.streamConfiguration.moduleHandlerConfiguration_2.windowController->Release ();
-  if (configuration.streamConfiguration.moduleHandlerConfiguration_2.builder)
-    configuration.streamConfiguration.moduleHandlerConfiguration_2.builder->Release ();
-  if (CBData_in.streamConfiguration)
-    CBData_in.streamConfiguration->Release ();
-  //CoUninitialize ();
+  do_finalize_directshow (CBData_in);
 #endif
 
   ACE_DEBUG ((LM_DEBUG,
@@ -995,6 +703,8 @@ ACE_TMAIN (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
   configuration_path = Common_File_Tools::getWorkingDirectory ();
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;

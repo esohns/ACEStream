@@ -15,35 +15,36 @@ endif
 noinst_HEADERS = \
   stdafx.h
 include_HEADERS = \
-  stream_db_exports.h \
-  stream_module_db_common.h \
-  stream_module_db_defines.h \
-  stream_module_db_tools.h \
-  stream_module_mysqlreader.h \
-  stream_module_mysqlreader.inl \
-  stream_module_mysqlwriter.h \
-  stream_module_mysqlwriter.inl
+  stream_dev_exports.h \
+  stream_dev_common.h \
+  stream_dev_defines.h \
+  stream_dev_tools.h \
+  stream_dev_cam_source.h \
+  stream_dev_cam_source.inl \
+  stream_dev_cam_source_directshow.h \
+  stream_dev_cam_source_directshow.inl
 
-lib_LTLIBRARIES = libACEStream_Database.la
+lib_LTLIBRARIES = libACEStream_Device.la
 
-libACEStream_Database_la_SOURCES = \
-  stream_db_exports.h \
-  stream_module_db_common.h \
-  stream_module_db_defines.h \
-  stream_module_db_tools.cpp \
-  stream_module_db_tools.h \
-  stream_module_mysqlreader.cpp \
-  stream_module_mysqlreader.h \
-  stream_module_mysqlreader.inl \
-  stream_module_mysqlwriter.cpp \
-  stream_module_mysqlwriter.h \
-  stream_module_mysqlwriter.inl
+libACEStream_Device_la_SOURCES = \
+  stream_dev_exports.h \
+  stream_dev_common.h \
+  stream_dev_defines.h \
+  stream_dev_tools.cpp \
+  stream_dev_tools.h \
+  stream_dev_cam_source.cpp \
+  stream_dev_cam_source.h \
+  stream_dev_cam_source.inl \
+  stream_dev_cam_source_directshow.cpp \
+  stream_dev_cam_source_directshow.h \
+  stream_dev_cam_source_directshow.inl
 #  stdafx.cpp \
 #  stdafx.h
 
-libACEStream_Database_la_CPPFLAGS = \
+libACEStream_Device_la_CPPFLAGS = \
   $(AM_CPPFLAGS) \
   -I$(top_srcdir)/modules/libCommon/src \
   -I$(srcdir)/../..
-libACEStream_Database_la_LDFLAGS = \
+libACEStream_Device_la_LDFLAGS = \
   -version-info @LIBACESTREAM_LT_VERSION_INFO@
+

@@ -1467,6 +1467,44 @@ idle_update_progress_cb (gpointer userData_in)
   // --> reschedule
   return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
 }
+gboolean
+idle_session_end_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_session_end_cb"));
+
+  Stream_CamSave_GTK_CBData* data_p =
+    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  // synch access
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  GtkVBox* box_p =
+    GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
+                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_OPTIONS_NAME)));
+  ACE_ASSERT (box_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (box_p), true);
+
+  GtkToggleAction* toggle_action_p =
+    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
+  ACE_ASSERT (toggle_action_p);
+  gtk_action_set_stock_id (GTK_ACTION (toggle_action_p), GTK_STOCK_MEDIA_RECORD);
+  GtkAction* action_p =
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, false);
+
+  return G_SOURCE_REMOVE;
+}
 
 /////////////////////////////////////////
 
@@ -1507,7 +1545,7 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
   if ((status_r == STREAM_STATE_RUNNING) ||
       (status_r == STREAM_STATE_PAUSED))
   {
-    data_p->stream->stop (false, true);
+    data_p->stream->stop (true, true);
 
     // stop progress reporting
     ACE_ASSERT (data_p->progressEventSourceID);
@@ -1534,6 +1572,9 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
 
     return;
   } // end IF
+
+  if (data_p->isFirst)
+    data_p->isFirst = false;
 
   // step0: modify widgets
   gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
@@ -1928,295 +1969,19 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                             &iterator_2,
                             0, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
-  std::string filter_string = g_value_get_string (&value);
+  std::string device_string = g_value_get_string (&value);
   g_value_unset (&value);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (data_p->streamConfiguration)
-  {
-    data_p->streamConfiguration->Release ();
-    data_p->streamConfiguration = NULL;
-  } // end IF
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
-  IGraphBuilder* builder_p = NULL;
-  HRESULT result =
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder->GetFiltergraph (&builder_p);
-  if (FAILED (result))
+  if (!Stream_Module_Device_Tools::loadDeviceGraph (device_string,
+                                                    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+                                                    data_p->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), returning\n"),
+                ACE_TEXT (device_string.c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (builder_p);
-  IEnumFilters* enumerator_p = NULL;
-  result = builder_p->EnumFilters (&enumerator_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-
-    return;
-  } // end IF
-  ACE_ASSERT (enumerator_p);
-  IBaseFilter* filter_p = NULL;
-  while (S_OK == enumerator_p->Next (1, &filter_p, NULL))
-  {
-    ACE_ASSERT (filter_p);
-    result = builder_p->RemoveFilter (filter_p);
-    enumerator_p->Reset ();
-
-    filter_p->Release ();
-    filter_p = NULL;
-  } // end WHILE
-  enumerator_p->Release ();
-  if (data_p->streamConfiguration)
-  {
-    data_p->streamConfiguration->Release ();
-    data_p->streamConfiguration = NULL;
-  } // end IF
-
-  ICreateDevEnum* enumerator_2 = NULL;
-  result = CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
-                             CLSCTX_INPROC_SERVER, IID_PPV_ARGS (&enumerator_2));
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-
-    return;
-  } // end IF
-  ACE_ASSERT (enumerator_2);
-  IEnumMoniker* enum_moniker_p = NULL;
-  result =
-    enumerator_2->CreateClassEnumerator (CLSID_VideoInputDeviceCategory,
-                                         &enum_moniker_p,
-                                         0);
-  if (result != S_OK)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(CLSID_VideoInputDeviceCategory): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    enumerator_2->Release ();
-    builder_p->Release ();
-
-    result = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
-    return;
-  } // end IF
-  ACE_ASSERT (enum_moniker_p);
-  enumerator_2->Release ();
-
-  IMoniker* moniker_p = NULL;
-  IPropertyBag* properties_p = NULL;
-  VARIANT variant;
-  while (enum_moniker_p->Next (1, &moniker_p, NULL) == S_OK)
-  {
-    ACE_ASSERT (moniker_p);
-
-    properties_p = NULL;
-    result = moniker_p->BindToStorage (0, 0, IID_PPV_ARGS (&properties_p));
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      builder_p->Release ();
-      enum_moniker_p->Release ();
-      moniker_p->Release ();
-
-      return;
-    } // end IF
-    ACE_ASSERT (properties_p);
-
-    VariantInit (&variant);
-    result = properties_p->Read (L"FriendlyName", &variant, 0);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IPropertyBag::Read(FriendlyName): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      builder_p->Release ();
-      enum_moniker_p->Release ();
-      moniker_p->Release ();
-      properties_p->Release ();
-
-      return;
-    } // end IF
-    properties_p->Release ();
-    ACE_Wide_To_Ascii converter (variant.bstrVal);
-    VariantClear (&variant);
-
-    if (ACE_OS::strcmp (filter_string.c_str (),
-                        converter.char_rep ()) == 0)
-      break;
-
-    moniker_p->Release ();
-    moniker_p = NULL;
-  } // end WHILE
-  enum_moniker_p->Release ();
-  if (!moniker_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("capture device not found (was: \"%s\", returning\n"),
-                ACE_TEXT (filter_string.c_str ())));
-
-    // clean up
-    builder_p->Release ();
-
-    return;
-  } // end IF
-  result = moniker_p->BindToObject (0, 0, IID_IBaseFilter,
-                                    (void**)&filter_p);
-  moniker_p->Release ();
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMoniker::BindToObject(IID_IBaseFilter): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-
-    return;
-  } // end IF
-  ACE_ASSERT (filter_p);
-  result = builder_p->AddFilter (filter_p,
-                                 MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", returning\n")));
-
-    // clean up
-    filter_p->Release ();
-
-    return;
-  } // end IF
-
-  IEnumPins* enumerator_3 = NULL;
-  result = filter_p->EnumPins (&enumerator_3);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    filter_p->Release ();
-
-    return;
-  } // end IF
-  filter_p->Release ();
-  ACE_ASSERT (enumerator_3);
-
-  IPin* pin_p = NULL;
-  PIN_DIRECTION pin_direction;
-  IKsPropertySet* property_set_p = NULL;
-  GUID GUID_i;
-  DWORD returned_size = 0;
-  std::ostringstream converter;
-  std::string rate_string;
-  while (enumerator_3->Next (1, &pin_p, NULL) == S_OK)
-  {
-    ACE_ASSERT (pin_p);
-
-    result = pin_p->QueryDirection (&pin_direction);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      pin_p->Release ();
-      enumerator_3->Release ();
-
-      return;
-    } // end IF
-    if (pin_direction != PINDIR_OUTPUT)
-    {
-      pin_p->Release ();
-      pin_p = NULL;
-
-      continue;
-    } // end IF
-    property_set_p = NULL;
-    result = pin_p->QueryInterface (IID_PPV_ARGS (&property_set_p));
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IPin::QueryInterface(IKsPropertySet): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      pin_p->Release ();
-      enumerator_3->Release ();
-
-      return;
-    } // end IF
-    ACE_ASSERT (property_set_p);
-    result = property_set_p->Get (AMPROPSETID_Pin, AMPROPERTY_PIN_CATEGORY,
-                                  NULL, 0,
-                                  &GUID_i, sizeof (GUID), &returned_size);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      property_set_p->Release ();
-      pin_p->Release ();
-      enumerator_3->Release ();
-
-      return;
-    } // end IF
-    ACE_ASSERT (returned_size == sizeof (GUID));
-    if (GUID_i == PIN_CATEGORY_CAPTURE)
-      break;
-
-    property_set_p->Release ();
-    pin_p->Release ();
-    pin_p = NULL;
-  } // end WHILE
-  enumerator_3->Release ();
-  if (!pin_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("0x%@: no capture pin found, returning\n"),
-                filter_p));
-    return;
-  } // end IF
-
-  result = pin_p->QueryInterface (IID_IAMStreamConfig,
-                                  (void**)&data_p->streamConfiguration);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    pin_p->Release ();
-    builder_p->Release ();
-
-    return;
-  } // end IF
-  pin_p->Release ();
   ACE_ASSERT (data_p->streamConfiguration);
 
   list_store_p =
@@ -2228,13 +1993,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_formats(), returning\n")));
-
-    // clean up
-    builder_p->Release ();
-
     return;
   } // end IF
-  builder_p->Release ();
 #endif
 
   list_store_p =
@@ -2333,22 +2093,50 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end IF
   ACE_ASSERT (media_type_p);
   media_type_p->subtype = GUID_i;
-  result = data_p->streamConfiguration->SetFormat (media_type_p);
-  if (FAILED (result))
+  // *NOTE*: IAMStreamConfig::SetFormat fails if the pin is connected
+  //         --> use IGraphConfig::Reconnect
+  if (data_p->isFirst)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    //DeleteMediaType (media_type_p);
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-
-    return;
+    result = data_p->streamConfiguration->SetFormat (media_type_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
   } // end IF
+  else
+  {
+    // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
+    //         the filter pins are associated. IGraphConfig::Reconnect fails
+    //         unless the graph is "disconnected" first
+    if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
+      goto error;
+    } // end IF
+    if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+                                                *media_type_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+      goto error;
+    } // end IF
+  } // end ELSE
   //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
+  goto continue_;
+
+error:
+  //DeleteMediaType (media_type_p);
+  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  return;
+
+continue_:
   if (!load_resolutions (data_p->streamConfiguration,
                          GUID_i,
                          list_store_p))

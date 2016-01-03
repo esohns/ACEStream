@@ -192,6 +192,7 @@ struct Stream_CamSave_GTK_CBData
   inline Stream_CamSave_GTK_CBData ()
    : Stream_Test_U_GTK_CBData ()
    , configuration (NULL)
+   , isFirst (true)
    , progressData ()
    , progressEventSourceID (0)
    , stream (NULL)
@@ -201,6 +202,7 @@ struct Stream_CamSave_GTK_CBData
   {};
 
   Stream_CamSave_Configuration*   configuration;
+  bool                            isFirst; // first activation ?
   Stream_CamSave_GTK_ProgressData progressData;
   guint                           progressEventSourceID;
   Stream_CamSave_Stream*          stream;

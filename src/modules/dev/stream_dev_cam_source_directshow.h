@@ -97,7 +97,7 @@ class Stream_Module_CamSource_DirectShow_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement Common_IStatistic
-  // *NOTE*: implements regular (timer-based) statistics collection
+  // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   virtual void report () const;
 
@@ -107,7 +107,7 @@ class Stream_Module_CamSource_DirectShow_T
                                  long);  // BufferLen
   virtual STDMETHODIMP SampleCB (double,         // SampleTime
                                  IMediaSample*); // Sample
-  virtual HRESULT STDMETHODCALLTYPE QueryInterface (const IID&, void **);
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (const IID&, void**);
   virtual ULONG STDMETHODCALLTYPE AddRef ();
   virtual ULONG STDMETHODCALLTYPE Release ();
 
@@ -145,7 +145,6 @@ class Stream_Module_CamSource_DirectShow_T
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
-  bool                              COMInitialized_;
   bool                              isInitialized_;
   DWORD                             ROTID_;
 
@@ -158,6 +157,7 @@ class Stream_Module_CamSource_DirectShow_T
   //ICaptureGraphBuilder2*            ICaptureGraphBuilder2_;
   IMediaControl*                    IMediaControl_;
   IMediaEventEx*                    IMediaEventEx_;
+  ISampleGrabber*                   ISampleGrabber_;
   //IVideoWindow*                     IVideoWindow_;
 };
 

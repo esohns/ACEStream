@@ -25,7 +25,7 @@
 #define TEST_U_STREAM_CAMSAVE_DEFAULT_OUTPUT_FILE           "output.tmp"
 #define TEST_U_STREAM_CAMSAVE_THREAD_NAME                   "stream processor"
 
-#define TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE           4096 // bytes
+#define TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE           524288 // bytes
 #define TEST_U_STREAM_CAMSAVE_MAX_MESSAGES                  0  // 0 --> no limits
 
 //---------------------------------------

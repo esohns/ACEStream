@@ -21,6 +21,7 @@
 #include "ace/Log_Msg.h"
 
 #include "aviriff.h"
+#include "dvdmedia.h"
 //#include "Streams.h"
 
 #include "common_file_tools.h"
@@ -59,7 +60,6 @@ Stream_Module_CamSource_DirectShow_T<LockType,
                             //         transitions during processing a tricky
                             //         affair, as the calling thread may be
                             //         holding the lock --> check carefully
- , COMInitialized_ (false)
  , isInitialized_ (false)
  , ROTID_ (0)
  , statisticCollectionHandler_ (ACTION_COLLECT,
@@ -70,6 +70,7 @@ Stream_Module_CamSource_DirectShow_T<LockType,
 //, ICaptureGraphBuilder2_ (NULL)
  , IMediaControl_ (NULL)
  , IMediaEventEx_ (NULL)
+ , ISampleGrabber_ (NULL)
 //, IVideoWindow_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_DirectShow_T::Stream_Module_CamSource_DirectShow_T"));
@@ -152,6 +153,11 @@ continue_:
     IMediaControl_->Stop ();
     IMediaControl_->Release ();
   } // end IF
+  if (ISampleGrabber_)
+  {
+    ISampleGrabber_->Release ();
+    ISampleGrabber_ = NULL;
+  } // end IF
 //if (ICaptureGraphBuilder2_)
 //  ICaptureGraphBuilder2_->Release ();
   //if (inherited::configuration_)
@@ -160,8 +166,6 @@ continue_:
   //    inherited::configuration_->builder->Release ();
   //    inherited::configuration_->builder = NULL;
   //  } // end IF
-  if (COMInitialized_)
-    CoUninitialize (); // <-- this is a bug
 }
 
 template <typename LockType,
@@ -385,21 +389,16 @@ Stream_Module_CamSource_DirectShow_T<LockType,
         //                    &interval));
       } // end IF
 
-      // *NOTE*: must be called once per thread, this may not work in a
-      //         thread-pool...
-      HRESULT result_2 = S_FALSE;
-      if (!COMInitialized_)
+      bool COM_initialized = false;
+      HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+      if (FAILED (result_2))
       {
-        result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-        if (FAILED (result_2))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-          break;
-        } // end IF
-        COMInitialized_ = true;
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        break;
       } // end IF
+      COM_initialized = true;
 
       if (!initialize_DirectShow (inherited::configuration_->device,
                                   inherited::configuration_->window,
@@ -410,10 +409,17 @@ Stream_Module_CamSource_DirectShow_T<LockType,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize_DirectShow(), aborting\n")));
+
+        // clean up
+        if (COM_initialized)
+          CoUninitialize ();
+
         break;
       } // end IF
       //ACE_ASSERT (ICaptureGraphBuilder2_);
       ACE_ASSERT (inherited::configuration_->builder);
+      ACE_ASSERT (IMediaControl_);
+      ACE_ASSERT (IMediaEventEx_);
       ACE_ASSERT (inherited::configuration_->windowController);
 
       // start previewing video data
@@ -423,6 +429,11 @@ Stream_Module_CamSource_DirectShow_T<LockType,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMediaControl::Run() \"%s\", aborting\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+        // clean up
+        if (COM_initialized)
+          CoUninitialize ();
+
         break;
       } // end IF
 
@@ -435,6 +446,11 @@ Stream_Module_CamSource_DirectShow_T<LockType,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to GetRunningObjectTable() \"%s\", aborting\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+        // clean up
+        if (COM_initialized)
+          CoUninitialize ();
+
         break;
       } // end IF
       ACE_ASSERT (ROT_p);
@@ -450,14 +466,16 @@ Stream_Module_CamSource_DirectShow_T<LockType,
 
         // clean up
         ROT_p->Release ();
+        if (COM_initialized)
+          CoUninitialize ();
 
         break;
       } // end IF
       ACE_ASSERT (ROT_p);
       result_2 =
         StringCchPrintfW (wsz, NUMELMS (wsz),
-                          L"FilterGraph %08x pid %08x\0", (DWORD_PTR)builder_p,
-                          GetCurrentProcessId ());
+                          L"FilterGraph %08x pid %08x\0",
+                          (DWORD_PTR)builder_p, GetCurrentProcessId ());
       result_2 = CreateItemMoniker (L"!", wsz,
                                     &moniker_p);
       if (FAILED (result_2))
@@ -469,6 +487,8 @@ Stream_Module_CamSource_DirectShow_T<LockType,
         // clean up
         ROT_p->Release ();
         builder_p->Release ();
+        if (COM_initialized)
+          CoUninitialize ();
 
         break;
       } // end IF
@@ -494,12 +514,17 @@ Stream_Module_CamSource_DirectShow_T<LockType,
         ROT_p->Release ();
         builder_p->Release ();
         moniker_p->Release ();
+        if (COM_initialized)
+          CoUninitialize ();
 
         break;
       } // end IF
       ROT_p->Release ();
       builder_p->Release ();
       moniker_p->Release ();
+
+      if (COM_initialized)
+        CoUninitialize ();
 
       break;
     }
@@ -518,22 +543,16 @@ Stream_Module_CamSource_DirectShow_T<LockType,
         timerID_ = -1;
       } // end IF
 
-      // *NOTE*: must be called once per thread, this may not work in a
-      //         thread-pool...
-      HRESULT result_2 = S_FALSE;
       bool COM_initialized = false;
-      if (!COM_initialized)
+      HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+      if (FAILED (result_2))
       {
-        result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-        if (FAILED (result_2))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-          break;
-        } // end IF
-        COM_initialized = true;
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        break;
       } // end IF
+      COM_initialized = true;
 
       // deregister graph from the ROT (GraphEdit.exe) ?
       if (ROTID_)
@@ -597,6 +616,15 @@ continue_:
         IMediaControl_ = NULL;
       } // end IF
 
+      if (!Stream_Module_Device_Tools::disconnect (inherited::configuration_->builder))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), continuing\n")));
+
+      if (ISampleGrabber_)
+      {
+        ISampleGrabber_->Release ();
+        ISampleGrabber_ = NULL;
+      } // end IF
       //if (ICaptureGraphBuilder2_)
       //{
       //  ICaptureGraphBuilder2_->Release ();
@@ -608,13 +636,8 @@ continue_:
       //  inherited::configuration_->builder = NULL;
       //} // end IF
 
-      // *NOTE*: must be called once per thread, this may not work in a
-      //         thread-pool...
       if (COM_initialized)
-      {
         CoUninitialize ();
-        COM_initialized = false;
-      } // end IF
 
       break;
     }
@@ -753,6 +776,33 @@ Stream_Module_CamSource_DirectShow_T<LockType,
 
   if (isFirst_)
   {
+    // sanity check(s)
+    ACE_ASSERT (ISampleGrabber_);
+
+    struct _AMMediaType media_type;
+    ACE_OS::memset (&media_type, 0, sizeof (struct _AMMediaType));
+    result_2 = ISampleGrabber_->GetConnectedMediaType (&media_type);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMediaSample::GetMediaType(): \"%m\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return result_2;
+    } // end IF
+    if ((media_type.formattype != FORMAT_VideoInfo) &&
+        (media_type.formattype != FORMAT_VideoInfo2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type, aborting\n")));
+      return result_2;
+    } // end IF
+    struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+    struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+    if (media_type.formattype == FORMAT_VideoInfo)
+      video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type.pbFormat;
+    else if (media_type.formattype == FORMAT_VideoInfo2)
+      video_info_header2_p = (struct tagVIDEOINFOHEADER2*)media_type.pbFormat;
+
     // *TODO*: remove type inference
     message_p =
       allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
@@ -765,84 +815,149 @@ Stream_Module_CamSource_DirectShow_T<LockType,
     } // end IF
     ACE_ASSERT (message_p);
 
+    // RIFF header
     struct _rifflist RIFF_list;
     ACE_OS::memset (&RIFF_list, 0, sizeof (struct _rifflist));
-    RIFF_list.fcc = FCC('RIFF');
-    //RIFF_list.cb = 0; // total size - 8
-    RIFF_list.fccListType = FCC('AVI ');
+    RIFF_list.fcc = FCC ('RIFF');
+    // *NOTE*: in a streaming scenario, this would need to be added AFTER the
+    //         file has been written (or the disc runs out of space), which is
+    //         impossible until/unless this value is preconfigured in some way.
+    //         Notice how this oversight permeates the whole standard
+    // sizeof (fccListType) [4] + sizeof (data) --> == total (file) size - 8
+    RIFF_list.cb = 0;
+    RIFF_list.fccListType = FCC ('AVI ');
     result = message_p->copy (reinterpret_cast<char*> (&RIFF_list),
                               sizeof (struct _rifflist));
 
-    struct _rifflist RIFF_list_hdrl;
-    ACE_OS::memset (&RIFF_list_hdrl, 0, sizeof (struct _rifflist));
-    RIFF_list_hdrl.fcc = FCC('LIST');
-    //RIFF_list_hdrl.cb = 0; // header LIST (up until and including JUNK)
-    RIFF_list_hdrl.fccListType = FCC('hdrl');
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_list_hdrl),
+    // hdrl
+    ACE_OS::memset (&RIFF_list, 0, sizeof (struct _rifflist));
+    RIFF_list.fcc = FCC ('LIST');
+    // sizeof (fccListType) [4] + sizeof (LIST data)
+    RIFF_list.cb = sizeof (FOURCC)                    +
+                   sizeof (struct _avimainheader)     +
+                   // sizeof (LIST strl)
+                   sizeof (struct _rifflist)          +
+                   sizeof (struct _avistreamheader)   + // strh
+                   sizeof (struct _riffchunk)         + // strf
+                   sizeof (struct tagBITMAPINFOHEADER); // strf
+    RIFF_list.fccListType = FCC ('hdrl');
+    result = message_p->copy (reinterpret_cast<char*> (&RIFF_list),
                               sizeof (struct _rifflist));
 
+    // *NOTE*: "...the 'hdrl' list begins with the main AVI header, which is
+    //         contained in an 'avih' chunk. ..."
     struct _avimainheader AVI_header_avih;
     ACE_OS::memset (&AVI_header_avih, 0, sizeof (struct _avimainheader));
     AVI_header_avih.fcc = ckidMAINAVIHEADER;
     AVI_header_avih.cb = sizeof (struct _avimainheader) - 8;
-    //AVI_header_avih.dwMicroSecPerFrame = 0; // unreliable
-    AVI_header_avih.dwMaxBytesPerSec = 0; // unreliable
-    AVI_header_avih.dwPaddingGranularity = 2048; // AVI_HEADERSIZE
+    AVI_header_avih.dwMicroSecPerFrame =
+      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->AvgTimePerFrame
+                                                   : video_info_header2_p->AvgTimePerFrame);
+    AVI_header_avih.dwMaxBytesPerSec =
+      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->dwBitRate
+                                                   : video_info_header2_p->dwBitRate) / 8;
+    //AVI_header_avih.dwPaddingGranularity = 2048; // AVI_HEADERSIZE
     AVI_header_avih.dwFlags = AVIF_WASCAPTUREFILE;
-    AVI_header_avih.dwTotalFrames = 0; // unreliable
+    //AVI_header_avih.dwTotalFrames = 0; // unreliable
     //AVI_header_avih.dwInitialFrames = 0;
     AVI_header_avih.dwStreams = 1;
-    AVI_header_avih.dwSuggestedBufferSize = 0; // unreliable
-    AVI_header_avih.dwWidth = 0;
-    AVI_header_avih.dwHeight = 0;
+    //AVI_header_avih.dwSuggestedBufferSize = 0; // unreliable
+    AVI_header_avih.dwWidth =
+      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biWidth
+                                                   : video_info_header2_p->bmiHeader.biWidth);
+    AVI_header_avih.dwHeight =
+      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biHeight
+                                                   : video_info_header2_p->bmiHeader.biHeight);
     //AVI_header_avih.dwReserved = {0, 0, 0, 0};
     result = message_p->copy (reinterpret_cast<char*> (&AVI_header_avih),
                               sizeof (struct _avimainheader));
 
-    struct _rifflist RIFF_list_strl;
-    ACE_OS::memset (&RIFF_list_strl, 0, sizeof (struct _rifflist));
-    RIFF_list_strl.fcc = FCC('LIST');
-    RIFF_list_strl.cb = 0; // header LIST (up until and including JUNK)
-    RIFF_list_strl.fccListType = ckidSTREAMLIST;
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_list_strl),
+    // *NOTE*: "One or more 'strl' lists follow the main header. A 'strl' list
+    //         is required for each data stream. Each 'strl' list contains
+    //         information about one stream in the file, and must contain a
+    //         stream header chunk ('strh') and a stream format chunk ('strf').
+    //         ..."
+    // strl
+    ACE_OS::memset (&RIFF_list, 0, sizeof (struct _rifflist));
+    RIFF_list.fcc = FCC ('LIST');
+    // sizeof (fccListType) [4] + sizeof (LIST data)
+    RIFF_list.cb = sizeof (FOURCC)                    +
+                   sizeof (struct _avistreamheader)   + // strh
+                   sizeof (struct _riffchunk)         + // strf
+                   sizeof (struct tagBITMAPINFOHEADER); // strf
+    RIFF_list.fccListType = ckidSTREAMLIST;
+    result = message_p->copy (reinterpret_cast<char*> (&RIFF_list),
                               sizeof (struct _rifflist));
 
+    // strl --> strh
     struct _avistreamheader AVI_header_strh;
     ACE_OS::memset (&AVI_header_strh, 0, sizeof (struct _avistreamheader));
     AVI_header_strh.fcc = ckidSTREAMHEADER;
     AVI_header_strh.cb = sizeof (struct _avistreamheader) - 8;
     AVI_header_strh.fccType = streamtypeVIDEO;
     //AVI_header_strh.fccHandler = 0;
-    //AVI_header_strh.dwFlags = AVISF_DISABLED | AVISF_VIDEO_PALCHANGES;
-    AVI_header_strh.wPriority = 0;
-    AVI_header_strh.wLanguage = 0;
-    AVI_header_strh.dwInitialFrames = 0;
-    AVI_header_strh.dwScale = 0;
-    AVI_header_strh.dwRate = 0;
+    //AVI_header_strh.dwFlags = 0;
+    //AVI_header_strh.wPriority = 0;
+    //AVI_header_strh.wLanguage = 0;
+    //AVI_header_strh.dwInitialFrames = 0;
+    // *NOTE*: dwRate / dwScale == fps
+    AVI_header_strh.dwScale = 10000; // 100th nanoseconds --> seconds ???
+    AVI_header_strh.dwRate =
+      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->AvgTimePerFrame
+                                                   : video_info_header2_p->AvgTimePerFrame);
     //AVI_header_strh.dwStart = 0;
-    AVI_header_strh.dwLength = 0;
-    AVI_header_strh.dwSuggestedBufferSize = 0;
+    //AVI_header_strh.dwLength = 0;
+    //AVI_header_strh.dwSuggestedBufferSize = 0;
     AVI_header_strh.dwQuality = -1; // default
-    AVI_header_strh.dwSampleSize = 0;
+    //AVI_header_strh.dwSampleSize = 0;
     //AVI_header_strh.rcFrame = {0, 0, 0, 0};
     result = message_p->copy (reinterpret_cast<char*> (&AVI_header_strh),
                               sizeof (struct _avistreamheader));
 
+    // strl --> strf
+    // *NOTE*: there is no definition for AVI stream format chunks, as their
+    //         contents differ, depending on the stream type
+    struct _riffchunk RIFF_chunk;
+    ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
+    RIFF_chunk.fcc = ckidSTREAMFORMAT;
+    RIFF_chunk.cb = sizeof (struct tagBITMAPINFOHEADER);
+    result = message_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
+                              sizeof (struct _riffchunk));
     struct tagBITMAPINFOHEADER AVI_header_strf;
     ACE_OS::memset (&AVI_header_strf, 0, sizeof (struct tagBITMAPINFOHEADER));
-    AVI_header_strf.biSize = 0;
-    AVI_header_strf.biWidth = 0;
-    AVI_header_strf.biHeight = 0;
-    AVI_header_strf.biPlanes = 0;
-    AVI_header_strf.biBitCount = 0;
-    AVI_header_strf.biCompression = 0;
-    AVI_header_strf.biSizeImage = 0;
-    AVI_header_strf.biXPelsPerMeter = 0;
-    AVI_header_strf.biYPelsPerMeter = 0;
-    AVI_header_strf.biClrUsed = 0;
-    AVI_header_strf.biClrImportant = 0;
+    AVI_header_strf =
+      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
+                                                   : video_info_header2_p->bmiHeader);
     result = message_p->copy (reinterpret_cast<char*> (&AVI_header_strf),
                               sizeof (struct tagBITMAPINFOHEADER));
+
+    // strl --> strd
+    // strl --> strn
+
+    // --> END strl
+    //ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
+    //RIFF_chunk.fcc = FCC('JUNK');
+    //RIFF_chunk.cb = 2048 - message_p->length ();
+    //result = message_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
+    //                          sizeof (struct _riffchunk));
+    //ACE_OS::memset (message_p->wr_ptr (), 0, RIFF_chunk.cb);
+    //message_p->wr_ptr (RIFF_chunk.cb);
+
+    // movi
+    ACE_OS::memset (&RIFF_list, 0, sizeof (struct _rifflist));
+    RIFF_list.fcc = FCC ('LIST');
+    // *NOTE*: see above
+    RIFF_list.cb = 0; // sizeof (fccListType) [4] + sizeof (LIST data)
+    RIFF_list.fccListType = FCC ('movi');
+    result = message_p->copy (reinterpret_cast<char*> (&RIFF_list),
+                              sizeof (struct _rifflist));
+
+    // db (--> Uncompressed video frame)
+    ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
+    RIFF_chunk.fcc = FCC ('00db');
+    RIFF_chunk.cb = IMediaSample_in->GetSize ();
+    result = message_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
+                              sizeof (struct _riffchunk));
 
     //struct _avisuperindex AVI_header_indx;
     //ACE_OS::memset (&AVI_header_indx, 0, sizeof (struct _avisuperindex));
@@ -866,28 +981,6 @@ Stream_Module_CamSource_DirectShow_T<LockType,
     //result =
     //  message_p->copy (reinterpret_cast<char*> (&AVI_header_indx),
     //                   sizeof (struct _avisuperindex));
-
-    DWORD junk = FCC('JUNK');
-    result = message_p->copy (reinterpret_cast<char*> (&junk),
-                              sizeof (DWORD));
-    unsigned int padding = 2048 - message_p->length ();
-    ACE_OS::memset (message_p->wr_ptr (), 0, padding);
-    message_p->wr_ptr (padding);
-
-    struct _rifflist RIFF_list_movi;
-    ACE_OS::memset (&RIFF_list_movi, 0, sizeof (struct _rifflist));
-    RIFF_list_movi.fcc = FCC('LIST');
-    //RIFF_list_movi.cb = 0;
-    RIFF_list_movi.fccListType = FCC('movi');
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_list_movi),
-                              sizeof (struct _rifflist));
-
-    struct _riffchunk RIFF_chunk_db;
-    ACE_OS::memset (&RIFF_chunk_db, 0, sizeof (struct _riffchunk));
-    RIFF_chunk_db.fcc = FCC('00db');
-    //RIFF_chunk_db.cb = 0;
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_chunk_db),
-                              sizeof (struct _riffchunk));
 
     result = inherited::putq (message_p, NULL);
     if (result == -1)
@@ -920,11 +1013,11 @@ Stream_Module_CamSource_DirectShow_T<LockType,
     } // end IF
     ACE_ASSERT (message_p);
 
-    struct _riffchunk RIFF_chunk_db;
-    ACE_OS::memset (&RIFF_chunk_db, 0, sizeof (struct _riffchunk));
-    RIFF_chunk_db.fcc = FCC ('00db');
-    //RIFF_chunk_db.cb = 0;
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_chunk_db),
+    struct _riffchunk RIFF_chunk;
+    ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
+    RIFF_chunk.fcc = FCC ('00db');
+    RIFF_chunk.cb = IMediaSample_in->GetSize ();
+    result = message_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
                               sizeof (struct _riffchunk));
 
     result = inherited::putq (message_p, NULL);
@@ -1136,15 +1229,15 @@ Stream_Module_CamSource_DirectShow_T<LockType,
                                                                                      const HWND windowHandle_in,
                                                                                      const GdkRectangle& windowArea_in,
                                                                                      ICaptureGraphBuilder2* ICaptureGraphBuilder2_in,
-                                                                                     IVideoWindow*& IVideoWindow_inout)
+                                                                                     IVideoWindow*& IVideoWindow_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_DirectShow_T::initialize_DirectShow"));
 
   // initialize return value(s)
-  if (IVideoWindow_inout)
+  if (IVideoWindow_out)
   {
-    IVideoWindow_inout->Release ();
-    IVideoWindow_inout = NULL;
+    IVideoWindow_out->Release ();
+    IVideoWindow_out = NULL;
   } // end IF
 
   // sanity check(s)
@@ -1171,7 +1264,7 @@ Stream_Module_CamSource_DirectShow_T<LockType,
   if (FAILED (result))
     goto error;
   result = builder_p->QueryInterface (IID_IVideoWindow,
-                                      (void**)&IVideoWindow_inout);
+                                      (void**)&IVideoWindow_out);
   if (FAILED (result))
     goto error;
 
@@ -1189,32 +1282,15 @@ error:
 continue_:
   ACE_ASSERT (IMediaControl_);
   ACE_ASSERT (IMediaEventEx_);
-  ACE_ASSERT (IVideoWindow_inout);
-  //// set the window handle used to process graph events
-  //result =
-  //  IMediaEventEx_->SetNotifyWindow ((OAHWND)windowHandle_in,
-  //                                   MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY, 0);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-  //  // clean up
-  //  moniker_p->Release ();
-  //  builder_p->Release ();
-  //  ICaptureGraphBuilder2_inout->Release ();
-  //  ICaptureGraphBuilder2_inout = NULL;
-
-  //  return false;
-  //} // end IF
-
-  IEnumFilters* enumerator_p = NULL;
-  result = builder_p->EnumFilters (&enumerator_p);
+  ACE_ASSERT (IVideoWindow_out);
+  // set the window handle used to process graph events
+  result =
+    IMediaEventEx_->SetNotifyWindow ((OAHWND)windowHandle_in,
+                                     MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY, 0);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     // clean up
@@ -1222,57 +1298,8 @@ continue_:
 
     return false;
   } // end IF
-  builder_p->Release ();
-  ACE_ASSERT (enumerator_p);
+
   IBaseFilter* filter_p = NULL;
-  struct _FilterInfo filter_info;
-  ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
-  while (S_OK == enumerator_p->Next (1, &filter_p, NULL))
-  {
-    ACE_ASSERT (filter_p);
-    result = filter_p->QueryFilterInfo (&filter_info);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      enumerator_p->Release ();
-      builder_p->Release ();
-
-      return false;
-    } // end IF
-    if (ACE_OS::strcmp (filter_info.achName,
-                        MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE) == 0)
-    {
-      filter_p->Release ();
-      filter_p = NULL;
-      continue;
-    } // end IF
-
-    result = builder_p->RemoveFilter (filter_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGrapBuilder::RemoveFilter(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      enumerator_p->Release ();
-      builder_p->Release ();
-
-      return false;
-    } // end IF
-    enumerator_p->Reset ();
-
-    filter_p->Release ();
-    filter_p = NULL;
-  } // end WHILE
-  enumerator_p->Release ();
-
   result =
     builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
                                  &filter_p);
@@ -1288,39 +1315,58 @@ continue_:
 
   // grab
   IBaseFilter* filter_2 = NULL;
-  result = CoCreateInstance (CLSID_SampleGrabber, NULL,
-                             CLSCTX_INPROC_SERVER, IID_IBaseFilter,
-                             (void**)&filter_2);
+  result =
+    builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER,
+                                 &filter_2);
   if (FAILED (result))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(CLSID_SampleGrabber): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    if (result != VFW_E_NOT_FOUND)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-    // clean up
-    filter_p->Release ();
+      // clean up
+      filter_p->Release ();
 
-    return false;
+      return false;
+    } // end IF
+
+    result = CoCreateInstance (CLSID_SampleGrabber, NULL,
+                               CLSCTX_INPROC_SERVER, IID_IBaseFilter,
+                               (void**)&filter_2);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoCreateInstance(CLSID_SampleGrabber): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+
+      return false;
+    } // end IF
+    ACE_ASSERT (filter_2);
+    result = builder_p->AddFilter (filter_2,
+                                   MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+      filter_2->Release ();
+
+      return false;
+    } // end IF
   } // end IF
   ACE_ASSERT (filter_2);
-  result = builder_p->AddFilter (filter_2,
-                                 MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    filter_p->Release ();
-    filter_2->Release ();
-
-    return false;
-  } // end IF
-  ACE_ASSERT (filter_2);
-  ISampleGrabber* grabber_p = NULL;
+  ISampleGrabber_ = NULL;
   result = filter_2->QueryInterface (IID_ISampleGrabber,
-                                     (void**)&grabber_p);
+                                     (void**)&ISampleGrabber_);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1333,9 +1379,9 @@ continue_:
 
     return false;
   } // end IF
-  ACE_ASSERT (grabber_p);
-  grabber_p->SetBufferSamples (false);
-  result = grabber_p->SetCallback (this, 0);
+  ACE_ASSERT (ISampleGrabber_);
+  ISampleGrabber_->SetBufferSamples (false);
+  result = ISampleGrabber_->SetCallback (this, 0);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1345,139 +1391,219 @@ continue_:
     // clean up
     filter_p->Release ();
     filter_2->Release ();
-    grabber_p->Release ();
 
     return false;
   } // end IF
   //AM_MEDIA_TYPE media_type;
-  //result = grabber_p->SetMediaType (&media_type);
-  grabber_p->Release ();
+  //result = ISampleGrabber_->SetMediaType (&media_type);
 
-  //// decompress
-  //filter_3 = NULL;
-  //result =
-  //  builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS,
-  //                               &filter_2);
-  //if (FAILED (result))
-  //{
-  //  if (result != VFW_E_NOT_FOUND)
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-  //                ACE_TEXT (MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS),
-  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //    return false;
-  //  } // end IF
+  // decompress
+  IBaseFilter* filter_3 = NULL;
+  result =
+    builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS,
+                                 &filter_3);
+  if (FAILED (result))
+  {
+    if (result != VFW_E_NOT_FOUND)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT (MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-  //  result = CoCreateInstance (CLSID_AVIDec, NULL,
-  //                             CLSCTX_INPROC_SERVER, IID_IBaseFilter,
-  //                             (void**)&filter_3);
-  //  if (FAILED (result))
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to CoCreateInstance(CLSID_AVIDec): \"%s\", aborting\n"),
-  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      // clean up
+      filter_p->Release ();
+      filter_2->Release ();
 
-  //    // clean up
-  //    filter_p->Release ();
-  //    filter_2->Release ();
+      return false;
+    } // end IF
 
-  //    return false;
-  //  } // end IF
-  //  ACE_ASSERT (filter_3);
-  //  result = builder_p->AddFilter (filter_2,
-  //                                 MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS);
-  //  if (FAILED (result))
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    struct _AMMediaType* media_type_p = NULL;
+    if (!Stream_Module_Device_Tools::getFormat (ICaptureGraphBuilder2_in,
+                                                media_type_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(), aborting\n")));
 
-  //    // clean up
-  //    filter_p->Release ();
-  //    filter_2->Release ();
-  //    filter_3->Release ();
+      // clean up
+      filter_p->Release ();
+      filter_2->Release ();
 
-  //    return false;
-  //  } // end IF
-  //} // end IF
+      return false;
+    } // end IF
+    ACE_ASSERT (media_type_p);
+    GUID decompressor_guid;
+    if (media_type_p->subtype == MEDIASUBTYPE_YUY2)
+      decompressor_guid = CLSID_AVIDec;
+    else if (media_type_p->subtype == MEDIASUBTYPE_MJPG)
+      decompressor_guid = CLSID_MjpegDec;
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (media_type_p->subtype).c_str ())));
+
+      // clean up
+      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      filter_p->Release ();
+      filter_2->Release ();
+
+      return false;
+    } // end ELSE
+    result = CoCreateInstance (decompressor_guid, NULL,
+                               CLSCTX_INPROC_SERVER, IID_IBaseFilter,
+                               (void**)&filter_3);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to CoCreateInstance() decompressor: \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (media_type_p->subtype).c_str ()),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      filter_p->Release ();
+      filter_2->Release ();
+
+      return false;
+    } // end IF
+    ACE_ASSERT (filter_3);
+    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+    result = builder_p->AddFilter (filter_3,
+                                   MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+      filter_2->Release ();
+      filter_3->Release ();
+
+      return false;
+    } // end IF
+  } // end IF
+  ACE_ASSERT (filter_3);
 
   // render to a window (GtkDrawingArea)
   IBaseFilter* filter_4 = NULL;
-  result = CoCreateInstance (CLSID_VideoRenderer, NULL,
-                             CLSCTX_INPROC_SERVER, IID_IBaseFilter,
-                             (void**)&filter_4);
+  result =
+    builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDERER,
+                                 &filter_4);
   if (FAILED (result))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(CLSID_VideoRenderer): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    if (result != VFW_E_NOT_FOUND)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT (MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDERER),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-    // clean up
-    filter_p->Release ();
-    filter_2->Release ();
-    //filter_3->Release ();
+      // clean up
+      filter_p->Release ();
+      filter_2->Release ();
+      filter_3->Release ();
 
-    return false;
+      return false;
+    } // end IF
+
+    result = CoCreateInstance (CLSID_VideoRenderer, NULL,
+                               CLSCTX_INPROC_SERVER, IID_IBaseFilter,
+                               (void**)&filter_4);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoCreateInstance(CLSID_VideoRenderer): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+      filter_2->Release ();
+      filter_3->Release ();
+
+      return false;
+    } // end IF
+    ACE_ASSERT (filter_4);
+    result = builder_p->AddFilter (filter_4,
+                                   MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDERER);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+      filter_2->Release ();
+      filter_3->Release ();
+      filter_4->Release ();
+
+      return false;
+    } // end IF
   } // end IF
   ACE_ASSERT (filter_4);
-  result = builder_p->AddFilter (filter_4,
-                                 MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDERER);
-  if (FAILED (result))
+
+  //result =
+  //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
+  //                                          &PIN_CATEGORY_CAPTURE, NULL,
+  //                                          filter_p,
+  //                                          filter_2,
+  //                                          //NULL,
+  //                                          filter_4);
+  //if (FAILED (result)) // E_INVALIDARG = 0x80070057, 0x80040217 = VFW_E_CANNOT_CONNECT ?
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to ICaptureGraphBuilder::RenderStream(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  //  // clean up
+  //  filter_p->Release ();
+  //  filter_2->Release ();
+  //  filter_3->Release ();
+  //  filter_4->Release ();
+
+  //  return false;
+  //} // end IF
+  std::list<std::wstring> filter_pipeline;
+  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
+  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER);
+  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS);
+  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDERER);
+  if (!Stream_Module_Device_Tools::assembleGraph (ICaptureGraphBuilder2_in,
+                                                  filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::assembleGraph(), aborting\n")));
 
     // clean up
     filter_p->Release ();
     filter_2->Release ();
-    //filter_3->Release ();
-    filter_4->Release ();
-
-    return false;
-  } // end IF
-
-  result =
-    ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
-                                            NULL, &MEDIATYPE_Video,
-                                            filter_p,
-                                            //filter_2,
-                                            NULL,
-                                            filter_4);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder::RenderStream(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    filter_p->Release ();
-    filter_2->Release ();
-    //filter_3->Release ();
+    filter_3->Release ();
     filter_4->Release ();
 
     return false;
   } // end IF
   filter_p->Release ();
   filter_2->Release ();
-  //filter_3->Release ();
+  filter_3->Release ();
   filter_4->Release ();
 
-  result = IVideoWindow_inout->put_MessageDrain ((OAHWND)windowHandle_in);
+  result = IVideoWindow_out->put_MessageDrain ((OAHWND)windowHandle_in);
   if (FAILED (result))
     goto error_2;
-  //result = IVideoWindow_inout->put_Owner ((OAHWND)windowHandle_in);
+  //result = IVideoWindow_out->put_Owner ((OAHWND)windowHandle_in);
   //if (FAILED (result))
   //  goto error_2;
-  result = IVideoWindow_inout->put_WindowStyle (WS_CHILD | WS_CLIPCHILDREN);
+  result = IVideoWindow_out->put_WindowStyle (WS_CHILD | WS_CLIPCHILDREN);
   if (FAILED (result))
     goto error_2;
   result =
-    IVideoWindow_inout->SetWindowPosition (windowArea_in.x,
-                                           windowArea_in.y,
-                                           windowArea_in.width,
-                                           windowArea_in.height);
+    IVideoWindow_out->SetWindowPosition (windowArea_in.x,
+                                         windowArea_in.y,
+                                         windowArea_in.width,
+                                         windowArea_in.height);
   if (FAILED (result))
     goto error_2;
 

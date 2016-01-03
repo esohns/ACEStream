@@ -942,52 +942,52 @@ Stream_HeadModuleTaskBase_T<LockType,
   if (waitForThreads_in)
   {
     ACE_thread_t thread_id = ACE_Thread::self ();
-    size_t number_of_threads = inherited2::thr_count_;
 
-    if (number_of_threads ||
-        (runSvcRoutineOnStart_ && !ACE_OS::thr_equal (thread_id,
-                                                      threadID_.id ())))
+    // *IMPORTANT NOTE*: (on Win32) only one thread can inherited2::wait() at
+    //                   a time, otherwise the is a race condition (calling
+    //                   ::CloseHandle() on the same handle twice throws an
+    //                   exception)
+    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
+
+    if (inherited2::thr_count_)
     {
-      if (number_of_threads)
+      result = inherited2::wait ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
+    } // end IF
+    else if (runSvcRoutineOnStart_ &&
+             !ACE_OS::thr_equal (thread_id,
+                                 threadID_.id ()))
+    {
+      thread_id = threadID_.id ();
+      ACE_THR_FUNC_RETURN status;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_hthread_t handle = threadID_.handle ();
+      if (handle != ACE_INVALID_HANDLE)
       {
-        result = inherited2::wait ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
+        result = ACE_Thread::join (handle, &status);
+        // *NOTE*: successful join()s close the thread handle
+        //         (see OS_NS_Thread.inl:2971)
+        if (result == 0) threadID_.handle (ACE_INVALID_HANDLE);
+        threadID_.id (std::numeric_limits<DWORD>::max ());
       } // end IF
       else
-      {
-        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
-
-        thread_id = threadID_.id ();
-        ACE_THR_FUNC_RETURN status;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-        ACE_hthread_t handle = threadID_.handle ();
-        if (handle != ACE_INVALID_HANDLE)
-        {
-          result = ACE_Thread::join (handle, &status);
-          // *NOTE*: successful join()s close the thread handle
-          //         (see OS_NS_Thread.inl:2971)
-          if (result == 0) threadID_.handle (ACE_INVALID_HANDLE);
-          threadID_.id (std::numeric_limits<DWORD>::max ());
-        } // end IF
-        else
-          result = 0;
+        result = 0;
 #else
-        if (static_cast<int> (thread_id) != -1)
-        {
-          result = ACE_Thread::join (thread_id, NULL, &status);
-          threadID_.id (-1);
-        } // end IF
-        else
-          result = 0;
-#endif
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Thread::join(%d): \"%m\", continuing\n"),
-                      thread_id));
+      if (static_cast<int> (thread_id) != -1)
+      {
+        result = ACE_Thread::join (thread_id, NULL, &status);
+        threadID_.id (-1);
       } // end IF
-    } // end IF
+      else
+        result = 0;
+#endif
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Thread::join(%d): \"%m\", continuing\n"),
+                    thread_id));
+    } // end IF 
   } // end IF
 }
 

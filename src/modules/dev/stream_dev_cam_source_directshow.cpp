@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_module_camsource_directshow.h"
+#include "stream_dev_cam_source_directshow.h"

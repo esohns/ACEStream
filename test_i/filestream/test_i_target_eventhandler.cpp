@@ -27,6 +27,8 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
+#include "gtk/gtk.h"
+
 #include "test_i_common.h"
 #include "test_i_callbacks.h"
 #include "test_i_defines.h"

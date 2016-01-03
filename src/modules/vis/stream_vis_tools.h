@@ -18,10 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_DEV_TOOLS_H
-#define STREAM_MODULE_DEV_TOOLS_H
+#ifndef STREAM_MODULE_VIS_TOOLS_H
+#define STREAM_MODULE_VIS_TOOLS_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include <list>
 #include <map>
 #endif
 #include <string>
@@ -33,22 +34,33 @@
 #include "dshow.h"
 #endif
 
-#include "stream_dev_exports.h"
+#include "stream_vis_exports.h"
 
-class Stream_Dev_Export Stream_Module_Device_Tools
+class Stream_Vis_Export Stream_Module_Visualization_Tools
 {
  public:
    static void initialize ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static bool disconnect (ICaptureGraphBuilder2*); // graph handle
+  static bool loadDeviceGraph (const std::string&,      // device ("FriendlyName")
+                               ICaptureGraphBuilder2*&, // graph handle (in/out)
+                               IAMStreamConfig*&);      // stream config handle (out)
+  static bool assembleGraph (ICaptureGraphBuilder2*,          // graph handle
+                             const std::list<std::wstring>&); // graph ("FriendlyName")
+
+  static bool getFormat (ICaptureGraphBuilder2*, // graph handle
+                         struct _AMMediaType*&);       // return value: media type
+  static bool setFormat (ICaptureGraphBuilder2*,      // graph handle
+                         const struct _AMMediaType&); // media type
   static void deleteMediaType (struct _AMMediaType*&); // handle
   static std::string mediaSubTypeToString (const GUID&); // GUID
 #endif
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_Tools ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_Tools (const Stream_Module_Device_Tools&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Device_Tools& operator= (const Stream_Module_Device_Tools&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Visualization_Tools ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Visualization_Tools (const Stream_Module_Visualization_Tools&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Visualization_Tools& operator= (const Stream_Module_Visualization_Tools&))
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct less_guid

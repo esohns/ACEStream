@@ -1,6 +1,9 @@
 SUBDIRS = \
   db \
+  dev \
   file \
   html \
   misc \
-  net
+  net \
+  vis
+

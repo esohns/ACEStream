@@ -201,7 +201,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
               return;
             } // end IF
         } // end IF
-        else if (Common_File_Tools::isValidFileName (directory))
+        else if (Common_File_Tools::isValidFilename (directory))
         {
           directory =
             ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
@@ -225,7 +225,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
       if (Common_File_Tools::isDirectory (file_name))
         file_name =
           ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE);
-      else if (Common_File_Tools::isValidFileName (file_name))
+      else if (Common_File_Tools::isValidFilename (file_name))
         file_name =
           ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
       file_name = directory +

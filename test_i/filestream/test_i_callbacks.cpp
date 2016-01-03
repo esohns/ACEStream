@@ -897,7 +897,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
           return G_SOURCE_REMOVE;
         } // end IF
     } // end IF
-    else if (Common_File_Tools::isValidFileName (directory))
+    else if (Common_File_Tools::isValidFilename (directory))
     {
       directory =
         ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
@@ -921,13 +921,13 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   if (Common_File_Tools::isDirectory (file_name))
     file_name =
       ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE);
-  else if (Common_File_Tools::isValidFileName (file_name))
+  else if (Common_File_Tools::isValidFilename (file_name))
     file_name =
       ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
   file_name = directory +
               ACE_DIRECTORY_SEPARATOR_CHAR_A +
               file_name;
-  ACE_ASSERT (Common_File_Tools::isValidFileName (file_name));
+  ACE_ASSERT (Common_File_Tools::isValidFilename (file_name));
   file_p =
     g_file_new_for_path (file_name.c_str ());
   ACE_ASSERT (file_p);
