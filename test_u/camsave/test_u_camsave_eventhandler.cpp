@@ -57,7 +57,6 @@ Stream_CamSave_EventHandler::start (const Stream_CamSave_SessionData& sessionDat
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
-  CBData_->progressData.size = sessionData_->size;
   CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
 }
 
@@ -71,7 +70,7 @@ Stream_CamSave_EventHandler::notify (const Stream_CamSave_Message& message_in)
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
-  CBData_->progressData.received += message_in.total_length ();
+  CBData_->progressData.statistic.bytes += message_in.total_length ();
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
 }
 void
@@ -82,20 +81,50 @@ Stream_CamSave_EventHandler::notify (const Stream_CamSave_SessionMessage& sessio
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+
   Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_STATISTIC:
-      event = STREAM_GTKEVENT_STATISTIC; break;
+    {
+      int result = -1;
+
+      // sanity check(s)
+      if (!sessionData_)
+        goto continue_;
+
+      if (sessionData_->lock)
+      {
+        result = sessionData_->lock->acquire ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
+      } // end IF
+
+      // *NOTE*: the byte counter is more current than what is received here
+      //         (see above) --> do not update
+      float current_bytes = CBData_->progressData.statistic.bytes;
+      CBData_->progressData.statistic = sessionData_->currentStatistic;
+      CBData_->progressData.statistic.bytes = current_bytes;
+
+      if (sessionData_->lock)
+      {
+        result = sessionData_->lock->release ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+      } // end IF
+
+continue_:
+      event = STREAM_GTKEVENT_STATISTIC;
+      break;
+    }
     default:
       return;
   } // end SWITCH
 
-  {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
-
-    CBData_->eventStack.push_back (event);
-  } // end lock scope
+  CBData_->eventStack.push_back (event);
 }
 
 void

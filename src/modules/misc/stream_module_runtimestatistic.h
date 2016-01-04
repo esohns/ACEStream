@@ -116,10 +116,8 @@ class Stream_Module_Statistic_WriterTask_T
   virtual ~Stream_Module_Statistic_WriterTask_T ();
 
   // initialization
-  // *TODO*: one-second reporting is currently broken (will only push statistic
-  //         messages, if enabled)
   bool initialize (const ACE_Time_Value&,      // reporting interval (second(s)) [ACE_Time_Value::zero: off]
-                   bool = false,               // push statistic messages downstream ?
+                   bool = false,               // push 1-second interval statistic messages downstream ?
                    bool = false,               // print final report ?
                    Stream_IAllocator* = NULL); // report cache usage ? [NULL: off]
 
@@ -129,7 +127,7 @@ class Stream_Module_Statistic_WriterTask_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_ICounter
+  // implement Common_ICounter
   virtual void reset ();
 
   // implement Common_IStatistic
@@ -165,7 +163,7 @@ class Stream_Module_Statistic_WriterTask_T
   // helper method(s)
   void finalReport () const;
   void finiTimers (bool = true); // cancel both timers ? [false: cancel localReportingHandlerID_ only]
-  void sendStatistic ();
+  bool putStatisticMessage ();
 
   bool                              initialized_;
 
@@ -175,8 +173,8 @@ class Stream_Module_Statistic_WriterTask_T
   Stream_StatisticHandler_Reactor_t localReportingHandler_;
   long                              localReportingHandlerID_;
   ACE_Time_Value                    reportingInterval_; // [ACE_Time_Value::zero: off]
-  bool                              sendStatisticMessages_;
   bool                              printFinalReport_;
+  bool                              pushStatisticMessages_; // 1-second interval
 
   // *DATA STATISTIC*
   mutable ACE_SYNCH_MUTEX           lock_;

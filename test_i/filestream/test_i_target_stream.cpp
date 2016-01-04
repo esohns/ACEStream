@@ -389,7 +389,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timestamp = COMMON_TIME_NOW;
+  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistics module...
   bool result_2 = false;

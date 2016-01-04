@@ -299,6 +299,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     return false;
   } // end IF
   if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
+                                            true,                                        // push 1-second interval statistic messages downstream ?
                                             configuration_in.printFinalReport,           // print final report ?
                                             configuration_in.messageAllocator))          // message allocator handle
   {
@@ -398,7 +399,7 @@ Stream_CamSave_Stream::collect (Stream_Statistic& data_out)
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timestamp = COMMON_TIME_NOW;
+  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistics module...
   bool result_2 = false;

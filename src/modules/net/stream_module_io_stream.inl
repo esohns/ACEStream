@@ -464,7 +464,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timestamp = COMMON_TIME_NOW;
+  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
 
   if (session_data_r.lock)
   {

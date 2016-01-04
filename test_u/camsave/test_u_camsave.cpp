@@ -39,6 +39,7 @@
 
 #include "common_file_tools.h"
 #include "common_logger.h"
+#include "common_timer_manager_common.h"
 #include "common_tools.h"
 
 #include "common_ui_defines.h"
@@ -513,6 +514,9 @@ do_work (unsigned int bufferSize_in,
     goto clean;
   } // end IF
 
+  // intialize timers
+  COMMON_TIMERMANAGER_SINGLETON::instance ()->start ();
+
   // step0f: (initialize) processing stream
 
   // event loop(s):
@@ -607,6 +611,8 @@ do_work (unsigned int bufferSize_in,
   //	} // end lock scope
 
 clean:
+  COMMON_TIMERMANAGER_SINGLETON::instance ()->stop ();
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   do_finalize_directshow (CBData_in);
 #endif

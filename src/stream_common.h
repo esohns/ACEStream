@@ -90,7 +90,7 @@ struct Stream_Statistic
    , droppedMessages (0)
    , bytesPerSecond (0.0F)
    , messagesPerSecond (0.0F)
-   , timestamp (ACE_Time_Value::zero)
+   , timeStamp (ACE_Time_Value::zero)
   {};
 
   inline Stream_Statistic operator+= (const Stream_Statistic& rhs_in)
@@ -110,7 +110,7 @@ struct Stream_Statistic
   float          bytesPerSecond;
   float          messagesPerSecond;
 
-  ACE_Time_Value timestamp;
+  ACE_Time_Value timeStamp;
 };
 
 struct Stream_UserData
@@ -127,7 +127,7 @@ struct Stream_SessionData
   inline Stream_SessionData ()
    : aborted (false)
    , currentStatistic ()
-   , lastCollectionTimestamp (ACE_Time_Value::zero)
+   , lastCollectionTimeStamp (ACE_Time_Value::zero)
    , lock (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , sessionID (reinterpret_cast<size_t> (ACE_INVALID_HANDLE))
@@ -142,11 +142,11 @@ struct Stream_SessionData
     // *NOTE*: the idea is to 'merge' the data...
     aborted = (aborted ? aborted : rhs_in.aborted);
     currentStatistic =
-        ((currentStatistic.timestamp > rhs_in.currentStatistic.timestamp) ? currentStatistic
+        ((currentStatistic.timeStamp > rhs_in.currentStatistic.timeStamp) ? currentStatistic
                                                                           : rhs_in.currentStatistic);
-    lastCollectionTimestamp =
-        ((lastCollectionTimestamp > rhs_in.lastCollectionTimestamp) ? lastCollectionTimestamp
-                                                                    : rhs_in.lastCollectionTimestamp);
+    lastCollectionTimeStamp =
+        ((lastCollectionTimeStamp > rhs_in.lastCollectionTimeStamp) ? lastCollectionTimeStamp
+                                                                    : rhs_in.lastCollectionTimeStamp);
     lock = rhs_in.lock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     sessionID =
@@ -171,7 +171,7 @@ struct Stream_SessionData
   bool             aborted;
 
   Stream_Statistic currentStatistic;
-  ACE_Time_Value   lastCollectionTimestamp;
+  ACE_Time_Value   lastCollectionTimeStamp;
   ACE_SYNCH_MUTEX* lock;
 
   size_t           sessionID; // (== socket handle !)

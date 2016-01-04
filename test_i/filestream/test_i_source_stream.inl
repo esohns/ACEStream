@@ -396,7 +396,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
     } // end IF
   } // end IF
 
-  session_data_r.currentStatistic.timestamp = COMMON_TIME_NOW;
+  session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
 
   // delegate to the statistics module...
   bool result_2 = false;

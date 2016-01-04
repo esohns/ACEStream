@@ -839,14 +839,16 @@ idle_initialize_UI_cb (gpointer userData_in)
                              0.0,
                              std::numeric_limits<double>::max ());
 
-  GtkProgressBar* progressbar_p =
+  GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-  ACE_ASSERT (progressbar_p);
+  ACE_ASSERT (progress_bar_p);
   gint width, height;
-  gtk_widget_get_size_request (GTK_WIDGET (progressbar_p), &width, &height);
-  gtk_progress_bar_set_pulse_step (progressbar_p,
+  gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
+  gtk_progress_bar_set_pulse_step (progress_bar_p,
                                    1.0 / static_cast<double> (width));
+  gtk_progress_bar_set_text (progress_bar_p,
+                             ACE_TEXT_ALWAYS_CHAR (""));
 
   // step4: initialize text view, setup auto-scrolling
   GtkTextView* view_p =
@@ -1339,7 +1341,7 @@ idle_update_info_display_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
           ACE_ASSERT (spin_button_p);
           gtk_spin_button_set_value (spin_button_p,
-                                     static_cast<gdouble> (data_p->progressData.received));
+                                     static_cast<gdouble> (data_p->progressData.statistic.bytes));
 
           spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1364,6 +1366,7 @@ idle_update_info_display_cb (gpointer userData_in)
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
           ACE_ASSERT (spin_button_p);
+
           is_session_message = true;
           break;
         }
@@ -1410,10 +1413,10 @@ idle_update_progress_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->GTKState->builders.end ());
 
-  GtkProgressBar* progressbar_p =
+  GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-  ACE_ASSERT (progressbar_p);
+  ACE_ASSERT (progress_bar_p);
 
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
@@ -1477,7 +1480,14 @@ idle_update_progress_cb (gpointer userData_in)
     done = true;
   } // end IF
 
-  gtk_progress_bar_pulse (progressbar_p);
+  // synch access
+  std::ostringstream converter;
+  converter << data_p->statistic.messagesPerSecond;
+  converter << ACE_TEXT_ALWAYS_CHAR (" fps");
+  gtk_progress_bar_set_text (progress_bar_p,
+                             (done ? ACE_TEXT_ALWAYS_CHAR ("")
+                                   : converter.str ().c_str ()));
+  gtk_progress_bar_pulse (progress_bar_p);
 
   // --> reschedule
   return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
@@ -1604,7 +1614,7 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
   gtk_action_set_sensitive (action_p, true);
 
   // step1: set up progress reporting
-  data_p->progressData.received = 0;
+  data_p->progressData.statistic = Stream_Statistic ();
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));

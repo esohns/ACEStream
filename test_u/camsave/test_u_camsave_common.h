@@ -181,16 +181,15 @@ struct Stream_CamSave_GTK_ProgressData
 //   , cursorType (GDK_LAST_CURSOR)
    , GTKState (NULL)
    , pendingActions ()
-   , received (0)
-   , size (0)
+   , statistic ()
   {};
 
   Stream_CamSave_CompletedActions_t completedActions;
 //  GdkCursorType                      cursorType;
   Common_UI_GTKState*               GTKState;
   Stream_CamSave_PendingActions_t   pendingActions;
-  size_t                            received; // bytes
-  size_t                            size; // bytes
+
+  Stream_Statistic                  statistic;
 };
 
 struct Stream_CamSave_GTK_CBData

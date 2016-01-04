@@ -44,9 +44,9 @@ class Stream_Export Stream_ResetCounterHandler
  private:
   typedef ACE_Event_Handler inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_ResetCounterHandler ());
-  ACE_UNIMPLEMENTED_FUNC (Stream_ResetCounterHandler (const Stream_ResetCounterHandler&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_ResetCounterHandler& operator= (const Stream_ResetCounterHandler&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_ResetCounterHandler ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_ResetCounterHandler (const Stream_ResetCounterHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_ResetCounterHandler& operator= (const Stream_ResetCounterHandler&))
 
   Common_ICounter* counter_;
 };
