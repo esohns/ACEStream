@@ -352,7 +352,7 @@ Stream_Module_Net_Source_T<LockType,
       if (inherited::configuration_->streamConfiguration->statisticReportingInterval)
       {
         // schedule regular statistics collection...
-        ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION, 0);
+        ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION_INTERVAL, 0);
         ACE_ASSERT (timerID_ == -1);
         ACE_Event_Handler* handler_p = &statisticCollectionHandler_;
         timerID_ =

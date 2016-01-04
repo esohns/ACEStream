@@ -22,33 +22,33 @@
 #define STREAM_DEFINES_H
 
 // message
-#define STREAM_MESSAGE_DATA_BUFFER_SIZE        1024 // 1 kB
+#define STREAM_MESSAGE_DATA_BUFFER_SIZE             1024 // 1 kB
 
 // queue
 // *IMPORTANT NOTE*: any of these COULD seriously affect performance
-#define STREAM_QUEUE_MAX_SLOTS                 10000
+#define STREAM_QUEUE_MAX_SLOTS                      10000
 // *IMPORTANT NOTE*: concurrent in-flight messages
 //                   static heap memory consumption may be approximated as
 //                   STREAM_DEF_MAX_MESSAGES * sizeof(stream-message-type)
 //                   bytes
-#define STREAM_QUEUE_MAX_MESSAGES              1000
+#define STREAM_QUEUE_MAX_MESSAGES                   1000
 // *IMPORTANT NOTE*: pre-cached messages (cached allocators only)
-#define STREAM_QUEUE_DEFAULT_CACHED_MESSAGES   1000
+#define STREAM_QUEUE_DEFAULT_CACHED_MESSAGES        1000
 
 // module
-#define STREAM_MODULE_TASK_GROUP_ID            10
-#define STREAM_MODULE_DEFAULT_HEAD_THREADS     1
-#define STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME "stream dispatch"
+#define STREAM_MODULE_TASK_GROUP_ID                 10
+#define STREAM_MODULE_DEFAULT_HEAD_THREADS          1
+#define STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME      "stream dispatch"
 
 // modules (generic)
-#define STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES  false
+#define STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES       false
 
 // (f)lex / yacc(/bison)
-#define STREAM_DEFAULT_LEX_TRACE               false
-#define STREAM_DEFAULT_YACC_TRACE              false
+#define STREAM_DEFAULT_LEX_TRACE                    false
+#define STREAM_DEFAULT_YACC_TRACE                   false
 
 // stream
-#define STREAM_STATISTIC_COLLECTION            60 // second(s) [0: off]
-#define STREAM_DEFAULT_STATISTIC_REPORTING     0  // second(s) [0: off]
+#define STREAM_STATISTIC_COLLECTION_INTERVAL        60 // second(s) [0: off]
+#define STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL 0  // second(s) [0: off]
 
 #endif

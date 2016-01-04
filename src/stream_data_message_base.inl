@@ -365,7 +365,7 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
     catch (...)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in decrease(), continuing")));
+                  ACE_TEXT ("caught exception in decrease(), continuing\n")));
     }
     data_ = NULL;
   } // end IF
@@ -464,7 +464,7 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
     catch (...)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in dump_state(), continuing")));
+                  ACE_TEXT ("caught exception in dump_state(), continuing\n")));
     }
   } // end IF
     //   //delegate to base

@@ -259,7 +259,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
     return false;
   } // end IF
 
-  // ******************* Runtime Statistics ************************
+  // ******************* Runtime Statistic ************************
   runtimeStatistic_.initialize (configuration_in.moduleConfiguration_2);
   Stream_Filecopy_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
       dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
@@ -270,6 +270,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
     return false;
   } // end IF
   if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
+                                            true,                                        // push statistic messages downstream ?
                                             configuration_in.printFinalReport,           // print final report ?
                                             configuration_in.messageAllocator))          // message allocator handle
   {

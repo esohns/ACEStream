@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dev_cam_source.h"
+#include "stream_vis_gtk_drawingarea.h"

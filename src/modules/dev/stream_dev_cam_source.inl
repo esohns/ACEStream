@@ -26,7 +26,7 @@
 
 #include "stream_macros.h"
 
-#include "stream_module_dev_defines.h"
+#include "stream_dev_defines.h"
 
 template <typename SessionMessageType,
           typename MessageType,

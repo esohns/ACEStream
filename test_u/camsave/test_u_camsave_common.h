@@ -27,10 +27,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#define HWND void*
-#endif
+#define HWND void* // *TODO*
 
 #include "gtk/gtk.h"
+#endif
 
 #include "common_inotify.h"
 #include "common_isubscribe.h"
@@ -104,24 +104,31 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    : Stream_ModuleHandlerConfiguration ()
    , active (false)
    , area ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , builder (NULL)
+   , windowController (NULL)
+#else
+#endif
    , contextID (0)
    , device ()
    , printProgressDot (true)
    , targetFileName ()
    , window (NULL)
-   , windowController (NULL)
   {};
 
   bool                   active;
-  GdkRectangle           area;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct tagRECT         area;
   ICaptureGraphBuilder2* builder;
+  IVideoWindow*          windowController;
+#else
+  GdkRectangle           area;
+#endif
   guint                  contextID;
   std::string            device;
   bool                   printProgressDot;
   std::string            targetFileName;
-  HWND                   window;
-  IVideoWindow*          windowController;
+  HWND                   window; // *TODO*
 };
 
 struct Stream_CamSave_StreamConfiguration

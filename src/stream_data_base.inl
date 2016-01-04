@@ -54,6 +54,40 @@ Stream_DataBase_T<DataType>::~Stream_DataBase_T ()
 }
 
 template <typename DataType>
+Stream_DataBase_T<DataType>&
+Stream_DataBase_T<DataType>::operator= (Stream_DataBase_T<DataType>& rhs_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::operator="));
+
+  if (delete_)
+  {
+    delete data_;
+    data_ = NULL;
+
+    delete_ = false;
+  } // end IF
+
+  if (rhs_in.delete_)
+  {
+    // sanity check(s)
+    ACE_ASSERT (!data_);
+
+    // *WARNING*: this may not be the intended behavior
+    ACE_NEW_NORETURN (data_,
+                      DataType (*rhs_in.data_));
+    if (!data_)
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory, continuing\n")));
+
+    delete_ = (data_ != NULL);
+  } // end IF
+  else
+    data_ = rhs_in.data_;
+
+  return *this;
+}
+
+template <typename DataType>
 void
 Stream_DataBase_T<DataType>::dump_state () const
 {

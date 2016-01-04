@@ -44,7 +44,7 @@
 
 #include "stream_macros.h"
 
-#include "stream_module_dev_defines.h"
+#include "stream_dev_defines.h"
 
 #include "test_u_camsave_common.h"
 #include "test_u_camsave_defines.h"
@@ -1128,8 +1128,23 @@ idle_initialize_UI_cb (gpointer userData_in)
     gdk_win32_window_get_impl_hwnd (window_p);
 #else
 #endif
+  GtkAllocation allocation;
+  ACE_OS::memset (&allocation, 0, sizeof (allocation));
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-                             &data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area);
+                             &allocation);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.bottom =
+    allocation.height;
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.left =
+    allocation.x;
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.right =
+    allocation.width;
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.top =
+    allocation.y;
+#else
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area =
+    allocation;
+#endif
 
   // step11: select default capture source (if any)
   //         --> populate the options comboboxes
@@ -2409,14 +2424,15 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->stream);
-  const Stream_StateMachine_ControlState& status_r =
-    data_p->stream->status ();
-  if (((status_r != STREAM_STATE_RUNNING) &&
-       (status_r != STREAM_STATE_PAUSED)) || // <-- stream not running (yet)
-      !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.window ||
-      !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController)
-    return;                                  // <-- window not realized yet ?
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.window          ||
+      !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController) // <-- window not realized yet ?
+    return;
+#else
+  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.window) // <-- window not realized yet ?
+    return;
+#endif
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2433,20 +2449,38 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
-
+  GtkAllocation allocation;
+  ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-                             &data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area);
-  //HRESULT result_2 =
-  //  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController->SetWindowPosition (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.x,
-  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.y,
-  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.width,
-  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.height);
-  //if (FAILED (result_2))
+                             &allocation);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController);
+
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.bottom =
+    allocation.height;
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.left =
+    allocation.x;
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.right =
+    allocation.width;
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.top =
+    allocation.y;
+
+  //HRESULT result =
+  //  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController->SetWindowPosition (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.left,
+  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.top,
+  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.right,
+  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.bottom);
+  //if (FAILED (result))
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-  //              data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.x, data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.y,
-  //              data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.width, data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.height,
-  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //              data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.left, data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.top,
+  //              data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.right, data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.bottom,
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+#else
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area =
+    allocation;
+#endif
 } // drawingarea_configure_event_cb
 
 void

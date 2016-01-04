@@ -31,12 +31,15 @@ ACE_Atomic_Op<ACE_Thread_Mutex,
 
 Stream_CamSave_Stream::Stream_CamSave_Stream ()
  : inherited (ACE_TEXT_ALWAYS_CHAR ("FileCopyStream"))
- , camSource_ (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
-               NULL,
-               false)
+ , source_ (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
+            NULL,
+            false)
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
+ , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
+             NULL,
+             false)
  , fileWriter_ (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
                 NULL,
                 false)
@@ -48,8 +51,9 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&camSource_);
+  inherited::availableModules_.push_front (&source_);
   inherited::availableModules_.push_front (&runtimeStatistic_);
+  inherited::availableModules_.push_front (&display_);
   inherited::availableModules_.push_front (&fileWriter_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
@@ -258,6 +262,32 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     return false;
   } // end IF
 
+  // ******************* Display ************************
+  display_.initialize (configuration_in.moduleConfiguration_2);
+  Stream_CamSave_Module_Display* display_impl_p =
+    dynamic_cast<Stream_CamSave_Module_Display*> (display_.writer ());
+  if (!display_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_Display> failed, aborting\n")));
+    return false;
+  } // end IF
+  if (!display_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+                display_.name ()));
+    return false;
+  } // end IF
+  result = inherited::push (&display_);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
+                display_.name ()));
+    return false;
+  } // end IF
+
   // ******************* Runtime Statistics ************************
   runtimeStatistic_.initialize (configuration_in.moduleConfiguration_2);
   Stream_CamSave_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
@@ -287,39 +317,39 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   } // end IF
 
   // ******************* Camera Source ************************
-  camSource_.initialize (configuration_in.moduleConfiguration_2);
-  Stream_CamSave_Module_CamSource* camSource_impl_p =
-    dynamic_cast<Stream_CamSave_Module_CamSource*> (camSource_.writer ());
-  if (!camSource_impl_p)
+  source_.initialize (configuration_in.moduleConfiguration_2);
+  Stream_CamSave_Module_Source* source_impl_p =
+    dynamic_cast<Stream_CamSave_Module_Source*> (source_.writer ());
+  if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Strean_CamSave_Module_CamSource> failed, aborting\n")));
     return false;
   } // end IF
-  if (!camSource_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!source_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                camSource_.name ()));
+                source_.name ()));
     return false;
   } // end IF
-  if (!camSource_impl_p->initialize (inherited::state_))
+  if (!source_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                camSource_.name ()));
+                source_.name ()));
     return false;
   } // end IF
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  camSource_.arg (inherited::sessionData_);
-  result = inherited::push (&camSource_);
+  source_.arg (inherited::sessionData_);
+  result = inherited::push (&source_);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                camSource_.name ()));
+                source_.name ()));
     return false;
   } // end IF
 

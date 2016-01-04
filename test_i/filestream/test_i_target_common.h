@@ -23,7 +23,9 @@
 
 #include "ace/INET_Addr.h"
 #include "ace/os_include/sys/os_socket.h"
+#include "ace/Time_Value.h"
 
+#include "net_defines.h"
 #include "net_ilistener.h"
 
 #include "test_i_common.h"
@@ -38,7 +40,7 @@ struct Test_I_Target_ListenerConfiguration
    , connectionManager (NULL)
    , messageAllocator (NULL)
    , socketHandlerConfiguration (NULL)
-   , statisticReportingInterval (0)
+   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
    , useLoopBackDevice (false)
   {};
 
@@ -47,7 +49,7 @@ struct Test_I_Target_ListenerConfiguration
   Test_I_Stream_IInetConnectionManager_t*   connectionManager;
   Stream_IAllocator*                        messageAllocator;
   Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
-  unsigned int                              statisticReportingInterval; // (second(s)) [0: off]
+  ACE_Time_Value                            statisticReportingInterval; // [ACE_Time_Value::zero: off]
   bool                                      useLoopBackDevice;
 };
 

@@ -27,6 +27,7 @@
 #endif
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
+#include "ace/Time_Value.h"
 
 //#include "net_connection_manager.h"
 //#include "net_iconnectionmanager.h"
@@ -103,7 +104,7 @@ struct Stream_SocketHandlerConfiguration
    : bufferSize (NET_STREAM_MESSAGE_DATA_BUFFER_SIZE)
    , messageAllocator (NULL)
    , socketConfiguration (NULL)
-   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING)
+   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
      ////////////////////////////////////
 //   , userData (NULL)
   {};
@@ -111,7 +112,7 @@ struct Stream_SocketHandlerConfiguration
   unsigned int             bufferSize; // pdu size (if fixed)
   Stream_IAllocator*       messageAllocator;
   Net_SocketConfiguration* socketConfiguration;
-  unsigned int             statisticReportingInterval; // seconds [0: off]
+  ACE_Time_Value           statisticReportingInterval; // [ACE_Time_Value::zero: off]
 
 //  Net_StreamUserData*      userData;
 };

@@ -252,7 +252,7 @@ struct Stream_Configuration
 #else
    , sessionID (static_cast<size_t> (ACE_INVALID_HANDLE))
 #endif
-   , statisticReportingInterval (0)
+   , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
    , useThreadPerConnection (false)
   {};
 
@@ -271,7 +271,7 @@ struct Stream_Configuration
   //                   --> enforce proper serialization
   bool                               serializeOutput;
   size_t                             sessionID;
-  unsigned int                       statisticReportingInterval; // 0: don't report
+  ACE_Time_Value                     statisticReportingInterval; // [ACE_Time_Value::zero: off]
   bool                               useThreadPerConnection;
 };
 

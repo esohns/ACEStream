@@ -113,8 +113,8 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT ("-s [VALUE]   : statistic reporting interval (second(s)) [")
-            << STREAM_DEFAULT_STATISTIC_REPORTING
-            << ACE_TEXT ("] {0 --> OFF})")
+            << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
+            << ACE_TEXT ("] [0: off])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
             << false
@@ -176,7 +176,7 @@ do_processArguments (int argc_in,
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE);
   logToFile_out = false;
-  statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING;
+  statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   printVersionAndExit_out = false;
   path = Common_File_Tools::getTempDirectory ();
@@ -639,10 +639,11 @@ ACE_TMAIN (int argc_in,
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE);
+  UI_definition_file +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_FILECOPY_DEFAULT_GLADE_FILE);
   bool log_to_file = false;
   unsigned int statistic_reporting_interval =
-    STREAM_DEFAULT_STATISTIC_REPORTING;
+    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
   bool print_version_and_exit = false;
   path = Common_File_Tools::getTempDirectory ();

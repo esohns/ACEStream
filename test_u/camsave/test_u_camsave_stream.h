@@ -24,7 +24,6 @@
 #include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
-#include "ace/Thread_Mutex.h"
 
 #include "common_time_common.h"
 
@@ -97,11 +96,12 @@ class Stream_CamSave_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Stream& operator= (const Stream_CamSave_Stream&))
 
   // modules
-  Stream_CamSave_Module_CamSource_Module        camSource_;
+  Stream_CamSave_Module_Source_Module           source_;
   Stream_CamSave_Module_RuntimeStatistic_Module runtimeStatistic_;
+  Stream_CamSave_Module_Display_Module          display_;
   Stream_CamSave_Module_FileWriter_Module       fileWriter_;
 
-  static ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long> currentSessionID;
+  static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentSessionID;
 };
 
 #endif

@@ -27,9 +27,10 @@
 
 #include "stream_common.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_module_camsource_directshow.h"
+#include "stream_dev_cam_source_directshow.h"
+#include "stream_vis_target_directshow.h"
 #else
-#include "stream_module_camsource.h"
+#include "stream_dev_cam_source.h"
 #endif
 #include "stream_module_filewriter.h"
 #include "stream_module_runtimestatistic.h"
@@ -41,39 +42,39 @@
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Module_CamSource_DirectShow_T<ACE_SYNCH_MUTEX,
-                                             //////
-                                             Stream_CamSave_SessionMessage,
-                                             Stream_CamSave_Message,
-                                             //////
-                                             Stream_CamSave_ModuleHandlerConfiguration,
-                                             //////
-                                             Stream_State,
-                                             //////
-                                             Stream_CamSave_SessionData,
-                                             Stream_CamSave_SessionData_t,
-                                             //////
-                                             Stream_Statistic> Stream_CamSave_Module_CamSource;
+typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_MUTEX,
+                                           
+                                           Stream_CamSave_SessionMessage,
+                                           Stream_CamSave_Message,
+                                           
+                                           Stream_CamSave_ModuleHandlerConfiguration,
+                                           
+                                           Stream_State,
+                                           
+                                           Stream_CamSave_SessionData,
+                                           Stream_CamSave_SessionData_t,
+                                           
+                                           Stream_Statistic> Stream_CamSave_Module_Source;
 #else
-typedef Stream_Module_CamSource_T<ACE_SYNCH_MUTEX,
-                                  //////
-                                  Stream_CamSave_SessionMessage,
-                                  Stream_CamSave_Message,
-                                  //////
-                                  Stream_CamSave_ModuleHandlerConfiguration,
-                                  //////
-                                  Stream_State,
-                                  //////
-                                  Stream_CamSave_SessionData,
-                                  Stream_CamSave_SessionData_t,
-                                  //////
-                                  Stream_Statistic> Stream_CamSave_Module_CamSource;
+typedef Stream_Dev_Cam_Source_T<ACE_SYNCH_MUTEX,
+                                /////////
+                                Stream_CamSave_SessionMessage,
+                                Stream_CamSave_Message,
+                                /////////
+                                Stream_CamSave_ModuleHandlerConfiguration,
+                                /////////
+                                Stream_State,
+                                /////////
+                                Stream_CamSave_SessionData,
+                                Stream_CamSave_SessionData_t,
+                                /////////
+                                Stream_Statistic> Stream_CamSave_Module_Source;
 #endif
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task synch type
                               Common_TimePolicy_t,                       // time policy
                               Stream_ModuleConfiguration,                // module configuration type
                               Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_CamSave_Module_CamSource);          // writer type
+                              Stream_CamSave_Module_Source);             // writer type
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
@@ -98,6 +99,22 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                 // task 
                           Stream_CamSave_Module_Statistic_ReaderTask_t, // reader type
                           Stream_CamSave_Module_Statistic_WriterTask_t, // writer type
                           Stream_CamSave_Module_RuntimeStatistic);      // name
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Vis_Target_DirectShow_T<Stream_CamSave_SessionMessage,
+                                       Stream_CamSave_Message,
+                                       ///
+                                       Stream_CamSave_ModuleHandlerConfiguration,
+                                       ///
+                                       Stream_CamSave_SessionData,
+                                       Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
+#else
+#endif
+DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task synch type
+                              Common_TimePolicy_t,                       // time policy
+                              Stream_ModuleConfiguration,                // module configuration type
+                              Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_CamSave_Module_Display);            // writer type
 
 typedef Stream_Module_FileWriter_T<Stream_CamSave_SessionMessage,
                                    Stream_CamSave_Message,

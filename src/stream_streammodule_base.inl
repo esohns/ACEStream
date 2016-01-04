@@ -69,18 +69,18 @@ Stream_StreamModule_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModule_T::~Stream_StreamModule_T"));
 
-  // *WARNING*: the ACE_Module dtor calls close() on the tasks, implicitly
-  //            calling module_closed() and flush() on every task. However, all
-  //            member tasks have been destroyed by the time that happens
-  //            --> close() module in advance so it doesn't happen here !
+  // *IMPORTANT NOTE*: the ACE_Module dtor calls module_closed() on each task.
+  //                   However, the (member) tasks have been destroyed by the
+  //                   time that happens
+  //                   --> close() module early
 
-  // sanity check: on the stream ?
-  Stream_Module_t* module_p = inherited::next ();
-  if (!module_p)
-  {
-    //ACE_DEBUG ((LM_WARNING,
-    //            ACE_TEXT ("manually closing module: \"%s\"\n"),
-    //            ACE_TEXT (module->name ())));
+  //// sanity check: on the stream ?
+  //Stream_Module_t* module_p = inherited::next ();
+  //if (!module_p)
+  //{
+    ////ACE_DEBUG ((LM_WARNING,
+    ////            ACE_TEXT ("manually closing module: \"%s\"\n"),
+    ////            inherited::name ()));
 
     int result = -1;
     try
@@ -97,7 +97,7 @@ Stream_StreamModule_T<TaskSynchType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%s\", continuing\n"),
                   inherited::name ()));
-  } // end IF
+  //} // end IF
 }
 
 // ----------------------------------------------------------------------------

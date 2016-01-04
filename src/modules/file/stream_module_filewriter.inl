@@ -541,12 +541,12 @@ Stream_Module_FileWriterH_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::handleDataMessage"));
 
-  ssize_t bytes_written = -1;
-
-  // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  ssize_t bytes_written = -1;
+
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   if (!isOpen_)
   {
 //    ACE_DEBUG ((LM_ERROR,
@@ -596,7 +596,7 @@ Stream_Module_FileWriterH_T<LockType,
 
       // print progress dots ?
       // *TODO*: remove type inferences
-      if (inherited::configuration_.printProgressDot)
+      if (inherited::configuration_->printProgressDot)
         std::cout << '.';
 
       break;
@@ -629,12 +629,12 @@ Stream_Module_FileWriterH_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::handleSessionMessage"));
 
-  int result = -1;
-
-  // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  int result = -1;
+
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (message_inout);
 
   switch (message_inout->type ())
@@ -653,12 +653,12 @@ Stream_Module_FileWriterH_T<LockType,
       std::string directory, file_name;
       // *TODO*: remove type inferences
       directory =
-        (session_data_r.targetFileName.empty () ? (inherited::configuration_.targetFileName.empty () ? Common_File_Tools::getTempDirectory ()
-                                                : inherited::configuration_.targetFileName)
+        (session_data_r.targetFileName.empty () ? (inherited::configuration_->targetFileName.empty () ? Common_File_Tools::getTempDirectory ()
+                                                : inherited::configuration_->targetFileName)
                                                 : session_data_r.targetFileName);
       file_name =
-        (session_data_r.targetFileName.empty () ? (inherited::configuration_.targetFileName.empty () ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
-                                                                                                     : inherited::configuration_.targetFileName)
+        (session_data_r.targetFileName.empty () ? (inherited::configuration_->targetFileName.empty () ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
+                                                                                                      : inherited::configuration_->targetFileName)
                                                 : session_data_r.targetFileName);
       // sanity check(s)
       if (!Common_File_Tools::isDirectory (directory))
@@ -676,7 +676,7 @@ Stream_Module_FileWriterH_T<LockType,
               return;
             } // end IF
         } // end IF
-        else if (Common_File_Tools::isValidFileName (directory))
+        else if (Common_File_Tools::isValidFilename (directory))
         {
           directory =
             ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
@@ -700,7 +700,7 @@ Stream_Module_FileWriterH_T<LockType,
       if (Common_File_Tools::isDirectory (file_name))
         file_name =
           ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE);
-      else if (Common_File_Tools::isValidFileName (file_name))
+      else if (Common_File_Tools::isValidFilename (file_name))
         file_name =
           ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (file_name.c_str ())));
       file_name = directory +
@@ -845,8 +845,8 @@ Stream_Module_FileWriterH_T<LockType,
 
   if (configuration_in.streamConfiguration->statisticReportingInterval)
   {
-    // schedule regular statistics collection...
-    ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION, 0);
+    // schedule regular statistic collection
+    ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION_INTERVAL, 0);
     ACE_ASSERT (statisticCollectHandlerID_ == -1);
     ACE_Event_Handler* handler_p = &statisticCollectHandler_;
     statisticCollectHandlerID_ =
@@ -910,7 +910,10 @@ Stream_Module_FileWriterH_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::get"));
 
-  return inherited::configuration_;
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
+  return *inherited::configuration_;
 }
 
 template <typename LockType,
@@ -1019,7 +1022,8 @@ Stream_Module_FileWriterH_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::putStatisticMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
 //  // step1: initialize session data
 //  IRC_StreamSessionData* session_data_p = NULL;
@@ -1057,5 +1061,5 @@ Stream_Module_FileWriterH_T<LockType,
   // *NOTE*: fire-and-forget session_data_container_p
   return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
                                        *inherited::sessionData_,
-                                       inherited::configuration_.streamConfiguration->messageAllocator);
+                                       inherited::configuration_->streamConfiguration->messageAllocator);
 }

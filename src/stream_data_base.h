@@ -48,6 +48,8 @@ class Stream_DataBase_T
   // *TODO*: make this private ASAP !
   virtual ~Stream_DataBase_T ();
 
+  Stream_DataBase_T& operator= (Stream_DataBase_T&);
+
   // implement Common_IDumpState
   virtual void dump_state () const;
 
@@ -74,7 +76,6 @@ class Stream_DataBase_T
   typedef ACE_Refcountable_T<ACE_SYNCH_MUTEX> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_DataBase_T (const Stream_DataBase_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_DataBase_T& operator= (const Stream_DataBase_T&))
 
   DataType* data_;
   bool      delete_;

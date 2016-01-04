@@ -20,10 +20,10 @@
 
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
-#include "ace/Time_Value.h"
 
 #include "common_timer_manager_common.h"
 
+#include "stream_defines.h"
 #include "stream_iallocator.h"
 #include "stream_macros.h"
 #include "stream_message_base.h"
@@ -52,7 +52,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
                            this,
                            false)
  , localReportingHandlerID_ (-1)
- , reportingInterval_ (0)
+ , reportingInterval_ (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
  , sendStatisticMessages_ (false)
  , printFinalReport_ (false)
  , lock_ ()
@@ -115,7 +115,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
                                      SessionDataType,
-                                     SessionDataContainerType>::initialize (unsigned int reportingInterval_in,
+                                     SessionDataContainerType>::initialize (const ACE_Time_Value& reportingInterval_in,
                                                                             bool sendStatisticMessages_in,
                                                                             bool printFinalReport_in,
                                                                             Stream_IAllocator* allocator_in)
@@ -131,7 +131,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     // stop timers
     finiTimers (true);
 
-    reportingInterval_ = 0;
+    reportingInterval_ = ACE_Time_Value::zero;
     sendStatisticMessages_ = false;
     printFinalReport_ = false;
     sessionData_ = NULL;
@@ -168,7 +168,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
       (resetTimeoutHandlerID_ == -1))
   {
     // schedule the second-granularity timer
-    ACE_Time_Value one_second (1, 0); // one second interval
+    ACE_Time_Value one_second (1, 0); // one-second interval
     ACE_Event_Handler* event_handler_p = &resetTimeoutHandler_;
     resetTimeoutHandlerID_ =
       COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (event_handler_p,              // event handler
@@ -285,22 +285,22 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
       sessionData_->increase ();
 
       // statistic reporting
-      if (reportingInterval_ && (reportingInterval_ != 1))
+      ACE_Time_Value one_second (1, 0);
+      if (reportingInterval_ && (reportingInterval_ != one_second))
       {
         // schedule the reporting interval timer
-        ACE_Time_Value interval (reportingInterval_, 0);
         ACE_ASSERT (localReportingHandlerID_ == -1);
         ACE_Event_Handler* event_handler_p = &localReportingHandler_;
         localReportingHandlerID_ =
-          COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (event_handler_p,            // event handler
-                                                                      NULL,                       // ACT
-                                                                      COMMON_TIME_NOW + interval, // first wakeup time
-                                                                      interval);                  // interval
+          COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (event_handler_p,                      // event handler
+                                                                      NULL,                                 // ACT
+                                                                      COMMON_TIME_NOW + reportingInterval_, // first wakeup time
+                                                                      reportingInterval_);                  // interval
         if (localReportingHandlerID_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(%#T): \"%m\", returning\n"),
-                      &interval));
+                      &reportingInterval_));
           return;
         } // end IF
         //     ACE_DEBUG ((LM_DEBUG,
@@ -384,8 +384,8 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     } // end IF
   } // end lock scope
 
-  if (sendStatisticMessages_ &&
-      (reportingInterval_ == 1))
+  ACE_Time_Value one_second (1, 0);
+  if (sendStatisticMessages_ && (reportingInterval_ == one_second))
     sendStatistic ();
 }
 
@@ -453,9 +453,9 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   if (sessionData_)
     session_data_p =
         &const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
+  ACE_Time_Value one_second (1, 0);
 
-  if (sendStatisticMessages_ &&
-      (reportingInterval_ != 1))
+  if (sendStatisticMessages_ && (reportingInterval_ != one_second))
     const_cast<OWN_TYPE_T*> (this)->sendStatistic ();
 
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);

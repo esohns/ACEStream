@@ -52,7 +52,7 @@
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
 
-#include "stream_module_dev_tools.h"
+#include "stream_dev_tools.h"
 
 #include "test_u_common.h"
 #include "test_u_defines.h"
@@ -118,8 +118,8 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT ("-s [VALUE]              : statistic reporting interval (second(s)) [")
-            << STREAM_DEFAULT_STATISTIC_REPORTING
-            << ACE_TEXT ("] {0 --> OFF})")
+            << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
+            << ACE_TEXT ("] [0: off])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
             << false
@@ -187,7 +187,7 @@ do_processArguments (int argc_in,
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_GLADE_FILE);
   logToFile_out = false;
-  statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING;
+  statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   printVersionAndExit_out = false;
   //runStressTest_out = false;
@@ -403,17 +403,6 @@ do_finalize_directshow (Stream_CamSave_GTK_CBData& CBData_in)
   STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
 
   HRESULT result = E_FAIL;
-  if (CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController)
-  {
-    result =
-      CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController->put_Owner (NULL);
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IVideoWindow::put_Owner(NULL): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController->Release ();
-    CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController = NULL;
-  } // end IF
   if (CBData_in.streamConfiguration)
   {
     CBData_in.streamConfiguration->Release ();
@@ -467,11 +456,11 @@ do_work (unsigned int bufferSize_in,
   Stream_CamSave_MessageAllocator_t message_allocator (TEST_U_STREAM_CAMSAVE_MAX_MESSAGES, // maximum #buffers
                                                        &heap_allocator,                    // heap allocator handle
                                                        true);                              // block ?
-  Stream_CamSave_Stream stream;
   Stream_CamSave_EventHandler ui_event_handler (&CBData_in);
   Stream_CamSave_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                            NULL,
                                                            true);
+  Stream_CamSave_Stream stream;
   Stream_CamSave_Module_EventHandler* event_handler_p =
     dynamic_cast<Stream_CamSave_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
@@ -728,10 +717,11 @@ ACE_TMAIN (int argc_in,
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_GLADE_FILE);
+  UI_definition_file +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_GLADE_FILE);
   bool log_to_file = false;
   unsigned int statistic_reporting_interval =
-    STREAM_DEFAULT_STATISTIC_REPORTING;
+    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
   bool print_version_and_exit = false;
   //bool run_stress_test = false;

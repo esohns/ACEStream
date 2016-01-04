@@ -68,6 +68,6 @@ class Stream_Module_CamSource_T
   bool                           manageLibrary_;
 };
 
-#include "stream_module_camsource.inl"
+#include "stream_dev_cam_source.inl"
 
 #endif

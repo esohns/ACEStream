@@ -136,8 +136,8 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
-            << STREAM_DEFAULT_STATISTIC_REPORTING
-            << ACE_TEXT_ALWAYS_CHAR ("] {0: off}")
+            << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
+            << ACE_TEXT_ALWAYS_CHAR ("] [0: off]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
             << false
@@ -212,7 +212,7 @@ do_processArguments (int argc_in,
   useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
   port_out = TEST_I_DEFAULT_PORT;
   useReactor_out = NET_EVENT_USE_REACTOR;
-  statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING;
+  statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   useUDP_out = false;
   printVersionAndExit_out = false;
@@ -949,7 +949,7 @@ ACE_TMAIN (int argc_in,
   unsigned short port = TEST_I_DEFAULT_PORT;
   bool use_reactor = NET_EVENT_USE_REACTOR;
   unsigned int statistic_reporting_interval =
-    STREAM_DEFAULT_STATISTIC_REPORTING;
+    STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   bool trace_information = false;
   bool use_UDP = false;
   bool print_version_and_exit = false;

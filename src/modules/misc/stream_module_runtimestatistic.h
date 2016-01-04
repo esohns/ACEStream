@@ -21,18 +21,18 @@
 #ifndef STREAM_MODULE_RUNTIMESTATISTIC_H
 #define STREAM_MODULE_RUNTIMESTATISTIC_H
 
-#include <set>
 #include <map>
+#include <utility>
 
 #include "ace/Global_Macros.h"
 #include "ace/Stream_Modules.h"
 #include "ace/Synch_Traits.h"
+#include "ace/Time_Value.h"
 
 #include "common_icounter.h"
 #include "common_istatistic.h"
 
 #include "stream_common.h"
-#include "stream_defines.h"
 #include "stream_resetcounterhandler.h"
 #include "stream_statistichandler.h"
 #include "stream_streammodule_base.h"
@@ -40,7 +40,6 @@
 
 // forward declaration(s)
 class ACE_Message_Block;
-class ACE_Time_Value;
 class Stream_IAllocator;
 template <typename TaskSynchType,
           typename TimePolicyType,
@@ -117,16 +116,16 @@ class Stream_Module_Statistic_WriterTask_T
   virtual ~Stream_Module_Statistic_WriterTask_T ();
 
   // initialization
-  bool initialize (unsigned int = STREAM_DEFAULT_STATISTIC_REPORTING, // (local) reporting interval (second(s)) [0: off]
-                   bool = false,                                      // send statistic messages ?
-                   bool = false,                                      // print final report ?
-                   Stream_IAllocator* = NULL);                        // report cache usage ?
+  // *TODO*: one-second reporting is currently broken (will only push statistic
+  //         messages, if enabled)
+  bool initialize (const ACE_Time_Value&,      // reporting interval (second(s)) [ACE_Time_Value::zero: off]
+                   bool = false,               // push statistic messages downstream ?
+                   bool = false,               // print final report ?
+                   Stream_IAllocator* = NULL); // report cache usage ? [NULL: off]
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
                                   bool&);                // return value: pass message downstream ?
-
-  // implement this so we can print overall statistics after session completes...
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -135,7 +134,7 @@ class Stream_Module_Statistic_WriterTask_T
 
   // implement Common_IStatistic
   virtual bool collect (StatisticContainerType&); // return value: info
-  // *NOTE*: this also implements locally triggered reporting !
+  // *NOTE*: this also implements locally triggered reporting
   virtual void report () const;
 
  private:
@@ -154,8 +153,6 @@ class Stream_Module_Statistic_WriterTask_T
                                                SessionDataContainerType> OWN_TYPE_T;
 
   // message type counters
-//  typedef std::set<ProtocolCommandType> Net_Messages_t;
-//  typedef typename Net_Messages_t::const_iterator Net_MessagesIterator_t;
   typedef std::map<ProtocolCommandType,
                    unsigned int> STATISTIC_T;
   typedef typename STATISTIC_T::const_iterator STATISTIC_ITERATOR_T;
@@ -167,7 +164,7 @@ class Stream_Module_Statistic_WriterTask_T
 
   // helper method(s)
   void finalReport () const;
-  void finiTimers (bool = true); // cancel both timers ? (false --> cancel only localReportingHandlerID_)
+  void finiTimers (bool = true); // cancel both timers ? [false: cancel localReportingHandlerID_ only]
   void sendStatistic ();
 
   bool                              initialized_;
@@ -177,7 +174,7 @@ class Stream_Module_Statistic_WriterTask_T
   long                              resetTimeoutHandlerID_;
   Stream_StatisticHandler_Reactor_t localReportingHandler_;
   long                              localReportingHandlerID_;
-  size_t                            reportingInterval_; // second(s) [0: off]
+  ACE_Time_Value                    reportingInterval_; // [ACE_Time_Value::zero: off]
   bool                              sendStatisticMessages_;
   bool                              printFinalReport_;
 
