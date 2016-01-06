@@ -32,8 +32,6 @@ template <typename SessionMessageType,
           ///////////////////////////////
           typename ConfigurationType,
           ///////////////////////////////
-          typename ModuleHandlerConfigurationType,
-          ///////////////////////////////
           typename SessionDataType,
           typename SessionDataContainerType,
           ///////////////////////////////
@@ -43,7 +41,7 @@ class Stream_Module_Net_Target_T
  : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
                                  SessionMessageType,
                                  MessageType>
- , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
+ , public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
   // *NOTE*: this module has two modes of operation:
@@ -59,11 +57,11 @@ class Stream_Module_Net_Target_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ModuleHandlerConfigurationType&);
-  virtual const ModuleHandlerConfigurationType& get () const;
+  virtual bool initialize (const ConfigurationType&);
+  virtual const ConfigurationType& get () const;
 
  protected:
-  ModuleHandlerConfigurationType        configuration_;
+  ConfigurationType                     configuration_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,

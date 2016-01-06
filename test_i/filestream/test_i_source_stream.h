@@ -101,8 +101,6 @@ class Test_I_Source_Stream_T
   typedef Stream_Module_Net_Target_T<Test_I_Stream_SessionMessage,
                                      Test_I_Stream_Message,
                                      ////
-                                     Test_I_Configuration,
-                                     ////
                                      Test_I_Stream_ModuleHandlerConfiguration,
                                      ////
                                      Test_I_Stream_SessionData,

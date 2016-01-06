@@ -15,20 +15,24 @@ endif
 noinst_HEADERS = \
   stdafx.h
 include_HEADERS = \
-  stream_module_filereader.h \
-  stream_module_filereader.inl \
-  stream_module_filewriter.h \
-  stream_module_filewriter.inl
+  stream_file_defines.h \
+  stream_file_exports.h \
+  stream_file_source.h \
+  stream_file_source.inl \
+  stream_file_sink.h \
+  stream_file_sink.inl
 
 lib_LTLIBRARIES = libACEStream_File.la
 
 libACEStream_File_la_SOURCES = \
-  stream_module_filereader.cpp \
-  stream_module_filereader.h \
-  stream_module_filereader.inl \
-  stream_module_filewriter.cpp \
-  stream_module_filewriter.h \
-  stream_module_filewriter.inl
+  stream_file_defines.h \
+  stream_file_exports.h \
+  stream_file_source.cpp \
+  stream_file_source.h \
+  stream_file_source.inl \
+  stream_file_sink.cpp \
+  stream_file_sink.h \
+  stream_file_sink.inl
 #  stdafx.cpp \
 #  stdafx.h
 

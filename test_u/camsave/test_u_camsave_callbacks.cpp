@@ -583,7 +583,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
-    return false;
+    return G_SOURCE_REMOVE;
   } // end IF
 #endif
 

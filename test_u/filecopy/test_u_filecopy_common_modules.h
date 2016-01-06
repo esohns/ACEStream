@@ -26,8 +26,8 @@
 #include "common_time_common.h"
 
 #include "stream_common.h"
-#include "stream_module_filereader.h"
-#include "stream_module_filewriter.h"
+#include "stream_file_sink.h"
+#include "stream_file_source.h"
 #include "stream_module_runtimestatistic.h"
 #include "stream_streammodule_base.h"
 

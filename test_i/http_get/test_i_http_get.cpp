@@ -50,7 +50,7 @@
 #include "libACEStream_config.h"
 #endif
 
-#include "stream_module_filewriter.h"
+#include "stream_file_sink.h"
 
 #include "net_common_tools.h"
 

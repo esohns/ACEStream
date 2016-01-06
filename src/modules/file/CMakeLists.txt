@@ -4,13 +4,14 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 ############## next target ################
 set (${PROJECT_NAME}_File_LIB_SRCS
-     stream_module_filereader.cpp
-     stream_module_filereader.h
-     stream_module_filereader.inl
-     stream_module_filewriter.cpp
-     stream_module_filewriter.h
-     stream_module_filewriter.inl
+     stream_file_defines.h
      stream_file_exports.h
+     stream_file_source.cpp
+     stream_file_source.h
+     stream_file_source.inl
+     stream_file_sink.cpp
+     stream_file_sink.h
+     stream_file_sink.inl
      stdafx.cpp
      stdafx.h)
 
@@ -32,11 +33,12 @@ export (TARGETS ${PROJECT_NAME}_File
 
 ############### install files ################
 install (FILES
-         stream_module_filereader.h
-         stream_module_filereader.inl
-         stream_module_filewriter.h
-         stream_module_filewriter.inl
+         stream_file_defines.h
          stream_file_exports.h
+         stream_file_source.h
+         stream_file_source.inl
+         stream_file_sink.h
+         stream_file_sink.inl
          DESTINATION include)
 install (TARGETS ${PROJECT_NAME}_File
          EXPORT ${PROJECT_NAME}Targets

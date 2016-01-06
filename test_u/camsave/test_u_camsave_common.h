@@ -125,7 +125,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   GdkRectangle           area;
 #endif
   guint                  contextID;
-  std::string            device;
+  std::string            device; // "FriendlyName" property (Win32)
   bool                   printProgressDot;
   std::string            targetFileName;
   HWND                   window; // *TODO*

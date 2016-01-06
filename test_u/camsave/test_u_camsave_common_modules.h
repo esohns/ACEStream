@@ -32,7 +32,7 @@
 #else
 #include "stream_dev_cam_source.h"
 #endif
-#include "stream_module_filewriter.h"
+#include "stream_file_sink.h"
 #include "stream_module_runtimestatistic.h"
 #include "stream_streammodule_base.h"
 

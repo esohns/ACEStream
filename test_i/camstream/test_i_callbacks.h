@@ -25,7 +25,7 @@
 
 #include "gtk/gtk.h"
 
-// forward declarations
+ // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct IAMStreamConfig;
 #endif
@@ -50,12 +50,24 @@ ACE_THR_FUNC_RETURN stream_processing_function (void*);
 //------------------------------------------------------------------------------
 
 // idle routines
-gboolean idle_initialize_UI_cb (gpointer);
+gboolean idle_initialize_source_UI_cb (gpointer);
+gboolean idle_end_source_UI_cb (gpointer);
+gboolean idle_update_progress_source_cb (gpointer);
+
+/////////////////////////////////////////
+
+gboolean idle_initialize_target_UI_cb (gpointer);
+gboolean idle_start_target_UI_cb (gpointer);
+gboolean idle_end_target_UI_cb (gpointer);
+gboolean idle_reset_target_UI_cb (gpointer);
+gboolean idle_update_progress_target_cb (gpointer);
+
+/////////////////////////////////////////
+
 gboolean idle_finalize_UI_cb (gpointer);
-gboolean idle_session_end_cb (gpointer);
+
 gboolean idle_update_info_display_cb (gpointer);
 gboolean idle_update_log_display_cb (gpointer);
-gboolean idle_update_progress_cb (gpointer);
 
 //------------------------------------------------------------------------------
 
@@ -64,21 +76,37 @@ extern "C"
 {
 #endif /* __cplusplus */
 // callbacks
-G_MODULE_EXPORT void action_cut_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT void action_report_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT void action_reset_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT void action_settings_activate_cb (GtkAction*, gpointer);
-G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_format_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_resolution_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_rate_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void filechooserbutton_source_cb (GtkFileChooserButton*, gpointer);
+G_MODULE_EXPORT void toggleaction_stream_toggled_cb (GtkToggleAction*, gpointer);
+
+/////////////////////////////////////////
+
+G_MODULE_EXPORT void action_close_all_activate_cb (GtkAction*, gpointer);
+G_MODULE_EXPORT void action_listen_activate_cb (GtkAction*, gpointer);
 G_MODULE_EXPORT void drawingarea_configure_event_cb (GtkWindow*, GdkEvent*, gpointer);
-G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
-G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
-G_MODULE_EXPORT void toggle_action_record_activate_cb (GtkToggleAction*, gpointer);
+G_MODULE_EXPORT void filechooserbutton_target_cb (GtkFileChooserButton*, gpointer);
+G_MODULE_EXPORT void filechooserdialog_target_cb (GtkFileChooser*, gpointer);
+G_MODULE_EXPORT void filechooser_target_cb (GtkFileChooser*, gpointer);
+
+/////////////////////////////////////////
+
+G_MODULE_EXPORT void action_report_activate_cb (GtkAction*, gpointer);
+//G_MODULE_EXPORT void radiobutton_protocol_toggled_cb (GtkToggleButton*, gpointer);
+//G_MODULE_EXPORT void spinbutton_port_value_changed_cb (GtkWidget*, gpointer);
+
+/////////////////////////////////////////
+
+G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void textview_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
