@@ -100,8 +100,8 @@ struct IMediaSample;
 struct Test_I_MessageData
 {
   inline Test_I_MessageData ()
-    : sample (NULL)
-    , sampleTime (0.0)
+   : sample (NULL)
+   , sampleTime (0.0)
   {};
 
   IMediaSample* sample;

@@ -5,16 +5,19 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 ############## next target ################
 set (${PROJECT_NAME}_Misc_LIB_SRCS
-     stream_module_messagehandler.cpp
-     stream_module_messagehandler.h
-     stream_module_messagehandler.inl
-     stream_module_queuereader.cpp
-     stream_module_queuereader.h
-     stream_module_queuereader.inl
-     stream_module_runtimestatistic.cpp
-     stream_module_runtimestatistic.h
-     stream_module_runtimestatistic.inl
+     stream_misc_directshow_source.cpp
+     stream_misc_directshow_source.h
+     stream_misc_directshow_source.inl
      stream_misc_exports.h
+     stream_misc_messagehandler.cpp
+     stream_misc_messagehandler.h
+     stream_misc_messagehandler.inl
+     stream_misc_queue_source.cpp
+     stream_misc_queue_source.h
+     stream_misc_queue_source.inl
+     stream_misc_runtimestatistic.cpp
+     stream_misc_runtimestatistic.h
+     stream_misc_runtimestatistic.inl
      stdafx.cpp
      stdafx.h)
 
@@ -36,13 +39,15 @@ export (TARGETS ${PROJECT_NAME}_Misc
 
 ############### install files ################
 install (FILES
-         stream_module_messagehandler.h
-         stream_module_messagehandler.inl
-         stream_module_queuereader.h
-         stream_module_queuereader.inl
-         stream_module_runtimestatistic.h
-         stream_module_runtimestatistic.inl
+         stream_misc_directshow_source.h
+         stream_misc_directshow_source.inl
          stream_misc_exports.h
+         stream_misc_messagehandler.h
+         stream_misc_messagehandler.inl
+         stream_misc_queue_source.h
+         stream_misc_queue_source.inl
+         stream_misc_runtimestatistic.h
+         stream_misc_runtimestatistic.inl
          DESTINATION include)
 install (TARGETS ${PROJECT_NAME}_Misc
          EXPORT ${PROJECT_NAME}Targets

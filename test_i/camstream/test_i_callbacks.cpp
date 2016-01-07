@@ -57,9 +57,6 @@
 #include "test_i_source_common.h"
 #include "test_i_target_listener_common.h"
 
-// initialize statics
-static bool un_toggling_stream_stop = false;
-
 bool
 load_capture_devices (GtkListStore* listStore_in)
 {
@@ -529,12 +526,6 @@ stream_processing_function (void* arg_in)
     } // end SWITCH
     ACE_ASSERT (stream_p);
 
-    // retrieve spin button handle
-    spin_button_p =
-      GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_LOOP_NAME)));
-    ACE_ASSERT (spin_button_p);
-
     // retrieve status bar handle
     statusbar_p =
       GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
@@ -866,6 +857,16 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   gtk_spin_button_set_value (spin_button_p,
                              static_cast<double> (data_p->configuration->streamConfiguration.bufferSize));
 
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+  gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
+  gint width, height;
+  gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
+  gtk_progress_bar_set_pulse_step (progress_bar_p,
+                                   1.0 / static_cast<double> (width));
+
   // step4: initialize text view, setup auto-scrolling
   GtkTextView* view_p =
     //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
@@ -1121,6 +1122,15 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
+//  // step10a: retrieve window handle
+//  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (dialog_p));
+//  ACE_ASSERT (window_p);
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  data_p->configuration->moduleHandlerConfiguration.window =
+//    gdk_win32_window_get_impl_hwnd (window_p);
+//#else
+//#endif
+
   // step10: select default capture source (if any)
   //         --> populate the option-comboboxes
   list_store_p =
@@ -1173,17 +1183,32 @@ idle_end_source_UI_cb (gpointer userData_in)
   //ACE_ASSERT (iterator != CBData_->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkTable* table_p =
-    GTK_TABLE (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TABLE_OPTIONS_NAME)));
-  ACE_ASSERT (table_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (table_p), TRUE);
+  GtkFrame* frame_p =
+    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
+  ACE_ASSERT (frame_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 
   GtkToggleAction* toggle_action_p =
     GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEACTION_STREAM_NAME)));
   ACE_ASSERT (toggle_action_p);
   gtk_action_set_stock_id (GTK_ACTION (toggle_action_p), GTK_STOCK_MEDIA_PLAY);
+
+  GtkAction* action_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, true);
+  action_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, true);
 
   return G_SOURCE_REMOVE;
 }
@@ -1209,11 +1234,7 @@ idle_update_progress_source_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->GTKState->builders.end ());
 
-  GtkProgressBar* progressbar_p =
-    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-  ACE_ASSERT (progressbar_p);
-
+  // step1: join completed thread(s)
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
@@ -1276,15 +1297,28 @@ idle_update_progress_source_cb (gpointer userData_in)
     done = true;
   } // end IF
 
-  //gtk_progress_bar_pulse (progress_bar_p);
-  gdouble fraction_d = 0.0;
-  if (data_p->size)
+  // step2: update progress bar text
+  std::ostringstream converter;
   {
-    ACE_ASSERT (data_p->transferred <= data_p->size);
-    fraction_d =
-      static_cast<double> (data_p->transferred) / static_cast<double> (data_p->size);
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->GTKState->lock);
+
+    converter << data_p->statistic.messagesPerSecond;
+  } // end lock scope
+  converter << ACE_TEXT_ALWAYS_CHAR (" fps");
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+  gtk_progress_bar_set_text (progress_bar_p,
+                             (done ? ACE_TEXT_ALWAYS_CHAR ("")
+                                   : ACE_TEXT_ALWAYS_CHAR (converter.str ().c_str ())));
+  if (done)
+  {
+    gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
+    gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), false);
   } // end IF
-  gtk_progress_bar_set_fraction (progressbar_p, fraction_d);
+  else
+    gtk_progress_bar_pulse (progress_bar_p);
 
   // --> reschedule
   return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
@@ -1709,7 +1743,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   result_2 =
     g_signal_connect (object_p,
                       ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                      G_CALLBACK (action_listen_activate_cb),
+                      G_CALLBACK (toggleaction_listen_activate_cb),
                       userData_in);
   ACE_ASSERT (result_2);
   object_p =
@@ -2074,21 +2108,21 @@ idle_update_info_display_cb (gpointer userData_in)
     {
       case STREAM_GTKEVENT_START:
       {
-        spin_button_p =
-            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
-        ACE_ASSERT (spin_button_p);
-        gtk_spin_button_set_value (spin_button_p, 0.0);
-        spin_button_p =
-            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
-        ACE_ASSERT (spin_button_p);
-        gtk_spin_button_set_value (spin_button_p, 0.0);
-        spin_button_p =
-            GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
-        ACE_ASSERT (spin_button_p);
-        gtk_spin_button_set_value (spin_button_p, 0.0);
+        //spin_button_p =
+        //    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+        //                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+        //ACE_ASSERT (spin_button_p);
+        //gtk_spin_button_set_value (spin_button_p, 0.0);
+        //spin_button_p =
+        //    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+        //                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
+        //ACE_ASSERT (spin_button_p);
+        //gtk_spin_button_set_value (spin_button_p, 0.0);
+        //spin_button_p =
+        //    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+        //                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
+        //ACE_ASSERT (spin_button_p);
+        //gtk_spin_button_set_value (spin_button_p, 0.0);
 
         spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2280,17 +2314,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 void
-toggleaction_stream_toggled_cb (GtkToggleAction* action_in,
+toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
                                 gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::toggleaction_stream_toggled_cb"));
-
-  // handle untoggle --> PLAY
-  if (un_toggling_stream_stop)
-  {
-    un_toggling_stream_stop = false;
-    return; // done
-  } // end IF
 
   Test_I_Source_GTK_CBData* data_p =
     static_cast<Test_I_Source_GTK_CBData*> (userData_in);
@@ -2341,7 +2368,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* action_in,
   if ((status == STREAM_STATE_RUNNING) ||
       (status == STREAM_STATE_PAUSED))
   {
-    stream_p->pause (); // pause/unpause
+    stream_p->stop (false, true);
     //if (!data_p->configuration->moduleHandlerConfiguration.active)
     //{
     //  ACE_ASSERT (!data_p->progressData.pendingActions.empty ());
@@ -2356,22 +2383,47 @@ toggleaction_stream_toggled_cb (GtkToggleAction* action_in,
     //                ACE_TEXT ("failed to ACE_Thread::suspend/resume(): \"%m\", continuing\n")));
     //} // end ELSE
 
-    if (status == STREAM_STATE_RUNNING) // <-- image is "pause"
-      gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PLAY);
+    // step0: modify widgets
+    if (status == STREAM_STATE_RUNNING) // <-- image is "stop"
+      gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_PLAY);
     else // <-- image is "play"
-      gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PAUSE);
+      gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
+
     return;
   } // end IF
-  un_toggling_stream_stop = true;
-  gtk_toggle_action_set_active (action_in, false); // untoggle
-  gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PAUSE);
+  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
 
   // step0: modify widgets
-  GtkTable* table_p =
-    GTK_TABLE (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TABLE_OPTIONS_NAME)));
-  ACE_ASSERT (table_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (table_p), false);
+  GtkSpinButton* spin_button_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p,
+                             0.0);
+  spin_button_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p,
+                             0.0);
+  spin_button_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p,
+                             0.0);
+
+  GtkFrame* frame_p =
+    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
+  ACE_ASSERT (frame_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
 
   GtkAction* action_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -2398,7 +2450,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* action_in,
 
   // step2: update configuration
   // retrieve port number
-  GtkSpinButton* spin_button_p =
+  spin_button_p =
     //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
     //                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TEXTVIEW_NAME)));
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2532,9 +2584,16 @@ toggleaction_stream_toggled_cb (GtkToggleAction* action_in,
   return;
 
 clean:
-  gtk_action_set_stock_id (GTK_ACTION (action_in), GTK_STOCK_MEDIA_PLAY);
-  gtk_widget_set_sensitive (GTK_WIDGET (table_p), TRUE);
-  gtk_action_set_sensitive (action_p, FALSE);
+  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_PLAY);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
+  gtk_action_set_sensitive (action_p, true);
+  action_p =
+    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, true);
 } // toggleaction_stream_toggled_cb
 
 void
@@ -2637,12 +2696,12 @@ action_close_all_activate_cb (GtkAction* action_in,
 } // action_close_all_activate_cb
 
 void
-action_listen_activate_cb (GtkAction* action_in,
-                           gpointer userData_in)
+toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
+                                 gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_listen_activate_cb"));
+  STREAM_TRACE (ACE_TEXT ("::toggleaction_listen_activate_cb"));
 
-  ACE_UNUSED_ARG (action_in);
+  ACE_UNUSED_ARG (toggleAction_in);
   Test_I_Target_GTK_CBData* data_p =
     static_cast<Test_I_Target_GTK_CBData*> (userData_in);
 
@@ -2870,6 +2929,12 @@ action_listen_activate_cb (GtkAction* action_in,
       } // end catch
     } // end SWITCH
 
+    GtkFrame* frame_p =
+      GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
+    ACE_ASSERT (frame_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
+
     // start progress reporting
     GtkProgressBar* progress_bar_p =
       GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -2926,6 +2991,12 @@ action_listen_activate_cb (GtkAction* action_in,
       data_p->configuration->handle = ACE_INVALID_HANDLE;
     } // end IF
 
+    GtkFrame* frame_p =
+      GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
+    ACE_ASSERT (frame_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
+
     // stop progress reporting
     ACE_ASSERT (data_p->progressEventSourceID);
     {
@@ -2938,13 +3009,13 @@ action_listen_activate_cb (GtkAction* action_in,
       data_p->eventSourceIds.erase (data_p->progressEventSourceID);
       data_p->progressEventSourceID = 0;
     } // end lock scope
-    GtkProgressBar* progressbar_p =
+    GtkProgressBar* progress_bar_p =
       GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-    ACE_ASSERT (progressbar_p);
+    ACE_ASSERT (progress_bar_p);
     // *NOTE*: this disables "activity mode" (in Gtk2)
-    gtk_progress_bar_set_fraction (progressbar_p, 0.0);
-    gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
+    gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
+    gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), false);
   } // end ELSE
 } // action_listen_activate_cb
 
@@ -3335,15 +3406,26 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   g_value_unset (&value);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!Stream_Module_Device_Tools::loadDeviceGraph (device_string,
-                                                    data_p->configuration->moduleHandlerConfiguration.builder,
-                                                    data_p->streamConfiguration))
+  if (data_p->streamConfiguration)
+  {
+    data_p->streamConfiguration->Release ();
+    data_p->streamConfiguration = NULL;
+  } // end IF
+  if (data_p->configuration->moduleHandlerConfiguration.builder)
+  {
+    data_p->configuration->moduleHandlerConfiguration.builder->Release ();
+    data_p->configuration->moduleHandlerConfiguration.builder = NULL;
+  } // end IF
+  if (!Stream_Module_Device_Tools::load (device_string,
+                                         data_p->configuration->moduleHandlerConfiguration.builder,
+                                         data_p->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), returning\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::load(\"%s\"), returning\n"),
                 ACE_TEXT (device_string.c_str ())));
     return;
   } // end IF
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
   ACE_ASSERT (data_p->streamConfiguration);
 
   list_store_p =

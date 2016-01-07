@@ -80,9 +80,11 @@ do_printUsage (const std::string& programName_in)
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("camstream");
 #endif // #ifdef DEBUG_DEBUGGER
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
@@ -198,9 +200,11 @@ do_processArguments (int argc_in,
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("camstream");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
@@ -450,6 +454,105 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 #endif
 }
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+bool
+do_initialize_directshow (const std::string& deviceName_in,
+                          ICaptureGraphBuilder2*& ICaptureGraphBuilder2_inout,
+                          IAMStreamConfig*& IAMStreamConfig_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
+
+  //HRESULT hresult = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  //if (FAILED (hresult))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
+  //  return false;
+  //} // end IF
+
+  Stream_Module_Device_Tools::initialize ();
+
+  if (!Stream_Module_Device_Tools::load (deviceName_in,
+                                         ICaptureGraphBuilder2_inout,
+                                         IAMStreamConfig_inout))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
+    return false;
+  } // end IF
+  ACE_ASSERT (ICaptureGraphBuilder2_inout);
+  ACE_ASSERT (IAMStreamConfig_inout);
+
+  IGraphBuilder* builder_p = NULL;
+  HRESULT result = ICaptureGraphBuilder2_inout->GetFiltergraph (&builder_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (builder_p);
+  IMediaFilter* media_filter_p = NULL;
+  result = builder_p->QueryInterface (IID_IMediaFilter,
+                                      (void**)&media_filter_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (media_filter_p);
+  builder_p->Release ();
+  builder_p = NULL;
+  result = media_filter_p->SetSyncSource (NULL);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  media_filter_p->Release ();
+
+  return true;
+
+error:
+  if (media_filter_p)
+    media_filter_p->Release ();
+  if (builder_p)
+    builder_p->Release ();
+  ICaptureGraphBuilder2_inout->Release ();
+  ICaptureGraphBuilder2_inout = NULL;
+  IAMStreamConfig_inout->Release ();
+  IAMStreamConfig_inout = NULL;
+
+  return false;
+}
+
+void
+do_finalize_directshow (Test_I_Source_GTK_CBData& CBData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
+
+  HRESULT result = E_FAIL;
+  if (CBData_in.streamConfiguration)
+  {
+    CBData_in.streamConfiguration->Release ();
+    CBData_in.streamConfiguration = NULL;
+  } // end IF
+  if (CBData_in.configuration->moduleHandlerConfiguration.builder)
+  {
+    CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
+    CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
+  } // end IF
+
+    //CoUninitialize ();
+}
+#endif
+
 void
 do_work (unsigned int bufferSize_in,
          unsigned int maximumNumberOfConnections_in,
@@ -485,6 +588,23 @@ do_work (unsigned int bufferSize_in,
                                       : NET_TRANSPORTLAYER_TCP);
   configuration.useReactor = useReactor_in;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
+                                 configuration.moduleHandlerConfiguration.builder,
+                                 CBData_in.streamConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
+
+    //// clean up
+    //CoUninitialize ();
+
+    return;
+  } // end IF
+  ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
+  ACE_ASSERT (CBData_in.streamConfiguration);
+#endif
+
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
   Test_I_Target_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                       &heap_allocator,     // heap allocator handle
@@ -503,7 +623,7 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_EventHandler> failed, returning\n")));
-    return;
+    goto clean;
   } // end IF
   event_handler_p->initialize (&CBData_in.subscribers,
                                &CBData_in.subscribersLock);
@@ -589,7 +709,7 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
-    return;
+    goto clean;
   } // end IF
 
   // step0c: initialize connection manager
@@ -626,7 +746,7 @@ do_work (unsigned int bufferSize_in,
       // clean up
       timer_manager_p->stop ();
 
-      return;
+      goto clean;
     } // end IF
   } // end IF
 
@@ -653,7 +773,7 @@ do_work (unsigned int bufferSize_in,
     // clean up
     timer_manager_p->stop ();
 
-    return;
+    goto clean;
   } // end IF
 
   // step1: handle events (signals, incoming connections/data, timers, ...)
@@ -690,7 +810,7 @@ do_work (unsigned int bufferSize_in,
       // clean up
       timer_manager_p->stop ();
 
-      return;
+      goto clean;
     } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -704,7 +824,7 @@ do_work (unsigned int bufferSize_in,
       timer_manager_p->stop ();
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (true);
 
-      return;
+      goto clean;
     } // end IF
     BOOL was_visible_b = ::ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
@@ -733,7 +853,7 @@ do_work (unsigned int bufferSize_in,
       COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
     timer_manager_p->stop ();
 
-    return;
+    goto clean;
   } // end IF
 
   // step1c: start listening ?
@@ -774,7 +894,7 @@ do_work (unsigned int bufferSize_in,
           COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
         timer_manager_p->stop ();
 
-        return;
+        goto clean;
       } // end IF
       //  Stream_IInetConnector_t* iconnector_p = &connector;
       if (!connector_p->initialize (configuration.socketHandlerConfiguration))
@@ -799,7 +919,7 @@ do_work (unsigned int bufferSize_in,
         timer_manager_p->stop ();
         delete connector_p;
 
-        return;
+        goto clean;
       } // end IF
 
       // connect
@@ -870,7 +990,7 @@ do_work (unsigned int bufferSize_in,
         timer_manager_p->stop ();
         delete connector_p;
 
-        return;
+        goto clean;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("listening to UDP \"%s\"...\n"),
@@ -902,7 +1022,7 @@ do_work (unsigned int bufferSize_in,
           COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
         timer_manager_p->stop ();
 
-        return;
+        goto clean;
       } // end IF
       CBData_in.configuration->signalHandlerConfiguration.listener->start ();
       if (!CBData_in.configuration->signalHandlerConfiguration.listener->isRunning ())
@@ -927,7 +1047,7 @@ do_work (unsigned int bufferSize_in,
           COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
         timer_manager_p->stop ();
 
-        return;
+        goto clean;
       } // end IF
     } // end ELSE
   } // end IF
@@ -938,6 +1058,7 @@ do_work (unsigned int bufferSize_in,
                                 group_id);
 
   // clean up
+clean:
   // *NOTE*: listener has stopped, interval timer has been cancelled,
   // and connections have been aborted...
   //		{ // synch access
@@ -967,6 +1088,10 @@ do_work (unsigned int bufferSize_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
                 event_handler.name ()));
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  do_finalize_directshow (CBData_in);
+#endif
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
@@ -1054,9 +1179,11 @@ ACE_TMAIN (int argc_in,
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("camstream");
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults

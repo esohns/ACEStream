@@ -42,12 +42,15 @@ class Stream_Dev_Export Stream_Module_Device_Tools
    static void initialize ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static bool clear (ICaptureGraphBuilder2*); // graph handle
+  // *NOTE*: see stream_dev_defines.h for supported filter names
+  static bool connect (ICaptureGraphBuilder2*,          // graph handle
+                       const std::list<std::wstring>&); // graph
   static bool disconnect (ICaptureGraphBuilder2*); // graph handle
-  static bool loadDeviceGraph (const std::string&,      // device ("FriendlyName")
-                               ICaptureGraphBuilder2*&, // graph handle (in/out)
-                               IAMStreamConfig*&);      // stream config handle (out)
-  static bool assembleGraph (ICaptureGraphBuilder2*,          // graph handle
-                             const std::list<std::wstring>&); // graph ("FriendlyName")
+  static bool load (const std::string&,      // device ("FriendlyName")
+                    ICaptureGraphBuilder2*&, // graph handle (in/out)
+                    IAMStreamConfig*&);      // stream config handle (out)
+  static bool reset (ICaptureGraphBuilder2*); // graph handle
 
   static bool getFormat (ICaptureGraphBuilder2*, // graph handle
                          struct _AMMediaType*&);       // return value: media type

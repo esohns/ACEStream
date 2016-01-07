@@ -31,7 +31,7 @@
 
 #include "stream_file_sink.h"
 #include "stream_file_source.h"
-#include "stream_module_runtimestatistic.h"
+#include "stream_misc_runtimestatistic.h"
 #include "stream_module_io.h"
 //#include "stream_module_tcpsource.h"
 //#include "stream_module_tcptarget.h"

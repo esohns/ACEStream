@@ -104,6 +104,7 @@ class Test_I_Target_Stream
 
   // modules
   Test_I_Target_Stream_Module_Net_IO_Module           source_;
+  Test_I_Stream_Module_DirectShowSource_Module        directShowSource_;
   Test_I_Target_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
   Test_I_Stream_Module_Display_Module                 display_;
 };

@@ -31,12 +31,13 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_cam_source_directshow.h"
+#include "stream_misc_directshow_source.h"
 #include "stream_vis_target_directshow.h"
 #else
 #include "stream_dev_cam_source.h"
 #include "stream_vis_gtk_drawingarea.h"
 #endif
-#include "stream_module_runtimestatistic.h"
+#include "stream_misc_runtimestatistic.h"
 #include "stream_module_io.h"
 
 #include "test_i_common.h"
@@ -61,6 +62,12 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_MUTEX,
                                            Test_I_Source_Stream_SessionData_t,
 
                                            Stream_Statistic> Test_I_Stream_Module_CamSource;
+typedef Stream_Misc_DirectShow_Source_T<Test_I_Target_Stream_SessionMessage,
+                                        Test_I_Stream_Message,
+
+                                        Test_I_Target_Stream_ModuleHandlerConfiguration,
+
+                                        Test_I_Target_Stream_SessionData> Test_I_Stream_Module_DirectShowSource;
 #else
 typedef Stream_Dev_Cam_Source_T<ACE_SYNCH_MUTEX,
 
@@ -81,6 +88,11 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    /
                               Stream_ModuleConfiguration,                      // module configuration type
                               Test_I_Source_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Stream_Module_CamSource);                 // writer type
+DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
+                              Common_TimePolicy_t,                             // time policy
+                              Stream_ModuleConfiguration,                      // module configuration type
+                              Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Stream_Module_DirectShowSource);          // writer type
 
 typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_MUTEX,
                                      ////

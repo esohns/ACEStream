@@ -32,6 +32,9 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
  , source_ (ACE_TEXT_ALWAYS_CHAR ("NetSource"),
             NULL,
             false)
+ , directShowSource_ (ACE_TEXT_ALWAYS_CHAR ("DirectShowSource"),
+                      NULL,
+                      false)
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
@@ -47,6 +50,7 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
   inherited::availableModules_.push_front (&source_);
+  inherited::availableModules_.push_front (&directShowSource_);
   inherited::availableModules_.push_front (&runtimeStatistic_);
   inherited::availableModules_.push_front (&display_);
 
@@ -275,7 +279,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     return false;
   } // end IF
 
-  // ******************* Runtime Statistics ************************
+  // ******************* Runtime Statistic *************************
   runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
   Test_I_Target_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
       dynamic_cast<Test_I_Target_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
@@ -301,6 +305,32 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
                 runtimeStatistic_.name ()));
+    return false;
+  } // end IF
+
+  // ******************* DirectShow Source ************************
+  directShowSource_.initialize (*configuration_in.moduleConfiguration);
+  Test_I_Stream_Module_DirectShowSource* directShowSource_impl_p =
+    dynamic_cast<Test_I_Stream_Module_DirectShowSource*> (directShowSource_.writer ());
+  if (!directShowSource_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_DirectShowSource> failed, aborting\n")));
+    return false;
+  } // end IF
+  if (!directShowSource_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+                directShowSource_.name ()));
+    return false;
+  } // end IF
+  result = inherited::push (&directShowSource_);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
+                directShowSource_.name ()));
     return false;
   } // end IF
 

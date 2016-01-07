@@ -252,11 +252,11 @@ Stream_Module_Device_Tools::initialize ()
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
-                                             ICaptureGraphBuilder2*& ICaptureGraphBuilder2_inout,
-                                             IAMStreamConfig*& IAMStreamConfig_out)
+Stream_Module_Device_Tools::load (const std::string& deviceName_in,
+                                  ICaptureGraphBuilder2*& ICaptureGraphBuilder2_inout,
+                                  IAMStreamConfig*& IAMStreamConfig_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadDeviceGraph"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::load"));
 
   // sanity check(s)
   if (IAMStreamConfig_out)
@@ -325,44 +325,16 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
       return false;
     } // end IF
 
-    IEnumFilters* enumerator_p = NULL;
-    result = builder_p->EnumFilters (&enumerator_p);
-    if (FAILED (result))
+    if (!Stream_Module_Device_Tools::clear (ICaptureGraphBuilder2_inout))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
 
       // clean up
       builder_p->Release ();
 
       return false;
     } // end IF
-    ACE_ASSERT (enumerator_p);
-
-    while (S_OK == enumerator_p->Next (1, &filter_p, NULL))
-    {
-      ACE_ASSERT (filter_p);
-      result = builder_p->RemoveFilter (filter_p);
-      if (FAILED (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IGrapBuilder::RemoveFilter(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-        // clean up
-        filter_p->Release ();
-        enumerator_p->Release ();
-        builder_p->Release ();
-
-        return false;
-      } // end IF
-      enumerator_p->Reset ();
-
-      filter_p->Release ();
-      filter_p = NULL;
-    } // end WHILE
-    enumerator_p->Release ();
   } // end ELSE
   ACE_ASSERT (builder_p);
 
@@ -649,10 +621,10 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
   return true;
 }
 bool
-Stream_Module_Device_Tools::assembleGraph (ICaptureGraphBuilder2* builder_in,
-                                           const std::list<std::wstring>& graph_in)
+Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
+                                     const std::list<std::wstring>& graph_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::assembleGraph"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::connect"));
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
@@ -706,6 +678,7 @@ Stream_Module_Device_Tools::assembleGraph (ICaptureGraphBuilder2* builder_in,
   filter_p->Release ();
   IPin* pin_p = NULL;
   PIN_DIRECTION pin_direction;
+  IAMStreamConfig* stream_config_p = NULL;
   while (enumerator_p->Next (1, &pin_p, NULL) == S_OK)
   {
     ACE_ASSERT (pin_p);
@@ -732,6 +705,38 @@ Stream_Module_Device_Tools::assembleGraph (ICaptureGraphBuilder2* builder_in,
 
       continue;
     } // end IF
+    //stream_config_p = NULL;
+    //result = pin_p->QueryInterface (IID_PPV_ARGS (&stream_config_p));
+    //if (FAILED (result))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IPin::QueryInterface(IAMStreamConfig): \"%s\", aborting\n"),
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    //  // clean up
+    //  pin_p->Release ();
+    //  enumerator_p->Release ();
+    //  builder_p->Release ();
+
+    //  return false;
+    //} // end IF
+    //ACE_ASSERT (stream_config_p);
+    //result = stream_config_p->SetFormat (NULL);
+    //if (FAILED (result))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", aborting\n"),
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    //  // clean up
+    //  stream_config_p->Release ();
+    //  pin_p->Release ();
+    //  enumerator_p->Release ();
+    //  builder_p->Release ();
+
+    //  return false;
+    //} // end IF
+    //stream_config_p->Release ();
 
     break;
   } // end WHILE
@@ -750,7 +755,7 @@ Stream_Module_Device_Tools::assembleGraph (ICaptureGraphBuilder2* builder_in,
   IPin* pin_2 = NULL;
   //struct _PinInfo pin_info;
   //ACE_OS::memset (&pin_info, 0, sizeof (struct _PinInfo));
-
+  std::list<std::wstring>::const_iterator iterator_2;
   for (++iterator;
        iterator != graph_in.end ();
        ++iterator)
@@ -849,12 +854,14 @@ Stream_Module_Device_Tools::assembleGraph (ICaptureGraphBuilder2* builder_in,
       return false;
     } // end IF
 
-    result = builder_p->ConnectDirect (pin_p, pin_2, NULL);
+    iterator_2 = iterator;
+    //result = builder_p->ConnectDirect (pin_p, pin_2, NULL);
+    result = pin_p->Connect (pin_2, NULL);
     if (FAILED (result)) // 0x80040217: VFW_E_CANNOT_CONNECT, 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
     {
-      std::list<std::wstring>::const_iterator iterator_2 = iterator;
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::ConnectDirect() \"%s\" to \"%s\": \"%s\", aborting\n"),
+                  //ACE_TEXT ("failed to IGraphBuilder::ConnectDirect() \"%s\" to \"%s\": \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to IPin::Connect() \"%s\" to \"%s\": \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR ((*--iterator_2).c_str ()),
                   ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
@@ -867,6 +874,10 @@ Stream_Module_Device_Tools::assembleGraph (ICaptureGraphBuilder2* builder_in,
 
       return false;
     } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("connected \"%s\" to \"%s\"...\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR ((*--iterator_2).c_str ()),
+                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ())));
     pin_p->Release ();
     pin_2->Release ();
     pin_2 = NULL;
@@ -915,6 +926,101 @@ Stream_Module_Device_Tools::assembleGraph (ICaptureGraphBuilder2* builder_in,
     } // end WHILE
     enumerator_p->Release ();
   } // end FOR
+
+  builder_p->Release ();
+
+  return true;
+}
+bool
+Stream_Module_Device_Tools::clear (ICaptureGraphBuilder2* builder_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::clear"));
+
+  // sanity check(s)
+  ACE_ASSERT (builder_in);
+
+  IGraphBuilder* builder_p = NULL;
+  HRESULT result = builder_in->GetFiltergraph (&builder_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (builder_p);
+
+  IEnumFilters* enumerator_p = NULL;
+  result = builder_p->EnumFilters (&enumerator_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n")));
+
+    // clean up
+    builder_p->Release ();
+
+    return false;
+  } // end IF
+  IBaseFilter* filter_p = NULL;
+  struct _FilterInfo filter_info;
+  while (enumerator_p->Next (1, &filter_p, NULL) == S_OK)
+  {
+    ACE_ASSERT (filter_p);
+
+    ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
+    result = filter_p->QueryFilterInfo (&filter_info);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+      enumerator_p->Release ();
+      builder_p->Release ();
+
+      return false;
+    } // end IF
+
+    result = builder_p->RemoveFilter (filter_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGrapBuilder::RemoveFilter(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+      enumerator_p->Release ();
+      builder_p->Release ();
+
+      return false;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("removed \"%s\"...\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName)));
+
+    result = enumerator_p->Reset ();
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IEnumFilters::Reset(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+      enumerator_p->Release ();
+      builder_p->Release ();
+
+      return false;
+    } // end IF
+
+    filter_p->Release ();
+    filter_p = NULL;
+  } // end WHILE
+  enumerator_p->Release ();
 
   builder_p->Release ();
 
@@ -1052,6 +1158,82 @@ Stream_Module_Device_Tools::disconnect (ICaptureGraphBuilder2* builder_in)
   } // end WHILE
   enumerator_p->Release ();
 
+  builder_p->Release ();
+
+  return true;
+}
+bool
+Stream_Module_Device_Tools::reset (ICaptureGraphBuilder2* builder_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::reset"));
+
+  // sanity check(s)
+  ACE_ASSERT (builder_in);
+
+  if (!Stream_Module_Device_Tools::disconnect (builder_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), aborting\n")));
+    return false;
+  } // end IF
+
+  IGraphBuilder* builder_p = NULL;
+  HRESULT result = builder_in->GetFiltergraph (&builder_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (builder_p);
+
+  IBaseFilter* filter_p = NULL;
+  result =
+    builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
+                                 &filter_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    builder_p->Release ();
+
+    return false;
+  } // end IF
+  ACE_ASSERT (filter_p);
+
+  if (!Stream_Module_Device_Tools::clear (builder_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
+
+    // clean up
+    filter_p->Release ();
+    builder_p->Release ();
+
+    return false;
+  } // end IF
+
+  result = builder_p->AddFilter (filter_p,
+                                 MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    filter_p->Release ();
+    builder_p->Release ();
+
+    return false;
+  } // end IF
+  filter_p->Release ();
   builder_p->Release ();
 
   return true;

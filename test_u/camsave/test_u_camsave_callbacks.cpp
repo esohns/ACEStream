@@ -1998,15 +1998,27 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   g_value_unset (&value);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!Stream_Module_Device_Tools::loadDeviceGraph (device_string,
-                                                    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
-                                                    data_p->streamConfiguration))
+  if (data_p->streamConfiguration)
+  {
+    data_p->streamConfiguration->Release ();
+    data_p->streamConfiguration = NULL;
+  } // end IF
+  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder)
+  {
+    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder->Release ();
+    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder =
+      NULL;
+  } // end IF
+  if (!Stream_Module_Device_Tools::load (device_string,
+                                         data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+                                         data_p->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), returning\n"),
                 ACE_TEXT (device_string.c_str ())));
     return;
   } // end IF
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
   ACE_ASSERT (data_p->streamConfiguration);
 
   list_store_p =

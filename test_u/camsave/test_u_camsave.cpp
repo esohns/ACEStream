@@ -386,12 +386,12 @@ do_initialize_directshow (const std::string& deviceName_in,
 
   Stream_Module_Device_Tools::initialize ();
 
-  if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
-                                                    ICaptureGraphBuilder2_inout,
-                                                    IAMStreamConfig_inout))
+  if (!Stream_Module_Device_Tools::load (deviceName_in,
+                                         ICaptureGraphBuilder2_inout,
+                                         IAMStreamConfig_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
     return false;
   } // end IF
 

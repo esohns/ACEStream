@@ -29,7 +29,7 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
-#include "stream_module_messagehandler.h"
+#include "stream_misc_messagehandler.h"
 
 #include "test_u_filecopy_message.h"
 #include "test_u_filecopy_session_message.h"

@@ -23,6 +23,10 @@
 
 #include "ace/Malloc_Base.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "dshow.h"
+#endif
+
 #include "stream_macros.h"
 
 Test_I_Stream_Message::Test_I_Stream_Message (unsigned int size_in)
@@ -61,6 +65,14 @@ Test_I_Stream_Message::~Test_I_Stream_Message ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Message::~Test_I_Stream_Message"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // release media sample ?
+  if (inherited::data_.sample)
+  {
+    inherited::data_.sample->Release ();
+    inherited::data_.sample = NULL;
+  } // end IF
+#endif
 }
 
 ACE_Message_Block*

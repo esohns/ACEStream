@@ -30,9 +30,9 @@
 #include "stream_streammodule_base.h"
 
 #include "stream_file_sink.h"
+#include "stream_misc_runtimestatistic.h"
 #include "stream_module_htmlparser.h"
 #include "stream_module_io.h"
-#include "stream_module_runtimestatistic.h"
 #include "stream_module_source_http_get.h"
 
 #include "http_module_parser.h"

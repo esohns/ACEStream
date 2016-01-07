@@ -31,7 +31,7 @@
 #define TEST_I_DEFAULT_OUTPUT_FILE                           "output.tmp"
 #define TEST_I_THREAD_NAME                                   "stream processor"
 
-#define TEST_I_DEFAULT_BUFFER_SIZE                           4096 // bytes
+#define TEST_I_DEFAULT_BUFFER_SIZE                           524288 // bytes
 #define TEST_I_MAX_MESSAGES                                  0 // 0 --> no limits
 
 #define TEST_I_DEFAULT_TARGET_HOSTNAME                       ACE_LOCALHOST
@@ -66,6 +66,7 @@
 #define TEST_I_STREAM_UI_GTK_ENTRY_DESTINATION_NAME          "entry_destination"
 #define TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
 #define TEST_I_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "dialog_filechooser"
+#define TEST_I_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME        "frame_configuration"
 #define TEST_I_STREAM_UI_GTK_HBOX_OPTIONS_NAME               "hbox_options"
 #define TEST_I_STREAM_UI_GTK_IMAGE_CONNECT_NAME              "image_connect"
 #define TEST_I_STREAM_UI_GTK_IMAGE_DISCONNECT_NAME           "image_disconnect"
@@ -89,7 +90,6 @@
 #define TEST_I_STREAM_UI_GTK_SPINBUTTON_LOOP_NAME            "spinbutton_loop"
 #define TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME            "spinbutton_port"
 #define TEST_I_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
-#define TEST_I_STREAM_UI_GTK_TABLE_OPTIONS_NAME              "table_options"
 #define TEST_I_STREAM_UI_GTK_TOGGLEACTION_LISTEN_NAME        "toggleaction_listen"
 #define TEST_I_STREAM_UI_GTK_TOGGLEACTION_STREAM_NAME        "toggleaction_stream"
 #define TEST_I_STREAM_UI_GTK_TOGGLEBUTTON_LISTEN_NAME        "listen"
@@ -102,5 +102,9 @@
 #define TEST_I_STREAM_UI_GTK_STATUSBAR_CONTEXT_DESCRIPTION   "Stream::main"
 
 //---------------------------------------
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME   MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS
+#endif
 
 #endif

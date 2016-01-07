@@ -87,14 +87,50 @@ Test_I_Stream_Source_EventHandler::notify (const Test_I_Source_Stream_SessionMes
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  Stream_GTK_Event event =
-    ((sessionMessage_in.type () == STREAM_SESSION_STATISTIC) ? STREAM_GTKEVENT_STATISTIC
-                                                             : STREAM_GKTEVENT_INVALID);
-  {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
-    CBData_->eventStack.push_back (event);
-  } // end lock scope
+  Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
+  switch (sessionMessage_in.type ())
+  {
+    case STREAM_SESSION_STATISTIC:
+    {
+      int result = -1;
+
+      // sanity check(s)
+      if (!sessionData_)
+        goto continue_;
+
+      if (sessionData_->lock)
+      {
+        result = sessionData_->lock->acquire ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
+      } // end IF
+
+        // *NOTE*: the byte counter is more current than what is received here
+        //         (see above) --> do not update
+      float current_bytes = CBData_->progressData.statistic.bytes;
+      CBData_->progressData.statistic = sessionData_->currentStatistic;
+      CBData_->progressData.statistic.bytes = current_bytes;
+
+      if (sessionData_->lock)
+      {
+        result = sessionData_->lock->release ();
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+      } // end IF
+
+continue_:
+      event = STREAM_GTKEVENT_STATISTIC;
+      break;
+    }
+    default:
+      return;
+  } // end SWITCH
+
+  CBData_->eventStack.push_back (event);
 }
 
 void

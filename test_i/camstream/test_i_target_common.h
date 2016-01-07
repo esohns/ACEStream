@@ -25,6 +25,8 @@
 #include "ace/os_include/sys/os_socket.h"
 #include "ace/Time_Value.h"
 
+#include "stream_dev_defines.h"
+
 #include "net_defines.h"
 #include "net_ilistener.h"
 
@@ -68,6 +70,7 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionManager (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , sourceFilter (TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME)
    , windowController (NULL)
 #endif
    , printProgressDot (false)
@@ -77,6 +80,7 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct tagRECT                         area;
+  LPCWSTR                                sourceFilter;
   IVideoWindow*                          windowController;
 #else
   GdkRectangle                           area;
