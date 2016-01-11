@@ -370,8 +370,8 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
 do_initialize_directshow (const std::string& deviceName_in,
-                          ICaptureGraphBuilder2*& ICaptureGraphBuilder2_inout,
-                          IAMStreamConfig*& IAMStreamConfig_inout)
+                          IGraphBuilder*& IGraphBuilder_out,
+                          IAMStreamConfig*& IAMStreamConfig_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
@@ -387,8 +387,8 @@ do_initialize_directshow (const std::string& deviceName_in,
   Stream_Module_Device_Tools::initialize ();
 
   if (!Stream_Module_Device_Tools::load (deviceName_in,
-                                         ICaptureGraphBuilder2_inout,
-                                         IAMStreamConfig_inout))
+                                         IGraphBuilder_out,
+                                         IAMStreamConfig_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));

@@ -33,7 +33,7 @@
 
 class Test_I_Stream_Target_EventHandler
  : public Common_INotify_T<Test_I_Target_Stream_SessionData,
-                           Test_I_Stream_Message,
+                           Test_I_Target_Stream_Message,
                            Test_I_Target_Stream_SessionMessage>
 {
  public:
@@ -42,7 +42,7 @@ class Test_I_Stream_Target_EventHandler
 
   // implement Common_INotify_T
   virtual void start (const Test_I_Target_Stream_SessionData&);
-  virtual void notify (const Test_I_Stream_Message&);
+  virtual void notify (const Test_I_Target_Stream_Message&);
   virtual void notify (const Test_I_Target_Stream_SessionMessage&);
   virtual void end ();
 

@@ -74,7 +74,7 @@ Test_I_Stream_Target_EventHandler::start (const Test_I_Target_Stream_SessionData
 }
 
 void
-Test_I_Stream_Target_EventHandler::notify (const Test_I_Stream_Message& message_in)
+Test_I_Stream_Target_EventHandler::notify (const Test_I_Target_Stream_Message& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::notify"));
 

@@ -48,6 +48,7 @@
 #define TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME                "drawingarea"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_destination"
+#define TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME        "frame_configuration"
 #define TEST_U_STREAM_UI_GTK_HBOX_OPTIONS_NAME               "hbox_options"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME           "liststore_format"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_RATE_NAME             "liststore_rate"
@@ -65,7 +66,6 @@
 #define TEST_U_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME        "toggleaction_record"
 #define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
-#define TEST_U_STREAM_UI_GTK_VBOX_OPTIONS_NAME               "vbox_options"
 
 // GTK progress/status-bar
 #define TEST_U_STREAM_UI_GTK_PROGRESSBAR_UPDATE_INTERVAL     27 // ms (?)

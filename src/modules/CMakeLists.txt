@@ -1,4 +1,5 @@
 add_subdirectory (db)
+add_subdirectory (dec)
 add_subdirectory (dev)
 add_subdirectory (file)
 add_subdirectory (html)

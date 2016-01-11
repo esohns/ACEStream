@@ -8,6 +8,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
 
 ############## next target ################
 set (${PROJECT_NAME}_Device_LIB_SRCS

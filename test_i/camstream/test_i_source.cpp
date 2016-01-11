@@ -427,8 +427,8 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
 do_initialize_directshow (const std::string& deviceName_in,
-                          ICaptureGraphBuilder2*& ICaptureGraphBuilder2_inout,
-                          IAMStreamConfig*& IAMStreamConfig_inout)
+                          IGraphBuilder*& IGraphBuilder_inout,
+                          IAMStreamConfig*& IAMStreamConfig_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
@@ -444,29 +444,19 @@ do_initialize_directshow (const std::string& deviceName_in,
   Stream_Module_Device_Tools::initialize ();
 
   if (!Stream_Module_Device_Tools::load (deviceName_in,
-                                         ICaptureGraphBuilder2_inout,
-                                         IAMStreamConfig_inout))
+                                         IGraphBuilder_inout,
+                                         IAMStreamConfig_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
     return false;
   } // end IF
-  ACE_ASSERT (ICaptureGraphBuilder2_inout);
-  ACE_ASSERT (IAMStreamConfig_inout);
+  ACE_ASSERT (IGraphBuilder_inout);
+  ACE_ASSERT (IAMStreamConfig_out);
 
-  IGraphBuilder* builder_p = NULL;
-  HRESULT result = ICaptureGraphBuilder2_inout->GetFiltergraph (&builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (builder_p);
   IMediaFilter* media_filter_p = NULL;
-  result = builder_p->QueryInterface (IID_IMediaFilter,
-                                      (void**)&media_filter_p);
+  HRESULT result = IGraphBuilder_inout->QueryInterface (IID_IMediaFilter,
+                                                (void**)&media_filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -475,8 +465,6 @@ do_initialize_directshow (const std::string& deviceName_in,
     goto error;
   } // end IF
   ACE_ASSERT (media_filter_p);
-  builder_p->Release ();
-  builder_p = NULL;
   result = media_filter_p->SetSyncSource (NULL);
   if (FAILED (result))
   {
@@ -492,12 +480,10 @@ do_initialize_directshow (const std::string& deviceName_in,
 error:
   if (media_filter_p)
     media_filter_p->Release ();
-  if (builder_p)
-    builder_p->Release ();
-  ICaptureGraphBuilder2_inout->Release ();
-  ICaptureGraphBuilder2_inout = NULL;
-  IAMStreamConfig_inout->Release ();
-  IAMStreamConfig_inout = NULL;
+  IGraphBuilder_inout->Release ();
+  IGraphBuilder_inout = NULL;
+  IAMStreamConfig_out->Release ();
+  IAMStreamConfig_out = NULL;
 
   return false;
 }

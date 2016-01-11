@@ -554,7 +554,7 @@ Stream_Module_FileReader_T<LockType,
     } // end IF
 
     bytes_read = stream_.recv (message_p->wr_ptr (),
-                               message_p->capacity ());
+                               message_p->size ());
     switch (bytes_read)
     {
       case 0:
@@ -577,7 +577,7 @@ Stream_Module_FileReader_T<LockType,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_FILE_IO::recv(%d): \"%m\", aborting\n"),
-                    message_p->capacity ()));
+                    message_p->size ()));
 
         // signal the controller
         finished = true;

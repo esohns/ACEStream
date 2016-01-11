@@ -64,9 +64,8 @@
 //#include "test_i_session_message.h"
 
 // forward declarations
-// forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct ICaptureGraphBuilder2;
+struct IGraphBuilder;
 struct IVideoWindow;
 #endif
 class Stream_IAllocator;
@@ -182,7 +181,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ICaptureGraphBuilder2*                    builder;
+  IGraphBuilder*                            builder;
 #else
 #endif
   Test_I_Configuration*                     configuration;

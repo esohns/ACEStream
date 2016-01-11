@@ -37,16 +37,21 @@
 
 #include "stream_common.h"
 #include "stream_data_base.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#include "stream_directshow_allocator_base.h"
 #include "stream_messageallocatorheap_base.h"
+#else
+#include "stream_messageallocatorheap_base.h"
+#endif
 #include "stream_session_data.h"
 
 #include "test_u_common.h"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct ICaptureGraphBuilder2;
-struct IMediaSample;
 struct IAMStreamConfig;
+struct IGraphBuilder;
+struct IMediaSample;
 struct IVideoWindow;
 #endif
 class Stream_IAllocator;
@@ -116,19 +121,19 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , window (NULL)
   {};
 
-  bool                   active;
+  bool           active;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct tagRECT         area;
-  ICaptureGraphBuilder2* builder;
-  IVideoWindow*          windowController;
+  struct tagRECT area;
+  IGraphBuilder* builder;
+  IVideoWindow*  windowController;
 #else
-  GdkRectangle           area;
+  GdkRectangle   area;
 #endif
-  guint                  contextID;
-  std::string            device; // "FriendlyName" property (Win32)
-  bool                   printProgressDot;
-  std::string            targetFileName;
-  HWND                   window; // *TODO*
+  guint          contextID;
+  std::string    device; // "FriendlyName" property (Win32)
+  bool           printProgressDot;
+  std::string    targetFileName;
+  HWND           window; // *TODO*
 };
 
 struct Stream_CamSave_StreamConfiguration
@@ -157,10 +162,21 @@ struct Stream_CamSave_Configuration
   Stream_UserData                           streamUserData;
 };
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//typedef Stream_DirectShowAllocatorBase_T<Stream_AllocatorConfiguration,
+//
+//                                         Stream_CamSave_Message,
+//                                         Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
 typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
 
                                           Stream_CamSave_Message,
                                           Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
+#else
+typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+
+                                          Stream_CamSave_Message,
+                                          Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
+#endif
 
 typedef Common_INotify_T<Stream_CamSave_SessionData,
                          Stream_CamSave_Message,

@@ -69,10 +69,10 @@ class Stream_Vis_Target_DirectShow_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T& operator= (const Stream_Vis_Target_DirectShow_T&))
 
   // helper methods
-  bool initialize_DirectShow (const HWND,             // (target) window handle
-                              const struct tagRECT&,  // (target) window area
-                              ICaptureGraphBuilder2*, // capture graph handle
-                              IVideoWindow*&);        // return value: window control handle
+  bool initialize_DirectShow (const HWND,            // (target) window handle
+                              const struct tagRECT&, // (target) window area
+                              IGraphBuilder*,        // graph handle
+                              IVideoWindow*&);       // return value: window control handle
 
   bool               isInitialized_;
 

@@ -61,7 +61,7 @@ class Test_I_Source_Stream_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration, 
+  typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
                                       ///
                                       Test_I_Source_Stream_SessionData_t,
                                       Test_I_Source_UserData> inherited;
@@ -82,15 +82,15 @@ class Test_I_Source_Stream_SessionMessage
 ////////////////////////////////////////////////////////////////////////////////
 
 class Test_I_Target_Stream_SessionMessage
-  : public Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+  : public Stream_SessionMessageBase_T<Test_I_Target_AllocatorConfiguration,
                                        ///
                                        Test_I_Target_Stream_SessionData_t,
                                        Test_I_Target_UserData>
 {
   // grant access to specific private ctors...
-  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<Test_I_Target_AllocatorConfiguration,
 
-                                                 Test_I_Stream_Message,
+                                                 Test_I_Target_Stream_Message,
                                                  Test_I_Target_Stream_SessionMessage>;
 
   public:
@@ -105,7 +105,7 @@ class Test_I_Target_Stream_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
   private:
-  typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<Test_I_Target_AllocatorConfiguration,
                                       ///
                                       Test_I_Target_Stream_SessionData_t,
                                       Test_I_Target_UserData> inherited;

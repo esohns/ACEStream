@@ -55,7 +55,9 @@ class Stream_DataMessageBase_T
   // implement Common_IGet_T
   virtual const DataType& get () const;
 
-  virtual CommandType command () const = 0; // return value: message type
+  // *NOTE*: derived classes need to override these
+  //virtual CommandType command () const = 0; // return value: message type
+  //static std::string CommandType2String (CommandType);
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -96,7 +98,8 @@ class Stream_DataMessageBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T& operator= (const Stream_DataMessageBase_T&))
 
   // overriden from ACE_Message_Block
-  virtual ACE_Message_Block* duplicate (void) const = 0;
+  // *NOTE*: derived classes need to override this
+  virtual ACE_Message_Block* duplicate (void) const;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +109,8 @@ template <typename AllocatorConfigurationType,
           typename DataType, // *NOTE*: inherits Common_IReferenceCount !
           typename CommandType>
 class Stream_DataMessageBase_2
-  : public Stream_MessageBase_T<AllocatorConfigurationType>
+  : public Stream_MessageBase_T<AllocatorConfigurationType,
+                                CommandType>
   , public Common_IGet_T<DataType>
 {
  public:
@@ -124,20 +128,22 @@ class Stream_DataMessageBase_2
   // implement Common_IGet_T
   virtual const DataType& get () const;
 
-  virtual CommandType command () const = 0; // return value: message type
+  // *NOTE*: derived classes need to override these
+  //virtual CommandType command () const = 0; // return value: message type
+  //static std::string CommandType2String (CommandType);
 
   // implement Common_IDumpState
   virtual void dump_state () const;
 
  protected:
   Stream_DataMessageBase_2 (unsigned int); // size
-                                           // *IMPORTANT NOTE*: fire-and-forget API
-                                           // *WARNING*: this ctor doesn't allocate a buffer off the heap
+  // *IMPORTANT NOTE*: fire-and-forget API
+  // *WARNING*: this ctor doesn't allocate a buffer off the heap
   Stream_DataMessageBase_2 (DataType*&); // data handle
-                                         // copy ctor, to be used by derived::duplicate()
-                                         // *WARNING*: while the clone inherits a "shallow copy" of the referenced
-                                         //            data block, it will NOT inherit the attached data
-                                         //            --> use initialize()
+  // copy ctor, to be used by derived::duplicate()
+  // *WARNING*: while the clone inherits a "shallow copy" of the referenced
+  //            data block, it will NOT inherit the attached data
+  //            --> use initialize()
   Stream_DataMessageBase_2 (const Stream_DataMessageBase_2<AllocatorConfigurationType,
 
                                                            DataType,
@@ -154,9 +160,10 @@ class Stream_DataMessageBase_2
   bool      initialized_;
 
  private:
-  typedef Stream_MessageBase_T<AllocatorConfigurationType> inherited;
+  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               CommandType> inherited;
 
-  // convenient typedefs
+  // convenient types
   typedef Stream_DataMessageBase_2<AllocatorConfigurationType,
                                    DataType,
                                    CommandType> OWN_TYPE_T;
@@ -165,7 +172,8 @@ class Stream_DataMessageBase_2
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_2& operator= (const Stream_DataMessageBase_2&))
 
   // overriden from ACE_Message_Block
-  virtual ACE_Message_Block* duplicate (void) const = 0;
+  // *NOTE*: derived classes need to override this
+  virtual ACE_Message_Block* duplicate (void) const;
 };
 
 // include template implementation

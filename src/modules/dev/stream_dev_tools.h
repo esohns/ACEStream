@@ -42,22 +42,25 @@ class Stream_Dev_Export Stream_Module_Device_Tools
    static void initialize ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  static bool clear (ICaptureGraphBuilder2*); // graph handle
+  static bool clear (IGraphBuilder*); // graph handle
   // *NOTE*: see stream_dev_defines.h for supported filter names
-  static bool connect (ICaptureGraphBuilder2*,          // graph handle
+  static bool connect (IGraphBuilder*,                  // graph handle
                        const std::list<std::wstring>&); // graph
-  static bool disconnect (ICaptureGraphBuilder2*); // graph handle
-  static bool load (const std::string&,      // device ("FriendlyName")
-                    ICaptureGraphBuilder2*&, // graph handle (in/out)
-                    IAMStreamConfig*&);      // stream config handle (out)
-  static bool reset (ICaptureGraphBuilder2*); // graph handle
+  static bool disconnect (IGraphBuilder*); // graph handle
+  static bool load (const std::string&,  // device ("FriendlyName")
+                    IGraphBuilder*&,     // (capture) graph handle (in/out)
+                    IAMStreamConfig*&);  // stream config handle (out)
+  static bool load (IGraphBuilder*&, // graph handle (in/out)
+                    const HWND);     // window handle [NULL: NullRenderer]
+  static bool reset (IGraphBuilder*); // graph handle
 
-  static bool getFormat (ICaptureGraphBuilder2*, // graph handle
-                         struct _AMMediaType*&);       // return value: media type
-  static bool setFormat (ICaptureGraphBuilder2*,      // graph handle
+  static bool getFormat (IGraphBuilder*,         // graph handle
+                         struct _AMMediaType*&); // return value: media type
+  static bool setFormat (IGraphBuilder*,              // graph handle
                          const struct _AMMediaType&); // media type
   static void deleteMediaType (struct _AMMediaType*&); // handle
   static std::string mediaSubTypeToString (const GUID&); // GUID
+  static std::string mediaTypeToString (const struct _AMMediaType&); // media type
 #endif
 
  private:
@@ -79,7 +82,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   };
   typedef std::map<GUID, std::string, less_guid> GUID2STRING_MAP_T;
   typedef GUID2STRING_MAP_T::const_iterator GUID2STRING_MAP_ITERATOR_T;
+  static GUID2STRING_MAP_T Stream_MediaMajorType2StringMap;
   static GUID2STRING_MAP_T Stream_MediaSubType2StringMap;
+  static GUID2STRING_MAP_T Stream_FormatType2StringMap;
 #endif
 };
 

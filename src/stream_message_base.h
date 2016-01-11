@@ -25,6 +25,7 @@
 
 #include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
+#include "ace/Malloc_Base.h"
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
@@ -34,19 +35,17 @@
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_message_base.h"
 
-// forward declaration(s)
-class ACE_Data_Block;
-class ACE_Allocator;
-
-template <typename AllocatorConfigurationType>
+template <typename AllocatorConfigurationType,
+          typename CommandType = int>
 class Stream_MessageBase_T
- : public ACE_Message_Block,
-   public Common_IDumpState
+ : public ACE_Message_Block
+ , public Common_IDumpState
 {
   // grant access to specific ctors
   friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
 
-                                                 Stream_MessageBase_T,
+                                                 Stream_MessageBase_T<AllocatorConfigurationType,
+                                                                      int>,
                                                  Stream_SessionMessageBase_T<AllocatorConfigurationType,
 
                                                                              Stream_SessionData,
@@ -57,6 +56,8 @@ class Stream_MessageBase_T
 
   // info
   unsigned int getID () const;
+  virtual CommandType command () const; // return value: message type
+  static std::string CommandType2String (CommandType);
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -69,18 +70,19 @@ class Stream_MessageBase_T
 
   // ctor(s) for STREAM_MESSAGE_OBJECT
   Stream_MessageBase_T ();
-
   // ctor(s) for MB_STREAM_DATA
   Stream_MessageBase_T (unsigned int); // size
   // copy ctor, to be used by derivates
-  Stream_MessageBase_T (const Stream_MessageBase_T<AllocatorConfigurationType>&);
-  // *NOTE*: to be used by message allocators...
+  Stream_MessageBase_T (const Stream_MessageBase_T<AllocatorConfigurationType,
+                                                   CommandType>&);
+
+  // *NOTE*: to be used by message allocators
   Stream_MessageBase_T (ACE_Data_Block*, // data block
                         ACE_Allocator*,  // message allocator
                         bool = true);    // increment running message counter ?
   Stream_MessageBase_T (ACE_Allocator*); // message allocator
 
-  // used for pre-allocated messages...
+  // used for pre-allocated messages
   void initialize (ACE_Data_Block*             // data block to use
                    /*const ACE_Time_Value&*/); // scheduled execution time
 
@@ -90,7 +92,8 @@ class Stream_MessageBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_T& operator= (const Stream_MessageBase_T&))
 
   // convenient types
-  typedef Stream_MessageBase_T<AllocatorConfigurationType> OWN_TYPE_T;
+  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               CommandType> OWN_TYPE_T;
 
   // overrides from ACE_Message_Block
   // *IMPORTANT NOTE*: children ALWAYS need to override this too !
@@ -136,6 +139,7 @@ class Stream_MessageBase_2
 
 //  // implement Common_IGet_T
   virtual HeaderType get () const;
+
   virtual ProtocolCommandType command () const = 0; // return value: message type
 //  static std::string CommandType2String (ProtocolCommandType);
 

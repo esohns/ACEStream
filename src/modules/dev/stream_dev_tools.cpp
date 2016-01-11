@@ -25,8 +25,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "dshow.h"
+#include "dvdmedia.h"
  //#include "ksuuids.h"
 #include "strmif.h"
+#include "qedit.h"
 #include "wmcodecdsp.h"
 #endif
 
@@ -38,7 +40,9 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // initialize statics
+Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap;
 Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_MediaSubType2StringMap;
+Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_FormatType2StringMap;
 #endif
 
 void
@@ -47,6 +51,33 @@ Stream_Module_Device_Tools::initialize ()
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::initialize"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Video, ACE_TEXT_ALWAYS_CHAR ("vids")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Audio, ACE_TEXT_ALWAYS_CHAR ("auds")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Text, ACE_TEXT_ALWAYS_CHAR ("txts")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Midi, ACE_TEXT_ALWAYS_CHAR ("mids")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Stream, ACE_TEXT_ALWAYS_CHAR ("Stream")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Interleaved, ACE_TEXT_ALWAYS_CHAR ("iavs")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_File, ACE_TEXT_ALWAYS_CHAR ("file")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_ScriptCommand, ACE_TEXT_ALWAYS_CHAR ("scmd")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_AUXLine21Data, ACE_TEXT_ALWAYS_CHAR ("AUXLine21Data")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_AUXTeletextPage, ACE_TEXT_ALWAYS_CHAR ("AUXTeletextPage")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_CC_CONTAINER, ACE_TEXT_ALWAYS_CHAR ("CC_CONTAINER")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_DTVCCData, ACE_TEXT_ALWAYS_CHAR ("DTVCCData")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_MSTVCaption, ACE_TEXT_ALWAYS_CHAR ("MSTVCaption")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_VBI, ACE_TEXT_ALWAYS_CHAR ("VBI")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Timecode, ACE_TEXT_ALWAYS_CHAR ("Timecode")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_LMRT, ACE_TEXT_ALWAYS_CHAR ("lmrt")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_URL_STREAM, ACE_TEXT_ALWAYS_CHAR ("URL_STREAM")));
+
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_MPEG2_PACK, ACE_TEXT_ALWAYS_CHAR ("MPEG2_PACK")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_MPEG2_PES, ACE_TEXT_ALWAYS_CHAR ("MPEG2_PES")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_MPEG2_SECTIONS, ACE_TEXT_ALWAYS_CHAR ("MPEG2_SECTIONS")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_MPEG2_PACK, ACE_TEXT_ALWAYS_CHAR ("MPEG2_PACK")));
+
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_DVD_ENCRYPTED_PACK, ACE_TEXT_ALWAYS_CHAR ("DVD_ENCRYPTED_PACK")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_DVD_NAVIGATION, ACE_TEXT_ALWAYS_CHAR ("DVD_NAVIGATION")));
+
   /////////////////////////////////////// AUDIO
   // uncompressed audio
   Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_IEEE_FLOAT, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
@@ -247,13 +278,34 @@ Stream_Module_Device_Tools::initialize ()
   // unknown
   Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVCS, ACE_TEXT_ALWAYS_CHAR("DVCS")));
   Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVSD, ACE_TEXT_ALWAYS_CHAR("DVSD")));
+
+  // ---------------------------------------------------------------------------
+
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_None, ACE_TEXT_ALWAYS_CHAR ("None")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_VideoInfo, ACE_TEXT_ALWAYS_CHAR ("VideoInfo")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_VideoInfo2, ACE_TEXT_ALWAYS_CHAR ("VideoInfo2")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_WaveFormatEx, ACE_TEXT_ALWAYS_CHAR ("WaveFormatEx")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_MPEGVideo, ACE_TEXT_ALWAYS_CHAR ("MPEGVideo")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_MPEGStreams, ACE_TEXT_ALWAYS_CHAR ("MPEGStreams")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_DvInfo, ACE_TEXT_ALWAYS_CHAR ("DvInfo")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_525WSS, ACE_TEXT_ALWAYS_CHAR ("525WSS")));
+
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_MPEG2_VIDEO, ACE_TEXT_ALWAYS_CHAR ("MPEG2_VIDEO")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_VIDEOINFO2, ACE_TEXT_ALWAYS_CHAR ("VIDEOINFO2")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_MPEG2Video, ACE_TEXT_ALWAYS_CHAR ("MPEG2Video")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_DolbyAC3, ACE_TEXT_ALWAYS_CHAR ("DolbyAC3")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_MPEG2Audio, ACE_TEXT_ALWAYS_CHAR ("MPEG2Audio")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_DVD_LPCMAudio, ACE_TEXT_ALWAYS_CHAR ("DVD_LPCMAudio")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_UVCH264Video, ACE_TEXT_ALWAYS_CHAR ("UVCH264Video")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_JPEGImage, ACE_TEXT_ALWAYS_CHAR ("JPEGImage")));
+  Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_Image, ACE_TEXT_ALWAYS_CHAR ("Image")));
 #endif
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
 Stream_Module_Device_Tools::load (const std::string& deviceName_in,
-                                  ICaptureGraphBuilder2*& ICaptureGraphBuilder2_inout,
+                                  IGraphBuilder*& IGraphBuilder_inout,
                                   IAMStreamConfig*& IAMStreamConfig_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::load"));
@@ -266,14 +318,14 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
   } // end IF
 
   HRESULT result = E_FAIL;
-  IGraphBuilder* builder_p = NULL;
   IBaseFilter* filter_p = NULL;
-  if (!ICaptureGraphBuilder2_inout)
+  if (!IGraphBuilder_inout)
   {
+    ICaptureGraphBuilder2* builder_2 = NULL;
     result =
       CoCreateInstance (CLSID_CaptureGraphBuilder2, NULL,
                         CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2,
-                        (void**)&ICaptureGraphBuilder2_inout);
+                        (void**)&builder_2);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -281,11 +333,11 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       return false;
     } // end IF
-    ACE_ASSERT (ICaptureGraphBuilder2_inout);
+    ACE_ASSERT (builder_2);
 
     result = CoCreateInstance (CLSID_FilterGraph, NULL,
                                CLSCTX_INPROC_SERVER, IID_IGraphBuilder,
-                               (void**)&builder_p);
+                               (void**)&IGraphBuilder_inout);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -293,13 +345,14 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
       // clean up
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
+      builder_2->Release ();
+      builder_2 = NULL;
 
       return false;
     } // end IF
+    ACE_ASSERT (IGraphBuilder_inout);
 
-    result = ICaptureGraphBuilder2_inout->SetFiltergraph (builder_p);
+    result = builder_2->SetFiltergraph (IGraphBuilder_inout);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -307,36 +360,22 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
       // clean up
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
+      builder_2->Release ();
 
-      return false;
+      goto error;
     } // end IF
+    builder_2->Release ();
   } // end IF
   else
   {
-    result = ICaptureGraphBuilder2_inout->GetFiltergraph (&builder_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      return false;
-    } // end IF
-
-    if (!Stream_Module_Device_Tools::clear (ICaptureGraphBuilder2_inout))
+    if (!Stream_Module_Device_Tools::clear (IGraphBuilder_inout))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
-
-      // clean up
-      builder_p->Release ();
-
-      return false;
+      goto error;
     } // end IF
   } // end ELSE
-  ACE_ASSERT (builder_p);
+  ACE_ASSERT (IGraphBuilder_inout);
 
   ICreateDevEnum* enumerator_p = NULL;
   result =
@@ -347,13 +386,7 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
-
-    return false;
+    goto error;
   } // end IF
   ACE_ASSERT (enumerator_p);
 
@@ -370,12 +403,9 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
 
     // clean up
     enumerator_p->Release ();
-    builder_p->Release ();
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
 
     //result = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
-    return false;
+    goto error;
   } // end IF
   ACE_ASSERT (enum_moniker_p);
   enumerator_p->Release ();
@@ -398,11 +428,8 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
       // clean up
       enum_moniker_p->Release ();
       moniker_p->Release ();
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
 
-      return false;
+      goto error;
     } // end IF
     ACE_ASSERT (properties_p);
 
@@ -418,11 +445,8 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
       enum_moniker_p->Release ();
       moniker_p->Release ();
       properties_p->Release ();
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
 
-      return false;
+      goto error;
     } // end IF
     properties_p->Release ();
     ACE_Wide_To_Ascii converter (variant.bstrVal);
@@ -442,13 +466,7 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("device (was: \"%s\") not found, aborting\n"),
                 ACE_TEXT (deviceName_in.c_str ())));
-
-    // clean up
-    builder_p->Release ();
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
-
-    return false;
+    goto error;
   } // end IF
 
   result = moniker_p->BindToObject (0, 0, IID_IBaseFilter,
@@ -459,18 +477,13 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMoniker::BindToObject(IID_IBaseFilter): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
-
-    return false;
+    goto error;
   } // end IF
   ACE_ASSERT (filter_p);
 
-  result = builder_p->AddFilter (filter_p,
-                                 MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
+  result =
+    IGraphBuilder_inout->AddFilter (filter_p,
+                                    MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -479,11 +492,8 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
 
     // clean up
     filter_p->Release ();
-    builder_p->Release ();
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
 
-    return false;
+    goto error;
   } // end IF
 
   IEnumPins* enumerator_2 = NULL;
@@ -496,11 +506,8 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
 
     // clean up
     filter_p->Release ();
-    builder_p->Release ();
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
 
-    return false;
+    goto error;
   } // end IF
   ACE_ASSERT (enumerator_2);
   filter_p->Release ();
@@ -525,11 +532,8 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
       // clean up
       pin_p->Release ();
       enumerator_2->Release ();
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
 
-      return false;
+      goto error;
     } // end IF
     if (pin_direction != PINDIR_OUTPUT)
     {
@@ -549,11 +553,8 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
       // clean up
       pin_p->Release ();
       enumerator_p->Release ();
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
 
-      return false;
+      goto error;
     } // end IF
     ACE_ASSERT (property_set_p);
     result = property_set_p->Get (AMPROPSETID_Pin, AMPROPERTY_PIN_CATEGORY,
@@ -569,11 +570,8 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
       property_set_p->Release ();
       pin_p->Release ();
       enumerator_p->Release ();
-      builder_p->Release ();
-      ICaptureGraphBuilder2_inout->Release ();
-      ICaptureGraphBuilder2_inout = NULL;
 
-      return false;
+      goto error;
     } // end IF
     ACE_ASSERT (returned_size == sizeof (GUID));
     if (GUID_i == PIN_CATEGORY_CAPTURE)
@@ -589,13 +587,7 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("0x%@: no capture pin found, aborting\n"),
                 filter_p));
-
-    // clean up
-    builder_p->Release ();
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
-
-    return false;
+    goto error;
   } // end IF
 
   result = pin_p->QueryInterface (IID_IAMStreamConfig,
@@ -608,20 +600,222 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
 
     // clean up
     pin_p->Release ();
-    builder_p->Release ();
-    ICaptureGraphBuilder2_inout->Release ();
-    ICaptureGraphBuilder2_inout = NULL;
 
-    return false;
+    goto error;
   } // end IF
   ACE_ASSERT (IAMStreamConfig_out);
   pin_p->Release ();
-  builder_p->Release ();
 
   return true;
+
+error:
+  IGraphBuilder_inout->Release ();
+  IGraphBuilder_inout = NULL;
+
+  return false;
 }
 bool
-Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
+Stream_Module_Device_Tools::load (IGraphBuilder*& IGraphBuilder_inout,
+                                  const HWND windowHandle_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::load"));
+
+  HRESULT result = E_FAIL;
+  std::list<std::wstring> filter_pipeline;
+
+  if (!IGraphBuilder_inout)
+  {
+    result =
+      CoCreateInstance (CLSID_FilterGraph, NULL,
+                        CLSCTX_INPROC_SERVER, IID_IGraphBuilder,
+                        (void**)&IGraphBuilder_inout);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return false;
+    } // end IF
+    ACE_ASSERT (IGraphBuilder_inout);
+  } // end IF
+  else
+  {
+    if (!Stream_Module_Device_Tools::clear (IGraphBuilder_inout))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
+      goto error;
+    } // end IF
+  } // end ELSE
+  ACE_ASSERT (IGraphBuilder_inout);
+
+  // decompress
+  IBaseFilter* filter_p = NULL;
+  result =
+    IGraphBuilder_inout->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS,
+                                           &filter_p);
+  if (FAILED (result))
+  {
+    if (result != VFW_E_NOT_FOUND)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+
+    // *TODO*: support receiving other formats
+    result = CoCreateInstance (CLSID_AVIDec, NULL,
+                               CLSCTX_INPROC_SERVER, IID_IBaseFilter,
+                               (void**)&filter_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoCreateInstance() AVI decompressor: \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+
+      goto error;
+    } // end IF
+    ACE_ASSERT (filter_p);
+    result = IGraphBuilder_inout->AddFilter (filter_p,
+                                             MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("added \"%s\"...\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS)));
+  } // end IF
+  ACE_ASSERT (filter_p);
+
+  // render to a window (GtkDrawingArea) ?
+  IBaseFilter* filter_2 = NULL;
+  result =
+    IGraphBuilder_inout->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
+                                                            : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER),
+                                           &filter_2);
+  if (FAILED (result))
+  {
+    if (result != VFW_E_NOT_FOUND)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
+                                                            : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER)),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+
+      goto error;
+    } // end IF
+
+    result = CoCreateInstance ((windowHandle_in ? CLSID_VideoRenderer
+                                                : CLSID_NullRenderer), NULL,
+                               CLSCTX_INPROC_SERVER, IID_IBaseFilter,
+                               (void**)&filter_2);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
+                  (windowHandle_in ? ACE_TEXT ("CLSID_VideoRenderer")
+                                   : ACE_TEXT ("CLSID_NullRenderer")),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+
+      goto error;
+    } // end IF
+    ACE_ASSERT (filter_2);
+    result =
+      IGraphBuilder_inout->AddFilter (filter_2,
+                                      (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
+                                                       : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+      filter_2->Release ();
+
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("added \"%s\"...\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
+                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER))));
+  } // end IF
+  ACE_ASSERT (filter_2);
+
+  //result =
+  //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
+  //                                          &PIN_CATEGORY_CAPTURE, NULL,
+  //                                          filter_p,
+  //                                          filter_2,
+  //                                          //NULL,
+  //                                          filter_4);
+  //if (FAILED (result)) // E_INVALIDARG = 0x80070057, 0x80040217 = VFW_E_CANNOT_CONNECT ?
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to ICaptureGraphBuilder::RenderStream(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  //  // clean up
+  //  filter_p->Release ();
+  //  filter_2->Release ();
+  //  if (filter_3)
+  //    filter_3->Release ();
+  //  filter_4->Release ();
+
+  //  return false;
+  //} // end IF
+  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS);
+  filter_pipeline.push_back ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
+                                              : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER));
+  if (!Stream_Module_Device_Tools::connect (IGraphBuilder_inout,
+                                            filter_pipeline))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
+
+    // clean up
+    filter_p->Release ();
+    filter_2->Release ();
+
+    goto error;
+  } // end IF
+  filter_p->Release ();
+  filter_2->Release ();
+
+  return true;
+
+error:
+  if (IGraphBuilder_inout)
+  {
+    IGraphBuilder_inout->Release ();
+    IGraphBuilder_inout = NULL;
+  } // end IF
+
+  return false;
+}
+bool
+Stream_Module_Device_Tools::connect (IGraphBuilder* builder_in,
                                      const std::list<std::wstring>& graph_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::connect"));
@@ -630,32 +824,17 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
   ACE_ASSERT (builder_in);
   ACE_ASSERT (!graph_in.empty ());
 
-  IGraphBuilder* builder_p = NULL;
-  HRESULT result = builder_in->GetFiltergraph (&builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (builder_p);
-
   IBaseFilter* filter_p = NULL;
   std::list<std::wstring>::const_iterator iterator = graph_in.begin ();
-  result =
-    builder_p->FindFilterByName ((*iterator).c_str (),
-                                 &filter_p);
+  HRESULT result =
+    builder_in->FindFilterByName ((*iterator).c_str (),
+                                  &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -670,7 +849,6 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
 
     // clean up
     filter_p->Release ();
-    builder_p->Release ();
 
     return false;
   } // end IF
@@ -694,7 +872,6 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
       // clean up
       pin_p->Release ();
       enumerator_p->Release ();
-      builder_p->Release ();
 
       return false;
     } // end IF
@@ -746,10 +923,6 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: has no output pin, aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-
     return false;
   } // end IF
   IPin* pin_2 = NULL;
@@ -762,8 +935,8 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
   {
     filter_p = NULL;
     result =
-      builder_p->FindFilterByName ((*iterator).c_str (),
-                                   &filter_p);
+      builder_in->FindFilterByName ((*iterator).c_str (),
+                                    &filter_p);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -773,7 +946,6 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
 
       // clean up
       pin_p->Release ();
-      builder_p->Release ();
 
       return false;
     } // end IF
@@ -789,7 +961,6 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
       // clean up
       filter_p->Release ();
       pin_p->Release ();
-      builder_p->Release ();
 
       return false;
     } // end IF
@@ -826,7 +997,6 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
         pin_2->Release ();
         enumerator_p->Release ();
         pin_p->Release ();
-        builder_p->Release ();
 
         return false;
       } // end IF
@@ -849,7 +1019,6 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
       // clean up
       pin_p->Release ();
       enumerator_p->Release ();
-      builder_p->Release ();
 
       return false;
     } // end IF
@@ -870,7 +1039,6 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
       pin_2->Release ();
       enumerator_p->Release ();
       pin_p->Release ();
-      builder_p->Release ();
 
       return false;
     } // end IF
@@ -891,7 +1059,6 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
 
       // clean up
       enumerator_p->Release ();
-      builder_p->Release ();
 
       return false;
     } // end IF
@@ -910,7 +1077,6 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
         // clean up
         pin_p->Release ();
         enumerator_p->Release ();
-        builder_p->Release ();
 
         return false;
       } // end IF
@@ -927,39 +1093,22 @@ Stream_Module_Device_Tools::connect (ICaptureGraphBuilder2* builder_in,
     enumerator_p->Release ();
   } // end FOR
 
-  builder_p->Release ();
-
   return true;
 }
 bool
-Stream_Module_Device_Tools::clear (ICaptureGraphBuilder2* builder_in)
+Stream_Module_Device_Tools::clear (IGraphBuilder* builder_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::clear"));
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
 
-  IGraphBuilder* builder_p = NULL;
-  HRESULT result = builder_in->GetFiltergraph (&builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (builder_p);
-
   IEnumFilters* enumerator_p = NULL;
-  result = builder_p->EnumFilters (&enumerator_p);
+  HRESULT result = builder_in->EnumFilters (&enumerator_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n")));
-
-    // clean up
-    builder_p->Release ();
-
     return false;
   } // end IF
   IBaseFilter* filter_p = NULL;
@@ -979,12 +1128,11 @@ Stream_Module_Device_Tools::clear (ICaptureGraphBuilder2* builder_in)
       // clean up
       filter_p->Release ();
       enumerator_p->Release ();
-      builder_p->Release ();
 
       return false;
     } // end IF
 
-    result = builder_p->RemoveFilter (filter_p);
+    result = builder_in->RemoveFilter (filter_p);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -994,7 +1142,6 @@ Stream_Module_Device_Tools::clear (ICaptureGraphBuilder2* builder_in)
       // clean up
       filter_p->Release ();
       enumerator_p->Release ();
-      builder_p->Release ();
 
       return false;
     } // end IF
@@ -1012,7 +1159,6 @@ Stream_Module_Device_Tools::clear (ICaptureGraphBuilder2* builder_in)
       // clean up
       filter_p->Release ();
       enumerator_p->Release ();
-      builder_p->Release ();
 
       return false;
     } // end IF
@@ -1022,39 +1168,22 @@ Stream_Module_Device_Tools::clear (ICaptureGraphBuilder2* builder_in)
   } // end WHILE
   enumerator_p->Release ();
 
-  builder_p->Release ();
-
   return true;
 }
 bool
-Stream_Module_Device_Tools::disconnect (ICaptureGraphBuilder2* builder_in)
+Stream_Module_Device_Tools::disconnect (IGraphBuilder* builder_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::disconnect"));
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
 
-  IGraphBuilder* builder_p = NULL;
-  HRESULT result = builder_in->GetFiltergraph (&builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (builder_p);
-
   IEnumFilters* enumerator_p = NULL;
-  result = builder_p->EnumFilters (&enumerator_p);
+  HRESULT result = builder_in->EnumFilters (&enumerator_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::EnumFilters(): \"%s\", aborting\n")));
-
-    // clean up
-    builder_p->Release ();
-
     return false;
   } // end IF
   IBaseFilter* filter_p = NULL;
@@ -1076,7 +1205,6 @@ Stream_Module_Device_Tools::disconnect (ICaptureGraphBuilder2* builder_in)
       // clean up
       filter_p->Release ();
       enumerator_p->Release ();
-      builder_p->Release ();
 
       return false;
     } // end IF
@@ -1092,7 +1220,6 @@ Stream_Module_Device_Tools::disconnect (ICaptureGraphBuilder2* builder_in)
       // clean up
       filter_p->Release ();
       enumerator_p->Release ();
-      builder_p->Release ();
 
       return false;
     } // end IF
@@ -1121,7 +1248,6 @@ Stream_Module_Device_Tools::disconnect (ICaptureGraphBuilder2* builder_in)
           enumerator_2->Release ();
           filter_p->Release ();
           enumerator_p->Release ();
-          builder_p->Release ();
 
           return false;
         } // end IF
@@ -1139,7 +1265,6 @@ Stream_Module_Device_Tools::disconnect (ICaptureGraphBuilder2* builder_in)
           enumerator_2->Release ();
           filter_p->Release ();
           enumerator_p->Release ();
-          builder_p->Release ();
 
           return false;
         } // end IF
@@ -1158,12 +1283,10 @@ Stream_Module_Device_Tools::disconnect (ICaptureGraphBuilder2* builder_in)
   } // end WHILE
   enumerator_p->Release ();
 
-  builder_p->Release ();
-
   return true;
 }
 bool
-Stream_Module_Device_Tools::reset (ICaptureGraphBuilder2* builder_in)
+Stream_Module_Device_Tools::reset (IGraphBuilder* builder_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::reset"));
 
@@ -1177,31 +1300,16 @@ Stream_Module_Device_Tools::reset (ICaptureGraphBuilder2* builder_in)
     return false;
   } // end IF
 
-  IGraphBuilder* builder_p = NULL;
-  HRESULT result = builder_in->GetFiltergraph (&builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (builder_p);
-
   IBaseFilter* filter_p = NULL;
-  result =
-    builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
-                                 &filter_p);
+  HRESULT result =
+    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
+                                  &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -1213,13 +1321,12 @@ Stream_Module_Device_Tools::reset (ICaptureGraphBuilder2* builder_in)
 
     // clean up
     filter_p->Release ();
-    builder_p->Release ();
 
     return false;
   } // end IF
 
-  result = builder_p->AddFilter (filter_p,
-                                 MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
+  result = builder_in->AddFilter (filter_p,
+                                  MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1229,17 +1336,15 @@ Stream_Module_Device_Tools::reset (ICaptureGraphBuilder2* builder_in)
 
     // clean up
     filter_p->Release ();
-    builder_p->Release ();
 
     return false;
   } // end IF
   filter_p->Release ();
-  builder_p->Release ();
 
   return true;
 }
 bool
-Stream_Module_Device_Tools::getFormat (ICaptureGraphBuilder2* builder_in,
+Stream_Module_Device_Tools::getFormat (IGraphBuilder* builder_in,
                                        struct _AMMediaType*& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getFormat"));
@@ -1252,35 +1357,19 @@ Stream_Module_Device_Tools::getFormat (ICaptureGraphBuilder2* builder_in,
     mediaType_out = NULL;
   } // end IF
 
-  IGraphBuilder* builder_p = NULL;
-  HRESULT result = builder_in->GetFiltergraph (&builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (builder_p);
-
   IBaseFilter* filter_p = NULL;
-  result =
-    builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
-                                 &filter_p);
+  HRESULT result =
+    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
+                                  &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
-  builder_p->Release ();
 
   IEnumPins* enumerator_p = NULL;
   IPin* pin_p = NULL;
@@ -1411,7 +1500,7 @@ Stream_Module_Device_Tools::getFormat (ICaptureGraphBuilder2* builder_in,
   return true;
 }
 bool
-Stream_Module_Device_Tools::setFormat (ICaptureGraphBuilder2* builder_in,
+Stream_Module_Device_Tools::setFormat (IGraphBuilder* builder_in,
                                        const AM_MEDIA_TYPE& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setFormat"));
@@ -1419,44 +1508,31 @@ Stream_Module_Device_Tools::setFormat (ICaptureGraphBuilder2* builder_in,
   // sanit ycheck(s)
   ACE_ASSERT (builder_in);
 
-  IGraphBuilder* builder_p = NULL;
-  HRESULT result = builder_in->GetFiltergraph (&builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (builder_p);
-
-  IGraphConfig* graph_config_p = NULL;
-  result = builder_p->QueryInterface (IID_IGraphConfig,
-                                      (void**)&graph_config_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IGraphConfig): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-
-    return false;
-  } // end IF
-  ACE_ASSERT (graph_config_p);
+  //IGraphConfig* graph_config_p = NULL;
+  //HRESULT result = builder_in->QueryInterface (IID_IGraphConfig,
+  //                                             (void**)&graph_config_p);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IGraphConfig): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return false;
+  //} // end IF
+  //ACE_ASSERT (graph_config_p);
 
   IBaseFilter* filter_p = NULL;
-  result = builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
-                                        &filter_p);
+  HRESULT result =
+    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
+                                  &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(): \"%s\", aborting\n")));
+                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-    // clean up
-    graph_config_p->Release ();
-    builder_p->Release ();
+    //// clean up
+    //graph_config_p->Release ();
 
     return false;
   } // end IF
@@ -1471,8 +1547,7 @@ Stream_Module_Device_Tools::setFormat (ICaptureGraphBuilder2* builder_in,
 
     // clean up
     filter_p->Release ();
-    graph_config_p->Release ();
-    builder_p->Release ();
+    //graph_config_p->Release ();
 
     return false;
   } // end IF
@@ -1498,8 +1573,7 @@ Stream_Module_Device_Tools::setFormat (ICaptureGraphBuilder2* builder_in,
       // clean up
       pin_p->Release ();
       enumerator_p->Release ();
-      graph_config_p->Release ();
-      builder_p->Release ();
+      //graph_config_p->Release ();
 
       return false;
     } // end IF
@@ -1521,8 +1595,7 @@ Stream_Module_Device_Tools::setFormat (ICaptureGraphBuilder2* builder_in,
       // clean up
       pin_p->Release ();
       enumerator_p->Release ();
-      graph_config_p->Release ();
-      builder_p->Release ();
+      //graph_config_p->Release ();
 
       return false;
     } // end IF
@@ -1540,8 +1613,7 @@ Stream_Module_Device_Tools::setFormat (ICaptureGraphBuilder2* builder_in,
       property_set_p->Release ();
       pin_p->Release ();
       enumerator_p->Release ();
-      graph_config_p->Release ();
-      builder_p->Release ();
+      //graph_config_p->Release ();
 
       return false;
     } // end IF
@@ -1560,112 +1632,51 @@ Stream_Module_Device_Tools::setFormat (ICaptureGraphBuilder2* builder_in,
                 ACE_TEXT ("no capture pin found, aborting\n")));
 
     // clean up
-    graph_config_p->Release ();
-    builder_p->Release ();
+    //graph_config_p->Release ();
 
     return false;
   } // end IF
 
-    //filter_p = NULL;
-    //result = builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDERER,
-    //                                      &filter_p);
-    //if (FAILED (result))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(): \"%s\", aborting\n"),
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    //  // clean up
-    //  graph_config_p->Release ();
-    //  builder_p->Release ();
-
-    //  return false;
-    //} // end IF
-    //ACE_ASSERT (filter_p);
-    //enumerator_p = NULL;
-    //result = filter_p->EnumPins (&enumerator_p);
-    //if (FAILED (result))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    //  // clean up
-    //  filter_p->Release ();
-    //  graph_config_p->Release ();
-    //  builder_p->Release ();
-
-    //  return false;
-    //} // end IF
-    //ACE_ASSERT (enumerator_p);
-    //filter_p->Release ();
-
-    //IPin* pin_2 = NULL;
-    //while (enumerator_p->Next (1, &pin_2, NULL) == S_OK)
-    //{
-    //  ACE_ASSERT (pin_2);
-
-    //  result = pin_2->QueryDirection (&pin_direction);
-    //  if (FAILED (result))
-    //  {
-    //    ACE_DEBUG ((LM_ERROR,
-    //                ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
-    //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    //    // clean up
-    //    pin_2->Release ();
-    //    enumerator_p->Release ();
-    //    pin_p->Release ();
-    //    graph_config_p->Release ();
-    //    builder_p->Release ();
-
-    //    return false;
-    //  } // end IF
-    //  if (pin_direction == PINDIR_INPUT)
-    //    break;
-
-    //  pin_2->Release ();
-    //  pin_2 = NULL;
-    //} // end WHILE
-    //enumerator_p->Release ();
-    //if (!pin_2)
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("no input pin found, aborting\n")));
-
-    //  // clean up
-    //  pin_p->Release ();
-    //  graph_config_p->Release ();
-    //  builder_p->Release ();
-
-    //  return false;
-    //} // end IF
-
-  result = graph_config_p->Reconnect (pin_p,
-                                      NULL,
-                                      //pin_2,
-                                      &mediaType_in,
-                                      NULL,
-                                      NULL,
-                                      0);
+  IAMStreamConfig* stream_config_p = NULL;
+  result = pin_p->QueryInterface (IID_IAMStreamConfig,
+                                  (void**)&stream_config_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphConfig::Reconnect(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (stream_config_p);
+
+  //result = graph_config_p->Reconnect (pin_p,
+  //                                    NULL,
+  //                                    //pin_2,
+  //                                    &mediaType_in,
+  //                                    NULL,
+  //                                    NULL,
+  //                                    0);
+  result =
+    stream_config_p->SetFormat (&const_cast<AM_MEDIA_TYPE&> (mediaType_in));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                //ACE_TEXT ("failed to IGraphConfig::Reconnect(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     // clean up
+    stream_config_p->Release ();
     //pin_2->Release ();
     pin_p->Release ();
-    graph_config_p->Release ();
-    builder_p->Release ();
+    //graph_config_p->Release ();
 
     return false;
   } // end IF
-    //pin_2->Release ();
+  stream_config_p->Release ();
+  //pin_2->Release ();
   pin_p->Release ();
-  graph_config_p->Release ();
-  builder_p->Release ();
+  //graph_config_p->Release ();
 
   return true;
 }
@@ -1702,14 +1713,383 @@ Stream_Module_Device_Tools::mediaSubTypeToString (const GUID& GUID_in)
     int nCount = StringFromGUID2 (GUID_in,
                                   GUID_string, sizeof (GUID_string));
     ACE_ASSERT (nCount == 39);
-    ACE_Wide_To_Ascii converter (GUID_string);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-                ACE_TEXT (converter.char_rep ())));
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
     return result;
   } // end IF
   result = (*iterator).second;
 
   return result;
 }
+
+std::string
+Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::mediaTypeToString"));
+
+  std::string result;
+
+  OLECHAR GUID_string[39];
+  ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
+  int count = -1;
+  GUID2STRING_MAP_ITERATOR_T iterator =
+    Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.find (mediaType_in.majortype);
+  if (iterator == Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.end ())
+  {
+    count = StringFromGUID2 (mediaType_in.majortype,
+                             GUID_string, sizeof (GUID_string));
+    ACE_ASSERT (count == 39);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media majortype (was: \"%s\"), aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
+    return std::string ();
+  } // end IF
+  result = ACE_TEXT_ALWAYS_CHAR ("majortype: \"");
+  result += (*iterator).second;
+  result += ACE_TEXT_ALWAYS_CHAR ("\"\nsubtype: \"");
+
+  iterator =
+    Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.find (mediaType_in.subtype);
+  if (iterator == Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.end ())
+  {
+    ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
+    count = StringFromGUID2 (mediaType_in.subtype,
+                             GUID_string, sizeof (GUID_string));
+    ACE_ASSERT (count == 39);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
+    return std::string ();
+  } // end IF
+  result += (*iterator).second;
+  result += ACE_TEXT_ALWAYS_CHAR ("\"\nbFixedSizeSamples: ");
+
+  std::ostringstream converter;
+  converter << mediaType_in.bFixedSizeSamples;
+  result += converter.str ();
+  result += ACE_TEXT_ALWAYS_CHAR ("\nbTemporalCompression: ");
+
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << mediaType_in.bTemporalCompression;
+  result += converter.str ();
+  result += ACE_TEXT_ALWAYS_CHAR ("\nlSampleSize: ");
+
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << mediaType_in.lSampleSize;
+  result += converter.str ();
+  result += ACE_TEXT_ALWAYS_CHAR ("\nformattype: \"");
+
+  iterator =
+    Stream_Module_Device_Tools::Stream_FormatType2StringMap.find (mediaType_in.formattype);
+  if (iterator == Stream_Module_Device_Tools::Stream_FormatType2StringMap.end ())
+  {
+    ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
+    count = StringFromGUID2 (mediaType_in.formattype,
+                             GUID_string, sizeof (GUID_string));
+    ACE_ASSERT (count == 39);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
+    return std::string ();
+  } // end IF
+  result += (*iterator).second;
+  result += ACE_TEXT_ALWAYS_CHAR ("\"\npUnk: 0x");
+
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << std::hex << mediaType_in.pUnk;
+  result += converter.str ();
+  result += ACE_TEXT_ALWAYS_CHAR ("\ncbFormat: ");
+
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << mediaType_in.cbFormat;
+  result += converter.str ();
+  result += ACE_TEXT_ALWAYS_CHAR ("\npbFormat: ");
+
+  converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+  converter.clear ();
+  converter << std::hex << mediaType_in.pbFormat;
+  result += converter.str ();
+  result += ACE_TEXT_ALWAYS_CHAR ("\n");
+
+  if (mediaType_in.formattype == FORMAT_VideoInfo)
+  {
+    struct tagVIDEOINFOHEADER* video_info_header_p =
+      (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
+    result += ACE_TEXT_ALWAYS_CHAR ("---\nrcSource [lrtb]: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->rcSource.left;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header_p->rcSource.right;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header_p->rcSource.top;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header_p->rcSource.bottom;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nrcTarget [lrtb]: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->rcTarget.left;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header_p->rcTarget.right;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header_p->rcTarget.top;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header_p->rcTarget.bottom;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ndwBitRate: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->dwBitRate;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ndwBitErrorRate: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->dwBitErrorRate;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nAvgTimePerFrame: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->AvgTimePerFrame;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\n---\nbiSize: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->bmiHeader.biSize;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiWidth: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->bmiHeader.biWidth;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiHeight: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->bmiHeader.biHeight;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiPlanes: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->bmiHeader.biPlanes;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiBitCount: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->bmiHeader.biBitCount;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiCompression: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->bmiHeader.biCompression;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiSizeImage: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->bmiHeader.biSizeImage;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiXPelsPerMeter: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->bmiHeader.biXPelsPerMeter;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiYPelsPerMeter: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->bmiHeader.biYPelsPerMeter;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiClrUsed: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->bmiHeader.biClrUsed;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiClrImportant: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header_p->bmiHeader.biClrImportant;
+    result += converter.str ();
+    result += ACE_TEXT_ALWAYS_CHAR ("\n");
+  } // end IF
+  else if (mediaType_in.formattype == FORMAT_VideoInfo2)
+  {
+    struct tagVIDEOINFOHEADER2* video_info_header2_p =
+      (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
+    result += ACE_TEXT_ALWAYS_CHAR ("---\nrcSource [lrtb]: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->rcSource.left;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header2_p->rcSource.right;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header2_p->rcSource.top;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header2_p->rcSource.bottom;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nrcTarget [lrtb]: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->rcTarget.left;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header2_p->rcTarget.right;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header2_p->rcTarget.top;
+    converter << ACE_TEXT_ALWAYS_CHAR (",");
+    converter << video_info_header2_p->rcTarget.bottom;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ndwBitRate: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->dwBitRate;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ndwBitErrorRate: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->dwBitErrorRate;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nAvgTimePerFrame: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->AvgTimePerFrame;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ndwInterlaceFlags: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->dwInterlaceFlags;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ndwCopyProtectFlags: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->dwCopyProtectFlags;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ndwPictAspectRatioX: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->dwPictAspectRatioX;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ndwPictAspectRatioY: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->dwPictAspectRatioY;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ndwControlFlags: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->dwControlFlags;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\ndwReserved2: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->dwReserved2;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\n---\nbiSize: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->bmiHeader.biSize;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiWidth: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->bmiHeader.biWidth;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiHeight: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->bmiHeader.biHeight;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiPlanes: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->bmiHeader.biPlanes;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiBitCount: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->bmiHeader.biBitCount;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiCompression: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->bmiHeader.biCompression;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiSizeImage: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->bmiHeader.biSizeImage;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiXPelsPerMeter: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->bmiHeader.biXPelsPerMeter;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiYPelsPerMeter: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->bmiHeader.biYPelsPerMeter;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiClrUsed: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->bmiHeader.biClrUsed;
+    result += converter.str ();
+
+    result += ACE_TEXT_ALWAYS_CHAR ("\nbiClrImportant: ");
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << video_info_header2_p->bmiHeader.biClrImportant;
+    result += converter.str ();
+    result += ACE_TEXT_ALWAYS_CHAR ("\n");
+  } // end ELSE IF
+  else
+  {
+    ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
+    count = StringFromGUID2 (mediaType_in.formattype,
+                             GUID_string, sizeof (GUID_string));
+    ACE_ASSERT (count == 39);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
+  } // end ELSE
+
+  return result;
+}
+
 #endif

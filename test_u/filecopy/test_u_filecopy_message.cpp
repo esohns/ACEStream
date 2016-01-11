@@ -129,7 +129,7 @@ Stream_Filecopy_Message::get () const
 
   ACE_NOTREACHED (return -1;)
 }
-const Stream_CommandType_t&
+Stream_CommandType_t
 Stream_Filecopy_Message::command () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Message::command"));

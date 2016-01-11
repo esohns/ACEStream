@@ -25,6 +25,12 @@
 #include "ace/Message_Block.h"
 
 #include "stream_common.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#include "stream_directshow_allocator_base.h"
+#include "stream_messageallocatorheap_base.h"
+#else
+#include "stream_messageallocatorheap_base.h"
+#endif
 #include "stream_session_message_base.h"
 
 #include "test_u_camsave_common.h"
@@ -42,12 +48,22 @@ class Stream_CamSave_SessionMessage
                                       Stream_CamSave_SessionData_t,
                                       Stream_UserData>
 {
-  // grant access to specific private ctors...
+  // grant access to specific private ctors
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //friend class Stream_DirectShowAllocatorBase_T<Stream_AllocatorConfiguration,
+
+  //                                              Stream_CamSave_Message,
+  //                                              Stream_CamSave_SessionMessage>;
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
 
                                                  Stream_CamSave_Message,
                                                  Stream_CamSave_SessionMessage>;
+#else
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
 
+                                                 Stream_CamSave_Message,
+                                                 Stream_CamSave_SessionMessage>;
+#endif
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason...

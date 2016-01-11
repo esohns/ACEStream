@@ -3526,6 +3526,9 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
   if (FAILED (result))
@@ -3537,39 +3540,24 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end IF
   ACE_ASSERT (media_type_p);
   media_type_p->subtype = GUID_i;
-  // *NOTE*: IAMStreamConfig::SetFormat fails if the pin is connected
-  //         --> use IGraphConfig::Reconnect
-  if (data_p->isFirst)
+
+  // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
+  //         the filter pins are associated. IGraphConfig::Reconnect fails
+  //         unless the graph is "disconnected" first
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
   {
-    result = data_p->streamConfiguration->SetFormat (media_type_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
+    goto error;
   } // end IF
-  else
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+                                              *media_type_p))
   {
-    // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
-    //         the filter pins are associated. IGraphConfig::Reconnect fails
-    //         unless the graph is "disconnected" first
-    if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
-      goto error;
-    } // end IF
-    if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-                                                *media_type_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
-      goto error;
-    } // end IF
-  } // end ELSE
-    //DeleteMediaType (media_type_p);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+    goto error;
+  } // end IF
+  //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   goto continue_;
@@ -3614,8 +3602,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->streamConfiguration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -3693,6 +3679,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (data_p->streamConfiguration);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
   if (FAILED (result))
@@ -3719,22 +3710,35 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     video_info_header2_p->bmiHeader.biWidth = width;
     video_info_header2_p->bmiHeader.biHeight = height;
   } // end ELSE IF
-  result = data_p->streamConfiguration->SetFormat (media_type_p);
-  if (FAILED (result))
+
+    // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
+    //         the filter pins are associated. IGraphConfig::Reconnect fails
+    //         unless the graph is "disconnected" first
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    //DeleteMediaType (media_type_p);
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-
-    return;
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
+    goto error;
+  } // end IF
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+                                              *media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+    goto error;
   } // end IF
     //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
+  goto continue_;
+
+error:
+  //DeleteMediaType (media_type_p);
+  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  return;
+
+continue_:
   if (!load_rates (data_p->streamConfiguration,
                    GUID_i,
                    width,
@@ -3769,8 +3773,6 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->streamConfiguration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -3798,6 +3800,11 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   g_value_unset (&value);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (data_p->streamConfiguration);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+
   AM_MEDIA_TYPE* media_type_p = NULL;
   HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
   if (FAILED (result))
@@ -3822,20 +3829,30 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
       (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
     video_info_header2_p->AvgTimePerFrame = frame_interval;
   } // end ELSE IF
-  result = data_p->streamConfiguration->SetFormat (media_type_p);
-  if (FAILED (result))
+
+    // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
+    //         the filter pins are associated. IGraphConfig::Reconnect fails
+    //         unless the graph is "disconnected" first
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    //DeleteMediaType (media_type_p);
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-
-    return;
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
+    goto error;
+  } // end IF
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+                                              *media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+    goto error;
   } // end IF
     //DeleteMediaType (media_type_p);
+  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  return;
+
+error:
+  //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 #endif
 } // combobox_rate_changed_cb

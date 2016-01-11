@@ -88,35 +88,19 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
-  IGraphBuilder* builder_p = NULL;
-  HRESULT result = configuration_in.builder->GetFiltergraph (&builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaputreGraphBuilder2::GetFiltergraph() \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (builder_p);
-
   IBaseFilter* filter_p = NULL;
-  result =
-    builder_p->FindFilterByName (configuration_in.sourceFilter,
-                                 &filter_p);
+  HRESULT result =
+    configuration_in.builder->FindFilterByName (configuration_in.sourceFilter,
+                                                &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (configuration_in.sourceFilter),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    builder_p->Release ();
-
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
-  builder_p->Release ();
 
   IEnumPins* enumerator_p = NULL;
   result = filter_p->EnumPins (&enumerator_p);
@@ -242,63 +226,65 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
 
   // sanity check(s)
   ACE_ASSERT (message_inout);
-  ACE_ASSERT (IMemAllocator_);
+  //ACE_ASSERT (IMemAllocator_);
   ACE_ASSERT (IMemInputPin_);
 
   IMediaSample* media_sample_p = NULL;
+  media_sample_p = message_inout;
+  media_sample_p->AddRef ();
   HRESULT result = E_FAIL;
-  BYTE* buffer_p = NULL;
-  long remaining = message_inout->total_length ();
-  long to_copy = -1;
-  do
-  {
-    result = IMemAllocator_->GetBuffer (&media_sample_p,
-                                        NULL,
-                                        NULL,
-                                        0);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMemAllocator::GetBuffer(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      return;
-    } // end IF
-    ACE_ASSERT (media_sample_p);
+  //BYTE* buffer_p = NULL;
+  //long remaining = message_inout->total_length ();
+  //long to_copy = -1;
+  //do
+  //{
+  //  result = IMemAllocator_->GetBuffer (&media_sample_p,
+  //                                      NULL,
+  //                                      NULL,
+  //                                      0);
+  //  if (FAILED (result))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IMemAllocator::GetBuffer(): \"%s\", returning\n"),
+  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //    return;
+  //  } // end IF
+  //  ACE_ASSERT (media_sample_p);
 
-    result = media_sample_p->GetPointer (&buffer_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMediaSample::GetPointer(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  result = media_sample_p->GetPointer (&buffer_p);
+  //  if (FAILED (result))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IMediaSample::GetPointer(): \"%s\", returning\n"),
+  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-      // clean up
-      media_sample_p->Release ();
+  //    // clean up
+  //    media_sample_p->Release ();
 
-      return;
-    } // end IF
-    ACE_ASSERT (buffer_p);
+  //    return;
+  //  } // end IF
+  //  ACE_ASSERT (buffer_p);
 
-    to_copy =
-      ((media_sample_p->GetSize () >= remaining) ? remaining
-                                                 : media_sample_p->GetSize ());
-    ACE_OS::memcpy (buffer_p, message_inout->rd_ptr (), to_copy);
-    result = media_sample_p->SetActualDataLength (to_copy);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMediaSample::SetActualDataLength(%d): \"%s\", returning\n"),
-                  to_copy,
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  to_copy =
+  //    ((media_sample_p->GetSize () >= remaining) ? remaining
+  //                                               : media_sample_p->GetSize ());
+  //  ACE_OS::memcpy (buffer_p, message_inout->rd_ptr (), to_copy);
+  //  result = media_sample_p->SetActualDataLength (to_copy);
+  //  if (FAILED (result))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IMediaSample::SetActualDataLength(%d): \"%s\", returning\n"),
+  //                to_copy,
+  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-      // clean up
-      media_sample_p->Release ();
+  //    // clean up
+  //    media_sample_p->Release ();
 
-      return;
-    } // end IF
-    message_inout->rd_ptr (to_copy);
+  //    return;
+  //  } // end IF
+  //  message_inout->rd_ptr (to_copy);
 
-    // *TODO*: use ReceiveMultiple ()
+    //// *TODO*: use ReceiveMultiple ()
     result = IMemInputPin_->Receive (media_sample_p);
     if (FAILED (result))
     {
@@ -313,8 +299,8 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
     } // end IF
     media_sample_p->Release ();
 
-    remaining -= to_copy;
-  } while (remaining);
+  //  remaining -= to_copy;
+  //} while (remaining);
 }
 
 //template <typename SessionMessageType,

@@ -1511,22 +1511,17 @@ idle_session_end_cb (gpointer userData_in)
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
-  GtkVBox* box_p =
-    GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
-                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_OPTIONS_NAME)));
-  ACE_ASSERT (box_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (box_p), true);
+  GtkFrame* frame_p =
+    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
+  ACE_ASSERT (frame_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 
   GtkToggleAction* toggle_action_p =
     GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
   ACE_ASSERT (toggle_action_p);
-  gtk_action_set_stock_id (GTK_ACTION (toggle_action_p), GTK_STOCK_MEDIA_RECORD);
-  GtkAction* action_p =
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, false);
+  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
 
   return G_SOURCE_REMOVE;
 }
@@ -1559,18 +1554,26 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkVBox* box_p =
-    GTK_VBOX (gtk_builder_get_object ((*iterator).second.second,
-                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_OPTIONS_NAME)));
-  ACE_ASSERT (box_p);
-
   // toggle record/stop ?
   const Stream_StateMachine_ControlState& status_r =
     data_p->stream->status ();
   if ((status_r == STREAM_STATE_RUNNING) ||
       (status_r == STREAM_STATE_PAUSED))
   {
-    data_p->stream->stop (true, true);
+    data_p->stream->stop (false, true);
+
+    gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_RECORD);
+    gtk_action_set_sensitive (GTK_ACTION (toggleAction_in), false);
+    GtkAction* action_p =
+      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
+    ACE_ASSERT (action_p);
+    gtk_action_set_sensitive (action_p, false);
+    action_p =
+      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME)));
+    ACE_ASSERT (action_p);
+    gtk_action_set_sensitive (action_p, false);
 
     // stop progress reporting
     ACE_ASSERT (data_p->progressEventSourceID);
@@ -1592,9 +1595,6 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
     gtk_progress_bar_set_fraction (progressbar_p, 0.0);
     gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
 
-    gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_RECORD);
-    gtk_widget_set_sensitive (GTK_WIDGET (box_p), true);
-
     return;
   } // end IF
 
@@ -1603,8 +1603,6 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
 
   // step0: modify widgets
   gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
-  gtk_widget_set_sensitive (GTK_WIDGET (box_p), false);
-
   GtkAction* action_p =
     //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
     //                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
@@ -1612,6 +1610,16 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
   ACE_ASSERT (action_p);
   gtk_action_set_sensitive (action_p, true);
+  action_p =
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, true);
+  GtkFrame* frame_p =
+    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
+  ACE_ASSERT (frame_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
 
   // step1: set up progress reporting
   data_p->progressData.statistic = Stream_Statistic ();
@@ -1798,7 +1806,8 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
 
 error:
   gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_RECORD);
-  gtk_widget_set_sensitive (GTK_WIDGET (box_p), true);
+  gtk_action_set_sensitive (action_p, false);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 } // toggle_action_record_activate_cb
 void
 action_cut_activate_cb (GtkAction* action_in,
@@ -2068,8 +2077,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->streamConfiguration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2119,6 +2126,11 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (data_p->streamConfiguration);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
   if (FAILED (result))
@@ -2130,38 +2142,23 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   } // end IF
   ACE_ASSERT (media_type_p);
   media_type_p->subtype = GUID_i;
-  // *NOTE*: IAMStreamConfig::SetFormat fails if the pin is connected
-  //         --> use IGraphConfig::Reconnect
-  if (data_p->isFirst)
+
+  // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
+  //         the filter pins are associated. IGraphConfig::Reconnect fails
+  //         unless the graph is "disconnected" first
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
   {
-    result = data_p->streamConfiguration->SetFormat (media_type_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", returning\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error;
-    } // end IF
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
+    goto error;
   } // end IF
-  else
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+                                              *media_type_p))
   {
-    // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
-    //         the filter pins are associated. IGraphConfig::Reconnect fails
-    //         unless the graph is "disconnected" first
-    if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
-      goto error;
-    } // end IF
-    if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
-                                                *media_type_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
-      goto error;
-    } // end IF
-  } // end ELSE
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+    goto error;
+  } // end IF
   //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
@@ -2207,8 +2204,6 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->streamConfiguration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2286,6 +2281,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (data_p->streamConfiguration);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
   if (FAILED (result))
@@ -2312,22 +2312,35 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     video_info_header2_p->bmiHeader.biWidth = width;
     video_info_header2_p->bmiHeader.biHeight = height;
   } // end ELSE IF
-  result = data_p->streamConfiguration->SetFormat (media_type_p);
-  if (FAILED (result))
+
+  // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
+  //         the filter pins are associated. IGraphConfig::Reconnect fails
+  //         unless the graph is "disconnected" first
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    //DeleteMediaType (media_type_p);
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-
-    return;
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
+    goto error;
+  } // end IF
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+                                              *media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+    goto error;
   } // end IF
   //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
+  goto continue_;
+
+error:
+  //DeleteMediaType (media_type_p);
+  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  return;
+
+continue_:
   if (!load_rates (data_p->streamConfiguration,
                    GUID_i,
                    width,
@@ -2362,8 +2375,6 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->streamConfiguration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2391,6 +2402,11 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   g_value_unset (&value);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (data_p->streamConfiguration);
+  ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+
   AM_MEDIA_TYPE* media_type_p = NULL;
   HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
   if (FAILED (result))
@@ -2415,20 +2431,30 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
       (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
     video_info_header2_p->AvgTimePerFrame = frame_interval;
   } // end ELSE IF
-  result = data_p->streamConfiguration->SetFormat (media_type_p);
-  if (FAILED (result))
+
+  // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
+  //         the filter pins are associated. IGraphConfig::Reconnect fails
+  //         unless the graph is "disconnected" first
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    //DeleteMediaType (media_type_p);
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-
-    return;
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
+    goto error;
+  } // end IF
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+                                              *media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+    goto error;
   } // end IF
     //DeleteMediaType (media_type_p);
+  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  return;
+
+error:
+  //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 #endif
 } // combobox_rate_changed_cb

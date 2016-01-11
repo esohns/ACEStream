@@ -456,9 +456,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-do_initialize_directshow (const std::string& deviceName_in,
-                          ICaptureGraphBuilder2*& ICaptureGraphBuilder2_inout,
-                          IAMStreamConfig*& IAMStreamConfig_inout)
+do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
@@ -473,30 +471,21 @@ do_initialize_directshow (const std::string& deviceName_in,
 
   Stream_Module_Device_Tools::initialize ();
 
-  if (!Stream_Module_Device_Tools::load (deviceName_in,
-                                         ICaptureGraphBuilder2_inout,
-                                         IAMStreamConfig_inout))
+  // sanity check(s)
+  ACE_ASSERT (!IGraphBuilder_out);
+
+  if (!Stream_Module_Device_Tools::load (IGraphBuilder_out,
+                                         NULL))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
     return false;
   } // end IF
-  ACE_ASSERT (ICaptureGraphBuilder2_inout);
-  ACE_ASSERT (IAMStreamConfig_inout);
+  ACE_ASSERT (IGraphBuilder_out);
 
-  IGraphBuilder* builder_p = NULL;
-  HRESULT result = ICaptureGraphBuilder2_inout->GetFiltergraph (&builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (builder_p);
   IMediaFilter* media_filter_p = NULL;
-  result = builder_p->QueryInterface (IID_IMediaFilter,
-                                      (void**)&media_filter_p);
+  HRESULT result = IGraphBuilder_out->QueryInterface (IID_IMediaFilter,
+                                                      (void**)&media_filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -505,8 +494,6 @@ do_initialize_directshow (const std::string& deviceName_in,
     goto error;
   } // end IF
   ACE_ASSERT (media_filter_p);
-  builder_p->Release ();
-  builder_p = NULL;
   result = media_filter_p->SetSyncSource (NULL);
   if (FAILED (result))
   {
@@ -522,34 +509,24 @@ do_initialize_directshow (const std::string& deviceName_in,
 error:
   if (media_filter_p)
     media_filter_p->Release ();
-  if (builder_p)
-    builder_p->Release ();
-  ICaptureGraphBuilder2_inout->Release ();
-  ICaptureGraphBuilder2_inout = NULL;
-  IAMStreamConfig_inout->Release ();
-  IAMStreamConfig_inout = NULL;
+  IGraphBuilder_out->Release ();
+  IGraphBuilder_out = NULL;
 
   return false;
 }
 
 void
-do_finalize_directshow (Test_I_Source_GTK_CBData& CBData_in)
+do_finalize_directshow (Test_I_Target_GTK_CBData& CBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
 
-  HRESULT result = E_FAIL;
-  if (CBData_in.streamConfiguration)
-  {
-    CBData_in.streamConfiguration->Release ();
-    CBData_in.streamConfiguration = NULL;
-  } // end IF
   if (CBData_in.configuration->moduleHandlerConfiguration.builder)
   {
     CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
     CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
   } // end IF
 
-    //CoUninitialize ();
+  //CoUninitialize ();
 }
 #endif
 
@@ -589,9 +566,7 @@ do_work (unsigned int bufferSize_in,
   configuration.useReactor = useReactor_in;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
-                                 configuration.moduleHandlerConfiguration.builder,
-                                 CBData_in.streamConfiguration))
+  if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
@@ -602,10 +577,9 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
   ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
-  ACE_ASSERT (CBData_in.streamConfiguration);
 #endif
 
-  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<Test_I_Target_AllocatorConfiguration> heap_allocator;
   Test_I_Target_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                       &heap_allocator,     // heap allocator handle
                                                       true);               // block ?
@@ -614,6 +588,15 @@ do_work (unsigned int bufferSize_in,
   Test_I_GTK_CBData* cb_data_base_p = &CBData_in;
   cb_data_base_p->configuration = &configuration;
   Test_I_Stream_Target_EventHandler ui_event_handler (&CBData_in);
+  Common_TimerConfiguration timer_configuration;
+
+  Test_I_Target_InetConnectionManager_t* connection_manager_p =
+    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
+  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
+                                                       connection_manager_p,
+                                                       false);
+
   Test_I_Target_Stream_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                                  NULL,
                                                                  true);
@@ -628,10 +611,6 @@ do_work (unsigned int bufferSize_in,
   event_handler_p->initialize (&CBData_in.subscribers,
                                &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
-
-  Test_I_Target_InetConnectionManager_t* connection_manager_p =
-    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (connection_manager_p);
 
   // ********************** socket configuration data *************************
   configuration.socketConfiguration.peerAddress.set_port_number (listeningPortNumber_in,
@@ -722,12 +701,8 @@ do_work (unsigned int bufferSize_in,
   Common_Timer_Manager_t* timer_manager_p =
       COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
-  Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
-  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
-                                                       connection_manager_p,
-                                                       false);
   long timer_id = -1;
   if (statisticReportingInterval_in)
   {

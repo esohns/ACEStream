@@ -132,7 +132,6 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
 
       if (!initialize_DirectShow (configuration_->window,
                                   configuration_->area,
-                                  //ICaptureGraphBuilder2_,
                                   configuration_->builder,
                                   configuration_->windowController))
       {
@@ -172,11 +171,13 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
       //                   when the application is terminated. ..."
       if (IVideoWindow_)
       {
-        HRESULT result_2 = IVideoWindow_->put_Owner (NULL);
-        if (FAILED (result_2))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        // *TODO*: this call blocks indefinetly
+        //         --> needs to be called from somewhere else ?
+        //HRESULT result_2 = IVideoWindow_->put_Owner (NULL);
+        //if (FAILED (result_2))
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
+        //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         IVideoWindow_->Release ();
         IVideoWindow_ = NULL;
@@ -262,7 +263,7 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
                                SessionDataType,
                                SessionDataContainerType>::initialize_DirectShow (const HWND windowHandle_in,
                                                                                  const struct tagRECT& windowArea_in,
-                                                                                 ICaptureGraphBuilder2* ICaptureGraphBuilder2_in,
+                                                                                 IGraphBuilder* IGraphBuilder_in,
                                                                                  IVideoWindow*& IVideoWindow_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::initialize_DirectShow"));
@@ -275,22 +276,11 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
   } // end IF
 
     // sanity check(s)
-  ACE_ASSERT (ICaptureGraphBuilder2_in);
-
-  IGraphBuilder* builder_p = NULL;
-  HRESULT result = ICaptureGraphBuilder2_in->GetFiltergraph (&builder_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (builder_p);
+  ACE_ASSERT (IGraphBuilder_in);
 
   // retrieve interfaces for media control and the video window 
-  result = builder_p->QueryInterface (IID_IVideoWindow,
-                                      (void**)&IVideoWindow_out);
+  HRESULT result = IGraphBuilder_in->QueryInterface (IID_IVideoWindow,
+                                                     (void**)&IVideoWindow_out);
   if (FAILED (result))
     goto error;
 
@@ -301,13 +291,9 @@ error:
               ACE_TEXT ("failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
               ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-  // clean up
-  builder_p->Release ();
-
   return false;
 continue_:
   ACE_ASSERT (IVideoWindow_out);
-  builder_p->Release ();
 
   //result = IVideoWindow_out->put_Owner ((OAHWND)windowHandle_in);
   //if (FAILED (result))

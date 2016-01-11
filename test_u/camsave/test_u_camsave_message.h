@@ -54,7 +54,7 @@ class Stream_CamSave_Message
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
-  // *NOTE*: this uses our allocator (if any) to create a new message
+  // *NOTE*: uses the allocator (if any)
   virtual ACE_Message_Block* duplicate (void) const;
 
   // implement Stream_MessageBase_T

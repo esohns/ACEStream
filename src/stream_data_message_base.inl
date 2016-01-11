@@ -197,52 +197,69 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
-
   ACE_NOTREACHED (return;)
 }
 
-//template <typename DataType,
-//          typename CommandType>
-//ACE_Message_Block*
-//Stream_DataMessageBase_T<DataType,
-//                         CommandType>::duplicate (void) const
-//{
-//STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::duplicate"));
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+ACE_Message_Block*
+Stream_DataMessageBase_T<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::duplicate (void) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::duplicate"));
 
-//  own_type* new_message = NULL;
+  OWN_TYPE_T* message_p = NULL;
 
-//  // create a new <Stream_DataMessageBase_T> that contains unique copies of
-//  // the message block fields, but a reference counted duplicate of
-//  // the <ACE_Data_Block>.
+  // create a new Stream_MessageBase that contains unique copies of
+  // the message block fields, but a (reference counted) shallow duplicate of
+  // the ACE_Data_Block
 
-//  // if there is no allocator, use the standard new and delete calls.
-//  if (message_block_allocator_ == NULL)
-//    ACE_NEW_RETURN (new_message,
-//                    own_type (*this), // invoke copy ctor
-//                    NULL);
+  // if there is no allocator, use the standard new and delete calls.
+  if (inherited::message_block_allocator_ == NULL)
+    ACE_NEW_NORETURN (message_p,
+                      OWN_TYPE_T (*this));
+  else // otherwise, use the existing message_block_allocator
+  {
+    // *NOTE*: the argument to malloc SHOULDN'T really matter, as this will be
+    //         a "shallow" copy which just references the same data block...
+    ACE_NEW_MALLOC_NORETURN (message_p,
+                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                                                                                                    '\0')),
+                             OWN_TYPE_T (*this));
+  } // end ELSE
+  if (!message_p)
+  {
+    Stream_IAllocator* allocator_p =
+      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
+    ACE_ASSERT (allocator_p);
+    if (allocator_p->block ())
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate Stream_MessageBase_T: \"%m\", aborting\n")));
+    return NULL;
+  } // end IF
 
-//  ACE_NEW_MALLOC_RETURN (new_message,
-//                         static_cast<own_type*> (message_block_allocator_->malloc (capacity ())),
-//                         own_type (*this), // invoke copy ctor
-//                         NULL);
+    // increment the reference counts of any continuation messages
+  if (inherited::cont_)
+  {
+    message_p->cont_ = inherited::cont_->duplicate ();
+    if (!message_p->cont_)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MessageBase_T::duplicate(): \"%m\", aborting\n")));
 
-//  // increment the reference counts of all the continuation messages
-//  if (cont_)
-//  {
-//    new_message->cont_ = cont_->duplicate ();
+      // clean up
+      message_p->release ();
 
-//    // when things go wrong, release all resources and return
-//    if (new_message->cont_ == 0)
-//    {
-//      new_message->release ();
-//      new_message = NULL;
-//    } // end IF
-//  } // end IF
+      return NULL;
+    } // end IF
+  } // end IF
 
-//  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+    // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
-//  return new_message;
-//}
+  return message_p;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -282,8 +299,8 @@ template <typename AllocatorConfigurationType,
 Stream_DataMessageBase_2<AllocatorConfigurationType,
                          DataType,
                          CommandType>::Stream_DataMessageBase_2 (const Stream_DataMessageBase_2<AllocatorConfigurationType,
-                                                                 DataType,
-                                                                 CommandType>& message_in)
+                                                                                                DataType,
+                                                                                                CommandType>& message_in)
  : inherited (message_in)
  , data_ (NULL)
  , initialized_ (false)
@@ -471,45 +488,63 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
     //   inherited::dump_state ();
 }
 
-//template <typename DataType,
-//          typename CommandType>
-//ACE_Message_Block*
-//Stream_DataMessageBase_2<DataType,
-//                         CommandType>::duplicate (void) const
-//{
-//STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::duplicate"));
+template <typename AllocatorConfigurationType,
+          typename DataType,
+          typename CommandType>
+ACE_Message_Block*
+Stream_DataMessageBase_2<AllocatorConfigurationType,
+                         DataType,
+                         CommandType>::duplicate (void) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::duplicate"));
 
-//  own_type* new_message = NULL;
+  OWN_TYPE_T* message_p = NULL;
 
-//  // create a new <Stream_DataMessageBase_2> that contains unique copies of
-//  // the message block fields, but a reference counted duplicate of
-//  // the <ACE_Data_Block>.
+  // create a new Stream_MessageBase that contains unique copies of
+  // the message block fields, but a (reference counted) shallow duplicate of
+  // the ACE_Data_Block
 
-//  // if there is no allocator, use the standard new and delete calls.
-//  if (message_block_allocator_ == NULL)
-//    ACE_NEW_RETURN (new_message,
-//                    own_type (*this), // invoke copy ctor
-//                    NULL);
+  // if there is no allocator, use the standard new and delete calls.
+  if (inherited::message_block_allocator_ == NULL)
+    ACE_NEW_NORETURN (message_p,
+                      OWN_TYPE_T (*this));
+  else // otherwise, use the existing message_block_allocator
+  {
+    // *NOTE*: the argument to malloc SHOULDN'T really matter, as this will be
+    //         a "shallow" copy which just references the same data block...
+    ACE_NEW_MALLOC_NORETURN (message_p,
+                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                                                                                                    '\0')),
+                             OWN_TYPE_T (*this));
+  } // end ELSE
+  if (!message_p)
+  {
+    Stream_IAllocator* allocator_p =
+      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
+    ACE_ASSERT (allocator_p);
+    if (allocator_p->block ())
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate Stream_MessageBase_T: \"%m\", aborting\n")));
+    return NULL;
+  } // end IF
 
-//  ACE_NEW_MALLOC_RETURN (new_message,
-//                         static_cast<own_type*> (message_block_allocator_->malloc (capacity ())),
-//                         own_type (*this), // invoke copy ctor
-//                         NULL);
+    // increment the reference counts of any continuation messages
+  if (inherited::cont_)
+  {
+    message_p->cont_ = inherited::cont_->duplicate ();
+    if (!message_p->cont_)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MessageBase_T::duplicate(): \"%m\", aborting\n")));
 
-//  // increment the reference counts of all the continuation messages
-//  if (cont_)
-//  {
-//    new_message->cont_ = cont_->duplicate ();
+      // clean up
+      message_p->release ();
 
-//    // when things go wrong, release all resources and return
-//    if (new_message->cont_ == 0)
-//    {
-//      new_message->release ();
-//      new_message = NULL;
-//    } // end IF
-//  } // end IF
+      return NULL;
+    } // end IF
+  } // end IF
 
-//  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+    // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
-//  return new_message;
-//}
+  return message_p;
+}

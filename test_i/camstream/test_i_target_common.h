@@ -25,6 +25,8 @@
 #include "ace/os_include/sys/os_socket.h"
 #include "ace/Time_Value.h"
 
+#include "stream_dec_defines.h"
+
 #include "stream_dev_defines.h"
 
 #include "net_defines.h"
@@ -33,6 +35,9 @@
 #include "test_i_common.h"
 #include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
+
+// forward declarations
+class Test_I_Target_Stream_Message;
 
 struct Test_I_Target_Configuration;
 struct Test_I_Target_StreamConfiguration;
@@ -137,6 +142,7 @@ struct Test_I_Target_Stream_SessionData
   inline Test_I_Target_Stream_SessionData ()
    : Test_I_Stream_SessionData ()
    , connectionState (NULL)
+   , frameSize (0)
    , targetFileName ()
    , userData (NULL)
   {};
@@ -146,6 +152,7 @@ struct Test_I_Target_Stream_SessionData
     Test_I_Stream_SessionData::operator+= (rhs_in);
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
+    frameSize = rhs_in.frameSize;
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);
     userData = (userData ? userData : rhs_in.userData);
@@ -154,6 +161,7 @@ struct Test_I_Target_Stream_SessionData
   }
 
   Test_I_Target_ConnectionState* connectionState;
+  unsigned int                   frameSize;
   std::string                    targetFileName;
   Test_I_Target_UserData*        userData;
 };
@@ -213,13 +221,24 @@ struct Test_I_Target_Configuration
   Test_I_Target_UserData                          userData;
 };
 
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+struct Test_I_Target_AllocatorConfiguration
+ : Stream_AllocatorConfiguration
+{
+  inline Test_I_Target_AllocatorConfiguration ()
+   : Stream_AllocatorConfiguration ()
+  {
+    // *NOTE*: this facilitates (message block) data buffers to be scanned with
+    //         'flex's yy_scan_buffer() method
+    buffer = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
+  };
+};
+typedef Stream_MessageAllocatorHeapBase_T<Test_I_Target_AllocatorConfiguration,
 
-                                          Test_I_Stream_Message,
+                                          Test_I_Target_Stream_Message,
                                           Test_I_Target_Stream_SessionMessage> Test_I_Target_MessageAllocator_t;
 
 typedef Common_INotify_T<Test_I_Target_Stream_SessionData,
-                         Test_I_Stream_Message,
+                         Test_I_Target_Stream_Message,
                          Test_I_Target_Stream_SessionMessage> Test_I_Target_IStreamNotify_t;
 typedef std::list<Test_I_Target_IStreamNotify_t*> Test_I_Target_Subscribers_t;
 typedef Test_I_Target_Subscribers_t::iterator Test_I_Target_SubscribersIterator_t;

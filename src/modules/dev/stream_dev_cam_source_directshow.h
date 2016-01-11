@@ -131,9 +131,9 @@ class Stream_Dev_Cam_Source_DirectShow_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T& operator= (const Stream_Dev_Cam_Source_DirectShow_T&))
 
   // helper methods
-  bool initialize_DirectShow (const std::string&,     // (source) device name (FriendlyName)
-                              ICaptureGraphBuilder2*, // capture graph handle
-                              const HWND);            // (target) window handle [NULL: NullRenderer]
+  bool initialize_DirectShow (const std::string&, // (source) device name (FriendlyName)
+                              IGraphBuilder*,     // capture graph handle
+                              const HWND);        // (target) window handle [NULL: NullRenderer]
 
   virtual int svc (void);
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size

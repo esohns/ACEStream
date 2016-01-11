@@ -60,7 +60,7 @@ class Test_I_Target_Stream
                         Test_I_Target_Stream_SessionData,   // session data
                         Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
                         Test_I_Target_Stream_SessionMessage,
-                        Test_I_Stream_Message>
+                        Test_I_Target_Stream_Message>
 {
  public:
   Test_I_Target_Stream (const std::string&); // name
@@ -96,7 +96,7 @@ class Test_I_Target_Stream
                         Test_I_Target_Stream_SessionData,   // session data
                         Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
                         Test_I_Target_Stream_SessionMessage,
-                        Test_I_Stream_Message> inherited;
+                        Test_I_Target_Stream_Message> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
@@ -104,7 +104,8 @@ class Test_I_Target_Stream
 
   // modules
   Test_I_Target_Stream_Module_Net_IO_Module           source_;
-  Test_I_Stream_Module_DirectShowSource_Module        directShowSource_;
+  //Test_I_Stream_Module_DirectShowSource_Module        directShowSource_;
+  Test_I_Target_Stream_Module_AVIDecoder_Module       decoder_;
   Test_I_Target_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
   Test_I_Stream_Module_Display_Module                 display_;
 };

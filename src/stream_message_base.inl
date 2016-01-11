@@ -19,29 +19,32 @@
  ***************************************************************************/
 
 #include "ace/Log_Msg.h"
-#include "ace/Malloc_Base.h"
 
 #include "stream_macros.h"
 
 // initialize statics
-template <typename AllocatorConfigurationType>
+template <typename AllocatorConfigurationType,
+          typename CommandType>
 ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long>
-Stream_MessageBase_T<AllocatorConfigurationType>::currentID = 0;
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::currentID = 0;
 
-template <typename AllocatorConfigurationType>
-Stream_MessageBase_T<AllocatorConfigurationType>::Stream_MessageBase_T ()
-  : inherited (0,
-               STREAM_MESSAGE_OBJECT,
-               NULL,
-               NULL,
-               NULL,
-               NULL,
-               ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
-               ACE_Time_Value::zero,
-               ACE_Time_Value::max_time,
-               NULL,
-               NULL)
-  , messageID_ (0)
+template <typename AllocatorConfigurationType,
+          typename CommandType>
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::Stream_MessageBase_T ()
+ : inherited (0,
+              STREAM_MESSAGE_OBJECT,
+              NULL,
+              NULL,
+              NULL,
+              NULL,
+              ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
+              ACE_Time_Value::zero,
+              ACE_Time_Value::max_time,
+              NULL,
+              NULL)
+ , messageID_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -49,20 +52,22 @@ Stream_MessageBase_T<AllocatorConfigurationType>::Stream_MessageBase_T ()
   messageID_ = currentID.value ();
 }
 
-template <typename AllocatorConfigurationType>
-Stream_MessageBase_T<AllocatorConfigurationType>::Stream_MessageBase_T (unsigned int requestedSize_in)
-  : inherited (requestedSize_in,
-               ACE_Message_Block::MB_DATA,
-               NULL,
-               NULL,
-               NULL,
-               NULL,
-               ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
-               ACE_Time_Value::zero,
-               ACE_Time_Value::max_time,
-               NULL,
-               NULL)
-  , messageID_ (0)
+template <typename AllocatorConfigurationType,
+          typename CommandType>
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::Stream_MessageBase_T (unsigned int requestedSize_in)
+ : inherited (requestedSize_in,
+              ACE_Message_Block::MB_DATA,
+              NULL,
+              NULL,
+              NULL,
+              NULL,
+              ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
+              ACE_Time_Value::zero,
+              ACE_Time_Value::max_time,
+              NULL,
+              NULL)
+ , messageID_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -70,29 +75,34 @@ Stream_MessageBase_T<AllocatorConfigurationType>::Stream_MessageBase_T (unsigned
   messageID_ = currentID.value ();
 }
 
-// *NOTE*: this is implicitly invoked by duplicate() as well...
-template <typename AllocatorConfigurationType>
-Stream_MessageBase_T<AllocatorConfigurationType>::Stream_MessageBase_T (const Stream_MessageBase_T<AllocatorConfigurationType>& message_in)
-  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of
-                                                     // the data block
-               0,                                    // "own" the duplicate
-               message_in.message_block_allocator_)  // message allocator
-  , messageID_ (message_in.messageID_)
+// *NOTE*: implicitly invoked by duplicate()
+template <typename AllocatorConfigurationType,
+          typename CommandType>
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::Stream_MessageBase_T (const Stream_MessageBase_T<AllocatorConfigurationType,
+                                                                                    CommandType>& message_in)
+ : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of
+                                                    // the data block
+              0,                                    // "own" the duplicate
+              message_in.message_block_allocator_)  // message allocator
+ , messageID_ (message_in.messageID_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
   // set read/write pointers
-  rd_ptr (message_in.rd_ptr ());
-  wr_ptr (message_in.wr_ptr ());
+  inherited::rd_ptr (message_in.rd_ptr ());
+  inherited::wr_ptr (message_in.wr_ptr ());
 }
 
-template <typename AllocatorConfigurationType>
-Stream_MessageBase_T<AllocatorConfigurationType>::Stream_MessageBase_T (ACE_Data_Block* dataBlock_in,
-                                                                        ACE_Allocator* messageAllocator_in,
-                                                                        bool incrementMessageCounter_in)
-  : inherited (dataBlock_in,        // use (don't own (!) memory of-) data block
-               0,                   // flags --> also "free" data block in dtor
-               messageAllocator_in) // re-use the same allocator
+template <typename AllocatorConfigurationType,
+          typename CommandType>
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::Stream_MessageBase_T (ACE_Data_Block* dataBlock_in,
+                                                         ACE_Allocator* messageAllocator_in,
+                                                         bool incrementMessageCounter_in)
+ : inherited (dataBlock_in,        // use (don't own (!) memory of-) data block
+              0,                   // flags --> also "free" data block in dtor
+              messageAllocator_in) // re-use the same allocator
 // , messageID_ (++currentID.value ())
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
@@ -105,22 +115,26 @@ Stream_MessageBase_T<AllocatorConfigurationType>::Stream_MessageBase_T (ACE_Data
   inherited::msg_type (STREAM_MESSAGE_DATA);
 
   // reset read/write pointers
-  reset ();
+  inherited::reset ();
 }
 
-template <typename AllocatorConfigurationType>
-Stream_MessageBase_T<AllocatorConfigurationType>::Stream_MessageBase_T (ACE_Allocator* messageAllocator_in)
+template <typename AllocatorConfigurationType,
+          typename CommandType>
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::Stream_MessageBase_T (ACE_Allocator* messageAllocator_in)
   : inherited (messageAllocator_in) // re-use the same allocator
   , messageID_ (++currentID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
   // reset read/write pointers
-  reset ();
+  inherited::reset ();
 }
 
-template <typename AllocatorConfigurationType>
-Stream_MessageBase_T<AllocatorConfigurationType>::~Stream_MessageBase_T ()
+template <typename AllocatorConfigurationType,
+          typename CommandType>
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::~Stream_MessageBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::~Stream_MessageBase_T"));
 
@@ -129,16 +143,22 @@ Stream_MessageBase_T<AllocatorConfigurationType>::~Stream_MessageBase_T ()
   //   ACE_DEBUG((LM_DEBUG,
   //              ACE_TEXT ("freeing message (ID: %d)...\n"),
   //              messageID_));
+
+  // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
+  //                   (see e.g. stream_cachedmessageallocator.cpp:172)
+  inherited::priority_ = std::numeric_limits<unsigned long>::max ();
 }
 
-template <typename AllocatorConfigurationType>
+template <typename AllocatorConfigurationType,
+          typename CommandType>
 void
-Stream_MessageBase_T<AllocatorConfigurationType>::initialize (ACE_Data_Block* dataBlock_in)
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::initialize (ACE_Data_Block* dataBlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::initialize"));
 
   // set data block
-  data_block (dataBlock_in);
+  inherited::data_block (dataBlock_in);
 
   // set correct (?) message type
   inherited::msg_type (STREAM_MESSAGE_DATA);
@@ -147,26 +167,46 @@ Stream_MessageBase_T<AllocatorConfigurationType>::initialize (ACE_Data_Block* da
   //msg_execution_time ();
 }
 
-template <typename AllocatorConfigurationType>
+template <typename AllocatorConfigurationType,
+          typename CommandType>
 unsigned int
-Stream_MessageBase_T<AllocatorConfigurationType>::getID () const
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::getID () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::getID"));
 
   return messageID_;
 }
 
-//int
-//Stream_MessageBase_T::getCommand () const
-//{
-//STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::getCommand"));
+// partial specialization
+template <typename AllocatorConfigurationType,
+          typename CommandType>
+CommandType
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::command () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::command"));
 
-//  return inherited::msg_type ();
-//}
+  return static_cast<CommandType> (ACE_Message_Block::MB_DATA);
+}
+template <typename AllocatorConfigurationType,
+          typename CommandType>
+std::string
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::CommandType2String (CommandType type_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::CommandType2String"));
 
-template <typename AllocatorConfigurationType>
+  ACE_UNUSED_ARG (type_in);
+
+  return ACE_TEXT_ALWAYS_CHAR ("");
+}
+
+template <typename AllocatorConfigurationType,
+          typename CommandType>
 ACE_Message_Block*
-Stream_MessageBase_T<AllocatorConfigurationType>::duplicate (void) const
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::duplicate"));
 
@@ -221,9 +261,11 @@ Stream_MessageBase_T<AllocatorConfigurationType>::duplicate (void) const
   return message_p;
 }
 
-template <typename AllocatorConfigurationType>
+template <typename AllocatorConfigurationType,
+          typename CommandType>
 void
-Stream_MessageBase_T<AllocatorConfigurationType>::dump_state () const
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::dump_state"));
 
@@ -232,9 +274,11 @@ Stream_MessageBase_T<AllocatorConfigurationType>::dump_state () const
               getID ()));
 }
 
-template <typename AllocatorConfigurationType>
+template <typename AllocatorConfigurationType,
+          typename CommandType>
 void
-Stream_MessageBase_T<AllocatorConfigurationType>::resetMessageIDGenerator ()
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::resetMessageIDGenerator ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::resetIDGenerator"));
 
@@ -300,6 +344,10 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 
   // *NOTE*: will be called just BEFORE this is passed back to the allocator
 
+  // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
+  //                   (see e.g. stream_cachedmessageallocator.cpp:172)
+  inherited::priority_ = std::numeric_limits<unsigned long>::max ();
+
   // clean up
   isInitialized_ = false;
 }
@@ -314,10 +362,10 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::initialize"));
 
-  // sanity check: shouldn't be initialized...
+  // sanity check(s)
   ACE_ASSERT (!isInitialized_);
 
-  // init base class...
+  // initialize base class
   inherited::initialize (dataBlock_in);
 
   isInitialized_ = true;

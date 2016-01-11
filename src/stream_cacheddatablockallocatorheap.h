@@ -21,17 +21,19 @@
 #ifndef STREAM_CACHEDDATABLOCKALLOCATORHEAP_H
 #define STREAM_CACHEDDATABLOCKALLOCATORHEAP_H
 
+#include "ace/Global_Macros.h"
+#include "ace/Lock_Adapter_T.h"
+#include "ace/Malloc_Base.h"
 #include "ace/Malloc_T.h"
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
-#include "ace/Lock_Adapter_T.h"
 
 #include "stream_exports.h"
 #include "stream_iallocator.h"
 
 class Stream_Export Stream_CachedDataBlockAllocatorHeap
- : public ACE_Cached_Allocator<ACE_Data_Block, ACE_SYNCH_MUTEX>,
-   public Stream_IAllocator
+ : public ACE_Cached_Allocator<ACE_Data_Block, ACE_SYNCH_MUTEX>
+ , public Stream_IAllocator
 {
  public:
   Stream_CachedDataBlockAllocatorHeap (unsigned int,    // number of chunks
@@ -45,7 +47,7 @@ class Stream_Export Stream_CachedDataBlockAllocatorHeap
   // *NOTE*: frees an ACE_Data_Block...
   virtual void free (void*); // element handle
   virtual size_t cache_depth () const; // return value: #bytes allocated
-  virtual size_t cache_size () const;  // return value: #inflight ACE_Data_Blocks
+  virtual size_t cache_size () const;  // return value: #in-flight data blocks
 
   // *NOTE*: returns a pointer to ACE_Data_Block...
   virtual void* calloc (size_t,       // bytes
@@ -54,18 +56,19 @@ class Stream_Export Stream_CachedDataBlockAllocatorHeap
   // convenience types
   // *NOTE*: serialize access to ACE_Data_Block reference count which may
   // be decremented from multiple threads...
-  typedef ACE_Lock_Adapter<ACE_Thread_Mutex> DATABLOCK_LOCK_TYPE;
+  typedef ACE_Lock_Adapter<ACE_SYNCH_MUTEX> DATABLOCK_LOCK_TYPE;
 
   // locking
-  // *NOTE*: currently, ALL data blocks use one static lock (OK for stream usage)...
-  // *TODO*: consider using a lock-per-message strategy...
+  // *NOTE*: currently, ALL data blocks use one static lock, this is OK for most
+  //         scenarios)
+  // *TODO*: implement lock-per-message/session strategies
   static DATABLOCK_LOCK_TYPE referenceCountLock_;
 
  private:
   typedef ACE_Cached_Allocator<ACE_Data_Block, ACE_SYNCH_MUTEX> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap (const Stream_CachedDataBlockAllocatorHeap&));
-  ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap& operator= (const Stream_CachedDataBlockAllocatorHeap&));
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap (const Stream_CachedDataBlockAllocatorHeap&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap& operator= (const Stream_CachedDataBlockAllocatorHeap&))
 
   ACE_Allocator*             heapAllocator_;
   unsigned int               poolSize_;
