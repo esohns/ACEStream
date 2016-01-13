@@ -141,7 +141,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   // *TODO*: remove type inferences
   session_data_r.sessionID =
     ++Stream_CamSave_Stream::currentSessionID;
-  session_data_r.size = 0;
+//  session_data_r.size = 0;
   session_data_r.targetFileName =
     configuration_in.moduleHandlerConfiguration_2.targetFileName;
 

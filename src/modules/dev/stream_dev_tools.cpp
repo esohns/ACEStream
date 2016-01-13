@@ -21,7 +21,7 @@
 
 #include "stream_dev_tools.h"
 
-#include "ace/Log_Msg.h"
+#include <sstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "dshow.h"
@@ -51,7 +51,6 @@ Stream_Module_Device_Tools::initialize ()
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::initialize"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-
   Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Video, ACE_TEXT_ALWAYS_CHAR ("vids")));
   Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Audio, ACE_TEXT_ALWAYS_CHAR ("auds")));
   Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Text, ACE_TEXT_ALWAYS_CHAR ("txts")));
@@ -1252,7 +1251,7 @@ Stream_Module_Device_Tools::disconnect (IGraphBuilder* builder_in)
           return false;
         } // end IF
         pin_2->Release ();
-      
+
         result = pin_p->Disconnect ();
         if (FAILED (result))
         {
@@ -1385,7 +1384,7 @@ Stream_Module_Device_Tools::getFormat (IGraphBuilder* builder_in,
                 ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-    // clean up   
+    // clean up
     filter_p->Release ();
 
     return false;
@@ -2091,5 +2090,367 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
 
   return result;
 }
+#else
+bool
+Stream_Module_Device_Tools::canOverlay (int fd_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::canOverlay"));
 
+  int result = -1;
+
+  struct v4l2_capability device_capabilities;
+  ACE_OS::memset (&device_capabilities, 0, sizeof (struct v4l2_capability));
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_QUERYCAP,
+                       &device_capabilities);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_QUERYCAP")));
+    return false;
+  } // end IF
+
+  return (device_capabilities.device_caps & V4L2_CAP_VIDEO_OVERLAY);
+}
+bool
+Stream_Module_Device_Tools::canStream (int fd_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::canStream"));
+
+  int result = -1;
+
+  struct v4l2_capability device_capabilities;
+  ACE_OS::memset (&device_capabilities, 0, sizeof (struct v4l2_capability));
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_QUERYCAP,
+                       &device_capabilities);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_QUERYCAP")));
+    return false;
+  } // end IF
+
+  return (device_capabilities.device_caps & V4L2_CAP_STREAMING);
+}
+void
+Stream_Module_Device_Tools::dump (int fd_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::dump"));
+
+  int result = -1;
+
+  // sanity check(s)
+  struct v4l2_capability device_capabilities;
+  ACE_OS::memset (&device_capabilities, 0, sizeof (struct v4l2_capability));
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_QUERYCAP,
+                       &device_capabilities);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", returning\n"),
+                fd_in, ACE_TEXT ("VIDIOC_QUERYCAP")));
+    return;
+  } // end IF
+  std::ostringstream converter;
+  converter << ((device_capabilities.version >> 16) & 0xFF)
+            << '.'
+            << ((device_capabilities.version >> 8) & 0xFF)
+            << '.'
+            << (device_capabilities.version & 0xFF);
+  ACE_DEBUG ((LM_INFO,
+              ACE_TEXT ("device file descriptor: %d\n---------------------------\ndriver: \"%s\"\ncard: \"%s\"\nbus: \"%s\"\nversion: \"%s\"\ncapabilities: %u\ndevice capabilities: %u\nreserved: %u|%u|%u\n"),
+              fd_in,
+              ACE_TEXT (device_capabilities.driver),
+              ACE_TEXT (device_capabilities.card),
+              ACE_TEXT (device_capabilities.bus_info),
+              ACE_TEXT (converter.str ().c_str ()),
+              device_capabilities.capabilities,
+              device_capabilities.device_caps,
+              device_capabilities.reserved[0],device_capabilities.reserved[1],device_capabilities.reserved[2]));
+}
+bool
+Stream_Module_Device_Tools::initializeCapture (int fd_in,
+                                               v4l2_memory method_in,
+                                               __u32& numberOfBuffers_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::initializeCapture"));
+
+  int result = -1;
+
+  // sanity check(s)
+  ACE_ASSERT (Stream_Module_Device_Tools::canStream (fd_in));
+
+  struct v4l2_requestbuffers request_buffers;
+  ACE_OS::memset (&request_buffers, 0, sizeof (struct v4l2_requestbuffers));
+  request_buffers.count = numberOfBuffers_inout;
+  request_buffers.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  request_buffers.memory = method_in;
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_REQBUFS,
+                       &request_buffers);
+  if (result == -1)
+  {
+    int error = ACE_OS::last_error ();
+    if (error != EINVAL) // 22
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                  fd_in, ACE_TEXT ("VIDIOC_REQBUFS")));
+      return false;
+    } // end IF
+    goto no_support;
+  } // end IF
+  numberOfBuffers_inout = request_buffers.count;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("allocated %d device buffer slots...\n"),
+              numberOfBuffers_inout));
+
+  return true;
+
+no_support:
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("device (fd was: %d) does not support streaming method (was: %d), aborting\n"),
+              fd_in, method_in));
+
+  return false;
+}
+bool
+Stream_Module_Device_Tools::initializeOverlay (int fd_in,
+                                               const struct v4l2_window& window_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::initializeOverlay"));
+
+  int result = -1;
+
+  // sanity check(s)
+  ACE_ASSERT (Stream_Module_Device_Tools::canOverlay (fd_in));
+
+  // step1: set up frame-buffer (if necessary)
+  struct v4l2_framebuffer framebuffer;
+  ACE_OS::memset (&framebuffer, 0, sizeof (struct v4l2_framebuffer));
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_G_FBUF,
+                       &framebuffer);
+  if (result == -1)
+  {
+    int error = ACE_OS::last_error ();
+    if (error != EINVAL) // 22
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                  fd_in, ACE_TEXT ("VIDIOC_G_FBUF")));
+      return false;
+    } // end IF
+    goto no_support;
+  } //IF end
+
+  // *TODO*: configure frame-buffer options
+
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_S_FBUF,
+                       &framebuffer);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_S_FBUF")));
+    goto error;
+  } //
+
+  // step2: set up output format / overlay window
+  struct v4l2_format format;
+  ACE_OS::memset (&format, 0, sizeof (struct v4l2_format));
+
+  format.type = V4L2_BUF_TYPE_VIDEO_OVERLAY;
+  format.fmt.win = window_in;
+  // *TODO*: configure format options
+
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_S_FMT,
+                       &format);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_S_FMT")));
+    goto error;
+  } //
+  // *TODO*: verify that format now contains the requested configuration
+
+  return true;
+
+no_support:
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("device (was: %d) does not support overlays, aborting\n"),
+              fd_in));
+error:
+  return false;
+}
+
+bool
+Stream_Module_Device_Tools::setFormat (int fd_in,
+                                       __u32 format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (fd_in != -1);
+
+  int result = -1;
+  struct v4l2_format format;
+  ACE_OS::memset (&format, 0, sizeof (struct v4l2_format));
+  format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_G_FMT,
+                       &format);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_G_FMT")));
+    return false;
+  } // end IF
+//  ACE_ASSERT (format.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+  format.fmt.pix.pixelformat = format_in;
+
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_S_FMT,
+                       &format);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_S_FMT")));
+    return false;
+  } // end IF
+
+  return true;
+}
+bool
+Stream_Module_Device_Tools::getFormat (int fd_in,
+                                       struct v4l2_format& format_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (fd_in != -1);
+
+  int result = -1;
+  ACE_OS::memset (&format_out, 0, sizeof (struct v4l2_format));
+  format_out.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_G_FMT,
+                       &format_out);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_G_FMT")));
+    return false;
+  } // end IF
+//  ACE_ASSERT (format_out.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+
+  return true;
+}
+bool
+Stream_Module_Device_Tools::setResolution (int fd_in,
+                                           unsigned int width_in,
+                                           unsigned int height_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setResolution"));
+
+  // sanity check(s)
+  ACE_ASSERT (fd_in != -1);
+
+  int result = -1;
+  struct v4l2_format format;
+  ACE_OS::memset (&format, 0, sizeof (struct v4l2_format));
+  format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_G_FMT,
+                       &format);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_G_FMT")));
+    return false;
+  } // end IF
+//  ACE_ASSERT (format.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+  format.fmt.pix.width = width_in;
+  format.fmt.pix.height = height_in;
+
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_S_FMT,
+                       &format);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_S_FMT")));
+    return false;
+  } // end IF
+
+  return true;
+}
+bool
+Stream_Module_Device_Tools::setInterval (int fd_in,
+                                         const struct v4l2_fract& interval_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setInterval"));
+
+  // sanity check(s)
+  ACE_ASSERT (fd_in != -1);
+
+  int result = -1;
+  struct v4l2_streamparm stream_parameters;
+  ACE_OS::memset (&stream_parameters, 0, sizeof (struct v4l2_streamparm));
+  stream_parameters.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_G_PARM,
+                       &stream_parameters);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_G_PARM")));
+    return false;
+  } // end IF
+  ACE_ASSERT (stream_parameters.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+  if ((stream_parameters.parm.capture.capability & V4L2_CAP_TIMEPERFRAME) == 0)
+    goto no_support;
+  stream_parameters.parm.capture.timeperframe = interval_in;
+
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_S_PARM,
+                       &stream_parameters);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_S_PARM")));
+    return false;
+  } // end IF
+
+  return true;
+
+no_support:
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("the capture driver does not support frame interval settings, aborting\n")));
+  return false;
+}
+
+std::string
+Stream_Module_Device_Tools::formatToString (uint32_t format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::formatToString"));
+
+  std::string result;
+
+  return result;
+}
 #endif

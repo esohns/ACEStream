@@ -19,8 +19,15 @@
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER   L"Null Renderer"
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER  L"Video Renderer"
 
-// user-defined message to notify applications of filtergraph events 
+// user-defined message to notify applications of filtergraph events
 #define MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY           WM_APP + 1
+#else
+#define MODULE_DEV_DEVICE_DIRECTORY                      "/dev"
+#define MODULE_DEV_DEFAULT_VIDEO_DEVICE                  "video0"
+
+// *NOTE*: (on Linux,) my laptop camera buffers 32 frames...
+#define MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS        100
+#define MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD             V4L2_MEMORY_USERPTR
 #endif
 
 #endif

@@ -103,7 +103,7 @@ class Stream_HeadModuleTaskBase_T
   virtual bool initialize (const StreamStateType&);
 
  protected:
-  Stream_HeadModuleTaskBase_T (LockType*,    // lock handle
+  Stream_HeadModuleTaskBase_T (LockType*,    // lock handle (state machine)
                                //////////
                                bool = false, // active object ?
                                bool = false, // auto-start ?

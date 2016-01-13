@@ -36,8 +36,11 @@ else ()
 endif ()
 
 include (FindPkgConfig)
-#pkg_check_modules (PKG_ACE REQUIRED ACE)
-pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
+if (UNIX)
+ #pkg_check_modules (PKG_ACE REQUIRED ACE)
+ pkg_check_modules (PKG_V4L REQUIRED libv4l2)
+ pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
+endif ()
 
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -79,6 +82,7 @@ endif ()
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
+ include_directories (${PKG_V4L_INCLUDE_DIRS})
  include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
@@ -149,6 +153,7 @@ add_executable (camsource ${camsource_EXE_SRCS} etc/resources.rc etc/source.glad
 target_link_libraries (camsource ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (camsource ${ACE_LIBRARY})
 if (UNIX)
+ target_link_libraries (camsource ${PKG_V4L_LIBRARIES})
  target_link_libraries (camsource ${PKG_GTK_GLADE_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (camsource strmiids.lib)
@@ -221,6 +226,7 @@ add_executable (camtarget ${camtarget_EXE_SRCS} etc/resources.rc etc/target.glad
 target_link_libraries (camtarget ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (camtarget ${ACE_LIBRARY})
 if (UNIX)
+ target_link_libraries (camtarget ${PKG_V4L_LIBRARIES})
  target_link_libraries (camtarget ${PKG_GTK_GLADE_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (camtarget strmiids.lib)

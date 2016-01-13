@@ -78,6 +78,8 @@ Stream_CamSave_EventHandler::notify (const Stream_CamSave_SessionMessage& sessio
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::notify"));
 
+  int result = -1;
+
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
@@ -88,7 +90,7 @@ Stream_CamSave_EventHandler::notify (const Stream_CamSave_SessionMessage& sessio
   {
     case STREAM_SESSION_STATISTIC:
     {
-      int result = -1;
+      float current_bytes = 0.0F;
 
       // sanity check(s)
       if (!sessionData_)
@@ -104,7 +106,7 @@ Stream_CamSave_EventHandler::notify (const Stream_CamSave_SessionMessage& sessio
 
       // *NOTE*: the byte counter is more current than what is received here
       //         (see above) --> do not update
-      float current_bytes = CBData_->progressData.statistic.bytes;
+      current_bytes = CBData_->progressData.statistic.bytes;
       CBData_->progressData.statistic = sessionData_->currentStatistic;
       CBData_->progressData.statistic.bytes = current_bytes;
 

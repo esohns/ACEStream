@@ -45,8 +45,8 @@ class Test_I_Source_Stream_SessionMessage
 {
   // grant access to specific private ctors...
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-  
-                                                 Test_I_Stream_Message,
+
+                                                 Test_I_Source_Stream_Message,
                                                  Test_I_Source_Stream_SessionMessage>;
 
  public:

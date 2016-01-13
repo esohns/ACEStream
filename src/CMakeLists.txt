@@ -109,12 +109,12 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_datablockallocatorheap.h
      stream_datablockallocatorheap.inl
      stream_defines.h
-     stream_directshow_allocator_base.cpp
-     stream_directshow_allocator_base.h
-     stream_directshow_allocator_base.inl
-     stream_directshow_message_base.cpp
-     stream_directshow_message_base.h
-     stream_directshow_message_base.inl
+#     stream_directshow_allocator_base.cpp
+#     stream_directshow_allocator_base.h
+#     stream_directshow_allocator_base.inl
+#     stream_directshow_message_base.cpp
+#     stream_directshow_message_base.h
+#     stream_directshow_message_base.inl
      stream_exports.h
      stream_headmoduletask_base.cpp
      stream_headmoduletask_base.h
@@ -209,10 +209,10 @@ install (FILES
          stream_datablockallocatorheap.h
          stream_datablockallocatorheap.inl
          stream_defines.h
-         stream_directshow_allocator_base.h
-         stream_directshow_allocator_base.inl
-         stream_directshow_message_base.h
-         stream_directshow_message_base.inl
+#         stream_directshow_allocator_base.h
+#         stream_directshow_allocator_base.inl
+#         stream_directshow_message_base.h
+#         stream_directshow_message_base.inl
          stream_exports.h
          stream_headmoduletask_base.h
          stream_headmoduletask_base.inl

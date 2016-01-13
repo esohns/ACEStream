@@ -66,8 +66,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
  , public ISampleGrabberCB
 {
  public:
-  Stream_Dev_Cam_Source_DirectShow_T (bool = false,  // active object ?
-                                      bool = false); // auto-start ?
+  Stream_Dev_Cam_Source_DirectShow_T ();
   virtual ~Stream_Dev_Cam_Source_DirectShow_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -109,8 +108,8 @@ class Stream_Dev_Cam_Source_DirectShow_T
   virtual ULONG STDMETHODCALLTYPE AddRef ();
   virtual ULONG STDMETHODCALLTYPE Release ();
 
-  virtual void upStream (Stream_Base_t*);
-  virtual Stream_Base_t* upStream () const;
+//  virtual void upStream (Stream_Base_t*);
+//  virtual Stream_Base_t* upStream () const;
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
@@ -134,8 +133,6 @@ class Stream_Dev_Cam_Source_DirectShow_T
   bool initialize_DirectShow (const std::string&, // (source) device name (FriendlyName)
                               IGraphBuilder*,     // capture graph handle
                               const HWND);        // (target) window handle [NULL: NullRenderer]
-
-  virtual int svc (void);
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 

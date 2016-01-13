@@ -556,6 +556,8 @@ do_work (unsigned int bufferSize_in,
     &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
 
+  CBData_in.configuration = &configuration;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
                                  configuration.moduleHandlerConfiguration.builder,
@@ -578,13 +580,19 @@ do_work (unsigned int bufferSize_in,
                                                       &heap_allocator,     // heap allocator handle
                                                       true);               // block ?
 
-  CBData_in.configuration = &configuration;
+  int result = -1;
   Test_I_Stream_Source_EventHandler ui_event_handler (&CBData_in);
   Test_I_Source_Stream_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                                  NULL,
                                                                  true);
   Test_I_Source_Stream_Module_EventHandler* event_handler_p = NULL;
   Common_TimerConfiguration timer_configuration;
+  Common_Timer_Manager_t* timer_manager_p =
+      COMMON_TIMERMANAGER_SINGLETON::instance ();
+    ACE_ASSERT (timer_manager_p);
+  long timer_id = -1;
+  int group_id = -1;
+
   Test_I_Source_InetConnectionManager_t* connection_manager_p =
     TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
@@ -608,7 +616,7 @@ do_work (unsigned int bufferSize_in,
   event_handler_p->subscribe (&ui_event_handler);
 
   // *********************** socket configuration data ************************
-  int result =
+  result =
     configuration.socketConfiguration.peerAddress.set (port_in,
                                                        hostName_in.c_str (),
                                                        1,
@@ -685,12 +693,8 @@ do_work (unsigned int bufferSize_in,
                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting
-  Common_Timer_Manager_t* timer_manager_p =
-    COMMON_TIMERMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
-  long timer_id = -1;
   if (statisticReportingInterval_in)
   {
     ACE_Event_Handler* handler_p = &statistic_handler;
@@ -770,7 +774,6 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step1b: initialize worker(s)
-  int group_id = -1;
   if (!Common_Tools::startEventDispatch (&useReactor_in,
                                          numberOfDispatchThreads_in,
                                          group_id))

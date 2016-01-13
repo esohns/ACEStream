@@ -52,13 +52,23 @@
 #ifndef STREAM_DEC_AVI_PARSER_H
 #define STREAM_DEC_AVI_PARSER_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/config-lite.h"
 
 #include "dshow.h"
+#else
+#include <cstdint>
+
+#define MAKEFOURCC(a, b, c, d) ((uint32_t)(a << 24)|(uint32_t)(b << 16)|(uint32_t)(c << 8)|(uint32_t)(d))
+#endif
 
 struct RIFF_chunk_header
 {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   FOURCC       fourcc;
+#else
+  uint32_t     fourcc; // *NOTE*: libavformat type
+#endif
   unsigned int size;
 
   unsigned int offset;
@@ -68,7 +78,7 @@ class Stream_Decoder_AVIParserDriver;
 //class RIFF_Scanner;
 struct YYLTYPE;
 union YYSTYPE;
-enum yytokentype;
+//enum yytokentype;
 
 typedef void* yyscan_t;
 
@@ -77,7 +87,7 @@ typedef void* yyscan_t;
 #define YYTOKEN_TABLE 1
 extern void yyerror (YYLTYPE*, Stream_Decoder_AVIParserDriver*, yyscan_t, const char*);
 extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
-extern void yyprint (FILE*, yytokentype, YYSTYPE);
+//extern void yyprint (FILE*, yytokentype, YYSTYPE);
 }
 
 // calling conventions / parameter passing
@@ -160,8 +170,16 @@ using namespace std;
 /* %printer                  { yyoutput << $$; } <*>; */
 /* %printer                  { yyoutput << $$; } <chunk_header>
 %printer                  { debug_stream () << $$; }  <size> */
-%printer                  { ACE_OS::fprintf (yyoutput, ACE_TEXT_ALWAYS_CHAR ("fourcc: \"%s\"\nsize: %u\n"), $$.fourcc, $$.size); } <chunk_header>
-%printer                  { ACE_OS::fprintf (yyoutput, ACE_TEXT_ALWAYS_CHAR ("size: %u"), $$); } <size>
+%printer                  { ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("@%u: fourcc: %u, size: %u\n"),
+                                             $$.offset,
+                                             $$.fourcc,
+                                             $$.size);
+                          } <chunk_header>
+%printer                  { ACE_OS::fprintf (yyoutput,
+                                             ACE_TEXT_ALWAYS_CHAR ("size: %u"),
+                                             $$);
+                          } <size>
 %destructor               { $$.fourcc = 0; $$.size = 0; } <chunk_header>
 %destructor               { $$ = 0; } <size>
 /* %destructor               { ACE_DEBUG ((LM_DEBUG,

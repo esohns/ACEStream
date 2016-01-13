@@ -53,6 +53,7 @@
 #include "stream_allocatorheap.h"
 #include "stream_macros.h"
 
+#include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
 #include "test_u_common.h"
@@ -100,8 +101,17 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [VALUE]  : buffer size (byte(s)) [")
             << TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE
-            << ACE_TEXT ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::string device_file = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+  device_file += ACE_DIRECTORY_SEPARATOR_CHAR;
+  device_file += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
+            << device_file
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
+#endif
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : filename")
             << std::endl;
   std::string path = configuration_path;
@@ -147,6 +157,10 @@ bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      unsigned int& bufferSize_out,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+                     std::string& deviceFilename_out,
+#endif
                      std::string& fileName_out,
                      std::string& UIFile_out,
                      bool& logToFile_out,
@@ -177,6 +191,12 @@ do_processArguments (int argc_in,
 
   // initialize results
   bufferSize_out = TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+  deviceFilename_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  deviceFilename_out += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+#endif
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_OUTPUT_FILE);
@@ -195,7 +215,11 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                               ACE_TEXT ("b:f::g::hi:ls:tv"),
+#else
+                              ACE_TEXT ("b:d:f::g::hi:ls:tv"),
+#endif
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -215,6 +239,14 @@ do_processArguments (int argc_in,
         converter >> bufferSize_out;
         break;
       }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+      case 'd':
+      {
+        deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        break;
+      }
+#endif
       case 'f':
       {
         ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
@@ -421,8 +453,9 @@ do_finalize_directshow (Stream_CamSave_GTK_CBData& CBData_in)
 
 void
 do_work (unsigned int bufferSize_in,
-         const std::string& fileName_in,
-         const std::string& UIDefinitionFile_in,
+         const std::string& deviceFilename_in,
+         const std::string& targetFilename_in,
+         const std::string& UIDefinitionFilename_in,
          unsigned int statisticReportingInterval_in,
          Stream_CamSave_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
@@ -476,18 +509,28 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** module configuration data **************************
   configuration.streamConfiguration.moduleHandlerConfiguration_2.active =
-      !UIDefinitionFile_in.empty ();
+      !UIDefinitionFilename_in.empty ();
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.device =
+      deviceFilename_in;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  // *TODO*: turn these into an option
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.buffers =
+      MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.method =
+      V4L2_MEMORY_MMAP;
+#endif
   configuration.streamConfiguration.moduleHandlerConfiguration_2.targetFileName =
-      (fileName_in.empty () ? Common_File_Tools::getTempDirectory ()
-                            : fileName_in);
+      (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
+                                  : targetFilename_in);
 
   // ********************** stream configuration data **************************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
-    (!UIDefinitionFile_in.empty () ? &event_handler
-                                   : NULL);
+    (!UIDefinitionFilename_in.empty () ? &event_handler
+                                       : NULL);
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.streamConfiguration.moduleConfiguration_2;
   configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
@@ -524,14 +567,14 @@ do_work (unsigned int bufferSize_in,
   // [- signal timer expiration to perform server queries] (see above)
 
   // step1a: start GTK event loop ?
-  if (!UIDefinitionFile_in.empty ())
+  if (!UIDefinitionFilename_in.empty ())
   {
     CBData_in.finalizationHook = idle_finalize_UI_cb;
     CBData_in.initializationHook = idle_initialize_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     CBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
-      std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
+      std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
     CBData_in.stream = &stream;
     CBData_in.userData = &CBData_in;
 
@@ -589,7 +632,7 @@ do_work (unsigned int bufferSize_in,
   } // end ELSE
 
   // step3: clean up
-  if (!UIDefinitionFile_in.empty ())
+  if (!UIDefinitionFilename_in.empty ())
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
   //		{ // synch access
   //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
@@ -714,16 +757,23 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
   unsigned int buffer_size = TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  std::string device_filename =
+      ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+  device_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  device_filename += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+#endif
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_OUTPUT_FILE);
-  std::string file_name = path;
+  std::string target_filename = path;
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
-  std::string UI_definition_file = path;
-  UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  UI_definition_file +=
+  std::string UI_definition_filename = path;
+  UI_definition_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  UI_definition_filename +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_GLADE_FILE);
   bool log_to_file = false;
   unsigned int statistic_reporting_interval =
@@ -736,8 +786,12 @@ ACE_TMAIN (int argc_in,
   if (!do_processArguments (argc_in,
                             argv_in,
                             buffer_size,
-                            file_name,
-                            UI_definition_file,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+                            device_filename,
+#endif
+                            target_filename,
+                            UI_definition_filename,
                             log_to_file,
                             statistic_reporting_interval,
                             trace_information,
@@ -766,8 +820,8 @@ ACE_TMAIN (int argc_in,
   if (TEST_U_STREAM_CAMSAVE_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-  if ((!UI_definition_file.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_file)))
+  if ((!UI_definition_filename.empty () &&
+       !Common_File_Tools::isReadable (UI_definition_filename)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -797,13 +851,13 @@ ACE_TMAIN (int argc_in,
     log_file_name =
         Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE_NAME),
                                            ACE::basename (argv_in[0]));
-  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
-                                        log_file_name,                            // log file name
-                                        false,                                    // log to syslog ?
-                                        false,                                    // trace messages ?
-                                        trace_information,                        // debug messages ?
-                                        (UI_definition_file.empty () ? NULL
-                                                                     : &logger))) // logger ?
+  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),                   // program name
+                                        log_file_name,                                // log file name
+                                        false,                                        // log to syslog ?
+                                        false,                                        // trace messages ?
+                                        trace_information,                            // debug messages ?
+                                        (UI_definition_filename.empty () ? NULL
+                                                                         : &logger))) // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
@@ -914,7 +968,7 @@ ACE_TMAIN (int argc_in,
   //                                         argv_in);
   Common_UI_GtkBuilderDefinition ui_definition (argc_in,
                                                 argv_in);
-  if (!UI_definition_file.empty ())
+  if (!UI_definition_filename.empty ())
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                               argv_in,
                                                               &gtk_cb_user_data,
@@ -924,8 +978,12 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (buffer_size,
-           file_name,
-           UI_definition_file,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+           device_filename,
+#endif
+           target_filename,
+           UI_definition_filename,
            statistic_reporting_interval,
            gtk_cb_user_data,
            signal_set,

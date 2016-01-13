@@ -61,11 +61,11 @@ Test_I_Stream_Source_EventHandler::start (const Test_I_Source_Stream_SessionData
 
   CBData_->progressData.transferred = 0;
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
+  CBData_->eventStack.push_back (TEST_I_GTKEVENT_START);
 }
 
 void
-Test_I_Stream_Source_EventHandler::notify (const Test_I_Stream_Message& message_in)
+Test_I_Stream_Source_EventHandler::notify (const Test_I_Source_Stream_Message& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Source_EventHandler::notify"));
 
@@ -77,24 +77,26 @@ Test_I_Stream_Source_EventHandler::notify (const Test_I_Stream_Message& message_
 
   CBData_->progressData.transferred += message_in.total_length ();
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
+  CBData_->eventStack.push_back (TEST_I_GTKEVENT_DATA);
 }
 void
 Test_I_Stream_Source_EventHandler::notify (const Test_I_Source_Stream_SessionMessage& sessionMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Source_EventHandler::notify"));
 
+  int result = -1;
+
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
-  Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
+  Test_I_GTK_Event event = TEST_I_GKTEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_STATISTIC:
     {
-      int result = -1;
+      float current_bytes = 0.0F;
 
       // sanity check(s)
       if (!sessionData_)
@@ -110,7 +112,7 @@ Test_I_Stream_Source_EventHandler::notify (const Test_I_Source_Stream_SessionMes
 
         // *NOTE*: the byte counter is more current than what is received here
         //         (see above) --> do not update
-      float current_bytes = CBData_->progressData.statistic.bytes;
+      current_bytes = CBData_->progressData.statistic.bytes;
       CBData_->progressData.statistic = sessionData_->currentStatistic;
       CBData_->progressData.statistic.bytes = current_bytes;
 
@@ -123,7 +125,7 @@ Test_I_Stream_Source_EventHandler::notify (const Test_I_Source_Stream_SessionMes
       } // end IF
 
 continue_:
-      event = STREAM_GTKEVENT_STATISTIC;
+      event = TEST_I_GTKEVENT_STATISTIC;
       break;
     }
     default:
@@ -153,5 +155,5 @@ Test_I_Stream_Source_EventHandler::end ()
   } // end IF
   CBData_->eventSourceIds.insert (event_source_id);
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+  CBData_->eventStack.push_back (TEST_I_GTKEVENT_END);
 }

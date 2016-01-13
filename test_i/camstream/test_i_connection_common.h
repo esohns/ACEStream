@@ -54,7 +54,7 @@
 // forward declarations
 struct Test_I_Source_Configuration;
 struct Test_I_Source_UserData;
-class Test_I_Stream_Message;
+class Test_I_Source_Stream_Message;
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 struct Test_I_Source_ConnectionState;
 struct Test_I_Source_SocketHandlerConfiguration;
@@ -67,6 +67,7 @@ struct Test_I_Source_StreamState;
 struct Test_I_Target_Configuration;
 struct Test_I_Target_ConnectionState;
 struct Test_I_Target_SocketHandlerConfiguration;
+class Test_I_Target_Stream_Message;
 struct Test_I_Target_Stream_ModuleHandlerConfiguration;
 struct Test_I_Target_Stream_SessionData;
 typedef Stream_SessionData_T<Test_I_Target_Stream_SessionData> Test_I_Target_Stream_SessionData_t;
@@ -107,7 +108,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
                                       Test_I_Source_Stream_SessionData,   // session data
                                       Test_I_Source_Stream_SessionData_t, // session data container (reference counted)
                                       Test_I_Source_Stream_SessionMessage,
-                                      Test_I_Stream_Message,
+                                      Test_I_Source_Stream_Message,
                                       ///
                                       ACE_INET_Addr,
                                       Test_I_Source_InetConnectionManager_t> Test_I_Source_NetStream_t;
@@ -129,7 +130,7 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
                                       Test_I_Target_Stream_SessionData,   // session data
                                       Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
                                       Test_I_Target_Stream_SessionMessage,
-                                      Test_I_Stream_Message,
+                                      Test_I_Target_Stream_Message,
                                       ///
                                       ACE_INET_Addr,
                                       Test_I_Target_InetConnectionManager_t> Test_I_Target_NetStream_t;

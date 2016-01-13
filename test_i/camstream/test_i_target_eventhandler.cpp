@@ -60,7 +60,7 @@ Test_I_Stream_Target_EventHandler::start (const Test_I_Target_Stream_SessionData
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
   CBData_->progressData.transferred = 0;
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
+  CBData_->eventStack.push_back (TEST_I_GTKEVENT_START);
 
   guint event_source_id = g_idle_add (idle_start_target_UI_cb,
                                       CBData_);
@@ -86,7 +86,7 @@ Test_I_Stream_Target_EventHandler::notify (const Test_I_Target_Stream_Message& m
 
   CBData_->progressData.transferred += message_in.total_length ();
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
+  CBData_->eventStack.push_back (TEST_I_GTKEVENT_DATA);
 }
 void
 Test_I_Stream_Target_EventHandler::notify (const Test_I_Target_Stream_SessionMessage& sessionMessage_in)
@@ -98,12 +98,12 @@ Test_I_Stream_Target_EventHandler::notify (const Test_I_Target_Stream_SessionMes
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
-  Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
+  Test_I_GTK_Event event = TEST_I_GKTEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_STATISTIC:
     {
-      event = STREAM_GTKEVENT_STATISTIC;
+      event = TEST_I_GTKEVENT_STATISTIC;
 
       const Test_I_Target_Stream_SessionData_t& session_data_container_r =
         sessionMessage_in.get ();
@@ -134,7 +134,7 @@ Test_I_Stream_Target_EventHandler::end ()
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+  CBData_->eventStack.push_back (TEST_I_GTKEVENT_END);
 
   guint event_source_id = g_idle_add (idle_end_target_UI_cb,
                                       CBData_);

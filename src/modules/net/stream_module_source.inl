@@ -183,11 +183,11 @@ Stream_Module_Net_Source_T<LockType,
 
   int result = -1;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-
   if (isInitialized_)
   {
+    // sanity check(s)
+    ACE_ASSERT (inherited::configuration_);
+
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
 

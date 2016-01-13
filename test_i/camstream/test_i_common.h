@@ -32,7 +32,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#define HWND void* // *TODO*
+#include "linux/videodev2.h"
 
 #include "gtk/gtk.h"
 #endif
@@ -54,6 +54,8 @@
 
 #include "stream_module_net_common.h"
 
+#include "stream_dev_defines.h"
+
 #include "net_configuration.h"
 #include "net_defines.h"
 
@@ -69,26 +71,26 @@ struct IGraphBuilder;
 struct IVideoWindow;
 #endif
 class Stream_IAllocator;
-class Test_I_Stream_Message;
-class Test_I_Stream_SessionMessage;
+class Test_I_Source_Stream_Message;
+class Test_I_Source_Stream_SessionMessage;
 struct Test_I_ConnectionState;
 
-enum Stream_GTK_Event
+enum Test_I_GTK_Event
 {
-  STREAM_GKTEVENT_INVALID = -1,
+  TEST_I_GKTEVENT_INVALID = -1,
   // ------------------------------------
-  STREAM_GTKEVENT_START = 0,
-  STREAM_GTKEVENT_DATA,
-  STREAM_GTKEVENT_END,
-  STREAM_GTKEVENT_STATISTIC,
+  TEST_I_GTKEVENT_START = 0,
+  TEST_I_GTKEVENT_DATA,
+  TEST_I_GTKEVENT_END,
+  TEST_I_GTKEVENT_STATISTIC,
   // ------------------------------------
-  STREAM_GTKEVENT_MAX
+  TEST_I_GTKEVENT_MAX
 };
-typedef std::deque<Stream_GTK_Event> Stream_GTK_Events_t;
-typedef Stream_GTK_Events_t::const_iterator Stream_GTK_EventsIterator_t;
+typedef std::deque<Test_I_GTK_Event> Test_I_GTK_Events_t;
+typedef Test_I_GTK_Events_t::const_iterator Test_I_GTK_EventsIterator_t;
 
-typedef int Stream_HeaderType_t;
-typedef int Stream_CommandType_t;
+typedef int Test_I_HeaderType_t;
+typedef int Test_I_CommandType_t;
 
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
 
@@ -96,20 +98,32 @@ typedef Common_IStatistic_T<Test_I_RuntimeStatistic_t> Test_I_StatisticReporting
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct IMediaSample;
-struct Test_I_MessageData
+#endif
+struct Test_I_Source_MessageData
 {
-  inline Test_I_MessageData ()
+  inline Test_I_Source_MessageData ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    : sample (NULL)
    , sampleTime (0.0)
+#else
+   : device (-1)
+   , index (0)
+   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , release (false)
+#endif
   {};
 
-  IMediaSample* sample;
-  double        sampleTime;
-};
-typedef Stream_DataBase_T<Test_I_MessageData> Test_I_MessageData_t;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  IMediaSample*  sample;
+  double         sampleTime;
 #else
-typedef Stream_DataBase_T<void*> Test_I_MessageData_t;
+  int            device; // (capture) device file descriptor
+  __u32          index;  // 'index' field of v4l2_buffer
+  v4l2_memory    method;
+  bool           release;
 #endif
+};
+typedef Stream_DataBase_T<Test_I_Source_MessageData> Test_I_Source_MessageData_t;
 
 struct Test_I_Configuration;
 struct Test_I_Stream_Configuration;
@@ -169,7 +183,9 @@ struct Test_I_Stream_ModuleHandlerConfiguration
 {
   inline Test_I_Stream_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , builder (NULL)
+#endif
    , configuration (NULL)
    //, connection (NULL)
    //, connectionManager (NULL)
@@ -259,24 +275,24 @@ struct Test_I_Configuration
 
 typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
 
-                                          Test_I_Stream_Message,
-                                          Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;
+                                          Test_I_Source_Stream_Message,
+                                          Test_I_Source_Stream_SessionMessage> Test_I_MessageAllocator_t;
 
 typedef Common_INotify_T<Test_I_Stream_SessionData,
-                         Test_I_Stream_Message,
-                         Test_I_Stream_SessionMessage> Stream_IStreamNotify_t;
-typedef std::list<Stream_IStreamNotify_t*> Stream_Subscribers_t;
-typedef Stream_Subscribers_t::iterator Stream_SubscribersIterator_t;
+                         Test_I_Source_Stream_Message,
+                         Test_I_Source_Stream_SessionMessage> Test_I_IStreamNotify_t;
+typedef std::list<Test_I_IStreamNotify_t*> Test_I_Subscribers_t;
+typedef Test_I_Subscribers_t::iterator Test_I_SubscribersIterator_t;
 
-typedef Common_ISubscribe_T<Stream_IStreamNotify_t> Stream_ISubscribe_t;
+typedef Common_ISubscribe_T<Test_I_IStreamNotify_t> Test_I_ISubscribe_t;
 
-typedef std::map<guint, ACE_Thread_ID> Stream_PendingActions_t;
-typedef Stream_PendingActions_t::iterator Stream_PendingActionsIterator_t;
-typedef std::set<guint> Stream_CompletedActions_t;
-typedef Stream_CompletedActions_t::iterator Stream_CompletedActionsIterator_t;
-struct Stream_GTK_ProgressData
+typedef std::map<guint, ACE_Thread_ID> Test_I_PendingActions_t;
+typedef Test_I_PendingActions_t::iterator Test_I_PendingActionsIterator_t;
+typedef std::set<guint> Test_I_CompletedActions_t;
+typedef Test_I_CompletedActions_t::iterator Test_I_CompletedActionsIterator_t;
+struct Test_I_GTK_ProgressData
 {
-  inline Stream_GTK_ProgressData ()
+  inline Test_I_GTK_ProgressData ()
    : completedActions ()
 //   , cursorType (GDK_LAST_CURSOR)
    , GTKState (NULL)
@@ -286,10 +302,10 @@ struct Stream_GTK_ProgressData
    , size (0)
   {};
 
-  Stream_CompletedActions_t completedActions;
+  Test_I_CompletedActions_t completedActions;
 //  GdkCursorType                      cursorType;
   Common_UI_GTKState*       GTKState;
-  Stream_PendingActions_t   pendingActions;
+  Test_I_PendingActions_t   pendingActions;
   Stream_Statistic          statistic;
   size_t                    transferred; // bytes
   size_t                    size; // bytes
@@ -309,10 +325,10 @@ struct Test_I_GTK_CBData
   {};
 
   Test_I_Configuration*     configuration;
-  Stream_GTK_Events_t       eventStack;
+  Test_I_GTK_Events_t       eventStack;
   Common_MessageStack_t     logStack;
-  Stream_GTK_ProgressData   progressData;
-  Stream_Subscribers_t      subscribers;
+  Test_I_GTK_ProgressData   progressData;
+  Test_I_Subscribers_t      subscribers;
   ACE_SYNCH_RECURSIVE_MUTEX subscribersLock;
 };
 

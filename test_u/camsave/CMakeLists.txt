@@ -39,6 +39,7 @@ add_definitions (-DACE_HAS_DLL)
 include (FindPkgConfig)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
+ pkg_check_modules (PKG_V4L REQUIRED libv4l2)
  pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
@@ -75,6 +76,7 @@ endif ()
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
+ include_directories (${PKG_V4L_INCLUDE_DIRS})
  include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
@@ -103,7 +105,8 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 ############## next target ################
-set (camsave_EXE_SRCS
+set (EXECUTABLE camsave)
+set (${EXECUTABLE}_EXE_SRCS
      ../test_u_common.h
      ../test_u_defines.h
      targetver.h
@@ -128,8 +131,7 @@ set (camsave_EXE_SRCS
      stdafx.cpp
      stdafx.h)
 
-set (EXECUTABLE camsave)
-add_executable (${EXECUTABLE} ${camsave_EXE_SRCS} etc/camsave.glade)
+add_executable (${EXECUTABLE} ${camsave_EXE_SRCS} etc/${EXECUTABLE}.glade)
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)
@@ -137,6 +139,7 @@ add_executable (${EXECUTABLE} ${camsave_EXE_SRCS} etc/camsave.glade)
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (UNIX)
+ target_link_libraries (${EXECUTABLE} ${PKG_V4L_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_GTK_GLADE_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} Strmiids.lib)
@@ -162,5 +165,5 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
          COMPONENT dev)
-install (FILES etc/camsave.glade
+install (FILES etc/${EXECUTABLE}.glade
          DESTINATION etc/lib${PROJECT_NAME}/camsave COMPONENT config)

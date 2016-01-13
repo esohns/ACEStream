@@ -460,6 +460,119 @@ load_rates (IAMStreamConfig* IAMStreamConfig_in,
 
   return true;
 }
+#else
+bool
+load_formats (int fd_in,
+              GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_formats"));
+
+  // sanity check(s)
+  ACE_ASSERT (fd_in != -1);
+  ACE_ASSERT (listStore_in);
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  std::set<uint32_t> formats;
+  std::string format_string;
+  GtkTreeIter iterator;
+  for (std::set<uint32_t>::const_iterator iterator_2 = formats.begin ();
+       iterator_2 != formats.end ();
+       ++iterator_2)
+  {
+    gtk_list_store_append (listStore_in, &iterator);
+    format_string =
+      Stream_Module_Device_Tools::formatToString (*iterator_2);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, format_string.c_str (),
+                        1, format_string.c_str (),
+                        -1);
+  } // end FOR
+
+  return true;
+}
+
+bool
+load_resolutions (int fd_in,
+                  uint32_t format_in,
+                  GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_resolutions"));
+
+  // sanity check(s)
+  ACE_ASSERT (fd_in != -1);
+  ACE_ASSERT (listStore_in);
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  std::set<std::pair<unsigned int, unsigned int> > resolutions;
+  for (int i = 0; i < format_in; ++i)
+  {
+    resolutions.insert (std::make_pair (format_in,
+                                        format_in));
+  } // end FOR
+
+  GtkTreeIter iterator;
+  std::ostringstream converter;
+  for (std::set<std::pair<unsigned int, unsigned int> >::const_iterator iterator_2 = resolutions.begin ();
+       iterator_2 != resolutions.end ();
+       ++iterator_2)
+  {
+    converter.clear ();
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter << (*iterator_2).first;
+    converter << 'x';
+    converter << (*iterator_2).second;
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, converter.str ().c_str (),
+                        1, (*iterator_2).first,
+                        2, (*iterator_2).second,
+                        -1);
+  } // end FOR
+
+  return true;
+}
+
+bool
+load_rates (int fd_in,
+            uint32_t format_in,
+            unsigned int width_in,
+            GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_rates"));
+
+  // sanity check(s)
+  ACE_ASSERT (fd_in != -1);
+  ACE_ASSERT (listStore_in);
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  unsigned int frame_duration;
+  std::set<std::pair<unsigned int, unsigned int> > frame_rates;
+  for (int i = 0; i < format_in; ++i)
+  {
+    frame_rates.insert (std::make_pair (10000000 / static_cast<unsigned int> (format_in),
+                                        frame_duration));
+  } // end FOR
+
+  GtkTreeIter iterator;
+  for (std::set<std::pair<unsigned int, unsigned int> >::const_iterator iterator_2 = frame_rates.begin ();
+       iterator_2 != frame_rates.end ();
+       ++iterator_2)
+  {
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, (*iterator_2).first,
+                        1, (*iterator_2).second,
+                        -1);
+  } // end FOR
+
+  return true;
+}
 #endif
 
 /////////////////////////////////////////
@@ -485,7 +598,6 @@ stream_processing_function (void* arg_in)
   ACE_ASSERT (data_p->CBData->configuration);
   ACE_ASSERT (data_p->CBData->stream);
 
-  GtkSpinButton* spin_button_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
   Test_I_Source_StreamBase_t* stream_p = NULL;
   std::ostringstream converter;
@@ -1218,8 +1330,8 @@ idle_update_progress_source_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_source_cb"));
 
-  Stream_GTK_ProgressData* data_p =
-      static_cast<Stream_GTK_ProgressData*> (userData_in);
+  Test_I_GTK_ProgressData* data_p =
+      static_cast<Test_I_GTK_ProgressData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -1238,8 +1350,8 @@ idle_update_progress_source_cb (gpointer userData_in)
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
-  Stream_PendingActionsIterator_t iterator_2;
-  for (Stream_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
+  Test_I_PendingActionsIterator_t iterator_2;
+  for (Test_I_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
        iterator_3 != data_p->completedActions.end ();
        ++iterator_3)
   {
@@ -2005,8 +2117,8 @@ idle_update_progress_target_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_target_cb"));
 
-  Stream_GTK_ProgressData* data_p =
-    static_cast<Stream_GTK_ProgressData*> (userData_in);
+  Test_I_GTK_ProgressData* data_p =
+    static_cast<Test_I_GTK_ProgressData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2100,13 +2212,13 @@ idle_update_info_display_cb (gpointer userData_in)
   if (data_p->eventStack.empty ())
     return G_SOURCE_CONTINUE;
 
-  for (Stream_GTK_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
+  for (Test_I_GTK_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
        iterator_2 != data_p->eventStack.end ();
        iterator_2++)
   {
     switch (*iterator_2)
     {
-      case STREAM_GTKEVENT_START:
+      case TEST_I_GTKEVENT_START:
       {
         //spin_button_p =
         //    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2145,7 +2257,7 @@ idle_update_info_display_cb (gpointer userData_in)
         is_session_message = true;
         break;
       }
-      case STREAM_GTKEVENT_DATA:
+      case TEST_I_GTKEVENT_DATA:
       {
         spin_button_p =
           //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -2163,7 +2275,7 @@ idle_update_info_display_cb (gpointer userData_in)
 
         break;
       }
-      case STREAM_GTKEVENT_END:
+      case TEST_I_GTKEVENT_END:
       {
         spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2186,7 +2298,7 @@ idle_update_info_display_cb (gpointer userData_in)
         is_session_message = true;
         break;
       }
-      case STREAM_GTKEVENT_STATISTIC:
+      case TEST_I_GTKEVENT_STATISTIC:
       {
         spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -3476,7 +3588,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->streamConfiguration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -3500,6 +3611,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                             &iterator_2,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   GUID GUID_i;
   ACE_OS::memset (&GUID_i, 0, sizeof (GUID));
   HRESULT result = E_FAIL;
@@ -3512,21 +3624,28 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (g_value_get_string (&value)),
                      &GUID_i);
 #endif
-  g_value_unset (&value);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    g_value_unset (&value);
+
     return;
   } // end IF
-
+#else
+  uint32_t format_i = 0;
+#endif
+  g_value_unset (&value);
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
+  ACE_ASSERT (data_p->streamConfiguration);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
@@ -3571,13 +3690,17 @@ error:
 continue_:
   if (!load_resolutions (data_p->streamConfiguration,
                          GUID_i,
+#else
+  if (!load_resolutions (data_p->device,
+                         format_i,
+#endif
                          list_store_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_resolutions(), returning\n")));
     return;
   } // end IF
-#endif
+
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
@@ -3629,6 +3752,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                             &iterator_2,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   GUID GUID_i;
   ACE_OS::memset (&GUID_i, 0, sizeof (GUID));
   HRESULT result = E_FAIL;
@@ -3641,15 +3765,21 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (g_value_get_string (&value)),
                      &GUID_i);
 #endif
-  g_value_unset (&value);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    g_value_unset (&value);
+
     return;
   } // end IF
-
+#else
+  uint32_t format_i = 0;
+#endif
+  g_value_unset (&value);
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
                                       &iterator_2))
   {
@@ -3741,6 +3871,10 @@ error:
 continue_:
   if (!load_rates (data_p->streamConfiguration,
                    GUID_i,
+#else
+  if (!load_rates (data_p->device,
+                   format_i,
+#endif
                    width,
                    list_store_p))
   {
@@ -3748,7 +3882,7 @@ continue_:
                 ACE_TEXT ("failed to ::load_rates(), returning\n")));
     return;
   } // end IF
-#endif
+
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
@@ -3876,7 +4010,7 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
       !data_p->configuration->moduleHandlerConfiguration.windowController) // <-- window not realized yet ?
     return;
 #else
-  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.window) // <-- window not realized yet ?
+  if (!data_p->configuration->moduleHandlerConfiguration.gdkWindow) // <-- window not realized yet ?
     return;
 #endif
 
@@ -3924,8 +4058,7 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
   //              data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.right, data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.bottom,
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #else
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area =
-    allocation;
+  data_p->configuration->moduleHandlerConfiguration.area = allocation;
 #endif
 } // drawingarea_configure_event_cb
 

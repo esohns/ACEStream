@@ -19,10 +19,10 @@ include_HEADERS = \
   stream_dev_common.h \
   stream_dev_defines.h \
   stream_dev_tools.h \
-  stream_dev_cam_source.h \
-  stream_dev_cam_source.inl \
-  stream_dev_cam_source_directshow.h \
-  stream_dev_cam_source_directshow.inl
+  stream_dev_cam_source_v4l.h \
+  stream_dev_cam_source_v4l.inl
+#  stream_dev_cam_source_directshow.h \
+#  stream_dev_cam_source_directshow.inl
 
 lib_LTLIBRARIES = libACEStream_Device.la
 
@@ -32,12 +32,12 @@ libACEStream_Device_la_SOURCES = \
   stream_dev_defines.h \
   stream_dev_tools.cpp \
   stream_dev_tools.h \
-  stream_dev_cam_source.cpp \
-  stream_dev_cam_source.h \
-  stream_dev_cam_source.inl \
-  stream_dev_cam_source_directshow.cpp \
-  stream_dev_cam_source_directshow.h \
-  stream_dev_cam_source_directshow.inl
+  stream_dev_cam_source_v4l.cpp \
+  stream_dev_cam_source_v4l.h \
+  stream_dev_cam_source_v4l.inl
+#  stream_dev_cam_source_directshow.cpp \
+#  stream_dev_cam_source_directshow.h \
+#  stream_dev_cam_source_directshow.inl
 #  stdafx.cpp \
 #  stdafx.h
 

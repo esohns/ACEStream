@@ -4,25 +4,42 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
-set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
-     stream_misc_defines.h
-     stream_misc_directshow_source.cpp
-     stream_misc_directshow_source.h
-     stream_misc_directshow_source.inl
-#     stream_misc_directshow_source_filter.cpp
-#     stream_misc_directshow_source_filter.h
-     stream_misc_exports.h
-     stream_misc_messagehandler.cpp
-     stream_misc_messagehandler.h
-     stream_misc_messagehandler.inl
-     stream_misc_queue_source.cpp
-     stream_misc_queue_source.h
-     stream_misc_queue_source.inl
-     stream_misc_runtimestatistic.cpp
-     stream_misc_runtimestatistic.h
-     stream_misc_runtimestatistic.inl
-     stdafx.cpp
-     stdafx.h)
+if (WIN32)
+ set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
+      stream_misc_defines.h
+      stream_misc_directshow_source.cpp
+      stream_misc_directshow_source.h
+      stream_misc_directshow_source.inl
+      stream_misc_directshow_source_filter.cpp
+      stream_misc_directshow_source_filter.h
+      stream_misc_exports.h
+      stream_misc_messagehandler.cpp
+      stream_misc_messagehandler.h
+      stream_misc_messagehandler.inl
+      stream_misc_queue_source.cpp
+      stream_misc_queue_source.h
+      stream_misc_queue_source.inl
+      stream_misc_runtimestatistic.cpp
+      stream_misc_runtimestatistic.h
+      stream_misc_runtimestatistic.inl
+      stdafx.cpp
+      stdafx.h)
+elseif (UNIX)
+ set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
+      stream_misc_defines.h
+      stream_misc_exports.h
+      stream_misc_messagehandler.cpp
+      stream_misc_messagehandler.h
+      stream_misc_messagehandler.inl
+      stream_misc_queue_source.cpp
+      stream_misc_queue_source.h
+      stream_misc_queue_source.inl
+      stream_misc_runtimestatistic.cpp
+      stream_misc_runtimestatistic.h
+      stream_misc_runtimestatistic.inl
+      stdafx.cpp
+      stdafx.h)
+endif ()
 
 add_library (${PROJECT_NAME}_Miscellaneous SHARED ${ACEStream_Miscellaneous_LIB_SRCS})
 
@@ -41,19 +58,32 @@ export (TARGETS ${PROJECT_NAME}_Miscellaneous
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
-install (FILES
-         stream_misc_defines.h
-         stream_misc_directshow_source.h
-         stream_misc_directshow_source.inl
-#         stream_misc_directshow_source_filter.h
-         stream_misc_exports.h
-         stream_misc_messagehandler.h
-         stream_misc_messagehandler.inl
-         stream_misc_queue_source.h
-         stream_misc_queue_source.inl
-         stream_misc_runtimestatistic.h
-         stream_misc_runtimestatistic.inl
-         DESTINATION include)
+if (WIN32)
+ install (FILES
+          stream_misc_defines.h
+          stream_misc_directshow_source.h
+          stream_misc_directshow_source.inl
+          stream_misc_directshow_source_filter.h
+          stream_misc_exports.h
+          stream_misc_messagehandler.h
+          stream_misc_messagehandler.inl
+          stream_misc_queue_source.h
+          stream_misc_queue_source.inl
+          stream_misc_runtimestatistic.h
+          stream_misc_runtimestatistic.inl
+          DESTINATION include)
+elseif (UNIX)
+ install (FILES
+          stream_misc_defines.h
+          stream_misc_exports.h
+          stream_misc_messagehandler.h
+          stream_misc_messagehandler.inl
+          stream_misc_queue_source.h
+          stream_misc_queue_source.inl
+          stream_misc_runtimestatistic.h
+          stream_misc_runtimestatistic.inl
+          DESTINATION include)
+endif ()
 install (TARGETS ${PROJECT_NAME}_Miscellaneous
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib

@@ -27,7 +27,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#define HWND void* // *TODO*
+#include "linux/videodev2.h"
 
 #include "gtk/gtk.h"
 #endif
@@ -36,7 +36,7 @@
 #include "common_isubscribe.h"
 
 #include "stream_common.h"
-#include "stream_data_base.h"
+//#include "stream_data_base.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //#include "stream_directshow_allocator_base.h"
 #include "stream_messageallocatorheap_base.h"
@@ -44,6 +44,9 @@
 #include "stream_messageallocatorheap_base.h"
 #endif
 #include "stream_session_data.h"
+
+#include "stream_dev_common.h"
+#include "stream_dev_defines.h"
 
 #include "test_u_common.h"
 
@@ -59,32 +62,50 @@ class Stream_CamSave_Message;
 class Stream_CamSave_SessionMessage;
 class Stream_CamSave_Stream;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Stream_CamSave_MessageData
 {
   inline Stream_CamSave_MessageData ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    : sample (NULL)
    , sampleTime (0.0)
+#else
+   : device (-1)
+   , index (0)
+   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+   , release (false)
+#endif
   {};
 
-  IMediaSample* sample;
-  double        sampleTime;
-};
-typedef Stream_DataBase_T<Stream_CamSave_MessageData> Stream_CamSave_MessageData_t;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  IMediaSample*  sample;
+  double         sampleTime;
 #else
-typedef Stream_DataBase_T<void*> Stream_CamSave_MessageData_t;
+  int            device; // (capture) device file descriptor
+  __u32          index;  // 'index' field of v4l2_buffer
+  v4l2_memory    method;
+  bool           release;
 #endif
+};
+//typedef Stream_DataBase_T<Stream_CamSave_MessageData> Stream_CamSave_MessageData_t;
 
 struct Stream_CamSave_SessionData
  : Stream_SessionData
 {
   inline Stream_CamSave_SessionData ()
    : Stream_SessionData ()
-   , size (0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , format ()
+#endif
+//   , size (0)
    , targetFileName ()
   {};
 
-  unsigned int size;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  struct v4l2_format  format;
+#endif
+  //  unsigned int size;
   std::string  targetFileName;
 };
 typedef Stream_SessionData_T<Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;
@@ -113,27 +134,46 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , builder (NULL)
    , windowController (NULL)
 #else
+   , bufferMap ()
+   , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
+   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
 #endif
    , contextID (0)
    , device ()
+   , fileDescriptor (-1)
    , printProgressDot (true)
    , targetFileName ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , gdkWindow (NULL)
+#endif
    , window (NULL)
   {};
 
-  bool           active;
+  bool                active;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct tagRECT area;
-  IGraphBuilder* builder;
-  IVideoWindow*  windowController;
+  struct tagRECT      area;
+  IGraphBuilder*      builder;
+  IVideoWindow*       windowController;
 #else
-  GdkRectangle   area;
+  GdkRectangle        area;
+  INDEX2BUFFER_MAP_T  bufferMap;
+  __u32               buffers; // v4l device buffers
+  v4l2_memory         method; // v4l camera source
 #endif
-  guint          contextID;
-  std::string    device; // "FriendlyName" property (Win32)
-  bool           printProgressDot;
-  std::string    targetFileName;
-  HWND           window; // *TODO*
+  guint               contextID;
+  // *PORTABILITY*: Win32: "FriendlyName" property
+  //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
+  std::string         device;
+  int                 fileDescriptor;
+  bool                printProgressDot;
+  std::string         targetFileName;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HWND                window;
+#else
+  GdkWindow*          gdkWindow;
+  struct v4l2_window* window;
+#endif
 };
 
 struct Stream_CamSave_StreamConfiguration
@@ -220,7 +260,11 @@ struct Stream_CamSave_GTK_CBData
    , stream (NULL)
    , subscribers ()
    , subscribersLock ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , streamConfiguration (NULL)
+#else
+   , device (-1)
+#endif
   {};
 
   Stream_CamSave_Configuration*   configuration;
@@ -230,7 +274,11 @@ struct Stream_CamSave_GTK_CBData
   Stream_CamSave_Stream*          stream;
   Stream_CamSave_Subscribers_t    subscribers;
   ACE_SYNCH_RECURSIVE_MUTEX       subscribersLock;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   IAMStreamConfig*                streamConfiguration;
+#else
+  int                             device; // (capture) device file descriptor
+#endif
 };
 
 struct Stream_CamSave_ThreadData

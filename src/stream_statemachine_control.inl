@@ -68,35 +68,53 @@ Stream_StateMachine_Control_T<LockType>::wait (Stream_StateMachine_ControlState 
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::wait"));
 
+  bool result = false;
+
   // sanity check(s)
   ACE_ASSERT (inherited::condition_);
-  ACE_ASSERT (inherited::stateLock_);
 
-  int result = -1;
+  int result_2 = -1;
 
+  if (inherited::stateLock_)
   {
-    ACE_Guard<LockType> aGuard (*inherited::stateLock_);
-
-    while (inherited::state_ != state_in)
+    result_2 = inherited::stateLock_->acquire ();
+    if (result_2 == -1)
     {
-      result = inherited::condition_->wait (timeout_in);
-      if (result == -1)
-      {
-        int error = ACE_OS::last_error ();
-        if (error != ETIME) // 137: timed out
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Condition::wait(%#T): \"%m\", aborting\n"),
-                      timeout_in));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to LockType::acquire(): \"%m\", aborting\n")));
+      return false;
+    } // end IF
+  } // end IF
 
-        return false; // timed out ?
-      } // end IF
-    } // end WHILE
-  } // end lock scope
+  while (inherited::state_ != state_in)
+  {
+    result_2 = inherited::condition_->wait (timeout_in);
+    if (result_2 == -1)
+    {
+      int error = ACE_OS::last_error ();
+      if (error != ETIME) // 137: timed out
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Condition::wait(%#T): \"%m\", aborting\n"),
+                    timeout_in));
+
+      goto unlock; // timed out ?
+    } // end IF
+  } // end WHILE
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("reached state \"%s\"...\n"),
   //            ACE_TEXT (state2String (state_in).c_str ())));
+  result = true;
 
-  return true;
+unlock:
+  if (inherited::stateLock_)
+  {
+    result_2 = inherited::stateLock_->release ();
+    if (result_2 == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to LockType::release(): \"%m\", continuing\n")));
+  } // end IF
+
+  return result;
 }
 
 template <typename LockType>
@@ -105,10 +123,20 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::change"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::stateLock_);
+  bool result = false;
 
-  ACE_Guard<LockType> aGuard (*inherited::stateLock_);
+  int result_2 = -1;
+
+  if (inherited::stateLock_)
+  {
+    result_2 = inherited::stateLock_->acquire ();
+    if (result_2 == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to LockType::acquire(): \"%m\", aborting\n")));
+      return false;
+    } // end IF
+  } // end IF
 
   switch (inherited::state_)
   {
@@ -121,14 +149,20 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
         {
           //ACE_DEBUG ((LM_DEBUG,
           //            ACE_TEXT ("state switch: INVALID --> INITIALIZED\n")));
-          ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
 
-          {
-            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+          if (!inherited::stateLock_)
             inherited::change (newState_in);
-          } // end lock scope
+          else
+          {
+            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
+            {
+              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+              inherited::change (newState_in);
+            } // end lock scope
+          } // end ELSE
 
-          return true;
+          result = true;
+          goto unlock;
         }
         // error case
         default:
@@ -153,14 +187,19 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
         case STREAM_STATE_INITIALIZED:
         case STREAM_STATE_STOPPED: // *TODO*: remove this
         {
-          ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
-
-          {
-            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+          if (!inherited::stateLock_)
             inherited::change (newState_in);
-          } // end lock scope
+          else
+          {
+            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
+            {
+              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+              inherited::change (newState_in);
+            } // end lock scope
+          } // end ELSE
 
-          return true;
+          result = true;
+          goto unlock;
         }
         // error case
         case STREAM_STATE_PAUSED:
@@ -182,18 +221,23 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
           //ACE_DEBUG ((LM_DEBUG,
           //            ACE_TEXT ("state switch: RUNNING --> %s\n"),
           //            ACE_TEXT (state2String (newState_in).c_str ())));
-          ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
 
-          {
-            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
-
-            //// *IMPORTANT NOTE*: make sure the transition RUNNING --> FINISHED
-            ////                   is actually RUNNING --> STOPPED --> FINISHED
-            //if (newState_in == STREAM_STATE_FINISHED)
-            //  inherited::change (STREAM_STATE_STOPPED);
-
+          if (!inherited::stateLock_)
             inherited::change (newState_in);
-          } // end lock scope
+          else
+          {
+            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
+            {
+              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+
+              //// *IMPORTANT NOTE*: make sure the transition RUNNING --> FINISHED
+              ////                   is actually RUNNING --> STOPPED --> FINISHED
+              //if (newState_in == STREAM_STATE_FINISHED)
+              //  inherited::change (STREAM_STATE_STOPPED);
+
+              inherited::change (newState_in);
+            } // end lock scope
+          } // end ELSE
 
           //// *IMPORTANT NOTE*: make sure the transition RUNNING
           ////                   [--> STOPPED] --> FINISHED works for the
@@ -201,7 +245,8 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
           //if (inherited::state_ != STREAM_STATE_FINISHED)
           //  inherited::state_ = newState_in;
 
-          return true;
+          result = true;
+          goto unlock;
         }
         // error case
         case STREAM_STATE_INITIALIZED:
@@ -229,24 +274,29 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
           //ACE_DEBUG ((LM_DEBUG,
           //            ACE_TEXT ("state switch: PAUSED --> %s\n"),
           //            ACE_TEXT (state2String (new_state).c_str ())));
-          ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
-
+          if (!inherited::stateLock_)
+            inherited::change (newState_in);
+          else
           {
-            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
+            {
+              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
 
-            // *IMPORTANT NOTE*: the transition PAUSED --> [STOPPED/]FINISHED
-            //                   is actually PAUSED --> RUNNING [--> STOPPED]
-            //                   --> FINISHED
-            if ((new_state == STREAM_STATE_STOPPED) ||
-                (new_state == STREAM_STATE_FINISHED))
-              inherited::change (STREAM_STATE_RUNNING);
-            if (new_state == STREAM_STATE_FINISHED)
-              inherited::change (STREAM_STATE_STOPPED);
+              // *IMPORTANT NOTE*: the transition PAUSED --> [STOPPED/]FINISHED
+              //                   is actually PAUSED --> RUNNING [--> STOPPED]
+              //                   --> FINISHED
+              if ((new_state == STREAM_STATE_STOPPED) ||
+                  (new_state == STREAM_STATE_FINISHED))
+                inherited::change (STREAM_STATE_RUNNING);
+              if (new_state == STREAM_STATE_FINISHED)
+                inherited::change (STREAM_STATE_STOPPED);
 
-            inherited::change (new_state);
-          } // end lock scope
+              inherited::change (new_state);
+            } // end lock scope
+          } // end ELSE
 
-          return true;
+          result = true;
+          goto unlock;
         }
         // error case
         case STREAM_STATE_INITIALIZED:
@@ -265,18 +315,23 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
         case STREAM_STATE_RUNNING:
         case STREAM_STATE_FINISHED:
         {
-          ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
-
-          {
-            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+          if (!inherited::stateLock_)
             inherited::change (newState_in);
-          } // end lock scope
+          else
+          {
+            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
+            {
+              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+              inherited::change (newState_in);
+            } // end lock scope
+          } // end ELSE
 
 //          if (newState_in == STREAM_STATE_FINISHED)
 //            ACE_DEBUG ((LM_DEBUG,
 //                        ACE_TEXT ("state switch: STOPPED --> FINISHED\n")));
 
-          return true;
+          result = true;
+          goto unlock;
         }
         case STREAM_STATE_STOPPED: // *NOTE*: allow STOPPED --> STOPPED
           return true; // done
@@ -302,18 +357,23 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
         }
         case STREAM_STATE_INITIALIZED:
         {
-          ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
-
-          {
-            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+          if (!inherited::stateLock_)
             inherited::change (newState_in);
-          } // end lock scope
+          else
+          {
+            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
+            {
+              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+              inherited::change (newState_in);
+            } // end lock scope
+          } // end ELSE
 
           // *WARNING*: falls through
         }
         case STREAM_STATE_FINISHED: // *NOTE*: allow FINISHED --> FINISHED
         {
-          return true; // done
+          result = true;
+          goto unlock;
         }
         // error case
         case STREAM_STATE_PAUSED:
@@ -332,7 +392,16 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
               ACE_TEXT (state2String (inherited::state_).c_str ()),
               ACE_TEXT (state2String (newState_in).c_str ())));
 
-  return false;
+unlock:
+  if (inherited::stateLock_)
+  {
+    result_2 = inherited::stateLock_->release ();
+    if (result_2 == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to LockType::release(): \"%m\", continuing\n")));
+  } // end IF
+
+  return result;
 }
 
 template <typename LockType>

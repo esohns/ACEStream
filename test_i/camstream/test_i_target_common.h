@@ -25,6 +25,13 @@
 #include "ace/os_include/sys/os_socket.h"
 #include "ace/Time_Value.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+//#include "linux/videodev2.h"
+
+#include "gtk/gtk.h"
+#endif
+
 #include "stream_dec_defines.h"
 
 #include "stream_dev_defines.h"
@@ -37,6 +44,10 @@
 #include "test_i_defines.h"
 
 // forward declarations
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+struct v4l2_window;
+#endif
 class Test_I_Target_Stream_Message;
 
 struct Test_I_Target_Configuration;
@@ -80,7 +91,13 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
 #endif
    , printProgressDot (false)
    , targetFileName ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , window (NULL)
+#else
+   , format ()
+   , gdkWindow (NULL)
+   , window (NULL)
+#endif
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -94,7 +111,13 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
   Test_I_Target_InetConnectionManager_t* connectionManager; // TCP IO module
   bool                                   printProgressDot;
   std::string                            targetFileName; // file writer module
-  HWND                                   window; // *TODO*
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HWND                                   window;
+#else
+  struct v4l2_format                     format;
+  GdkWindow*                             gdkWindow;
+  struct v4l2_window*                    window;
+#endif
 };
 
 struct Test_I_Target_ListenerConfiguration
@@ -142,7 +165,11 @@ struct Test_I_Target_Stream_SessionData
   inline Test_I_Target_Stream_SessionData ()
    : Test_I_Stream_SessionData ()
    , connectionState (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , frameSize (0)
+#else
+   , format ()
+#endif
    , targetFileName ()
    , userData (NULL)
   {};
@@ -153,6 +180,10 @@ struct Test_I_Target_Stream_SessionData
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
     frameSize = rhs_in.frameSize;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+    format = rhs_in.format;
+#endif
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);
     userData = (userData ? userData : rhs_in.userData);
@@ -161,7 +192,11 @@ struct Test_I_Target_Stream_SessionData
   }
 
   Test_I_Target_ConnectionState* connectionState;
-  unsigned int                   frameSize;
+  unsigned int                   frameSize; // *TODO*: remove this ASAP
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  struct v4l2_format             format;
+#endif
   std::string                    targetFileName;
   Test_I_Target_UserData*        userData;
 };

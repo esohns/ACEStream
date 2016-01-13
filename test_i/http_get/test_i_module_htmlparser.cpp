@@ -185,16 +185,16 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
   // sanity check(s)
   ACE_ASSERT (message_inout);
 
-  // *TODO*: remove type inferences
-  const Test_I_Stream_SessionData_t& session_data_container_r =
-    message_inout->get ();
-  const Test_I_Stream_SessionData& session_data_r =
-    session_data_container_r.get ();
-
   switch (message_inout->type ())
   {
     case STREAM_SESSION_BEGIN:
     {
+      // *TODO*: remove type inferences
+        const Test_I_Stream_SessionData_t& session_data_container_r =
+          message_inout->get ();
+        const Test_I_Stream_SessionData& session_data_r =
+          session_data_container_r.get ();
+
 //      if (parserContext_)
 //        htmlCtxtReset (parserContext_);
 

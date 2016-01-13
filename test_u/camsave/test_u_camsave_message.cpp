@@ -25,6 +25,9 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "dshow.h"
+#else
+#include "libv4l2.h"
+#include "linux/videodev2.h"
 #endif
 
 #include "stream_macros.h"
@@ -130,6 +133,82 @@ Stream_CamSave_Message::duplicate (void) const
 
   return message_p;
 }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+ACE_Message_Block*
+Stream_CamSave_Message::release (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message::release"));
+
+  int reference_count = inherited::reference_count ();
+  if ((reference_count > 1) || (inherited::data_.release))
+    return inherited::release ();
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::data_block_);
+
+  // *IMPORTANT NOTE*: handle race condition here
+  {
+    ACE_GUARD_RETURN (ACE_Lock, ace_mon, *inherited::data_block_->locking_strategy (), NULL);
+
+    if (inherited::size ()) // is device-data ?
+      goto continue_;
+
+    return NULL; // nothing to do
+  } // end lock scope
+
+continue_:
+  // release any continuations
+  if (inherited::cont_)
+  {
+    inherited::cont_->release ();
+    inherited::cont_ = NULL;
+  } // end IF
+
+  struct v4l2_buffer buffer;
+  ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
+  buffer.index = inherited::data_.index;
+  buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  buffer.memory = inherited::data_.method;
+  switch (inherited::data_.method)
+  {
+    case V4L2_MEMORY_USERPTR:
+    {
+      buffer.m.userptr =
+          reinterpret_cast<unsigned long> (inherited::rd_ptr ());
+      buffer.length = inherited::size ();
+      break;
+    }
+    case V4L2_MEMORY_MMAP:
+    {
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown method (was: %d), returning\n"),
+                  inherited::data_.method));
+      return NULL;
+    }
+  } // end SWITCH
+  // *NOTE*: in oder to retrieve the buffer instance handle from the device
+  //         buffer when it has written the frame data, the address of the
+  //         ACE_Message_Block (!) could be embedded in the 'reserved' field(s).
+  //         Unfortunately, this does not work, the fields seem to be zeroed by
+  //         the driver
+  //         --> maintain a mapping: buffer index <--> buffer handle
+//        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
+  int result = v4l2_ioctl (inherited::data_.device,
+                           VIDIOC_QBUF,
+                           &buffer);
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+                inherited::data_.device, ACE_TEXT ("VIDIOC_QBUF")));
+
+  return NULL;
+}
+#endif
 
 int
 Stream_CamSave_Message::command () const

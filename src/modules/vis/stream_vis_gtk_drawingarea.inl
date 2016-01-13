@@ -20,27 +20,29 @@
 
 #include "ace/Log_Msg.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "linux/videodev2.h"
+#endif
+
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
           typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
+          typename SessionDataContainerType>
 Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                           MessageType,
-                           ConfigurationType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           ConnectionManagerType,
-                           ConnectorType>::Stream_Module_Vis_GTK_DrawingArea_T ()
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::Stream_Module_Vis_GTK_DrawingArea_T ()
  : inherited ()
- , configuration_ ()
+ , configuration_ (NULL)
+ , sessionData_ (NULL)
+ , cairoContext_ (NULL)
+ , pixelBuffer_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::Stream_Module_Vis_GTK_DrawingArea_T"));
 
@@ -49,67 +51,122 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
           typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
+          typename SessionDataContainerType>
 Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                           MessageType,
-                           ConfigurationType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           ConnectionManagerType,
-                           ConnectorType>::~Stream_Module_Vis_GTK_DrawingArea_T ()
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::~Stream_Module_Vis_GTK_DrawingArea_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::~Stream_Module_Vis_GTK_DrawingArea_T"));
 
+  if (cairoContext_)
+    cairo_destroy (cairoContext_);
+  if (pixelBuffer_)
+    g_object_unref (pixelBuffer_);
 }
 
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
           typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
+          typename SessionDataContainerType>
 void
 Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                           MessageType,
-                           ConfigurationType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           ConnectionManagerType,
-                           ConnectorType>::handleDataMessage (MessageType*& message_inout,
-                                                              bool& passMessageDownstream_out)
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
+                                                                                  bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::handleDataMessage"));
 
-  ACE_UNUSED_ARG (message_inout);
-  ACE_UNUSED_ARG (passMessageDownstream_out);
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (sessionData_);
+  ACE_ASSERT (sessionData_->format.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+
+  gdk_threads_enter ();
+
+  if (pixelBuffer_)
+  {
+    g_object_unref (pixelBuffer_);
+    pixelBuffer_ = NULL;
+  } // end IF
+
+  // step1: allocate a pixel buffer
+  GdkColorspace colorspace = GDK_COLORSPACE_RGB;
+  bool has_alpha = false;
+  int bits_per_sample = -1;
+  switch (sessionData_->format.fmt.pix.pixelformat)
+  {
+    case V4L2_PIX_FMT_BGR24:
+      bits_per_sample = 8; break;
+    case V4L2_PIX_FMT_RGB24:
+      bits_per_sample = 8; break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
+                  sessionData_->format.fmt.pix.pixelformat));
+
+      // clean up
+      gdk_threads_leave ();
+
+      return;
+    }
+  } // end SWITCH
+
+  pixelBuffer_ =
+      gdk_pixbuf_new_from_data (reinterpret_cast<guchar*> (message_inout->rd_ptr ()), // data
+                                colorspace,                                           // color space
+                                has_alpha,                                            // has alpha channel ?
+                                bits_per_sample,                                      // bits per sample
+                                sessionData_->format.fmt.pix.width,                   // width
+                                sessionData_->format.fmt.pix.height,                  // height
+                                sessionData_->format.fmt.pix.bytesperline,            // row stride
+                                NULL,                                                 // destroy function
+                                NULL);                                                // destroy function act
+  if (!pixelBuffer_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_pixbuf_new_from_data(), returning\n")));
+
+    // clean up
+    gdk_threads_leave ();
+
+    return;
+  } // end IF
+
+  // step2: paste the pixel buffer into the specified window area
+  gdk_cairo_set_source_pixbuf (cairoContext_,
+                               pixelBuffer_,
+                               0.0, 0.0);
+  cairo_paint (cairoContext_);
+
+  // step3: schedule an 'expose' event
+//  gtk_widget_queue_draw_area ();
+  gdk_window_invalidate_rect (configuration_->gdkWindow,
+//                              &configuration_->area,
+                              NULL,
+                              false);
+
+  gdk_threads_leave ();
 }
 
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
           typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
+          typename SessionDataContainerType>
 void
 Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                           MessageType,
-                           ConfigurationType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           ConnectionManagerType,
-                           ConnectorType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                 bool& passMessageDownstream_out)
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                     bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::handleSessionMessage"));
 
@@ -123,15 +180,13 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
     case STREAM_SESSION_BEGIN:
     {
       const SessionDataContainerType& session_data_container_r =
-        message_inout->get ();
-      sessionData_ =
-        const_cast<SessionDataType*> (&session_data_container_r.get ());
-      ACE_ASSERT (sessionData_);
-
+          message_inout->get ();
+      sessionData_ = &session_data_container_r.get ();
       break;
     }
     case STREAM_SESSION_END:
     {
+      sessionData_ = NULL;
       break;
     }
     default:
@@ -142,46 +197,65 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
           typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
+          typename SessionDataContainerType>
 bool
 Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                           MessageType,
-                           ConfigurationType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           ConnectionManagerType,
-                           ConnectorType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::initialize"));
 
-  configuration_ = configuration_in;
+  configuration_ = &configuration_in;
 
-  return true;
+  // sanity check(s)
+  ACE_ASSERT (configuration_->gdkWindow);
+
+  if (isInitialized_)
+  {
+    if (cairoContext_)
+    {
+      cairo_destroy (cairoContext_);
+      cairoContext_ = NULL;
+    } // end IF
+
+    isInitialized_ = false;
+  } // end IF
+  ACE_ASSERT (!cairoContext_);
+
+  cairoContext_ = gdk_cairo_create (configuration_->gdkWindow);
+  if (!cairoContext_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+    return false;
+  } // end IF
+//  gdk_cairo_set_source_window (cairoContext_,
+//                               configuration_->gdkWindow,
+//                               0.0, 0.0);
+
+  isInitialized_ = true;
+
+  return isInitialized_;
 }
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
           typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
-const ModuleHandlerConfigurationType&
+          typename SessionDataContainerType>
+const ConfigurationType&
 Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                           MessageType,
-                           ConfigurationType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           ConnectionManagerType,
-                           ConnectorType>::get () const
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::get"));
 
-  return configuration_;
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  return *configuration_;
 }

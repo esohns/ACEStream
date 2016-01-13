@@ -38,12 +38,12 @@ if [ ! -d "${TARGET_DIR}" ]; then
  [ $? -ne 0 ] && echo "ERROR: failed to mkdir \"${TARGET_DIR}\", aborting" && exit 1
  echo "INFO: created directory \"${TARGET_DIR}\", continuing"
 fi
-VERSION="6.3.1"
+VERSION="6.3.3"
 
 echo "copying 3rd-party libraries"
 LIB_DIR="lib"
 MODULES_DIR="${PROJECT_DIR}/modules"
-SUB_DIRS="ATCD/ACE/build/linux"
+SUB_DIRS="ACE/build/linux"
 #declare -a LIBS=("libACE.so")
 LIBS="libACE.so"
 i=0
@@ -84,12 +84,14 @@ done
 
 echo "copying framework libraries"
 SUB_DIRS="src
+src/modules/dev
 src/modules/file
 src/modules/misc
 src/modules/net
 src/modules/net/protocols"
 #declare -a LIBS=("libACENetwork.so"
 LIBS="libACEStream.so
+libACEStream_Device.so
 libACEStream_File.so
 libACEStream_Misc.so
 libACEStream_Net.so

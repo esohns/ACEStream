@@ -21,7 +21,17 @@
 #ifndef TEST_I_SOURCE_COMMON_H
 #define TEST_I_SOURCE_COMMON_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "linux/videodev2.h"
+
+#include "gtk/gtk.h"
+#endif
+
 #include "stream_data_base.h"
+
+#include "stream_dev_common.h"
+#include "stream_dev_defines.h"
 
 #include "test_i_common.h"
 
@@ -59,6 +69,8 @@ struct Test_I_Source_SocketHandlerConfiguration
 struct Test_I_Source_StreamState;
 struct Test_I_Source_StreamConfiguration;
 struct Test_I_Source_Stream_ModuleHandlerConfiguration;
+class Test_I_Source_Stream_SessionMessage;
+class Test_I_Source_Stream_Message;
 typedef Stream_Base_T<ACE_SYNCH_MUTEX,
                       /////////////////
                       ACE_MT_SYNCH,
@@ -77,7 +89,7 @@ typedef Stream_Base_T<ACE_SYNCH_MUTEX,
                       Test_I_Source_Stream_SessionData,   // session data
                       Test_I_Source_Stream_SessionData_t, // session data container (reference counted)
                       Test_I_Source_Stream_SessionMessage,
-                      Test_I_Stream_Message> Test_I_Source_StreamBase_t;
+                      Test_I_Source_Stream_Message> Test_I_Source_StreamBase_t;
 struct Test_I_Source_Stream_ModuleHandlerConfiguration
  : Test_I_Stream_ModuleHandlerConfiguration
 {
@@ -88,15 +100,35 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
    , device ()
    , socketHandlerConfiguration (NULL)
    , stream (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , bufferMap ()
+   , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
+   , fileDescriptor (-1)
+   , gtkWindow (NULL)
+   , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
+ #endif
    , window (NULL)
   {};
 
   Test_I_Source_IConnection_t*              connection; // TCP target/IO module
   Test_I_Source_InetConnectionManager_t*    connectionManager; // TCP IO module
-  std::string                               device; // "FriendlyName" property (Win32)
+  // *PORTABILITY*: Win32: "FriendlyName" property
+  //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
+  std::string                               device;
   Test_I_Source_SocketHandlerConfiguration* socketHandlerConfiguration;
   Test_I_Source_StreamBase_t*               stream;
-  HWND                                      window; // *TODO*
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HWND                                      window;
+#else
+  INDEX2BUFFER_MAP_T                        bufferMap;
+  __u32                                     buffers; // v4l device buffers
+  int                                       fileDescriptor;
+  GdkWindow*                                gtkWindow;
+  v4l2_memory                               method; // v4l camera source
+  struct v4l2_window*                       window;
+#endif
 };
 
 struct Test_I_Source_Stream_SessionData
@@ -105,6 +137,10 @@ struct Test_I_Source_Stream_SessionData
   inline Test_I_Source_Stream_SessionData ()
    : Stream_SessionData ()
    , connectionState (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+   , format ()
+#endif
    , userData (NULL)
   {};
   inline Test_I_Source_Stream_SessionData& operator+= (Test_I_Source_Stream_SessionData& rhs_in)
@@ -113,12 +149,20 @@ struct Test_I_Source_Stream_SessionData
     Stream_SessionData::operator+= (rhs_in);
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+    format = rhs_in.format;
+#endif
     userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }
 
   Test_I_Source_ConnectionState* connectionState;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  struct v4l2_format             format;
+#endif
   Test_I_Source_UserData*        userData;
 };
 typedef Stream_SessionData_T<Test_I_Source_Stream_SessionData> Test_I_Source_Stream_SessionData_t;
@@ -169,11 +213,11 @@ struct Test_I_Source_Configuration
 
 typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
 
-                                          Test_I_Stream_Message,
+                                          Test_I_Source_Stream_Message,
                                           Test_I_Source_Stream_SessionMessage> Test_I_Source_MessageAllocator_t;
 
 typedef Common_INotify_T<Test_I_Source_Stream_SessionData,
-                         Test_I_Stream_Message,
+                         Test_I_Source_Stream_Message,
                          Test_I_Source_Stream_SessionMessage> Test_I_Source_IStreamNotify_t;
 typedef std::list<Test_I_Source_IStreamNotify_t*> Test_I_Source_Subscribers_t;
 typedef Test_I_Source_Subscribers_t::iterator Test_I_Source_SubscribersIterator_t;
@@ -188,7 +232,11 @@ struct Test_I_Source_GTK_CBData
    , configuration (NULL)
    , isFirst (true)
    , stream (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , streamConfiguration (NULL)
+#else
+   , device (-1)
+#endif
    , UDPStream (NULL)
   {};
 
@@ -197,6 +245,8 @@ struct Test_I_Source_GTK_CBData
   Test_I_Source_StreamBase_t*  stream;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   IAMStreamConfig*             streamConfiguration;
+#else
+  int                          device; // (capture) device file descriptor
 #endif
   Test_I_Source_Subscribers_t  subscribers;
   Test_I_Source_StreamBase_t*  UDPStream;

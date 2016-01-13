@@ -11,20 +11,33 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
 
 ############## next target ################
+if (WIN32)
 set (${PROJECT_NAME}_Device_LIB_SRCS
      stream_dev_exports.h
      stream_dev_common.h
      stream_dev_defines.h
      stream_dev_tools.cpp
      stream_dev_tools.h
+     stream_dev_tools.inl
      stream_dev_cam_source_directshow.cpp
      stream_dev_cam_source_directshow.h
      stream_dev_cam_source_directshow.inl
-     stream_dev_cam_source.cpp
-     stream_dev_cam_source.h
-     stream_dev_cam_source.inl
      stdafx.cpp
      stdafx.h)
+elseif (UNIX)
+set (${PROJECT_NAME}_Device_LIB_SRCS
+     stream_dev_exports.h
+     stream_dev_common.h
+     stream_dev_defines.h
+     stream_dev_tools.cpp
+     stream_dev_tools.h
+     stream_dev_tools.inl
+     stream_dev_cam_source_v4l.cpp
+     stream_dev_cam_source_v4l.h
+     stream_dev_cam_source_v4l.inl
+     stdafx.cpp
+     stdafx.h)
+endif ()
 
 add_library (${PROJECT_NAME}_Device SHARED ${ACEStream_Device_LIB_SRCS})
 
@@ -50,10 +63,11 @@ install (FILES
          stream_dev_common.h
          stream_dev_defines.h
          stream_dev_tools.h
+         stream_dev_tools.inl
          stream_dev_cam_source_directshow.h
          stream_dev_cam_source_directshow.inl
-         stream_dev_cam_source.h
-         stream_dev_cam_source.inl
+         stream_dev_cam_source_v4l.h
+         stream_dev_cam_source_v4l.inl
          DESTINATION include)
 install (TARGETS ${PROJECT_NAME}_Device
          EXPORT ${PROJECT_NAME}Targets

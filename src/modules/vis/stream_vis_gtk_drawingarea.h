@@ -23,6 +23,8 @@
 
 #include "ace/Global_Macros.h"
 
+#include "gtk/gtk.h"
+
 #include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
@@ -32,18 +34,13 @@ template <typename SessionMessageType,
           ///////////////////////////////
           typename ConfigurationType,
           ///////////////////////////////
-          typename ModuleHandlerConfigurationType,
-          ///////////////////////////////
           typename SessionDataType,
-          typename SessionDataContainerType,
-          ///////////////////////////////
-          typename ConnectionManagerType,
-          typename ConnectorType>
+          typename SessionDataContainerType>
 class Stream_Module_Vis_GTK_DrawingArea_T
  : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
                                  SessionMessageType,
                                  MessageType>
- , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
+ , public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
   Stream_Module_Vis_GTK_DrawingArea_T ();
@@ -56,11 +53,12 @@ class Stream_Module_Vis_GTK_DrawingArea_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ModuleHandlerConfigurationType&);
-  virtual const ModuleHandlerConfigurationType& get () const;
+  virtual bool initialize (const ConfigurationType&);
+  virtual const ConfigurationType& get () const;
 
  protected:
-  ModuleHandlerConfigurationType        configuration_;
+  const ConfigurationType* configuration_;
+  const SessionDataType*   sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -69,6 +67,11 @@ class Stream_Module_Vis_GTK_DrawingArea_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_DrawingArea_T (const Stream_Module_Vis_GTK_DrawingArea_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_DrawingArea_T& operator= (const Stream_Module_Vis_GTK_DrawingArea_T&))
+
+  cairo_t*                 cairoContext_;
+  GdkPixbuf*               pixelBuffer_;
+
+  bool                     isInitialized_;
 };
 
 // include template implementation

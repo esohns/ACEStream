@@ -217,6 +217,9 @@ do_work (bool debug_in,
     &configuration.streamConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
 
+  Stream_RIFFDecoder_Module_Decoder* task_p = NULL;
+  Stream_Module_t* module_p = NULL;
+
   // step1a: start stream
   if (!stream.initialize (configuration.streamConfiguration))
   {
@@ -239,7 +242,7 @@ do_work (bool debug_in,
 //    } // end IF
   stream.waitForCompletion (true, false);
 
-  Stream_Module_t* module_p = stream.find (ACE_TEXT ("Decoder"));
+  module_p = stream.find (ACE_TEXT ("Decoder"));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -247,7 +250,7 @@ do_work (bool debug_in,
                 ACE_TEXT ("Decoder")));
     goto end;
   } // end IF
-  Stream_RIFFDecoder_Module_Decoder* task_p =
+  task_p =
     dynamic_cast<Stream_RIFFDecoder_Module_Decoder*> (module_p->writer ());
   if (!task_p)
   {

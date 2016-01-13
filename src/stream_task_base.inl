@@ -400,13 +400,13 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       {
         if (inherited::module ())
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("module \"%s\": dynamic_cast<SessionMessageType*>(%@) failed (type was: %d) ,aborting\n"),
-                      ACE_TEXT (inherited::name ()),
+                      ACE_TEXT ("%s: dynamic_cast<SessionMessageType*>(%@) failed (type was: %d), aborting\n"),
+                      inherited::name (),
                       messageBlock_in,
                       messageBlock_in->msg_type ()));
         else
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("dynamic_cast<SessionMessageType*>(%@) failed (type was: %d) ,aborting\n"),
+                      ACE_TEXT ("dynamic_cast<SessionMessageType*>(%@) failed (type was: %d), aborting\n"),
                       messageBlock_in,
                       messageBlock_in->msg_type ()));
 

@@ -23,8 +23,8 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <list>
-#include <map>
 #endif
+#include <map>
 #include <string>
 
 #include "ace/Global_Macros.h"
@@ -32,14 +32,22 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "dshow.h"
+#else
+#include "linux/videodev2.h"
 #endif
 
+#include "stream_dev_common.h"
+#include "stream_dev_defines.h"
 #include "stream_dev_exports.h"
+
+// forward declarations
+class ACE_Message_Block;
+class Stream_IAllocator;
 
 class Stream_Dev_Export Stream_Module_Device_Tools
 {
  public:
-   static void initialize ();
+  static void initialize ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static bool clear (IGraphBuilder*); // graph handle
@@ -61,6 +69,41 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void deleteMediaType (struct _AMMediaType*&); // handle
   static std::string mediaSubTypeToString (const GUID&); // GUID
   static std::string mediaTypeToString (const struct _AMMediaType&); // media type
+#else
+  static bool canOverlay (int); // file descriptor
+  static bool canStream (int); // file descriptor
+  static void dump (int); // file descriptor
+  static bool initializeCapture (int,         // file descriptor
+                                 v4l2_memory, // I/O streaming method
+                                 __u32&);     // #buffers (in/out)
+  static bool initializeOverlay (int,                        // file descriptor
+                                 const struct v4l2_window&); // (target) window
+  // *IMPORTANT NOTE*: invoke this AFTER VIDIOC_S_FMT, and BEFORE
+  //                   VIDIOC_STREAMON
+  template <typename MessageType>
+  static bool initializeBuffers (int,                        // file descriptor
+                                 v4l2_memory,                // I/O streaming method
+                                 __u32,                      // number of buffers
+                                 /////////
+                                 INDEX2BUFFER_MAP_T&,        // return value: buffer map
+                                 /////////
+                                 Stream_IAllocator* = NULL); // allocator
+  template <typename MessageType>
+  static void finalizeBuffers (int,                  // file descriptor
+                               v4l2_memory,          // I/O streaming method
+                               INDEX2BUFFER_MAP_T&); // buffer map
+
+  static bool setFormat (int,    // file descriptor
+                         __u32); // format (fourcc)
+  static bool getFormat (int,                  // file descriptor
+                         struct v4l2_format&); // return value: format
+  static bool setResolution (int,           // file descriptor
+                             unsigned int,  // width
+                             unsigned int); // height
+  static bool setInterval (int,                       // file descriptor
+                           const struct v4l2_fract&); // frame interval
+
+  static std::string formatToString (__u32); // format (fourcc)
 #endif
 
  private:
@@ -87,5 +130,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static GUID2STRING_MAP_T Stream_FormatType2StringMap;
 #endif
 };
+
+// include template definitions
+#include "stream_dev_tools.inl"
 
 #endif

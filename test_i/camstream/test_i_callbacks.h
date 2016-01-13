@@ -42,6 +42,16 @@ bool load_rates (IAMStreamConfig*, // stream config handle
                  const GUID&,      // media subtype
                  unsigned int,     // resolution (width)
                  GtkListStore*);   // return value: supported rates
+#else
+bool load_formats (int,            // (capture) device file descriptor
+                   GtkListStore*); // return value: supported formats (fourcc)
+bool load_resolutions (int,            // (capture) device file descriptor
+                       uint32_t,       // format (fourcc)
+                       GtkListStore*); // return value: supported resolutions
+bool load_rates (int,            // (capture) device file descriptor
+                 uint32_t,       // format (fourcc)
+                 unsigned int,   // resolution (width)
+                 GtkListStore*); // return value: supported rates
 #endif
 
 // thread functions

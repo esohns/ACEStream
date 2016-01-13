@@ -1,19 +1,19 @@
-/* A Bison parser, made by GNU Bison 2.4.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Skeleton interface for Bison GLR parsers in C
-   
-      Copyright (C) 2002-2006, 2009-2010 Free Software Foundation, Inc.
-   
+
+   Copyright (C) 2002-2015 Free Software Foundation, Inc.
+
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
@@ -26,23 +26,42 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-   
+
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+#ifndef YY_YY_STREAM_DEC_AVI_PARSER_H_INCLUDED
+# define YY_YY_STREAM_DEC_AVI_PARSER_H_INCLUDED
+/* Debug traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 1
+#endif
+#if YYDEBUG
+extern int yydebug;
+#endif
 /* "%code requires" blocks.  */
 
 
 #ifndef STREAM_DEC_AVI_PARSER_H
 #define STREAM_DEC_AVI_PARSER_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "ace/config-lite.h"
 
 #include "dshow.h"
+#else
+#include <cstdint>
+
+#define MAKEFOURCC(a, b, c, d) ((uint32_t)(a << 24)|(uint32_t)(b << 16)|(uint32_t)(c << 8)|(uint32_t)(d))
+#endif
 
 struct RIFF_chunk_header
 {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   FOURCC       fourcc;
+#else
+  uint32_t     fourcc; // *NOTE*: libavformat type
+#endif
   unsigned int size;
 
   unsigned int offset;
@@ -52,7 +71,7 @@ class Stream_Decoder_AVIParserDriver;
 //class RIFF_Scanner;
 struct YYLTYPE;
 union YYSTYPE;
-enum yytokentype;
+//enum yytokentype;
 
 typedef void* yyscan_t;
 
@@ -61,28 +80,27 @@ typedef void* yyscan_t;
 #define YYTOKEN_TABLE 1
 extern void yyerror (YYLTYPE*, Stream_Decoder_AVIParserDriver*, yyscan_t, const char*);
 extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
-extern void yyprint (FILE*, yytokentype, YYSTYPE);
+//extern void yyprint (FILE*, yytokentype, YYSTYPE);
 
 
 
-
-/* Tokens.  */
+/* Token type.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
-   /* Put the tokens into the symbol table, so that GDB and other debuggers
-      know about them.  */
-   enum yytokentype {
-     END = 0,
-     RIFF = 258,
-     LIST = 259,
-     CHUNK = 260,
-     DATA = 261
-   };
+  enum yytokentype
+  {
+    END = 0,
+    RIFF = 258,
+    LIST = 259,
+    CHUNK = 260,
+    DATA = 261
+  };
 #endif
 
+/* Value type.  */
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
-#ifndef YYSTYPE
-typedef union YYSTYPE
+union YYSTYPE
 {
 
 
@@ -90,25 +108,30 @@ typedef union YYSTYPE
   unsigned int             size;
 
 
+};
 
-} YYSTYPE;
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
 #endif
 
+/* Location type.  */
 #if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
-typedef struct YYLTYPE
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
 {
-
   int first_line;
   int first_column;
   int last_line;
   int last_column;
-
-} YYLTYPE;
+};
 # define YYLTYPE_IS_DECLARED 1
 # define YYLTYPE_IS_TRIVIAL 1
 #endif
 
+
+
+int yyparse (Stream_Decoder_AVIParserDriver* driver, yyscan_t yyscanner);
 /* "%code provides" blocks.  */
 
 
@@ -116,10 +139,4 @@ typedef struct YYLTYPE
 
 
 
-
-
-
-
-
-
-
+#endif /* !YY_YY_STREAM_DEC_AVI_PARSER_H_INCLUDED  */

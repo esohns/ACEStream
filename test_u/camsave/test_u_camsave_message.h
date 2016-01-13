@@ -44,7 +44,7 @@ class Stream_CamSave_Message
 {
   // grant access to specific private ctors...
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-                                                 
+
                                                  Stream_CamSave_Message,
                                                  Stream_CamSave_SessionMessage>;
 
@@ -53,9 +53,14 @@ class Stream_CamSave_Message
   virtual ~Stream_CamSave_Message ();
 
   // overrides from ACE_Message_Block
-  // --> create a "shallow" copy of ourselves that references the same packet
+  // --> create a "shallow" copy that references the same packet
   // *NOTE*: uses the allocator (if any)
   virtual ACE_Message_Block* duplicate (void) const;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  // insert this buffer back into the device incoming queue
+  virtual ACE_Message_Block* release (void);
+#endif
 
   // implement Stream_MessageBase_T
   virtual int command () const; // return value: message type

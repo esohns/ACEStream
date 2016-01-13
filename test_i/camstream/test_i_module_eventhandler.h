@@ -37,7 +37,7 @@
 
 class Test_I_Source_Stream_Module_EventHandler
  : public Stream_Module_MessageHandler_T<Test_I_Source_Stream_SessionMessage,
-                                         Test_I_Stream_Message,
+                                         Test_I_Source_Stream_Message,
 
                                          Test_I_Source_Stream_ModuleHandlerConfiguration,
 
@@ -52,7 +52,7 @@ class Test_I_Source_Stream_Module_EventHandler
 
  private:
   typedef Stream_Module_MessageHandler_T<Test_I_Source_Stream_SessionMessage,
-                                         Test_I_Stream_Message,
+                                         Test_I_Source_Stream_Message,
 
                                          Test_I_Source_Stream_ModuleHandlerConfiguration,
 

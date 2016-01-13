@@ -62,7 +62,7 @@ class Test_I_Source_Stream_T
                         Test_I_Source_Stream_SessionData,   // session data
                         Test_I_Source_Stream_SessionData_t, // session data container (reference counted)
                         Test_I_Source_Stream_SessionMessage,
-                        Test_I_Stream_Message>
+                        Test_I_Source_Stream_Message>
 {
  public:
   Test_I_Source_Stream_T (const std::string&); // name
@@ -98,9 +98,9 @@ class Test_I_Source_Stream_T
                         Test_I_Source_Stream_SessionData,   // session data
                         Test_I_Source_Stream_SessionData_t, // session data container (reference counted)
                         Test_I_Source_Stream_SessionMessage,
-                        Test_I_Stream_Message> inherited;
+                        Test_I_Source_Stream_Message> inherited;
   typedef Stream_Module_Net_Target_T<Test_I_Source_Stream_SessionMessage,
-                                     Test_I_Stream_Message,
+                                     Test_I_Source_Stream_Message,
                                      ////
                                      Test_I_Source_Stream_ModuleHandlerConfiguration,
                                      ////

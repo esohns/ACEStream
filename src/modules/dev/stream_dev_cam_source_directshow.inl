@@ -45,23 +45,18 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::Stream_Dev_Cam_Source_DirectShow_T (bool isActive_in,
-                                                                                          bool autoStart_in)
- : inherited (NULL,         // lock handle
-              isActive_in,  // active ?
-              autoStart_in, // auto-start ?
-              true)         // *NOTE*: when working in 'passive' mode, enabling
-                            //         this utilizes the calling thread. Note
-                            //         that this potentially renders state
-                            //         transitions during processing a tricky
-                            //         affair, as the calling thread may be
-                            //         holding the lock --> check carefully
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::Stream_Dev_Cam_Source_DirectShow_T ()
+ : inherited (NULL,  // lock handle
+              false, // active ?
+              false, // auto-start ?
+              false, // run svc() on start() ?
+              true)  // generate session messages
  , isInitialized_ (false)
  , ROTID_ (0)
  , statisticCollectionHandler_ (ACTION_COLLECT,
@@ -87,13 +82,13 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::~Stream_Dev_Cam_Source_DirectShow_T ()
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::~Stream_Dev_Cam_Source_DirectShow_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::~Stream_Dev_Cam_Source_DirectShow_T"));
 
@@ -172,13 +167,13 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::initialize"));
 
@@ -323,14 +318,14 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                            SessionMessageType,
-                            ProtocolMessageType,
-                            ConfigurationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                           bool& passMessageDownstream_out)
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                  bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::handleSessionMessage"));
 
@@ -448,13 +443,13 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
         goto error;
       } // end IF
 
-      // Use the ROTFLAGS_REGISTRATIONKEEPSALIVE to ensure a strong reference 
-      // to the object.  Using this flag will cause the object to remain 
-      // registered until it is explicitly revoked with the Revoke() method. 
-      // Not using this flag means that if GraphEdit remotely connects 
-      // to this graph and then GraphEdit exits, this object registration  
-      // will be deleted, causing future attempts by GraphEdit to fail until 
-      // this application is restarted or until the graph is registered again. 
+      // Use the ROTFLAGS_REGISTRATIONKEEPSALIVE to ensure a strong reference
+      // to the object.  Using this flag will cause the object to remain
+      // registered until it is explicitly revoked with the Revoke() method.
+      // Not using this flag means that if GraphEdit remotely connects
+      // to this graph and then GraphEdit exits, this object registration
+      // will be deleted, causing future attempts by GraphEdit to fail until
+      // this application is restarted or until the graph is registered again.
       result_2 =
         ROT_p->Register (ROTFLAGS_REGISTRATIONKEEPSALIVE,
                          inherited::configuration_->builder, moniker_p,
@@ -536,7 +531,7 @@ error:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to GetRunningObjectTable(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        
+
           // clean up
           ROTID_ = 0;
 
@@ -633,13 +628,13 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::collect (StatisticContainerType& data_out)
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::collect"));
 
@@ -676,13 +671,13 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::report () const
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::report"));
 
@@ -702,15 +697,15 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                                     SessionMessageType,
-                                     ProtocolMessageType,
-                                     ConfigurationType,
-                                     StreamStateType,
-                                     SessionDataType,
-                                     SessionDataContainerType,
-                                     StatisticContainerType>::BufferCB (double sampleTime_in,
-                                                                        BYTE* buffer_in,
-                                                                        long bufferLen_in)
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::BufferCB (double sampleTime_in,
+                                                                      BYTE* buffer_in,
+                                                                      long bufferLen_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::BufferCB"));
 
@@ -729,14 +724,14 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                                     SessionMessageType,
-                                     ProtocolMessageType,
-                                     ConfigurationType,
-                                     StreamStateType,
-                                     SessionDataType,
-                                     SessionDataContainerType,
-                                     StatisticContainerType>::SampleCB (double sampleTime_in,
-                                                                        IMediaSample* IMediaSample_in)
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::SampleCB (double sampleTime_in,
+                                                                      IMediaSample* IMediaSample_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::SampleCB"));
 
@@ -1122,14 +1117,14 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                                     SessionMessageType,
-                                     ProtocolMessageType,
-                                     ConfigurationType,
-                                     StreamStateType,
-                                     SessionDataType,
-                                     SessionDataContainerType,
-                                     StatisticContainerType>::QueryInterface (const IID&,
-                                                                              void **)
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::QueryInterface (const IID&,
+                                                                            void **)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::QueryInterface"));
 
@@ -1148,13 +1143,13 @@ template <typename LockType,
           typename StatisticContainerType>
 ULONG
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                                     SessionMessageType,
-                                     ProtocolMessageType,
-                                     ConfigurationType,
-                                     StreamStateType,
-                                     SessionDataType,
-                                     SessionDataContainerType,
-                                     StatisticContainerType>::AddRef ()
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::AddRef ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::AddRef"));
 
@@ -1170,71 +1165,71 @@ template <typename LockType,
           typename StatisticContainerType>
 ULONG
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                                     SessionMessageType,
-                                     ProtocolMessageType,
-                                     ConfigurationType,
-                                     StreamStateType,
-                                     SessionDataType,
-                                     SessionDataContainerType,
-                                     StatisticContainerType>::Release ()
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::Release ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::Release"));
 
   return 0;
 }
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-void
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::upStream (Stream_Base_t* streamBase_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::upStream"));
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//void
+//Stream_Dev_Cam_Source_DirectShow_T<LockType,
+//                           SessionMessageType,
+//                           ProtocolMessageType,
+//                           ConfigurationType,
+//                           StreamStateType,
+//                           SessionDataType,
+//                           SessionDataContainerType,
+//                           StatisticContainerType>::upStream (Stream_Base_t* streamBase_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::upStream"));
 
-  ACE_UNUSED_ARG (streamBase_in);
+//  ACE_UNUSED_ARG (streamBase_in);
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
 
-  ACE_NOTREACHED (return;)
-}
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-Stream_Base_t*
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::upStream () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::upStream"));
+//  ACE_NOTREACHED (return;)
+//}
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//Stream_Base_t*
+//Stream_Dev_Cam_Source_DirectShow_T<LockType,
+//                           SessionMessageType,
+//                           ProtocolMessageType,
+//                           ConfigurationType,
+//                           StreamStateType,
+//                           SessionDataType,
+//                           SessionDataContainerType,
+//                           StatisticContainerType>::upStream () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::upStream"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (NULL);
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (NULL);
 
-  ACE_NOTREACHED (return NULL;)
-}
+//  ACE_NOTREACHED (return NULL;)
+//}
 
 template <typename LockType,
           typename SessionMessageType,
@@ -1246,15 +1241,15 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                                     SessionMessageType,
-                                     ProtocolMessageType,
-                                     ConfigurationType,
-                                     StreamStateType,
-                                     SessionDataType,
-                                     SessionDataContainerType,
-                                     StatisticContainerType>::initialize_DirectShow (const std::string& deviceName_in,
-                                                                                     IGraphBuilder* IGraphBuilder_in,
-                                                                                     const HWND windowHandle_in)
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::initialize_DirectShow (const std::string& deviceName_in,
+                                                                                   IGraphBuilder* IGraphBuilder_in,
+                                                                                   const HWND windowHandle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::initialize_DirectShow"));
 
@@ -1271,7 +1266,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
     return false;
   } // end IF
 
-  // retrieve interfaces for media control and the video window 
+  // retrieve interfaces for media control and the video window
   HRESULT result = IGraphBuilder_in->QueryInterface (IID_IMediaControl,
                                                      (void**)&IMediaControl_);
   if (FAILED (result))
@@ -1640,121 +1635,15 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-int
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::svc (void)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::svc"));
-
-  int result = -1;
-  int result_2 = -1;
-  ssize_t bytes_read = -1;
-  ACE_Message_Block* message_block_p = NULL;
-  ProtocolMessageType* message_p = NULL;
-  bool finished = false;
-  bool stop_processing = false;
-
-  // step1: start processing data...
-//   ACE_DEBUG ((LM_DEBUG,
-//               ACE_TEXT ("entering processing loop...\n")));
-  do
-  {
-    result = inherited::getq (message_block_p,
-                              NULL);
-    if (result == -1)
-    {
-      int error = ACE_OS::last_error ();
-      if (error != EWOULDBLOCK) // Win32: 10035
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
-
-        // signal the controller ?
-        if (!finished)
-        {
-          finished = true;
-          inherited::finished ();
-        } // end IF
-
-        break;
-      } // end IF
-    } // end IF
-
-    ACE_ASSERT (message_block_p);
-    ACE_Message_Block::ACE_Message_Type message_type =
-      message_block_p->msg_type ();
-    if (message_type == ACE_Message_Block::MB_STOP)
-    {
-      // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
-      //         have been set at this stage
-
-      // signal the controller ?
-      if (!finished)
-      {
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("session aborted...\n")));
-
-        finished = true;
-        inherited::finished (); // queue session end
-
-        result = inherited::putq (message_block_p,
-                                  NULL);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                      inherited::name ()));
-
-          // clean up
-          message_block_p->release ();
-          message_block_p = NULL;
-
-          break;
-        } // end IF
-
-        continue;
-      } // end IF
-
-      // clean up
-      message_block_p->release ();
-      message_block_p = NULL;
-
-      result_2 = 0;
-
-      break; // aborted
-    } // end IF
-
-    // process manually
-    inherited::handleMessage (message_block_p,
-                              stop_processing);
-  } while (true);
-
-  return result_2;
-}
-
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
 ProtocolMessageType*
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::allocateMessage"));
 
@@ -1807,13 +1696,13 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::putStatisticMessage"));
 
