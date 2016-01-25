@@ -11,6 +11,9 @@ set (${PROJECT_NAME}_Decoder_LIB_SRCS
      stream_dec_avi_decoder.cpp
      stream_dec_avi_decoder.h
      stream_dec_avi_decoder.inl
+     stream_dec_avi_encoder.cpp
+     stream_dec_avi_encoder.h
+     stream_dec_avi_encoder.inl
      stream_dec_avi_parser.cpp
      stream_dec_avi_parser.h
      stream_dec_avi_parser_driver.cpp
@@ -43,6 +46,8 @@ export (TARGETS ${PROJECT_NAME}_Decoder
 install (FILES
          stream_dec_avi_decoder.h
          stream_dec_avi_decoder.inl
+         stream_dec_avi_encoder.h
+         stream_dec_avi_encoder.inl
          stream_dec_avi_parser.h
          stream_dec_avi_parser_driver.h
          stream_dec_common.h
@@ -56,3 +61,4 @@ install (TARGETS ${PROJECT_NAME}_Decoder
          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
          COMPONENT dev)
+

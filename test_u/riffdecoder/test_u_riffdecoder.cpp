@@ -350,10 +350,12 @@ ACE_TMAIN (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::main"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   int result = -1;
+#endif
 
   // step0: initialize
-  // *PORTABILITY*: on Windows, initialize ACE...
+  // *PORTABILITY*: on Windows, initialize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = ACE::init ();
   if (result == -1)
@@ -366,7 +368,7 @@ ACE_TMAIN (int argc_in,
 
   // *PROCESS PROFILE*
   ACE_Profile_Timer process_profile;
-  // start profile timer...
+  // start profile timer
   process_profile.start ();
 
   // step1a set defaults
@@ -385,7 +387,7 @@ ACE_TMAIN (int argc_in,
                             trace_information,
                             print_version_and_exit))
   {
-    // make 'em learn...
+    // make 'em learn
     do_printUsage (ACE::basename (argv_in[0]));
 
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -411,7 +413,7 @@ ACE_TMAIN (int argc_in,
 
     do_printUsage (ACE::basename (argv_in[0]));
 
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
@@ -440,7 +442,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
 
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
@@ -457,7 +459,7 @@ ACE_TMAIN (int argc_in,
     do_printVersion (ACE::basename (argv_in[0]));
 
     Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
@@ -478,7 +480,7 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
 
     Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)

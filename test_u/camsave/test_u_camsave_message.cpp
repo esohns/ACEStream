@@ -218,12 +218,12 @@ Stream_CamSave_Message::command () const
   return ACE_Message_Block::MB_DATA;
 }
 
-std::string
-Stream_CamSave_Message::CommandType2String (Stream_CommandType_t command_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message::CommandType2String"));
-
-  ACE_UNUSED_ARG (command_in);
-
-  return ACE_TEXT_ALWAYS_CHAR ("MB_DATA");
-}
+//std::string
+//Stream_CamSave_Message::CommandType2String (Stream_CommandType_t command_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message::CommandType2String"));
+//
+//  ACE_UNUSED_ARG (command_in);
+//
+//  return ACE_TEXT_ALWAYS_CHAR ("MB_DATA");
+//}

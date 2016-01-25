@@ -32,14 +32,16 @@
 #include "common_idumpstate.h"
 
 #include "stream_common.h"
+#include "stream_idatamessage.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_message_base.h"
 
 template <typename AllocatorConfigurationType,
           typename CommandType = int>
 class Stream_MessageBase_T
- : public ACE_Message_Block
+ : virtual public Stream_IDataMessage<CommandType>
  , public Common_IDumpState
+ , public ACE_Message_Block
 {
   // grant access to specific ctors
   friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
@@ -54,9 +56,9 @@ class Stream_MessageBase_T
  public:
   virtual ~Stream_MessageBase_T ();
 
-  // info
-  unsigned int getID () const;
-  virtual CommandType command () const; // return value: message type
+  // implement Stream_IDataMessage
+  virtual CommandType command () const;
+  virtual unsigned int getID () const;
   static std::string CommandType2String (CommandType);
 
   // implement Common_IDumpState
@@ -112,9 +114,10 @@ class Stream_MessageBase_T
 template <typename AllocatorConfigurationType,
           ///////////////////////////////
           typename HeaderType,
-          typename ProtocolCommandType>
+          typename CommandType>
 class Stream_MessageBase_2
- : public Stream_MessageBase_T<AllocatorConfigurationType>
+ : public Stream_MessageBase_T<AllocatorConfigurationType,
+                               CommandType>
 // , public Common_IGet_T<HeaderType>
 // , public Common_IGet_T<ProtocolCommandType>
 {
@@ -124,7 +127,7 @@ class Stream_MessageBase_2
                                                  Stream_MessageBase_2<AllocatorConfigurationType,
 
                                                                       HeaderType,
-                                                                      ProtocolCommandType>,
+                                                                      CommandType>,
                                                  Stream_SessionMessageBase_T<AllocatorConfigurationType,
 
                                                                              Stream_SessionData,
@@ -133,15 +136,12 @@ class Stream_MessageBase_2
  public:
   virtual ~Stream_MessageBase_2 ();
 
-  // used for pre-allocated messages...
+  // used for pre-allocated messages
   virtual void initialize (// Stream_MessageBase_T members
                            ACE_Data_Block*); // data block to use
 
 //  // implement Common_IGet_T
   virtual HeaderType get () const;
-
-  virtual ProtocolCommandType command () const = 0; // return value: message type
-//  static std::string CommandType2String (ProtocolCommandType);
 
  protected:
   Stream_MessageBase_2 (unsigned int); // size
@@ -149,12 +149,13 @@ class Stream_MessageBase_2
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
   Stream_MessageBase_2 (const Stream_MessageBase_2&);
-  // *NOTE*: to be used by allocators...
+  // *NOTE*: to be used by allocators
   Stream_MessageBase_2 (ACE_Data_Block*, // data block to use
                         ACE_Allocator*); // message allocator
 
  private:
-  typedef Stream_MessageBase_T<AllocatorConfigurationType> inherited;
+  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               CommandType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_2 ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_2& operator= (const Stream_MessageBase_2&))

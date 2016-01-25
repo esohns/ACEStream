@@ -40,16 +40,16 @@
 enum Stream_MessageType : int
 {
   // *NOTE*: see "ace/Message_Block.h" for details
-  STREAM_MESSAGE_MAP = ACE_Message_Block::MB_USER, // session (== 0x200)
+  STREAM_MESSAGE_MAP   = ACE_Message_Block::MB_USER, // session (== 0x200)
   // *** control ***
   STREAM_MESSAGE_SESSION,
   // *** control - END ***
-  STREAM_MESSAGE_MAP_2 = 0x300,                    // data
+  STREAM_MESSAGE_MAP_2 = 0x300,                      // data
   // *** data ***
-  STREAM_MESSAGE_DATA,                             // protocol data
-  STREAM_MESSAGE_OBJECT,                           // (OO) message object type (--> dynamic type)
+  STREAM_MESSAGE_DATA,                               // protocol data
+  STREAM_MESSAGE_OBJECT,                             // (OO) message object type (--> dynamic type)
   // *** data - END ***
-  STREAM_MESSAGE_MAP_3 = 0x400,                    // protocol
+  STREAM_MESSAGE_MAP_3 = 0x400,                      // protocol
   // *** protocol ***
   // *** protocol - END ***
   ///////////////////////////////////////

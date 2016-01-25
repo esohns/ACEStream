@@ -64,8 +64,7 @@ class Stream_CamSave_Message
 
   // implement Stream_MessageBase_T
   virtual int command () const; // return value: message type
-
-  static std::string CommandType2String (int);
+  //static std::string CommandType2String (int);
 
  protected:
   // copy ctor to be used by duplicate() and child classes

@@ -223,7 +223,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
   else // otherwise, use the existing message_block_allocator
   {
     // *NOTE*: the argument to malloc SHOULDN'T really matter, as this will be
-    //         a "shallow" copy which just references the same data block...
+    //         a "shallow" copy which just references the same data block
     ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
                                                                                                     '\0')),
@@ -256,7 +256,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
     } // end IF
   } // end IF
 
-    // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)
 
   return message_p;
 }

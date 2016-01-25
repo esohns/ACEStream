@@ -53,7 +53,7 @@
 typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_MUTEX,
 
                                            Test_I_Source_Stream_SessionMessage,
-                                           Test_I_Stream_Message,
+                                           Test_I_Source_Stream_Message,
 
                                            Test_I_Source_Stream_ModuleHandlerConfiguration,
 

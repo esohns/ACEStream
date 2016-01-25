@@ -28,7 +28,6 @@
 #include "linux/videodev2.h"
 
 #include "stream_iallocator.h"
-#endif
 
 template <typename MessageType>
 bool
@@ -378,3 +377,4 @@ Stream_Module_Device_Tools::finalizeBuffers (int fd_in,
               ACE_TEXT ("de-allocated %d device buffers...\n"),
               counter));
 }
+#endif

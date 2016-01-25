@@ -104,6 +104,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   std::string device_file = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
   device_file += ACE_DIRECTORY_SEPARATOR_CHAR;
   device_file += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
@@ -453,7 +454,10 @@ do_finalize_directshow (Stream_CamSave_GTK_CBData& CBData_in)
 
 void
 do_work (unsigned int bufferSize_in,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
          const std::string& deviceFilename_in,
+#endif
          const std::string& targetFilename_in,
          const std::string& UIDefinitionFilename_in,
          unsigned int statisticReportingInterval_in,
@@ -510,10 +514,10 @@ do_work (unsigned int bufferSize_in,
   // ********************** module configuration data **************************
   configuration.streamConfiguration.moduleHandlerConfiguration_2.active =
       !UIDefinitionFilename_in.empty ();
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.device =
-      deviceFilename_in;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+  configuration.streamConfiguration.moduleHandlerConfiguration_2.device =
+    deviceFilename_in;
   // *TODO*: turn these into an option
   configuration.streamConfiguration.moduleHandlerConfiguration_2.buffers =
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
@@ -1067,7 +1071,7 @@ ACE_TMAIN (int argc_in,
               elapsed_rusage.ru_nivcsw));
 #else
   ACE_DEBUG ((LM_DEBUG,
-    ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
+              ACE_TEXT (" --> Process Profile <--\nreal time = %A seconds\nuser time = %A seconds\nsystem time = %A seconds\n --> Resource Usage <--\nuser time used: %s\nsystem time used: %s\n"),
               elapsed_time.real_time,
               elapsed_time.user_time,
               elapsed_time.system_time,

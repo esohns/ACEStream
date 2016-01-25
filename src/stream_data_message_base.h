@@ -37,7 +37,8 @@ template <typename AllocatorConfigurationType,
           typename DataType,
           typename CommandType>
 class Stream_DataMessageBase_T
- : public Stream_MessageBase_T<AllocatorConfigurationType>
+ : public Stream_MessageBase_T<AllocatorConfigurationType,
+                               CommandType>
  , public Common_IGet_T<DataType>
 {
  public:
@@ -54,10 +55,6 @@ class Stream_DataMessageBase_T
 
   // implement Common_IGet_T
   virtual const DataType& get () const;
-
-  // *NOTE*: derived classes need to override these
-  //virtual CommandType command () const = 0; // return value: message type
-  //static std::string CommandType2String (CommandType);
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -87,7 +84,8 @@ class Stream_DataMessageBase_T
   bool     initialized_;
 
  private:
-  typedef Stream_MessageBase_T<AllocatorConfigurationType> inherited;
+  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               CommandType> inherited;
 
   // convenient typedefs
   typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
@@ -127,10 +125,6 @@ class Stream_DataMessageBase_2
 
   // implement Common_IGet_T
   virtual const DataType& get () const;
-
-  // *NOTE*: derived classes need to override these
-  //virtual CommandType command () const = 0; // return value: message type
-  //static std::string CommandType2String (CommandType);
 
   // implement Common_IDumpState
   virtual void dump_state () const;

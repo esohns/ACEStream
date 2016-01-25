@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <limits>
+
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
@@ -292,10 +294,10 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 
 template <typename AllocatorConfigurationType,
           typename HeaderType,
-          typename ProtocolCommandType>
+          typename CommandType>
 Stream_MessageBase_2<AllocatorConfigurationType,
                      HeaderType,
-                     ProtocolCommandType>::Stream_MessageBase_2 (unsigned int requestedSize_in)
+                     CommandType>::Stream_MessageBase_2 (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
  , isInitialized_ (true)
 {
@@ -306,10 +308,10 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 // *NOTE*: this is implicitly invoked by duplicate() as well...
 template <typename AllocatorConfigurationType,
           typename HeaderType,
-          typename ProtocolCommandType>
+          typename CommandType>
 Stream_MessageBase_2<AllocatorConfigurationType,
                      HeaderType,
-                     ProtocolCommandType>::Stream_MessageBase_2 (const Stream_MessageBase_2& message_in)
+                     CommandType>::Stream_MessageBase_2 (const Stream_MessageBase_2& message_in)
  : inherited (message_in)
  , isInitialized_ (message_in.isInitialized_)
 {
@@ -319,10 +321,10 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 
 template <typename AllocatorConfigurationType,
           typename HeaderType,
-          typename ProtocolCommandType>
+          typename CommandType>
 Stream_MessageBase_2<AllocatorConfigurationType,
                      HeaderType,
-                     ProtocolCommandType>::Stream_MessageBase_2 (ACE_Data_Block* dataBlock_in,
+                     CommandType>::Stream_MessageBase_2 (ACE_Data_Block* dataBlock_in,
                                                                  ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // use (don't own !) this data block
               messageAllocator_in, // use this when destruction is imminent...
@@ -335,10 +337,10 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 
 template <typename AllocatorConfigurationType,
           typename HeaderType,
-          typename ProtocolCommandType>
+          typename CommandType>
 Stream_MessageBase_2<AllocatorConfigurationType,
                      HeaderType,
-                     ProtocolCommandType>::~Stream_MessageBase_2 ()
+                     CommandType>::~Stream_MessageBase_2 ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::~Stream_MessageBase_2"));
 
@@ -354,11 +356,11 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 
 template <typename AllocatorConfigurationType,
           typename HeaderType,
-          typename ProtocolCommandType>
+          typename CommandType>
 void
 Stream_MessageBase_2<AllocatorConfigurationType,
                      HeaderType,
-                     ProtocolCommandType>::initialize (ACE_Data_Block* dataBlock_in)
+                     CommandType>::initialize (ACE_Data_Block* dataBlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::initialize"));
 
@@ -373,11 +375,11 @@ Stream_MessageBase_2<AllocatorConfigurationType,
 
 template <typename AllocatorConfigurationType,
           typename HeaderType,
-          typename ProtocolCommandType>
+          typename CommandType>
 HeaderType
 Stream_MessageBase_2<AllocatorConfigurationType,
                      HeaderType,
-                     ProtocolCommandType>::get () const
+                     CommandType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::get"));
 
