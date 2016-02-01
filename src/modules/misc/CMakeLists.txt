@@ -12,6 +12,9 @@ if (WIN32)
       stream_misc_directshow_source.inl
       stream_misc_directshow_source_filter.cpp
       stream_misc_directshow_source_filter.h
+      stream_misc_dump.cpp
+      stream_misc_dump.h
+      stream_misc_dump.inl
       stream_misc_exports.h
       stream_misc_messagehandler.cpp
       stream_misc_messagehandler.h
@@ -64,6 +67,8 @@ if (WIN32)
           stream_misc_directshow_source.h
           stream_misc_directshow_source.inl
           stream_misc_directshow_source_filter.h
+          stream_misc_dump.h
+          stream_misc_dump.inl
           stream_misc_exports.h
           stream_misc_messagehandler.h
           stream_misc_messagehandler.inl

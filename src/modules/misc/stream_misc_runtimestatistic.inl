@@ -646,10 +646,37 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::putStatisticMessage"));
 
-  typename SessionMessageType::SESSION_DATA_T::DATA_T* session_data_p = NULL;
+  typename SessionMessageType::SESSION_DATA_T* session_data_container_p = NULL;
   if (sessionData_)
-    session_data_p =
-        &const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
+  {
+    sessionData_->increase ();
+    session_data_container_p = sessionData_;
+  } // end IF
+  else
+  {
+    typename SessionMessageType::SESSION_DATA_T::DATA_T* session_data_p = NULL;
+    ACE_NEW_NORETURN (session_data_p,
+                      typename SessionMessageType::SESSION_DATA_T::DATA_T ());
+    if (!session_data_p)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate SessionMessageType::SESSION_DATA_T::DATA_T: \"%m\", aborting\n")));
+      return false;
+    } // end IF
+
+    // *IMPORTANT NOTE*: fire-and-forget session_data_p
+    ACE_NEW_NORETURN (session_data_container_p,
+                      typename SessionMessageType::SESSION_DATA_T (session_data_p));
+    if (!session_data_container_p)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate SessionMessageType::SESSION_DATA_T: \"%m\", aborting\n")));
+      return false;
+    } // end IF
+  } // end ELSE
+  ACE_ASSERT (session_data_container_p);
+  typename SessionMessageType::SESSION_DATA_T::DATA_T* session_data_p =
+    &const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (session_data_container_p->get ());
 
   // create session message
   SessionMessageType* session_message_p = NULL;
@@ -666,6 +693,10 @@ allocate:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
+
+      // clean up
+      session_data_container_p->decrease ();
+
       return false;
     }
 
@@ -676,13 +707,11 @@ allocate:
   } // end IF
   else
   {
-    if (sessionData_)
-      sessionData_->increase ();
-
     // *TODO*: remove type inference
+    // *IMPORTANT NOTE*: fire-and-forget session_data_container_p
     ACE_NEW_NORETURN (session_message_p,
                       SessionMessageType (STREAM_SESSION_STATISTIC,
-                                          sessionData_,
+                                          session_data_container_p,
                                           (session_data_p ? session_data_p->userData
                                                           : NULL)));
   } // end ELSE
@@ -698,16 +727,15 @@ allocate:
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
 
+    // clean up
+    session_data_container_p->decrease ();
+
     return false;
   } // end IF
   if (allocator_)
   {
-    if (sessionData_)
-      sessionData_->increase ();
-
-    typename SessionMessageType::SESSION_DATA_T* session_data_container_p =
-      sessionData_;
     // *TODO*: remove type inference
+    // *IMPORTANT NOTE*: fire-and-forget session_data_container_p
     session_message_p->initialize (STREAM_SESSION_STATISTIC,
                                    session_data_container_p,
                                    (session_data_p ? session_data_p->userData

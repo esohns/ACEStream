@@ -97,6 +97,7 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_ReaderTask_T::postProcessHeader"));
 
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

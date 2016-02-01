@@ -170,8 +170,6 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::handleSessionMessage"));
 
-  int result = -1;
-
   // sanity check(s)
   ACE_ASSERT (message_inout);
 

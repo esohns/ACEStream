@@ -232,7 +232,7 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType>::block ()
 
 //  ACE_ASSERT (false);
 //  ACE_NOTREACHED (return -1);
-//}
+//}MESSAGE_T
 //template <typename MessageType>
 //int
 //Stream_CachedMessageAllocatorHeapBase_T<MessageType>::unbind (const char*, void*&)
@@ -244,7 +244,7 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType>::block ()
 //}
 
 //template <typename MessageType>
-//int
+//intMESSAGE_T
 //Stream_CachedMessageAllocatorHeapBase_T<MessageType>::sync (ssize_t, int)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::sync"));

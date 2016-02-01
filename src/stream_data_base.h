@@ -21,7 +21,6 @@
 #ifndef STREAM_DATA_BASE_H
 #define STREAM_DATA_BASE_H
 
-#include "ace/Global_Macros.h"
 #include "ace/Refcountable_T.h"
 #include "ace/Synch_Traits.h"
 
@@ -42,13 +41,16 @@ class Stream_DataBase_T
 
  public:
   Stream_DataBase_T ();
-  // *IMPORTANT NOTE*: fire-and-forget API
-  Stream_DataBase_T (DataType*&,   // (session) data
-                     bool = true); // delete in dtor ?
-  // *TODO*: make this private ASAP !
+  Stream_DataBase_T (const Stream_DataBase_T&);
   virtual ~Stream_DataBase_T ();
 
-  Stream_DataBase_T& operator= (Stream_DataBase_T&);
+  // *IMPORTANT NOTE*: fire-and-forget API
+  Stream_DataBase_T (DataType*&,   // data handle
+                     bool = true); // delete in dtor ?
+
+  // override assignment (support merge semantics)
+  // *TODO*: enforce merge semantics
+  Stream_DataBase_T& operator= (const Stream_DataBase_T&);
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -68,14 +70,8 @@ class Stream_DataBase_T
   // convenience types
   typedef DataType DATA_T;
 
-  //// override assignment (support merge semantics)
-  //// *TODO*: enforce merge semantics
-  //Stream_DataBase_T& operator= (const Stream_DataBase_T&);
-
  private:
   typedef ACE_Refcountable_T<ACE_SYNCH_MUTEX> inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Stream_DataBase_T (const Stream_DataBase_T&))
 
   DataType* data_;
   bool      delete_;

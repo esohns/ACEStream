@@ -227,9 +227,9 @@ Stream_Module_Net_Target_T<SessionMessageType,
         ACE_TCHAR buffer[BUFSIZ];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
         result =
-          configuration_.socketConfiguration->peerAddress.addr_to_string (buffer,
-                                                                          sizeof (buffer),
-                                                                          1);
+          configuration_.socketConfiguration->address.addr_to_string (buffer,
+                                                                      sizeof (buffer),
+                                                                      1);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
@@ -289,7 +289,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
         // *TODO*: support one-thread operation by scheduling a signal and manually
         //         running the dispatch loop for a limited time...
         handle =
-          iconnector_->connect (configuration_.socketConfiguration->peerAddress);
+          iconnector_->connect (configuration_.socketConfiguration->address);
         if (iconnector_->useReactor ())
           configuration_.connection =
             configuration_.connectionManager->get (handle);
@@ -307,7 +307,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
           do
           {
             configuration_.connection =
-              configuration_.connectionManager->get (configuration_.socketConfiguration->peerAddress);
+              configuration_.connectionManager->get (configuration_.socketConfiguration->address);
             if (configuration_.connection)
             {
               // step2: wait for the connection to finish initializing
@@ -559,7 +559,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
   // sanity check(s)
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_.configuration);
-  if (configuration_.configuration->socketConfiguration.peerAddress.is_any ())
+  if (configuration_.configuration->socketConfiguration.address.is_any ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid peer address (was: any), aborting\n")));

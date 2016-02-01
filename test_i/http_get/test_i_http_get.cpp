@@ -589,10 +589,10 @@ do_work (unsigned int bufferSize_in,
 
   // *********************** socket configuration data ************************
   int result =
-    configuration.socketConfiguration.peerAddress.set (port_in,
-                                                       hostName_in.c_str (),
-                                                       1,
-                                                       ACE_ADDRESS_FAMILY_INET);
+    configuration.socketConfiguration.address.set (port_in,
+                                                   hostName_in.c_str (),
+                                                   1,
+                                                   ACE_ADDRESS_FAMILY_INET);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -606,7 +606,7 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
   configuration.socketConfiguration.useLoopBackDevice =
-    configuration.socketConfiguration.peerAddress.is_loopback ();
+    configuration.socketConfiguration.address.is_loopback ();
   configuration.socketConfiguration.writeOnly = true;
   // ******************** socket handler configuration data *******************
   configuration.socketHandlerConfiguration.messageAllocator =

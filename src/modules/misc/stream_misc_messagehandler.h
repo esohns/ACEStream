@@ -103,6 +103,7 @@ class Stream_Module_MessageHandler_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T& operator= (const Stream_Module_MessageHandler_T&))
 };
 
+// include template definition
 #include "stream_misc_messagehandler.inl"
 
 #endif

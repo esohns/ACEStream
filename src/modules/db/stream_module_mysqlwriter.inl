@@ -138,8 +138,8 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
       ACE_TCHAR buffer[BUFSIZ];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
       result =
-        configuration_.socketConfiguration->peerAddress.addr_to_string (buffer,
-                                                                        sizeof (buffer));
+        configuration_.socketConfiguration->address.addr_to_string (buffer,
+                                                                    sizeof (buffer));
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -152,8 +152,8 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
       ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
       const char* result_p =
-        configuration_.socketConfiguration->peerAddress.get_host_addr (host_address,
-                                                                       sizeof (host_address));
+        configuration_.socketConfiguration->address.get_host_addr (host_address,
+                                                                   sizeof (host_address));
       if (!result_p || (result_p != host_address))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -202,14 +202,14 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
         (configuration_.loginOptions.database.empty () ? NULL // <-- default database : options file (?)
                                                        : configuration_.loginOptions.database.c_str ());
       MYSQL* result_2 =
-        mysql_real_connect (state_,                 // state handle
-                            host_address,           // host name/address
-                            user_name_string_p,     // db user
-                            password_string_p,      // db password (non-encrypted)
-                            database_name_string_p, // db database
-                            configuration_.socketConfiguration->peerAddress.get_port_number (), // port
-                            NULL,                   // (UNIX) socket/named pipe
-                            client_flags);          // client flags
+        mysql_real_connect (state_,                                                         // state handle
+                            host_address,                                                   // host name/address
+                            user_name_string_p,                                             // user
+                            password_string_p,                                              // password (non-encrypted)
+                            database_name_string_p,                                         // database
+                            configuration_.socketConfiguration->address.get_port_number (), // port
+                            NULL,                                                           // (UNIX) socket/named pipe
+                            client_flags);                                                  // client flags
       if (result_2 != state_)
       {
         ACE_DEBUG ((LM_ERROR,

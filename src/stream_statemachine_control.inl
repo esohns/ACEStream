@@ -126,6 +126,7 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
   bool result = false;
 
   int result_2 = -1;
+  ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
 
   if (inherited::stateLock_)
   {
@@ -154,11 +155,8 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
             inherited::change (newState_in);
           else
           {
-            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
-            {
-              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
-              inherited::change (newState_in);
-            } // end lock scope
+            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+            inherited::change (newState_in);
           } // end ELSE
 
           result = true;
@@ -191,11 +189,8 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
             inherited::change (newState_in);
           else
           {
-            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
-            {
-              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
-              inherited::change (newState_in);
-            } // end lock scope
+            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+            inherited::change (newState_in);
           } // end ELSE
 
           result = true;
@@ -226,17 +221,14 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
             inherited::change (newState_in);
           else
           {
-            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
-            {
-              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
 
-              //// *IMPORTANT NOTE*: make sure the transition RUNNING --> FINISHED
-              ////                   is actually RUNNING --> STOPPED --> FINISHED
-              //if (newState_in == STREAM_STATE_FINISHED)
-              //  inherited::change (STREAM_STATE_STOPPED);
+            //// *IMPORTANT NOTE*: make sure the transition RUNNING --> FINISHED
+            ////                   is actually RUNNING --> STOPPED --> FINISHED
+            //if (newState_in == STREAM_STATE_FINISHED)
+            //  inherited::change (STREAM_STATE_STOPPED);
 
-              inherited::change (newState_in);
-            } // end lock scope
+            inherited::change (newState_in);
           } // end ELSE
 
           //// *IMPORTANT NOTE*: make sure the transition RUNNING
@@ -278,21 +270,18 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
             inherited::change (newState_in);
           else
           {
-            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
-            {
-              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
 
-              // *IMPORTANT NOTE*: the transition PAUSED --> [STOPPED/]FINISHED
-              //                   is actually PAUSED --> RUNNING [--> STOPPED]
-              //                   --> FINISHED
-              if ((new_state == STREAM_STATE_STOPPED) ||
-                  (new_state == STREAM_STATE_FINISHED))
-                inherited::change (STREAM_STATE_RUNNING);
-              if (new_state == STREAM_STATE_FINISHED)
-                inherited::change (STREAM_STATE_STOPPED);
+            // *IMPORTANT NOTE*: the transition PAUSED --> [STOPPED/]FINISHED
+            //                   is actually PAUSED --> RUNNING [--> STOPPED]
+            //                   --> FINISHED
+            if ((new_state == STREAM_STATE_STOPPED) ||
+                (new_state == STREAM_STATE_FINISHED))
+              inherited::change (STREAM_STATE_RUNNING);
+            if (new_state == STREAM_STATE_FINISHED)
+              inherited::change (STREAM_STATE_STOPPED);
 
-              inherited::change (new_state);
-            } // end lock scope
+            inherited::change (new_state);
           } // end ELSE
 
           result = true;
@@ -319,11 +308,8 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
             inherited::change (newState_in);
           else
           {
-            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
-            {
-              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
-              inherited::change (newState_in);
-            } // end lock scope
+            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+            inherited::change (newState_in);
           } // end ELSE
 
 //          if (newState_in == STREAM_STATE_FINISHED)

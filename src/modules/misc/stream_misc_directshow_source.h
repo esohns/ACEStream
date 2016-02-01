@@ -76,7 +76,7 @@ class Stream_Misc_DirectShow_Source_T
   IMemInputPin*      IMemInputPin_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_misc_directshow_source.inl"
 
 #endif

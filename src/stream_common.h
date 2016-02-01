@@ -180,20 +180,6 @@ struct Stream_SessionData
   Stream_UserData* userData;
 };
 
-struct Stream_State
-{
-  inline Stream_State ()
-   : currentSessionData (NULL)
-   , stateMachineLock (NULL, // name
-                       NULL) // attributes
-   , userData (NULL)
-  {};
-
-  Stream_SessionData* currentSessionData;
-  ACE_SYNCH_MUTEX     stateMachineLock;
-  Stream_UserData*    userData;
-};
-
 // forward declarations
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Message_Queue;
@@ -222,6 +208,24 @@ typedef Stream_IModule_T<ACE_MT_SYNCH,
                          Stream_ModuleConfiguration,
                          Stream_ModuleHandlerConfiguration> Stream_IModule_t;
 typedef Common_IStateMachine_T<Stream_StateMachine_ControlState> Stream_IStateMachine_t;
+
+struct Stream_State
+{
+  inline Stream_State ()
+   : currentSessionData (NULL)
+   , deleteModule (false)
+   , module (NULL)
+   , stateMachineLock (NULL, // name
+                       NULL) // attributes
+   , userData (NULL)
+  {};
+
+  Stream_SessionData* currentSessionData;
+  bool                deleteModule;
+  Stream_Module_t*    module;
+  ACE_SYNCH_MUTEX     stateMachineLock;
+  Stream_UserData*    userData;
+};
 
 struct Stream_AllocatorConfiguration
 {

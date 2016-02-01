@@ -63,7 +63,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
                                                                                                 DataType,
                                                                                                 CommandType>& message_in)
  : inherited (message_in)
- , data_ ()
+ , data_ (const_cast<DataType&>(message_in.data_))
  , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
@@ -302,10 +302,24 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
                                                                                                 DataType,
                                                                                                 CommandType>& message_in)
  : inherited (message_in)
- , data_ (NULL)
+ , data_ (message_in.data_)
  , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
+
+  if (data_)
+  {
+    try
+    {
+      // *TODO*: remove type inference
+      data_->increase ();
+    }
+    catch (...)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Common_IReferenceCount::increase(), continuing\n")));
+    }
+  } // end IF
 
   // maintain the same message type
   inherited::msg_type (message_in.msg_type ());
@@ -366,23 +380,24 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::~Stream_DataMessageBase_2"));
 
-  // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
-  //                   (see e.g. stream_cachedmessageallocator.cpp:172)
-  inherited::priority_ = std::numeric_limits<unsigned long>::max ();
+  // *NOTE*: will be called just BEFORE this is passed back to the allocator
+
+//  // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
+//  //                   (see e.g. stream_cachedmessageallocator.cpp:172)
+//  inherited::priority_ = std::numeric_limits<unsigned long>::max ();
 
   // clean up
   if (data_)
   {
-    // decrease reference counter
-    // *TODO*: remove type inference
     try
     {
+      // *TODO*: remove type inference
       data_->decrease ();
     }
     catch (...)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in decrease(), continuing\n")));
+                  ACE_TEXT ("caught exception in Common_IReferenceCount::decrease(), continuing\n")));
     }
     data_ = NULL;
   } // end IF
@@ -419,17 +434,29 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 
   if (initialized_)
   {
-    // *TODO*: remove type inferences
-    data_->decrease ();
-    data_ = NULL;
+    if (data_)
+    {
+      try
+      {
+        // *TODO*: remove type inference
+        data_->decrease ();
+      }
+      catch (...)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("caught exception in Common_IReferenceCount::decrease(), continuing\n")));
+      }
+      data_ = NULL;
+    } // end IF
+
+    initialized_ = false;
   } // end IF
 
-    // *TODO*: remove type inferences
-  data_inout->increase ();
-  data_ = data_inout;
-
-  // set return values
-  data_inout = NULL;
+  if (data_inout)
+  {
+    data_ = data_inout;
+    data_inout = NULL;
+  } // end IF
 
   // set data block (if any)
   if (dataBlock_in)
@@ -454,7 +481,7 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::get"));
 
   // sanity check(s)
-  if (!initialized_)
+  if (!initialized_ || !data_)
     return DataType ();
   ACE_ASSERT (data_);
 
@@ -481,11 +508,11 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
     catch (...)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in dump_state(), continuing\n")));
+                  ACE_TEXT ("caught exception in Common_IDumpState::dump_state(), continuing\n")));
     }
   } // end IF
-    //   //delegate to base
-    //   inherited::dump_state ();
+  //   //delegate to base
+  //   inherited::dump_state ();
 }
 
 template <typename AllocatorConfigurationType,

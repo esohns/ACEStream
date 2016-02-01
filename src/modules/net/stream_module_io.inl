@@ -307,7 +307,8 @@ Stream_Module_Net_IOWriter_T<LockType,
   {
     case STREAM_SESSION_BEGIN:
     {
-      if (inherited::configuration_->streamConfiguration->statisticReportingInterval)
+      if (inherited::configuration_->streamConfiguration->statisticReportingInterval !=
+          ACE_Time_Value::zero)
       {
         // schedule regular statistic collection
         ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION_INTERVAL, 0);

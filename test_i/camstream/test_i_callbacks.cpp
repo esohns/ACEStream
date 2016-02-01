@@ -508,11 +508,11 @@ load_resolutions (int fd_in,
   gtk_list_store_clear (listStore_in);
 
   std::set<std::pair<unsigned int, unsigned int> > resolutions;
-  for (int i = 0; i < format_in; ++i)
-  {
+  for (unsigned int i = 0;
+       i < format_in;
+       ++i)
     resolutions.insert (std::make_pair (format_in,
                                         format_in));
-  } // end FOR
 
   GtkTreeIter iterator;
   std::ostringstream converter;
@@ -553,11 +553,11 @@ load_rates (int fd_in,
 
   unsigned int frame_duration;
   std::set<std::pair<unsigned int, unsigned int> > frame_rates;
-  for (int i = 0; i < format_in; ++i)
-  {
-    frame_rates.insert (std::make_pair (10000000 / static_cast<unsigned int> (format_in),
+  for (unsigned int i = 0;
+       i < format_in;
+       ++i)
+    frame_rates.insert (std::make_pair (10000000 / format_in,
                                         frame_duration));
-  } // end FOR
 
   GtkTreeIter iterator;
   for (std::set<std::pair<unsigned int, unsigned int> >::const_iterator iterator_2 = frame_rates.begin ();
@@ -926,14 +926,14 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 //    } // end IF
 //    gtk_entry_set_text (entry_p, buffer);
   gtk_entry_set_text (entry_p,
-                      data_p->configuration->socketConfiguration.peerAddress.get_host_name ());
+                      data_p->configuration->socketConfiguration.address.get_host_name ());
 
   spin_button_p =
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_value (spin_button_p,
-                              static_cast<double> (data_p->configuration->socketConfiguration.peerAddress.get_port_number ()));
+                              static_cast<double> (data_p->configuration->socketConfiguration.address.get_port_number ()));
 
   GtkRadioButton* radio_button_p = NULL;
   if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
@@ -1633,7 +1633,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (data_p->configuration->socketConfiguration.peerAddress.get_port_number ()));
+                             static_cast<double> (data_p->configuration->socketConfiguration.address.get_port_number ()));
 
   GtkRadioButton* radio_button_p = NULL;
   if (data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
@@ -1973,6 +1973,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   data_p->configuration->moduleHandlerConfiguration.window =
     gdk_win32_window_get_impl_hwnd (window_p);
 #else
+  ACE_UNUSED_ARG (window_p);
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
@@ -2570,8 +2571,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (spin_button_p);
   unsigned short port_number =
     static_cast<unsigned short> (gtk_spin_button_get_value_as_int (spin_button_p));
-  data_p->configuration->socketConfiguration.peerAddress.set_port_number (port_number,
-                                                                          1);
+  data_p->configuration->socketConfiguration.address.set_port_number (port_number,
+                                                                      1);
 
   // retrieve protocol
   GtkRadioButton* radio_button_p =
@@ -2884,7 +2885,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         } // end IF
 
         data_p->configuration->listenerConfiguration.address =
-          data_p->configuration->socketConfiguration.peerAddress;
+          data_p->configuration->socketConfiguration.address;
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         if (!data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration))
           ACE_DEBUG ((LM_ERROR,
@@ -2963,15 +2964,15 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         ACE_TCHAR buffer[BUFSIZ];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
         int result =
-          data_p->configuration->socketConfiguration.peerAddress.addr_to_string (buffer,
-                                                                                 sizeof (buffer),
-                                                                                 1);
+          data_p->configuration->socketConfiguration.address.addr_to_string (buffer,
+                                                                             sizeof (buffer),
+                                                                             1);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string(): \"%m\", continuing\n")));
         // connect
         data_p->configuration->handle =
-          connector_p->connect (data_p->configuration->socketConfiguration.peerAddress);
+          connector_p->connect (data_p->configuration->socketConfiguration.address);
         // *TODO*: support one-thread operation by scheduling a signal and manually
         //         running the dispatch loop for a limited time...
         if (!data_p->configuration->useReactor)
@@ -2989,7 +2990,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           do
           {
             connection_p =
-              connection_manager_p->get (data_p->configuration->socketConfiguration.peerAddress);
+              connection_manager_p->get (data_p->configuration->socketConfiguration.address);
             if (connection_p)
             {
               data_p->configuration->handle =
@@ -3872,6 +3873,8 @@ continue_:
   if (!load_rates (data_p->streamConfiguration,
                    GUID_i,
 #else
+  ACE_UNUSED_ARG (height);
+
   if (!load_rates (data_p->device,
                    format_i,
 #endif
@@ -3988,6 +3991,10 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 error:
   //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+#else
+  // *TODO*
+  ACE_ASSERT (false);
+  ACE_UNUSED_ARG (frame_interval);
 #endif
 } // combobox_rate_changed_cb
 

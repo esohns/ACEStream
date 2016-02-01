@@ -83,6 +83,7 @@ class Stream_Base_T
                               TimePolicyType> ITERATOR_T;
   typedef Stream_IStreamControl_T<StatusType,
                                   StateType> ISTREAM_CONTROL_T;
+  typedef ConfigurationType CONFIGURATION_T;
   typedef StateType STATE_T;
   typedef SessionDataContainerType SESSION_DATA_CONTAINER_T;
   typedef SessionDataType SESSION_DATA_T;

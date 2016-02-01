@@ -514,16 +514,16 @@ do_work (unsigned int bufferSize_in,
   ACE_ASSERT (connection_manager_p);
 
   // ********************** socket configuration data *************************
-  configuration.socketConfiguration.peerAddress.set_port_number (listeningPortNumber_in,
-                                                                 1);
+  configuration.socketConfiguration.address.set_port_number (listeningPortNumber_in,
+                                                             1);
   configuration.socketConfiguration.useLoopBackDevice = useLoopBack_in;
   if (configuration.socketConfiguration.useLoopBackDevice)
   {
     result =
-      configuration.socketConfiguration.peerAddress.set (listeningPortNumber_in,
-                                                         INADDR_LOOPBACK,
-                                                         1,
-                                                         0);
+      configuration.socketConfiguration.address.set (listeningPortNumber_in,
+                                                     INADDR_LOOPBACK,
+                                                     1,
+                                                     0);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", continuing\n")));
@@ -571,7 +571,7 @@ do_work (unsigned int bufferSize_in,
       statisticReportingInterval_in;
   // ********************* listener configuration data ************************
   configuration.listenerConfiguration.address =
-    configuration.socketConfiguration.peerAddress;
+    configuration.socketConfiguration.address;
   configuration.listenerConfiguration.connectionManager =
     connection_manager_p;
   configuration.listenerConfiguration.messageAllocator = &message_allocator;
@@ -656,12 +656,12 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  // step1: handle events (signals, incoming connections/data, timers, ...)
+  // step1: handle events (signals, incoming connections/data[, timers], ...)
   // reactor/proactor event loop:
   // - dispatch connection attempts to acceptor
   // - dispatch socket events
-  // timer events:
-  // - perform statistics collecting/reporting
+  // [timer events:]
+  // - perform (connection) statistic collecting/reporting
   // [GTK events:]
   // - dispatch UI events (if any)
 
@@ -806,16 +806,16 @@ do_work (unsigned int bufferSize_in,
       ACE_TCHAR buffer[BUFSIZ];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
       int result =
-        configuration.socketConfiguration.peerAddress.addr_to_string (buffer,
-                                                                      sizeof (buffer),
-                                                                      1);
+        configuration.socketConfiguration.address.addr_to_string (buffer,
+                                                                  sizeof (buffer),
+                                                                  1);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string(): \"%m\", continuing\n")));
       // *TODO*: support one-thread operation by scheduling a signal and manually
       //         running the dispatch loop for a limited time...
       configuration.handle =
-        connector_p->connect (configuration.socketConfiguration.peerAddress);
+        connector_p->connect (configuration.socketConfiguration.address);
       if (!useReactor_in)
       {
         // *TODO*: avoid tight loop here
@@ -831,7 +831,7 @@ do_work (unsigned int bufferSize_in,
         do
         {
           connection_p =
-            connection_manager_p->get (configuration.socketConfiguration.peerAddress);
+            connection_manager_p->get (configuration.socketConfiguration.address);
           if (connection_p)
           {
   #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1144,8 +1144,8 @@ ACE_TMAIN (int argc_in,
        !Common_File_Tools::isReadable (output_file))                       ||
       (!gtk_glade_file.empty () &&
        !Common_File_Tools::isReadable (gtk_glade_file))                    ||
-      //(!gtk_rc_file_name.empty () &&
-      // !Common_File_Tools::isReadable (gtk_rc_file_name))                   ||
+      (!gtk_rc_file.empty () &&
+       !Common_File_Tools::isReadable (gtk_rc_file))                       ||
       (use_thread_pool && !use_reactor)                                    ||
       (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool))
   {

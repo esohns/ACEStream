@@ -21,9 +21,9 @@
 #include <limits>
 #include <string>
 
-#include "ace/OS.h"
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
+#include "ace/OS.h"
 #include "ace/Time_Value.h"
 
 #include "stream_defines.h"
@@ -35,13 +35,16 @@ template <typename TimePolicyType,
 Stream_TaskBaseAsynch_T<TimePolicyType,
                         SessionMessageType,
                         ProtocolMessageType>::Stream_TaskBaseAsynch_T ()
+ : inherited ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
- : threadID_ (std::numeric_limits<DWORD>::max (), ACE_INVALID_HANDLE)
+ , threadID_ (std::numeric_limits<DWORD>::max (), ACE_INVALID_HANDLE)
 #else
- : threadID_ (-1, ACE_INVALID_HANDLE)
+ , threadID_ (-1, ACE_INVALID_HANDLE)
 #endif
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::Stream_TaskBaseAsynch_T"));
+
+  inherited::threadCount_ = 1;
 
   // set group ID for worker thread(s)
   // *TODO*: pass this in from outside...
@@ -111,7 +114,7 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
       inherited::activate ((THR_NEW_LWP      |
                             THR_JOINABLE     |          // *NOTE*: MUST include THR_JOINABLE
                             THR_INHERIT_SCHED),         // flags
-                           1,                           // number of threads
+                           inherited::threadCount_,     // number of threads
                            0,                           // force spawning
                            ACE_DEFAULT_THREAD_PRIORITY, // priority
                            inherited::grp_id (),        // group id --> should have been set by now !
@@ -175,7 +178,7 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
 //       {
 //         ACE_DEBUG ((LM_DEBUG,
 //                     ACE_TEXT ("\"%s\" worker thread (ID: %t) leaving...\n"),
-//                     ACE_TEXT (inherited::name ())));
+//                     inherited::mode_->name ()));
 //       } // end IF
 //       else
 //       {

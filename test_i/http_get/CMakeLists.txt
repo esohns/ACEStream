@@ -37,6 +37,11 @@ else ()
 endif ()
 
 include (FindPkgConfig)
+if (UNIX)
+ #pkg_check_modules (PKG_ACE REQUIRED ACE)
+# *NOTE*: libCommon requires libcap
+ pkg_check_modules (PKG_CAP REQUIRED libcap)
+endif ()
 pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
 
 #if (WIN32)
@@ -111,6 +116,7 @@ add_definitions (-DHAVE_CONFIG_H)
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
+ include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
  include_directories (${PKG_MYSQL_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
@@ -173,31 +179,33 @@ set (http_get_EXE_SRCS
      stdafx.cpp
      stdafx.h)
 
-add_executable (http_get ${http_get_EXE_SRCS})
+set (EXECUTABLE http_get)
+add_executable (${EXECUTABLE} ${http_get_EXE_SRCS})
 
-target_link_libraries (http_get ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
- set_target_properties (http_get PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+ set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
-target_link_libraries (http_get ${ACE_LIBRARY})
+target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (UNIX)
- target_link_libraries (http_get ${PKG_GTK_GLADE_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_LIBXML2_LIBRARIES})
 elseif (WIN32)
 # *TODO*: repair pkgconfig support
  #target_link_libraries (http_get ${LIBXML2_LIBRARY})
- target_link_libraries (http_get ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1/.libs/libxml2.dll.a)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1/.libs/libxml2.dll.a)
 endif ()
-target_link_libraries (http_get ${MYSQL_LIBRARY})
-target_link_libraries (http_get Common)
-target_link_libraries (http_get ACEStream)
-target_link_libraries (http_get ACEStream_Database)
-target_link_libraries (http_get ACEStream_HTML)
-target_link_libraries (http_get ACENetwork)
-target_link_libraries (http_get ACENetwork_Protocol_HTTP)
-#target_link_libraries (http_get ACENetwork_Client)
+target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
+target_link_libraries (${EXECUTABLE} Common)
+target_link_libraries (${EXECUTABLE} ACEStream)
+target_link_libraries (${EXECUTABLE} ACEStream_Database)
+target_link_libraries (${EXECUTABLE} ACEStream_HTML)
+target_link_libraries (${EXECUTABLE} ACENetwork)
+target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
+#target_link_libraries (${EXECUTABLE} ACENetwork_Client)
 
-install (TARGETS http_get
+install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
          COMPONENT dev)

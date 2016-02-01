@@ -101,7 +101,7 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   {
     if (block_)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Thread_Semaphore::acquire(): \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to ACE_SYNCH_SEMAPHORE::acquire(): \"%m\", aborting\n")));
     return NULL;
   } // end IF
   poolSize_++;
@@ -130,8 +130,9 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
 
   // *NOTE*: must clean up data block beyond this point !
 
-  // step2: get free message...
-  ACE_Message_Block* message_p = NULL;
+  // step2: allocate message
+  MessageType* message_p = NULL;
+  SessionMessageType* session_message_p = NULL;
   try
   {
     // allocate memory and perform a placement new by invoking a ctor
@@ -142,7 +143,7 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
                                MessageType (data_block_p, // use the newly allocated data block
                                             this));       // message allocator
     else
-      ACE_NEW_MALLOC_NORETURN (message_p,
+      ACE_NEW_MALLOC_NORETURN (session_message_p,
                                static_cast<SessionMessageType*> (inherited::malloc (sizeof (SessionMessageType))),
                                SessionMessageType (data_block_p, // use the newly allocated data block
                                                    this));       // message allocator
@@ -158,7 +159,7 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
 
     return NULL;
   }
-  if (!message_p)
+  if (!message_p && ! session_message_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("unable to allocate (Session)MessageType(%u), aborting\n"),
@@ -170,9 +171,10 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
     return NULL;
   } // end IF
 
-  // *NOTE*: the caller knows what to expect (either MessageType ||
-  //         SessionMessageType)
-  return message_p;
+  // *NOTE*: the caller knows what to expect; MessageType or SessionMessageType
+  if (bytes_in)
+    return message_p;
+  return session_message_p;
 }
 
 template <typename ConfigurationType,
@@ -245,15 +247,33 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
 
   int result = -1;
 
-  // delegate to base class...
-  inherited::free (handle_in);
+  // *IMPORTANT NOTE*: need to distinguish between MessageType and
+  //                   SessionMessageType here
+  ACE_Message_Block* message_block_p =
+      static_cast<ACE_Message_Block*> (handle_in);
+  ACE_ASSERT (message_block_p);
+  MessageType* message_p = NULL;
+  SessionMessageType* session_message_p = NULL;
+  // delegate to base class
+  if (message_block_p->msg_priority () ==
+      std::numeric_limits<unsigned long>::max ())
+  {
+    message_p = static_cast<MessageType*> (handle_in);
+    inherited::free (handle_in);
+  } // end IF
+  else
+  {
+    session_message_p = static_cast<SessionMessageType*> (handle_in);
+    inherited::free (session_message_p);
+  } // end ELSE
+//  inherited::free (handle_in);
 
-  // OK: one slot just emptied...
+  // OK: one slot just emptied
   poolSize_--;
   result = freeMessageCounter_.release ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Thread_Semaphore::release(): \"%m\", continuing\n")));
+                ACE_TEXT ("failed to ACE_SYNCH_SEMAPHORE::release(): \"%m\", continuing\n")));
 }
 
 template <typename ConfigurationType,

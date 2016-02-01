@@ -36,6 +36,13 @@ else ()
 endif ()
 add_definitions (-DACE_HAS_DLL)
 
+include (FindPkgConfig)
+#pkg_check_modules (PKG_ACE REQUIRED ACE)
+if (UNIX)
+# *NOTE*: libCommon requires libcap
+  pkg_check_modules (PKG_CAP REQUIRED libcap)
+endif ()
+
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
               CONFIG
@@ -68,6 +75,7 @@ endif ()
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
+ include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
@@ -104,6 +112,9 @@ add_executable (${EXECUTABLE} ${riffdecoder_EXE_SRCS})
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
+if (UNIX)
+ target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
+endif ()
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)

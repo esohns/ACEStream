@@ -201,7 +201,7 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::free"));
 
   // *IMPORTANT NOTE*: need to distinguish between MessageType and
-  //                   SessionMessageType here...
+  //                   SessionMessageType here
   ACE_Message_Block* message_block_p =
       static_cast<ACE_Message_Block*> (handle_in);
   ACE_ASSERT (message_block_p);

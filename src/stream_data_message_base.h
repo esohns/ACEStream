@@ -42,8 +42,6 @@ class Stream_DataMessageBase_T
  , public Common_IGet_T<DataType>
 {
  public:
-  virtual ~Stream_DataMessageBase_T ();
-
   // convenient types
   typedef DataType DATA_T;
 
@@ -80,6 +78,8 @@ class Stream_DataMessageBase_T
                             ACE_Allocator*,  // message allocator
                             bool = true);    // increment running message counter ?
 
+  virtual ~Stream_DataMessageBase_T ();
+
   DataType data_;
   bool     initialized_;
 
@@ -104,7 +104,7 @@ class Stream_DataMessageBase_T
 
 template <typename AllocatorConfigurationType,
           ///////////////////////////////
-          typename DataType, // *NOTE*: inherits Common_IReferenceCount !
+          typename DataType, // *NOTE*: implements Common_IReferenceCount !
           typename CommandType>
 class Stream_DataMessageBase_2
   : public Stream_MessageBase_T<AllocatorConfigurationType,
@@ -112,8 +112,6 @@ class Stream_DataMessageBase_2
   , public Common_IGet_T<DataType>
 {
  public:
-  virtual ~Stream_DataMessageBase_2 ();
-
   // convenient types
   typedef DataType DATA_T;
 
@@ -149,6 +147,8 @@ class Stream_DataMessageBase_2
   Stream_DataMessageBase_2 (ACE_Data_Block*, // data block
                             ACE_Allocator*,  // message allocator
                             bool = true);    // increment running message counter ?
+
+  virtual ~Stream_DataMessageBase_2 ();
 
   DataType* data_;
   bool      initialized_;

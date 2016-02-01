@@ -26,10 +26,21 @@ template <typename DataType>
 Stream_DataBase_T<DataType>::Stream_DataBase_T ()
  : inherited (1) // initial count
  , data_ (NULL)
- , delete_ (true)
+ , delete_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::Stream_DataBase_T"));
 
+}
+
+template <typename DataType>
+Stream_DataBase_T<DataType>::Stream_DataBase_T (const Stream_DataBase_T<DataType>& data_in)
+ : inherited (1) // initial count
+ , data_ (NULL)
+ , delete_ (false)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::Stream_DataBase_T"));
+
+  *this = data_in;
 }
 
 template <typename DataType>
@@ -49,23 +60,23 @@ Stream_DataBase_T<DataType>::~Stream_DataBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::~Stream_DataBase_T"));
 
-  if (delete_)
+  if (data_ && delete_)
     delete data_;
 }
 
 template <typename DataType>
 Stream_DataBase_T<DataType>&
-Stream_DataBase_T<DataType>::operator= (Stream_DataBase_T<DataType>& rhs_in)
+Stream_DataBase_T<DataType>::operator= (const Stream_DataBase_T<DataType>& rhs_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::operator="));
 
-  if (delete_)
+  // clean up
+  if (data_ && delete_)
   {
     delete data_;
     data_ = NULL;
-
-    delete_ = false;
   } // end IF
+  delete_ = false;
 
   if (rhs_in.delete_)
   {

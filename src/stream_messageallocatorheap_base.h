@@ -26,7 +26,6 @@
 #include "ace/Atomic_Op.h"
 #include "ace/Malloc_Allocator.h"
 #include "ace/Synch_Traits.h"
-#include "ace/Thread_Semaphore.h"
 
 #include "common_idumpstate.h"
 
@@ -112,7 +111,7 @@ class Stream_MessageAllocatorHeapBase_T
 
   bool                                          block_;
   DATABLOCK_ALLOCATOR_T                         dataBlockAllocator_;
-  ACE_Thread_Semaphore                          freeMessageCounter_;
+  ACE_SYNCH_SEMAPHORE                           freeMessageCounter_;
   // *NOTE*: only the (unsigned) 'long' specialization may have support the
   //         interlocked exchange_add (see ace/Atomic_Op.h)
   ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;

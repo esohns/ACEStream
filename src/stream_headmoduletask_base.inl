@@ -69,6 +69,8 @@ Stream_HeadModuleTaskBase_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::Stream_HeadModuleTaskBase_T"));
 
+  inherited2::threadCount_ = STREAM_MODULE_DEFAULT_HEAD_THREADS;
+
   // set group ID for worker thread(s)
   inherited2::grp_id (STREAM_MODULE_TASK_GROUP_ID);
 }
@@ -987,7 +989,7 @@ Stream_HeadModuleTaskBase_T<LockType,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Thread::join(%d): \"%m\", continuing\n"),
                     thread_id));
-    } // end IF 
+    } // end IF
   } // end IF
 }
 
@@ -1202,17 +1204,17 @@ Stream_HeadModuleTaskBase_T<LockType,
           result =
             inherited2::activate ((THR_NEW_LWP      |
                                    THR_JOINABLE     |
-                                   THR_INHERIT_SCHED),                // flags
-                                  STREAM_MODULE_DEFAULT_HEAD_THREADS, // number of threads
-                                  0,                                  // force spawning
-                                  ACE_DEFAULT_THREAD_PRIORITY,        // priority
-                                  inherited2::grp_id (),              // group id (see above)
-                                  NULL,                               // corresp. task --> use 'this'
-                                  thread_handles,                     // thread handle(s)
-                                  NULL,                               // thread stack(s)
-                                  NULL,                               // thread stack size(s)
-                                  thread_ids,                         // thread id(s)
-                                  thread_names);                      // thread name(s)
+                                   THR_INHERIT_SCHED),         // flags
+                                  inherited2::threadCount_,    // number of threads
+                                  0,                           // force spawning
+                                  ACE_DEFAULT_THREAD_PRIORITY, // priority
+                                  inherited2::grp_id (),       // group id (see above)
+                                  NULL,                        // corresp. task --> use 'this'
+                                  thread_handles,              // thread handle(s)
+                                  NULL,                        // thread stack(s)
+                                  NULL,                        // thread stack size(s)
+                                  thread_ids,                  // thread id(s)
+                                  thread_names);               // thread name(s)
           if (result == -1)
           {
             ACE_DEBUG ((LM_ERROR,
@@ -1319,35 +1321,41 @@ Stream_HeadModuleTaskBase_T<LockType,
     case STREAM_STATE_STOPPED:
     {
       // resume worker ?
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*inherited::stateLock_);
-
       size_t number_of_threads = inherited2::thr_count_;
 
-      if (inherited::state_ == STREAM_STATE_PAUSED)
       {
-        // *TODO*: remove type inference
-        if (number_of_threads)
+        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*inherited::stateLock_);
+
+        if (inherited::state_ == STREAM_STATE_PAUSED)
         {
-          result = inherited2::resume ();
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_Task::resume(): \"%m\", continuing\n")));
-        } // end IF
-        else
-        {
-          // task object not active --> resume the borrowed thread
-          ACE_hthread_t handle = threadID_.handle ();
+          // *TODO*: remove type inference
+          if (number_of_threads)
+          {
+            result = inherited2::resume ();
+            if (result == -1)
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("failed to ACE_Task::resume(): \"%m\", continuing\n")));
+          } // end IF
+          else
+          {
+            // task object not active --> resume the borrowed thread
+            ACE_hthread_t handle = threadID_.handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-          ACE_ASSERT (handle != ACE_INVALID_HANDLE);
+            ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
-          ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
+            ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
 #endif
-          result = ACE_Thread::resume (handle);
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_Thread::resume(): \"%m\", continuing\n")));
-        } // end ELSE
-      } // end IF
+            result = ACE_Thread::resume (handle);
+            if (result == -1)
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("failed to ACE_Thread::resume(): \"%m\", continuing\n")));
+          } // end ELSE
+        } // end IF
+
+        // *NOTE*: in 'passive' mode the finished() method waits for the stream
+        //         --> set the (intermediate) state early
+        inherited::state_ = STREAM_STATE_STOPPED;
+      } // end lock scope
 
       ACE_thread_t thread_id = ACE_Thread::self ();
 
@@ -1356,37 +1364,7 @@ Stream_HeadModuleTaskBase_T<LockType,
           (runSvcRoutineOnStart_  && !ACE_OS::thr_equal (thread_id,
                                                          threadID_.id ())))
       {
-        //// OK: drop a control message into the queue...
-        //// *TODO*: use ACE_Stream::control() instead ?
-        //ACE_Message_Block* message_block_p = NULL;
-        //ACE_NEW_NORETURN (message_block_p,
-        //                  ACE_Message_Block (0,                                  // size
-        //                                     ACE_Message_Block::MB_STOP,         // type
-        //                                     NULL,                               // continuation
-        //                                     NULL,                               // data
-        //                                     NULL,                               // buffer allocator
-        //                                     NULL,                               // locking strategy
-        //                                     ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
-        //                                     ACE_Time_Value::zero,               // execution time
-        //                                     ACE_Time_Value::max_time,           // deadline time
-        //                                     NULL,                               // data block allocator
-        //                                     NULL));                             // message allocator
-        //if (!message_block_p)
-        //{
-        //  ACE_DEBUG ((LM_CRITICAL,
-        //              ACE_TEXT ("failed to allocate memory: \"%m\", continuing\n")));
-        //  break;
-        //} // end IF
-
-        //result = inherited2::putq (message_block_p, NULL);
-        //if (result == -1)
-        //{
-        //  ACE_DEBUG ((LM_ERROR,
-        //              ACE_TEXT ("failed to ACE_Task::putq(): \"%m\", continuing\n")));
-
-        //  // clean up
-        //  message_block_p->release ();
-        //} // end IF
+        // *TODO*: use ACE_Stream::control() instead ?
         inherited2::shutdown ();
       } // end IF
       else
@@ -1400,10 +1378,6 @@ Stream_HeadModuleTaskBase_T<LockType,
         //                ACE_TEXT ("ACE_Thread::kill(%d, \"%S\") failed: \"%m\", continuing\n"),
         //                threadID_, SIGKILL));
         //} // end IF
-
-        // *NOTE*: 'passive' mode; the finished() method waits for the stream
-        //         --> set the (intermediate) state early
-        inherited::state_ = STREAM_STATE_STOPPED;
 
         // signal the controller
         this->finished ();

@@ -189,7 +189,6 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   if (data_)
     return *data_;
 
-  ACE_ASSERT (false);
   return SessionDataType ();
 }
 

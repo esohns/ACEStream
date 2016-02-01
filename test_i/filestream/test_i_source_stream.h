@@ -30,6 +30,7 @@
 
 #include "stream_base.h"
 #include "stream_common.h"
+#include "stream_streammodule_base.h"
 
 #include "stream_module_target.h"
 
@@ -124,7 +125,7 @@ class Test_I_Source_Stream_T
   TARGET_MODULE_T                              netTarget_;
 };
 
-// include template implementation
+// include template definition
 #include "test_i_source_stream.inl"
 
 /////////////////////////////////////////

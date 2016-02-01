@@ -29,7 +29,7 @@ template <typename TimePolicyType,
 Stream_TaskBaseSynch_T<TimePolicyType,
                        SessionMessageType,
                        ProtocolMessageType>::Stream_TaskBaseSynch_T ()
-// : inherited ()
+ : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::Stream_TaskBaseSynch_T"));
 

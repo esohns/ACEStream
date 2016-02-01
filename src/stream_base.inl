@@ -99,7 +99,27 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::~Stream_Base_T"));
 
-  // clean up
+  int result = -1;
+
+  if (state_.module)
+  {
+    Stream_Module_t* module_p =
+      inherited::find (state_.module->name ());
+    if (module_p)
+    {
+      result =
+        inherited::remove (state_.module->name (),
+                           ACE_Module_Base::M_DELETE_NONE);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", continuing\n"),
+                    state_.module->name ()));
+    } // end IF
+
+    if (state_.deleteModule)
+      delete state_.module;
+  } // end IF
+
   if (sessionData_)
     sessionData_->decrease ();
 }
@@ -1767,10 +1787,59 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
+  // *TODO*: remove type inferences
+  if (configuration_inout.module)
+  {
+    // step1: clone final module (if any) ?
+    if (configuration_inout.cloneModule)
+    {
+      IMODULE_T* imodule_p = NULL;
+      // need a downcast...
+      imodule_p =
+        dynamic_cast<IMODULE_T*> (configuration_inout.module);
+      if (!imodule_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("\"%s\": dynamic_cast<Stream_IModule_T> failed, aborting\n"),
+                    configuration_inout.module->name ()));
+        return false;
+      } // end IF
+      Stream_Module_t* clone_p = NULL;
+      try
+      {
+        clone_p = imodule_p->clone ();
+      }
+      catch (...)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("\"%s\": caught exception in Stream_IModule_T::clone(), aborting\n"),
+                    configuration_inout.module->name ()));
+        clone_p = NULL;
+      }
+      if (!clone_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("\"%s\": failed to Stream_IModule_T::clone(), aborting\n"),
+                    configuration_inout.module->name ()));
+        return false;
+      }
+      state_.module = clone_p;
+      state_.deleteModule = true;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("cloned final module \"%s\"...\n"),
+                  configuration_inout.module->name ()));
+    } // end IF
+    else
+    {
+      state_.module = configuration_inout.module;
+      state_.deleteModule = configuration_inout.deleteModule;
+    } // end ELSE
+
+    // *TODO*: step2: initialize final module (if any)
+  } // end IF
+
   ConfigurationType& configuration_r =
     const_cast<ConfigurationType&> (configuration_inout);
-
-  // *TODO*: remove type inference
   // sanity check(s)
   ACE_ASSERT (configuration_r.moduleHandlerConfiguration);
   configuration_r.moduleHandlerConfiguration->stateMachineLock =

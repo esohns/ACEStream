@@ -411,9 +411,9 @@ Stream_Module_Net_Source_T<LockType,
         ACE_TCHAR buffer[BUFSIZ];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
         result =
-          inherited::configuration_->socketConfiguration->peerAddress.addr_to_string (buffer,
-                                                                                      sizeof (buffer),
-                                                                                      1);
+          inherited::configuration_->socketConfiguration->address.addr_to_string (buffer,
+                                                                                  sizeof (buffer),
+                                                                                  1);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
@@ -461,7 +461,7 @@ Stream_Module_Net_Source_T<LockType,
         // step3: connect
         ACE_ASSERT (!inherited::configuration_->connection);
         handle =
-            iconnector_p->connect (inherited::configuration_->socketConfiguration->peerAddress);
+            iconnector_p->connect (inherited::configuration_->socketConfiguration->address);
         if (iconnector_p->useReactor ())
           inherited::configuration_->connection =
               inherited::configuration_->connectionManager->get (handle);
@@ -479,7 +479,7 @@ Stream_Module_Net_Source_T<LockType,
           do
           {
             inherited::configuration_->connection =
-              inherited::configuration_->connectionManager->get (inherited::configuration_->socketConfiguration->peerAddress);
+              inherited::configuration_->connectionManager->get (inherited::configuration_->socketConfiguration->address);
             if (inherited::configuration_->connection)
             {
               // step2: wait for the connection to finish initializing
@@ -617,7 +617,7 @@ done:
       {
         // wait for data (!) processing to complete
         ACE_ASSERT (inherited::configuration_->stream);
-        typename ConnectorType::STREAM_T* stream_p = NULL;
+//        typename ConnectorType::STREAM_T* stream_p = NULL;
         typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p =
           dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (inherited::configuration_->connection);
         if (!isocket_connection_p)
@@ -630,8 +630,8 @@ done:
           else
             goto release;
         } // end IF
-        stream_p =
-          &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
+//        stream_p =
+//          &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
 
         //// *NOTE*: if the connection was closed abruptly, there may well be
         ////         undispatched data in the connection stream. Flush it so

@@ -198,7 +198,7 @@ error:
   int open_mode = O_RDONLY;
   GtkTreeIter iterator;
   for (unsigned int i = 0;
-       i < entries.length ();
+       i < static_cast<unsigned int> (entries.length ());
        ++i)
   {
     dirent_p = entries[i];

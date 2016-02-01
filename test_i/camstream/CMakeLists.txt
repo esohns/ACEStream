@@ -38,6 +38,8 @@ endif ()
 include (FindPkgConfig)
 if (UNIX)
  #pkg_check_modules (PKG_ACE REQUIRED ACE)
+# *NOTE*: libCommon requires libcap
+ pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L REQUIRED libv4l2)
  pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
 endif ()
@@ -82,6 +84,7 @@ endif ()
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
+ include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_V4L_INCLUDE_DIRS})
  include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
@@ -145,45 +148,49 @@ set (camsource_EXE_SRCS
      stdafx.cpp
      stdafx.h)
 
-add_executable (camsource ${camsource_EXE_SRCS} etc/resources.rc etc/source.glade)
+set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
+
+set (EXECUTABLE camsource)
+add_executable (${EXECUTABLE} ${camsource_EXE_SRCS} etc/resources.rc etc/source.glade)
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)
 
-target_link_libraries (camsource ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (camsource ${ACE_LIBRARY})
+target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (UNIX)
- target_link_libraries (camsource ${PKG_V4L_LIBRARIES})
- target_link_libraries (camsource ${PKG_GTK_GLADE_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_V4L_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_GTK_GLADE_LIBRARIES})
 elseif (WIN32)
- target_link_libraries (camsource strmiids.lib)
+ target_link_libraries (${EXECUTABLE} strmiids.lib)
 # *TODO*: repair WIN32 pkgconfig support
- target_link_libraries (camsource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gio-2.0.lib)
- target_link_libraries (camsource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
- target_link_libraries (camsource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gobject-2.0.lib)
-# target_link_libraries (camsource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gthread-2.0.lib)
- target_link_libraries (camsource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/pango-1.0.lib)
- target_link_libraries (camsource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gdk-win32-2.0.lib)
- target_link_libraries (camsource ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gio-2.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gobject-2.0.lib)
+# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gthread-2.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/pango-1.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gdk-win32-2.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
 endif ()
-target_link_libraries (camsource Common)
+target_link_libraries (${EXECUTABLE} Common)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
- set_target_properties (camsource PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+ set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
-target_link_libraries (camsource CommonUI)
-target_link_libraries (camsource ACEStream)
-target_link_libraries (camsource ACEStream_Decoder)
-target_link_libraries (camsource ACEStream_Device)
-target_link_libraries (camsource ACENetwork)
-#target_link_libraries (camsource ACENetwork_Client)
+target_link_libraries (${EXECUTABLE} CommonUI)
+target_link_libraries (${EXECUTABLE} ACEStream)
+target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
+target_link_libraries (${EXECUTABLE} ACEStream_Device)
+target_link_libraries (${EXECUTABLE} ACENetwork)
+#target_link_libraries (${EXECUTABLE} ACENetwork_Client)
 
-install (TARGETS camsource
+install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
          COMPONENT dev)
 install (FILES etc/source.glade etc/resources.rc
-         DESTINATION etc/libACEStream/filestream COMPONENT config)
+         DESTINATION etc/libACEStream/camstream COMPONENT config)
 
 ############## next target ################
 set (camtarget_EXE_SRCS
@@ -216,45 +223,44 @@ set (camtarget_EXE_SRCS
      stdafx.cpp
      stdafx.h)
 
-set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
-
-add_executable (camtarget ${camtarget_EXE_SRCS} etc/resources.rc etc/target.glade)
+set (EXECUTABLE camtarget)
+add_executable (${EXECUTABLE} ${camtarget_EXE_SRCS} etc/resources.rc etc/target.glade)
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 #add_dependencies (${PROJECT_NAME} Common)
 
-target_link_libraries (camtarget ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (camtarget ${ACE_LIBRARY})
+target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (UNIX)
- target_link_libraries (camtarget ${PKG_V4L_LIBRARIES})
- target_link_libraries (camtarget ${PKG_GTK_GLADE_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_V4L_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_GTK_GLADE_LIBRARIES})
 elseif (WIN32)
- target_link_libraries (camtarget strmiids.lib)
+ target_link_libraries (${EXECUTABLE} strmiids.lib)
 # *TODO*: repair WIN32 pkgconfig support
- target_link_libraries (camtarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gio-2.0.lib)
- target_link_libraries (camtarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
- target_link_libraries (camtarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gobject-2.0.lib)
-# target_link_libraries (camtarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gthread-2.0.lib)
- target_link_libraries (camtarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/pango-1.0.lib)
- target_link_libraries (camtarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gdk-win32-2.0.lib)
- target_link_libraries (camtarget ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gio-2.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gobject-2.0.lib)
+# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gthread-2.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/pango-1.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gdk-win32-2.0.lib)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
 endif ()
-target_link_libraries (camtarget Common)
+target_link_libraries (${EXECUTABLE} Common)
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
- set_target_properties (camtarget PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
+ set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
-target_link_libraries (camtarget CommonUI)
-target_link_libraries (camtarget ACEStream)
-target_link_libraries (camtarget ACEStream_Decoder)
-target_link_libraries (camtarget ACEStream_Device)
-target_link_libraries (camtarget ACENetwork)
-#target_link_libraries (camtarget ACENetwork_Client)
+target_link_libraries (${EXECUTABLE} CommonUI)
+target_link_libraries (${EXECUTABLE} ACEStream)
+target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
+target_link_libraries (${EXECUTABLE} ACEStream_Device)
+target_link_libraries (${EXECUTABLE} ACENetwork)
+#target_link_libraries (${EXECUTABLE} ACENetwork_Client)
 
-install (TARGETS camtarget
+install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
          COMPONENT dev)
 install (FILES etc/target.glade etc/resources.rc
-         DESTINATION etc/libACEStream/filestream COMPONENT config)
-
+         DESTINATION etc/libACEStream/camstream COMPONENT config)
