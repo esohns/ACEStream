@@ -594,6 +594,7 @@ do_work (unsigned int bufferSize_in,
     ACE_ASSERT (timer_manager_p);
   long timer_id = -1;
   int group_id = -1;
+  struct Common_DispatchThreadData thread_data;
 
   Test_I_Target_InetConnectionManager_t* connection_manager_p =
     TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
@@ -686,9 +687,13 @@ do_work (unsigned int bufferSize_in,
   configuration.listenerConfiguration.useLoopBackDevice = useLoopBack_in;
 
   // step0b: initialize event dispatch
+  thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
+  thread_data.useReactor = useReactor_in;
   if (!Common_Tools::initializeEventDispatch (useReactor_in,
                                               useThreadPool_in,
                                               numberOfDispatchThreads_in,
+                                              thread_data.proactorType,
+                                              thread_data.reactorType,
                                               configuration.streamConfiguration.serializeOutput))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -808,8 +813,7 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step1b: initialize worker(s)
-  if (!Common_Tools::startEventDispatch (&useReactor_in,
-                                         numberOfDispatchThreads_in,
+  if (!Common_Tools::startEventDispatch (thread_data,
                                          group_id))
   {
     ACE_DEBUG ((LM_ERROR,

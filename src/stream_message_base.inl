@@ -299,7 +299,7 @@ Stream_MessageBase_2<AllocatorConfigurationType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
- , isInitialized_ (true)
+ , initialized_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
@@ -313,7 +313,7 @@ Stream_MessageBase_2<AllocatorConfigurationType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (const Stream_MessageBase_2& message_in)
  : inherited (message_in)
- , isInitialized_ (message_in.isInitialized_)
+ , initialized_ (message_in.initialized_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
@@ -329,7 +329,7 @@ Stream_MessageBase_2<AllocatorConfigurationType,
  : inherited (dataBlock_in,        // use (don't own !) this data block
               messageAllocator_in, // use this when destruction is imminent...
               true)                // increment the message ID ?
- , isInitialized_ (true)
+ , initialized_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
@@ -351,7 +351,7 @@ Stream_MessageBase_2<AllocatorConfigurationType,
   inherited::priority_ = std::numeric_limits<unsigned long>::max ();
 
   // clean up
-  isInitialized_ = false;
+  initialized_ = false;
 }
 
 template <typename AllocatorConfigurationType,
@@ -365,12 +365,12 @@ Stream_MessageBase_2<AllocatorConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (!isInitialized_);
+  ACE_ASSERT (!initialized_);
 
   // initialize base class
   inherited::initialize (dataBlock_in);
 
-  isInitialized_ = true;
+  initialized_ = true;
 }
 
 template <typename AllocatorConfigurationType,

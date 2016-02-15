@@ -233,8 +233,8 @@ struct Stream_AllocatorConfiguration
    : buffer (0)
   {};
 
-  // *NOTE*: add bytes to each malloc(), override as needed
-  //         (e.g. flex requires extra 2 YY_END_OF_BUFFER_CHARs)
+  // *NOTE*: adds bytes to each malloc(), override as needed
+  //         (e.g. flex requires additional 2 YY_END_OF_BUFFER_CHARs)
   unsigned int buffer;
 };
 

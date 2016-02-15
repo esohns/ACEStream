@@ -660,9 +660,14 @@ do_work (unsigned int bufferSize_in,
   module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 
   // step0b: initialize event dispatch
+  struct Common_DispatchThreadData thread_data;
+  thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
+  thread_data.useReactor = useReactor_in;
   if (!Common_Tools::initializeEventDispatch (useReactor_in,
                                               useThreadPool_in,
                                               numberOfDispatchThreads_in,
+                                              thread_data.proactorType,
+                                              thread_data.reactorType,
                                               configuration.streamConfiguration.serializeOutput))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -744,8 +749,7 @@ do_work (unsigned int bufferSize_in,
 
   // step1a: initialize worker(s)
   int group_id = -1;
-  if (!Common_Tools::startEventDispatch (&useReactor_in,
-                                         numberOfDispatchThreads_in,
+  if (!Common_Tools::startEventDispatch (thread_data,
                                          group_id))
   {
     ACE_DEBUG ((LM_ERROR,

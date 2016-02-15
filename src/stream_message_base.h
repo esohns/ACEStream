@@ -39,9 +39,9 @@
 template <typename AllocatorConfigurationType,
           typename CommandType = int>
 class Stream_MessageBase_T
- : virtual public Stream_IDataMessage<CommandType>
+ : public ACE_Message_Block
+ , public Stream_IDataMessage<CommandType>
  , public Common_IDumpState
- , public ACE_Message_Block
 {
   // grant access to specific ctors
   friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
@@ -153,14 +153,14 @@ class Stream_MessageBase_2
   Stream_MessageBase_2 (ACE_Data_Block*, // data block to use
                         ACE_Allocator*); // message allocator
 
+  bool initialized_;
+
  private:
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
                                CommandType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_2 ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_2& operator= (const Stream_MessageBase_2&))
-
-  bool isInitialized_;
 };
 
 #include "stream_message_base.inl"

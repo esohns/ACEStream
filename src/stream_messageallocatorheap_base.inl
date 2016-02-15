@@ -247,26 +247,7 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
 
   int result = -1;
 
-  // *IMPORTANT NOTE*: need to distinguish between MessageType and
-  //                   SessionMessageType here
-  ACE_Message_Block* message_block_p =
-      static_cast<ACE_Message_Block*> (handle_in);
-  ACE_ASSERT (message_block_p);
-  MessageType* message_p = NULL;
-  SessionMessageType* session_message_p = NULL;
-  // delegate to base class
-  if (message_block_p->msg_priority () ==
-      std::numeric_limits<unsigned long>::max ())
-  {
-    message_p = static_cast<MessageType*> (handle_in);
-    inherited::free (handle_in);
-  } // end IF
-  else
-  {
-    session_message_p = static_cast<SessionMessageType*> (handle_in);
-    inherited::free (session_message_p);
-  } // end ELSE
-//  inherited::free (handle_in);
+  inherited::free (handle_in);
 
   // OK: one slot just emptied
   poolSize_--;
