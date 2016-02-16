@@ -122,7 +122,7 @@ class Stream_Module_Net_Source_T
   // helper methods
 //  virtual int svc (void);
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
-  bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
+  bool putStatisticMessage (const StatisticContainerType&) const; // statistic info
 
   //typename ConnectionManagerType::CONNECTION_T* connection_;
   bool                                          isInitialized_;

@@ -806,6 +806,78 @@ template <typename LockType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType>
+ProtocolMessageType*
+Stream_HeadModuleTaskBase_T<LockType,
+                            TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_->streamConfiguration);
+
+  // initialize return value(s)
+  ProtocolMessageType* message_p = NULL;
+
+  // *TODO*: remove type inference
+  if (inherited::configuration_->streamConfiguration->messageAllocator)
+  {
+allocate:
+    try
+    {
+      // *TODO*: remove type inference
+      message_p =
+          static_cast<ProtocolMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
+    }
+    catch (...)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+                  requestedSize_in));
+      message_p = NULL;
+    }
+
+    // keep retrying ?
+    if (!message_p &&
+        !inherited::configuration_->streamConfiguration->messageAllocator->block ())
+      goto allocate;
+  } // end IF
+  else
+    ACE_NEW_NORETURN (message_p,
+                      ProtocolMessageType (requestedSize_in));
+  if (!message_p)
+  {
+    if (inherited::configuration_->streamConfiguration->messageAllocator)
+    {
+      if (inherited::configuration_->streamConfiguration->messageAllocator->block ())
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
+                    requestedSize_in));
+    } // end IF
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
+                  requestedSize_in));
+  } // end IF
+
+  return message_p;
+}
+
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,

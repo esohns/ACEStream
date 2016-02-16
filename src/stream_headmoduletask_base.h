@@ -161,6 +161,9 @@ class Stream_HeadModuleTaskBase_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+  // helper methods
+  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
+
   // implement (part of) Stream_IStreamControl_T
   //virtual void initialize ();
   //virtual void flush (bool = false); // N/A
