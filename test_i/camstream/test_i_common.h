@@ -320,6 +320,7 @@ struct Test_I_GTK_CBData
    , eventStack ()
    , logStack ()
    , progressData ()
+   , progressEventSourceID (0)
    , subscribers ()
    , subscribersLock ()
   {};
@@ -328,6 +329,7 @@ struct Test_I_GTK_CBData
   Test_I_GTK_Events_t       eventStack;
   Common_MessageStack_t     logStack;
   Test_I_GTK_ProgressData   progressData;
+  guint                     progressEventSourceID;
   Test_I_Subscribers_t      subscribers;
   ACE_SYNCH_RECURSIVE_MUTEX subscribersLock;
 };

@@ -17,7 +17,7 @@
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER    L"Sample Grabber"
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDERER   L"Video Renderer"
 
-// user-defined message to notify applications of filtergraph events 
+// user-defined message to notify applications of filtergraph events
 #define MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY      WM_APP + 1
 #endif
 

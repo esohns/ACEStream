@@ -28,20 +28,34 @@ endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 ############## next target ################
-set (${PROJECT_NAME}_Visualization_LIB_SRCS
-     stream_vis_common.h
-     stream_vis_defines.h
-     stream_vis_exports.h
-     stream_vis_gtk_drawingarea.cpp
-     stream_vis_gtk_drawingarea.h
-     stream_vis_gtk_drawingarea.inl
-     stream_vis_target_directshow.cpp
-     stream_vis_target_directshow.h
-     stream_vis_target_directshow.inl
-     stream_vis_tools.cpp
-     stream_vis_tools.h
-     stdafx.cpp
-     stdafx.h)
+if (WIN32)
+ set (${PROJECT_NAME}_Visualization_LIB_SRCS
+      stream_vis_common.h
+      stream_vis_defines.h
+      stream_vis_exports.h
+      stream_vis_gtk_drawingarea.cpp
+      stream_vis_gtk_drawingarea.h
+      stream_vis_gtk_drawingarea.inl
+      stream_vis_target_directshow.cpp
+      stream_vis_target_directshow.h
+      stream_vis_target_directshow.inl
+      stream_vis_tools.cpp
+      stream_vis_tools.h
+      stdafx.cpp
+      stdafx.h)
+else ()
+ set (${PROJECT_NAME}_Visualization_LIB_SRCS
+      stream_vis_common.h
+      stream_vis_defines.h
+      stream_vis_exports.h
+      stream_vis_gtk_drawingarea.cpp
+      stream_vis_gtk_drawingarea.h
+      stream_vis_gtk_drawingarea.inl
+      stream_vis_tools.cpp
+      stream_vis_tools.h
+      stdafx.cpp
+      stdafx.h)
+endif ()
 
 add_library (${PROJECT_NAME}_Visualization SHARED ${ACEStream_Visualization_LIB_SRCS})
 

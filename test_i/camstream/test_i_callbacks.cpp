@@ -22,6 +22,8 @@
 #include "test_i_callbacks.h"
 
 #include <limits>
+#include <map>
+#include <set>
 #include <sstream>
 
 #include "ace/Guard_T.h"
@@ -33,6 +35,11 @@
  //#include "streams.h"
 
 #include "gdk/gdkwin32.h"
+#else
+#include "ace/Dirent_Selector.h"
+
+#include "libv4l2.h"
+#include "linux/videodev2.h"
 #endif
 
 #include "glade/glade.h"
@@ -57,6 +64,32 @@
 #include "test_i_source_common.h"
 #include "test_i_target_listener_common.h"
 
+int
+dirent_selector (const dirent* dirEntry_in)
+{
+  // *IMPORTANT NOTE*: select all files
+
+  // sanity check --> ignore dot/double-dot
+  if (ACE_OS::strncmp (dirEntry_in->d_name,
+                       ACE_TEXT_ALWAYS_CHAR ("video"),
+                       ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("video"))) != 0)
+  {
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("ignoring \"%s\"...\n"),
+//                 ACE_TEXT (dirEntry_in->d_name)));
+
+    return 0;
+  } // end IF
+
+  return 1;
+}
+int
+dirent_comparator(const dirent** d1,
+                  const dirent** d2)
+{
+  return ACE_OS::strcmp ((*d1)->d_name,
+                         (*d2)->d_name);
+}
 bool
 load_capture_devices (GtkListStore* listStore_in)
 {
@@ -149,6 +182,88 @@ error:
   if (enumerator_p)
     enumerator_p->Release ();
 #else
+  std::string directory (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY));
+  ACE_Dirent_Selector entries;
+  int result_2 = entries.open (ACE_TEXT (directory.c_str ()),
+                               &dirent_selector,
+                               &dirent_comparator);
+  if (result_2 == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Dirent_Selector::open(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (directory.c_str ())));
+    return false;
+  } // end IF
+  if (entries.length () == 0)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("no video capture devices found, continuing\n")));
+
+  struct v4l2_capability device_capabilities;
+  std::string device_filename;
+  ACE_DIRENT* dirent_p = NULL;
+  int file_descriptor = -1;
+  int open_mode = O_RDONLY;
+  GtkTreeIter iterator;
+  for (unsigned int i = 0;
+       i < static_cast<unsigned int> (entries.length ());
+       ++i)
+  {
+    dirent_p = entries[i];
+    ACE_ASSERT (dirent_p);
+
+    device_filename = directory +
+                      ACE_DIRECTORY_SEPARATOR_CHAR +
+                      dirent_p->d_name;
+    ACE_ASSERT (Common_File_Tools::isValidFilename (device_filename));
+//    ACE_ASSERT (Common_File_Tools::isReadable (device_filename));
+
+    file_descriptor = -1;
+    file_descriptor = v4l2_open (device_filename.c_str (),
+                                 open_mode);
+    if (file_descriptor == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
+                  ACE_TEXT (device_filename.c_str ()), open_mode));
+      goto clean;
+    } // end IF
+
+    ACE_OS::memset (&device_capabilities, 0, sizeof (struct v4l2_capability));
+    result_2 = v4l2_ioctl (file_descriptor,
+                           VIDIOC_QUERYCAP,
+                           &device_capabilities);
+    if (result_2 == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_ioctl(%d,%u): \"%m\", continuing\n"),
+                  file_descriptor, ACE_TEXT ("VIDIOC_QUERYCAP")));
+      goto close;
+    } // end IF
+
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, ACE_TEXT (device_capabilities.card),
+                        1, ACE_TEXT (device_filename.c_str ()),
+                        -1);
+
+close:
+    result_2 = v4l2_close (file_descriptor);
+    if (result_2 == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_close(%d): \"%m\", aborting\n"),
+                  file_descriptor));
+      goto clean;
+    } // end IF
+  } // end FOR
+  result = true;
+
+clean:
+  result_2 = entries.close ();
+  if (result_2 == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Dirent_Selector::close(\"%s\"): \"%m\", continuing\n"),
+                ACE_TEXT (directory.c_str ())));
 #endif
 
   return result;
@@ -474,19 +589,45 @@ load_formats (int fd_in,
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  std::set<uint32_t> formats;
-  std::string format_string;
+  int result = -1;
+  std::map<__u32, std::string> formats;
+  struct v4l2_fmtdesc format_description;
+  ACE_OS::memset (&format_description, 0, sizeof (struct v4l2_fmtdesc));
+  format_description.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  do
+  {
+    result = v4l2_ioctl (fd_in,
+                         VIDIOC_ENUM_FMT,
+                         &format_description);
+    if (result == -1)
+    {
+      int error = ACE_OS::last_error ();
+      if (error != EINVAL)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                    fd_in, ACE_TEXT ("VIDIOC_ENUM_FMT")));
+      break;
+    } // end IF
+    ++format_description.index;
+
+    formats.insert (std::make_pair (format_description.pixelformat,
+                                    reinterpret_cast<char*> (format_description.description)));
+  } while (true);
+
+  std::ostringstream converter;
   GtkTreeIter iterator;
-  for (std::set<uint32_t>::const_iterator iterator_2 = formats.begin ();
+  for (std::map<__u32, std::string>::const_iterator iterator_2 = formats.begin ();
        iterator_2 != formats.end ();
        ++iterator_2)
   {
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << (*iterator_2).first;
+
     gtk_list_store_append (listStore_in, &iterator);
-    format_string =
-      Stream_Module_Device_Tools::formatToString (*iterator_2);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, format_string.c_str (),
-                        1, format_string.c_str (),
+                        0, (*iterator_2).second.c_str (),
+                        1, converter.str ().c_str (),
                         -1);
   } // end FOR
 
@@ -495,7 +636,7 @@ load_formats (int fd_in,
 
 bool
 load_resolutions (int fd_in,
-                  uint32_t format_in,
+                  __u32 format_in,
                   GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_resolutions"));
@@ -507,12 +648,33 @@ load_resolutions (int fd_in,
   // initialize result
   gtk_list_store_clear (listStore_in);
 
+  int result = -1;
   std::set<std::pair<unsigned int, unsigned int> > resolutions;
-  for (unsigned int i = 0;
-       i < format_in;
-       ++i)
-    resolutions.insert (std::make_pair (format_in,
-                                        format_in));
+  struct v4l2_frmsizeenum resolution_description;
+  ACE_OS::memset (&resolution_description, 0, sizeof (struct v4l2_frmsizeenum));
+  resolution_description.pixel_format = format_in;
+  do
+  {
+    result = v4l2_ioctl (fd_in,
+                         VIDIOC_ENUM_FRAMESIZES,
+                         &resolution_description);
+    if (result == -1)
+    {
+      int error = ACE_OS::last_error ();
+      if (error != EINVAL)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                    fd_in, ACE_TEXT ("VIDIOC_ENUM_FRAMESIZES")));
+      break;
+    } // end IF
+    ++resolution_description.index;
+
+    if (resolution_description.type != V4L2_FRMSIZE_TYPE_DISCRETE)
+      continue;
+
+    resolutions.insert (std::make_pair (resolution_description.discrete.width,
+                                        resolution_description.discrete.height));
+  } while (true);
 
   GtkTreeIter iterator;
   std::ostringstream converter;
@@ -536,10 +698,19 @@ load_resolutions (int fd_in,
   return true;
 }
 
+struct less_fract
+{
+  bool operator() (const struct v4l2_fract& lhs_in,
+                   const struct v4l2_fract& rhs_in) const
+  {
+    return ((lhs_in.numerator / lhs_in.denominator) <
+            (rhs_in.numerator / rhs_in.denominator));
+  }
+};
 bool
 load_rates (int fd_in,
-            uint32_t format_in,
-            unsigned int width_in,
+            __u32 format_in,
+            unsigned int width_in, unsigned int height_in,
             GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_rates"));
@@ -551,23 +722,52 @@ load_rates (int fd_in,
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  unsigned int frame_duration;
-  std::set<std::pair<unsigned int, unsigned int> > frame_rates;
-  for (unsigned int i = 0;
-       i < format_in;
-       ++i)
-    frame_rates.insert (std::make_pair (10000000 / format_in,
-                                        frame_duration));
+  int result = -1;
+  std::set<v4l2_fract, less_fract> frame_intervals;
+  struct v4l2_frmivalenum frame_interval_description;
+  ACE_OS::memset (&frame_interval_description,
+                  0,
+                  sizeof (struct v4l2_frmivalenum));
+  frame_interval_description.pixel_format = format_in;
+  frame_interval_description.width = width_in;
+  frame_interval_description.height = height_in;
+  do
+  {
+    result = v4l2_ioctl (fd_in,
+                         VIDIOC_ENUM_FRAMEINTERVALS,
+                         &frame_interval_description);
+    if (result == -1)
+    {
+      int error = ACE_OS::last_error ();
+      if (error != EINVAL)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                    fd_in, ACE_TEXT ("VIDIOC_ENUM_FRAMEINTERVALS")));
+      break;
+    } // end IF
+    ++frame_interval_description.index;
+
+    if (frame_interval_description.type != V4L2_FRMIVAL_TYPE_DISCRETE)
+      continue;
+
+    frame_intervals.insert (frame_interval_description.discrete);
+  } while (true);
 
   GtkTreeIter iterator;
-  for (std::set<std::pair<unsigned int, unsigned int> >::const_iterator iterator_2 = frame_rates.begin ();
-       iterator_2 != frame_rates.end ();
+  guint frame_rate = 0;
+  for (std::set<v4l2_fract, less_fract>::const_iterator iterator_2 = frame_intervals.begin ();
+       iterator_2 != frame_intervals.end ();
        ++iterator_2)
   {
+    frame_rate =
+        (((*iterator_2).numerator == 1) ? (*iterator_2).denominator
+                                        : static_cast<guint> (static_cast<float> ((*iterator_2).denominator) /
+                                                              static_cast<float> ((*iterator_2).numerator)));
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, (*iterator_2).first,
-                        1, (*iterator_2).second,
+                        0, frame_rate,
+                        1, (*iterator_2).numerator,
+                        2, (*iterator_2).denominator,
                         -1);
   } // end FOR
 
@@ -1091,16 +1291,16 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                G_CALLBACK (toggleaction_stream_toggled_cb),
                                userData_in);
   ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("activate"),
-                      G_CALLBACK (action_settings_activate_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
+//  object_p =
+//    gtk_builder_get_object ((*iterator).second.second,
+//                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME));
+//  ACE_ASSERT (object_p);
+//  result_2 =
+//    g_signal_connect (object_p,
+//                      ACE_TEXT_ALWAYS_CHAR ("activate"),
+//                      G_CALLBACK (action_settings_activate_cb),
+//                      userData_in);
+//  ACE_ASSERT (result_2);
   object_p =
     gtk_builder_get_object ((*iterator).second.second,
                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME));
@@ -1305,18 +1505,14 @@ idle_end_source_UI_cb (gpointer userData_in)
     GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEACTION_STREAM_NAME)));
   ACE_ASSERT (toggle_action_p);
-  gtk_action_set_stock_id (GTK_ACTION (toggle_action_p), GTK_STOCK_MEDIA_PLAY);
+  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
 
   GtkAction* action_p =
-    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
-    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, true);
-  action_p =
-    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
-    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
+//    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+//                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME)));
+//  ACE_ASSERT (action_p);
+//  gtk_action_set_sensitive (action_p, true);
+//  action_p =
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME)));
   ACE_ASSERT (action_p);
@@ -2175,9 +2371,44 @@ idle_update_progress_target_cb (gpointer userData_in)
 /////////////////////////////////////////
 
 gboolean
-idle_finalize_UI_cb (gpointer userData_in)
+idle_finalize_source_UI_cb (gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::idle_finalize_UI_cb"));
+  STREAM_TRACE (ACE_TEXT ("::idle_finalize_source_UI_cb"));
+
+  Test_I_Source_GTK_CBData* data_p =
+    static_cast<Test_I_Source_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  // clean up
+  int result = -1;
+  if (data_p->device != -1)
+  {
+    result = v4l2_close (data_p->device);
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                  data_p->device));
+    data_p->device = -1;
+  } // end IF
+#endif
+
+  // leave GTK
+  gtk_main_quit ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  CoUninitialize ();
+#endif
+
+  return G_SOURCE_REMOVE;
+}
+gboolean
+idle_finalize_target_UI_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_finalize_target_UI_cb"));
 
   ACE_UNUSED_ARG (userData_in);
 
@@ -2443,19 +2674,23 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration);
   ACE_ASSERT (data_p->stream);
   ACE_ASSERT (data_p->UDPStream);
   //ACE_ASSERT (iterator != data_p->gladeXML.end ());
   ACE_ASSERT (iterator != data_p->builders.end ());
 
   Test_I_Source_ThreadData* thread_data_p = NULL;
-  ACE_thread_t thread_id;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_thread_t thread_id = std::numeric_limits<unsigned long>::max ();
+#else
+  ACE_thread_t thread_id = -1;
+#endif
   ACE_hthread_t thread_handle;
   ACE_TCHAR thread_name[BUFSIZ];
   const char* thread_name_2 = NULL;
   ACE_Thread_Manager* thread_manager_p = NULL;
   int result = -1;
-  guint event_source_id = 0;
 
   Test_I_Source_StreamBase_t* stream_p = NULL;
   switch (data_p->configuration->protocol)
@@ -2477,11 +2712,12 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (stream_p);
 
   // toggle play/pause ?
-  Stream_StateMachine_ControlState status = stream_p->status ();
-  if ((status == STREAM_STATE_RUNNING) ||
-      (status == STREAM_STATE_PAUSED))
+  const Stream_StateMachine_ControlState& status_r = stream_p->status ();
+  if ((status_r == STREAM_STATE_RUNNING) ||
+      (status_r == STREAM_STATE_PAUSED))
   {
     stream_p->stop (false, true);
+
     //if (!data_p->configuration->moduleHandlerConfiguration.active)
     //{
     //  ACE_ASSERT (!data_p->progressData.pendingActions.empty ());
@@ -2497,37 +2733,73 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     //} // end ELSE
 
     // step0: modify widgets
-    if (status == STREAM_STATE_RUNNING) // <-- image is "stop"
-      gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_PLAY);
-    else // <-- image is "play"
-      gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
+    gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_PLAY);
+    gtk_action_set_sensitive (GTK_ACTION (toggleAction_in), false);
+    GtkAction* action_p =
+//      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+//                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME)));
+//    ACE_ASSERT (action_p);
+//    gtk_action_set_sensitive (action_p, false);
+//    action_p =
+      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME)));
+    ACE_ASSERT (action_p);
+    gtk_action_set_sensitive (action_p, false);
+
+    // stop progress reporting
+    ACE_ASSERT (data_p->progressEventSourceID);
+    {
+      ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+
+      if (!g_source_remove (data_p->progressEventSourceID))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                    data_p->progressEventSourceID));
+      data_p->eventSourceIds.erase (data_p->progressEventSourceID);
+      data_p->progressEventSourceID = 0;
+    } // end lock scope
+    GtkProgressBar* progressbar_p =
+      GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+    ACE_ASSERT (progressbar_p);
+    // *NOTE*: this disables "activity mode" (in Gtk2)
+    gtk_progress_bar_set_fraction (progressbar_p, 0.0);
+    gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
 
     return;
   } // end IF
-  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
+
+  if (data_p->isFirst)
+    data_p->isFirst = false;
 
   // step0: modify widgets
+  gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
+  GtkAction* action_p =
+//    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+//                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME)));
+//  ACE_ASSERT (action_p);
+//  gtk_action_set_sensitive (action_p, true);
+//  action_p =
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, true);
+
   GtkSpinButton* spin_button_p =
-    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
-    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
-    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
+      GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_value (spin_button_p,
                              0.0);
   spin_button_p =
-    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
-    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
-    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
+      GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_value (spin_button_p,
                              0.0);
   spin_button_p =
-    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
-    //                                       ACE_TEXT_ALWAYS_CHAR (NET_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
-    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
+      GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_DATA_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_value (spin_button_p,
                              0.0);
@@ -2538,21 +2810,6 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
 
-  GtkAction* action_p =
-    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
-    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, false);
-  action_p =
-    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
-    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, false);
-
   // step1: set up progress reporting
   data_p->progressData.transferred = 0;
   GtkProgressBar* progress_bar_p =
@@ -2562,6 +2819,38 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
 
   // step2: update configuration
+  // retrieve source
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_COMBOBOX_SOURCE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  GtkTreeIter iterator_2;
+  if (gtk_combo_box_get_active_iter (combo_box_p,
+                                     &iterator_2))
+  {
+    GtkListStore* list_store_p =
+      GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
+    ACE_ASSERT (list_store_p);
+    GValue value = {0,};
+    gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                              &iterator_2,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              0, &value);
+#else
+                              1, &value);
+#endif
+    ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+    data_p->configuration->streamConfiguration.moduleHandlerConfiguration->device =
+      g_value_get_string (&value);
+    g_value_unset (&value);
+  } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration->fileDescriptor =
+      data_p->device;
+#endif
+
   // retrieve port number
   spin_button_p =
     //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
@@ -2603,7 +2892,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-    goto clean;
+    goto error;
   } // end IF
   thread_data_p->CBData = data_p;
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
@@ -2656,11 +2945,12 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
       // clean up
       delete thread_data_p;
 
-      goto clean;
+      goto error;
     } // end IF
 
     // step3: start progress reporting
-    event_source_id =
+    ACE_ASSERT (!data_p->progressEventSourceID);
+    data_p->progressEventSourceID =
       //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
       //                 idle_update_progress_cb,
       //                 &data_p->progressData,
@@ -2670,7 +2960,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
                           idle_update_progress_source_cb,
                           &data_p->progressData,
                           NULL);
-    if (!event_source_id)
+    if (!data_p->progressEventSourceID)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_source_cb): \"%m\", returning\n")));
@@ -2683,31 +2973,24 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
                     ACE_TEXT ("failed to ACE_Thread_Manager::join(%u): \"%m\", continuing\n"),
                     thread_id));
 
-      goto clean;
+      goto error;
     } // end IF
-    thread_data_p->eventSourceID = event_source_id;
-    data_p->progressData.pendingActions[event_source_id] =
+    thread_data_p->eventSourceID = data_p->progressEventSourceID;
+    data_p->progressData.pendingActions[data_p->progressEventSourceID] =
       ACE_Thread_ID (thread_id, thread_handle);
     //    ACE_DEBUG ((LM_DEBUG,
     //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
     //                event_source_id));
-    data_p->eventSourceIds.insert (event_source_id);
+    data_p->eventSourceIds.insert (data_p->progressEventSourceID);
   } // end lock scope
 
   return;
 
-clean:
+error:
   gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_PLAY);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
   gtk_action_set_sensitive (action_p, true);
-  action_p =
-    //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
-    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_NUMCONNECTIONS_NAME)));
-    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME)));
-  ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, true);
-} // toggleaction_stream_toggled_cb
+} // toggle_action_stream_toggled_cb
 
 void
 action_reset_activate_cb (GtkAction* action_in,
@@ -3485,7 +3768,7 @@ textview_size_allocate_cb (GtkWidget* widget_in,
 } // textview_size_allocate_cb
 
 void
-combobox_source_changed_cb (GtkWidget* widget_in,
+combobox_source_changed_cb (GtkComboBox* comboBox_in,
                             gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_source_changed_cb"));
@@ -3503,7 +3786,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
   GtkTreeIter iterator_2;
-  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+  if (!gtk_combo_box_get_active_iter (comboBox_in,
                                       &iterator_2))
     return; // <-- nothing selected
   GtkListStore* list_store_p =
@@ -3511,53 +3794,84 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
   GValue value = {0,};
+  GValue value_2 = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             0, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            1, &value_2);
+  ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
   std::string device_string = g_value_get_string (&value);
+  std::string device_path = g_value_get_string (&value_2);
   g_value_unset (&value);
+  g_value_unset (&value_2);
 
+  list_store_p =
+      GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
+  ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_UNUSED_ARG (device_path);
+
   if (data_p->streamConfiguration)
   {
     data_p->streamConfiguration->Release ();
     data_p->streamConfiguration = NULL;
   } // end IF
-  if (data_p->configuration->moduleHandlerConfiguration.builder)
+  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder)
   {
-    data_p->configuration->moduleHandlerConfiguration.builder->Release ();
-    data_p->configuration->moduleHandlerConfiguration.builder = NULL;
+    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder->Release ();
+    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder =
+      NULL;
   } // end IF
   if (!Stream_Module_Device_Tools::load (device_string,
-                                         data_p->configuration->moduleHandlerConfiguration.builder,
+                                         data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
                                          data_p->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::load(\"%s\"), returning\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), returning\n"),
                 ACE_TEXT (device_string.c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
   ACE_ASSERT (data_p->streamConfiguration);
-
-  list_store_p =
-    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
-  ACE_ASSERT (list_store_p);
   if (!load_formats (data_p->streamConfiguration,
+#else
+  int result = -1;
+  if (data_p->device != -1)
+  {
+    result = v4l2_close (data_p->device);
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
+                  data_p->device));
+    data_p->device = -1;
+  } // end IF
+  ACE_ASSERT (data_p->device == -1);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration);
+  int open_mode =
+      ((data_p->configuration->streamConfiguration.moduleHandlerConfiguration->method == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                                                                           : O_RDONLY);
+  data_p->device = v4l2_open (device_path.c_str (),
+                              open_mode);
+  if (data_p->device == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", returning\n"),
+                ACE_TEXT (device_path.c_str ()), open_mode));
+    return;
+  } // end IF
+
+  if (!load_formats (data_p->device,
+#endif
                      list_store_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_formats(), returning\n")));
     return;
   } // end IF
-#endif
-
-  list_store_p =
-    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
-  ACE_ASSERT (list_store_p);
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
@@ -3578,7 +3892,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 } // combobox_source_changed_cb
 
 void
-combobox_format_changed_cb (GtkWidget* widget_in,
+combobox_format_changed_cb (GtkComboBox* comboBox_in,
                             gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_format_changed_cb"));
@@ -3588,7 +3902,6 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->configuration);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -3596,7 +3909,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
   GtkTreeIter iterator_2;
-  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+  if (!gtk_combo_box_get_active_iter (comboBox_in,
                                       &iterator_2))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3612,17 +3925,19 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                             &iterator_2,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string format_string = g_value_get_string (&value);
+  g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   GUID GUID_i;
   ACE_OS::memset (&GUID_i, 0, sizeof (GUID));
   HRESULT result = E_FAIL;
 #if defined (OLE2ANSI)
   result =
-    CLSIDFromString (g_value_get_string (&value),
+    CLSIDFromString (format_string.c_str (),
                      &GUID_i);
 #else
   result =
-    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (g_value_get_string (&value)),
+    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (format_string.c_str ()),
                      &GUID_i);
 #endif
   if (FAILED (result))
@@ -3630,24 +3945,25 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    g_value_unset (&value);
-
     return;
   } // end IF
 #else
-  uint32_t format_i = 0;
+  __u32 format_i = 0;
+  std::istringstream converter;
+  converter.str (format_string);
+  converter >> format_i;
 #endif
-  g_value_unset (&value);
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -3664,13 +3980,13 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
   //         the filter pins are associated. IGraphConfig::Reconnect fails
   //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3687,8 +4003,22 @@ error:
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   return;
+#else
+  // sanity check(s)
+  ACE_ASSERT (data_p->device != -1);
 
+  if (!Stream_Module_Device_Tools::setFormat (data_p->device,
+                                              format_i))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+    return;
+  } // end IF
+
+  goto continue_;
+#endif
 continue_:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!load_resolutions (data_p->streamConfiguration,
                          GUID_i,
 #else
@@ -3701,7 +4031,6 @@ continue_:
                 ACE_TEXT ("failed to ::load_resolutions(), returning\n")));
     return;
   } // end IF
-
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
@@ -3713,10 +4042,10 @@ continue_:
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
-} // combobox_source_changed_cb
+} // combobox_format_changed_cb
 
 void
-combobox_resolution_changed_cb (GtkWidget* widget_in,
+combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
                                 gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_resolution_changed_cb"));
@@ -3778,10 +4107,13 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     return;
   } // end IF
 #else
-  uint32_t format_i = 0;
+  __u32 format_i = 0;
+  std::istringstream converter;
+  converter.str (g_value_get_string (&value));
+  converter >> format_i;
 #endif
   g_value_unset (&value);
-  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+  if (!gtk_combo_box_get_active_iter (comboBox_in,
                                       &iterator_2))
   {
     //ACE_DEBUG ((LM_ERROR,
@@ -3809,11 +4141,13 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -3842,23 +4176,23 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     video_info_header2_p->bmiHeader.biHeight = height;
   } // end ELSE IF
 
-    // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
-    //         the filter pins are associated. IGraphConfig::Reconnect fails
-    //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
+  // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
+  //         the filter pins are associated. IGraphConfig::Reconnect fails
+  //         unless the graph is "disconnected" first
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
     goto error;
   } // end IF
-    //DeleteMediaType (media_type_p);
+  //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   goto continue_;
@@ -3868,17 +4202,30 @@ error:
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   return;
+#else
+  // sanity check(s)
+  ACE_ASSERT (data_p->device != -1);
 
+  if (!Stream_Module_Device_Tools::setResolution (data_p->device,
+                                                  width, height))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setResolution(), returning\n")));
+    return;
+  } // end IF
+
+  goto continue_;
+#endif
 continue_:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!load_rates (data_p->streamConfiguration,
                    GUID_i,
+                   width,
 #else
-  ACE_UNUSED_ARG (height);
-
   if (!load_rates (data_p->device,
                    format_i,
+                   width, height,
 #endif
-                   width,
                    list_store_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3900,7 +4247,7 @@ continue_:
 } // combobox_resolution_changed_cb
 
 void
-combobox_rate_changed_cb (GtkWidget* widget_in,
+combobox_rate_changed_cb (GtkComboBox* comboBox_in,
                           gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::combobox_rate_changed_cb"));
@@ -3917,7 +4264,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
 
   GtkTreeIter iterator_2;
-  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+  if (!gtk_combo_box_get_active_iter (comboBox_in,
                                       &iterator_2))
   {
     //ACE_DEBUG ((LM_ERROR,
@@ -3929,18 +4276,28 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
   GValue value = {0,};
+  GValue value_2 = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            2, &value_2);
+  ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
   unsigned int frame_interval = g_value_get_uint (&value);
   g_value_unset (&value);
+  unsigned int frame_interval_denominator = g_value_get_uint (&value_2);
+  g_value_unset (&value_2);
 
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_UNUSED_ARG (frame_interval_denominator);
+
   // sanity check(s)
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -3967,16 +4324,16 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
     video_info_header2_p->AvgTimePerFrame = frame_interval;
   } // end ELSE IF
 
-    // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
-    //         the filter pins are associated. IGraphConfig::Reconnect fails
-    //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
+  // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
+  //         the filter pins are associated. IGraphConfig::Reconnect fails
+  //         unless the graph is "disconnected" first
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3992,9 +4349,20 @@ error:
   //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 #else
-  // *TODO*
-  ACE_ASSERT (false);
-  ACE_UNUSED_ARG (frame_interval);
+  // sanity check(s)
+  ACE_ASSERT (data_p->device != -1);
+
+  struct v4l2_fract frame_interval_fract;
+  ACE_OS::memset (&frame_interval_fract, 0, sizeof (struct v4l2_fract));
+  frame_interval_fract.numerator = frame_interval;
+  frame_interval_fract.denominator = frame_interval_denominator;
+  if (!Stream_Module_Device_Tools::setInterval (data_p->device,
+                                                frame_interval_fract))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setInterval(), returning\n")));
+    return;
+  } // end IF
 #endif
 } // combobox_rate_changed_cb
 
@@ -4017,7 +4385,7 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
       !data_p->configuration->moduleHandlerConfiguration.windowController) // <-- window not realized yet ?
     return;
 #else
-  if (!data_p->configuration->moduleHandlerConfiguration.gdkWindow) // <-- window not realized yet ?
+  if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
     return;
 #endif
 

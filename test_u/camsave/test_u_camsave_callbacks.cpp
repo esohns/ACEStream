@@ -22,6 +22,7 @@
 #include "test_u_camsave_callbacks.h"
 
 #include <limits>
+#include <map>
 #include <set>
 #include <sstream>
 
@@ -693,9 +694,11 @@ load_resolutions (int fd_in,
 
 struct less_fract
 {
-  bool operator() (const struct v4l2_fract& lhs_in, const struct v4l2_fract& rhs_in) const
+  bool operator() (const struct v4l2_fract& lhs_in,
+                   const struct v4l2_fract& rhs_in) const
   {
-    return ((lhs_in.numerator / lhs_in.denominator) < (rhs_in.numerator / rhs_in.denominator));
+    return ((lhs_in.numerator / lhs_in.denominator) <
+            (rhs_in.numerator / rhs_in.denominator));
   }
 };
 bool
@@ -1441,7 +1444,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.window =
     gdk_win32_window_get_impl_hwnd (window_p);
 #else
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.gdkWindow =
+  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.window =
     window_p;
 #endif
   GtkAllocation allocation;
@@ -1478,6 +1481,14 @@ idle_initialize_UI_cb (gpointer userData_in)
     ACE_ASSERT (combo_box_p);
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
     gtk_combo_box_set_active (combo_box_p, 0);
+  } // end IF
+  else
+  {
+    GtkToggleAction* toggle_action_p =
+        GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
+    ACE_ASSERT (toggle_action_p);
+    gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), false);
   } // end IF
 
   return G_SOURCE_REMOVE;
@@ -2419,11 +2430,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to ::load_formats(), returning\n")));
     return;
   } // end IF
-
-  list_store_p =
-    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
-  ACE_ASSERT (list_store_p);
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
@@ -2437,8 +2443,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end IF
 
   GtkToggleAction* toggle_action_p =
-    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
+      GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
   ACE_ASSERT (toggle_action_p);
   gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
 } // combobox_source_changed_cb
@@ -2594,7 +2600,7 @@ continue_:
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
-} // combobox_source_changed_cb
+} // combobox_format_changed_cb
 
 void
 combobox_resolution_changed_cb (GtkWidget* widget_in,
@@ -2937,7 +2943,7 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
       !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController) // <-- window not realized yet ?
     return;
 #else
-  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.gdkWindow) // <-- window not realized yet ?
+  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.window) // <-- window not realized yet ?
     return;
 #endif
 

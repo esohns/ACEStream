@@ -145,7 +145,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-   , gdkWindow (NULL)
+   , v4l2Window (NULL)
 #endif
    , window (NULL)
   {};
@@ -171,8 +171,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                window;
 #else
-  GdkWindow*          gdkWindow;
-  struct v4l2_window* window;
+  struct v4l2_window* v4l2Window;
+  GdkWindow*          window;
 #endif
 };
 
@@ -180,9 +180,9 @@ struct Stream_CamSave_StreamConfiguration
   : Stream_Configuration
 {
   inline Stream_CamSave_StreamConfiguration ()
-    : Stream_Configuration ()
-    , moduleConfiguration_2 ()
-    , moduleHandlerConfiguration_2 ()
+   : Stream_Configuration ()
+   , moduleConfiguration_2 ()
+   , moduleHandlerConfiguration_2 ()
   {};
 
   Stream_ModuleConfiguration                moduleConfiguration_2;

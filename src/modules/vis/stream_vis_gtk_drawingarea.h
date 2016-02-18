@@ -68,7 +68,11 @@ class Stream_Module_Vis_GTK_DrawingArea_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_DrawingArea_T (const Stream_Module_Vis_GTK_DrawingArea_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_DrawingArea_T& operator= (const Stream_Module_Vis_GTK_DrawingArea_T&))
 
+  // helper methods
+  int clamp (int);
+
   cairo_t*                 cairoContext_;
+  cairo_surface_t*         cairoSurface_;
   GdkPixbuf*               pixelBuffer_;
 
   bool                     isInitialized_;

@@ -105,9 +105,9 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
    , bufferMap ()
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , fileDescriptor (-1)
-   , gtkWindow (NULL)
    , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
- #endif
+   , v4l2Window (NULL)
+#endif
    , window (NULL)
   {};
 
@@ -125,9 +125,9 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
   INDEX2BUFFER_MAP_T                        bufferMap;
   __u32                                     buffers; // v4l device buffers
   int                                       fileDescriptor;
-  GdkWindow*                                gtkWindow;
   v4l2_memory                               method; // v4l camera source
-  struct v4l2_window*                       window;
+  struct v4l2_window*                       v4l2Window;
+  GdkWindow*                                window;
 #endif
 };
 

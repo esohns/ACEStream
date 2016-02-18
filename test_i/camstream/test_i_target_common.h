@@ -95,9 +95,9 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
    , window (NULL)
 #else
    , format ()
-   , gdkWindow (NULL)
-   , window (NULL)
+   , v4l2Window (NULL)
 #endif
+   , window (NULL)
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -115,8 +115,8 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
   HWND                                   window;
 #else
   struct v4l2_format                     format;
-  GdkWindow*                             gdkWindow;
-  struct v4l2_window*                    window;
+  struct v4l2_window*                    v4l2Window;
+  GdkWindow*                             window;
 #endif
 };
 

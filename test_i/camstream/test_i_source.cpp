@@ -98,6 +98,16 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_BUFFER_SIZE
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  std::string device_file = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+  device_file += ACE_DIRECTORY_SEPARATOR_CHAR;
+  device_file += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
+            << device_file
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
+#endif
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
@@ -107,8 +117,6 @@ do_printUsage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-e          : Gtk .rc file [\"")
             << gtk_rc_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
-            << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : (source payload) file name")
             << std::endl;
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -163,8 +171,11 @@ bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      unsigned int& bufferSize_out,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+                     std::string& deviceFilename_out,
+#endif
                      std::string& gtkRcFile_out,
-                     std::string& sourceFile_out,
                      std::string& gtkGladeFile_out,
                      std::string& hostName_out,
                      bool& logToFile_out,
@@ -196,13 +207,18 @@ do_processArguments (int argc_in,
 
   // initialize results
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+  deviceFilename_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  deviceFilename_out += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+#endif
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   gtkRcFile_out = path;
   gtkRcFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtkRcFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
-  //SourceFile_out.clear ();
   hostName_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME);
   gtkGladeFile_out = path;
   gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -220,7 +236,11 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:e:f:g::h:lop:rs:tuvx:"),
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                              ACE_TEXT ("b:e:g::h:lop:rs:tuvx:"),
+#else
+                              ACE_TEXT ("b:d:e:g::h:lop:rs:tuvx:"),
+#endif
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -240,14 +260,17 @@ do_processArguments (int argc_in,
         converter >> bufferSize_out;
         break;
       }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+      case 'd':
+      {
+        deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        break;
+      }
+#endif
       case 'e':
       {
         gtkRcFile_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
-        break;
-      }
-      case 'f':
-      {
-        sourceFile_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
       case 'g':
@@ -511,8 +534,11 @@ do_finalize_directshow (Test_I_Source_GTK_CBData& CBData_in)
 
 void
 do_work (unsigned int bufferSize_in,
-         const std::string& fileName_in,
-         const std::string& UIDefinitionFile_in,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+         const std::string& deviceFilename_in,
+#endif
+         const std::string& UIDefinitionFilename_in,
          const std::string& hostName_in,
          bool useThreadPool_in,
          unsigned short port_in,
@@ -649,6 +675,17 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
+  configuration.moduleHandlerConfiguration.active =
+      !UIDefinitionFilename_in.empty ();
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  configuration.moduleHandlerConfiguration.device = deviceFilename_in;
+  // *TODO*: turn these into an option
+  configuration.moduleHandlerConfiguration.buffers =
+      MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
+  configuration.moduleHandlerConfiguration.method = V4L2_MEMORY_MMAP;
+#endif
+
   configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
@@ -667,8 +704,8 @@ do_work (unsigned int bufferSize_in,
     configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
-    (!UIDefinitionFile_in.empty () ? &event_handler
-                                   : NULL);
+    (!UIDefinitionFilename_in.empty () ? &event_handler
+                                       : NULL);
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
@@ -742,23 +779,26 @@ do_work (unsigned int bufferSize_in,
   // - dispatch UI events (if any)
 
   // step1a: start GTK event loop ?
-  if (!UIDefinitionFile_in.empty ())
+  if (!UIDefinitionFilename_in.empty ())
   {
-    CBData_in.finalizationHook = idle_finalize_UI_cb;
+    CBData_in.finalizationHook = idle_finalize_source_UI_cb;
     CBData_in.initializationHook = idle_initialize_source_UI_cb;
     //CBData_in.gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
     //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
     CBData_in.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN)] =
-      std::make_pair (UIDefinitionFile_in, static_cast<GtkBuilder*> (NULL));
+      std::make_pair (UIDefinitionFilename_in, static_cast<GtkBuilder*> (NULL));
     CBData_in.userData = &CBData_in;
 
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
-    ACE_Time_Value one_second (1, 0);
-    int result = ACE_OS::sleep (one_second);
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_OS::sleep(): \"%m\", continuing\n")));
-    if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->isRunning ())
+    Common_UI_GTK_Manager* gtk_manager_p =
+        COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+    ACE_ASSERT (gtk_manager_p);
+    gtk_manager_p->start ();
+//    ACE_Time_Value one_second (1, 0);
+//    int result = ACE_OS::sleep (one_second);
+//    if (result == -1)
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ACE_OS::sleep(): \"%m\", continuing\n")));
+    if (!gtk_manager_p->isRunning ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
@@ -787,7 +827,7 @@ do_work (unsigned int bufferSize_in,
     goto clean;
   } // end IF
 
-  if (UIDefinitionFile_in.empty ())
+  if (UIDefinitionFilename_in.empty ())
   {
     Test_I_Source_StreamBase_t* stream_p =
       ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
@@ -834,7 +874,7 @@ do_work (unsigned int bufferSize_in,
 
   // step3: clean up
 clean:
-  if (!UIDefinitionFile_in.empty ())
+  if (!UIDefinitionFilename_in.empty ())
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
   COMMON_TIMERMANAGER_SINGLETON::instance ()->stop ();
 
@@ -965,16 +1005,22 @@ ACE_TMAIN (int argc_in,
 
   // step1a set defaults
   unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  std::string device_filename =
+      ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
+  device_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  device_filename += ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEFAULT_VIDEO_DEVICE);
+#endif
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
-  std::string gtk_rc_file = path;
-  gtk_rc_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  gtk_rc_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
-  std::string source_file;
-  std::string gtk_glade_file = path;
-  gtk_glade_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  gtk_glade_file +=
+  std::string gtk_rc_filename = path;
+  gtk_rc_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  gtk_rc_filename += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
+  std::string gtk_glade_filename = path;
+  gtk_glade_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  gtk_glade_filename +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
   std::string host_name = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME);
   bool log_to_file = false;
@@ -993,9 +1039,12 @@ ACE_TMAIN (int argc_in,
   if (!do_processArguments (argc_in,
                             argv_in,
                             buffer_size,
-                            gtk_rc_file,
-                            source_file,
-                            gtk_glade_file,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+                            device_filename,
+#endif
+                            gtk_rc_filename,
+                            gtk_glade_filename,
                             host_name,
                             log_to_file,
                             use_thread_pool,
@@ -1038,12 +1087,10 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
     use_thread_pool = true;
   } // end IF
-  if ((gtk_glade_file.empty () &&
-       !Common_File_Tools::isReadable (source_file))                        ||
-      (!gtk_glade_file.empty () &&
-       !Common_File_Tools::isReadable (gtk_glade_file))                     ||
-      //(!gtk_rc_file_name.empty () &&
-      // !Common_File_Tools::isReadable (gtk_rc_file_name))                   ||
+  if ((!gtk_glade_filename.empty () &&
+       !Common_File_Tools::isReadable (gtk_glade_filename))                 ||
+      (!gtk_rc_filename.empty () &&
+       !Common_File_Tools::isReadable (gtk_rc_filename))                    ||
       (use_thread_pool && !use_reactor)                                     ||
       (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool))
   {
@@ -1074,13 +1121,13 @@ ACE_TMAIN (int argc_in,
     log_file_name =
       Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE_NAME),
                                          ACE::basename (argv_in[0]));
-  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),           // program name
-                                        log_file_name,                        // log file name
-                                        false,                                // log to syslog ?
-                                        false,                                // trace messages ?
-                                        trace_information,                    // debug messages ?
-                                        (gtk_glade_file.empty () ? NULL
-                                                                 : &logger))) // logger ?
+  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),               // program name
+                                        log_file_name,                            // log file name
+                                        false,                                    // log to syslog ?
+                                        false,                                    // trace messages ?
+                                        trace_information,                        // debug messages ?
+                                        (gtk_glade_filename.empty () ? NULL
+                                                                     : &logger))) // logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
@@ -1187,12 +1234,12 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1h: initialize GLIB / G(D|T)K[+] / GNOME ?
-  gtk_cb_user_data.RCFiles.push_back (gtk_rc_file);
+  gtk_cb_user_data.RCFiles.push_back (gtk_rc_filename);
   //Common_UI_GladeDefinition ui_definition (argc_in,
   //                                         argv_in);
   Common_UI_GtkBuilderDefinition ui_definition (argc_in,
                                                 argv_in);
-  if (!gtk_glade_file.empty ())
+  if (!gtk_glade_filename.empty ())
     if (!COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->initialize (argc_in,
                                                                    argv_in,
                                                                    &gtk_cb_user_data,
@@ -1220,8 +1267,11 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (buffer_size,
-           source_file,
-           gtk_glade_file,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+           device_filename,
+#endif
+           gtk_glade_filename,
            host_name,
            use_thread_pool,
            port,

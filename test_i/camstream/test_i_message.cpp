@@ -141,7 +141,7 @@ Test_I_Source_Stream_Message::release (void)
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::release"));
 
   int reference_count = inherited::reference_count ();
-  if (reference_count > 1)
+  if ((reference_count > 1) || (inherited::data_.release))
     return inherited::release ();
 
   // sanity check(s)
@@ -151,11 +151,8 @@ Test_I_Source_Stream_Message::release (void)
   {
     ACE_GUARD_RETURN (ACE_Lock, ace_mon, *inherited::data_block_->locking_strategy (), NULL);
 
-    if (inherited::length ())
-    {
-      inherited::reset ();
+    if (inherited::size ()) // is device-data ?
       goto continue_;
-    } // end IF
 
     return NULL; // nothing to do
   } // end lock scope
@@ -172,18 +169,35 @@ continue_:
   ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
   buffer.index = inherited::data_.index;
   buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  buffer.memory = V4L2_MEMORY_USERPTR;
-  buffer.m.userptr =
-      reinterpret_cast<unsigned long> (inherited::rd_ptr ());
-  buffer.length = inherited::size ();
-  // *IMPORTANT NOTE*: in oder to retrieve the buffer instance handle from the
-  //                   device buffer when it has written the frame data, the
-  //                   address of the ACE_Message_Block (!) is embedded in the
-  //                  'reserved' field for now
-  ACE_Message_Block* message_block_p = this;
-  buffer.reserved =
-      reinterpret_cast<unsigned long> (message_block_p);
-
+  buffer.memory = inherited::data_.method;
+  switch (inherited::data_.method)
+  {
+    case V4L2_MEMORY_USERPTR:
+    {
+      buffer.m.userptr =
+          reinterpret_cast<unsigned long> (inherited::rd_ptr ());
+      buffer.length = inherited::size ();
+      break;
+    }
+    case V4L2_MEMORY_MMAP:
+    {
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown method (was: %d), returning\n"),
+                  inherited::data_.method));
+      return NULL;
+    }
+  } // end SWITCH
+  // *NOTE*: in oder to retrieve the buffer instance handle from the device
+  //         buffer when it has written the frame data, the address of the
+  //         ACE_Message_Block (!) could be embedded in the 'reserved' field(s).
+  //         Unfortunately, this does not work, the fields seem to be zeroed by
+  //         the driver
+  //         --> maintain a mapping: buffer index <--> buffer handle
+//        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
   int result = v4l2_ioctl (inherited::data_.device,
                            VIDIOC_QBUF,
                            &buffer);

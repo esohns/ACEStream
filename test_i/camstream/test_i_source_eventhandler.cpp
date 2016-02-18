@@ -76,7 +76,6 @@ Test_I_Stream_Source_EventHandler::notify (const Test_I_Source_Stream_Message& m
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
   CBData_->progressData.transferred += message_in.total_length ();
-
   CBData_->eventStack.push_back (TEST_I_GTKEVENT_DATA);
 }
 void
@@ -145,6 +144,8 @@ Test_I_Stream_Source_EventHandler::end ()
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
+  CBData_->eventStack.push_back (TEST_I_GTKEVENT_END);
+
   guint event_source_id = g_idle_add (idle_end_source_UI_cb,
                                       CBData_);
   if (event_source_id == 0)
@@ -154,6 +155,4 @@ Test_I_Stream_Source_EventHandler::end ()
     return;
   } // end IF
   CBData_->eventSourceIds.insert (event_source_id);
-
-  CBData_->eventStack.push_back (TEST_I_GTKEVENT_END);
 }

@@ -437,11 +437,13 @@ Stream_Module_CamSource_V4L_T<LockType,
   //  int open_mode = O_RDONLY;
   int open_mode =
       ((configuration_->method == V4L2_MEMORY_MMAP) ? O_RDWR : O_RDONLY);
+  // *TODO*: remove type inference
   captureFileDescriptor_ = configuration_->fileDescriptor;
   if (captureFileDescriptor_ != -1)
     close_ = false;
   else
   {
+    // *TODO*: remove type inference
     captureFileDescriptor_ = v4l2_open (configuration_->device.c_str (),
                                         open_mode);
     if (captureFileDescriptor_ == -1)
@@ -453,7 +455,8 @@ Stream_Module_CamSource_V4L_T<LockType,
     } // end IF
   } // end ELSE
   ACE_ASSERT (captureFileDescriptor_ != -1);
-  if (configuration_->window &&
+  // *TODO*: remove type inference
+  if (configuration_->v4l2Window &&
       Stream_Module_Device_Tools::canOverlay (captureFileDescriptor_))
   {
     overlayFileDescriptor_ = v4l2_open (configuration_->device.c_str (),
@@ -467,8 +470,9 @@ Stream_Module_CamSource_V4L_T<LockType,
     } // end IF
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened v4l device \"%s\"...\n"),
-              ACE_TEXT (configuration_->device.c_str ())));
+              ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)...\n"),
+              ACE_TEXT (configuration_->device.c_str ()),
+              captureFileDescriptor_));
 
   if (Stream_Module_Device_Tools::canStream (captureFileDescriptor_))
     if (!Stream_Module_Device_Tools::initializeCapture (captureFileDescriptor_,
@@ -482,8 +486,9 @@ Stream_Module_CamSource_V4L_T<LockType,
     } // end IF
   if (overlayFileDescriptor_ != -1)
   {
+    ACE_ASSERT (configuration_->v4l2Window);
     if (!Stream_Module_Device_Tools::initializeOverlay (overlayFileDescriptor_,
-                                                        *configuration_->window))
+                                                        *configuration_->v4l2Window))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeOverlay(%d): \"%m\", aborting\n"),

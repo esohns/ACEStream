@@ -245,6 +245,7 @@
           <object class="GtkButtonBox" id="hbuttonbox_main">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="homogeneous">True</property>
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="clear">
@@ -341,7 +342,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="homogeneous">True</property>
-                                <property name="layout_style">start</property>
+                                <property name="layout_style">spread</property>
                                 <child>
                                   <object class="GtkToggleButton" id="record">
                                     <property name="related_action">toggleaction_record</property>
@@ -354,6 +355,7 @@
                                     <property name="receives_default">True</property>
                                     <property name="tooltip_markup" translatable="yes">record</property>
                                     <property name="tooltip_text" translatable="yes">record</property>
+                                    <property name="relief">half</property>
                                     <property name="use_underline">True</property>
                                     <property name="use_stock">True</property>
                                     <property name="focus_on_click">False</property>
@@ -375,6 +377,7 @@
                                     <property name="receives_default">True</property>
                                     <property name="tooltip_markup" translatable="yes">cut</property>
                                     <property name="tooltip_text" translatable="yes">cut</property>
+                                    <property name="relief">half</property>
                                     <property name="use_underline">True</property>
                                     <property name="use_stock">True</property>
                                     <property name="focus_on_click">False</property>
@@ -396,6 +399,7 @@
                                     <property name="receives_default">True</property>
                                     <property name="tooltip_markup" translatable="yes">report</property>
                                     <property name="tooltip_text" translatable="yes">report</property>
+                                    <property name="relief">half</property>
                                     <property name="use_underline">True</property>
                                     <property name="use_stock">True</property>
                                     <property name="focus_on_click">False</property>
@@ -820,6 +824,9 @@
                                                     <child>
                                                       <placeholder/>
                                                     </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
                                                   </object>
                                                 </child>
                                               </object>
@@ -915,15 +922,19 @@
                                           <object class="GtkHButtonBox" id="hbuttonbox_tools">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
+                                            <property name="homogeneous">True</property>
                                             <property name="layout_style">start</property>
                                             <child>
                                               <object class="GtkButton" id="button_settings">
+                                                <property name="use_action_appearance">True</property>
                                                 <property name="related_action">action_settings</property>
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
+                                                <property name="can_default">True</property>
                                                 <property name="receives_default">True</property>
                                                 <property name="tooltip_markup" translatable="yes">settings</property>
                                                 <property name="tooltip_text" translatable="yes">settings</property>
+                                                <property name="relief">half</property>
                                                 <property name="use_stock">True</property>
                                                 <property name="focus_on_click">False</property>
                                               </object>
@@ -935,6 +946,7 @@
                                             </child>
                                             <child>
                                               <object class="GtkButton" id="button_reset">
+                                                <property name="use_action_appearance">True</property>
                                                 <property name="related_action">action_reset</property>
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
@@ -942,6 +954,7 @@
                                                 <property name="receives_default">True</property>
                                                 <property name="tooltip_markup" translatable="yes">reset</property>
                                                 <property name="tooltip_text" translatable="yes">reset</property>
+                                                <property name="relief">half</property>
                                                 <property name="use_stock">True</property>
                                                 <property name="focus_on_click">False</property>
                                               </object>
@@ -1070,8 +1083,8 @@
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
             <property name="position">0</property>
           </packing>
         </child>
@@ -1082,6 +1095,7 @@
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
             <property name="label_xalign">0</property>
+            <property name="label_yalign">0</property>
             <child>
               <object class="GtkAlignment" id="alignment_video">
                 <property name="visible">True</property>
@@ -1094,7 +1108,6 @@
                     <property name="app_paintable">True</property>
                     <property name="can_focus">False</property>
                     <property name="events">GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
-                    <property name="tooltip_markup" translatable="yes">video</property>
                     <property name="tooltip_text" translatable="yes">video</property>
                     <property name="double_buffered">False</property>
                     <signal name="configure-event" handler="drawingarea_configure_event_cb" swapped="no"/>
