@@ -24,13 +24,17 @@
 #include <string>
 
 #include "ace/Global_Macros.h"
+#include "ace/INET_Addr.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
 
-#include "stream_base.h"
 #include "stream_common.h"
 #include "stream_statemachine_control.h"
+
+#include "stream_module_io_stream.h"
+
+#include "net_connection_manager.h"
 
 #include "test_i_common.h"
 #include "test_i_common_modules.h"
@@ -40,27 +44,36 @@
 
 // forward declarations
 class Stream_IAllocator;
+typedef Net_Connection_Manager_T<ACE_INET_Addr,
+                                 Test_I_Target_Configuration,
+                                 Test_I_Target_ConnectionState,
+                                 Test_I_RuntimeStatistic_t,
+                                 ////////
+                                 Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
 
 class Test_I_Target_Stream
- : public Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
-                        ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        /////////////////
-                        Stream_StateMachine_ControlState,
-                        Test_I_Target_StreamState,
-                        /////////////////
-                        Test_I_Target_StreamConfiguration,
-                        /////////////////
-                        Test_I_RuntimeStatistic_t,
-                        /////////////////
-                        Stream_ModuleConfiguration,
-                        Test_I_Target_Stream_ModuleHandlerConfiguration,
-                        /////////////////
-                        Test_I_Target_Stream_SessionData,   // session data
-                        Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
-                        Test_I_Target_Stream_SessionMessage,
-                        Test_I_Target_Stream_Message>
+ : public Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
+
+                                        ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+
+                                        Stream_StateMachine_ControlState,
+                                        Test_I_Target_StreamState,
+
+                                        Test_I_Target_StreamConfiguration,
+
+                                        Test_I_RuntimeStatistic_t,
+
+                                        Stream_ModuleConfiguration,
+                                        Test_I_Target_Stream_ModuleHandlerConfiguration,
+
+                                        Test_I_Target_Stream_SessionData,   // session data
+                                        Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
+                                        Test_I_Target_Stream_SessionMessage,
+                                        Test_I_Target_Stream_Message,
+
+                                        ACE_INET_Addr,
+                                        Test_I_Target_InetConnectionManager_t>
 {
  public:
   Test_I_Target_Stream (const std::string&); // name
@@ -78,36 +91,41 @@ class Test_I_Target_Stream
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
-                        ACE_MT_SYNCH,
-                        Common_TimePolicy_t,
-                        /////////////////
-                        Stream_StateMachine_ControlState,
-                        Test_I_Target_StreamState,
-                        /////////////////
-                        Test_I_Target_StreamConfiguration,
-                        /////////////////
-                        Test_I_RuntimeStatistic_t,
-                        /////////////////
-                        Stream_ModuleConfiguration,
-                        Test_I_Target_Stream_ModuleHandlerConfiguration,
-                        /////////////////
-                        Test_I_Target_Stream_SessionData,   // session data
-                        Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
-                        Test_I_Target_Stream_SessionMessage,
-                        Test_I_Target_Stream_Message> inherited;
+  typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
+
+                                        ACE_MT_SYNCH,
+                                        Common_TimePolicy_t,
+
+                                        Stream_StateMachine_ControlState,
+                                        Test_I_Target_StreamState,
+
+                                        Test_I_Target_StreamConfiguration,
+
+                                        Test_I_RuntimeStatistic_t,
+
+                                        Stream_ModuleConfiguration,
+                                        Test_I_Target_Stream_ModuleHandlerConfiguration,
+
+                                        Test_I_Target_Stream_SessionData,   // session data
+                                        Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
+                                        Test_I_Target_Stream_SessionMessage,
+                                        Test_I_Target_Stream_Message,
+
+                                        ACE_INET_Addr,
+                                        Test_I_Target_InetConnectionManager_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 
   // modules
-  Test_I_Target_Stream_Module_Net_IO_Module           source_;
+//  Test_I_Target_Stream_Module_Net_IO_Module           source_;
   //Test_I_Stream_Module_DirectShowSource_Module        directShowSource_;
-  Test_I_Target_Stream_Module_AVIDecoder_Module       decoder_;
+//  Test_I_Target_Stream_Module_AVIDecoder_Module       decoder_;
+  Test_I_Target_Stream_Module_Splitter_Module         splitter_;
+
   Test_I_Target_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
-  Test_I_Stream_Module_Display_Module                 display_;
+  Test_I_Target_Stream_Module_Display_Module          display_;
 };
 
 #endif

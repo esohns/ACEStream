@@ -87,51 +87,7 @@ class Stream_Module_Net_IO_Stream_T
   // *TODO*: re-consider this API
   void ping ();
 
- private:
-  typedef Stream_Base_T<LockType,
-                        /////////////////
-                        TaskSynchType,
-                        TimePolicyType,
-                        /////////////////
-                        StatusType,
-                        StateType,
-                        /////////////////
-                        ConfigurationType,
-                        /////////////////
-                        StatisticContainerType,
-                        /////////////////
-                        ModuleConfigurationType,
-                        HandlerConfigurationType,
-                        /////////////////
-                        SessionDataType,          // session data
-                        SessionDataContainerType, // session data container (reference counted)
-                        SessionMessageType,
-                        ProtocolMessageType> inherited;
-
-  // convenient types
-  typedef Stream_Module_Net_IO_Stream_T<LockType,
-  
-                                        TaskSynchType,
-                                        TimePolicyType,
-
-                                        StatusType,
-                                        StateType,
-
-                                        ConfigurationType,
-
-                                        StatisticContainerType,
-
-                                        ModuleConfigurationType,
-                                        HandlerConfigurationType,
-
-                                        SessionDataType,          // session data
-                                        SessionDataContainerType, // session data container (reference counted)
-                                        SessionMessageType,
-                                        ProtocolMessageType,
-
-                                        AddressType,
-                                        ConnectionManagerType> OWN_TYPE_T;
-
+ protected:
   typedef Stream_Module_Net_IOWriter_T<LockType,
                                        //
                                        SessionMessageType,
@@ -167,12 +123,57 @@ class Stream_Module_Net_IO_Stream_T
                                 READER_T,                  // reader type
                                 WRITER_T> IO_MODULE_T;     // writer type
 
+  // modules
+  IO_MODULE_T IO_;
+
+ private:
+  typedef Stream_Base_T<LockType,
+                        /////////////////
+                        TaskSynchType,
+                        TimePolicyType,
+                        /////////////////
+                        StatusType,
+                        StateType,
+                        /////////////////
+                        ConfigurationType,
+                        /////////////////
+                        StatisticContainerType,
+                        /////////////////
+                        ModuleConfigurationType,
+                        HandlerConfigurationType,
+                        /////////////////
+                        SessionDataType,          // session data
+                        SessionDataContainerType, // session data container (reference counted)
+                        SessionMessageType,
+                        ProtocolMessageType> inherited;
+
+  // convenient types
+  typedef Stream_Module_Net_IO_Stream_T<LockType,
+
+                                        TaskSynchType,
+                                        TimePolicyType,
+
+                                        StatusType,
+                                        StateType,
+
+                                        ConfigurationType,
+
+                                        StatisticContainerType,
+
+                                        ModuleConfigurationType,
+                                        HandlerConfigurationType,
+
+                                        SessionDataType,          // session data
+                                        SessionDataContainerType, // session data container (reference counted)
+                                        SessionMessageType,
+                                        ProtocolMessageType,
+
+                                        AddressType,
+                                        ConnectionManagerType> OWN_TYPE_T;
+
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T (const Stream_Module_Net_IO_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IO_Stream_T& operator= (const Stream_Module_Net_IO_Stream_T&))
-
-  // modules
-  IO_MODULE_T IO_;
 };
 
 // include template implementation

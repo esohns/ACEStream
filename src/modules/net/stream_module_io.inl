@@ -522,7 +522,7 @@ Stream_Module_Net_IOWriter_T<LockType,
         //             recheck/release the connection_ handle on return
         ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (lock_);
         typename ConnectionManagerType::CONNECTION_T* connection_p =
-          connection_;
+            connection_;
         connection_p->increase ();
         {
           ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX> > aGuard_2 (reverse_lock);

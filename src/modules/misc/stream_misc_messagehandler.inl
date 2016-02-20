@@ -209,10 +209,8 @@ Stream_Module_MessageHandler_T<SessionMessageType,
     case STREAM_SESSION_BEGIN:
     {
       // forward the session data to any subscriber(s)
-      // *TODO*: remove type inferences
-      const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
-        message_inout->get ();
-      const SessionDataType& session_data_r = session_data_container_r.get ();
+      // *TODO*: remove type inference
+      const SessionDataType& session_data_r = message_inout->get ();
 
       // synch access
       {

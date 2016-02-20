@@ -92,6 +92,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void finalizeBuffers (int,                  // file descriptor
                                v4l2_memory,          // I/O streaming method
                                INDEX2BUFFER_MAP_T&); // buffer map
+  static unsigned int queued (int,            // file descriptor
+                              unsigned int,   // number of buffers
+                              unsigned int&); // return value: #done
 
   static bool setFormat (int,    // file descriptor
                          __u32); // format (fourcc)

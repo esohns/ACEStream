@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_CAMSOURCE_V4L_H
-#define STREAM_MODULE_CAMSOURCE_V4L_H
+#ifndef STREAM_MODULE_SPLITTER_H
+#define STREAM_MODULE_SPLITTER_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -27,7 +27,62 @@
 #include "common_istatistic.h"
 #include "common_time_common.h"
 
+#include "stream_common.h"
 #include "stream_headmoduletask_base.h"
+#include "stream_imodule.h"
+#include "stream_task_base_synch.h"
+
+// forward declarations
+class ACE_Message_Block;
+
+template <typename SessionMessageType,
+          typename MessageType,
+          ///////////////////////////////
+          typename ConfigurationType,
+          ///////////////////////////////
+          typename SessionDataType>
+class Stream_Module_Splitter_T
+ : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
+                                 SessionMessageType,
+                                 MessageType>
+ , public Stream_IModuleHandler_T<ConfigurationType>
+{
+ public:
+  Stream_Module_Splitter_T ();
+  virtual ~Stream_Module_Splitter_T ();
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (MessageType*&, // data message handle
+                                  bool&);        // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+  // implement Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&);
+  virtual const ConfigurationType& get () const;
+
+ protected:
+  ConfigurationType* configuration_;
+
+ private:
+  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
+                                 SessionMessageType,
+                                 MessageType> inherited;
+
+  //typedef Stream_Module_Splitter_T<SessionMessageType,
+  //                             MessageType,
+  //                             ///////////
+  //                             ConfigurationType,
+  //                             ///////////
+  //                             SessionDataType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T (const Stream_Module_Splitter_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T& operator= (const Stream_Module_Splitter_T&))
+
+  ACE_Message_Block* currentBuffer_;
+};
+
+/////////////////////////////////////////
 
 template <typename LockType,
           ///////////////////////////////
@@ -42,7 +97,7 @@ template <typename LockType,
           typename SessionDataContainerType, // session message payload (reference counted)
           ///////////////////////////////
           typename StatisticContainerType>
-class Stream_Module_CamSource_V4L_T
+class Stream_Module_SplitterH_T
  : public Stream_HeadModuleTaskBase_T<LockType,
                                       ///
                                       ACE_MT_SYNCH,
@@ -59,9 +114,9 @@ class Stream_Module_CamSource_V4L_T
  , public Common_IStatistic_T<StatisticContainerType>
 {
  public:
-  Stream_Module_CamSource_V4L_T (bool = false,  // active object ?
-                                 bool = false); // auto-start ?
-  virtual ~Stream_Module_CamSource_V4L_T ();
+  Stream_Module_SplitterH_T (bool = false,  // active object ?
+                             bool = false); // auto-start ?
+  virtual ~Stream_Module_SplitterH_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
@@ -79,8 +134,8 @@ class Stream_Module_CamSource_V4L_T
   virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase_T
-  //virtual void handleDataMessage (MessageType*&, // data message handle
-  //                                bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
+                                  bool&);                // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -88,6 +143,9 @@ class Stream_Module_CamSource_V4L_T
   // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   virtual void report () const;
+
+ protected:
+  ConfigurationType* configuration_;
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
@@ -104,24 +162,19 @@ class Stream_Module_CamSource_V4L_T
                                       SessionDataType,
                                       SessionDataContainerType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_CamSource_V4L_T (const Stream_Module_CamSource_V4L_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_CamSource_V4L_T& operator= (const Stream_Module_CamSource_V4L_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T (const Stream_Module_SplitterH_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T& operator= (const Stream_Module_SplitterH_T&))
 
-  virtual int svc (void);
+//  virtual int svc (void);
 
   // helper methods
-//  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
-  int                       captureFileDescriptor_; // capture
-  int                       overlayFileDescriptor_; // preview
-
-  bool                      debug_; // log device status (to kernel log)
-  bool                      isPassive_;
-
-  bool                      isInitialized_;
+  ACE_Message_Block* currentBuffer_;
+  bool               isInitialized_;
 };
 
-#include "stream_dev_cam_source_v4l.inl"
+// include template defintion
+#include "stream_misc_splitter.inl"
 
 #endif

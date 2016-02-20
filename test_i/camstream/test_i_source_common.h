@@ -95,6 +95,7 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
 {
   inline Test_I_Source_Stream_ModuleHandlerConfiguration ()
    : Test_I_Stream_ModuleHandlerConfiguration ()
+   , area ()
    , connection (NULL)
    , connectionManager (NULL)
    , device ()
@@ -111,6 +112,11 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
    , window (NULL)
   {};
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct tagRECT                            area;
+#else
+  GdkRectangle                              area;
+#endif
   Test_I_Source_IConnection_t*              connection; // TCP target/IO module
   Test_I_Source_InetConnectionManager_t*    connectionManager; // TCP IO module
   // *PORTABILITY*: Win32: "FriendlyName" property
@@ -151,7 +157,7 @@ struct Test_I_Source_Stream_SessionData
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-    format = rhs_in.format;
+//    format = rhs_in.format;
 #endif
     userData = (userData ? userData : rhs_in.userData);
 
@@ -216,7 +222,7 @@ typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
                                           Test_I_Source_Stream_Message,
                                           Test_I_Source_Stream_SessionMessage> Test_I_Source_MessageAllocator_t;
 
-typedef Common_INotify_T<Test_I_Source_Stream_SessionData,
+typedef Common_INotify_T<Test_I_Source_Stream_SessionData_t,
                          Test_I_Source_Stream_Message,
                          Test_I_Source_Stream_SessionMessage> Test_I_Source_IStreamNotify_t;
 typedef std::list<Test_I_Source_IStreamNotify_t*> Test_I_Source_Subscribers_t;

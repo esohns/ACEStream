@@ -155,8 +155,10 @@ set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
 set (EXECUTABLE camsource)
 add_executable (${EXECUTABLE} ${camsource_EXE_SRCS} etc/resources.rc etc/source.glade)
 
-#add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
-#add_dependencies (${PROJECT_NAME} Common)
+#add_dependencies (${EXECUTABLE} ACE)
+add_dependencies (${EXECUTABLE} Common)
+add_dependencies (${EXECUTABLE} ACEStream)
+add_dependencies (${EXECUTABLE} ACENetwork)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
@@ -229,8 +231,10 @@ set (camtarget_EXE_SRCS
 set (EXECUTABLE camtarget)
 add_executable (${EXECUTABLE} ${camtarget_EXE_SRCS} etc/resources.rc etc/target.glade)
 
-#add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
-#add_dependencies (${PROJECT_NAME} Common)
+#add_dependencies (${EXECUTABLE} ACE)
+add_dependencies (${EXECUTABLE} Common)
+add_dependencies (${EXECUTABLE} ACEStream)
+add_dependencies (${EXECUTABLE} ACENetwork)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})

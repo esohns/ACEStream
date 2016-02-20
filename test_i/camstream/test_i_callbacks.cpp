@@ -64,6 +64,9 @@
 #include "test_i_source_common.h"
 #include "test_i_target_listener_common.h"
 
+// initialize statics
+static bool un_toggling_stream = false;
+
 int
 dirent_selector (const dirent* dirEntry_in)
 {
@@ -877,8 +880,7 @@ stream_processing_function (void* arg_in)
   //                  ACE_TEXT ("failed to start stream, aborting\n")));
   //      return;
   //    } // end IF
-  stream_p->waitForCompletion (true,
-                               false);
+  stream_p->waitForCompletion (true, false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -1233,6 +1235,13 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //                               TRUE);
   //  g_object_unref (buffer_p);
 
+  GtkDrawingArea* drawing_area_p =
+    //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
+    //                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME)));
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DRAWINGAREA_NAME)));
+  ACE_ASSERT (drawing_area_p);
+
   // step5: initialize updates
   Test_I_GTK_CBData* cb_data_p = data_p;
   {
@@ -1322,6 +1331,16 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                       G_CALLBACK (combobox_source_changed_cb),
                       userData_in);
   ACE_ASSERT (result_2);
+
+  //  gtk_builder_get_object ((*iterator).second.second,
+  //                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME));
+  //ACE_ASSERT (object_p);
+  //result_2 = g_signal_connect (object_p,
+  //                             ACE_TEXT_ALWAYS_CHAR ("value-changed"),
+  //                             G_CALLBACK (spinbutton_port_value_changed_cb),
+  //                             cb_data_p);
+  //ACE_ASSERT (result_2);
+
   object_p =
     gtk_builder_get_object ((*iterator).second.second,
                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME));
@@ -1353,15 +1372,6 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                       userData_in);
   ACE_ASSERT (result_2);
 
-  //  gtk_builder_get_object ((*iterator).second.second,
-  //                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 = g_signal_connect (object_p,
-  //                             ACE_TEXT_ALWAYS_CHAR ("value-changed"),
-  //                             G_CALLBACK (spinbutton_port_value_changed_cb),
-  //                             cb_data_p);
-  //ACE_ASSERT (result_2);
-  //
   //object_p =
   //  gtk_builder_get_object ((*iterator).second.second,
   //                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_TCP_NAME));
@@ -1379,6 +1389,13 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
   //                             cb_data_p);
 
+  result_2 =
+    g_signal_connect (G_OBJECT (drawing_area_p),
+                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
+                      G_CALLBACK (drawingarea_configure_source_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+
   //-------------------------------------
 
   object_p =
@@ -1389,7 +1406,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     g_signal_connect (object_p,
                       ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
                       G_CALLBACK (textview_size_allocate_cb),
-                      userData_in);
+                      cb_data_p);
   ACE_ASSERT (result_2);
 
   //-------------------------------------
@@ -1434,16 +1451,32 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
-//  // step10a: retrieve window handle
-//  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (dialog_p));
-//  ACE_ASSERT (window_p);
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  data_p->configuration->moduleHandlerConfiguration.window =
-//    gdk_win32_window_get_impl_hwnd (window_p);
-//#else
-//#endif
+  // step10: retrieve window handle (and canvas coordinates)
+  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  data_p->configuration->moduleHandlerConfiguration.window =
+    gdk_win32_window_get_impl_hwnd (window_p);
+#else
+  data_p->configuration->moduleHandlerConfiguration.window = window_p;
+#endif
+  GtkAllocation allocation;
+  ACE_OS::memset (&allocation, 0, sizeof (allocation));
+  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+                             &allocation);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  data_p->configuration->moduleHandlerConfiguration.area.bottom =
+    allocation.height;
+  data_p->configuration->moduleHandlerConfiguration.area.left =
+    allocation.x;
+  data_p->configuration->moduleHandlerConfiguration.area.right =
+    allocation.width;
+  data_p->configuration->moduleHandlerConfiguration.area.top =
+    allocation.y;
+#else
+  data_p->configuration->moduleHandlerConfiguration.area = allocation;
+#endif
 
-  // step10: select default capture source (if any)
+  // step11: select default capture source (if any)
   //         --> populate the option-comboboxes
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -1505,7 +1538,12 @@ idle_end_source_UI_cb (gpointer userData_in)
     GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEACTION_STREAM_NAME)));
   ACE_ASSERT (toggle_action_p);
-  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
+  if (gtk_toggle_action_get_active (toggle_action_p))
+  {
+    gtk_action_set_stock_id (GTK_ACTION (toggle_action_p), GTK_STOCK_MEDIA_PLAY);
+//    un_toggling_stream = true;
+    gtk_action_activate (GTK_ACTION (toggle_action_p)); // untoggle
+  } // end IF
 
   GtkAction* action_p =
 //    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
@@ -2009,6 +2047,45 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //                             userData_in);
 
   GObject* object_p =
+      gtk_builder_get_object ((*iterator).second.second,
+                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEACTION_LISTEN_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+      g_signal_connect (object_p,
+                        ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                        G_CALLBACK (toggleaction_listen_activate_cb),
+                        userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+      gtk_builder_get_object ((*iterator).second.second,
+                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME));
+  ACE_ASSERT (object_p);
+  result_2 = g_signal_connect (object_p,
+                               ACE_TEXT_ALWAYS_CHAR ("activate"),
+                               G_CALLBACK (action_close_all_activate_cb),
+                               userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+      gtk_builder_get_object ((*iterator).second.second,
+                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_REPORT_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+      g_signal_connect (object_p,
+                        ACE_TEXT_ALWAYS_CHAR ("activate"),
+                        G_CALLBACK (action_report_activate_cb),
+                        userData_in);
+  ACE_ASSERT (result_2);
+
+  //object_p =
+  //    gtk_builder_get_object ((*iterator).second.second,
+  //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME));
+  //ACE_ASSERT (object_p);
+  //result_2 = g_signal_connect (object_p,
+  //                           ACE_TEXT_ALWAYS_CHAR ("value-changed"),
+  //                           G_CALLBACK (spinbutton_port_value_changed_cb),
+  //                           cb_data_p);
+  //ACE_ASSERT (result_2);
+
   //  gtk_builder_get_object ((*iterator).second.second,
   //                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_RADIOBUTTON_TCP_NAME));
   //ACE_ASSERT (object_p);
@@ -2025,54 +2102,16 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
   //                             cb_data_p);
 
-  //object_p =
+  //  object_p =
   //    gtk_builder_get_object ((*iterator).second.second,
-  //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_SPINBUTTON_PORT_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 = g_signal_connect (object_p,
-  //                           ACE_TEXT_ALWAYS_CHAR ("value-changed"),
-  //                           G_CALLBACK (spinbutton_port_value_changed_cb),
-  //                           cb_data_p);
-  //ACE_ASSERT (result_2);
-  //object_p =
-  //    gtk_builder_get_object ((*iterator).second.second,
-  //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_BUTTON_STOP_NAME));
-  //ACE_ASSERT (object_p);
-  //result_2 =
+  //                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME));
+  //  ACE_ASSERT (object_p);
+  //  result_2 =
   //    g_signal_connect (object_p,
-  //                      ACE_TEXT_ALWAYS_CHAR ("clicked"),
-  //                      G_CALLBACK (button_stop_clicked_cb),
+  //                      ACE_TEXT_ALWAYS_CHAR ("changed"),
+  //                      G_CALLBACK (combobox_format_changed_cb),
   //                      userData_in);
-  //ACE_ASSERT (result_2);
-  //object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEACTION_LISTEN_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("toggled"),
-                      G_CALLBACK (toggleaction_listen_activate_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME));
-  ACE_ASSERT (object_p);
-  result_2 = g_signal_connect (object_p,
-                               ACE_TEXT_ALWAYS_CHAR ("activate"),
-                               G_CALLBACK (action_close_all_activate_cb),
-                               userData_in);
-  ACE_ASSERT (result_2);
-  object_p =
-    gtk_builder_get_object ((*iterator).second.second,
-                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_REPORT_NAME));
-  ACE_ASSERT (object_p);
-  result_2 =
-    g_signal_connect (object_p,
-                      ACE_TEXT_ALWAYS_CHAR ("activate"),
-                      G_CALLBACK (action_report_activate_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
+  //  ACE_ASSERT (result_2);
 
   object_p =
     gtk_builder_get_object ((*iterator).second.second,
@@ -2090,7 +2129,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   result_2 =
     g_signal_connect (G_OBJECT (drawing_area_p),
                       ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-                      G_CALLBACK (drawingarea_configure_event_cb),
+                      G_CALLBACK (drawingarea_configure_target_cb),
                       userData_in);
   ACE_ASSERT (result_2);
 
@@ -2663,6 +2702,13 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 {
   STREAM_TRACE (ACE_TEXT ("::toggleaction_stream_toggled_cb"));
 
+  // handle untoggle --> PLAY
+  if (un_toggling_stream)
+  {
+    un_toggling_stream = false;
+    return; // done
+  } // end IF
+
   Test_I_Source_GTK_CBData* data_p =
     static_cast<Test_I_Source_GTK_CBData*> (userData_in);
 
@@ -2711,10 +2757,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end SWITCH
   ACE_ASSERT (stream_p);
 
-  // toggle play/pause ?
-  const Stream_StateMachine_ControlState& status_r = stream_p->status ();
-  if ((status_r == STREAM_STATE_RUNNING) ||
-      (status_r == STREAM_STATE_PAUSED))
+  // toggle ?
+  if (!gtk_toggle_action_get_active (toggleAction_in))
   {
     stream_p->stop (false, true);
 
@@ -2734,17 +2778,16 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 
     // step0: modify widgets
     gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_PLAY);
-    gtk_action_set_sensitive (GTK_ACTION (toggleAction_in), false);
     GtkAction* action_p =
 //      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-//                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME)));
+//                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME)));
 //    ACE_ASSERT (action_p);
 //    gtk_action_set_sensitive (action_p, false);
 //    action_p =
       GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME)));
     ACE_ASSERT (action_p);
-    gtk_action_set_sensitive (action_p, false);
+    gtk_action_set_sensitive (action_p, true);
 
     // stop progress reporting
     ACE_ASSERT (data_p->progressEventSourceID);
@@ -2783,7 +2826,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME)));
   ACE_ASSERT (action_p);
-  gtk_action_set_sensitive (action_p, true);
+  gtk_action_set_sensitive (action_p, false);
 
   GtkSpinButton* spin_button_p =
       GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4367,11 +4410,81 @@ error:
 } // combobox_rate_changed_cb
 
 void
-drawingarea_configure_event_cb (GtkWindow* window_in,
-                                GdkEvent* event_in,
-                                gpointer userData_in)
+drawingarea_configure_source_cb (GtkWindow* window_in,
+                                 GdkEvent* event_in,
+                                 gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_event_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_source_cb"));
+
+  Test_I_Source_GTK_CBData* data_p =
+    static_cast<Test_I_Source_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!data_p->configuration->moduleHandlerConfiguration.window ||
+      !data_p->configuration->moduleHandlerConfiguration.windowController) // <-- window not realized yet ?
+    return;
+#else
+  if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
+    return;
+#endif
+
+  //Common_UI_GladeXMLsIterator_t iterator =
+  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+
+  // sanity check(s)
+  //ACE_ASSERT (iterator != data_p->gladeXML.end ());
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  GtkDrawingArea* drawing_area_p =
+    //GTK_TEXT_VIEW (glade_xml_get_widget ((*iterator).second.second,
+    //                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME)));
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DRAWINGAREA_NAME)));
+  ACE_ASSERT (drawing_area_p);
+  GtkAllocation allocation;
+  ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
+  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+                             &allocation);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.windowController);
+
+  data_p->configuration->moduleHandlerConfiguration.area.bottom =
+    allocation.height;
+  data_p->configuration->moduleHandlerConfiguration.area.left =
+    allocation.x;
+  data_p->configuration->moduleHandlerConfiguration.area.right =
+    allocation.width;
+  data_p->configuration->moduleHandlerConfiguration.area.top =
+    allocation.y;
+
+  //HRESULT result =
+  //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (data_p->configuration->moduleHandlerConfiguration.area.left,
+  //                                                                                         data_p->configuration->moduleHandlerConfiguration.area.top,
+  //                                                                                         data_p->configuration->moduleHandlerConfiguration.area.right,
+  //                                                                                         data_p->configuration->moduleHandlerConfiguration.area.bottom);
+  //if (FAILED (result))
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
+  //              data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
+  //              data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+#else
+  data_p->configuration->moduleHandlerConfiguration.area = allocation;
+#endif
+} // drawingarea_configure_source_cb
+void
+drawingarea_configure_target_cb (GtkWindow* window_in,
+                                 GdkEvent* event_in,
+                                 gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_target_cb"));
 
   Test_I_Target_GTK_CBData* data_p =
     static_cast<Test_I_Target_GTK_CBData*> (userData_in);
@@ -4422,20 +4535,20 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
     allocation.y;
 
   //HRESULT result =
-  //  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController->SetWindowPosition (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.left,
-  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.top,
-  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.right,
-  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.bottom);
+  //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (data_p->configuration->moduleHandlerConfiguration.area.left,
+  //                                                                                         data_p->configuration->moduleHandlerConfiguration.area.top,
+  //                                                                                         data_p->configuration->moduleHandlerConfiguration.area.right,
+  //                                                                                         data_p->configuration->moduleHandlerConfiguration.area.bottom);
   //if (FAILED (result))
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-  //              data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.left, data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.top,
-  //              data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.right, data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.bottom,
+  //              data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
+  //              data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #else
   data_p->configuration->moduleHandlerConfiguration.area = allocation;
 #endif
-} // drawingarea_configure_event_cb
+} // drawingarea_configure_target_cb
 
 /////////////////////////////////////////
 

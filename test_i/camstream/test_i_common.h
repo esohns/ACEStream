@@ -114,13 +114,13 @@ struct Test_I_Source_MessageData
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IMediaSample*  sample;
-  double         sampleTime;
+  IMediaSample* sample;
+  double        sampleTime;
 #else
-  int            device; // (capture) device file descriptor
-  __u32          index;  // 'index' field of v4l2_buffer
-  v4l2_memory    method;
-  bool           release;
+  int           device; // (capture) device file descriptor
+  __u32         index;  // 'index' field of v4l2_buffer
+  v4l2_memory   method;
+  bool          release;
 #endif
 };
 typedef Stream_DataBase_T<Test_I_Source_MessageData> Test_I_Source_MessageData_t;

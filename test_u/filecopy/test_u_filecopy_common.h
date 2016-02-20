@@ -89,7 +89,7 @@ typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
                                           Stream_Filecopy_Message,
                                           Stream_Filecopy_SessionMessage> Stream_Filecopy_MessageAllocator_t;
 
-typedef Common_INotify_T<Stream_Filecopy_SessionData,
+typedef Common_INotify_T<Stream_Filecopy_SessionData_t,
                          Stream_Filecopy_Message,
                          Stream_Filecopy_SessionMessage> Stream_Filecopy_IStreamNotify_t;
 typedef std::list<Stream_Filecopy_IStreamNotify_t*> Stream_Filecopy_Subscribers_t;

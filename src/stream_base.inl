@@ -1877,6 +1877,42 @@ Stream_Base_T<LockType,
               SessionDataContainerType,
               SessionMessageType,
 //              ProtocolMessageType>::get () const
+              ProtocolMessageType>::get (ACE_Message_Block*& messageBlock_inout,
+                                         ACE_Time_Value* timeout_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::get"));
+
+  return (upStream_ ? upStream_->get (messageBlock_inout, timeout_in)
+                    : inherited::get (messageBlock_inout, timeout_in));
+}
+
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+int
+Stream_Base_T<LockType,
+              TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+//              ProtocolMessageType>::get () const
               ProtocolMessageType>::link (Stream_Base_t& upStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
@@ -1952,11 +1988,11 @@ Stream_Base_T<LockType,
   if (sessionData_)
   {
     SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (sessionData_->get ());
-    SessionDataType& session_data_2 =
       const_cast<SessionDataType&> (session_data_container_p->get ());
+    SessionDataType& session_data_2 =
+      const_cast<SessionDataType&> (sessionData_->get ());
     // *NOTE*: the idea is to 'merge' the data...
-    session_data_2 += session_data_r;
+    session_data_r += session_data_2;
 
     // clean up
     sessionData_->decrease ();

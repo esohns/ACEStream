@@ -85,6 +85,7 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
    , area ()
    , connection (NULL)
    , connectionManager (NULL)
+   , frameSize (0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , sourceFilter (TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME)
    , windowController (NULL)
@@ -92,7 +93,6 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
    , printProgressDot (false)
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , window (NULL)
 #else
    , format ()
    , v4l2Window (NULL)
@@ -107,8 +107,9 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
 #else
   GdkRectangle                           area;
 #endif
-  Test_I_Target_IConnection_t*           connection; // TCP target/IO module
-  Test_I_Target_InetConnectionManager_t* connectionManager; // TCP IO module
+  Test_I_Target_IConnection_t*           connection; // Net source/IO module
+  Test_I_Target_InetConnectionManager_t* connectionManager; // Net IO module
+  unsigned int                           frameSize;
   bool                                   printProgressDot;
   std::string                            targetFileName; // file writer module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -272,7 +273,7 @@ typedef Stream_MessageAllocatorHeapBase_T<Test_I_Target_AllocatorConfiguration,
                                           Test_I_Target_Stream_Message,
                                           Test_I_Target_Stream_SessionMessage> Test_I_Target_MessageAllocator_t;
 
-typedef Common_INotify_T<Test_I_Target_Stream_SessionData,
+typedef Common_INotify_T<Test_I_Target_Stream_SessionData_t,
                          Test_I_Target_Stream_Message,
                          Test_I_Target_Stream_SessionMessage> Test_I_Target_IStreamNotify_t;
 typedef std::list<Test_I_Target_IStreamNotify_t*> Test_I_Target_Subscribers_t;

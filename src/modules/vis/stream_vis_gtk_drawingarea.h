@@ -57,8 +57,8 @@ class Stream_Module_Vis_GTK_DrawingArea_T
   virtual const ConfigurationType& get () const;
 
  protected:
-  const ConfigurationType* configuration_;
-  const SessionDataType*   sessionData_;
+  const ConfigurationType*  configuration_;
+  SessionDataContainerType* sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -71,11 +71,12 @@ class Stream_Module_Vis_GTK_DrawingArea_T
   // helper methods
   int clamp (int);
 
-  cairo_t*                 cairoContext_;
-  cairo_surface_t*         cairoSurface_;
-  GdkPixbuf*               pixelBuffer_;
+  cairo_t*                  cairoContext_;
+  cairo_format_t            cairoFormat_;
+  cairo_surface_t*          cairoSurface_;
+  GdkPixbuf*                pixelBuffer_;
 
-  bool                     isInitialized_;
+  bool                      isInitialized_;
 };
 
 // include template implementation

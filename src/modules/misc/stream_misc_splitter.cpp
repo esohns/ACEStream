@@ -17,40 +17,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef TEST_U_CAMSAVE_EVENTHANDLER_H
-#define TEST_U_CAMSAVE_EVENTHANDLER_H
-
-#include "ace/Global_Macros.h"
-
-#include "common_inotify.h"
-
-#include "stream_common.h"
-
-#include "test_u_camsave_common.h"
-#include "test_u_camsave_message.h"
-#include "test_u_camsave_session_message.h"
-
-class Stream_CamSave_EventHandler
- : public Stream_CamSave_IStreamNotify_t
-{
- public:
-  Stream_CamSave_EventHandler (Stream_CamSave_GTK_CBData*); // GTK state
-  virtual ~Stream_CamSave_EventHandler ();
-
-  // implement Common_INotify_T
-  virtual void start (const Stream_CamSave_SessionData_t&);
-  virtual void notify (const Stream_CamSave_Message&);
-  virtual void notify (const Stream_CamSave_SessionMessage&);
-  virtual void end ();
-
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler (const Stream_CamSave_EventHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler& operator= (const Stream_CamSave_EventHandler&))
-
-  Stream_CamSave_GTK_CBData*    CBData_;
-  Stream_CamSave_SessionData_t* sessionData_;
-};
-
-#endif
+#include "stream_misc_splitter.h"

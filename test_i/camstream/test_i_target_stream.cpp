@@ -29,15 +29,18 @@
 
 Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
  : inherited (name_in)
- , source_ (ACE_TEXT_ALWAYS_CHAR ("NetSource"),
-            NULL,
-            false)
+// , source_ (ACE_TEXT_ALWAYS_CHAR ("NetSource"),
+//            NULL,
+//            false)
  //, directShowSource_ (ACE_TEXT_ALWAYS_CHAR ("DirectShowSource"),
  //                     NULL,
  //                     false)
- , decoder_ (ACE_TEXT_ALWAYS_CHAR ("AVIDecoder"),
-             NULL,
-             false)
+// , decoder_ (ACE_TEXT_ALWAYS_CHAR ("AVIDecoder"),
+//             NULL,
+//             false)
+ , splitter_ (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
+              NULL,
+              false)
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
@@ -52,9 +55,10 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&source_);
+//  inherited::availableModules_.push_front (&source_);
   //inherited::availableModules_.push_front (&directShowSource_);
-  inherited::availableModules_.push_front (&decoder_);
+//  inherited::availableModules_.push_front (&decoder_);
+  inherited::availableModules_.push_front (&splitter_);
   inherited::availableModules_.push_front (&runtimeStatistic_);
   inherited::availableModules_.push_front (&display_);
 
@@ -91,6 +95,8 @@ bool
 Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::initialize"));
+
+  bool result = true;
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
@@ -142,27 +148,42 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     } // end FOR
   } // end IF
 
+  int result_2 = -1;
+  typename inherited::MODULE_T* module_2 = NULL;
+  Test_I_Target_Stream_SessionData* session_data_p = NULL;
+
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in))
+  bool clone_module, delete_module;
+  clone_module = configuration_in.cloneModule;
+  delete_module = configuration_in.deleteModule;
+  typename inherited::MODULE_T* module_p = configuration_in.module;
+  Test_I_Target_StreamConfiguration& configuration_r =
+      const_cast<Test_I_Target_StreamConfiguration&> (configuration_in);
+  configuration_r.cloneModule = false;
+  configuration_r.deleteModule = false;
+  configuration_r.module = NULL;
+  if (!inherited::initialize (configuration_r))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
                 ACE_TEXT (inherited::name ().c_str ())));
-    return false;
+    result = false;
+    goto reset;
   } // end IF
   if (!inherited::sessionData_)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to allocate session data, aborting\n")));
-    return false;
+    result = false;
+    goto reset;
   } // end IF
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   // *TODO*: remove type inferences
-  Test_I_Target_Stream_SessionData& session_data_r =
-      const_cast<Test_I_Target_Stream_SessionData&> (inherited::sessionData_->get ());
+  session_data_p =
+      &const_cast<Test_I_Target_Stream_SessionData&> (inherited::sessionData_->get ());
   //session_data_r.fileName =
   //  configuration_in.moduleHandlerConfiguration->targetFileName;
-  session_data_r.sessionID = configuration_in.sessionID;
+  session_data_p->sessionID = configuration_in.sessionID;
 
   // things to be done here:
   // [- initialize base class]
@@ -175,34 +196,40 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   // - push them onto the stream (tail-first) !
   // ------------------------------------
 
-  int result = -1;
-  inherited::MODULE_T* module_p = NULL;
   if (configuration_in.notificationStrategy)
   {
-    module_p = inherited::head ();
-    if (!module_p)
+    module_2 = inherited::head ();
+    if (!module_2)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("no head module found, aborting\n")));
-      return false;
+      result = false;
+      goto reset;
     } // end IF
-    inherited::TASK_T* task_p = module_p->reader ();
+    inherited::TASK_T* task_p = module_2->reader ();
     if (!task_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("no head module reader task found, aborting\n")));
-      return false;
+      result = false;
+      goto reset;
     } // end IF
     inherited::QUEUE_T* queue_p = task_p->msg_queue ();
     if (!queue_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("no head module reader task queue found, aborting\n")));
-      return false;
+      result = false;
+      goto reset;
     } // end IF
     queue_p->notification_strategy (configuration_in.notificationStrategy);
   } // end IF
 //  configuration_in.moduleConfiguration.streamState = &state_;
+
+reset:
+  configuration_r.cloneModule = clone_module;
+  configuration_r.deleteModule = delete_module;
+  configuration_r.module = module_p;
 
   // ---------------------------------------------------------------------------
   ACE_ASSERT (configuration_in.moduleConfiguration);
@@ -245,8 +272,8 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    result = inherited::push (configuration_in.module);
-    if (result == -1)
+    result_2 = inherited::push (configuration_in.module);
+    if (result_2 == -1)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
@@ -259,12 +286,12 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   // ******************* Display ************************
   display_.initialize (*configuration_in.moduleConfiguration);
-  Test_I_Stream_Module_Display* display_impl_p =
-    dynamic_cast<Test_I_Stream_Module_Display*> (display_.writer ());
+  Test_I_Target_Stream_Module_Display* display_impl_p =
+    dynamic_cast<Test_I_Target_Stream_Module_Display*> (display_.writer ());
   if (!display_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Display> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Display> failed, aborting\n")));
     return false;
   } // end IF
   if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
@@ -274,8 +301,8 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
                 display_.name ()));
     return false;
   } // end IF
-  result = inherited::push (&display_);
-  if (result == -1)
+  result_2 = inherited::push (&display_);
+  if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
@@ -303,8 +330,8 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
                 runtimeStatistic_.name ()));
     return false;
   } // end IF
-  result = inherited::push (&runtimeStatistic_);
-  if (result == -1)
+  result_2 = inherited::push (&runtimeStatistic_);
+  if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
@@ -312,31 +339,57 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     return false;
   } // end IF
 
-  // ************************ AVI Decoder *****************************
-  decoder_.initialize (*configuration_in.moduleConfiguration);
-  Test_I_Target_Stream_Module_AVIDecoder* decoder_impl_p =
-    dynamic_cast<Test_I_Target_Stream_Module_AVIDecoder*> (decoder_.writer ());
-  if (!decoder_impl_p)
+  // ************************ Splitter *****************************
+  splitter_.initialize (*configuration_in.moduleConfiguration);
+  Test_I_Target_Stream_Module_Splitter* splitter_impl_p =
+    dynamic_cast<Test_I_Target_Stream_Module_Splitter*> (splitter_.writer ());
+  if (!splitter_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_AVIDecoder> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Splitter> failed, aborting\n")));
     return false;
   } // end IF
-  if (!decoder_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  if (!splitter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                decoder_.name ()));
+                splitter_.name ()));
     return false;
   } // end IF
-  result = inherited::push (&decoder_);
-  if (result == -1)
+  result_2 = inherited::push (&splitter_);
+  if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                decoder_.name ()));
+                splitter_.name ()));
     return false;
   } // end IF
+
+//  // ************************ AVI Decoder *****************************
+//  decoder_.initialize (*configuration_in.moduleConfiguration);
+//  Test_I_Target_Stream_Module_AVIDecoder* decoder_impl_p =
+//    dynamic_cast<Test_I_Target_Stream_Module_AVIDecoder*> (decoder_.writer ());
+//  if (!decoder_impl_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_AVIDecoder> failed, aborting\n")));
+//    return false;
+//  } // end IF
+//  if (!decoder_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+//                decoder_.name ()));
+//    return false;
+//  } // end IF
+//  result_2 = inherited::push (&decoder_);
+//  if (result_2 == -1)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
+//                decoder_.name ()));
+//    return false;
+//  } // end IF
 
   //// ******************* DirectShow Source ************************
   //directShowSource_.initialize (*configuration_in.moduleConfiguration);
@@ -355,8 +408,8 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   //              directShowSource_.name ()));
   //  return false;
   //} // end IF
-  //result = inherited::push (&directShowSource_);
-  //if (result == -1)
+  //result_2 = inherited::push (&directShowSource_);
+  //if (result_2 == -1)
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
@@ -364,43 +417,43 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   //  return false;
   //} // end IF
 
-  // ******************* Net Reader ***********************
-  source_.initialize (*configuration_in.moduleConfiguration);
-  Test_I_Target_Stream_Module_Net_Writer_t* source_impl_p =
-    dynamic_cast<Test_I_Target_Stream_Module_Net_Writer_t*> (source_.writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Net_Writer_T> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                source_.name ()));
-    return false;
-  } // end IF
-  if (!source_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                source_.name ()));
-    return false;
-  } // end IF
-//  netReader_impl_p->reset ();
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  source_.arg (inherited::sessionData_);
-  result = inherited::push (&source_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                source_.name ()));
-    return false;
-  } // end IF
+//  // ******************* Net Reader ***********************
+//  source_.initialize (*configuration_in.moduleConfiguration);
+//  Test_I_Target_Stream_Module_Net_Writer_t* source_impl_p =
+//    dynamic_cast<Test_I_Target_Stream_Module_Net_Writer_t*> (source_.writer ());
+//  if (!source_impl_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Net_Writer_T> failed, aborting\n")));
+//    return false;
+//  } // end IF
+//  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+//                source_.name ()));
+//    return false;
+//  } // end IF
+//  if (!source_impl_p->initialize (inherited::state_))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+//                source_.name ()));
+//    return false;
+//  } // end IF
+////  netReader_impl_p->reset ();
+//  // *NOTE*: push()ing the module will open() it
+//  //         --> set the argument that is passed along (head module expects a
+//  //             handle to the session data)
+//  source_.arg (inherited::sessionData_);
+//  result_2 = inherited::push (&source_);
+//  if (result_2 == -1)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
+//                source_.name ()));
+//    return false;
+//  } // end IF
 
   // -------------------------------------------------------------
 
@@ -411,7 +464,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   inherited::isInitialized_ = true;
   //inherited::dump_state ();
 
-  return true;
+  return result;
 }
 
 bool

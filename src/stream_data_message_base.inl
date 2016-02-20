@@ -64,16 +64,16 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
                                                                                                 CommandType>& message_in)
  : inherited (message_in)
  , data_ (const_cast<DataType&>(message_in.data_))
- , initialized_ (false)
+ , initialized_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
   // maintain the same message type
   inherited::msg_type (message_in.msg_type ());
 
-  // ... and read/write pointers
-  inherited::rd_ptr (message_in.rd_ptr ());
-  inherited::wr_ptr (message_in.wr_ptr ());
+//  // ... and read/write pointers
+//  inherited::rd_ptr (message_in.rd_ptr ());
+//  inherited::wr_ptr (message_in.wr_ptr ());
 }
 
 template <typename AllocatorConfigurationType,

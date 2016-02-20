@@ -54,10 +54,10 @@ Stream_Module_CamSource_V4L_T<LockType,
                             //         affair, as the calling thread may be
                             //         holding the lock --> check carefully
               true)         // generate sesssion messages ?
- , configuration_ (NULL)
  , captureFileDescriptor_ (-1)
  , overlayFileDescriptor_ (-1)
- , close_ (true)
+ , debug_ (false)
+ , isPassive_ (false)
  , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::Stream_Module_CamSource_V4L_T"));
@@ -85,7 +85,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 
   int result = -1;
 
-  if (close_)
+  if (!isPassive_)
     if (captureFileDescriptor_ != -1)
     {
       result = v4l2_close (captureFileDescriptor_);
@@ -158,23 +158,22 @@ Stream_Module_CamSource_V4L_T<LockType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (isInitialized_);
-  ACE_ASSERT (message_inout);
 
-  const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
-      message_inout->get ();
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_BEGIN:
     {
-      // sanity check(s)
-      ACE_ASSERT (configuration_->streamConfiguration);
+      ACE_ASSERT (inherited::configuration_->streamConfiguration);
+      ACE_ASSERT (inherited::sessionData_);
+
+      SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
       int toggle = 1;
 
-      // step0: save current format as session data
+      // step0: retain current format as session data
       if (!Stream_Module_Device_Tools::getFormat (captureFileDescriptor_,
                                                   session_data_r.format))
       {
@@ -187,10 +186,10 @@ Stream_Module_CamSource_V4L_T<LockType,
       // step1: fill buffer queue(s)
       if (captureFileDescriptor_ != -1)
         if (!Stream_Module_Device_Tools::initializeBuffers<ProtocolMessageType> (captureFileDescriptor_,
-                                                                                 configuration_->method,
-                                                                                 configuration_->buffers,
-                                                                                 const_cast<ConfigurationType*> (configuration_)->bufferMap,
-                                                                                 configuration_->streamConfiguration->messageAllocator))
+                                                                                 inherited::configuration_->method,
+                                                                                 inherited::configuration_->buffers,
+                                                                                 const_cast<ConfigurationType*> (inherited::configuration_)->bufferMap,
+                                                                                 inherited::configuration_->streamConfiguration->messageAllocator))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeBuffers(%d): \"%m\", aborting\n"),
@@ -239,8 +238,8 @@ error:
       // step1: empty buffer queue(s)
       if (captureFileDescriptor_ != -1)
         Stream_Module_Device_Tools::finalizeBuffers<ProtocolMessageType> (captureFileDescriptor_,
-                                                                          configuration_->method,
-                                                                          const_cast<ConfigurationType*> (configuration_)->bufferMap);
+                                                                          inherited::configuration_->method,
+                                                                          const_cast<ConfigurationType*> (inherited::configuration_)->bufferMap);
 
       // step2: stop stream
       int toggle = 0;
@@ -271,7 +270,7 @@ error:
       ACE_OS::memset (&request_buffers, 0, sizeof (struct v4l2_requestbuffers));
       request_buffers.count = 0;
       request_buffers.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-      request_buffers.memory = configuration_->method;
+      request_buffers.memory = inherited::configuration_->method;
       result = v4l2_ioctl (captureFileDescriptor_,
                            VIDIOC_REQBUFS,
                            &request_buffers);
@@ -282,7 +281,7 @@ error:
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("de-allocated %d device buffer slots...\n"),
-                    configuration_->buffers));
+                    inherited::configuration_->buffers));
 
 //      if (captureFileDescriptor_ != -1)
 //      {
@@ -399,15 +398,9 @@ Stream_Module_CamSource_V4L_T<LockType,
 
   int result = -1;
 
-  configuration_ = &configuration_in;
-
-  // sanity check(s)
-  // *TODO*: remove type inference
-  ACE_ASSERT (configuration_->streamConfiguration);
-
   if (isInitialized_)
   {
-    if (close_)
+    if (!isPassive_)
       if (captureFileDescriptor_ != -1)
       {
         result = v4l2_close (captureFileDescriptor_);
@@ -427,7 +420,9 @@ Stream_Module_CamSource_V4L_T<LockType,
       overlayFileDescriptor_ = -1;
     } // end IF
 
-    close_ = true;
+    debug_ = false;
+    isPassive_ = false;
+
     isInitialized_ = false;
   } // end IF
 
@@ -436,48 +431,48 @@ Stream_Module_CamSource_V4L_T<LockType,
   // *TODO*: support O_NONBLOCK
   //  int open_mode = O_RDONLY;
   int open_mode =
-      ((configuration_->method == V4L2_MEMORY_MMAP) ? O_RDWR : O_RDONLY);
+      ((configuration_in.method == V4L2_MEMORY_MMAP) ? O_RDWR : O_RDONLY);
   // *TODO*: remove type inference
-  captureFileDescriptor_ = configuration_->fileDescriptor;
+  captureFileDescriptor_ = configuration_in.fileDescriptor;
   if (captureFileDescriptor_ != -1)
-    close_ = false;
+    isPassive_ = true;
   else
   {
     // *TODO*: remove type inference
-    captureFileDescriptor_ = v4l2_open (configuration_->device.c_str (),
+    captureFileDescriptor_ = v4l2_open (configuration_in.device.c_str (),
                                         open_mode);
     if (captureFileDescriptor_ == -1)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
-                  ACE_TEXT (configuration_->device.c_str ()), open_mode));
+                  ACE_TEXT (configuration_in.device.c_str ()), open_mode));
       return false;
     } // end IF
   } // end ELSE
   ACE_ASSERT (captureFileDescriptor_ != -1);
   // *TODO*: remove type inference
-  if (configuration_->v4l2Window &&
+  if (configuration_in.v4l2Window &&
       Stream_Module_Device_Tools::canOverlay (captureFileDescriptor_))
   {
-    overlayFileDescriptor_ = v4l2_open (configuration_->device.c_str (),
+    overlayFileDescriptor_ = v4l2_open (configuration_in.device.c_str (),
                                         open_mode);
     if (overlayFileDescriptor_ == -1)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_open(\"%s\",%u): \"%m\", aborting\n"),
-                  ACE_TEXT (configuration_->device.c_str ()), open_mode));
+                  ACE_TEXT (configuration_in.device.c_str ()), open_mode));
       goto error;
     } // end IF
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)...\n"),
-              ACE_TEXT (configuration_->device.c_str ()),
+              ACE_TEXT (configuration_in.device.c_str ()),
               captureFileDescriptor_));
 
   if (Stream_Module_Device_Tools::canStream (captureFileDescriptor_))
     if (!Stream_Module_Device_Tools::initializeCapture (captureFileDescriptor_,
-                                                        configuration_->method,
-                                                        const_cast<ConfigurationType*> (configuration_)->buffers))
+                                                        configuration_in.method,
+                                                        const_cast<ConfigurationType&> (configuration_in).buffers))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeCapture(%d): \"%m\", aborting\n"),
@@ -486,9 +481,9 @@ Stream_Module_CamSource_V4L_T<LockType,
     } // end IF
   if (overlayFileDescriptor_ != -1)
   {
-    ACE_ASSERT (configuration_->v4l2Window);
+    ACE_ASSERT (configuration_in.v4l2Window);
     if (!Stream_Module_Device_Tools::initializeOverlay (overlayFileDescriptor_,
-                                                        *configuration_->v4l2Window))
+                                                        *configuration_in.v4l2Window))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeOverlay(%d): \"%m\", aborting\n"),
@@ -551,6 +546,7 @@ Stream_Module_CamSource_V4L_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_V4L_T::svc"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (isInitialized_);
 
   int result = -1;
@@ -564,7 +560,10 @@ Stream_Module_CamSource_V4L_T<LockType,
   ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
   buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   buffer.memory = V4L2_MEMORY_USERPTR;
+  struct v4l2_event event;
+  ACE_OS::memset (&event, 0, sizeof (struct v4l2_event));
   INDEX2BUFFER_MAP_ITERATOR_T iterator;
+  unsigned int queued, done = 0;
 
   // step1: start processing data...
 //   ACE_DEBUG ((LM_DEBUG,
@@ -605,6 +604,7 @@ Stream_Module_CamSource_V4L_T<LockType,
       } // end SWITCH
 
       // process
+      // *NOTE*: fire-and-forget message_block_p here
       inherited::handleMessage (message_block_p,
                                 stop_processing);
       if (stop_processing)
@@ -649,9 +649,65 @@ Stream_Module_CamSource_V4L_T<LockType,
 
         break;
       } // end IF
+
+      // session aborted ? (i.e. connection failed)
+      ACE_ASSERT (inherited::sessionData_);
+      const SessionDataType& session_data_r = inherited::sessionData_->get ();
+      if (session_data_r.aborted)
+      {
+        inherited::shutdown ();
+        continue;
+      } // end IF
     } // end IF
 
-    // *NOTE*: blocks until a frame has been written by the device
+    // log device status to kernel log
+    if (debug_)
+    {
+      result = v4l2_ioctl (captureFileDescriptor_,
+                           VIDIOC_LOG_STATUS);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+                    captureFileDescriptor_, ACE_TEXT ("VIDIOC_LOG_STATUS")));
+    } // end IF
+
+//    // dequeue pending events
+//    result = v4l2_ioctl (captureFileDescriptor_,
+//                         VIDIOC_DQEVENT,
+//                         &event);
+//    if (result == -1)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+//                  captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQEVENT")));
+//    } // end IF
+//    else
+//    {
+//      for (unsigned int i = 0;
+//           i < event.pending;
+//           ++i)
+//      {
+//        result = v4l2_ioctl (captureFileDescriptor_,
+//                             VIDIOC_DQEVENT,
+//                             &event);
+//        if (result == -1)
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+//                      captureFileDescriptor_, ACE_TEXT ("VIDIOC_DQEVENT")));
+//      } // end FOR
+//    } // end ELSE
+
+//    queued =
+//        Stream_Module_Device_Tools::queued (captureFileDescriptor_,
+//                                            inherited::configuration_->buffers,
+//                                            done);
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("#queued/done buffers: %u/%u...\n"),
+//                queued, done));
+
+    // *NOTE*: blocks until:
+    //         - a buffer is availbale
+    //         - a frame has been written by the device
     result = v4l2_ioctl (captureFileDescriptor_,
                          VIDIOC_DQBUF,
                          &buffer);
@@ -671,8 +727,8 @@ Stream_Module_CamSource_V4L_T<LockType,
 //    // sanity check(s)
 //    ACE_ASSERT (buffer.reserved);
 //    message_block_p = reinterpret_cast<ACE_Message_Block*> (buffer.reserved);
-    iterator = configuration_->bufferMap.find (buffer.index);
-    ACE_ASSERT (iterator != configuration_->bufferMap.end ());
+    iterator = inherited::configuration_->bufferMap.find (buffer.index);
+    ACE_ASSERT (iterator != inherited::configuration_->bufferMap.end ());
     message_block_p = (*iterator).second;
 
     result = inherited::put_next (message_block_p, NULL);
@@ -694,64 +750,64 @@ done:
   return result_2;
 }
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-ProtocolMessageType*
-Stream_Module_CamSource_V4L_T<LockType,
-                              SessionMessageType,
-                              ProtocolMessageType,
-                              ConfigurationType,
-                              StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
-                              StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::allocateMessage"));
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//ProtocolMessageType*
+//Stream_Module_CamSource_V4L_T<LockType,
+//                              SessionMessageType,
+//                              ProtocolMessageType,
+//                              ConfigurationType,
+//                              StreamStateType,
+//                              SessionDataType,
+//                              SessionDataContainerType,
+//                              StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::allocateMessage"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_);
+//  // *TODO*: remove type inference
+//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
-  // initialize return value(s)
-  ProtocolMessageType* message_out = NULL;
+//  // initialize return value(s)
+//  ProtocolMessageType* message_out = NULL;
 
-  if (inherited::configuration_->streamConfiguration->messageAllocator)
-  {
-    try
-    {
-      // *TODO*: remove type inference
-      message_out =
-          static_cast<ProtocolMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
-    }
-    catch (...)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                  requestedSize_in));
-      message_out = NULL;
-    }
-  } // end IF
-  else
-  {
-    ACE_NEW_NORETURN (message_out,
-                      ProtocolMessageType (requestedSize_in));
-  } // end ELSE
-  if (!message_out)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
-                requestedSize_in));
-  } // end IF
+//  if (inherited::configuration_->streamConfiguration->messageAllocator)
+//  {
+//    try
+//    {
+//      // *TODO*: remove type inference
+//      message_out =
+//          static_cast<ProtocolMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
+//    }
+//    catch (...)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+//                  requestedSize_in));
+//      message_out = NULL;
+//    }
+//  } // end IF
+//  else
+//  {
+//    ACE_NEW_NORETURN (message_out,
+//                      ProtocolMessageType (requestedSize_in));
+//  } // end ELSE
+//  if (!message_out)
+//  {
+//    ACE_DEBUG ((LM_CRITICAL,
+//                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
+//                requestedSize_in));
+//  } // end IF
 
-  return message_out;
-}
+//  return message_out;
+//}
 
 template <typename LockType,
           typename SessionMessageType,

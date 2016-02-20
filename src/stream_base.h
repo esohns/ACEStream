@@ -89,7 +89,7 @@ class Stream_Base_T
   typedef SessionDataType SESSION_DATA_T;
   typedef ProtocolMessageType PROTOCOL_DATA_T;
 
-  using STREAM_T::get;
+//  using STREAM_T::get;
 
   // *NOTE*: this will try to sanely close down the stream:
   // 1: tell all worker threads to exit gracefully
@@ -98,11 +98,6 @@ class Stream_Base_T
   // 3: close() the stream (closes all enqueued modules: wait for queue to flush
   //    and threads, if any, to join)
   virtual ~Stream_Base_T ();
-
-  // overload this from ACE_Stream to work as a hook to pass a messagecounter as
-  // argument to the modules
-  // open() method...
-  //virtual int push(ACE_Module<ACE_MT_SYNCH>*); // handle to module
 
   // implement Stream_IStreamControl_T
   // *NOTE*: delegate these calls to the head module (which also implements this
@@ -141,7 +136,9 @@ class Stream_Base_T
   //                   module handler configuration !
   virtual bool initialize (const ConfigurationType&);
 
-  //// override ACE_Stream method(s)
+  // override ACE_Stream method(s)
+  virtual int get (ACE_Message_Block*&, // return value: message block handle
+                   ACE_Time_Value*);    // timeout (NULL: block)
   // *NOTE*: the default ACE_Stream impementation of link() joins writer A to
   //         reader B and writer B to reader A. Prefer 'concat' method: writer
   //         A to writer B(, reader A to reader B; see explanation)

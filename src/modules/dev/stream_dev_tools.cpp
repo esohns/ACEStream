@@ -2291,6 +2291,44 @@ error:
   return false;
 }
 
+unsigned int
+Stream_Module_Device_Tools::queued (int fd_in,
+                                    unsigned int numberOfBuffers_in,
+                                    unsigned int& done_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::queued"));
+
+  unsigned int result = 0;
+
+  // init return value(s)
+  done_out = 0;
+
+  int result_2 = -1;
+  struct v4l2_buffer buffer;
+  ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
+  buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  for (unsigned int i = 0;
+       i < numberOfBuffers_in;
+       ++i)
+  {
+    buffer.index = i;
+    result_2 = v4l2_ioctl (fd_in,
+                           VIDIOC_QUERYBUF,
+                           &buffer);
+    if (result_2 == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+                  fd_in, ACE_TEXT ("VIDIOC_QUERYBUF")));
+
+    if (buffer.flags & V4L2_BUF_FLAG_DONE)
+      ++done_out;
+    if (buffer.flags & V4L2_BUF_FLAG_QUEUED)
+      ++result;
+  } // end FOR
+
+  return result;
+}
+
 bool
 Stream_Module_Device_Tools::setFormat (int fd_in,
                                        __u32 format_in)

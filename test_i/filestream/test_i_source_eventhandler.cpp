@@ -48,18 +48,38 @@ Test_I_Stream_Source_EventHandler::~Test_I_Stream_Source_EventHandler ()
 }
 
 void
-Test_I_Stream_Source_EventHandler::start (const Test_I_Stream_SessionData& sessionData_in)
+Test_I_Stream_Source_EventHandler::start (const Test_I_Stream_SessionData_t& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Source_EventHandler::start"));
 
-  sessionData_ = &sessionData_in;
+  int result = -1;
+  Test_I_Stream_SessionData* session_data_p = NULL;
+
+  sessionData_ = &const_cast<Test_I_Stream_SessionData_t&> (sessionData_in);
+  sessionData_->increase ();
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
-  CBData_->progressData.size = sessionData_->size;
+  session_data_p =
+      &const_cast<Test_I_Stream_SessionData&> (sessionData_->get ());
+  if (session_data_p->lock)
+  {
+    result = session_data_p->lock->acquire ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
+  } // end IF
+  CBData_->progressData.size = session_data_p->size;
+  if (session_data_p->lock)
+  {
+    result = session_data_p->lock->release ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+  } // end IF
   CBData_->progressData.transferred = 0;
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
@@ -72,12 +92,10 @@ Test_I_Stream_Source_EventHandler::notify (const Test_I_Stream_Message& message_
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
-  ACE_ASSERT (sessionData_);
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
   CBData_->progressData.transferred += message_in.total_length ();
-
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
 }
 void
@@ -119,4 +137,10 @@ Test_I_Stream_Source_EventHandler::end ()
   CBData_->eventSourceIds.insert (event_source_id);
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+
+  if (sessionData_)
+  {
+    sessionData_->decrease ();
+    sessionData_ = NULL;
+  } // end IF
 }

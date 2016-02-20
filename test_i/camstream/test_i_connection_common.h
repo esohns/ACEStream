@@ -67,6 +67,7 @@ struct Test_I_Source_StreamState;
 struct Test_I_Target_Configuration;
 struct Test_I_Target_ConnectionState;
 struct Test_I_Target_SocketHandlerConfiguration;
+class Test_I_Target_Stream;
 class Test_I_Target_Stream_Message;
 struct Test_I_Target_Stream_ModuleHandlerConfiguration;
 struct Test_I_Target_Stream_SessionData;
@@ -112,28 +113,28 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
                                       ///
                                       ACE_INET_Addr,
                                       Test_I_Source_InetConnectionManager_t> Test_I_Source_NetStream_t;
-typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
-                                      ///
-                                      ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      ///
-                                      Stream_StateMachine_ControlState,
-                                      Test_I_Target_StreamState,
-                                      ///
-                                      Test_I_Target_StreamConfiguration,
-                                      ///
-                                      Test_I_RuntimeStatistic_t,
-                                      ///
-                                      Stream_ModuleConfiguration,
-                                      Test_I_Target_Stream_ModuleHandlerConfiguration,
-                                      ///
-                                      Test_I_Target_Stream_SessionData,   // session data
-                                      Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
-                                      Test_I_Target_Stream_SessionMessage,
-                                      Test_I_Target_Stream_Message,
-                                      ///
-                                      ACE_INET_Addr,
-                                      Test_I_Target_InetConnectionManager_t> Test_I_Target_NetStream_t;
+//typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
+//                                      ///
+//                                      ACE_MT_SYNCH,
+//                                      Common_TimePolicy_t,
+//                                      ///
+//                                      Stream_StateMachine_ControlState,
+//                                      Test_I_Target_StreamState,
+//                                      ///
+//                                      Test_I_Target_StreamConfiguration,
+//                                      ///
+//                                      Test_I_RuntimeStatistic_t,
+//                                      ///
+//                                      Stream_ModuleConfiguration,
+//                                      Test_I_Target_Stream_ModuleHandlerConfiguration,
+//                                      ///
+//                                      Test_I_Target_Stream_SessionData,   // session data
+//                                      Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
+//                                      Test_I_Target_Stream_SessionMessage,
+//                                      Test_I_Target_Stream_Message,
+//                                      ///
+//                                      ACE_INET_Addr,
+//                                      Test_I_Target_InetConnectionManager_t> Test_I_Target_NetStream_t;
 
 /////////////////////////////////////////
 
@@ -348,7 +349,7 @@ typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Target_SocketHan
                                   Test_I_Target_Configuration,
                                   Test_I_Target_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
-                                  Test_I_Target_NetStream_t,
+                                  Test_I_Target_Stream,
                                   ///////
                                   Test_I_Target_UserData,
                                   ///////
@@ -360,7 +361,7 @@ typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<Test_I_Targ
                                         Test_I_Target_Configuration,
                                         Test_I_Target_ConnectionState,
                                         Test_I_RuntimeStatistic_t,
-                                        Test_I_Target_NetStream_t,
+                                        Test_I_Target_Stream,
 
                                         Test_I_Target_UserData,
 
@@ -373,7 +374,7 @@ typedef Net_StreamUDPSocketBase_T<Net_UDPSocketHandler_T<Net_SOCK_Dgram,
                                   Test_I_Target_Configuration,
                                   Test_I_Target_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
-                                  Test_I_Target_NetStream_t,
+                                  Test_I_Target_Stream,
                                   ///////
                                   Test_I_Target_UserData,
                                   ///////
@@ -388,7 +389,7 @@ typedef Net_StreamAsynchUDPSocketBase_T<Net_AsynchUDPSocketHandler_T<Test_I_Targ
                                         Test_I_Target_Configuration,
                                         Test_I_Target_ConnectionState,
                                         Test_I_RuntimeStatistic_t,
-                                        Test_I_Target_NetStream_t,
+                                        Test_I_Target_Stream,
 
                                         Test_I_Target_UserData,
 
@@ -402,7 +403,7 @@ typedef Net_TCPConnectionBase_T<Test_I_Target_TCPHandler_t,
                                 Test_I_Target_Configuration,
                                 Test_I_Target_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
-                                Test_I_Target_NetStream_t,
+                                Test_I_Target_Stream,
                                 /////////
                                 Test_I_Target_SocketHandlerConfiguration,
                                 /////////
@@ -412,7 +413,7 @@ typedef Net_AsynchTCPConnectionBase_T<Test_I_Target_AsynchTCPHandler_t,
                                       Test_I_Target_Configuration,
                                       Test_I_Target_ConnectionState,
                                       Test_I_RuntimeStatistic_t,
-                                      Test_I_Target_NetStream_t,
+                                      Test_I_Target_Stream,
                                       ///
                                       Test_I_Target_SocketHandlerConfiguration,
                                       ///
@@ -422,7 +423,7 @@ typedef Net_UDPConnectionBase_T<Test_I_Target_UDPHandler_t,
                                 Test_I_Target_Configuration,
                                 Test_I_Target_ConnectionState,
                                 Test_I_RuntimeStatistic_t,
-                                Test_I_Target_NetStream_t,
+                                Test_I_Target_Stream,
                                 /////////
                                 Test_I_Target_SocketHandlerConfiguration,
                                 /////////
@@ -432,7 +433,7 @@ typedef Net_AsynchUDPConnectionBase_T<Test_I_Target_AsynchUDPHandler_t,
                                       Test_I_Target_Configuration,
                                       Test_I_Target_ConnectionState,
                                       Test_I_RuntimeStatistic_t,
-                                      Test_I_Target_NetStream_t,
+                                      Test_I_Target_Stream,
                                       ///
                                       Test_I_Target_SocketHandlerConfiguration,
                                       ///
@@ -446,36 +447,13 @@ typedef Net_IConnector_T<ACE_INET_Addr,
 /////////////////////////////////////////
 
 // inbound
-typedef Net_Client_AsynchConnector_T<Test_I_Target_AsynchTCPConnection_t,
-                                     ////
-                                     ACE_INET_Addr,
-                                     Test_I_Target_Configuration,
-                                     Test_I_Target_ConnectionState,
-                                     Test_I_RuntimeStatistic_t,
-                                     Test_I_Target_NetStream_t,
-                                     ////
-                                     Test_I_Target_SocketHandlerConfiguration,
-                                     ////
-                                     Test_I_Target_UserData> Test_I_Target_TCPAsynchConnector_t;
-typedef Net_Client_Connector_T<Test_I_Target_TCPConnection_t,
-                               Net_SOCK_Connector,
-                               //////////
-                               ACE_INET_Addr,
-                               Test_I_Target_Configuration,
-                               Test_I_Target_ConnectionState,
-                               Test_I_RuntimeStatistic_t,
-                               Test_I_Target_NetStream_t,
-                               //////////
-                               Test_I_Target_SocketHandlerConfiguration,
-                               //////////
-                               Test_I_Target_UserData> Test_I_Target_TCPConnector_t;
 typedef Net_Client_AsynchConnector_T<Test_I_Target_AsynchUDPConnection_t,
                                      ////
                                      ACE_INET_Addr,
                                      Test_I_Target_Configuration,
                                      Test_I_Target_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
-                                     Test_I_Target_NetStream_t,
+                                     Test_I_Target_Stream,
                                      ////
                                      Test_I_Target_SocketHandlerConfiguration,
                                      ////
@@ -487,7 +465,7 @@ typedef Net_Client_Connector_T<Test_I_Target_UDPConnection_t,
                                Test_I_Target_Configuration,
                                Test_I_Target_ConnectionState,
                                Test_I_RuntimeStatistic_t,
-                               Test_I_Target_NetStream_t,
+                               Test_I_Target_Stream,
                                //////////
                                Test_I_Target_SocketHandlerConfiguration,
                                //////////

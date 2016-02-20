@@ -25,11 +25,17 @@ if (WIN32)
       stream_misc_runtimestatistic.cpp
       stream_misc_runtimestatistic.h
       stream_misc_runtimestatistic.inl
+      stream_misc_splitter.cpp
+      stream_misc_splitter.h
+      stream_misc_splitter.inl
       stdafx.cpp
       stdafx.h)
 elseif (UNIX)
  set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
       stream_misc_defines.h
+      stream_misc_dump.cpp
+      stream_misc_dump.h
+      stream_misc_dump.inl
       stream_misc_exports.h
       stream_misc_messagehandler.cpp
       stream_misc_messagehandler.h
@@ -40,6 +46,9 @@ elseif (UNIX)
       stream_misc_runtimestatistic.cpp
       stream_misc_runtimestatistic.h
       stream_misc_runtimestatistic.inl
+      stream_misc_splitter.cpp
+      stream_misc_splitter.h
+      stream_misc_splitter.inl
       stdafx.cpp
       stdafx.h)
 endif ()
@@ -80,6 +89,8 @@ if (WIN32)
 elseif (UNIX)
  install (FILES
           stream_misc_defines.h
+          stream_misc_dump.h
+          stream_misc_dump.inl
           stream_misc_exports.h
           stream_misc_messagehandler.h
           stream_misc_messagehandler.inl
@@ -87,6 +98,8 @@ elseif (UNIX)
           stream_misc_queue_source.inl
           stream_misc_runtimestatistic.h
           stream_misc_runtimestatistic.inl
+          stream_misc_splitter.h
+          stream_misc_splitter.inl
           DESTINATION include)
 endif ()
 install (TARGETS ${PROJECT_NAME}_Miscellaneous
@@ -95,3 +108,4 @@ install (TARGETS ${PROJECT_NAME}_Miscellaneous
          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
          COMPONENT dev)
+

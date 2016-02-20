@@ -32,8 +32,11 @@
 
 #include "stream_macros.h"
 
+//#include "stream_dev_tools.h"
+
 Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (unsigned int size_in)
  : inherited (size_in)
+ , inherited2 (1, false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -41,6 +44,7 @@ Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (unsigned int size_in
 
 Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (const Test_I_Source_Stream_Message& message_in)
  : inherited (message_in)
+ , inherited2 (1, false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -52,6 +56,7 @@ Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (ACE_Data_Block* data
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
               messageAllocator_in, // re-use the same allocator
               incrementMessageCounter_in)
+ , inherited2 (1, false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -59,6 +64,7 @@ Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (ACE_Data_Block* data
 
 Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
+ , inherited2 (1, false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -83,81 +89,47 @@ Test_I_Source_Stream_Message::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::duplicate"));
 
-  Test_I_Source_Stream_Message* message_p = NULL;
+  Test_I_Source_Stream_Message* this_p =
+      const_cast<Test_I_Source_Stream_Message*> (this);
+  this_p->increase ();
 
-  // create a new Test_I_Source_Stream_MessageBase that contains unique copies of
-  // the message block fields, but a (reference counted) shallow duplicate of
-  // the ACE_Data_Block.
-
-  // if there is no allocator, use the standard new and delete calls.
-  if (inherited::message_block_allocator_ == NULL)
-    ACE_NEW_NORETURN (message_p,
-                      Test_I_Source_Stream_Message (*this));
-  else // otherwise, use the existing message_block_allocator
-  {
-    // *NOTE*: the argument to malloc doesn't matter, as this will be
-    //         a shallow copy which just references the same data block
-    ACE_NEW_MALLOC_NORETURN (message_p,
-                             static_cast<Test_I_Source_Stream_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
-                                                                                                                      '\0')),
-                             Test_I_Source_Stream_Message (*this));
-  } // end ELSE
-  if (!message_p)
-  {
-    Stream_IAllocator* allocator_p =
-      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
-    ACE_ASSERT (allocator_p);
-    if (allocator_p->block ())
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate Test_I_Source_Stream_MessageBase: \"%m\", aborting\n")));
-    return NULL;
-  } // end IF
-
-  // increment the reference counts of any continuation messages
-  if (inherited::cont_)
-  {
-    message_p->cont_ = inherited::cont_->duplicate ();
-    if (!message_p->cont_)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Test_I_Source_Stream_MessageBase::duplicate(): \"%m\", aborting\n")));
-
-      // clean up
-      message_p->release ();
-
-      return NULL;
-    } // end IF
-  } // end IF
-
-  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
-
-  return message_p;
+  return this_p;
 }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+ACE_Message_Block*
+Test_I_Source_Stream_Message::release (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::release"));
+
+  unsigned int reference_count = inherited2::decrease ();
+
+  if (reference_count == 0)
+    return inherited::release ();
+
+  return NULL;
+}
 #else
 ACE_Message_Block*
 Test_I_Source_Stream_Message::release (void)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::release"));
 
-  int reference_count = inherited::reference_count ();
-  if ((reference_count > 1) || (inherited::data_.release))
+  unsigned int reference_count = inherited2::decrease ();
+  if (reference_count > 0)
+    return NULL; // done
+
+  if ((inherited::data_.device == -1) || // inbound
+      inherited::data_.release)
     return inherited::release ();
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::data_block_);
+  // reset reference counter/message
+  reference_count = inherited2::increase ();
+  ACE_ASSERT (reference_count == 1);
+  inherited::rd_ptr (inherited::base ());
 
-  // *IMPORTANT NOTE*: handle race condition here
-  {
-    ACE_GUARD_RETURN (ACE_Lock, ace_mon, *inherited::data_block_->locking_strategy (), NULL);
+  // *NOTE*: this is a device data buffer
+  //         --> return it to the pool
 
-    if (inherited::size ()) // is device-data ?
-      goto continue_;
-
-    return NULL; // nothing to do
-  } // end lock scope
-
-continue_:
   // release any continuations
   if (inherited::cont_)
   {
@@ -180,9 +152,7 @@ continue_:
       break;
     }
     case V4L2_MEMORY_MMAP:
-    {
       break;
-    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -205,6 +175,16 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
                 inherited::data_.device, ACE_TEXT ("VIDIOC_QBUF")));
+
+//  unsigned int done = 0;
+//  unsigned int queued =
+//      Stream_Module_Device_Tools::queued (inherited::data_.device,
+//                                          32,
+//                                          done);
+//  ACE_DEBUG ((LM_DEBUG,
+//              ACE_TEXT ("returned device buffer %d to the pool (queued/done: %u/%u)...\n"),
+//              inherited::data_.index,
+//              queued, done));
 
   return NULL;
 }

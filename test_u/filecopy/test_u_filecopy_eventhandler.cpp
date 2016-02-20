@@ -45,18 +45,40 @@ Stream_Filecopy_EventHandler::~Stream_Filecopy_EventHandler ()
 }
 
 void
-Stream_Filecopy_EventHandler::start (const Stream_Filecopy_SessionData& sessionData_in)
+Stream_Filecopy_EventHandler::start (const Stream_Filecopy_SessionData_t& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::start"));
 
-  sessionData_ = &sessionData_in;
+  int result = -1;
+  Stream_Filecopy_SessionData* session_data_p = NULL;
+
+  sessionData_ = &const_cast<Stream_Filecopy_SessionData_t&> (sessionData_in);
+  sessionData_->increase ();
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
-  CBData_->progressData.size = sessionData_->size;
+  session_data_p =
+      &const_cast<Stream_Filecopy_SessionData&> (sessionData_->get ());
+  if (session_data_p->lock)
+  {
+    result = session_data_p->lock->acquire ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
+  } // end IF
+
+  CBData_->progressData.size = session_data_p->size;
+
+  if (session_data_p->lock)
+  {
+    result = session_data_p->lock->release ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+  } // end IF
 
 //  //Common_UI_GladeXMLsIterator_t iterator =
 //  //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -145,4 +167,10 @@ Stream_Filecopy_EventHandler::end ()
   gdk_threads_leave ();
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+
+  if (sessionData_)
+  {
+    sessionData_->decrease ();
+    sessionData_ = NULL;
+  } // end IF
 }

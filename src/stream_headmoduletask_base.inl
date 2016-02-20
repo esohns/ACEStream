@@ -1025,7 +1025,12 @@ Stream_HeadModuleTaskBase_T<LockType,
 
     if (inherited2::thr_count_)
     {
-      result = inherited2::wait ();
+      ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (inherited2::lock_);
+      {
+        ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX> > aGuard_2 (reverse_lock);
+
+        result = inherited2::wait ();
+      } // end lock scope
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
@@ -1575,14 +1580,11 @@ allocate:
   } // end IF
   else
   {
-//    // *IMPORTANT NOTE*: session message assumes responsibility for
-//    //                   sessionData_inout
     sessionData_in.increase ();
     SessionDataContainerType* session_data_container_p = &sessionData_in;
     // *TODO*: remove type inference
     ACE_NEW_NORETURN (session_message_p,
                       SessionMessageType (messageType_in,
-//                                          sessionData_inout,
                                           session_data_container_p,
                                           streamState_->userData));
   } // end ELSE
@@ -1598,22 +1600,17 @@ allocate:
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
 
-//    // clean up
-//    sessionData_inout->decrease ();
-//    sessionData_inout = NULL;
+    // clean up
     sessionData_in.decrease ();
 
     return false;
   } // end IF
   if (allocator_in)
   {
-//    // *IMPORTANT NOTE*: session message assumes responsibility for
-//    //                   sessionData_inout
     sessionData_in.increase ();
     SessionDataContainerType* session_data_container_p = &sessionData_in;
     // *TODO*: remove type inference
     session_message_p->initialize (messageType_in,
-//                                   sessionData_inout,
                                    session_data_container_p,
                                    streamState_->userData);
   } // end IF

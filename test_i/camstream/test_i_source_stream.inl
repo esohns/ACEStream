@@ -34,6 +34,9 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
  , netTarget_ (ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
                NULL,
                false)
+ , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
+             NULL,
+             false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Test_I_Source_Stream_T"));
 
@@ -45,6 +48,7 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
   inherited::availableModules_.push_front (&source_);
   inherited::availableModules_.push_front (&runtimeStatistic_);
   inherited::availableModules_.push_front (&netTarget_);
+  inherited::availableModules_.push_front (&display_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -188,59 +192,98 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   ACE_ASSERT (configuration_in.moduleConfiguration);
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
-  if (configuration_in.module)
-  {
-    // *TODO*: (at least part of) this procedure belongs in libACEStream
-    //         --> remove type inferences
-    inherited::IMODULE_T* imodule_p =
-        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
-    if (!imodule_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    imodule_p->reset ();
-    inherited::IMODULEHANDLER_T* module_handler_p =
-      dynamic_cast<inherited::IMODULEHANDLER_T*> (configuration_in.module->writer ());
-    if (!module_handler_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!module_handler_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    result = inherited::push (configuration_in.module);
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-  } // end IF
+//  if (configuration_in.module)
+//  {
+//    // *TODO*: (at least part of) this procedure belongs in libACEStream
+//    //         --> remove type inferences
+//    typename inherited::IMODULE_T* imodule_p = NULL;
+//    try
+//    {
+//      imodule_p =
+//          dynamic_cast<typename inherited::IMODULE_T*> (configuration_in.module);
+//    }
+//    catch (...)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: caught exception in dynamic_cast<Stream_IModule_T>(%@), aborting\n"),
+//                  configuration_in.module->name (),
+//                  configuration_in.module));
+//      imodule_p = NULL;
+//    }
+//    if (!imodule_p)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+//    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+//    imodule_p->reset ();
+//    inherited::IMODULEHANDLER_T* module_handler_p =
+//      dynamic_cast<inherited::IMODULEHANDLER_T*> (configuration_in.module->writer ());
+//    if (!module_handler_p)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+//    if (!module_handler_p->initialize (*configuration_in.moduleHandlerConfiguration))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+//    result = inherited::push (configuration_in.module);
+//    if (result == -1)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+//  } // end IF
 
   // ---------------------------------------------------------------------------
 
+  Test_I_Source_Stream_Module_Display* display_impl_p = NULL;
   WRITER_T* netTarget_impl_p = NULL;
   Test_I_Source_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Stream_Module_CamSource* source_impl_p = NULL;
   //Test_I_Source_Stream_SessionData* session_data_p = NULL;
+
+  // ******************* Display ************************
+  display_.initialize (*configuration_in.moduleConfiguration);
+  display_impl_p =
+    dynamic_cast<Test_I_Source_Stream_Module_Display*> (display_.writer ());
+  if (!display_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_Display> failed, aborting\n")));
+    return false;
+  } // end IF
+  if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+                display_.name ()));
+    return false;
+  } // end IF
+  result = inherited::push (&display_);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
+                display_.name ()));
+    return false;
+  } // end IF
 
   // ******************* Net Target ************************
   netTarget_.initialize (*configuration_in.moduleConfiguration);

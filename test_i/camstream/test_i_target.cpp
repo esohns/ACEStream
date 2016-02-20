@@ -651,14 +651,29 @@ do_work (unsigned int bufferSize_in,
     &configuration.streamConfiguration;
 
   configuration.moduleHandlerConfiguration.configuration = &configuration;
+  configuration.moduleHandlerConfiguration.inbound = true;
   configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;
-  configuration.moduleHandlerConfiguration.inbound = true;
+  configuration.moduleHandlerConfiguration.frameSize =
+    153600;
   configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
   configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  configuration.moduleHandlerConfiguration.format.type =
+      V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.bytesperline = 640;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.field = 1;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.height = 240;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.pixelformat =
+      1448695129;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.priv = 4276996862;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.sizeimage = 153600;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.width = 320;
+#endif
   // ******************** (sub-)stream configuration data *********************
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;

@@ -656,6 +656,7 @@ do_work (unsigned int bufferSize_in,
                 port_in));
     goto clean;
   } // end IF
+  configuration.socketConfiguration.bufferSize = bufferSize_in;
   configuration.socketConfiguration.useLoopBackDevice =
     configuration.socketConfiguration.address.is_loopback ();
   configuration.socketConfiguration.writeOnly = true;
@@ -703,9 +704,8 @@ do_work (unsigned int bufferSize_in,
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
-  configuration.streamConfiguration.module =
-    (!UIDefinitionFilename_in.empty () ? &event_handler
-                                       : NULL);
+  if (!UIDefinitionFilename_in.empty ())
+    configuration.streamConfiguration.module = &event_handler;
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =

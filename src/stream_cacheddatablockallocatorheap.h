@@ -54,8 +54,8 @@ class Stream_Export Stream_CachedDataBlockAllocatorHeap
                         char = '\0'); // initial value
 
   // convenience types
-  // *NOTE*: serialize access to ACE_Data_Block reference count which may
-  // be decremented from multiple threads...
+  // *NOTE*: serialize access to ACE_Data_Block reference count, which may be
+  //         decremented from multiple threads
   typedef ACE_Lock_Adapter<ACE_SYNCH_MUTEX> DATABLOCK_LOCK_TYPE;
 
   // locking
