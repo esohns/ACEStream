@@ -20,10 +20,6 @@
 
 #include "ace/Log_Msg.h"
 
-#include "aviriff.h"
-#include "dvdmedia.h"
-//#include "Streams.h"
-
 #include "common_file_tools.h"
 #include "common_timer_manager_common.h"
 
@@ -195,6 +191,12 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
       return false;
     } // end IF
     COM_initialized = true;
+
+    if (inherited::sessionData_)
+    {
+      inherited::sessionData_->decrease ();
+      inherited::sessionData_ = NULL;
+    } // end IF
   } // end IF
 
   if (isInitialized_)
@@ -336,21 +338,23 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (isInitialized_);
 
-  //const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
-  //    message_inout->get ();
-  //SessionDataType& session_data_r =
-  //    const_cast<SessionDataType&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_BEGIN:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
       // *TODO*: remove type inference
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
+
+      //inherited::sessionData_ =
+      //  &const_cast<SessionDataContainerType&> (message_inout->get ());
+      //inherited::sessionData_->increase ();
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
       if (inherited::configuration_->streamConfiguration->statisticReportingInterval)
       {
@@ -401,6 +405,9 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
       ACE_ASSERT (inherited::configuration_->builder);
       ACE_ASSERT (IMediaControl_);
       ACE_ASSERT (IMediaEventEx_);
+      ACE_ASSERT (ISampleGrabber_);
+      // *TODO*: remove type inference
+      session_data_r.sampleGrabber = ISampleGrabber_;
 
       // start previewing video data
       result_2 = IMediaControl_->Run ();
@@ -472,9 +479,6 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 
       ROT_p->Release ();
       moniker_p->Release ();
-
-      if (COM_initialized)
-        CoUninitialize ();
 
       break;
 
@@ -611,6 +615,12 @@ continue_:
       if (COM_initialized)
         CoUninitialize ();
 
+      if (inherited::sessionData_)
+      {
+        inherited::sessionData_->decrease ();
+        inherited::sessionData_ = NULL;
+      } // end IF
+
       break;
     }
     default:
@@ -743,315 +753,17 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
   int result = -1;
-  ProtocolMessageType* message_p = NULL;
-  HRESULT result_2 = E_FAIL;
-
-  if (isFirst_)
-  {
-    // sanity check(s)
-    ACE_ASSERT (ISampleGrabber_);
-
-    struct _AMMediaType media_type;
-    ACE_OS::memset (&media_type, 0, sizeof (struct _AMMediaType));
-    result_2 = ISampleGrabber_->GetConnectedMediaType (&media_type);
-    if (FAILED (result_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMediaSample::GetMediaType(): \"%m\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      return result_2;
-    } // end IF
-    if ((media_type.formattype != FORMAT_VideoInfo) &&
-        (media_type.formattype != FORMAT_VideoInfo2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media type, aborting\n")));
-      return result_2;
-    } // end IF
-    struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-    struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-    if (media_type.formattype == FORMAT_VideoInfo)
-      video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type.pbFormat;
-    else if (media_type.formattype == FORMAT_VideoInfo2)
-      video_info_header2_p = (struct tagVIDEOINFOHEADER2*)media_type.pbFormat;
-
-    // *TODO*: remove type inference
-    message_p =
-      allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
-    if (!message_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("allocateMessage(%d) failed: \"%m\", aborting\n"),
-                  inherited::configuration_->streamConfiguration->bufferSize));
-      return E_FAIL;
-    } // end IF
-    ACE_ASSERT (message_p);
-
-    // RIFF header
-    struct _rifflist RIFF_list;
-    ACE_OS::memset (&RIFF_list, 0, sizeof (struct _rifflist));
-    RIFF_list.fcc = FCC ('RIFF');
-    // *NOTE*: in a streaming scenario, this would need to be added AFTER the
-    //         file has been written (or the disc runs out of space), which is
-    //         impossible until/unless this value is preconfigured in some way.
-    //         Notice how this oversight confounds the whole standard
-    // sizeof (fccListType) [4] + sizeof (data) --> == total (file) size - 8
-    RIFF_list.cb = sizeof (FOURCC) +
-                   sizeof (struct _rifflist) +           // hdrl
-                   sizeof (struct _avimainheader) +
-                   // sizeof (LIST strl)
-                   sizeof (struct _rifflist) +
-                   sizeof (struct _avistreamheader) +    // strh
-                   sizeof (struct _riffchunk) +          // strf
-                   sizeof (struct tagBITMAPINFOHEADER) + // strf
-                   sizeof (struct _riffchunk) +          // JUNK
-                   1820 +                                // pad bytes
-                   sizeof (struct _rifflist) +           // movi
-                   sizeof (struct _riffchunk) +          // 00db
-                   IMediaSample_in->GetSize ();          // (part of) frame
-    if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-      RIFF_list.cb = ACE_SWAP_LONG (RIFF_list.cb);
-    RIFF_list.fccListType = FCC ('AVI ');
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_list),
-                              sizeof (struct _rifflist));
-
-    // hdrl
-    RIFF_list.fcc = FCC ('LIST');
-    // sizeof (fccListType) [4] + sizeof (LIST data)
-    RIFF_list.cb = sizeof (FOURCC)                    +
-                   sizeof (struct _avimainheader)     +
-                   // sizeof (LIST strl)
-                   sizeof (struct _rifflist)          +
-                   sizeof (struct _avistreamheader)   + // strh
-                   sizeof (struct _riffchunk)         + // strf
-                   sizeof (struct tagBITMAPINFOHEADER); // strf
-    if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-      RIFF_list.cb = ACE_SWAP_LONG (RIFF_list.cb);
-    RIFF_list.fccListType = FCC ('hdrl');
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_list),
-                              sizeof (struct _rifflist));
-
-    // *NOTE*: "...the 'hdrl' list begins with the main AVI header, which is
-    //         contained in an 'avih' chunk. ..."
-    struct _avimainheader AVI_header_avih;
-    ACE_OS::memset (&AVI_header_avih, 0, sizeof (struct _avimainheader));
-    AVI_header_avih.fcc = ckidMAINAVIHEADER;
-    AVI_header_avih.cb = sizeof (struct _avimainheader) - 8;
-    if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-      AVI_header_avih.cb = ACE_SWAP_LONG (AVI_header_avih.cb);
-    AVI_header_avih.dwMicroSecPerFrame =
-      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->AvgTimePerFrame
-                                                   : video_info_header2_p->AvgTimePerFrame);
-    AVI_header_avih.dwMaxBytesPerSec =
-      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->dwBitRate
-                                                   : video_info_header2_p->dwBitRate) / 8;
-    AVI_header_avih.dwPaddingGranularity = STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN;
-    AVI_header_avih.dwFlags = AVIF_WASCAPTUREFILE;
-    //AVI_header_avih.dwTotalFrames = 0; // unreliable
-    //AVI_header_avih.dwInitialFrames = 0;
-    AVI_header_avih.dwStreams = 1;
-    //AVI_header_avih.dwSuggestedBufferSize = 0; // unreliable
-    AVI_header_avih.dwWidth =
-      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biWidth
-                                                   : video_info_header2_p->bmiHeader.biWidth);
-    AVI_header_avih.dwHeight =
-      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biHeight
-                                                   : video_info_header2_p->bmiHeader.biHeight);
-    //AVI_header_avih.dwReserved = {0, 0, 0, 0};
-    result = message_p->copy (reinterpret_cast<char*> (&AVI_header_avih),
-                              sizeof (struct _avimainheader));
-
-    // *NOTE*: "One or more 'strl' lists follow the main header. A 'strl' list
-    //         is required for each data stream. Each 'strl' list contains
-    //         information about one stream in the file, and must contain a
-    //         stream header chunk ('strh') and a stream format chunk ('strf').
-    //         ..."
-    // strl
-    RIFF_list.fcc = FCC ('LIST');
-    // sizeof (fccListType) [4] + sizeof (LIST data)
-    RIFF_list.cb = sizeof (FOURCC)                    +
-                   sizeof (struct _avistreamheader)   + // strh
-                   sizeof (struct _riffchunk)         + // strf
-                   sizeof (struct tagBITMAPINFOHEADER); // strf
-    if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-      RIFF_list.cb = ACE_SWAP_LONG (RIFF_list.cb);
-    RIFF_list.fccListType = ckidSTREAMLIST;
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_list),
-                              sizeof (struct _rifflist));
-
-    // strl --> strh
-    struct _avistreamheader AVI_header_strh;
-    ACE_OS::memset (&AVI_header_strh, 0, sizeof (struct _avistreamheader));
-    AVI_header_strh.fcc = ckidSTREAMHEADER;
-    AVI_header_strh.cb = sizeof (struct _avistreamheader) - 8;
-    if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-      AVI_header_strh.cb = ACE_SWAP_LONG (AVI_header_strh.cb);
-    AVI_header_strh.fccType = streamtypeVIDEO;
-    //AVI_header_strh.fccHandler = 0;
-    //AVI_header_strh.dwFlags = 0;
-    //AVI_header_strh.wPriority = 0;
-    //AVI_header_strh.wLanguage = 0;
-    //AVI_header_strh.dwInitialFrames = 0;
-    // *NOTE*: dwRate / dwScale == fps
-    AVI_header_strh.dwScale = 10000; // 100th nanoseconds --> seconds ???
-    AVI_header_strh.dwRate =
-      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->AvgTimePerFrame
-                                                   : video_info_header2_p->AvgTimePerFrame);
-    //AVI_header_strh.dwStart = 0;
-    //AVI_header_strh.dwLength = 0;
-    //AVI_header_strh.dwSuggestedBufferSize = 0;
-    AVI_header_strh.dwQuality = -1; // default
-    //AVI_header_strh.dwSampleSize = 0;
-    //AVI_header_strh.rcFrame = {0, 0, 0, 0};
-    result = message_p->copy (reinterpret_cast<char*> (&AVI_header_strh),
-                              sizeof (struct _avistreamheader));
-
-    // strl --> strf
-    // *NOTE*: there is no definition for AVI stream format chunks, as their
-    //         contents differ, depending on the stream type
-    struct _riffchunk RIFF_chunk;
-    ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
-    RIFF_chunk.fcc = ckidSTREAMFORMAT;
-    RIFF_chunk.cb = sizeof (struct tagBITMAPINFOHEADER);
-    if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-      RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
-                              sizeof (struct _riffchunk));
-    struct tagBITMAPINFOHEADER AVI_header_strf;
-    ACE_OS::memset (&AVI_header_strf, 0, sizeof (struct tagBITMAPINFOHEADER));
-    AVI_header_strf =
-      ((media_type.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
-                                                   : video_info_header2_p->bmiHeader);
-    result = message_p->copy (reinterpret_cast<char*> (&AVI_header_strf),
-                              sizeof (struct tagBITMAPINFOHEADER));
-
-    // strl --> strd
-    // strl --> strn
-
-    // --> END strl
-
-    // insert JUNK chunk to align the 'movi' chunk at 2048 bytes
-    // --> should speed up CD-ROM access
-    unsigned int pad_bytes =
-      AVI_header_avih.dwPaddingGranularity - message_p->length () - 8 - 12;
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("inserting JUNK chunk (%d pad byte(s))...\n"),
-                pad_bytes));
-    RIFF_chunk.fcc = FCC ('JUNK');
-    RIFF_chunk.cb = pad_bytes;
-    if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-      RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
-                              sizeof (struct _riffchunk));
-    ACE_OS::memset (message_p->wr_ptr (), 0, pad_bytes);
-    message_p->wr_ptr (RIFF_chunk.cb);
-
-    // movi
-    RIFF_list.fcc = FCC ('LIST');
-    // *NOTE*: see above
-    // sizeof (fccListType) [4] + sizeof (LIST data)
-    RIFF_list.cb = sizeof (FOURCC) +
-                   sizeof (struct _riffchunk) + // 00db
-                   IMediaSample_in->GetSize (); // (part of) frame
-    if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-      RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
-    RIFF_list.fccListType = FCC ('movi');
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_list),
-                              sizeof (struct _rifflist));
-
-    // db (--> Uncompressed video frame)
-    RIFF_chunk.fcc = FCC ('00db');
-    RIFF_chunk.cb = IMediaSample_in->GetSize ();
-    if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
-      RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
-                              sizeof (struct _riffchunk));
-
-    //struct _avisuperindex AVI_header_indx;
-    //ACE_OS::memset (&AVI_header_indx, 0, sizeof (struct _avisuperindex));
-    //AVI_header_indx.fcc = 0;
-    //AVI_header_indx.cb = 0;
-    //AVI_header_indx.wLongsPerEntry = 0;
-    //AVI_header_indx.bIndexSubType = 0;
-    //AVI_header_indx.bIndexType = 0;
-    //AVI_header_indx.nEntriesInUse = 0;
-    //AVI_header_indx.dwChunkId = 0;
-    //AVI_header_indx.dwReserved = 0;
-    ////AVI_header_indx.aIndex = 0;
-    //struct _avisuperindex_entry AVI_header_indx_entry_0;
-    //ACE_OS::memset (&AVI_header_indx_entry_0, 0, sizeof (struct _avisuperindex_entry));
-    //struct _avisuperindex_entry AVI_header_indx_entry_1;
-    //ACE_OS::memset (&AVI_header_indx_entry_1, 0, sizeof (struct _avisuperindex_entry));
-    //struct _avisuperindex_entry AVI_header_indx_entry_2;
-    //ACE_OS::memset (&AVI_header_indx_entry_2, 0, sizeof (struct _avisuperindex_entry));
-    //struct _avisuperindex_entry AVI_header_indx_entry_3;
-    //ACE_OS::memset (&AVI_header_indx_entry_3, 0, sizeof (struct _avisuperindex_entry));
-    //result =
-    //  message_p->copy (reinterpret_cast<char*> (&AVI_header_indx),
-    //                   sizeof (struct _avisuperindex));
-
-    result = inherited::putq (message_p, NULL);
-    if (result == -1)
-    {
-      int error = ACE_OS::last_error ();
-      if (error != ESHUTDOWN)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                    inherited::name ()));
-
-      // clean up
-      message_p->release ();
-
-      return E_FAIL;
-    } // end IF
-
-    isFirst_ = false;
-  } // end IF
-  else
-  {
-    // *TODO*: remove type inference
-    message_p =
-      allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
-    if (!message_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("allocateMessage(%d) failed: \"%m\", aborting\n"),
-                  inherited::configuration_->streamConfiguration->bufferSize));
-      return E_FAIL;
-    } // end IF
-    ACE_ASSERT (message_p);
-
-    struct _riffchunk RIFF_chunk;
-    ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
-    RIFF_chunk.fcc = FCC ('00db');
-    RIFF_chunk.cb = IMediaSample_in->GetSize ();
-    result = message_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
-                              sizeof (struct _riffchunk));
-
-    result = inherited::putq (message_p, NULL);
-    if (result == -1)
-    {
-      int error = ACE_OS::last_error ();
-      if (error != ESHUTDOWN)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                    inherited::name ()));
-
-      // clean up
-      message_p->release ();
-
-      return E_FAIL;
-    } // end IF
-  } // end IF
 
   ULONG reference_count = IMediaSample_in->AddRef ();
+
+  ProtocolMessageType* message_p = NULL;
   try
   {
     message_p = dynamic_cast<ProtocolMessageType*> (IMediaSample_in);
   }
   catch (...)
   {
-    //ACE_DEBUG ((LM_DEBUG,
+    //ACE_DEBUG ((LM_ERROR,
     //            ACE_TEXT ("failed to dynamic_cast<ProtocolMessageType*>(0x%@), continuing\n"),
     //            IMediaSample_in));
     message_p = NULL;
@@ -1060,11 +772,11 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   {
     // *TODO*: remove type inference
     message_p =
-      allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+      inherited::allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("allocateMessage(%d) failed: \"%m\", aborting\n"),
+                  ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
                   inherited::configuration_->streamConfiguration->bufferSize));
       return E_FAIL;
     } // end IF
@@ -1075,12 +787,12 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
     data_r.sampleTime = sampleTime_in;
 
     BYTE* buffer_p = NULL;
-    result_2 = IMediaSample_in->GetPointer (&buffer_p);
+    HRESULT result_2 = IMediaSample_in->GetPointer (&buffer_p);
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMediaSample::GetPointer(): \"%m\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       return result_2;
     } // end IF
     ACE_ASSERT (buffer_p);
@@ -1625,65 +1337,6 @@ continue_2:
   filter_4->Release ();
 
   return true;
-}
-
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-ProtocolMessageType*
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                                   SessionMessageType,
-                                   ProtocolMessageType,
-                                   ConfigurationType,
-                                   StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
-                                   StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::allocateMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-
-  // initialize return value(s)
-  ProtocolMessageType* message_out = NULL;
-
-  if (inherited::configuration_->streamConfiguration->messageAllocator)
-  {
-    try
-    {
-      // *TODO*: remove type inference
-      message_out =
-          static_cast<ProtocolMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
-    }
-    catch (...)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                  requestedSize_in));
-      message_out = NULL;
-    }
-  } // end IF
-  else
-  {
-    ACE_NEW_NORETURN (message_out,
-                      ProtocolMessageType (requestedSize_in));
-  } // end ELSE
-  if (!message_out)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
-                requestedSize_in));
-  } // end IF
-
-  return message_out;
 }
 
 template <typename LockType,

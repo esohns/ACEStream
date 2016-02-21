@@ -64,7 +64,9 @@ class Stream_CamSave_Stream
   virtual ~Stream_CamSave_Stream ();
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Stream_CamSave_StreamConfiguration&); // configuration
+  virtual bool initialize (const Stream_CamSave_StreamConfiguration&, // configuration
+                           bool = true,                               // setup pipeline ?
+                           bool = true);                              // reset session data ?
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -98,6 +100,7 @@ class Stream_CamSave_Stream
   // modules
   Stream_CamSave_Module_Source_Module           source_;
   Stream_CamSave_Module_RuntimeStatistic_Module runtimeStatistic_;
+  Stream_CamSave_Module_AVIEncoder_Module       encoder_;
   Stream_CamSave_Module_Display_Module          display_;
   Stream_CamSave_Module_FileWriter_Module       fileWriter_;
 

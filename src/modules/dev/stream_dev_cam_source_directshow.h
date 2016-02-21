@@ -133,7 +133,6 @@ class Stream_Dev_Cam_Source_DirectShow_T
   bool initialize_DirectShow (const std::string&, // (source) device name (FriendlyName)
                               IGraphBuilder*,     // capture graph handle
                               const HWND);        // (target) window handle [NULL: NullRenderer]
-  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
   bool                              isInitialized_;

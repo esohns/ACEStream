@@ -48,9 +48,9 @@ Stream_RIFFDecoder_Stream::Stream_RIFFDecoder_Stream ()
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&source_);
-  inherited::availableModules_.push_front (&decoder_);
-  inherited::availableModules_.push_front (&runtimeStatistic_);
+  inherited::modules_.push_front (&source_);
+  inherited::modules_.push_front (&decoder_);
+  inherited::modules_.push_front (&runtimeStatistic_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -58,8 +58,8 @@ Stream_RIFFDecoder_Stream::Stream_RIFFDecoder_Stream ()
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::availableModules_.begin ();
-       iterator != inherited::availableModules_.end ();
+  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
+       iterator != inherited::modules_.end ();
        iterator++)
      (*iterator)->next (NULL);
 }
@@ -73,7 +73,9 @@ Stream_RIFFDecoder_Stream::~Stream_RIFFDecoder_Stream ()
 }
 
 bool
-Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfiguration& configuration_in)
+Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfiguration& configuration_in,
+                                       bool setupPipeline_in,
+                                       bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Stream::initialize"));
 
@@ -124,7 +126,9 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
   } // end IF
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              false,
+                              resetSessionData_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
@@ -135,8 +139,7 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
   Stream_RIFFDecoder_SessionData& session_data_r =
     const_cast<Stream_RIFFDecoder_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  session_data_r.sessionID =
-    ++Stream_RIFFDecoder_Stream::currentSessionID;
+  session_data_r.sessionID = ++Stream_RIFFDecoder_Stream::currentSessionID;
 
   // things to be done here:
   // [- initialize base class]
@@ -217,14 +220,7 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    result = inherited::push (configuration_in.module);
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
+    inherited::modules_.push_front (configuration_in.module);
   } // end IF
 
   // ---------------------------------------------------------------------------
@@ -249,14 +245,6 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
                 runtimeStatistic_.name ()));
     return false;
   } // end IF
-  result = inherited::push (&runtimeStatistic_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (runtimeStatistic_.name ())));
-    return false;
-  } // end IF
 
   // ******************* Decoder ************************
   decoder_.initialize (configuration_in.moduleConfiguration_2);
@@ -272,14 +260,6 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                decoder_.name ()));
-    return false;
-  } // end IF
-  result = inherited::push (&decoder_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
                 decoder_.name ()));
     return false;
   } // end IF
@@ -312,14 +292,14 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
   source_.arg (inherited::sessionData_);
-  result = inherited::push (&source_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                source_.name ()));
-    return false;
-  } // end IF
+
+  if (setupPipeline_in)
+    if (!inherited::setup ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+      return false;
+    } // end IF
 
   // -------------------------------------------------------------
 

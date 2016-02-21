@@ -66,7 +66,9 @@ class Test_I_Target_Stream
   virtual ~Test_I_Target_Stream ();
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_Stream_Configuration&); // configuration
+  virtual bool initialize (const Test_I_Stream_Configuration&, // configuration
+                           bool = true,                        // setup pipeline ?
+                           bool = true);                       // reset session data ?
 
   // *TODO*: re-consider this API
   void ping ();

@@ -37,6 +37,9 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
+ , encoder_ (ACE_TEXT_ALWAYS_CHAR ("AVIEncoder"),
+             NULL,
+             false)
  , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
              NULL,
              false)
@@ -51,10 +54,11 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&source_);
-  inherited::availableModules_.push_front (&runtimeStatistic_);
-  inherited::availableModules_.push_front (&display_);
-  inherited::availableModules_.push_front (&fileWriter_);
+  inherited::modules_.push_front (&source_);
+  inherited::modules_.push_front (&runtimeStatistic_);
+  inherited::modules_.push_front (&encoder_);
+  inherited::modules_.push_front (&display_);
+  inherited::modules_.push_front (&fileWriter_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -62,8 +66,8 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::availableModules_.begin ();
-       iterator != inherited::availableModules_.end ();
+  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
+       iterator != inherited::modules_.end ();
        iterator++)
      (*iterator)->next (NULL);
 }
@@ -77,7 +81,9 @@ Stream_CamSave_Stream::~Stream_CamSave_Stream ()
 }
 
 bool
-Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& configuration_in)
+Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& configuration_in,
+                                   bool setupPipeline_in,
+                                   bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::initialize"));
 
@@ -128,7 +134,9 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   } // end IF
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              false,
+                              resetSessionData_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
@@ -224,14 +232,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    result = inherited::push (configuration_in.module);
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
+    inherited::modules_.push_front (configuration_in.module);
   } // end IF
 
   // ---------------------------------------------------------------------------
@@ -253,14 +254,6 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
                 fileWriter_.name ()));
     return false;
   } // end IF
-  result = inherited::push (&fileWriter_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                fileWriter_.name ()));
-    return false;
-  } // end IF
 
   // ******************* Display ************************
   display_.initialize (configuration_in.moduleConfiguration_2);
@@ -279,12 +272,22 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
                 display_.name ()));
     return false;
   } // end IF
-  result = inherited::push (&display_);
-  if (result == -1)
+
+  // ******************* AVI Encoder ************************
+  encoder_.initialize (configuration_in.moduleConfiguration_2);
+  Stream_CamSave_Module_AVIEncoder_WriterTask_t* encoder_impl_p =
+    dynamic_cast<Stream_CamSave_Module_AVIEncoder_WriterTask_t*> (encoder_.writer ());
+  if (!encoder_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                display_.name ()));
+                ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_AVIEncoder_WriterTask_T> failed, aborting\n")));
+    return false;
+  } // end IF
+  if (!encoder_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+                encoder_.name ()));
     return false;
   } // end IF
 
@@ -306,14 +309,6 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
                 runtimeStatistic_.name ()));
-    return false;
-  } // end IF
-  result = inherited::push (&runtimeStatistic_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (runtimeStatistic_.name ())));
     return false;
   } // end IF
 
@@ -345,14 +340,14 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
   source_.arg (inherited::sessionData_);
-  result = inherited::push (&source_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                source_.name ()));
-    return false;
-  } // end IF
+
+  if (setupPipeline_in)
+    if (!inherited::setup ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+      return false;
+    } // end IF
 
   // -------------------------------------------------------------
 

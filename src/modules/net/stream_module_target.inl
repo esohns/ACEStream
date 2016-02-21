@@ -199,7 +199,11 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
         // sanity check(s)
         ACE_ASSERT (configuration_->connectionManager);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        ACE_ASSERT (reinterpret_cast<HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
+#else
         ACE_ASSERT (session_data_r.sessionID != ACE_INVALID_HANDLE);
+#endif
 
         // *TODO*: remove type inference
         ACE_HANDLE handle = ACE_INVALID_HANDLE;
@@ -417,7 +421,7 @@ reset:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("linked i/o streams\n")));
         isLinked_ = true;
-//        configuration_->stream->dump_state ();
+        configuration_->stream->dump_state ();
 
         goto done;
 

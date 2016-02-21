@@ -58,9 +58,9 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
 //  inherited::availableModules_.push_front (&source_);
   //inherited::availableModules_.push_front (&directShowSource_);
 //  inherited::availableModules_.push_front (&decoder_);
-  inherited::availableModules_.push_front (&splitter_);
-  inherited::availableModules_.push_front (&runtimeStatistic_);
-  inherited::availableModules_.push_front (&display_);
+  inherited::modules_.push_front (&splitter_);
+  inherited::modules_.push_front (&runtimeStatistic_);
+  inherited::modules_.push_front (&display_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -68,8 +68,8 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::availableModules_.begin ();
-       iterator != inherited::availableModules_.end ();
+  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
+       iterator != inherited::modules_.end ();
        iterator++)
      (*iterator)->next (NULL);
 }
@@ -92,7 +92,9 @@ Test_I_Target_Stream::ping ()
 }
 
 bool
-Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& configuration_in)
+Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& configuration_in,
+                                  bool setupPipeline_in,
+                                  bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::initialize"));
 
@@ -104,9 +106,9 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   if (inherited::isInitialized_)
   {
     // *TODO*: move this to stream_base.inl ?
-    int result = -1;
+    int result_2 = -1;
     const inherited::MODULE_T* module_p = NULL;
-    inherited::IMODULE_T* imodule_p = NULL;
+    typename inherited::IMODULE_T* imodule_p = NULL;
     for (inherited::ITERATOR_T iterator (*this);
          (iterator.next (module_p) != 0);
          iterator.advance ())
@@ -128,9 +130,9 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
       if (imodule_p->isFinal ())
       {
         //ACE_ASSERT (module_p == configuration_in.module);
-        result = inherited::remove (module_p->name (),
-                                    ACE_Module_Base::M_DELETE_NONE);
-        if (result == -1)
+        result_2 = inherited::remove (module_p->name (),
+                                      ACE_Module_Base::M_DELETE_NONE);
+        if (result_2 == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
@@ -146,41 +148,51 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
         break; // done
       } // end IF
     } // end FOR
-  } // end IF
 
-  int result_2 = -1;
-  typename inherited::MODULE_T* module_2 = NULL;
-  Test_I_Target_Stream_SessionData* session_data_p = NULL;
+    if (inherited::sessionData_)
+    {
+      inherited::sessionData_->decrease ();
+      inherited::sessionData_ = NULL;
+    } // end IF
+  } // end IF
 
   // allocate a new session state, reset stream
-  bool clone_module, delete_module;
-  clone_module = configuration_in.cloneModule;
-  delete_module = configuration_in.deleteModule;
-  typename inherited::MODULE_T* module_p = configuration_in.module;
-  Test_I_Target_StreamConfiguration& configuration_r =
-      const_cast<Test_I_Target_StreamConfiguration&> (configuration_in);
-  configuration_r.cloneModule = false;
-  configuration_r.deleteModule = false;
-  configuration_r.module = NULL;
-  if (!inherited::initialize (configuration_r))
+  ACE_ASSERT (!inherited::sessionData_);
+  Test_I_Target_Stream_SessionData* session_data_p = NULL;
+  ACE_NEW_NORETURN (session_data_p,
+                    Test_I_Target_Stream_SessionData ());
+  if (!session_data_p)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name ().c_str ())));
-    result = false;
-    goto reset;
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+    return false;
   } // end IF
+  // *TODO*: remove type inferences
+  session_data_p->lock = &(inherited::lock_);
+  inherited::state_.currentSessionData = session_data_p;
+  // *IMPORTANT NOTE*: fire-and-forget API (session_data_p)
+  ACE_NEW_NORETURN (inherited::sessionData_,
+                    Test_I_Target_Stream_SessionData_t (session_data_p));
   if (!inherited::sessionData_)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to allocate session data, aborting\n")));
-    result = false;
-    goto reset;
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+
+    // clean up
+    inherited::state_.currentSessionData = NULL;
+    delete session_data_p;
+
+    return false;
   } // end IF
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
+
   // *TODO*: remove type inferences
+//  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   session_data_p =
       &const_cast<Test_I_Target_Stream_SessionData&> (inherited::sessionData_->get ());
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  session_data_p->format = configuration_in.moduleHandlerConfiguration->format;
+#endif
   //session_data_r.fileName =
   //  configuration_in.moduleHandlerConfiguration->targetFileName;
   session_data_p->sessionID = configuration_in.sessionID;
@@ -198,42 +210,38 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   if (configuration_in.notificationStrategy)
   {
-    module_2 = inherited::head ();
+    typename inherited::MODULE_T* module_2 = inherited::head ();
     if (!module_2)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("no head module found, aborting\n")));
-      result = false;
-      goto reset;
+      return false;
     } // end IF
     inherited::TASK_T* task_p = module_2->reader ();
     if (!task_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("no head module reader task found, aborting\n")));
-      result = false;
-      goto reset;
+      return false;
     } // end IF
     inherited::QUEUE_T* queue_p = task_p->msg_queue ();
     if (!queue_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("no head module reader task queue found, aborting\n")));
-      result = false;
-      goto reset;
+      return false;
     } // end IF
     queue_p->notification_strategy (configuration_in.notificationStrategy);
   } // end IF
-//  configuration_in.moduleConfiguration.streamState = &state_;
-
-reset:
-  configuration_r.cloneModule = clone_module;
-  configuration_r.deleteModule = delete_module;
-  configuration_r.module = module_p;
 
   // ---------------------------------------------------------------------------
   ACE_ASSERT (configuration_in.moduleConfiguration);
-  //ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
+  //  configuration_in.moduleConfiguration.streamState = &state_;
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
+  Test_I_Target_StreamConfiguration& configuration_r =
+      const_cast<Test_I_Target_StreamConfiguration&> (configuration_in);
+  configuration_r.moduleHandlerConfiguration->stateMachineLock =
+    &inherited::state_.stateMachineLock;
 
   if (configuration_in.module)
   {
@@ -272,14 +280,7 @@ reset:
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    result_2 = inherited::push (configuration_in.module);
-    if (result_2 == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
+    inherited::modules_.push_front (configuration_in.module);
   } // end IF
 
   // ---------------------------------------------------------------------------
@@ -298,14 +299,6 @@ reset:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                display_.name ()));
-    return false;
-  } // end IF
-  result_2 = inherited::push (&display_);
-  if (result_2 == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
                 display_.name ()));
     return false;
   } // end IF
@@ -330,14 +323,6 @@ reset:
                 runtimeStatistic_.name ()));
     return false;
   } // end IF
-  result_2 = inherited::push (&runtimeStatistic_);
-  if (result_2 == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                runtimeStatistic_.name ()));
-    return false;
-  } // end IF
 
   // ************************ Splitter *****************************
   splitter_.initialize (*configuration_in.moduleConfiguration);
@@ -356,14 +341,17 @@ reset:
                 splitter_.name ()));
     return false;
   } // end IF
-  result_2 = inherited::push (&splitter_);
-  if (result_2 == -1)
+  if (!splitter_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
                 splitter_.name ()));
     return false;
   } // end IF
+  // *NOTE*: push()ing the module will open() it
+  //         --> set the argument that is passed along (head module expects a
+  //             handle to the session data)
+  splitter_.arg (inherited::sessionData_);
 
 //  // ************************ AVI Decoder *****************************
 //  decoder_.initialize (*configuration_in.moduleConfiguration);
@@ -457,12 +445,34 @@ reset:
 
   // -------------------------------------------------------------
 
+  bool clone_module, delete_module;
+  clone_module = configuration_in.cloneModule;
+  delete_module = configuration_in.deleteModule;
+  typename inherited::MODULE_T* module_p = configuration_in.module;
+  configuration_r.cloneModule = false;
+  configuration_r.deleteModule = false;
+  configuration_r.module = NULL;
+  if (!inherited::initialize (configuration_r,
+                              setupPipeline_in,
+                              false))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT (inherited::name ().c_str ())));
+    result = false;
+    goto reset;
+  } // end IF
+
+reset:
+  configuration_r.cloneModule = clone_module;
+  configuration_r.deleteModule = delete_module;
+  configuration_r.module = module_p;
+
   // set (session) message allocator
   inherited::allocator_ = configuration_in.messageAllocator;
 
   // OK: all went well
   inherited::isInitialized_ = true;
-  //inherited::dump_state ();
 
   return result;
 }

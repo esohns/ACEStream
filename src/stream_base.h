@@ -132,9 +132,11 @@ class Stream_Base_T
   virtual void set (const SessionDataContainerType*);
 
 //  // implement Common_IInitialize_T
-  // *IMPORTANT NOTE*: this (also) sets the stream state machine lock in the
-  //                   module handler configuration !
-  virtual bool initialize (const ConfigurationType&);
+  // *IMPORTANT NOTE*: sets the stream state machine lock in the module handler
+  //                   configuration
+  virtual bool initialize (const ConfigurationType&, // configuration
+                           bool = true,              // setup pipeline ?
+                           bool = true);             // reset session data ?
 
   // override ACE_Stream method(s)
   virtual int get (ACE_Message_Block*&, // return value: message block handle
@@ -200,23 +202,21 @@ class Stream_Base_T
   //            finishes (because close() of a module waits for its worker
   //            thread(s))
   bool reset ();
+  bool setup ();
 
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
 
-  // *NOTE*: derived classes need to add handles to ALL of their modules to this
-  //         container !
-  //ACE_DLList<MODULE_T> availableModules_;
-  MODULE_CONTAINER_T        availableModules_;
-
-  // *NOTE*: children need to set this IF their initialization succeeded;
-  //         otherwise, the dtor will NOT stop all worker threads before
-  //         close()ing the modules...
-  bool                      isInitialized_;
-
   // *NOTE*: derived classes need to initialize these !
   Stream_IAllocator*        allocator_;
+  // *NOTE*: derived classes set this IF their initialization succeeded;
+  //         otherwise, the dtor will NOT stop all worker threads before
+  //         close()ing the modules
+  bool                      isInitialized_;
   ACE_SYNCH_MUTEX           lock_;
+  // *IMPORTANT NOTE*: derived classes add handles to ALL of their modules to
+  //                   this container
+  MODULE_CONTAINER_T        modules_;
   SessionDataContainerType* sessionData_;
   StateType                 state_;
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_
@@ -250,7 +250,8 @@ class Stream_Base_T
 
   // helper methods
   // implement (part of) Common_IControl
-  virtual void initialize ();
+  virtual void initialize (bool = true,  // setup pipeline ?
+                           bool = true); // reset session data ?
 
   // wrap inherited::open/close() calls
   void deactivateModules ();

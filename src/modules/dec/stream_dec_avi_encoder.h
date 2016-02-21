@@ -38,6 +38,7 @@ class Stream_IAllocator;
 
 template <typename TaskSynchType,
           typename TimePolicyType,
+          typename SessionDataContainerType,
           typename SessionDataType>
 class Stream_Decoder_AVIEncoder_ReaderTask_T
  : public ACE_Thru_Task<TaskSynchType,
@@ -64,6 +65,7 @@ class Stream_Decoder_AVIEncoder_ReaderTask_T
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
+          typename SessionDataContainerType,
           typename SessionDataType>
 class Stream_Decoder_AVIEncoder_WriterTask_T
  : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -86,8 +88,8 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  ConfigurationType* configuration_;
-  SessionDataType*   sessionData_;
+  ConfigurationType*        configuration_;
+  SessionDataContainerType* sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -103,20 +105,24 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   // *NOTE*: the RIFF-AVI (storage) format (like many others) foresees a
   //         header that contains size fields with information about
   //         the length of the consecutively linear, structured bulk data.
-  //         Note that in a (streaming) scenario generating data this
-  //         information often is not available prior to the event, and may have
+  //         Note that in a (streaming) scenario generating data, this
+  //         information often is not available prior to the event and may have
   //         to be filled in after the stream ends (i.e. in a post-processing
-  //         step potentially requiring reparsing of the written data).
+  //         step, potentially requiring reparsing of the written data).
   //         Here, this means that, unless preconfiguration data (duration,
   //         format) is supplied initially, either through session data/and or
   //         module configuration, the encoding process must be split into two
   //         separate phases (or modules, probably more adequate for modular,
-  //         pipelined processing), to comply with the standard. This
+  //         pipelined processing) to comply with the standard. This
   //         implementation contains the post-processing step by reacting to the
   //         completion event message sent upstream by final module(s) of the
   //         processing stream
-  bool               isFirst_;
-  bool               isInitialized_;
+  bool                      isFirst_;
+  bool                      isInitialized_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType       mediaType_;
+#else
+#endif
 };
 
 // include template implementation

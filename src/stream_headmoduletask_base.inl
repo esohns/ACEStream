@@ -209,7 +209,7 @@ Stream_HeadModuleTaskBase_T<LockType,
     return -1;
   } // end IF
 
-  // standard usecase: being implicitly invoked by ACE_Stream::push()...
+  // standard usecase: being implicitly invoked through ACE_Stream::push()
   // --> don't do anything, unless auto-starting
   if (autoStart_)
   {
@@ -389,9 +389,27 @@ Stream_HeadModuleTaskBase_T<LockType,
   while (inherited2::getq (message_block_p,
                            NULL) != -1)
   {
-    inherited2::handleMessage (message_block_p,
-                               stop_processing);
+    // sanity check(s)
+    ACE_ASSERT (message_block_p);
 
+    switch (message_block_p->msg_type ())
+    {
+      case ACE_Message_Block::MB_STOP:
+      {
+        stop_processing = true;
+        
+        // clean up
+        message_block_p->release ();
+
+        break;
+      }
+      default:
+      {
+        inherited2::handleMessage (message_block_p,
+                                   stop_processing);
+        break;
+      }
+    } // end SWITCH
     // finished ?
     if (stop_processing)
     {
@@ -820,20 +838,21 @@ Stream_HeadModuleTaskBase_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->streamConfiguration);
 
   // initialize return value(s)
   ProtocolMessageType* message_p = NULL;
 
   // *TODO*: remove type inference
-  if (inherited::configuration_->streamConfiguration->messageAllocator)
+  if (configuration_->streamConfiguration->messageAllocator)
   {
 allocate:
     try
     {
       // *TODO*: remove type inference
       message_p =
-          static_cast<ProtocolMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
+          static_cast<ProtocolMessageType*> (configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
     }
     catch (...)
     {
@@ -845,7 +864,7 @@ allocate:
 
     // keep retrying ?
     if (!message_p &&
-        !inherited::configuration_->streamConfiguration->messageAllocator->block ())
+        !configuration_->streamConfiguration->messageAllocator->block ())
       goto allocate;
   } // end IF
   else
@@ -853,9 +872,9 @@ allocate:
                       ProtocolMessageType (requestedSize_in));
   if (!message_p)
   {
-    if (inherited::configuration_->streamConfiguration->messageAllocator)
+    if (configuration_->streamConfiguration->messageAllocator)
     {
-      if (inherited::configuration_->streamConfiguration->messageAllocator->block ())
+      if (configuration_->streamConfiguration->messageAllocator->block ())
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate ProtocolMessageType(%u): \"%m\", aborting\n"),
                     requestedSize_in));

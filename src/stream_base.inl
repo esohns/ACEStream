@@ -56,10 +56,10 @@ Stream_Base_T<LockType,
  : inherited (NULL, // argument to module open()
               NULL, // no head module --> allocate !
               NULL) // no tail module --> allocate !
- , availableModules_ ()
- , isInitialized_ (false)
  , allocator_ (NULL)
+ , isInitialized_ (false)
  , lock_ ()
+ , modules_ ()
  , sessionData_ (NULL)
  , state_ ()
  , upStream_ (NULL)
@@ -165,9 +165,82 @@ Stream_Base_T<LockType,
 
   // - reset reader/writers tasks for ALL modules
   // - re-initialize head/tail modules
-  initialize ();
+  initialize (true, true);
 
   return result;
+}
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+bool
+Stream_Base_T<LockType,
+              TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+              ProtocolMessageType>::setup ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::setup"));
+
+  int result = -1;
+
+  // step1: reset pipeline
+  try
+  {
+    result = inherited::open (NULL,  // argument to module open()
+                              NULL,  // no head module --> allocate !
+                              NULL); // no tail module --> allocate !
+  }
+  catch (...)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in ACE_Stream::open(), continuing\n")));
+    result = -1;
+  }
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+
+  // step2: push all available modules
+  for (MODULE_CONTAINER_ITERATOR_T iterator = modules_.begin ();
+       iterator != modules_.end ();
+       iterator++)
+  {
+    result = inherited::push (*iterator);
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
+                  (*iterator)->name ()));
+      return false;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("pushed \"%s\"...\n"),
+                (*iterator)->name ()));
+  } // end IF
+  dump_state ();
+
+  return true;
 }
 
 template <typename LockType,
@@ -196,7 +269,8 @@ Stream_Base_T<LockType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
-              ProtocolMessageType>::initialize ()
+              ProtocolMessageType>::initialize (bool setupPipeline_in,
+                                                bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
@@ -211,8 +285,8 @@ Stream_Base_T<LockType,
     // *NOTE*: fini() calls close(), resetting the writer/reader tasks
     //         of all enqueued modules --> reset them !
     IMODULE_T* imodule_p = NULL;
-    for (MODULE_CONTAINER_ITERATOR_T iterator = availableModules_.begin ();
-         iterator != availableModules_.end ();
+    for (MODULE_CONTAINER_ITERATOR_T iterator = modules_.begin ();
+         iterator != modules_.end ();
          iterator++)
     {
       // need a downcast...
@@ -234,60 +308,57 @@ Stream_Base_T<LockType,
                     ACE_TEXT ("caught exception in Stream_IModule::reset(), continuing\n")));
       }
     } // end FOR
+
+    if (resetSessionData_in &&
+        sessionData_)
+    {
+      sessionData_->decrease ();
+      sessionData_ = NULL;
+    } // end IF
+
     isInitialized_ = false;
   } // end IF
 
-  // allocate session data
-  if (sessionData_)
+  // step1: allocate session data
+  if (resetSessionData_in)
   {
-    sessionData_->decrease ();
-    sessionData_ = NULL;
-  } // end IF
-  SessionDataType* session_data_p = NULL;
-  ACE_NEW_NORETURN (session_data_p,
-                    SessionDataType ());
-  if (!session_data_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
-    return;
-  } // end IF
-  // *TODO*: remove type inferences
-  session_data_p->lock = &lock_;
-  state_.currentSessionData = session_data_p;
+    SessionDataType* session_data_p = NULL;
+    ACE_NEW_NORETURN (session_data_p,
+                      SessionDataType ());
+    if (!session_data_p)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+      return;
+    } // end IF
+    // *TODO*: remove type inferences
+    session_data_p->lock = &lock_;
+    state_.currentSessionData = session_data_p;
 
-  // *IMPORTANT NOTE*: fire-and-forget API (session_data_p)
-  ACE_NEW_NORETURN (sessionData_,
-                    SessionDataContainerType (session_data_p));
-  if (!sessionData_)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+    // *IMPORTANT NOTE*: fire-and-forget API (session_data_p)
+    ACE_NEW_NORETURN (sessionData_,
+                      SessionDataContainerType (session_data_p));
+    if (!sessionData_)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
 
-    // clean up
-    delete session_data_p;
+      // clean up
+      state_.currentSessionData = NULL;
+      delete session_data_p;
 
-    return;
+      return;
+    } // end IF
   } // end IF
 
-  try
-  {
-    result = inherited::open (NULL,  // argument to module open()
-                              NULL,  // no head module --> allocate !
-                              NULL); // no tail module --> allocate !
-  }
-  catch (...)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in ACE_Stream::open(), continuing\n")));
-    result = -1;
-  }
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", returning\n")));
-    return;
-  } // end IF
+  // step2: setup pipeline
+  if (setupPipeline_in)
+    if (!setup ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to setup pipeline, returning\n")));
+      return;
+    } // end IF
 
   //// delegate to the head module
   //MODULE_T* module_p = NULL;
@@ -1783,7 +1854,9 @@ Stream_Base_T<LockType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
-              ProtocolMessageType>::initialize (const ConfigurationType& configuration_inout)
+              ProtocolMessageType>::initialize (const ConfigurationType& configuration_inout,
+                                                bool setupPipeline_in,
+                                                bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
@@ -1845,7 +1918,8 @@ Stream_Base_T<LockType,
   configuration_r.moduleHandlerConfiguration->stateMachineLock =
     &state_.stateMachineLock;
 
-  initialize ();
+  initialize (setupPipeline_in,
+              resetSessionData_in);
 
   return true;
 }
@@ -2492,8 +2566,8 @@ Stream_Base_T<LockType,
   //for (ACE_DLList_Iterator<MODULE_T> iterator (availableModules_);
   //     (iterator.next (module_p) != 0);
   //     iterator.advance ())
-  for (MODULE_CONTAINER_ITERATOR_T iterator = availableModules_.begin ();
-       iterator != availableModules_.end ();
+  for (MODULE_CONTAINER_ITERATOR_T iterator = modules_.begin ();
+       iterator != modules_.end ();
        iterator++)
   {
     // sanity check: on the stream ?

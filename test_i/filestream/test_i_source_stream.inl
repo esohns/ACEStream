@@ -42,9 +42,9 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&fileReader_);
-  inherited::availableModules_.push_front (&runtimeStatistic_);
-  inherited::availableModules_.push_front (&netTarget_);
+  inherited::modules_.push_front (&fileReader_);
+  inherited::modules_.push_front (&runtimeStatistic_);
+  inherited::modules_.push_front (&netTarget_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -52,8 +52,8 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::availableModules_.begin ();
-       iterator != inherited::availableModules_.end ();
+  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
+       iterator != inherited::modules_.end ();
        iterator++)
      (*iterator)->next (NULL);
 }
@@ -80,7 +80,9 @@ Test_I_Source_Stream_T<ConnectorType>::ping ()
 
 template <typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configuration& configuration_in)
+Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configuration& configuration_in,
+                                                   bool setupPipeline_in,
+                                                   bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
@@ -136,7 +138,9 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   } // end IF
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              false,
+                              resetSessionData_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
@@ -227,14 +231,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    result = inherited::push (configuration_in.module);
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
+    inherited::modules_.push_front (configuration_in.module);
   } // end IF
 
   // ---------------------------------------------------------------------------
@@ -260,14 +257,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
                 netTarget_.name ()));
     goto failed;
   } // end IF
-  result = inherited::push (&netTarget_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                netTarget_.name ()));
-    goto failed;
-  } // end IF
 
   // ******************* Runtime Statistics ************************
   runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
@@ -286,14 +275,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
                 runtimeStatistic_.name ()));
-    goto failed;
-  } // end IF
-  result = inherited::push (&runtimeStatistic_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (runtimeStatistic_.name ())));
     goto failed;
   } // end IF
 
@@ -326,14 +307,14 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configura
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
   fileReader_.arg (inherited::sessionData_);
-  result = inherited::push (&fileReader_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (fileReader_.name ())));
-    goto failed;
-  } // end IF
+
+  if (setupPipeline_in)
+    if (!inherited::setup ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+      return false;
+    } // end IF
 
   // -------------------------------------------------------------
 

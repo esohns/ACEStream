@@ -64,11 +64,7 @@ class Test_I_Source_Stream_Message
   // --> create a "shallow" copy of ourselves that references the same packet
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  // insert this buffer back into the device incoming queue
   virtual ACE_Message_Block* release (void);
-#endif
 
   // implement Stream_MessageBase_T
   virtual Test_I_CommandType_t command () const; // return value: message type

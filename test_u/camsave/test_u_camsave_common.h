@@ -26,6 +26,7 @@
 #include <string>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#include "qedit.h"
 #else
 #include "linux/videodev2.h"
 
@@ -55,6 +56,7 @@
 struct IAMStreamConfig;
 struct IGraphBuilder;
 struct IMediaSample;
+struct ISampleGrabber;
 struct IVideoWindow;
 #endif
 class Stream_IAllocator;
@@ -94,6 +96,7 @@ struct Stream_CamSave_SessionData
   inline Stream_CamSave_SessionData ()
    : Stream_SessionData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , sampleGrabber (NULL)
 #else
    , format ()
 #endif
@@ -102,6 +105,7 @@ struct Stream_CamSave_SessionData
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ISampleGrabber*     sampleGrabber;
 #else
   struct v4l2_format  format;
 #endif

@@ -45,10 +45,10 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&source_);
-  inherited::availableModules_.push_front (&runtimeStatistic_);
-  inherited::availableModules_.push_front (&netTarget_);
-  inherited::availableModules_.push_front (&display_);
+  inherited::modules_.push_front (&source_);
+  inherited::modules_.push_front (&runtimeStatistic_);
+  inherited::modules_.push_front (&netTarget_);
+  inherited::modules_.push_front (&display_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -56,8 +56,8 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::availableModules_.begin ();
-       iterator != inherited::availableModules_.end ();
+  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
+       iterator != inherited::modules_.end ();
        iterator++)
      (*iterator)->next (NULL);
 }
@@ -84,7 +84,9 @@ Test_I_Source_Stream_T<ConnectorType>::ping ()
 
 template <typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamConfiguration& configuration_in)
+Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamConfiguration& configuration_in,
+                                                   bool setupPipeline_in,
+                                                   bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
@@ -140,7 +142,9 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   } // end IF
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              false,
+                              resetSessionData_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
@@ -241,14 +245,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 //                  configuration_in.module->name ()));
 //      return false;
 //    } // end IF
-//    result = inherited::push (configuration_in.module);
-//    if (result == -1)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-//                  configuration_in.module->name ()));
-//      return false;
-//    } // end IF
+//    inherited::modules_.push_front (configuration_in.module);
 //  } // end IF
 
   // ---------------------------------------------------------------------------
@@ -276,14 +273,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
                 display_.name ()));
     return false;
   } // end IF
-  result = inherited::push (&display_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                display_.name ()));
-    return false;
-  } // end IF
 
   // ******************* Net Target ************************
   netTarget_.initialize (*configuration_in.moduleConfiguration);
@@ -298,14 +287,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                netTarget_.name ()));
-    goto failed;
-  } // end IF
-  result = inherited::push (&netTarget_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
                 netTarget_.name ()));
     goto failed;
   } // end IF
@@ -327,14 +308,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                runtimeStatistic_.name ()));
-    goto failed;
-  } // end IF
-  result = inherited::push (&runtimeStatistic_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
                 runtimeStatistic_.name ()));
     goto failed;
   } // end IF
@@ -368,14 +341,14 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
   source_.arg (inherited::sessionData_);
-  result = inherited::push (&source_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                source_.name ()));
-    goto failed;
-  } // end IF
+
+  if (setupPipeline_in)
+    if (!inherited::setup ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+      return false;
+    } // end IF
 
   // -------------------------------------------------------------
 
@@ -392,7 +365,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
   // OK: all went well
   inherited::isInitialized_ = true;
-  //inherited::dump_state ();
 
   return true;
 

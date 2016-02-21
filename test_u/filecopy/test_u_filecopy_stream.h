@@ -65,7 +65,9 @@ class Stream_Filecopy_Stream
   virtual ~Stream_Filecopy_Stream ();
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Stream_Test_U_StreamConfiguration&); // configuration
+  virtual bool initialize (const Stream_Test_U_StreamConfiguration&, // configuration
+                           bool = true,                              // setup pipeline ?
+                           bool = true);                             // reset session data ?
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_

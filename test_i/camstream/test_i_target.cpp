@@ -665,13 +665,12 @@ do_work (unsigned int bufferSize_in,
 #else
   configuration.moduleHandlerConfiguration.format.type =
       V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  configuration.moduleHandlerConfiguration.format.fmt.pix.bytesperline = 640;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.bytesperline = 960;
   configuration.moduleHandlerConfiguration.format.fmt.pix.field = 1;
   configuration.moduleHandlerConfiguration.format.fmt.pix.height = 240;
   configuration.moduleHandlerConfiguration.format.fmt.pix.pixelformat =
-      1448695129;
-  configuration.moduleHandlerConfiguration.format.fmt.pix.priv = 4276996862;
-  configuration.moduleHandlerConfiguration.format.fmt.pix.sizeimage = 153600;
+      861030210;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.sizeimage = 230400;
   configuration.moduleHandlerConfiguration.format.fmt.pix.width = 320;
 #endif
   // ******************** (sub-)stream configuration data *********************
@@ -1262,7 +1261,7 @@ ACE_TMAIN (int argc_in,
     use_thread_pool = true;
   } // end IF
   if ((gtk_glade_file.empty () &&
-       !Common_File_Tools::isReadable (output_file))                       ||
+       !Common_File_Tools::isValidFilename (output_file))                  ||
       (!gtk_glade_file.empty () &&
        !Common_File_Tools::isReadable (gtk_glade_file))                    ||
       //(!gtk_rc_file_name.empty () &&

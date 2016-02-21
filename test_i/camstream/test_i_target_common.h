@@ -26,6 +26,7 @@
 #include "ace/Time_Value.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#include "control.h"
 #else
 //#include "linux/videodev2.h"
 
@@ -167,7 +168,7 @@ struct Test_I_Target_Stream_SessionData
    : Test_I_Stream_SessionData ()
    , connectionState (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , frameSize (0)
+//   , frameSize (0)
 #else
    , format ()
 #endif
@@ -180,7 +181,7 @@ struct Test_I_Target_Stream_SessionData
     Test_I_Stream_SessionData::operator+= (rhs_in);
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
-    frameSize = rhs_in.frameSize;
+//    frameSize = rhs_in.frameSize;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
     format = rhs_in.format;
@@ -193,7 +194,7 @@ struct Test_I_Target_Stream_SessionData
   }
 
   Test_I_Target_ConnectionState* connectionState;
-  unsigned int                   frameSize; // *TODO*: remove this ASAP
+//  unsigned int                   frameSize; // *TODO*: remove this ASAP
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   struct v4l2_format             format;

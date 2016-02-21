@@ -77,8 +77,10 @@ class Stream_Module_Net_IO_Stream_T
   Stream_Module_Net_IO_Stream_T (const std::string&); // name
   virtual ~Stream_Module_Net_IO_Stream_T ();
 
-  // implement Common_IInitialize_T
-  virtual bool initialize (const ConfigurationType&); // configuration
+//  // implement Common_IInitialize_T
+  virtual bool initialize (const ConfigurationType&, // configuration
+                           bool = true,              // setup pipeline ?
+                           bool = true);             // reset session data ?
 
   // implement Common_IStatistic_T
   virtual bool collect (StatisticContainerType&); // return value: statistic data

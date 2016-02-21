@@ -35,6 +35,7 @@
 #include "stream_dev_cam_source_v4l.h"
 #include "stream_vis_gtk_drawingarea.h"
 #endif
+#include "stream_dec_avi_encoder.h"
 #include "stream_file_sink.h"
 #include "stream_misc_runtimestatistic.h"
 
@@ -101,6 +102,26 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                 // task 
                           Stream_CamSave_Module_Statistic_ReaderTask_t, // reader type
                           Stream_CamSave_Module_Statistic_WriterTask_t, // writer type
                           Stream_CamSave_Module_RuntimeStatistic);      // name
+
+typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
+                                               Common_TimePolicy_t,
+
+                                               Stream_CamSave_SessionData_t,
+                                               Stream_CamSave_SessionData> Stream_CamSave_Module_AVIEncoder_ReaderTask_t;
+typedef Stream_Decoder_AVIEncoder_WriterTask_T<Stream_CamSave_SessionMessage,
+                                               Stream_CamSave_Message,
+                                              
+                                               Stream_CamSave_ModuleHandlerConfiguration,
+                                   
+                                               Stream_CamSave_SessionData_t,
+                                               Stream_CamSave_SessionData> Stream_CamSave_Module_AVIEncoder_WriterTask_t;
+DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                  // task synch type
+                          Common_TimePolicy_t,                           // time policy type
+                          Stream_ModuleConfiguration,                    // module configuration type
+                          Stream_CamSave_ModuleHandlerConfiguration,     // module handler configuration type
+                          Stream_CamSave_Module_AVIEncoder_ReaderTask_t, // reader type
+                          Stream_CamSave_Module_AVIEncoder_WriterTask_t, // writer type
+                          Stream_CamSave_Module_AVIEncoder);             // name
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Vis_Target_DirectShow_T<Stream_CamSave_SessionMessage,

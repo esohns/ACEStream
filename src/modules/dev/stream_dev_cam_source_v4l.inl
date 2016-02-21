@@ -235,14 +235,23 @@ error:
     }
     case STREAM_SESSION_END:
     {
-      // step1: empty buffer queue(s)
-      if (captureFileDescriptor_ != -1)
-        Stream_Module_Device_Tools::finalizeBuffers<ProtocolMessageType> (captureFileDescriptor_,
-                                                                          inherited::configuration_->method,
-                                                                          const_cast<ConfigurationType*> (inherited::configuration_)->bufferMap);
-
-      // step2: stop stream
       int toggle = 0;
+
+      // *NOTE*: in some scenarios (which ?), VIDIOC_DQBUF blocks here
+      //         --> stop stream first
+      // *TODO*: perform step2 first, i.e. remove all buffers before stopping
+      //         the stream
+      // step1: stop stream
+      if (overlayFileDescriptor_ != -1)
+      {
+        result = v4l2_ioctl (overlayFileDescriptor_,
+                             VIDIOC_OVERLAY,
+                             &toggle);
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to v4l2_ioctl(%d,%u): \"%m\", continuing\n"),
+                      overlayFileDescriptor_, ACE_TEXT ("VIDIOC_OVERLAY")));
+      } // end IF
       if (captureFileDescriptor_ != -1)
       {
         toggle = 1; // ?
@@ -254,16 +263,12 @@ error:
                       ACE_TEXT ("failed to v4l2_ioctl(%d,%u): \"%m\", continuing\n"),
                       captureFileDescriptor_, ACE_TEXT ("VIDIOC_STREAMOFF")));
       } // end IF
-      if (overlayFileDescriptor_ != -1)
-      {
-        result = v4l2_ioctl (overlayFileDescriptor_,
-                             VIDIOC_OVERLAY,
-                             &toggle);
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to v4l2_ioctl(%d,%u): \"%m\", continuing\n"),
-                      overlayFileDescriptor_, ACE_TEXT ("VIDIOC_OVERLAY")));
-      } // end IF
+
+      // step2: empty buffer queue(s)
+      if (captureFileDescriptor_ != -1)
+        Stream_Module_Device_Tools::finalizeBuffers<ProtocolMessageType> (captureFileDescriptor_,
+                                                                          inherited::configuration_->method,
+                                                                          const_cast<ConfigurationType*> (inherited::configuration_)->bufferMap);
 
       // step3: deallocate device buffer queue slots
       struct v4l2_requestbuffers request_buffers;
@@ -585,17 +590,24 @@ Stream_Module_CamSource_V4L_T<LockType,
           message_block_p->release ();
           message_block_p = NULL;
 
-          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
-          //         have been set at this stage
+          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
+          //         not have been set at this stage
 
           // signal the controller ?
           if (!finished)
           {
-            ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("session aborted...\n")));
-
             finished = true;
-            inherited::finished (); // *NOTE*: enqueues STREAM_SESSION_END
+            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+            //         --> continue
+            inherited::finished ();
+            // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
+            //         --> done
+            if (inherited::thr_count_ == 0)
+            {
+              result_2 = 0; // success
+              goto done; // finished processing
+            } // end IF
+
           } // end IF
           continue;
         }
@@ -628,7 +640,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 //          break;
 //        } // end IF
 //        if (session_message_p->type () == STREAM_SESSION_END)
-          result_2 = 0; // success
+        result_2 = 0; // success
         goto done; // finished processing
       } // end IF
     } // end IF
@@ -655,6 +667,9 @@ Stream_Module_CamSource_V4L_T<LockType,
       const SessionDataType& session_data_r = inherited::sessionData_->get ();
       if (session_data_r.aborted)
       {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("session aborted...\n")));
+
         inherited::shutdown ();
         continue;
       } // end IF

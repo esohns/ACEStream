@@ -110,6 +110,8 @@ class Stream_HeadModuleTaskBase_T
                                bool = true,  // run svc() routine on start ? (passive only)
                                bool = true); // generate session messages ?
 
+  // helper methods
+  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   // *TODO*: clean this API
   // convenience methods to send (session-specific) notifications downstream
   // *WARNING*: - handle with care -
@@ -161,9 +163,6 @@ class Stream_HeadModuleTaskBase_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // helper methods
-  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
-
   // implement (part of) Stream_IStreamControl_T
   //virtual void initialize ();
   //virtual void flush (bool = false); // N/A
@@ -172,7 +171,7 @@ class Stream_HeadModuleTaskBase_T
   virtual Stream_Base_t* upStream () const;
 
   bool                      active_;
-  bool                      autoStart_;
+  bool                      autoStart_; // start worker thread in open ()
   bool                      generateSessionMessages_;
   bool                      runSvcRoutineOnStart_;
   bool                      sessionEndSent_;

@@ -108,12 +108,19 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    /
 //                              Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
 //                              Test_I_Target_Stream_Module_AVIDecoder);         // writer type
 
-typedef Stream_Module_Splitter_T<Test_I_Target_Stream_SessionMessage,
-                                 Test_I_Target_Stream_Message,
-
-                                 Test_I_Target_Stream_ModuleHandlerConfiguration,
-
-                                 Test_I_Target_Stream_SessionData> Test_I_Target_Stream_Module_Splitter;
+typedef Stream_Module_SplitterH_T<ACE_SYNCH_MUTEX,
+                                  ////
+                                  Test_I_Target_Stream_SessionMessage,
+                                  Test_I_Target_Stream_Message,
+                                  ////
+                                  Test_I_Target_Stream_ModuleHandlerConfiguration,
+                                  ////
+                                  Test_I_Target_StreamState,
+                                  ////
+                                  Test_I_Target_Stream_SessionData,
+                                  Test_I_Target_Stream_SessionData_t,
+                                  ////
+                                  Test_I_RuntimeStatistic_t> Test_I_Target_Stream_Module_Splitter;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
                               Common_TimePolicy_t,                             // time policy
                               Stream_ModuleConfiguration,                      // module configuration type

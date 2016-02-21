@@ -276,40 +276,52 @@ Stream_Module_SplitterH_T<LockType,
   // sanity check(s)
   ACE_ASSERT (configuration_);
 
+  ACE_Message_Block* message_block_p = NULL;
   if (!currentBuffer_)
-    currentBuffer_ = message_inout;
-  else
-    currentBuffer_->cont (message_inout);
-
-  if (currentBuffer_->total_length () < configuration_->frameSize)
-    return; // done
-
-  // got enough data --> split and forward
-  unsigned int count = 0;
-  ACE_Message_Block* message_block_p = currentBuffer_;
-  do
   {
-    count += message_block_p->length ();
-    message_block_p = message_block_p->cont ();
-
-    if (count >= configuration_->frameSize)
-      break;
-  } while (true);
+    currentBuffer_ = message_inout;
+    message_block_p = currentBuffer_;
+  } // end IF
+  else
+  {
+    message_block_p = currentBuffer_;
+    while (message_block_p->cont ())
+      message_block_p = message_block_p->cont ();
+    message_block_p->cont (message_inout);
+  } // end ELSE
   ACE_ASSERT (message_block_p);
 
-  currentBuffer_ = message_block_p->duplicate ();
-  if (!currentBuffer_)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
-    return;
-  } // end IF
-  currentBuffer_->cont (NULL);
-  currentBuffer_->rd_ptr (count - configuration_->frameSize);
+  unsigned int total_length = currentBuffer_->total_length ();
+  if (total_length < configuration_->frameSize)
+    return; // done
 
-  message_block_p->reset ();
-  message_block_p->wr_ptr (count - configuration_->frameSize);
+  // received enough data --> (split and) forward
+  message_block_p = currentBuffer_;
+  unsigned int remainder = (total_length -
+                            configuration_->frameSize);
+  if (remainder)
+  {
+    currentBuffer_ = message_inout->duplicate ();
+    if (!currentBuffer_)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+
+      // clean up
+      message_block_p->release ();
+
+      return;
+    } // end IF
+
+    currentBuffer_->rd_ptr (remainder);
+
+    message_block_p->reset ();
+    message_block_p->wr_ptr (remainder);
+  } // end IF
+  else
+    currentBuffer_ = NULL;
+
   int result = inherited::put_next (message_block_p, NULL);
   if (result == -1)
   {
@@ -475,6 +487,14 @@ Stream_Module_SplitterH_T<LockType,
 
   configuration_ =
     &const_cast<ConfigurationType&> (configuration_in);
+
+  isInitialized_ = inherited::initialize (configuration_in);
+  if (!isInitialized_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
 
   return true;
 }

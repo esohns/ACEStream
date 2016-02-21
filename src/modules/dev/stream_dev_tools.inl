@@ -48,26 +48,28 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
   buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   ACE_Message_Block* message_block_p = NULL;
   MessageType* message_p = NULL;
+
+  // step1: retrieve required buffer size (format-dependent)
+  struct v4l2_format format;
+  ACE_OS::memset (&format, 0, sizeof (struct v4l2_format));
+  format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_G_FMT,
+                       &format);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_G_FMT")));
+    return false;
+  } // end IF
+  ACE_ASSERT (format.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+
   switch (method_in)
   {
     case V4L2_MEMORY_USERPTR:
     {
       buffer.memory = V4L2_MEMORY_USERPTR;
-
-      // step1: retrieve required buffer size (format-dependent)
-      struct v4l2_format format;
-      ACE_OS::memset (&format, 0, sizeof (struct v4l2_format));
-      result = v4l2_ioctl (fd_in,
-                           VIDIOC_G_FMT,
-                           &buffer);
-      if (result == -1)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                    fd_in, ACE_TEXT ("VIDIOC_G_FMT")));
-        goto error;
-      } // end IF
-      ACE_ASSERT (format.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
 
       for (unsigned int i = 0;
            i < numberOfBuffers_in;
@@ -110,6 +112,7 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
 
           goto error;
         } // end IF
+        message_p->wr_ptr (format.fmt.pix.sizeimage);
         // *TODO*: remove type inference
         typename MessageType::DATA_T& data_r =
             const_cast<typename MessageType::DATA_T&> (message_p->get ());
@@ -153,6 +156,7 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
     case V4L2_MEMORY_MMAP:
     {
       buffer.memory = V4L2_MEMORY_MMAP;
+
       void* mmap_p = NULL;
       for (unsigned int i = 0;
            i < numberOfBuffers_in;
@@ -233,7 +237,7 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
         message_block_p->base (static_cast<char*> (mmap_p),
                                buffer.length,
                                ACE_Message_Block::DONT_DELETE);
-        message_block_p->wr_ptr (buffer.length);
+        message_block_p->wr_ptr (format.fmt.pix.sizeimage);
 
         // *NOTE*: in oder to retrieve the buffer instance handle from the
         //         device buffer when it has written the frame data, the address
@@ -328,12 +332,17 @@ Stream_Module_Device_Tools::finalizeBuffers (int fd_in,
                          &buffer);
     if (result == -1)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", returning\n"),
-                  fd_in, ACE_TEXT ("VIDIOC_DQBUF")));
-      return;
+      // *NOTE*: most probable reason: VIDIOC_STREAMOFF has been called
+      //         previously (EINVAL), dequeueing all buffers; the ioctl fails to
+      //         retrieve buffer information in this case
+      //         --> set the index manually
+      int error = ACE_OS::last_error ();
+      if (error != EINVAL)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+                    fd_in, ACE_TEXT ("VIDIOC_DQBUF")));
+      buffer.index = counter;
     } // end IF
-    ++counter;
 
 //    message_block_p = reinterpret_cast<ACE_Message_Block*> (buffer.reserved);
     iterator = bufferMap_inout.find (buffer.index);
@@ -369,9 +378,13 @@ Stream_Module_Device_Tools::finalizeBuffers (int fd_in,
 
     // *NOTE*: unfortunately, V4L2_BUF_FLAG_LAST is not set consistently
     if ((buffer.flags & V4L2_BUF_FLAG_LAST) ||
-        (counter == bufferMap_inout.size ()))
+        (buffer.index == (bufferMap_inout.size () - 1)))
       break; // done
+
+    ++counter;
   } while (true);
+  ++counter;
+  ACE_ASSERT (counter == bufferMap_inout.size ());
   bufferMap_inout.clear ();
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("de-allocated %d device buffers...\n"),

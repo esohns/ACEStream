@@ -51,11 +51,11 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&netSource_);
-  inherited::availableModules_.push_front (&HTTPMarshal_);
-  inherited::availableModules_.push_front (&runtimeStatistic_);
-  inherited::availableModules_.push_front (&HTTPGet_);
-  inherited::availableModules_.push_front (&HTMLParser_);
+  inherited::modules_.push_front (&netSource_);
+  inherited::modules_.push_front (&HTTPMarshal_);
+  inherited::modules_.push_front (&runtimeStatistic_);
+  inherited::modules_.push_front (&HTTPGet_);
+  inherited::modules_.push_front (&HTMLParser_);
   //inherited::availableModules_.push_front (&HTMLWriter_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
@@ -64,8 +64,8 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::availableModules_.begin ();
-       iterator != inherited::availableModules_.end ();
+  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
+       iterator != inherited::modules_.end ();
        iterator++)
      (*iterator)->next (NULL);
 }
@@ -93,7 +93,9 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::ping ()
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configuration& configuration_in)
+Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configuration& configuration_in,
+                                                    bool setupPipeline_in,
+                                                    bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::initialize"));
 
@@ -149,7 +151,9 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   } // end IF
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              false,
+                              resetSessionData_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
@@ -247,14 +251,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    result = inherited::push (configuration_in.module);
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
+    inherited::modules_.push_front (configuration_in.module);
   } // end IF
 
   // ---------------------------------------------------------------------------
@@ -283,14 +280,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   //              HTMLWriter_.name ()));
   //  goto failed;
   //} // end IF
-  //result = inherited::push (&HTMLWriter_);
-  //if (result == -1)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-  //              HTMLWriter_.name ()));
-  //  goto failed;
-  //} // end IF
 
   // ******************* HTML Parser ************************
   HTMLParser_.initialize (*configuration_in.moduleConfiguration);
@@ -306,14 +295,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                HTMLParser_.name ()));
-    goto failed;
-  } // end IF
-  result = inherited::push (&HTMLParser_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
                 HTMLParser_.name ()));
     goto failed;
   } // end IF
@@ -333,14 +314,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                HTTPGet_.name ()));
-    goto failed;
-  } // end IF
-  result = inherited::push (&HTTPGet_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
                 HTTPGet_.name ()));
     goto failed;
   } // end IF
@@ -364,14 +337,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
                 runtimeStatistic_.name ()));
     goto failed;
   } // end IF
-  result = inherited::push (&runtimeStatistic_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                runtimeStatistic_.name ()));
-    goto failed;
-  } // end IF
 
   // ******************* HTTP Marshal ************************
   HTTPMarshal_.initialize (*configuration_in.moduleConfiguration);
@@ -388,14 +353,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                HTTPMarshal_.name ()));
-    goto failed;
-  } // end IF
-  result = inherited::push (&HTTPMarshal_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
                 HTTPMarshal_.name ()));
     goto failed;
   } // end IF
@@ -427,14 +384,14 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
   netSource_.arg (inherited::sessionData_);
-  result = inherited::push (&netSource_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                netSource_.name ()));
-    goto failed;
-  } // end IF
+
+  if (setupPipeline_in)
+    if (!inherited::setup ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+      return false;
+    } // end IF
 
   // -------------------------------------------------------------
 

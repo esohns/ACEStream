@@ -1695,6 +1695,24 @@ Stream_Module_Device_Tools::deleteMediaType (struct _AMMediaType*& mediaType_ino
   CoTaskMemFree (mediaType_inout);
   mediaType_inout = NULL;
 }
+void
+Stream_Module_Device_Tools::freeMediaType (struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::freeMediaType"));
+
+  if (mediaType_in.cbFormat != 0)
+  {
+    CoTaskMemFree ((PVOID)mediaType_in.pbFormat);
+    mediaType_in.cbFormat = 0;
+    mediaType_in.pbFormat = NULL;
+  } // end IF
+  if (mediaType_in.pUnk != NULL)
+  {
+    // pUnk should not be used.
+    mediaType_in.pUnk->Release ();
+    mediaType_in.pUnk = NULL;
+  } // end IF
+}
 
 std::string
 Stream_Module_Device_Tools::mediaSubTypeToString (const GUID& GUID_in)

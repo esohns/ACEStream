@@ -67,6 +67,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool setFormat (IGraphBuilder*,              // graph handle
                          const struct _AMMediaType&); // media type
   static void deleteMediaType (struct _AMMediaType*&); // handle
+  static void freeMediaType (struct _AMMediaType&);
   static std::string mediaSubTypeToString (const GUID&); // GUID
   static std::string mediaTypeToString (const struct _AMMediaType&); // media type
 #else

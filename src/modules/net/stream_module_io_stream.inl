@@ -64,7 +64,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::availableModules_.push_front (&IO_);
+  inherited::modules_.push_front (&IO_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -72,8 +72,8 @@ Stream_Module_Net_IO_Stream_T<LockType,
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (typename inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::availableModules_.begin ();
-       iterator != inherited::availableModules_.end ();
+  for (typename inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
+       iterator != inherited::modules_.end ();
        iterator++)
      (*iterator)->next (NULL);
 }
@@ -183,7 +183,9 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               SessionMessageType,
                               ProtocolMessageType,
                               AddressType,
-                              ConnectionManagerType>::initialize (const ConfigurationType& configuration_in)
+                              ConnectionManagerType>::initialize (const ConfigurationType& configuration_in,
+                                                                  bool setupPipeline_in,
+                                                                  bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 
@@ -226,28 +228,43 @@ Stream_Module_Net_IO_Stream_T<LockType,
                       module_p->name ()));
           return false;
         } // end IF
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("removed final module (was: \"%s\")...\n"),
+                    module_p->name ()));
         imodule_p->reset ();
 
         break; // done
       } // end IF
     } // end FOR
+
+    if (resetSessionData_in &&
+        inherited::sessionData_)
+    {
+      inherited::sessionData_->decrease ();
+      inherited::sessionData_ = NULL;
+    } // end IF
   } // end IF
 
   // allocate a new session state, reset stream
-  if (!inherited::initialize (configuration_in))
+  if (!inherited::initialize (configuration_in,
+                              false,
+                              resetSessionData_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
                 ACE_TEXT (inherited::name ().c_str ())));
     return false;
   } // end IF
-  ACE_ASSERT (inherited::sessionData_);
-  SessionDataType* session_data_p =
-      &const_cast<SessionDataType&> (inherited::sessionData_->get ());
-  // *TODO*: remove type inferences
-  session_data_p->sessionID = configuration_in.sessionID;
-  //inherited::sessionData_->state =
-  //  &const_cast<StateType&> (inherited::state ());
+  if (resetSessionData_in)
+  {
+    ACE_ASSERT (inherited::sessionData_);
+    SessionDataType* session_data_p =
+        &const_cast<SessionDataType&> (inherited::sessionData_->get ());
+    // *TODO*: remove type inferences
+    session_data_p->sessionID = configuration_in.sessionID;
+    //inherited::sessionData_->state =
+    //  &const_cast<StateType&> (inherited::state ());
+  } // end IF
 
   // things to be done here:
   // [- initialize base class]
@@ -260,7 +277,6 @@ Stream_Module_Net_IO_Stream_T<LockType,
   // - push them onto the stream (tail-first) !
   // ------------------------------------
 
-  int result = -1;
   typename inherited::MODULE_T* module_p = NULL;
   if (configuration_in.notificationStrategy)
   {
@@ -328,14 +344,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
     //              configuration_in.module->name ()));
     //  return false;
     //} // end IF
-    result = inherited::push (configuration_in.module);
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
+    inherited::modules_.push_front (configuration_in.module);
   } // end IF
 
   // ---------------------------------------------------------------------------
@@ -389,14 +398,14 @@ Stream_Module_Net_IO_Stream_T<LockType,
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
   IO_.arg (inherited::sessionData_);
-  result = inherited::push (&IO_);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-                IO_.name ()));
-    return false;
-  } // end IF
+
+  if (setupPipeline_in)
+    if (!inherited::setup ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to setup pipeline, aborting\n")));
+      return false;
+    } // end IF
 
   // -------------------------------------------------------------
 
@@ -405,7 +414,6 @@ Stream_Module_Net_IO_Stream_T<LockType,
 
   // OK: all went well
   inherited::isInitialized_ = true;
-  //inherited::dump_state ();
 
   return true;
 }

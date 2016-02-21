@@ -2202,13 +2202,13 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
-  // step10: retrieve window handle (canvas coordinates)
+  // step10: retrieve window handle (and canvas coordinates)
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   data_p->configuration->moduleHandlerConfiguration.window =
     gdk_win32_window_get_impl_hwnd (window_p);
 #else
-  ACE_UNUSED_ARG (window_p);
+  data_p->configuration->moduleHandlerConfiguration.window = window_p;
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
@@ -2224,8 +2224,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   data_p->configuration->moduleHandlerConfiguration.area.top =
     allocation.y;
 #else
-  data_p->configuration->moduleHandlerConfiguration.area =
-    allocation;
+  data_p->configuration->moduleHandlerConfiguration.area = allocation;
 #endif
 
   return G_SOURCE_REMOVE;
@@ -3857,20 +3856,22 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_UNUSED_ARG (device_path);
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration);
 
   if (data_p->streamConfiguration)
   {
     data_p->streamConfiguration->Release ();
     data_p->streamConfiguration = NULL;
   } // end IF
-  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder)
+  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder)
   {
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder->Release ();
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder =
+    data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder->Release ();
+    data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder =
       NULL;
   } // end IF
   if (!Stream_Module_Device_Tools::load (device_string,
-                                         data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+                                         data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
                                          data_p->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3878,7 +3879,7 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
                 ACE_TEXT (device_string.c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder);
   ACE_ASSERT (data_p->streamConfiguration);
   if (!load_formats (data_p->streamConfiguration,
 #else
@@ -4006,7 +4007,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -4023,13 +4024,13 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
   //         the filter pins are associated. IGraphConfig::Reconnect fails
   //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -4190,7 +4191,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -4222,13 +4223,13 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
   //         the filter pins are associated. IGraphConfig::Reconnect fails
   //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -4340,7 +4341,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -4370,13 +4371,13 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
   //         the filter pins are associated. IGraphConfig::Reconnect fails
   //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -4423,14 +4424,8 @@ drawingarea_configure_source_cb (GtkWindow* window_in,
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!data_p->configuration->moduleHandlerConfiguration.window ||
-      !data_p->configuration->moduleHandlerConfiguration.windowController) // <-- window not realized yet ?
-    return;
-#else
   if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
     return;
-#endif
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -4452,8 +4447,8 @@ drawingarea_configure_source_cb (GtkWindow* window_in,
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // sanity check(s)
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.windowController);
+  //// sanity check(s)
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration->windowController);
 
   data_p->configuration->moduleHandlerConfiguration.area.bottom =
     allocation.height;

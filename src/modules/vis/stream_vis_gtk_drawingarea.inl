@@ -52,7 +52,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
  , cairoContext_ (NULL)
  , cairoFormat_ (MODULE_VIS_DEFAULT_CAIRO_FORMAT)
  , cairoSurface_ (NULL)
- , pixelBuffer_ (NULL)
+// , pixelBuffer_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::Stream_Module_Vis_GTK_DrawingArea_T"));
 
@@ -71,8 +71,8 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::~Stream_Module_Vis_GTK_DrawingArea_T"));
 
-  if (pixelBuffer_)
-    g_object_unref (pixelBuffer_);
+//  if (pixelBuffer_)
+//    g_object_unref (pixelBuffer_);
 
   if (cairoSurface_)
     cairo_surface_destroy (cairoSurface_);
@@ -123,28 +123,44 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
   ACE_ASSERT (sessionData_);
   ACE_ASSERT (cairoFormat_ != CAIRO_FORMAT_INVALID);
   ACE_ASSERT (cairoSurface_);
-
   const SessionDataType& session_data_r =
       sessionData_->get ();
+  ACE_ASSERT (message_inout->total_length () ==
+              session_data_r.format.fmt.pix.sizeimage);
 
-  gdk_threads_enter ();
-
-  if (pixelBuffer_)
+  // step1: copy (fragmented) data into (contiguous) memory buffer
+  unsigned char* data_p = cairo_image_surface_get_data (cairoSurface_);
+  if (!data_p)
   {
-    g_object_unref (pixelBuffer_);
-    pixelBuffer_ = NULL;
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to cairo_image_surface_get_data(%@), returning\n"),
+                cairoSurface_));
+    return;
   } // end IF
+  unsigned int offset = 0;
+  for (ACE_Message_Block* message_block_p = message_inout;
+       message_block_p;
+       message_block_p = message_block_p->cont ())
+  {
+    ACE_OS::memcpy (data_p + offset, message_block_p->rd_ptr (),
+                    message_block_p->length ());
+    offset += message_block_p->length ();
+  } // end FOR
+
+//  if (pixelBuffer_)
+//  {
+//    g_object_unref (pixelBuffer_);
+//    pixelBuffer_ = NULL;
+//  } // end IF
 
   int bits_per_sample = 8;
-  unsigned char* data_p =
-      reinterpret_cast<unsigned char*> (message_inout->rd_ptr ());
   int row_stride = session_data_r.format.fmt.pix.bytesperline;
   switch (session_data_r.format.fmt.pix.pixelformat)
   {
     // RGB formats
     case V4L2_PIX_FMT_BGR24:
     {
-      // convert BGR to RGB
+      // convert BGR to RGB (in-place)
       unsigned char* pixel_p = NULL;
       unsigned char B = 0;
       for (unsigned int y = 0;
@@ -169,6 +185,22 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
     case V4L2_PIX_FMT_YVU420:
     {
       // decode YVU to RGB (planar format)
+      cairo_surface_t* cairo_surface_p =
+          cairo_image_surface_create (cairoFormat_,                          // format
+                                      session_data_r.format.fmt.pix.width,   // width
+                                      session_data_r.format.fmt.pix.height); // height
+      cairo_status_t status = cairo_surface_status (cairo_surface_p);
+      if (!cairo_surface_p ||
+          (status != CAIRO_STATUS_SUCCESS))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to cairo_image_surface_create(%d,%d,%d): \"%s\", returning\n"),
+                    cairoFormat_,
+                    session_data_r.format.fmt.pix.width, session_data_r.format.fmt.pix.height,
+                    ACE_TEXT (cairo_status_to_string (status))));
+        return;
+      } // end IF
+
       int row_stride_2 =
           cairo_format_stride_for_width (cairoFormat_,
                                          session_data_r.format.fmt.pix.width);
@@ -181,7 +213,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
       unsigned char* chrominance_r_base_p = data_p + number_of_pixels;
       unsigned char* chrominance_b_p = chrominance_b_base_p; // Cb
       unsigned char* chrominance_r_p = chrominance_r_base_p; // Cr
-      unsigned char* R1_p = cairo_image_surface_get_data (cairoSurface_) + 1;
+      unsigned char* R1_p = cairo_image_surface_get_data (cairo_surface_p);
       unsigned char* G1_p = R1_p + 1;
       unsigned char* B1_p = R1_p + 2;
       unsigned char* R2_p = R1_p + row_stride_2;
@@ -262,15 +294,34 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
         Y2_p += row_stride;
       } // end WHILE
 
-      data_p = cairo_image_surface_get_data (cairoSurface_);
-      row_stride =
-          cairo_format_stride_for_width (cairoFormat_,
-                                         session_data_r.format.fmt.pix.width);
+      cairo_surface_destroy (cairoSurface_);
+      cairoSurface_ = cairo_surface_p;
+
+//      data_p = cairo_image_surface_get_data (cairoSurface_);
+//      row_stride =
+//          cairo_format_stride_for_width (cairoFormat_,
+//                                         session_data_r.format.fmt.pix.width);
       break;
     }
     case V4L2_PIX_FMT_YUV420:
     {
       // decode YUV to RGB (planar format)
+      cairo_surface_t* cairo_surface_p =
+          cairo_image_surface_create (cairoFormat_,                          // format
+                                      session_data_r.format.fmt.pix.width,   // width
+                                      session_data_r.format.fmt.pix.height); // height
+      cairo_status_t status = cairo_surface_status (cairo_surface_p);
+      if (!cairo_surface_p ||
+          (status != CAIRO_STATUS_SUCCESS))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to cairo_image_surface_create(%d,%d,%d): \"%s\", returning\n"),
+                    cairoFormat_,
+                    session_data_r.format.fmt.pix.width, session_data_r.format.fmt.pix.height,
+                    ACE_TEXT (cairo_status_to_string (status))));
+        return;
+      } // end IF
+
       int row_stride_2 =
           cairo_format_stride_for_width (cairoFormat_,
                                          session_data_r.format.fmt.pix.width);
@@ -283,7 +334,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
                                             (number_of_pixels / 4);
       unsigned char* chrominance_b_p = chrominance_b_base_p; // Cb
       unsigned char* chrominance_r_p = chrominance_r_base_p; // Cr
-      unsigned char* R1_p = cairo_image_surface_get_data (cairoSurface_) + 1;
+      unsigned char* R1_p = cairo_image_surface_get_data (cairo_surface_p);
       unsigned char* G1_p = R1_p + 1;
       unsigned char* B1_p = R1_p + 2;
       unsigned char* R2_p = R1_p + row_stride_2;
@@ -364,17 +415,36 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
         Y2_p += row_stride;
       } // end WHILE
 
-      data_p = cairo_image_surface_get_data (cairoSurface_);
-      row_stride =
-          cairo_format_stride_for_width (cairoFormat_,
-                                         session_data_r.format.fmt.pix.width);
+      cairo_surface_destroy (cairoSurface_);
+      cairoSurface_ = cairo_surface_p;
+
+//      data_p = cairo_image_surface_get_data (cairoSurface_);
+//      row_stride =
+//          cairo_format_stride_for_width (cairoFormat_,
+//                                         session_data_r.format.fmt.pix.width);
       break;
     }
     case V4L2_PIX_FMT_YUYV:
     {
       // decode YUYV to RGB (packed format)
+      cairo_surface_t* cairo_surface_p =
+          cairo_image_surface_create (cairoFormat_,                          // format
+                                      session_data_r.format.fmt.pix.width,   // width
+                                      session_data_r.format.fmt.pix.height); // height
+      cairo_status_t status = cairo_surface_status (cairo_surface_p);
+      if (!cairo_surface_p ||
+          (status != CAIRO_STATUS_SUCCESS))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to cairo_image_surface_create(%d,%d,%d): \"%s\", returning\n"),
+                    cairoFormat_,
+                    session_data_r.format.fmt.pix.width, session_data_r.format.fmt.pix.height,
+                    ACE_TEXT (cairo_status_to_string (status))));
+        return;
+      } // end IF
+
       unsigned char* pointer_p = data_p;
-      unsigned char* pixel_p = cairo_image_surface_get_data (cairoSurface_);
+      unsigned char* pixel_p = cairo_image_surface_get_data (cairo_surface_p);
       unsigned int number_of_pixels =
           (session_data_r.format.fmt.pix.height *
            session_data_r.format.fmt.pix.width);
@@ -416,15 +486,34 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
         pointer_p += 4;
       } // end FOR
 
-      data_p = cairo_image_surface_get_data (cairoSurface_);
-      row_stride =
-          cairo_format_stride_for_width (cairoFormat_,
-                                         session_data_r.format.fmt.pix.width);
+      cairo_surface_destroy (cairoSurface_);
+      cairoSurface_ = cairo_surface_p;
+
+//      data_p = cairo_image_surface_get_data (cairoSurface_);
+//      row_stride =
+//          cairo_format_stride_for_width (cairoFormat_,
+//                                         session_data_r.format.fmt.pix.width);
       break;
     }
     // compressed formats
     case V4L2_PIX_FMT_MJPEG:
     {
+      cairo_surface_t* cairo_surface_p =
+          cairo_image_surface_create (cairoFormat_,                          // format
+                                      session_data_r.format.fmt.pix.width,   // width
+                                      session_data_r.format.fmt.pix.height); // height
+      cairo_status_t status = cairo_surface_status (cairo_surface_p);
+      if (!cairo_surface_p ||
+          (status != CAIRO_STATUS_SUCCESS))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to cairo_image_surface_create(%d,%d,%d): \"%s\", returning\n"),
+                    cairoFormat_,
+                    session_data_r.format.fmt.pix.width, session_data_r.format.fmt.pix.height,
+                    ACE_TEXT (cairo_status_to_string (status))));
+        return;
+      } // end IF
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
       avcodec_register_all ();
@@ -446,14 +535,14 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 //        return;
 //      } // end IF
 //      av_frame_unref (frame_p);
-      frame_p->data[0] = cairo_image_surface_get_data (cairoSurface_);
+      frame_p->data[0] = cairo_image_surface_get_data (cairo_surface_p);
       frame_p->linesize[0] =
           cairo_format_stride_for_width (cairoFormat_,
                                          session_data_r.format.fmt.pix.width);
       AVPacket packet;
       av_init_packet (&packet);
       packet.data = data_p;
-      packet.size = message_inout->length ();
+      packet.size = session_data_r.format.fmt.pix.sizeimage;
 
       int result = -1;
       int got_picture = -1;
@@ -532,6 +621,13 @@ clean:
         avcodec_free_context (&context_p);
 #endif
 
+      cairo_surface_destroy (cairoSurface_);
+      cairoSurface_ = cairo_surface_p;
+
+//      data_p = cairo_image_surface_get_data (cairoSurface_);
+//      row_stride =
+//          cairo_format_stride_for_width (cairoFormat_,
+//                                         session_data_r.format.fmt.pix.width);
       break;
     }
     default:
@@ -539,34 +635,32 @@ clean:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
                   session_data_r.format.fmt.pix.pixelformat));
-
-      // clean up
-      gdk_threads_leave ();
-
       return;
     }
   } // end SWITCH
 
-  pixelBuffer_ =
-      gdk_pixbuf_new_from_data (data_p,                               // data
-                                GDK_COLORSPACE_RGB,                   // color space
-                                false,                                // has alpha channel ?
-                                bits_per_sample,                      // bits per sample
-                                session_data_r.format.fmt.pix.width,  // width
-                                session_data_r.format.fmt.pix.height, // height
-                                row_stride,                           // row stride
-                                NULL,                                 // destroy function
-                                NULL);                                // destroy function act
-  if (!pixelBuffer_)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gdk_pixbuf_new_from_data(), returning\n")));
+  gdk_threads_enter ();
 
-    // clean up
-    gdk_threads_leave ();
+//  pixelBuffer_ =
+//      gdk_pixbuf_new_from_data (data_p,                               // data
+//                                GDK_COLORSPACE_RGB,                   // color space
+//                                false,                                // has alpha channel ?
+//                                bits_per_sample,                      // bits per sample
+//                                session_data_r.format.fmt.pix.width,  // width
+//                                session_data_r.format.fmt.pix.height, // height
+//                                row_stride,                           // row stride
+//                                NULL,                                 // destroy function
+//                                NULL);                                // destroy function act
+//  if (!pixelBuffer_)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to gdk_pixbuf_new_from_data(), returning\n")));
 
-    return;
-  } // end IF
+//    // clean up
+//    gdk_threads_leave ();
+
+//    return;
+//  } // end IF
 
 //  // step3: scale image to window area
 //  gint x, y;
@@ -597,14 +691,14 @@ clean:
   //                  0, 0, 0, 0, wifth, height,
   //                  GDK_RGB_DITHER_NORMAL, 0, 0);
   //  gtk_image_set_from_pixmap((GtkImage*) image, pixmap, NULL);
-  gdk_cairo_set_source_pixbuf (cairoContext_,
-                               pixelBuffer_,
-                               0.0, 0.0);
-//  cairo_set_source_surface (cairoContext_, // context
-//                            cairoSurface_, // surface
-////                            (width  - (scale_factor * width))  / (2.0 * scale_factor),
-////                            (height - (scale_factor * height)) / (2.0 * scale_factor));
-//                            0.0, 0.0);     // x,y offset
+//  gdk_cairo_set_source_pixbuf (cairoContext_,
+//                               pixelBuffer_,
+//                               0.0, 0.0);
+  cairo_set_source_surface (cairoContext_, // context
+                            cairoSurface_, // surface
+//                            (width  - (scale_factor * width))  / (2.0 * scale_factor),
+//                            (height - (scale_factor * height)) / (2.0 * scale_factor));
+                            0.0, 0.0);     // x,y offset
 
   // step4: paste the pixel buffer into the specified window area
   cairo_paint (cairoContext_);
@@ -660,7 +754,9 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
           (status != CAIRO_STATUS_SUCCESS))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cairo_image_surface_create_for_data(): \"%s\", returning\n"),
+                    ACE_TEXT ("failed to cairo_image_surface_create(%d,%d,%d): \"%s\", returning\n"),
+                    cairoFormat_,
+                    session_data_r.format.fmt.pix.width, session_data_r.format.fmt.pix.height,
                     ACE_TEXT (cairo_status_to_string (status))));
         return;
       } // end IF
