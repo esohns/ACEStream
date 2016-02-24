@@ -396,8 +396,9 @@ Stream_HeadModuleTaskBase_T<LockType,
     {
       case ACE_Message_Block::MB_STOP:
       {
-        stop_processing = true;
-        
+        // signal the controller
+        this->finished ();
+
         // clean up
         message_block_p->release ();
 
@@ -432,17 +433,6 @@ Stream_HeadModuleTaskBase_T<LockType,
               ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
 done:
-//  // step2: send final session message downstream
-//  ACE_ASSERT (sessionData_);
-//  if (!putSessionMessage (STREAM_SESSION_END,
-//                          *sessionData_,
-//                          false))
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
-
-  // step3: signal the controller
-  this->finished ();
-
   return result;
 }
 

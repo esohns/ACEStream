@@ -256,6 +256,7 @@ class Stream_Base_T
   // wrap inherited::open/close() calls
   void deactivateModules ();
 
+  bool                      hasFinal_;
   std::string               name_;
 };
 

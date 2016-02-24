@@ -838,7 +838,7 @@ stream_processing_function (void* arg_in)
 
   // generate context ID
   gdk_threads_enter ();
-  data_p->CBData->configuration->streamConfiguration.moduleHandlerConfiguration_2.contextID =
+  data_p->CBData->configuration->moduleHandlerConfiguration.contextID =
     gtk_statusbar_get_context_id (statusbar_p,
                                   converter.str ().c_str ());
   gdk_threads_leave ();
@@ -1079,21 +1079,21 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName.empty ())
+  if (!data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ())
   {
     GError* error_p = NULL;
     GFile* file_p =
-      g_file_new_for_path (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName.c_str ());
+      g_file_new_for_path (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ());
     ACE_ASSERT (file_p);
 
     // *NOTE*: gtk does not complain if the file doesn't exist, but the button
     //         will display "(None)" --> create empty file
-    if (!Common_File_Tools::isReadable (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName))
-      if (!Common_File_Tools::create (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName))
+    if (!Common_File_Tools::isReadable (data_p->configuration->moduleHandlerConfiguration.targetFileName))
+      if (!Common_File_Tools::create (data_p->configuration->moduleHandlerConfiguration.targetFileName))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Common_File_Tools::create(\"%s\"): \"%m\", aborting\n"),
-                    ACE_TEXT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName.c_str ())));
+                    ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ())));
 
         // clean up
         g_object_unref (file_p);
@@ -1103,7 +1103,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
     //std::string file_uri =
     //  ACE_TEXT_ALWAYS_CHAR ("file://") +
-    //  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName;
+    //  data_p->configuration->moduleHandlerConfiguration.targetFileName;
     //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
     //                                              file_uri.c_str ()))
     if (!gtk_file_chooser_set_current_folder_file (GTK_FILE_CHOOSER (file_chooser_button_p),
@@ -1112,7 +1112,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName.c_str ()),
+                  ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
                   ACE_TEXT (error_p->message)));
 
       // clean up
@@ -1132,7 +1132,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to gtk_file_chooser_select_file(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName.c_str ()),
+                  ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
                   ACE_TEXT (error_p->message)));
 
       // clean up
@@ -1418,7 +1418,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
   default_folder_uri +=
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName;
+    data_p->configuration->moduleHandlerConfiguration.targetFileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -1441,10 +1441,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   // step10: retrieve window handle (and canvas coordinates)
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.window =
+  data_p->configuration->moduleHandlerConfiguration.window =
     gdk_win32_window_get_impl_hwnd (window_p);
 #else
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.window =
+  data_p->configuration->moduleHandlerConfiguration.window =
     window_p;
 #endif
   GtkAllocation allocation;
@@ -1452,16 +1452,16 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.bottom =
+  data_p->configuration->moduleHandlerConfiguration.area.bottom =
     allocation.height;
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.left =
+  data_p->configuration->moduleHandlerConfiguration.area.left =
     allocation.x;
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.right =
+  data_p->configuration->moduleHandlerConfiguration.area.right =
     allocation.width;
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.top =
+  data_p->configuration->moduleHandlerConfiguration.area.top =
     allocation.y;
 #else
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area =
+  data_p->configuration->moduleHandlerConfiguration.area =
     allocation;
 #endif
 
@@ -2008,13 +2008,13 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
                               1, &value);
 #endif
     ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.device =
+    data_p->configuration->moduleHandlerConfiguration.device =
       g_value_get_string (&value);
     g_value_unset (&value);
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.fileDescriptor =
+  data_p->configuration->moduleHandlerConfiguration.fileDescriptor =
       data_p->device;
 #endif
 
@@ -2038,7 +2038,7 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
       goto error;
     } // end IF
     g_object_unref (file_p);
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName =
+    data_p->configuration->moduleHandlerConfiguration.targetFileName =
       string_p;
     g_free (string_p);
   } // end IF
@@ -2383,14 +2383,14 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     data_p->streamConfiguration->Release ();
     data_p->streamConfiguration = NULL;
   } // end IF
-  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder)
+  if (data_p->configuration->moduleHandlerConfiguration.builder)
   {
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder->Release ();
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder =
+    data_p->configuration->moduleHandlerConfiguration.builder->Release ();
+    data_p->configuration->moduleHandlerConfiguration.builder =
       NULL;
   } // end IF
   if (!Stream_Module_Device_Tools::load (device_string,
-                                         data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+                                         data_p->configuration->moduleHandlerConfiguration.builder,
                                          data_p->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2398,7 +2398,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (device_string.c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
   ACE_ASSERT (data_p->streamConfiguration);
   if (!load_formats (data_p->streamConfiguration,
 #else
@@ -2414,7 +2414,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end IF
   ACE_ASSERT (data_p->device == -1);
   int open_mode =
-      ((data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.method == V4L2_MEMORY_MMAP) ? O_RDWR
+      ((data_p->configuration->moduleHandlerConfiguration.method == V4L2_MEMORY_MMAP) ? O_RDWR
                                                                                                             : O_RDONLY);
   data_p->device = v4l2_open (device_path.c_str (),
                               open_mode);
@@ -2525,7 +2525,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -2542,13 +2542,13 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
   //         the filter pins are associated. IGraphConfig::Reconnect fails
   //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2709,7 +2709,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -2741,13 +2741,13 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
   //         the filter pins are associated. IGraphConfig::Reconnect fails
   //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2859,7 +2859,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -2889,13 +2889,13 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
   //         the filter pins are associated. IGraphConfig::Reconnect fails
   //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder))
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.builder,
+  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2943,11 +2943,11 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
   ACE_ASSERT (data_p->configuration);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.window          ||
-      !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController) // <-- window not realized yet ?
+  if (!data_p->configuration->moduleHandlerConfiguration.window          ||
+      !data_p->configuration->moduleHandlerConfiguration.windowController) // <-- window not realized yet ?
     return;
 #else
-  if (!data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.window) // <-- window not realized yet ?
+  if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
     return;
 #endif
 
@@ -2972,30 +2972,30 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
                              &allocation);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.windowController);
 
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.bottom =
+  data_p->configuration->moduleHandlerConfiguration.area.bottom =
     allocation.height;
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.left =
+  data_p->configuration->moduleHandlerConfiguration.area.left =
     allocation.x;
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.right =
+  data_p->configuration->moduleHandlerConfiguration.area.right =
     allocation.width;
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.top =
+  data_p->configuration->moduleHandlerConfiguration.area.top =
     allocation.y;
 
   //HRESULT result =
-  //  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.windowController->SetWindowPosition (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.left,
-  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.top,
-  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.right,
-  //                                                                                                               data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.bottom);
+  //  data_p->configuration->moduleHandlerConfiguration.windowController->SetWindowPosition (data_p->configuration->moduleHandlerConfiguration.area.left,
+  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.top,
+  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.right,
+  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.bottom);
   //if (FAILED (result))
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
-  //              data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.left, data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.top,
-  //              data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.right, data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area.bottom,
+  //              data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
+  //              data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #else
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.area =
+  data_p->configuration->moduleHandlerConfiguration.area =
     allocation;
 #endif
 } // drawingarea_configure_event_cb
@@ -3068,9 +3068,9 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
   g_object_unref (file_p);
   //gtk_entry_set_text (entry_p, string_p);
 
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName =
+  data_p->configuration->moduleHandlerConfiguration.targetFileName =
     Common_UI_Tools::UTF82Locale (string_p, -1);
-  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName.empty ())
+  if (data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
@@ -3091,7 +3091,7 @@ filechooserbutton_cb (GtkFileChooserButton* button_in,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
   ACE_ASSERT (toggle_action_p);
   gtk_action_set_sensitive (GTK_ACTION (toggle_action_p),
-                            !data_p->configuration->streamConfiguration.moduleHandlerConfiguration_2.targetFileName.empty ());
+                            !data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ());
 } // filechooserbutton_cb
 
 void

@@ -1,5 +1,9 @@
 cmake_minimum_required (VERSION 2.8)
 
+if (WIN32)
+ include_directories ("$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc)
+endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
@@ -10,8 +14,9 @@ if (WIN32)
       stream_misc_directshow_source.cpp
       stream_misc_directshow_source.h
       stream_misc_directshow_source.inl
-#      stream_misc_directshow_source_filter.cpp
-#      stream_misc_directshow_source_filter.h
+      stream_misc_directshow_source_filter.cpp
+      stream_misc_directshow_source_filter.h
+      stream_misc_directshow_source_filter.inl
       stream_misc_dump.cpp
       stream_misc_dump.h
       stream_misc_dump.inl
@@ -76,6 +81,7 @@ if (WIN32)
           stream_misc_directshow_source.h
           stream_misc_directshow_source.inl
           stream_misc_directshow_source_filter.h
+          stream_misc_directshow_source_filter.inl
           stream_misc_dump.h
           stream_misc_dump.inl
           stream_misc_exports.h
@@ -108,4 +114,3 @@ install (TARGETS ${PROJECT_NAME}_Miscellaneous
          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
          COMPONENT dev)
-

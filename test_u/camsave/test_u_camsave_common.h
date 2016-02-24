@@ -185,24 +185,28 @@ struct Stream_CamSave_StreamConfiguration
 {
   inline Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
-   , moduleConfiguration_2 ()
-   , moduleHandlerConfiguration_2 ()
+   , moduleHandlerConfiguration (NULL)
   {};
 
-  Stream_ModuleConfiguration                moduleConfiguration_2;
-  Stream_CamSave_ModuleHandlerConfiguration moduleHandlerConfiguration_2;
+  Stream_CamSave_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 
 struct Stream_CamSave_Configuration
 {
   inline Stream_CamSave_Configuration ()
    : signalHandlerConfiguration ()
+   , moduleConfiguration ()
+   , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , streamUserData ()
   {};
 
   Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
+
+  Stream_ModuleConfiguration                moduleConfiguration;
+  Stream_CamSave_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Stream_CamSave_StreamConfiguration        streamConfiguration;
+
   Stream_UserData                           streamUserData;
 };
 

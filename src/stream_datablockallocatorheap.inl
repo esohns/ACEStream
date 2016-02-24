@@ -80,6 +80,7 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
     // - delegate allocation to base class and...
     // - use placement new by invoking a ctor on the allocated space and...
     // - perform necessary initialization
+    // *TODO*: use the heap allocator to allocate the instance
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (number_of_bytes,                          // size of data chunk

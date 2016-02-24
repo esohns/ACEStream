@@ -64,6 +64,7 @@ Stream_Base_T<LockType,
  , state_ ()
  , upStream_ (NULL)
  ////////////////////////////////////////
+ , hasFinal_ (false)
  , name_ (name_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
@@ -1860,13 +1861,28 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
+  if (isInitialized_)
+  {
+    if (hasFinal_)
+    {
+      modules_.pop_front ();
+      hasFinal_ = false;
+    } // end IF
+  } // end IF
+
   // *TODO*: remove type inferences
   if (configuration_inout.module)
   {
+    // sanity check(s)
+    ACE_ASSERT (!hasFinal_);
+
+    modules_.push_front (configuration_inout.module);
+    hasFinal_ = true;
+
     // step1: clone final module (if any) ?
+    IMODULE_T* imodule_p = NULL;
     if (configuration_inout.cloneModule)
     {
-      IMODULE_T* imodule_p = NULL;
       // need a downcast...
       imodule_p =
         dynamic_cast<IMODULE_T*> (configuration_inout.module);
@@ -1907,8 +1923,42 @@ Stream_Base_T<LockType,
       state_.module = configuration_inout.module;
       state_.deleteModule = configuration_inout.deleteModule;
     } // end ELSE
+    ACE_ASSERT (state_.module);
 
-    // *TODO*: step2: initialize final module (if any)
+    // step2: initialize final module
+    imodule_p = dynamic_cast<IMODULE_T*> (state_.module);
+    if (!imodule_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
+                  state_.module->name ()));
+      return false;
+    } // end IF
+    if (!imodule_p->initialize (*configuration_inout.moduleConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
+                  state_.module->name ()));
+      return false;
+    } // end IF
+    Stream_Task_t* task_p = state_.module->writer ();
+    ACE_ASSERT (task_p);
+    IMODULEHANDLER_T* imodule_handler_p =
+      dynamic_cast<IMODULEHANDLER_T*> (task_p);
+    if (!imodule_handler_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
+                  state_.module->name ()));
+      return false;
+    } // end IF
+    if (!imodule_handler_p->initialize (*configuration_inout.moduleHandlerConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
+                  state_.module->name ()));
+      return false;
+    } // end IF
   } // end IF
 
   ConfigurationType& configuration_r =

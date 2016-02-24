@@ -108,7 +108,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     // *TODO*: move this to stream_base.inl ?
     int result_2 = -1;
     const inherited::MODULE_T* module_p = NULL;
-    typename inherited::IMODULE_T* imodule_p = NULL;
+    inherited::IMODULE_T* imodule_p = NULL;
     for (inherited::ITERATOR_T iterator (*this);
          (iterator.next (module_p) != 0);
          iterator.advance ())
@@ -210,7 +210,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   if (configuration_in.notificationStrategy)
   {
-    typename inherited::MODULE_T* module_2 = inherited::head ();
+    inherited::MODULE_T* module_2 = inherited::head ();
     if (!module_2)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -448,7 +448,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   bool clone_module, delete_module;
   clone_module = configuration_in.cloneModule;
   delete_module = configuration_in.deleteModule;
-  typename inherited::MODULE_T* module_p = configuration_in.module;
+  inherited::MODULE_T* module_p = configuration_in.module;
   configuration_r.cloneModule = false;
   configuration_r.deleteModule = false;
   configuration_r.module = NULL;

@@ -90,50 +90,52 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  if (inherited::isInitialized_)
-  {
-    // *TODO*: move this to stream_base.inl ?
-    int result = -1;
-    const inherited::MODULE_T* module_p = NULL;
-    inherited::IMODULE_T* imodule_p = NULL;
-    for (inherited::ITERATOR_T iterator (*this);
-         (iterator.next (module_p) != 0);
-         iterator.advance ())
-    {
-      if ((module_p == inherited::head ()) ||
-          (module_p == inherited::tail ()))
-        continue;
+  //if (inherited::isInitialized_)
+  //{
+  //  // *TODO*: move this to stream_base.inl ?
+  //  int result = -1;
+  //  const inherited::MODULE_T* module_p = NULL;
+  //  inherited::IMODULE_T* imodule_p = NULL;
+  //  for (inherited::ITERATOR_T iterator (*this);
+  //       (iterator.next (module_p) != 0);
+  //       iterator.advance ())
+  //  {
+  //    if ((module_p == inherited::head ()) ||
+  //        (module_p == inherited::tail ()))
+  //      continue;
 
-      // need a downcast...
-      imodule_p =
-        dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
-      if (!imodule_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
-                    module_p->name ()));
-        return false;
-      } // end IF
-      if (imodule_p->isFinal ())
-      {
-        //ACE_ASSERT (module_p == configuration_in.module);
-        result = inherited::remove (module_p->name (),
-                                    ACE_Module_Base::M_DELETE_NONE);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
-                      module_p->name ()));
-          return false;
-        } // end IF
-        imodule_p->reset ();
+  //    // need a downcast...
+  //    imodule_p =
+  //      dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
+  //    if (!imodule_p)
+  //    {
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
+  //                  module_p->name ()));
+  //      return false;
+  //    } // end IF
+  //    if (imodule_p->isFinal ())
+  //    {
+  //      //ACE_ASSERT (module_p == configuration_in.module);
+  //      result = inherited::remove (module_p->name (),
+  //                                  ACE_Module_Base::M_DELETE_NONE);
+  //      if (result == -1)
+  //      {
+  //        ACE_DEBUG ((LM_ERROR,
+  //                    ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
+  //                    module_p->name ()));
+  //        return false;
+  //      } // end IF
+  //      imodule_p->reset ();
 
-        break; // done
-      } // end IF
-    } // end FOR
-  } // end IF
+  //      break; // done
+  //    } // end IF
+  //  } // end FOR
+  //} // end IF
 
   // allocate a new session state, reset stream
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   if (!inherited::initialize (configuration_in,
                               false,
                               resetSessionData_in))
@@ -151,7 +153,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     ++Stream_CamSave_Stream::currentSessionID;
 //  session_data_r.size = 0;
   session_data_r.targetFileName =
-    configuration_in.moduleHandlerConfiguration_2.targetFileName;
+    configuration_in.moduleHandlerConfiguration->targetFileName;
 
   // things to be done here:
   // [- initialize base class]
@@ -194,51 +196,13 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
-  if (configuration_in.module)
-  {
-    // *TODO*: (at least part of) this procedure belongs in libACEStream
-    //         --> remove type inferences
-    inherited::IMODULE_T* module_2 =
-        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
-    if (!module_2)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!module_2->initialize (configuration_in.moduleConfiguration_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    Stream_Task_t* task_p = configuration_in.module->writer ();
-    ACE_ASSERT (task_p);
-    inherited::IMODULEHANDLER_T* module_handler_p =
-      dynamic_cast<inherited::IMODULEHANDLER_T*> (task_p);
-    if (!module_handler_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!module_handler_p->initialize (configuration_in.moduleHandlerConfiguration_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    inherited::modules_.push_front (configuration_in.module);
-  } // end IF
 
-  // ---------------------------------------------------------------------------
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.moduleConfiguration);
+  //ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   // ******************* File Writer ************************
-  fileWriter_.initialize (configuration_in.moduleConfiguration_2);
+  fileWriter_.initialize (*configuration_in.moduleConfiguration);
   Stream_CamSave_Module_FileWriter* fileWriter_impl_p =
     dynamic_cast<Stream_CamSave_Module_FileWriter*> (fileWriter_.writer ());
   if (!fileWriter_impl_p)
@@ -247,7 +211,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
                 ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_FileWriter> failed, aborting\n")));
     return false;
   } // end IF
-  if (!fileWriter_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
@@ -256,7 +220,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   } // end IF
 
   // ******************* Display ************************
-  display_.initialize (configuration_in.moduleConfiguration_2);
+  display_.initialize (*configuration_in.moduleConfiguration);
   Stream_CamSave_Module_Display* display_impl_p =
     dynamic_cast<Stream_CamSave_Module_Display*> (display_.writer ());
   if (!display_impl_p)
@@ -265,7 +229,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
                 ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_Display> failed, aborting\n")));
     return false;
   } // end IF
-  if (!display_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
@@ -274,7 +238,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   } // end IF
 
   // ******************* AVI Encoder ************************
-  encoder_.initialize (configuration_in.moduleConfiguration_2);
+  encoder_.initialize (*configuration_in.moduleConfiguration);
   Stream_CamSave_Module_AVIEncoder_WriterTask_t* encoder_impl_p =
     dynamic_cast<Stream_CamSave_Module_AVIEncoder_WriterTask_t*> (encoder_.writer ());
   if (!encoder_impl_p)
@@ -283,7 +247,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
                 ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_AVIEncoder_WriterTask_T> failed, aborting\n")));
     return false;
   } // end IF
-  if (!encoder_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!encoder_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
@@ -292,7 +256,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   } // end IF
 
   // ******************* Runtime Statistics ************************
-  runtimeStatistic_.initialize (configuration_in.moduleConfiguration_2);
+  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
   Stream_CamSave_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
       dynamic_cast<Stream_CamSave_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl_p)
@@ -313,7 +277,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   } // end IF
 
   // ******************* Camera Source ************************
-  source_.initialize (configuration_in.moduleConfiguration_2);
+  source_.initialize (*configuration_in.moduleConfiguration);
   Stream_CamSave_Module_Source* source_impl_p =
     dynamic_cast<Stream_CamSave_Module_Source*> (source_.writer ());
   if (!source_impl_p)
@@ -322,7 +286,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
                 ACE_TEXT ("dynamic_cast<Strean_CamSave_Module_CamSource> failed, aborting\n")));
     return false;
   } // end IF
-  if (!source_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),

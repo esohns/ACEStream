@@ -82,48 +82,48 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  if (inherited::isInitialized_)
-  {
-    // *TODO*: move this to stream_base.inl ?
-    int result = -1;
-    const inherited::MODULE_T* module_p = NULL;
-    inherited::IMODULE_T* imodule_p = NULL;
-    for (inherited::ITERATOR_T iterator (*this);
-         (iterator.next (module_p) != 0);
-         iterator.advance ())
-    {
-      if ((module_p == inherited::head ()) ||
-          (module_p == inherited::tail ()))
-        continue;
+  //if (inherited::isInitialized_)
+  //{
+  //  // *TODO*: move this to stream_base.inl ?
+  //  int result = -1;
+  //  const inherited::MODULE_T* module_p = NULL;
+  //  inherited::IMODULE_T* imodule_p = NULL;
+  //  for (inherited::ITERATOR_T iterator (*this);
+  //       (iterator.next (module_p) != 0);
+  //       iterator.advance ())
+  //  {
+  //    if ((module_p == inherited::head ()) ||
+  //        (module_p == inherited::tail ()))
+  //      continue;
 
-      // need a downcast...
-      imodule_p =
-        dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
-      if (!imodule_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
-                    module_p->name ()));
-        return false;
-      } // end IF
-      if (imodule_p->isFinal ())
-      {
-        //ACE_ASSERT (module_p == configuration_in.module);
-        result = inherited::remove (module_p->name (),
-                                    ACE_Module_Base::M_DELETE_NONE);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
-                      module_p->name ()));
-          return false;
-        } // end IF
-        imodule_p->reset ();
+  //    // need a downcast...
+  //    imodule_p =
+  //      dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
+  //    if (!imodule_p)
+  //    {
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
+  //                  module_p->name ()));
+  //      return false;
+  //    } // end IF
+  //    if (imodule_p->isFinal ())
+  //    {
+  //      //ACE_ASSERT (module_p == configuration_in.module);
+  //      result = inherited::remove (module_p->name (),
+  //                                  ACE_Module_Base::M_DELETE_NONE);
+  //      if (result == -1)
+  //      {
+  //        ACE_DEBUG ((LM_ERROR,
+  //                    ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
+  //                    module_p->name ()));
+  //        return false;
+  //      } // end IF
+  //      imodule_p->reset ();
 
-        break; // done
-      } // end IF
-    } // end FOR
-  } // end IF
+  //      break; // done
+  //    } // end IF
+  //  } // end FOR
+  //} // end IF
 
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in,
@@ -182,51 +182,13 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
-  if (configuration_in.module)
-  {
-    // *TODO*: (at least part of) this procedure belongs in libACEStream
-    //         --> remove type inferences
-    inherited::IMODULE_T* module_2 =
-        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
-    if (!module_2)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!module_2->initialize (configuration_in.moduleConfiguration_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    Stream_Task_t* task_p = configuration_in.module->writer ();
-    ACE_ASSERT (task_p);
-    inherited::IMODULEHANDLER_T* module_handler_p =
-      dynamic_cast<inherited::IMODULEHANDLER_T*> (task_p);
-    if (!module_handler_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!module_handler_p->initialize (configuration_in.moduleHandlerConfiguration_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    inherited::modules_.push_front (configuration_in.module);
-  } // end IF
 
-  // ---------------------------------------------------------------------------
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.moduleConfiguration);
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   // ******************* Runtime Statistics ************************
-  runtimeStatistic_.initialize (configuration_in.moduleConfiguration_2);
+  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
   Stream_RIFFDecoder_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
       dynamic_cast<Stream_RIFFDecoder_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl_p)
@@ -247,7 +209,7 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
   } // end IF
 
   // ******************* Decoder ************************
-  decoder_.initialize (configuration_in.moduleConfiguration_2);
+  decoder_.initialize (*configuration_in.moduleConfiguration);
   Stream_RIFFDecoder_Module_Decoder* decoder_impl_p =
     dynamic_cast<Stream_RIFFDecoder_Module_Decoder*> (decoder_.writer ());
   if (!decoder_impl_p)
@@ -256,7 +218,7 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
                 ACE_TEXT ("dynamic_cast<Stream_RIFFDecoder_Module_Decoder> failed, aborting\n")));
     return false;
   } // end IF
-  if (!decoder_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!decoder_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
@@ -265,7 +227,7 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
   } // end IF
 
   // ******************* File Source ************************
-  source_.initialize (configuration_in.moduleConfiguration_2);
+  source_.initialize (*configuration_in.moduleConfiguration);
   Stream_RIFFDecoder_Module_Source* source_impl_p =
     dynamic_cast<Stream_RIFFDecoder_Module_Source*> (source_.writer ());
   if (!source_impl_p)
@@ -274,7 +236,7 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
                 ACE_TEXT ("dynamic_cast<Stream_RIFFDecoder_Module_CamSource> failed, aborting\n")));
     return false;
   } // end IF
-  if (!source_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),

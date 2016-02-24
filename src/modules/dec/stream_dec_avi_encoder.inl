@@ -21,6 +21,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "aviriff.h"
 #include "dvdmedia.h"
+#include "fourcc.h"
 //#include "Streams.h"
 #else
 #endif
@@ -28,6 +29,8 @@
 #include "ace/Log_Msg.h"
 
 #include "stream_macros.h"
+
+#include "stream_dec_defines.h"
 
 template <typename TaskSynchType,
           typename TimePolicyType,
@@ -386,6 +389,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
       AVI_header_strh.cb = ACE_SWAP_LONG (AVI_header_strh.cb);
     AVI_header_strh.fccType = streamtypeVIDEO;
+    FOURCCMap fourcc_map (&mediaType_.subtype);
+    AVI_header_strh.fccHandler = fourcc_map.GetFOURCC ();
     //AVI_header_strh.fccHandler = 0;
     //AVI_header_strh.dwFlags = 0;
     //AVI_header_strh.wPriority = 0;

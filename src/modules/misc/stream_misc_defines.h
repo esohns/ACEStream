@@ -2,7 +2,13 @@
 #define STREAM_MODULE_MISC_DEFINES_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE L"ACEStream Source"
+#define MODULE_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS        100
+
+#define MODULE_MISC_DS_WIN32_FILTER_SOURCE_FRAME_INTERVAL 20 // ms
+
+#define MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE           "ACEStream DirectShow Source"
+#define MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L         L"ACEStream DirectShow Source"
+#define MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME       L"Output"
 #endif
 
 #endif

@@ -24,57 +24,92 @@
 #include "ace/Global_Macros.h"
 
 #include "dshow.h"
+#include "streams.h"
 
-//------------------------------------------------------------------------------
-// Forward Declarations
-//------------------------------------------------------------------------------
-// The class managing the output pin
-class Stream_Misc_DirectShow_Source_Filter_OutputPin;
+#include "stream_task_base_synch.h"
 
-class Stream_Misc_DirectShow_Source_Filter
- : public CSource
+// forward declarations
+template <typename FilterType>
+class Stream_Misc_DirectShow_Source_Filter_OutputPin_T;
+
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+class Stream_Misc_DirectShow_Source_Filter_T
+ : public Stream_TaskBaseSynch_T<TimePolicyType,
+                                 SessionMessageType,
+                                 ProtocolMessageType>
+ , public CSource
 {
  public:
-  static CUnknown* WINAPI CreateInstance (LPUNKNOWN, HRESULT*);
+  static CUnknown* WINAPI CreateInstance (LPUNKNOWN, //
+                                          HRESULT*); // return value: result
+  //static void WINAPI InitializeInstance (BOOL,
+  //                                       const CLSID*);
 
  private:
-  Stream_Misc_DirectShow_Source_Filter (LPUNKNOWN, HRESULT*);
+  typedef Stream_TaskBaseSynch_T<TimePolicyType,
+                                 SessionMessageType,
+                                 ProtocolMessageType> inherited;
+  typedef CSource inherited2;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter (const Stream_Misc_DirectShow_Source_Filter&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter& operator= (const Stream_Misc_DirectShow_Source_Filter&))
-}; // Stream_Misc_DirectShow_Source_Filter
+  typedef Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
+                                                 SessionMessageType,
+                                                 ProtocolMessageType> OWN_TYPE_T;
+  typedef Stream_Misc_DirectShow_Source_Filter_OutputPin_T<OWN_TYPE_T> FILTER_T;
 
-class Stream_Misc_DirectShow_Source_Filter_OutputPin
+  Stream_Misc_DirectShow_Source_Filter_T (LPTSTR,      // name
+                                          LPUNKNOWN,   // 
+                                          const GUID&, // CLSID
+                                          HRESULT*);   // return value: result
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_T (const Stream_Misc_DirectShow_Source_Filter_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_T& operator= (const Stream_Misc_DirectShow_Source_Filter_T&))
+}; // Stream_Misc_DirectShow_Source_Filter_T
+
+template <typename FilterType>
+class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
  : public CSourceStream
 {
  public:
-  Stream_Misc_DirectShow_Source_Filter_OutputPin (HRESULT*,
-                                                  Stream_Misc_DirectShow_Source_Filter*,
-                                                  LPCWSTR);
-  virtual ~Stream_Misc_DirectShow_Source_Filter_OutputPin ();
+  Stream_Misc_DirectShow_Source_Filter_OutputPin_T (HRESULT*,    // result
+                                                    FilterType*, // parent
+                                                    LPCWSTR);    // name
+  virtual ~Stream_Misc_DirectShow_Source_Filter_OutputPin_T ();
 
   // override / implement (part of) CBasePin
-  virtual STDMETHODIMP CheckMediaType (const CMediaType*);
-  virtual STDMETHODIMP GetMediaType (int, CMediaType*);
-  virtual STDMETHODIMP SetMediaType (const CMediaType*);
+  virtual HRESULT CheckMediaType (const CMediaType*);
+  virtual HRESULT GetMediaType (int, CMediaType*);
+  virtual HRESULT SetMediaType (const CMediaType*);
 
   // implement (part of) CBaseOutputPin
-  virtual STDMETHODIMP DecideBufferSize (IMemAllocator*,
-                                         ALLOCATOR_PROPERTIES*);
+  virtual HRESULT DecideBufferSize (IMemAllocator*,
+                                    struct _AllocatorProperties*);
 
   // override /implement (part of) CSourceStream
-  virtual STDMETHODIMP OnThreadCreate (void);
-  virtual STDMETHODIMP FillBuffer (IMediaSample*);
+  virtual HRESULT OnThreadCreate (void);
+  virtual HRESULT FillBuffer (IMediaSample*);
 
   // implement (part of) IQualityControl
-  virtual STDMETHODIMP Notify (IBaseFilter*,
-                               Quality);
+  STDMETHODIMP Notify (IBaseFilter*,
+                       Quality);
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_OutputPin ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_OutputPin (const Stream_Misc_DirectShow_Source_Filter_OutputPin&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_OutputPin& operator= (const Stream_Misc_DirectShow_Source_Filter_OutputPin&))
-}; // Stream_Misc_DirectShow_Source_Filter_OutputPin
+  typedef CSourceStream inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_OutputPin_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_OutputPin_T (const Stream_Misc_DirectShow_Source_Filter_OutputPin_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_OutputPin_T& operator= (const Stream_Misc_DirectShow_Source_Filter_OutputPin_T&))
+
+  const int defaultFrameInterval_; // Initial frame interval (ms)
+
+  int       frameInterval_;        // Time in msec between frames
+  CCritSec  lock_;                 // Lock on sampleTime_
+  CRefTime  sampleTime_;           // The time stamp for each sample
+}; // Stream_Misc_DirectShow_Source_Filter_OutputPin_T
+
+   // include template definition
+#include "stream_misc_directshow_source_filter.inl"
 
 #endif

@@ -1029,10 +1029,11 @@ Stream_Module_Device_Tools::connect (IGraphBuilder* builder_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   //ACE_TEXT ("failed to IGraphBuilder::ConnectDirect() \"%s\" to \"%s\": \"%s\", aborting\n"),
-                  ACE_TEXT ("failed to IPin::Connect() \"%s\" to \"%s\": \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to IPin::Connect() \"%s\" to \"%s\": \"%s\" (0x%x), aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR ((*--iterator_2).c_str ()),
                   ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ()),
+                  result));
 
       // clean up
       pin_2->Release ();

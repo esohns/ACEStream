@@ -79,25 +79,26 @@ struct Stream_RIFFDecoder_StreamConfiguration
 {
   inline Stream_RIFFDecoder_StreamConfiguration ()
    : Stream_Configuration ()
-   , bufferSize (STREAM_DECODER_BUFFER_SIZE)
-   , moduleConfiguration_2 ()
-   , moduleHandlerConfiguration_2 ()
+   , moduleHandlerConfiguration (NULL)
   {};
 
-  unsigned int                                  bufferSize;
-  Stream_ModuleConfiguration                    moduleConfiguration_2;
-  Stream_RIFFDecoder_ModuleHandlerConfiguration moduleHandlerConfiguration_2;
+  Stream_RIFFDecoder_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 
 struct Stream_RIFFDecoder_Configuration
 {
   inline Stream_RIFFDecoder_Configuration ()
-   : streamConfiguration ()
+   : moduleConfiguration ()
+   , moduleHandlerConfiguration ()
+   , streamConfiguration ()
    , streamUserData ()
   {};
 
-  Stream_RIFFDecoder_StreamConfiguration streamConfiguration;
-  Stream_UserData                        streamUserData;
+  Stream_ModuleConfiguration                    moduleConfiguration;
+  Stream_RIFFDecoder_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  Stream_RIFFDecoder_StreamConfiguration        streamConfiguration;
+
+  Stream_UserData                               streamUserData;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<Test_U_AllocatorConfiguration,

@@ -106,6 +106,7 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-2.0/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gtk-2.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
@@ -198,6 +199,52 @@ install (FILES etc/source.glade etc/resources.rc
          DESTINATION etc/libACEStream/camstream COMPONENT config)
 
 ############## next target ################
+if (WIN32)
+ set (DIRECTSHOW_BASECLASSES_DIRECTORY
+      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+ include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
+
+ set (camtarget_source_LIB_SRCS
+      camtarget_source.cpp
+      stdafx.cpp
+      stdafx.h)
+
+ add_library (camtarget_source MODULE ${camtarget_source_LIB_SRCS} scripts/camstream_source.def)
+
+ add_dependencies (camtarget_source Common)
+ add_dependencies (camtarget_source ${PROJECT_NAME})
+
+ target_link_libraries (camtarget_source ${ACE_LIBRARY})
+ target_link_libraries (camtarget_source strmiids.lib)
+ target_link_libraries (camtarget_source winmm.lib)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  message ("${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug")
+  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
+  target_link_libraries (camtarget_source ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
+ else ()
+  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
+  target_link_libraries (camtarget_source strmbase.lib)
+ endif ()
+ target_link_libraries (camtarget_source Common)
+ target_link_libraries (camtarget_source ${PROJECT_NAME})
+
+ set_target_properties (camtarget_source PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
+ set_target_properties (camtarget_source PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+
+# add all targets to the build-tree export set
+ export (TARGETS camtarget_source
+         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
+
+ install (TARGETS camtarget_source
+          EXPORT ${PROJECT_NAME}Targets
+          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
+          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
+          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
+          COMPONENT dev)
+endif ()
+
+############## next target ################
+
 set (camtarget_EXE_SRCS
      test_i_callbacks.cpp
      test_i_callbacks.h

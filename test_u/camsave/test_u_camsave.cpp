@@ -436,16 +436,19 @@ do_finalize_directshow (Stream_CamSave_GTK_CBData& CBData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
 
+  // sanity check(s)
+  ACE_ASSERT (CBData_in.configuration);
+
   HRESULT result = E_FAIL;
   if (CBData_in.streamConfiguration)
   {
     CBData_in.streamConfiguration->Release ();
     CBData_in.streamConfiguration = NULL;
   } // end IF
-  if (CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.builder)
+  if (CBData_in.configuration->moduleHandlerConfiguration.builder)
   {
-    CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.builder->Release ();
-    CBData_in.configuration->streamConfiguration.moduleHandlerConfiguration_2.builder = NULL;
+    CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
+    CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
   } // end IF
 
   //CoUninitialize ();
@@ -474,8 +477,8 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!do_initialize_directshow (configuration.streamConfiguration.moduleHandlerConfiguration_2.device,
-                                 configuration.streamConfiguration.moduleHandlerConfiguration_2.builder,
+  if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
+                                 configuration.moduleHandlerConfiguration.builder,
                                  CBData_in.streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -486,7 +489,7 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  ACE_ASSERT (configuration.streamConfiguration.moduleHandlerConfiguration_2.builder);
+  ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
   ACE_ASSERT (CBData_in.streamConfiguration);
 #endif
 
@@ -512,19 +515,22 @@ do_work (unsigned int bufferSize_in,
   event_handler_p->subscribe (&ui_event_handler);
 
   // ********************** module configuration data **************************
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.active =
-      !UIDefinitionFilename_in.empty ();
+  configuration.moduleConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
+  configuration.moduleHandlerConfiguration.active =
+    !UIDefinitionFilename_in.empty ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.device =
-    deviceFilename_in;
+  configuration.moduleHandlerConfiguration.device = deviceFilename_in;
   // *TODO*: turn these into an option
   configuration.streamConfiguration.moduleHandlerConfiguration_2.buffers =
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
   configuration.streamConfiguration.moduleHandlerConfiguration_2.method =
       V4L2_MEMORY_MMAP;
 #endif
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.targetFileName =
+  configuration.moduleHandlerConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
+  configuration.moduleHandlerConfiguration.targetFileName =
       (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFilename_in);
 
@@ -536,13 +542,9 @@ do_work (unsigned int bufferSize_in,
     (!UIDefinitionFilename_in.empty () ? &event_handler
                                        : NULL);
   configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
+    &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.streamConfiguration.moduleHandlerConfiguration_2;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
+    &configuration.moduleHandlerConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
   configuration.streamConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;

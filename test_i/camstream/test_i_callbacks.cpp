@@ -3836,26 +3836,31 @@ combobox_source_changed_cb (GtkComboBox* comboBox_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
   GValue value = {0,};
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   GValue value_2 = {0,};
+#endif
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             0, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string device_string = g_value_get_string (&value);
+  g_value_unset (&value);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
                             1, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
-  std::string device_string = g_value_get_string (&value);
   std::string device_path = g_value_get_string (&value_2);
-  g_value_unset (&value);
-  g_value_unset (&value_2);
+g_value_unset (&value_2);
+#endif
 
   list_store_p =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_UNUSED_ARG (device_path);
   // sanity check(s)
   ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration);
 

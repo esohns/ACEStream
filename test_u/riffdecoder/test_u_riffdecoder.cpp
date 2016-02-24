@@ -197,24 +197,22 @@ do_work (bool debug_in,
   Stream_RIFFDecoder_Stream stream;
 
   // ********************** module configuration data **************************
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.traceParsing =
-    debug_in;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.traceScanning =
-    debug_in;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.fileName =
-    fileName_in;
+  configuration.moduleConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
+
+  configuration.moduleHandlerConfiguration.fileName = fileName_in;
+  configuration.moduleHandlerConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
+  configuration.moduleHandlerConfiguration.traceParsing = debug_in;
+  configuration.moduleHandlerConfiguration.traceScanning = debug_in;
 
   // ********************** stream configuration data **************************
   configuration.streamConfiguration.bufferSize = 524288; // bytes
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
+    &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.streamConfiguration.moduleHandlerConfiguration_2;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
+    &configuration.moduleHandlerConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
 
   Stream_RIFFDecoder_Module_Decoder* task_p = NULL;
