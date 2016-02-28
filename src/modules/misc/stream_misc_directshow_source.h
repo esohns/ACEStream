@@ -31,6 +31,8 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_misc_directshow_source_filter.h"
+
 // forward declarations
 class ACE_Message_Queue_Base;
 
@@ -45,6 +47,14 @@ class Stream_Misc_DirectShow_Source_T
                                  SessionMessageType,
                                  MessageType>
  , public Stream_IModuleHandler_T<ConfigurationType>
+ , public Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
+                                                 SessionMessageType,
+                                                 MessageType,
+
+                                                 Stream_Misc_DirectShow_Source_T<SessionMessageType,
+                                                                                 MessageType,
+                                                                                 ConfigurationType,
+                                                                                 SessionDataType> >
 {
  public:
   Stream_Misc_DirectShow_Source_T ();
@@ -53,27 +63,47 @@ class Stream_Misc_DirectShow_Source_T
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (MessageType*&, // data message handle
                                   bool&);        // return value: pass message downstream ?
-  //virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-  //                                   bool&);               // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
 
-                                                           // implement Stream_IModuleHandler_T
+  // implement Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&);
   virtual const ConfigurationType& get () const;
 
  protected:
   ConfigurationType* configuration_;
+  SessionDataType*   sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
                                  SessionMessageType,
                                  MessageType> inherited;
+  typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
+                                                 SessionMessageType,
+                                                 MessageType,
+
+                                                 Stream_Misc_DirectShow_Source_T<SessionMessageType,
+                                                                                 MessageType,
+                                                                                 ConfigurationType,
+                                                                                 SessionDataType> > inherited2;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T (const Stream_Misc_DirectShow_Source_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T& operator= (const Stream_Misc_DirectShow_Source_T&))
 
+  // helper methods
+  bool initialize_DirectShow (const HWND,       // (target) window handle [NULL: NullRenderer]
+                              IGraphBuilder*&); // return value: (capture) graph builder handle
+
+  bool               isInitialized_;
+
   IMemAllocator*     IMemAllocator_;
   IMemInputPin*      IMemInputPin_;
+
+  //IGraphBuilder*     IGraphBuilder_;
+  IMediaControl*     IMediaControl_;
+  IMediaEventEx*     IMediaEventEx_;
+  DWORD              ROTID_;
 };
 
 // include template definition

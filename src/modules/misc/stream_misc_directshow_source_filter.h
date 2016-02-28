@@ -29,46 +29,49 @@
 #include "stream_task_base_synch.h"
 
 // forward declarations
-template <typename FilterType>
+template <typename FilterType,
+          typename ModuleType>
 class Stream_Misc_DirectShow_Source_Filter_OutputPin_T;
 
 template <typename TimePolicyType,
           typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ProtocolMessageType,
+          ///////////////////////////////
+          typename ModuleType>
 class Stream_Misc_DirectShow_Source_Filter_T
- : public Stream_TaskBaseSynch_T<TimePolicyType,
-                                 SessionMessageType,
-                                 ProtocolMessageType>
- , public CSource
+ : public CSource
 {
  public:
-  static CUnknown* WINAPI CreateInstance (LPUNKNOWN, //
+  Stream_Misc_DirectShow_Source_Filter_T ();
+
+  static CUnknown* WINAPI CreateInstance (LPUNKNOWN, // owner
                                           HRESULT*); // return value: result
   //static void WINAPI InitializeInstance (BOOL,
   //                                       const CLSID*);
 
  private:
-  typedef Stream_TaskBaseSynch_T<TimePolicyType,
-                                 SessionMessageType,
-                                 ProtocolMessageType> inherited;
-  typedef CSource inherited2;
+  typedef CSource inherited;
 
   typedef Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                                  SessionMessageType,
-                                                 ProtocolMessageType> OWN_TYPE_T;
-  typedef Stream_Misc_DirectShow_Source_Filter_OutputPin_T<OWN_TYPE_T> FILTER_T;
+                                                 ProtocolMessageType,
+                                                 ModuleType> OWN_TYPE_T;
+  typedef Stream_Misc_DirectShow_Source_Filter_OutputPin_T<OWN_TYPE_T,
+                                                           ModuleType> FILTER_T;
 
   Stream_Misc_DirectShow_Source_Filter_T (LPTSTR,      // name
-                                          LPUNKNOWN,   // 
+                                          LPUNKNOWN,   // owner
                                           const GUID&, // CLSID
                                           HRESULT*);   // return value: result
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_T (const Stream_Misc_DirectShow_Source_Filter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_T& operator= (const Stream_Misc_DirectShow_Source_Filter_T&))
 }; // Stream_Misc_DirectShow_Source_Filter_T
 
-template <typename FilterType>
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename FilterType,
+          typename ModuleType>
 class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
  : public CSourceStream
 {
@@ -109,7 +112,7 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
   CRefTime  sampleTime_;           // The time stamp for each sample
 }; // Stream_Misc_DirectShow_Source_Filter_OutputPin_T
 
-   // include template definition
+// include template definition
 #include "stream_misc_directshow_source_filter.inl"
 
 #endif

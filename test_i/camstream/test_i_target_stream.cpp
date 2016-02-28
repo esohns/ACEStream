@@ -32,21 +32,26 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
 // , source_ (ACE_TEXT_ALWAYS_CHAR ("NetSource"),
 //            NULL,
 //            false)
- //, directShowSource_ (ACE_TEXT_ALWAYS_CHAR ("DirectShowSource"),
- //                     NULL,
- //                     false)
 // , decoder_ (ACE_TEXT_ALWAYS_CHAR ("AVIDecoder"),
 //             NULL,
 //             false)
  , splitter_ (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
               NULL,
               false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  , directShowSource_ (ACE_TEXT_ALWAYS_CHAR ("DirectShowSource"),
+                       NULL,
+                       false)
+#endif
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
  , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
              NULL,
              false)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::Test_I_Target_Stream"));
 
@@ -55,12 +60,17 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-//  inherited::availableModules_.push_front (&source_);
-  //inherited::availableModules_.push_front (&directShowSource_);
-//  inherited::availableModules_.push_front (&decoder_);
+//  inherited::modules_.push_front (&source_);
+//  inherited::modules_.push_front (&decoder_);
   inherited::modules_.push_front (&splitter_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  inherited::modules_.push_front (&directShowSource_);
+#endif
   inherited::modules_.push_front (&runtimeStatistic_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   inherited::modules_.push_front (&display_);
+#endif
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -285,6 +295,8 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   // ---------------------------------------------------------------------------
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   // ******************* Display ************************
   display_.initialize (*configuration_in.moduleConfiguration);
   Test_I_Target_Stream_Module_Display* display_impl_p =
@@ -302,6 +314,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
                 display_.name ()));
     return false;
   } // end IF
+#endif
 
   // ******************* Runtime Statistic *************************
   runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
@@ -323,6 +336,96 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
                 runtimeStatistic_.name ()));
     return false;
   } // end IF
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // ******************* DirectShow Source ************************
+  directShowSource_.initialize (*configuration_in.moduleConfiguration);
+  Test_I_Target_Stream_Module_DirectShowSource* directShowSource_impl_p =
+    dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource*> (directShowSource_.writer ());
+  if (!directShowSource_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource> failed, aborting\n")));
+    return false;
+  } // end IF
+
+  // sanity check(s)
+  ACE_ASSERT (!configuration_r.graphBuilder);
+  std::list<std::wstring> filter_pipeline;
+  if (!Stream_Module_Device_Tools::load (configuration_r.window,
+                                         configuration_r.graphBuilder,
+                                         filter_pipeline))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
+    return false;
+  } // end IF
+  ACE_ASSERT (configuration_r.graphBuilder);
+  HRESULT result_2 =
+    configuration_r.graphBuilder->AddFilter (directShowSource_impl_p,
+                                             MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+  filter_pipeline.push_front (MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"...\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L)));
+
+  if (!directShowSource_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+                directShowSource_.name ()));
+    goto error;
+  } // end IF
+
+  ACE_ASSERT (!filter_pipeline.empty ());
+  if (!Stream_Module_Device_Tools::connect (configuration_r.graphBuilder,
+                                            filter_pipeline))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
+    goto error;
+  } // end IF
+
+  IMediaFilter* media_filter_p = NULL;
+  result_2 =
+    configuration_r.graphBuilder->QueryInterface (IID_IMediaFilter,
+                                                  (void**)&media_filter_p);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (media_filter_p);
+  result_2 = media_filter_p->SetSyncSource (NULL);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+  media_filter_p->Release ();
+
+  goto continue_;
+
+error:
+  // clean up
+  configuration_r.graphBuilder->Release ();
+  configuration_r.graphBuilder = NULL;
+
+  return false;
+
+continue_:
+#endif
 
   // ************************ Splitter *****************************
   splitter_.initialize (*configuration_in.moduleConfiguration);
@@ -378,32 +481,6 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 //                decoder_.name ()));
 //    return false;
 //  } // end IF
-
-  //// ******************* DirectShow Source ************************
-  //directShowSource_.initialize (*configuration_in.moduleConfiguration);
-  //Test_I_Stream_Module_DirectShowSource* directShowSource_impl_p =
-  //  dynamic_cast<Test_I_Stream_Module_DirectShowSource*> (directShowSource_.writer ());
-  //if (!directShowSource_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_DirectShowSource> failed, aborting\n")));
-  //  return false;
-  //} // end IF
-  //if (!directShowSource_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-  //              directShowSource_.name ()));
-  //  return false;
-  //} // end IF
-  //result_2 = inherited::push (&directShowSource_);
-  //if (result_2 == -1)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ACE_Stream::push(\"%s\"): \"%m\", aborting\n"),
-  //              directShowSource_.name ()));
-  //  return false;
-  //} // end IF
 
 //  // ******************* Net Reader ***********************
 //  source_.initialize (*configuration_in.moduleConfiguration);

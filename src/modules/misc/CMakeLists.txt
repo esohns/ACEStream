@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.8)
 
 if (WIN32)
  include_directories ("$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)

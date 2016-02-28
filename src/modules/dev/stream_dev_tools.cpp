@@ -614,20 +614,23 @@ error:
   return false;
 }
 bool
-Stream_Module_Device_Tools::load (IGraphBuilder*& IGraphBuilder_inout,
-                                  const HWND windowHandle_in)
+Stream_Module_Device_Tools::load (const HWND windowHandle_in,
+                                  IGraphBuilder*& IGraphBuilder_out,
+                                  std::list<std::wstring>& pipeline_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::load"));
 
   HRESULT result = E_FAIL;
-  std::list<std::wstring> filter_pipeline;
 
-  if (!IGraphBuilder_inout)
+  // initialize return value(s)
+  pipeline_out.clear ();
+
+  if (!IGraphBuilder_out)
   {
     result =
       CoCreateInstance (CLSID_FilterGraph, NULL,
                         CLSCTX_INPROC_SERVER, IID_IGraphBuilder,
-                        (void**)&IGraphBuilder_inout);
+                        (void**)&IGraphBuilder_out);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -635,24 +638,24 @@ Stream_Module_Device_Tools::load (IGraphBuilder*& IGraphBuilder_inout,
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       return false;
     } // end IF
-    ACE_ASSERT (IGraphBuilder_inout);
+    ACE_ASSERT (IGraphBuilder_out);
   } // end IF
   else
   {
-    if (!Stream_Module_Device_Tools::clear (IGraphBuilder_inout))
+    if (!Stream_Module_Device_Tools::clear (IGraphBuilder_out))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
       goto error;
     } // end IF
   } // end ELSE
-  ACE_ASSERT (IGraphBuilder_inout);
+  ACE_ASSERT (IGraphBuilder_out);
 
   // decompress
   IBaseFilter* filter_p = NULL;
   result =
-    IGraphBuilder_inout->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS,
-                                           &filter_p);
+    IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS,
+                                         &filter_p);
   if (FAILED (result))
   {
     if (result != VFW_E_NOT_FOUND)
@@ -680,8 +683,9 @@ Stream_Module_Device_Tools::load (IGraphBuilder*& IGraphBuilder_inout,
       goto error;
     } // end IF
     ACE_ASSERT (filter_p);
-    result = IGraphBuilder_inout->AddFilter (filter_p,
-                                             MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS);
+    result =
+      IGraphBuilder_out->AddFilter (filter_p,
+                                    MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -702,9 +706,9 @@ Stream_Module_Device_Tools::load (IGraphBuilder*& IGraphBuilder_inout,
   // render to a window (GtkDrawingArea) ?
   IBaseFilter* filter_2 = NULL;
   result =
-    IGraphBuilder_inout->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                                            : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER),
-                                           &filter_2);
+    IGraphBuilder_out->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
+                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER),
+                                         &filter_2);
   if (FAILED (result))
   {
     if (result != VFW_E_NOT_FOUND)
@@ -740,9 +744,9 @@ Stream_Module_Device_Tools::load (IGraphBuilder*& IGraphBuilder_inout,
     } // end IF
     ACE_ASSERT (filter_2);
     result =
-      IGraphBuilder_inout->AddFilter (filter_2,
-                                      (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                                       : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER));
+      IGraphBuilder_out->AddFilter (filter_2,
+                                    (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
+                                                     : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -784,31 +788,22 @@ Stream_Module_Device_Tools::load (IGraphBuilder*& IGraphBuilder_inout,
 
   //  return false;
   //} // end IF
-  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS);
-  filter_pipeline.push_back ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                              : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER));
-  if (!Stream_Module_Device_Tools::connect (IGraphBuilder_inout,
-                                            filter_pipeline))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
 
-    // clean up
-    filter_p->Release ();
-    filter_2->Release ();
+  pipeline_out.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS);
+  pipeline_out.push_back ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
+                                           : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER));
 
-    goto error;
-  } // end IF
+  // clean up
   filter_p->Release ();
   filter_2->Release ();
 
   return true;
 
 error:
-  if (IGraphBuilder_inout)
+  if (IGraphBuilder_out)
   {
-    IGraphBuilder_inout->Release ();
-    IGraphBuilder_inout = NULL;
+    IGraphBuilder_out->Release ();
+    IGraphBuilder_out = NULL;
   } // end IF
 
   return false;
@@ -1024,6 +1019,7 @@ Stream_Module_Device_Tools::connect (IGraphBuilder* builder_in,
 
     iterator_2 = iterator;
     //result = builder_p->ConnectDirect (pin_p, pin_2, NULL);
+
     result = pin_p->Connect (pin_2, NULL);
     if (FAILED (result)) // 0x80040217: VFW_E_CANNOT_CONNECT, 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
     {

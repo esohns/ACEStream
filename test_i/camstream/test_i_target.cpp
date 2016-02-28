@@ -474,45 +474,59 @@ do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out)
   // sanity check(s)
   ACE_ASSERT (!IGraphBuilder_out);
 
-  if (!Stream_Module_Device_Tools::load (IGraphBuilder_out,
-                                         NULL))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
-    return false;
-  } // end IF
-  ACE_ASSERT (IGraphBuilder_out);
+  //std::list<std::wstring> filter_pipeline;
+  //if (!Stream_Module_Device_Tools::load (NULL,
+  //                                       IGraphBuilder_out,
+  //                                       filter_pipeline))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
+  //  return false;
+  //} // end IF
+  //ACE_ASSERT (IGraphBuilder_out);
+  //ACE_ASSERT (!filter_pipeline.empty ());
+  //if (!Stream_Module_Device_Tools::connect (IGraphBuilder_out,
+  //                                          filter_pipeline))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
 
-  IMediaFilter* media_filter_p = NULL;
-  HRESULT result = IGraphBuilder_out->QueryInterface (IID_IMediaFilter,
-                                                      (void**)&media_filter_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (media_filter_p);
-  result = media_filter_p->SetSyncSource (NULL);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  media_filter_p->Release ();
+  //  // clean up
+  //  IGraphBuilder_out->Release ();
+
+  //  return false;
+  //} // end IF
+
+  //IMediaFilter* media_filter_p = NULL;
+  //HRESULT result = IGraphBuilder_out->QueryInterface (IID_IMediaFilter,
+  //                                                    (void**)&media_filter_p);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (media_filter_p);
+  //result = media_filter_p->SetSyncSource (NULL);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //media_filter_p->Release ();
 
   return true;
 
-error:
-  if (media_filter_p)
-    media_filter_p->Release ();
-  IGraphBuilder_out->Release ();
-  IGraphBuilder_out = NULL;
-
-  return false;
+//error:
+//  if (media_filter_p)
+//    media_filter_p->Release ();
+//  IGraphBuilder_out->Release ();
+//  IGraphBuilder_out = NULL;
+//
+//  return false;
 }
 
 void
@@ -576,7 +590,7 @@ do_work (unsigned int bufferSize_in,
 
     return;
   } // end IF
-  ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
+  //ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
 #endif
 
   Stream_AllocatorHeap_T<Test_I_Target_AllocatorConfiguration> heap_allocator;
@@ -939,8 +953,7 @@ do_work (unsigned int bufferSize_in,
         //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
         //              &timeout));
         ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
-        Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
-          NULL;
+        Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p = NULL;
         do
         {
           connection_p =

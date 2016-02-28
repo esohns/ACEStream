@@ -35,6 +35,11 @@ else ()
  message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
 endif ()
 
+if (WIN32)
+ set (DIRECTSHOW_BASECLASSES_DIRECTORY
+      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+endif ()
+
 include (FindPkgConfig)
 if (UNIX)
  #pkg_check_modules (PKG_ACE REQUIRED ACE)
@@ -170,6 +175,14 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_GTK_GLADE_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} strmiids.lib)
+ target_link_libraries (${EXECUTABLE} winmm.lib)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
+  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
+ else ()
+  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
+  target_link_libraries (${EXECUTABLE} strmbase.lib)
+ endif ()
 # *TODO*: repair WIN32 pkgconfig support
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gio-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
@@ -200,8 +213,6 @@ install (FILES etc/source.glade etc/resources.rc
 
 ############## next target ################
 if (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
 
  set (camtarget_source_LIB_SRCS
@@ -209,33 +220,33 @@ if (WIN32)
       stdafx.cpp
       stdafx.h)
 
- add_library (camtarget_source MODULE ${camtarget_source_LIB_SRCS} scripts/camstream_source.def)
+ set (LIBRARY camtarget_source)
+ add_library (${LIBRARY} MODULE ${camtarget_source_LIB_SRCS} scripts/camstream_source.def)
 
- add_dependencies (camtarget_source Common)
- add_dependencies (camtarget_source ${PROJECT_NAME})
+ add_dependencies (${LIBRARY} Common)
+ add_dependencies (${LIBRARY} ${PROJECT_NAME})
 
- target_link_libraries (camtarget_source ${ACE_LIBRARY})
- target_link_libraries (camtarget_source strmiids.lib)
- target_link_libraries (camtarget_source winmm.lib)
+ target_link_libraries (${LIBRARY} ${ACE_LIBRARY})
+ target_link_libraries (${LIBRARY} strmiids.lib)
+ target_link_libraries (${LIBRARY} winmm.lib)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  message ("${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug")
   link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-  target_link_libraries (camtarget_source ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
+  target_link_libraries (${LIBRARY} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
  else ()
   link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
-  target_link_libraries (camtarget_source strmbase.lib)
+  target_link_libraries (${LIBRARY} strmbase.lib)
  endif ()
- target_link_libraries (camtarget_source Common)
- target_link_libraries (camtarget_source ${PROJECT_NAME})
+ target_link_libraries (${LIBRARY} Common)
+ target_link_libraries (${LIBRARY} ${PROJECT_NAME})
 
- set_target_properties (camtarget_source PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
- set_target_properties (camtarget_source PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+ set_target_properties (${LIBRARY} PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
+ set_target_properties (${LIBRARY} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add all targets to the build-tree export set
- export (TARGETS camtarget_source
+ export (TARGETS ${LIBRARY}
          APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
- install (TARGETS camtarget_source
+ install (TARGETS ${LIBRARY}
           EXPORT ${PROJECT_NAME}Targets
           ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
           LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
@@ -292,6 +303,14 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_GTK_GLADE_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} strmiids.lib)
+ target_link_libraries (${EXECUTABLE} winmm.lib)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
+  target_link_libraries (${EXECUTABLE} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
+ else ()
+  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
+  target_link_libraries (${EXECUTABLE} strmbase.lib)
+ endif ()
 # *TODO*: repair WIN32 pkgconfig support
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gio-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)

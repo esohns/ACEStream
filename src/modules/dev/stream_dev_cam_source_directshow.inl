@@ -54,7 +54,6 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
               false, // run svc() on start() ?
               true)  // generate session messages
  , isInitialized_ (false)
- , ROTID_ (0)
  , statisticCollectionHandler_ (ACTION_COLLECT,
                                 this,
                                 false)
@@ -64,6 +63,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
  , IMediaControl_ (NULL)
  , IMediaEventEx_ (NULL)
  , ISampleGrabber_ (NULL)
+ , ROTID_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::Stream_Dev_Cam_Source_DirectShow_T"));
 
@@ -191,12 +191,6 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
       return false;
     } // end IF
     COM_initialized = true;
-
-    if (inherited::sessionData_)
-    {
-      inherited::sessionData_->decrease ();
-      inherited::sessionData_ = NULL;
-    } // end IF
   } // end IF
 
   if (isInitialized_)
@@ -270,6 +264,12 @@ continue_:
     //  inherited::configuration_->builder->Release ();
     //  inherited::configuration_->builder = NULL;
     //} // end IF
+
+    if (inherited::sessionData_)
+    {
+      inherited::sessionData_->decrease ();
+      inherited::sessionData_ = NULL;
+    } // end IF
 
     isInitialized_ = false;
   } // end IF

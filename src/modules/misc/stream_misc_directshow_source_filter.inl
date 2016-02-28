@@ -39,12 +39,14 @@ DEFINE_GUID (CLSID_ACEStream_Source_Filter,
 
 template <typename TimePolicyType,
           typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ProtocolMessageType,
+          typename ModuleType>
 CUnknown* WINAPI
 Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                        SessionMessageType,
-                                       ProtocolMessageType>::CreateInstance (LPUNKNOWN lpunk_in,
-                                                                             HRESULT* result_out)
+                                       ProtocolMessageType,
+                                       ModuleType>::CreateInstance (LPUNKNOWN lpunk_in,
+                                                                    HRESULT* result_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::CreateInstance"));
 
@@ -71,12 +73,14 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 } // CreateInstance
 //template <typename TimePolicyType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType>
+//          typename ProtocolMessageType,
+//          typename ModuleType>
 //void WINAPI
 //Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 //                                       SessionMessageType,
-//                                       ProtocolMessageType>::InitializeInstance (BOOL loading_in,
-//                                                                                 const CLSID* CLSID_in)
+//                                       ProtocolMessageType,
+//                                       ModuleType>::InitializeInstance (BOOL loading_in,
+//                                                                        const CLSID* CLSID_in)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::InitializeInstance"));
 //
@@ -86,28 +90,70 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 
 template <typename TimePolicyType,
           typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ProtocolMessageType,
+          typename ModuleType>
 Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                        SessionMessageType,
-                                       ProtocolMessageType>::Stream_Misc_DirectShow_Source_Filter_T (LPTSTR name_in,
-                                                                                                     LPUNKNOWN lpunk_in,
-                                                                                                     const GUID& GUID_in,
-                                                                                                     HRESULT* result_out)
- : inherited ()
- , inherited2 (name_in,
-              lpunk_in,
+                                       ProtocolMessageType,
+                                       ModuleType>::Stream_Misc_DirectShow_Source_Filter_T ()
+ : inherited (MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE, // name
+              NULL,                                    // owner
+              CLSID_ACEStream_Source_Filter)           // CLSID
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::Stream_Misc_DirectShow_Source_Filter_T"));
+
+  // sanity check(s)
+  ACE_ASSERT (!inherited::m_paStreams);
+
+  CAutoLock cAutoLock (&(inherited::m_cStateLock));
+
+  ACE_NEW_NORETURN (inherited::m_paStreams,
+                    CSourceStream*[1]);
+  if (!inherited::m_paStreams)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+    return;
+  } // end IF
+
+  HRESULT result = S_OK;
+  ACE_NEW_NORETURN (inherited::m_paStreams[0],
+                    FILTER_T (&result,
+                              this,
+                              MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME));
+  if (!inherited::m_paStreams[0])
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+    return;
+  } // end IF
+  ACE_UNUSED_ARG (result);
+} // (Constructor)
+template <typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ModuleType>
+Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
+                                       SessionMessageType,
+                                       ProtocolMessageType,
+                                       ModuleType>::Stream_Misc_DirectShow_Source_Filter_T (LPTSTR name_in,
+                                                                                            LPUNKNOWN owner_in,
+                                                                                            const GUID& GUID_in,
+                                                                                            HRESULT* result_out)
+ : inherited (name_in,
+              owner_in,
               GUID_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::Stream_Misc_DirectShow_Source_Filter_T"));
 
   // sanity check(s)
-  ACE_ASSERT (!inherited2::m_paStreams);
+  ACE_ASSERT (!inherited::m_paStreams);
 
-  CAutoLock cAutoLock (&(inherited2::m_cStateLock));
+  CAutoLock cAutoLock (&(inherited::m_cStateLock));
 
-  ACE_NEW_NORETURN (inherited2::m_paStreams,
+  ACE_NEW_NORETURN (inherited::m_paStreams,
                     CSourceStream*[1]);
-  if (!inherited2::m_paStreams)
+  if (!inherited::m_paStreams)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
@@ -115,21 +161,25 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
     return;
   } // end IF
 
-  ACE_NEW_NORETURN (inherited2::m_paStreams[0],
+  ACE_NEW_NORETURN (inherited::m_paStreams[0],
                     FILTER_T (result_out,
                               this,
                               MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME));
-  if (!inherited2::m_paStreams[0])
+  if (!inherited::m_paStreams[0])
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
     *result_out = E_OUTOFMEMORY;
     return;
-  }
+  } // end IF
 } // (Constructor)
 
-template <typename FilterType>
-Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::Stream_Misc_DirectShow_Source_Filter_OutputPin_T (HRESULT* result_out,
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename FilterType,
+          typename ModuleType>
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType,
+                                                 ModuleType>::Stream_Misc_DirectShow_Source_Filter_OutputPin_T (HRESULT* result_out,
                                                                                                                 FilterType* parent_in,
                                                                                                                 LPCWSTR pinName_in)
  : inherited (NAME (MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE),
@@ -145,8 +195,10 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::Stream_Misc_Direct
 
 } // (Constructor)
 
-template <typename FilterType>
-Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::~Stream_Misc_DirectShow_Source_Filter_OutputPin_T ()
+template <typename FilterType,
+          typename ModuleType>
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType,
+                                                 ModuleType>::~Stream_Misc_DirectShow_Source_Filter_OutputPin_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::~Stream_Misc_DirectShow_Source_Filter_OutputPin_T"));
 
@@ -159,9 +211,11 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::~Stream_Misc_Direc
 // image size that gives room to bounce.
 // Returns E_INVALIDARG if the mediatype is not acceptable
 //
-template <typename FilterType>
+template <typename FilterType,
+          typename ModuleType>
 HRESULT
-Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::CheckMediaType (const CMediaType *mediaType_in)
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType,
+                                                 ModuleType>::CheckMediaType (const CMediaType *mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::CheckMediaType"));
 
@@ -206,9 +260,11 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::CheckMediaType (co
 // Prefered types should be ordered by quality, zero as highest quality
 // (iPosition > 4 is invalid)
 //
-template <typename FilterType>
+template <typename FilterType,
+          typename ModuleType>
 HRESULT
-Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::GetMediaType (int position_in,
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType,
+                                                 ModuleType>::GetMediaType (int position_in,
                                                                             CMediaType* mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::GetMediaType"));
@@ -303,9 +359,11 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::GetMediaType (int 
 //
 // Called when a media type is agreed between filters
 //
-template <typename FilterType>
+template <typename FilterType,
+          typename ModuleType>
 HRESULT
-Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::SetMediaType (const CMediaType* mediaType_in)
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType,
+                                                 ModuleType>::SetMediaType (const CMediaType* mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::DecideBufferSize"));
 
@@ -339,9 +397,11 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::SetMediaType (cons
 // negotiated. So we have a look at m_mt to see what size image we agreed.
 // Then we can ask for buffers of the correct size to contain them.
 //
-template <typename FilterType>
+template <typename FilterType,
+          typename ModuleType>
 HRESULT
-Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::DecideBufferSize (IMemAllocator* allocator_in,
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType,
+                                                 ModuleType>::DecideBufferSize (IMemAllocator* allocator_in,
                                                                                 struct _AllocatorProperties* properties_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::DecideBufferSize"));
@@ -394,9 +454,11 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::DecideBufferSize (
 //
 // As we go active reset the stream time to zero
 //
-template <typename FilterType>
+template <typename FilterType,
+          typename ModuleType>
 HRESULT
-Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::OnThreadCreate ()
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType,
+                                                 ModuleType>::OnThreadCreate ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::OnThreadCreate"));
 
@@ -412,9 +474,11 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::OnThreadCreate ()
 //
 // FillBuffer
 //
-template <typename FilterType>
+template <typename FilterType,
+          typename ModuleType>
 HRESULT
-Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::FillBuffer (IMediaSample* mediaSample_in)
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType,
+                                                 ModuleType>::FillBuffer (IMediaSample* mediaSample_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::FillBuffer"));
 
@@ -439,11 +503,11 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::FillBuffer (IMedia
   ACE_ASSERT (data_length_l);
 
   ACE_Message_Block* message_block_p = NULL;
-  FilterType* filter_p = dynamic_cast<FilterType*> (inherited::m_pFilter);
+  ModuleType* filter_p = dynamic_cast<ModuleType*> (inherited::m_pFilter);
   if (!filter_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<FilterType*>(%@), aborting\n"),
+                ACE_TEXT ("failed to dynamic_cast<ModuleType*>(%@), aborting\n"),
                 inherited::m_pFilter));
     return E_FAIL;
   } // end IF
@@ -474,9 +538,8 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::FillBuffer (IMedia
   CRefTime ref_time = sampleTime_;
   // Increment to find the finish time
   sampleTime_ += (LONG)frameInterval_;
-  result =
-    mediaSample_in->SetTime ((REFERENCE_TIME*)&ref_time,
-                             (REFERENCE_TIME*)&sampleTime_);
+  result = mediaSample_in->SetTime ((REFERENCE_TIME*)&ref_time,
+                                    (REFERENCE_TIME*)&sampleTime_);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -504,9 +567,11 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::FillBuffer (IMedia
 // the downstream filter (often the renderer).  Wind it up or down according
 // to the flooding level - also skip forward if we are notified of Late-ness
 //
-template <typename FilterType>
+template <typename FilterType,
+          typename ModuleType>
 STDMETHODIMP
-Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType>::Notify (IBaseFilter* filter_in,
+Stream_Misc_DirectShow_Source_Filter_OutputPin_T<FilterType,
+                                                 ModuleType>::Notify (IBaseFilter* filter_in,
                                                                       Quality quality_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::Notify"));

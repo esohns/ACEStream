@@ -209,10 +209,18 @@ struct Test_I_Target_StreamConfiguration
 {
   inline Test_I_Target_StreamConfiguration ()
    : Stream_Configuration ()
+   , graphBuilder (NULL)
    , moduleHandlerConfiguration (NULL)
+   , window (NULL)
   {};
 
+  IGraphBuilder*                                   graphBuilder;
   Test_I_Target_Stream_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HWND                                             window;
+#else
+  GdkWindow*                                       window;
+#endif
 };
 
 struct Test_I_Target_StreamState

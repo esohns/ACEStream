@@ -56,10 +56,11 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                        const std::list<std::wstring>&); // graph
   static bool disconnect (IGraphBuilder*); // graph handle
   static bool load (const std::string&,  // device ("FriendlyName")
-                    IGraphBuilder*&,     // (capture) graph handle (in/out)
-                    IAMStreamConfig*&);  // stream config handle (out)
-  static bool load (IGraphBuilder*&, // graph handle (in/out)
-                    const HWND);     // window handle [NULL: NullRenderer]
+                    IGraphBuilder*&,     // return value: (capture) graph handle
+                    IAMStreamConfig*&);  // return value: stream configuration handle
+  static bool load (const HWND,                // window handle [NULL: NullRenderer]
+                    IGraphBuilder*&,           // return value: graph handle
+                    std::list<std::wstring>&); // return value: pipeline filter configuration
   static bool reset (IGraphBuilder*); // graph handle
 
   static bool getFormat (IGraphBuilder*,         // graph handle

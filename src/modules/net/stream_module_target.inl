@@ -552,7 +552,7 @@ close:
                       ACE_TEXT (buffer)));
         } // end IF
       } // end IF
-release:
+
       if (configuration_->connection)
       {
         configuration_->connection->decrease ();

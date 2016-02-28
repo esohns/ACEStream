@@ -138,7 +138,6 @@ class Stream_Dev_Cam_Source_DirectShow_T
   bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
   bool                              isInitialized_;
-  DWORD                             ROTID_;
 
   // timer
   Stream_StatisticHandler_Reactor_t statisticCollectionHandler_;
@@ -150,7 +149,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
   IMediaControl*                    IMediaControl_;
   IMediaEventEx*                    IMediaEventEx_;
   ISampleGrabber*                   ISampleGrabber_;
-  bool                              render_;
+  DWORD                             ROTID_;
 };
 
 #include "stream_dev_cam_source_directshow.inl"

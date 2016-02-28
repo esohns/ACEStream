@@ -29,14 +29,18 @@
 //#include "uuids.h"
 
 #include "ace/Log_Msg.h"
+#include "ace/OS_Memory.h"
 
 #include "common_time_common.h"
 #include "common_tools.h"
+
+#include "class_factory.h"
 
 #include "stream_macros.h"
 
 #include "stream_misc_defines.h"
 
+#include "test_i_common_modules.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
@@ -109,22 +113,70 @@ const AMOVIESETUP_FILTER sudFilterReg =
 
 typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
                                                Test_I_Target_Stream_SessionMessage,
-                                               Test_I_Target_Stream_Message> Stream_Misc_DirectShow_Source_Filter_t;
+                                               Test_I_Target_Stream_Message,
+                                               Test_I_Target_Stream_Module_DirectShowSource> Stream_Misc_DirectShow_Source_Filter_t;
 
-// global table of COM objects in this dll
 CFactoryTemplate g_Templates[] = {
- { MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L                     // Name.
- , &CLSID_CamStream_Target_Source_Filter                         // CLSID.
- , Stream_Misc_DirectShow_Source_Filter_t::CreateInstance        // Creation function.
- //, Stream_Misc_DirectShow_Source_Filter_t::InitializeInstance
- , NULL                                                          // Initialization function.
- , &sudFilterReg }                                               // Pointer to filter information.
+  { MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L                     // Name.
+  , &CLSID_CamStream_Target_Source_Filter                         // CLSID.
+  , Stream_Misc_DirectShow_Source_Filter_t::CreateInstance        // Creation function.
+  //, Stream_Misc_DirectShow_Source_Filter_t::InitializeInstance
+  , NULL                                                          // Initialization function.
+  , &sudFilterReg }                                               // Pointer to filter information.
 };
 int g_cTemplates = sizeof (g_Templates) / sizeof (g_Templates[0]);
 
 // -----------------------------------------------------------------------------
 
-STDAPI DllRegisterServer ()
+//STDAPI
+//DllCanUnloadNow ()
+//{
+//  STREAM_TRACE (ACE_TEXT ("::DllCanUnloadNow"));
+//
+//  if (CClassFactory::IsLocked () ||
+//      CBaseObject::ObjectsActive ())
+//    return S_FALSE;
+//
+//  return S_OK;
+//}
+//
+//STDAPI
+//DllGetClassObject (__in REFCLSID rClsID_in,
+//                   __in REFIID riid_in,
+//                   __deref_out void** factory_out)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::DllGetClassObject"));
+//
+//  // initialize return value(s)
+//  *factory_out = NULL;
+//
+//  // sanity check(s)
+//  if (!(riid_in == IID_IUnknown) &&
+//      !(riid_in == IID_IClassFactory))
+//    return E_NOINTERFACE;
+//
+//  const CFactoryTemplate* factory_template_p = NULL;
+//  for (int i = 0; i < g_cTemplates; i++)
+//  {
+//    factory_template_p = &g_Templates[i];
+//    if (factory_template_p->IsClassID (rClsID_in))
+//      break;
+//  } // end FOR
+//  if (!factory_template_p)
+//    return CLASS_E_CLASSNOTAVAILABLE;
+//
+//  ACE_NEW_NORETURN (*factory_out,
+//                    CClassFactory (factory_template_p));
+//  if (!*factory_out)
+//    return E_OUTOFMEMORY;
+//
+//  ((LPUNKNOWN)*factory_out)->AddRef ();
+//
+//  return NOERROR;
+//}
+
+STDAPI
+DllRegisterServer ()
 {
   STREAM_TRACE (ACE_TEXT ("::DllRegisterServer"));
 
@@ -173,7 +225,8 @@ STDAPI DllRegisterServer ()
   return result;
 } // DllRegisterServer
 
-STDAPI DllUnregisterServer ()
+STDAPI
+DllUnregisterServer ()
 {
   STREAM_TRACE (ACE_TEXT ("::DllUnregisterServer"));
 
@@ -221,9 +274,10 @@ STDAPI DllUnregisterServer ()
 
 extern "C" BOOL WINAPI DllEntryPoint (HINSTANCE, ULONG, LPVOID);
 
-BOOL APIENTRY DllMain (HANDLE hModule,
-                       DWORD  dwReason,
-                       LPVOID lpReserved)
+BOOL
+WINAPI DllMain (HANDLE hModule,
+                DWORD  dwReason,
+                LPVOID lpReserved)
 {
   STREAM_TRACE (ACE_TEXT ("::DllMain"));
 
