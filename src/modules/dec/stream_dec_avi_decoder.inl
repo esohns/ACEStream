@@ -153,7 +153,7 @@ Stream_Decoder_AVIDecoder_T<SessionMessageType,
   ACE_ASSERT (isInitialized_);
 
   // append the "\0\0"-sequence, as required by flex
-  ACE_ASSERT (message_inout->capacity () - message_inout->length () >= STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE);
+  ACE_ASSERT ((message_inout->capacity () - message_inout->length ()) >= STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE);
   *(message_inout->wr_ptr ()) = YY_END_OF_BUFFER_CHAR;
   *(message_inout->wr_ptr () + 1) = YY_END_OF_BUFFER_CHAR;
   // *NOTE*: DO NOT adjust the write pointer --> length() must stay as it was

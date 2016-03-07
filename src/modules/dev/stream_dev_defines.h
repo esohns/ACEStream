@@ -12,12 +12,19 @@
 /////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE         L"Capture Filter"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS  L"AVI Decompressor"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_MJPG_DECOMPRESS L"MJPG Decompressor"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER         L"Sample Grabber"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER   L"Null Renderer"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER  L"Video Renderer"
+// DirectShow
+// *TODO*: move these somewhere else
+#define MODULE_DEV_DIRECTSHOW_LOGFILE_NAME               "directshow.log"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO   L"Capture Filter"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB     L"RGB Converter"
+// *NOTE*: the 'AVI decompressor' (CLSID_AVIDec) supports conversions of YUV
+//         to RGB formats via the MSYUV Color Space Converter Codec
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_AVI  L"AVI Decompressor"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_MJPG L"MJPG Decompressor"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB            L"Sample Grabber"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL     L"Null Renderer"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO    L"Video Renderer"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI       L"AVI Splitter"
 
 // user-defined message to notify applications of filtergraph events
 #define MODULE_DEV_CAM_UI_WIN32_WM_GRAPHNOTIFY           WM_APP + 1

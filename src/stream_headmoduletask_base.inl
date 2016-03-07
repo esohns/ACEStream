@@ -751,33 +751,37 @@ Stream_HeadModuleTaskBase_T<LockType,
   return ((status == STREAM_STATE_PAUSED) || (status == STREAM_STATE_RUNNING));
 }
 
-//template <typename LockType,
-//          typename TaskSynchType,
-//          typename TimePolicyType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType>
-//void
-//Stream_HeadModuleTaskBase_T<LockType,
-//                            TaskSynchType,
-//                            TimePolicyType,
-//                            SessionMessageType,
-//                            ProtocolMessageType,
-//                            ConfigurationType,
-//                            StreamStateType,
-//                            SessionDataType,
-//                            SessionDataContainerType>::flush (bool /* flushUpStream_in */)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//
-//  ACE_NOTREACHED (return;)
-//}
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+void
+Stream_HeadModuleTaskBase_T<LockType,
+                            TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType>::flush (bool flushInbound_in,
+                                                              bool flushUpStream_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
+
+  ACE_UNUSED_ARG (flushInbound_in);
+  ACE_UNUSED_ARG (flushUpStream_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
 
 template <typename LockType,
           typename TaskSynchType,
@@ -1323,7 +1327,7 @@ Stream_HeadModuleTaskBase_T<LockType,
         else if (runSvcRoutineOnStart_)
         {
           // *NOTE*: if the implementation is 'passive', the whole operation
-          //         pertaining to newState_in is processed 'inline' by the
+          //         pertaining to newState_in is processed 'in-line' by the
           //         calling thread and would complete before the state
           //         actually has been set to 'running'
           //         --> in this case set the state early
@@ -1370,6 +1374,21 @@ Stream_HeadModuleTaskBase_T<LockType,
   //                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
   //          break;
   //        } // end IF
+        } // end IF
+        else
+        {
+          // *IMPORTANT NOTE*: this means that there is no worker thread
+          //                   driving this module; neither in-line, nor
+          //                   dedicated
+
+          // *NOTE*: check if any of the modules failed to initialize
+          //         --> just signal the controller
+
+          // *TODO*: remove type inferences
+          SessionDataType& session_data_r =
+              const_cast<SessionDataType&> (sessionData_->get ());
+          if (session_data_r.aborted)
+            this->finished ();
         } // end IF
       } // end ELSE
 

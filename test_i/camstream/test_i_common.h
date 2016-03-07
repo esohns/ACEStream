@@ -259,18 +259,18 @@ struct Test_I_Configuration
   {};
 
   // **************************** signal data **********************************
-  Stream_SignalHandlerConfiguration               signalHandlerConfiguration;
+  Stream_SignalHandlerConfiguration        signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Net_SocketConfiguration                         socketConfiguration;
-  Test_I_Stream_SocketHandlerConfiguration        socketHandlerConfiguration;
+  Net_SocketConfiguration                  socketConfiguration;
+  Test_I_Stream_SocketHandlerConfiguration socketHandlerConfiguration;
   // **************************** stream data **********************************
-  Stream_ModuleConfiguration                      moduleConfiguration;
-  Test_I_Stream_Configuration                     streamConfiguration;
+  Stream_ModuleConfiguration               moduleConfiguration;
+  Test_I_Stream_Configuration              streamConfiguration;
   // *************************** protocol data *********************************
-  Net_TransportLayerType                          protocol;
+  Net_TransportLayerType                   protocol;
 
-  Test_I_UserData                                 userData;
-  bool                                            useReactor;
+  Test_I_UserData                          userData;
+  bool                                     useReactor;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,

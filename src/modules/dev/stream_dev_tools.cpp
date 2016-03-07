@@ -43,6 +43,7 @@
 Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap;
 Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_MediaSubType2StringMap;
 Stream_Module_Device_Tools::GUID2STRING_MAP_T Stream_Module_Device_Tools::Stream_FormatType2StringMap;
+ACE_HANDLE Stream_Module_Device_Tools::logFileHandle = ACE_INVALID_HANDLE;
 #endif
 
 void
@@ -302,6 +303,155 @@ Stream_Module_Device_Tools::initialize ()
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+void
+Stream_Module_Device_Tools::debug (IGraphBuilder* builder_in,
+                                   const std::string& fileName_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::debug"));
+
+  // sanity check(s)
+  ACE_ASSERT (builder_in);
+  ACE_ASSERT (Stream_Module_Device_Tools::logFileHandle == ACE_INVALID_HANDLE);
+
+  if (!fileName_in.empty ())
+  {
+    Stream_Module_Device_Tools::logFileHandle =
+      ACE_TEXT_CreateFile (ACE_TEXT (fileName_in.c_str ()),
+                           GENERIC_WRITE,
+                           FILE_SHARE_READ,
+                           NULL,
+                           CREATE_ALWAYS, // TRUNCATE_EXISTING :-)
+                           FILE_ATTRIBUTE_NORMAL,
+                           NULL);
+    if (Stream_Module_Device_Tools::logFileHandle == ACE_INVALID_HANDLE)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CreateFile(\"%s\"): \"%m\", returning\n"),
+                  ACE_TEXT (fileName_in.c_str ())));
+      return;
+    } // end IF
+  } // end IF
+
+  HRESULT result =
+      builder_in->SetLogFile (((Stream_Module_Device_Tools::logFileHandle != ACE_INVALID_HANDLE) ? reinterpret_cast<DWORD_PTR> (Stream_Module_Device_Tools::logFileHandle)
+                                                                                                 : NULL));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::SetLogFile(\"%s\"): \"%s\", returning\n"),
+                ACE_TEXT (fileName_in.c_str ()),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    if (!CloseHandle (Stream_Module_Device_Tools::logFileHandle))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CloseHandle(): \"%m\", continuing\n")));
+
+    return;
+  } // end IF
+
+  if (fileName_in.empty ())
+  {
+    // sanity check(s)
+    ACE_ASSERT (Stream_Module_Device_Tools::logFileHandle != ACE_INVALID_HANDLE);
+
+    if (!CloseHandle (Stream_Module_Device_Tools::logFileHandle))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CloseHandle(): \"%m\", continuing\n")));
+  } // end IF
+}
+void
+Stream_Module_Device_Tools::dump (IPin* pin_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::dump"));
+
+  // sanity check(s)
+  ACE_ASSERT (pin_in);
+
+  IEnumMediaTypes* ienum_media_types_p = NULL;
+  HRESULT result = pin_in->EnumMediaTypes (&ienum_media_types_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IPin::EnumMediaTypes(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+  ACE_ASSERT (ienum_media_types_p);
+
+  struct _AMMediaType* media_types_a[1];
+  ACE_OS::memset (media_types_a, 0, sizeof (media_types_a));
+  ULONG fetched = 0;
+  unsigned int index = 1;
+  while (S_OK == ienum_media_types_p->Next (1,
+                                            media_types_a,
+                                            &fetched))
+  {
+    // sanity check(s)
+    ACE_ASSERT (media_types_a[0]);
+
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("#%d: \"%s\"\n"),
+                index,
+                ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*media_types_a[0]).c_str ())));
+
+    Stream_Module_Device_Tools::deleteMediaType (media_types_a[0]);
+    ++index;
+  } // end WHILE
+
+  ienum_media_types_p->Release ();
+}
+
+IBaseFilter*
+Stream_Module_Device_Tools::pin2Filter (IPin* pin_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::pin2Filter"));
+
+  // sanity check(s)
+  ACE_ASSERT (pin_in);
+
+  struct _PinInfo pin_info;
+  ACE_OS::memset (&pin_info, 0, sizeof (struct _PinInfo));
+  HRESULT result = pin_in->QueryPinInfo (&pin_info);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IPin::QueryPinInfo(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return NULL;
+  } // end IF
+  ACE_ASSERT (pin_info.pFilter);
+
+  return pin_info.pFilter;
+}
+
+std::string
+Stream_Module_Device_Tools::name (IBaseFilter* filter_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::name"));
+
+  std::string result;
+
+  struct _FilterInfo filter_info;
+  ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
+  HRESULT result_2 = filter_in->QueryFilterInfo (&filter_info);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::QueryFilterInfo(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    return result;
+  } // end iF
+  result =
+    ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (filter_info.achName));
+
+  // clean up
+  if (filter_info.pGraph)
+    filter_info.pGraph->Release ();
+
+  return result;
+}
+
 bool
 Stream_Module_Device_Tools::load (const std::string& deviceName_in,
                                   IGraphBuilder*& IGraphBuilder_inout,
@@ -482,7 +632,7 @@ Stream_Module_Device_Tools::load (const std::string& deviceName_in,
 
   result =
     IGraphBuilder_inout->AddFilter (filter_p,
-                                    MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
+                                    MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -651,63 +801,55 @@ Stream_Module_Device_Tools::load (const HWND windowHandle_in,
   } // end ELSE
   ACE_ASSERT (IGraphBuilder_out);
 
-  // decompress
+  //// split
+  OLECHAR GUID_string[39];
   IBaseFilter* filter_p = NULL;
-  result =
-    IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS,
-                                         &filter_p);
-  if (FAILED (result))
-  {
-    if (result != VFW_E_NOT_FOUND)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error;
-    } // end IF
+  //result =
+  //  IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI,
+  //                                       &filter_p);
+  //if (FAILED (result))
+  //{
+  //  if (result != VFW_E_NOT_FOUND)
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+  //                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI),
+  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //    goto error;
+  //  } // end IF
 
-    // *TODO*: support receiving other formats
-    result = CoCreateInstance (CLSID_AVIDec, NULL,
-                               CLSCTX_INPROC_SERVER, IID_IBaseFilter,
-                               (void**)&filter_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoCreateInstance() AVI decompressor: \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  // *TODO*: support receiving other formats
+  //  result = CoCreateInstance (CLSID_AVIDec, NULL,
+  //                             CLSCTX_INPROC_SERVER, IID_IBaseFilter,
+  //                             (void**)&filter_p);
+  //  if (FAILED (result))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to CoCreateInstance() AVI decompressor: \"%s\", aborting\n"),
+  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //    goto error;
+  //  } // end IF
+  //  ACE_ASSERT (filter_p);
+  //  result =
+  //    IGraphBuilder_out->AddFilter (filter_p,
+  //                                  MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI);
+  //  if (FAILED (result))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //    goto error;
+  //  } // end IF
+  //  ACE_DEBUG ((LM_DEBUG,
+  //              ACE_TEXT ("added \"%s\"...\n"),
+  //              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI)));
+  //} // end IF
+  //ACE_ASSERT (filter_p);
 
-      // clean up
-      filter_p->Release ();
-
-      goto error;
-    } // end IF
-    ACE_ASSERT (filter_p);
-    result =
-      IGraphBuilder_out->AddFilter (filter_p,
-                                    MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-
-      goto error;
-    } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS)));
-  } // end IF
-  ACE_ASSERT (filter_p);
-
-  // render to a window (GtkDrawingArea) ?
+  // convert RGB
   IBaseFilter* filter_2 = NULL;
   result =
-    IGraphBuilder_out->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER),
+    IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB,
                                          &filter_2);
   if (FAILED (result))
   {
@@ -715,56 +857,101 @@ Stream_Module_Device_Tools::load (const HWND windowHandle_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                                            : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER)),
+                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
 
-      // clean up
-      filter_p->Release ();
+    // *TODO*: support receiving other formats
+    result = CoCreateInstance (CLSID_Colour, NULL,
+                               CLSCTX_INPROC_SERVER, IID_IBaseFilter,
+                               (void**)&filter_2);
+    if (FAILED (result))
+    {
+      ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
+      int nCount =
+        StringFromGUID2 (CLSID_Colour,
+                         GUID_string, sizeof (GUID_string));
+      ACE_ASSERT (nCount == 39);
 
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (filter_2);
+    result =
+      IGraphBuilder_out->AddFilter (filter_2,
+                                    MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("added \"%s\"...\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB)));
+  } // end IF
+  ACE_ASSERT (filter_2);
+
+  // render to a window (GtkDrawingArea) ?
+  IBaseFilter* filter_3 = NULL;
+  result =
+    IGraphBuilder_out->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL),
+                                         &filter_3);
+  if (FAILED (result))
+  {
+    if (result != VFW_E_NOT_FOUND)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                                            : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL)),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       goto error;
     } // end IF
 
     result = CoCreateInstance ((windowHandle_in ? CLSID_VideoRenderer
                                                 : CLSID_NullRenderer), NULL,
                                CLSCTX_INPROC_SERVER, IID_IBaseFilter,
-                               (void**)&filter_2);
+                               (void**)&filter_3);
     if (FAILED (result))
     {
+      ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
+      int nCount =
+        StringFromGUID2 ((windowHandle_in ? CLSID_VideoRenderer
+                                          : CLSID_NullRenderer),
+                         GUID_string, sizeof (GUID_string));
+      ACE_ASSERT (nCount == 39);
+
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
-                  (windowHandle_in ? ACE_TEXT ("CLSID_VideoRenderer")
-                                   : ACE_TEXT ("CLSID_NullRenderer")),
+                  ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-
       goto error;
     } // end IF
-    ACE_ASSERT (filter_2);
+    ACE_ASSERT (filter_3);
     result =
-      IGraphBuilder_out->AddFilter (filter_2,
-                                    (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                                     : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER));
+      IGraphBuilder_out->AddFilter (filter_3,
+                                    (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                                     : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      filter_2->Release ();
-
       goto error;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER))));
+                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL))));
   } // end IF
-  ACE_ASSERT (filter_2);
+  ACE_ASSERT (filter_3);
 
   //result =
   //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
@@ -778,28 +965,32 @@ Stream_Module_Device_Tools::load (const HWND windowHandle_in,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to ICaptureGraphBuilder::RenderStream(): \"%s\", aborting\n"),
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-  //  // clean up
-  //  filter_p->Release ();
-  //  filter_2->Release ();
-  //  if (filter_3)
-  //    filter_3->Release ();
-  //  filter_4->Release ();
-
   //  return false;
   //} // end IF
 
-  pipeline_out.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS);
-  pipeline_out.push_back ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                           : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER));
+  //pipeline_out.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI);
+  pipeline_out.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB);
+  pipeline_out.push_back ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                           : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
 
   // clean up
-  filter_p->Release ();
-  filter_2->Release ();
+  if (filter_p)
+    filter_p->Release ();
+  if (filter_2)
+    filter_2->Release ();
+  if (filter_3)
+    filter_3->Release ();
 
   return true;
 
 error:
+  if (filter_p)
+    filter_p->Release ();
+  if (filter_2)
+    filter_2->Release ();
+  if (filter_3)
+    filter_3->Release ();
+
   if (IGraphBuilder_out)
   {
     IGraphBuilder_out->Release ();
@@ -851,7 +1042,7 @@ Stream_Module_Device_Tools::connect (IGraphBuilder* builder_in,
   IPin* pin_p = NULL;
   PIN_DIRECTION pin_direction;
   IAMStreamConfig* stream_config_p = NULL;
-  while (enumerator_p->Next (1, &pin_p, NULL) == S_OK)
+  while (S_OK == enumerator_p->Next (1, &pin_p, NULL))
   {
     ACE_ASSERT (pin_p);
 
@@ -960,7 +1151,329 @@ Stream_Module_Device_Tools::connect (IGraphBuilder* builder_in,
     } // end IF
     ACE_ASSERT (enumerator_p);
     filter_p->Release ();
-    while (enumerator_p->Next (1, &pin_2, NULL) == S_OK)
+    while (S_OK == enumerator_p->Next (1, &pin_2, NULL))
+    {
+      ACE_ASSERT (pin_2);
+
+      //result = pin_2->QueryPinInfo (&pin_info);
+      //if (FAILED (result))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IPin::QueryPinInfo(): \"%s\", aborting\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      //  // clean up
+      //  pin_2->Release ();
+      //  enumerator_p->Release ();
+      //  pin_p->Release ();
+      //  builder_p->Release ();
+
+      //  return false;
+      //} // end IF
+
+      result = pin_2->QueryDirection (&pin_direction);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+        // clean up
+        pin_2->Release ();
+        enumerator_p->Release ();
+        pin_p->Release ();
+
+        return false;
+      } // end IF
+      if (pin_direction != PINDIR_INPUT)
+      {
+        pin_2->Release ();
+        pin_2 = NULL;
+
+        continue;
+      } // end IF
+
+      break;
+    } // end WHILE
+    if (!pin_2)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: has no input pin, aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ())));
+
+      // clean up
+      pin_p->Release ();
+      enumerator_p->Release ();
+
+      return false;
+    } // end IF
+
+    iterator_2 = iterator;
+    --iterator_2;
+    //result = builder_p->ConnectDirect (pin_p, pin_2, NULL);
+
+    result = pin_p->Connect (pin_2, NULL);
+    if (FAILED (result)) // 0x80040217: VFW_E_CANNOT_CONNECT, 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
+    {
+      // *TODO*: evidently, some filters do not expose their preferred media
+      //         types (e.g. AVI Splitter), so the straight-forward, 'direct'
+      //         pin connection algorithm (as implemented here) will not
+      //         always work. Note how (such as in this example), this
+      //         actually makes some sense, as 'container'- or other 'meta-'
+      //         filters sometimes actually do not know (or care) about what
+      //         kind of data they contain
+      // *NOTE*: 'fixing' this requires some in-depth knowledge about
+      //         _AMMediaType (in-)compatibilities, and other inner workings of
+      //         DirectShow (such as what the algorithm is that IGraphBuilder
+      //         uses to intelligently retrieve 'pin'-compatible media types)...
+
+      //if (result == VFW_E_NO_ACCEPTABLE_TYPES)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IPin::Connect() \"%s\", aborting\n"),
+      //              ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ())));
+
+      //  // debug info
+      //  Stream_Module_Device_Tools::dump (pin_p);
+      //  Stream_Module_Device_Tools::dump (pin_2);
+      //} // end IF
+      //else
+      //{
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("failed to IPin::Connect() \"%s\" to \"%s\": \"%s\" (0x%x), falling back\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).c_str ()),
+                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ()),
+                    result));
+      //} // end ELSE
+
+      result = builder_in->Connect (pin_p, pin_2);
+      if (FAILED (result)) // 0x80040217: VFW_E_CANNOT_CONNECT, 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IGraphBuilder::Connect() \"%s\" to \"%s\": \"%s\" (0x%x), aborting\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).c_str ()),
+                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ()),
+                    result));
+      } // end IF
+      else
+        goto continue_;
+
+      // clean up
+      pin_2->Release ();
+      enumerator_p->Release ();
+      pin_p->Release ();
+
+      return false;
+    } // end IF
+continue_:
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("connected \"%s\" to \"%s\"...\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator_2).c_str ()),
+                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ())));
+    pin_p->Release ();
+    pin_2->Release ();
+    pin_2 = NULL;
+
+    result = enumerator_p->Reset ();
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IEnumPins::Reset(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      enumerator_p->Release ();
+
+      return false;
+    } // end IF
+    pin_p = NULL;
+    while (S_OK == enumerator_p->Next (1, &pin_p, NULL))
+    {
+      // sanity check(s)
+      ACE_ASSERT (pin_p);
+
+      result = pin_p->QueryDirection (&pin_direction);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+        // clean up
+        pin_p->Release ();
+        enumerator_p->Release ();
+
+        return false;
+      } // end IF
+      if (pin_direction != PINDIR_OUTPUT)
+      {
+        pin_p->Release ();
+        pin_p = NULL;
+
+        continue;
+      } // end IF
+
+      break;
+    } // end WHILE
+    enumerator_p->Release ();
+  } // end FOR
+
+  return true;
+}
+bool
+Stream_Module_Device_Tools::graphConnect (IGraphBuilder* builder_in,
+                                          const std::list<std::wstring>& graph_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::graphConnect"));
+
+  // sanity check(s)
+  ACE_ASSERT (builder_in);
+  ACE_ASSERT (!graph_in.empty ());
+
+  IBaseFilter* filter_p = NULL;
+  std::list<std::wstring>::const_iterator iterator = graph_in.begin ();
+  HRESULT result =
+    builder_in->FindFilterByName ((*iterator).c_str (),
+      &filter_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (filter_p);
+  IEnumPins* enumerator_p = NULL;
+  result = filter_p->EnumPins (&enumerator_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    filter_p->Release ();
+
+    return false;
+  } // end IF
+  ACE_ASSERT (enumerator_p);
+  filter_p->Release ();
+  IPin* pin_p = NULL;
+  PIN_DIRECTION pin_direction;
+  IAMStreamConfig* stream_config_p = NULL;
+  while (S_OK == enumerator_p->Next (1, &pin_p, NULL))
+  {
+    ACE_ASSERT (pin_p);
+
+    result = pin_p->QueryDirection (&pin_direction);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IPin::QueryDirection(): \"%s\", aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      pin_p->Release ();
+      enumerator_p->Release ();
+
+      return false;
+    } // end IF
+    if (pin_direction != PINDIR_OUTPUT)
+    {
+      pin_p->Release ();
+      pin_p = NULL;
+
+      continue;
+    } // end IF
+      //stream_config_p = NULL;
+      //result = pin_p->QueryInterface (IID_PPV_ARGS (&stream_config_p));
+      //if (FAILED (result))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IPin::QueryInterface(IAMStreamConfig): \"%s\", aborting\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      //  // clean up
+      //  pin_p->Release ();
+      //  enumerator_p->Release ();
+      //  builder_p->Release ();
+
+      //  return false;
+      //} // end IF
+      //ACE_ASSERT (stream_config_p);
+      //result = stream_config_p->SetFormat (NULL);
+      //if (FAILED (result))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\", aborting\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      //  // clean up
+      //  stream_config_p->Release ();
+      //  pin_p->Release ();
+      //  enumerator_p->Release ();
+      //  builder_p->Release ();
+
+      //  return false;
+      //} // end IF
+      //stream_config_p->Release ();
+
+    break;
+  } // end WHILE
+  enumerator_p->Release ();
+  if (!pin_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: has no output pin, aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ())));
+    return false;
+  } // end IF
+  IPin* pin_2 = NULL;
+  //struct _PinInfo pin_info;
+  //ACE_OS::memset (&pin_info, 0, sizeof (struct _PinInfo));
+  std::list<std::wstring>::const_iterator iterator_2;
+  for (++iterator;
+       iterator != graph_in.end ();
+       ++iterator)
+  {
+    filter_p = NULL;
+    result = builder_in->FindFilterByName ((*iterator).c_str (),
+                                           &filter_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      pin_p->Release ();
+
+      return false;
+    } // end IF
+    ACE_ASSERT (filter_p);
+
+    result = filter_p->EnumPins (&enumerator_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      filter_p->Release ();
+      pin_p->Release ();
+
+      return false;
+    } // end IF
+    ACE_ASSERT (enumerator_p);
+    filter_p->Release ();
+    while (S_OK == enumerator_p->Next (1, &pin_2, NULL))
     {
       ACE_ASSERT (pin_2);
 
@@ -1020,18 +1533,37 @@ Stream_Module_Device_Tools::connect (IGraphBuilder* builder_in,
     iterator_2 = iterator;
     //result = builder_p->ConnectDirect (pin_p, pin_2, NULL);
 
-    result = pin_p->Connect (pin_2, NULL);
+    result = builder_in->Connect (pin_p, pin_2);
     if (FAILED (result)) // 0x80040217: VFW_E_CANNOT_CONNECT, 0x80040207: VFW_E_NO_ACCEPTABLE_TYPES
     {
-      ACE_DEBUG ((LM_ERROR,
-                  //ACE_TEXT ("failed to IGraphBuilder::ConnectDirect() \"%s\" to \"%s\": \"%s\", aborting\n"),
-                  ACE_TEXT ("failed to IPin::Connect() \"%s\" to \"%s\": \"%s\" (0x%x), aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((*--iterator_2).c_str ()),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ()),
-                  result));
+      if (result == VFW_E_NO_ACCEPTABLE_TYPES)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IGraphBuilder::Connect() \"%s\", aborting\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ())));
 
-      // clean up
+        // debug info
+        Stream_Module_Device_Tools::dump (pin_p);
+        // *TODO*: evidently, some filters do not expose their preferred media
+        //         types (e.g. AVI Splitter), so the straight-forward, 'direct'
+        //         pin connection algorithm (as implemented here) will not
+        //         always work. Note how (such as in this example), this
+        //         actually makes some sense, as 'container'- or other 'meta-'
+        //         filters sometimes actually do not know (or care) about what
+        //         kind of data they contain
+        Stream_Module_Device_Tools::dump (pin_2);
+      } // end IF
+      else
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IGraphBuilder::Connect() \"%s\" to \"%s\": \"%s\" (0x%x), aborting\n"),
+                    ACE_TEXT_WCHAR_TO_TCHAR ((*--iterator_2).c_str ()),
+                    ACE_TEXT_WCHAR_TO_TCHAR ((*iterator).c_str ()),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ()),
+                    result));
+      } // end ELSE
+
+        // clean up
       pin_2->Release ();
       enumerator_p->Release ();
       pin_p->Release ();
@@ -1091,6 +1623,7 @@ Stream_Module_Device_Tools::connect (IGraphBuilder* builder_in,
 
   return true;
 }
+
 bool
 Stream_Module_Device_Tools::clear (IGraphBuilder* builder_in)
 {
@@ -1127,6 +1660,10 @@ Stream_Module_Device_Tools::clear (IGraphBuilder* builder_in)
 
       return false;
     } // end IF
+
+    // clean up
+    if (filter_info.pGraph)
+      filter_info.pGraph->Release ();
 
     result = builder_in->RemoveFilter (filter_p);
     if (FAILED (result))
@@ -1186,11 +1723,11 @@ Stream_Module_Device_Tools::disconnect (IGraphBuilder* builder_in)
   IEnumPins* enumerator_2 = NULL;
   IPin* pin_p = NULL, *pin_2 = NULL;
   struct _FilterInfo filter_info;
-  ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
-  while (enumerator_p->Next (1, &filter_p, NULL) == S_OK)
+  while (S_OK == enumerator_p->Next (1, &filter_p, NULL))
   {
     ACE_ASSERT (filter_p);
 
+    ACE_OS::memset (&filter_info, 0, sizeof (struct _FilterInfo));
     result = filter_p->QueryFilterInfo (&filter_info);
     if (FAILED (result))
     {
@@ -1204,6 +1741,10 @@ Stream_Module_Device_Tools::disconnect (IGraphBuilder* builder_in)
 
       return false;
     } // end IF
+
+    // clean up
+    if (filter_info.pGraph)
+      filter_info.pGraph->Release ();
 
     enumerator_2 = NULL;
     result = filter_p->EnumPins (&enumerator_2);
@@ -1221,7 +1762,7 @@ Stream_Module_Device_Tools::disconnect (IGraphBuilder* builder_in)
     } // end IF
     ACE_ASSERT (enumerator_2);
 
-    while (enumerator_2->Next (1, &pin_p, NULL) == S_OK)
+    while (S_OK == enumerator_2->Next (1, &pin_p, NULL))
     {
       ACE_ASSERT (pin_p);
 
@@ -1298,13 +1839,13 @@ Stream_Module_Device_Tools::reset (IGraphBuilder* builder_in)
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
+    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
                                   &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
@@ -1322,12 +1863,12 @@ Stream_Module_Device_Tools::reset (IGraphBuilder* builder_in)
   } // end IF
 
   result = builder_in->AddFilter (filter_p,
-                                  MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
+                                  MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::AddFilter(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     // clean up
@@ -1355,13 +1896,13 @@ Stream_Module_Device_Tools::getFormat (IGraphBuilder* builder_in,
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
+    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
                                   &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
@@ -1457,7 +1998,7 @@ Stream_Module_Device_Tools::getFormat (IGraphBuilder* builder_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no capture pin found, aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE)));
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO)));
     return false;
   } // end IF
 
@@ -1518,13 +2059,13 @@ Stream_Module_Device_Tools::setFormat (IGraphBuilder* builder_in,
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
-    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
+    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
                                   &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
     //// clean up
@@ -1762,7 +2303,6 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
   result = ACE_TEXT_ALWAYS_CHAR ("majortype: \"");
   result += (*iterator).second;
   result += ACE_TEXT_ALWAYS_CHAR ("\"\nsubtype: \"");
-
   iterator =
     Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.find (mediaType_in.subtype);
   if (iterator == Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.end ())
@@ -1777,25 +2317,25 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
     return std::string ();
   } // end IF
   result += (*iterator).second;
-  result += ACE_TEXT_ALWAYS_CHAR ("\"\nbFixedSizeSamples: ");
 
+  result += ACE_TEXT_ALWAYS_CHAR ("\"\nbFixedSizeSamples: ");
   std::ostringstream converter;
   converter << mediaType_in.bFixedSizeSamples;
   result += converter.str ();
-  result += ACE_TEXT_ALWAYS_CHAR ("\nbTemporalCompression: ");
 
+  result += ACE_TEXT_ALWAYS_CHAR ("\nbTemporalCompression: ");
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   converter.clear ();
   converter << mediaType_in.bTemporalCompression;
   result += converter.str ();
-  result += ACE_TEXT_ALWAYS_CHAR ("\nlSampleSize: ");
 
+  result += ACE_TEXT_ALWAYS_CHAR ("\nlSampleSize: ");
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   converter.clear ();
   converter << mediaType_in.lSampleSize;
   result += converter.str ();
-  result += ACE_TEXT_ALWAYS_CHAR ("\nformattype: \"");
 
+  result += ACE_TEXT_ALWAYS_CHAR ("\nformattype: \"");
   iterator =
     Stream_Module_Device_Tools::Stream_FormatType2StringMap.find (mediaType_in.formattype);
   if (iterator == Stream_Module_Device_Tools::Stream_FormatType2StringMap.end ())
@@ -1810,23 +2350,23 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
     return std::string ();
   } // end IF
   result += (*iterator).second;
-  result += ACE_TEXT_ALWAYS_CHAR ("\"\npUnk: 0x");
 
+  result += ACE_TEXT_ALWAYS_CHAR ("\"\npUnk: 0x");
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   converter.clear ();
-  converter << std::hex << mediaType_in.pUnk;
+  converter << std::hex << mediaType_in.pUnk << std::dec;
   result += converter.str ();
-  result += ACE_TEXT_ALWAYS_CHAR ("\ncbFormat: ");
 
+  result += ACE_TEXT_ALWAYS_CHAR ("\ncbFormat: ");
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   converter.clear ();
   converter << mediaType_in.cbFormat;
   result += converter.str ();
-  result += ACE_TEXT_ALWAYS_CHAR ("\npbFormat: ");
 
+  result += ACE_TEXT_ALWAYS_CHAR ("\npbFormat: ");
   converter.str (ACE_TEXT_ALWAYS_CHAR (""));
   converter.clear ();
-  converter << std::hex << mediaType_in.pbFormat;
+  converter << std::hex << mediaType_in.pbFormat << std::dec;
   result += converter.str ();
   result += ACE_TEXT_ALWAYS_CHAR ("\n");
 

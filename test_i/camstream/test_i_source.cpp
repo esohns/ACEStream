@@ -111,12 +111,7 @@ do_printUsage (const std::string& programName_in)
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
-  std::string gtk_rc_file = path;
-  gtk_rc_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  gtk_rc_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-e          : Gtk .rc file [\"")
-            << gtk_rc_file
-            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-e          : Gtk .rc file [\"\"] {\"\": no GUI}")
             << std::endl;
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -216,13 +211,13 @@ do_processArguments (int argc_in,
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
-  gtkRcFile_out = path;
-  gtkRcFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  gtkRcFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
+  //gtkRcFile_out = path;
+  //gtkRcFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //gtkRcFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
   hostName_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME);
   gtkGladeFile_out = path;
-  gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
+  //gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
   logToFile_out = false;
   useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
   port_out = TEST_I_DEFAULT_PORT;
@@ -455,14 +450,14 @@ do_initialize_directshow (const std::string& deviceName_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
-  //HRESULT hresult = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-  //if (FAILED (hresult))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
-  //  return false;
-  //} // end IF
+  HRESULT hresult = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  if (FAILED (hresult))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
+    return false;
+  } // end IF
 
   Stream_Module_Device_Tools::initialize ();
 
@@ -479,7 +474,7 @@ do_initialize_directshow (const std::string& deviceName_in,
 
   IMediaFilter* media_filter_p = NULL;
   HRESULT result = IGraphBuilder_inout->QueryInterface (IID_IMediaFilter,
-                                                (void**)&media_filter_p);
+                                                        (void**)&media_filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -846,8 +841,7 @@ do_work (unsigned int bufferSize_in,
       goto clean;
     } // end IF
 
-    // *NOTE*: this call blocks until the file has been sent (or an error
-    //         occurs)
+    // *NOTE*: this call blocks until an error occurs
     stream_p->start ();
     //    if (!stream_p->isRunning ())
     //    {
@@ -1015,9 +1009,10 @@ ACE_TMAIN (int argc_in,
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
-  std::string gtk_rc_filename = path;
-  gtk_rc_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  gtk_rc_filename += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
+  std::string gtk_rc_filename;
+  //std::string gtk_rc_filename = path;
+  //gtk_rc_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //gtk_rc_filename += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
   std::string gtk_glade_filename = path;
   gtk_glade_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   gtk_glade_filename +=

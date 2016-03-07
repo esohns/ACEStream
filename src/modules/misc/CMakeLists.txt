@@ -10,6 +10,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 ############## next target ################
 if (WIN32)
  set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
+      stream_misc_common.h
       stream_misc_defines.h
       stream_misc_directshow_source.cpp
       stream_misc_directshow_source.h
@@ -37,6 +38,7 @@ if (WIN32)
       stdafx.h)
 elseif (UNIX)
  set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
+      stream_misc_common.h
       stream_misc_defines.h
       stream_misc_dump.cpp
       stream_misc_dump.h
@@ -77,6 +79,7 @@ export (TARGETS ${PROJECT_NAME}_Miscellaneous
 ############### install files ################
 if (WIN32)
  install (FILES
+          stream_misc_common.h
           stream_misc_defines.h
           stream_misc_directshow_source.h
           stream_misc_directshow_source.inl
@@ -94,6 +97,7 @@ if (WIN32)
           DESTINATION include)
 elseif (UNIX)
  install (FILES
+          stream_misc_common.h
           stream_misc_defines.h
           stream_misc_dump.h
           stream_misc_dump.inl
@@ -108,6 +112,7 @@ elseif (UNIX)
           stream_misc_splitter.inl
           DESTINATION include)
 endif ()
+
 install (TARGETS ${PROJECT_NAME}_Miscellaneous
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib

@@ -50,10 +50,18 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void initialize ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *TODO*: move the generic (i.e. non-device-specific) DirectShow
+  //         functionality somewhere else
   static bool clear (IGraphBuilder*); // graph handle
   // *NOTE*: see stream_dev_defines.h for supported filter names
+  // *NOTE*: the current implementation uses 'direct' pin connection (i.e.
+  //         IPin::Connect()) where possible, and 'intelligent' pin connection
+  //         (i.e. IGraphBuilder::Connect()) as fallback.
   static bool connect (IGraphBuilder*,                  // graph handle
                        const std::list<std::wstring>&); // graph
+  // *NOTE*: uses the 'intelligent' IGraphBuilder::Connect() API for all pins
+  static bool graphConnect (IGraphBuilder*,                  // graph handle
+                            const std::list<std::wstring>&); // graph
   static bool disconnect (IGraphBuilder*); // graph handle
   static bool load (const std::string&,  // device ("FriendlyName")
                     IGraphBuilder*&,     // return value: (capture) graph handle
@@ -62,6 +70,16 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                     IGraphBuilder*&,           // return value: graph handle
                     std::list<std::wstring>&); // return value: pipeline filter configuration
   static bool reset (IGraphBuilder*); // graph handle
+
+  // *NOTE*: close an existing log file by supplying an empty file name
+  static void debug (IGraphBuilder*,      // graph handle
+                     const std::string&); // log file name
+  static void dump (IPin*); // pin handle
+  // *NOTE*: return value (if any) has an outstanding reference --> Release()
+  static IBaseFilter* pin2Filter (IPin*); // pin handle
+  // *NOTE*: "...filters are given names when they participate in a filter
+  //         graph..."
+  static std::string name (IBaseFilter*); // filter handle
 
   static bool getFormat (IGraphBuilder*,         // graph handle
                          struct _AMMediaType*&); // return value: media type
@@ -133,6 +151,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static GUID2STRING_MAP_T Stream_MediaMajorType2StringMap;
   static GUID2STRING_MAP_T Stream_MediaSubType2StringMap;
   static GUID2STRING_MAP_T Stream_FormatType2StringMap;
+
+  static ACE_HANDLE logFileHandle;
 #endif
 };
 

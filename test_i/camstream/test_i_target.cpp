@@ -53,6 +53,8 @@
 #include "libACEStream_config.h"
 #endif
 
+#include "stream_misc_common.h"
+
 #include "test_i_callbacks.h"
 #include "test_i_common.h"
 #include "test_i_defines.h"
@@ -456,16 +458,19 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out)
+do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out,
+                          CMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
-  //HRESULT hresult = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-  //if (FAILED (hresult))
+  HRESULT result = E_FAIL;
+
+  //result = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  //if (FAILED (result))
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   //  return false;
   //} // end IF
 
@@ -498,8 +503,8 @@ do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out)
   //} // end IF
 
   //IMediaFilter* media_filter_p = NULL;
-  //HRESULT result = IGraphBuilder_out->QueryInterface (IID_IMediaFilter,
-  //                                                    (void**)&media_filter_p);
+  //result = IGraphBuilder_out->QueryInterface (IID_IMediaFilter,
+  //                                            (void**)&media_filter_p);
   //if (FAILED (result))
   //{
   //  ACE_DEBUG ((LM_ERROR,
@@ -517,6 +522,53 @@ do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out)
   //  goto error;
   //} // end IF
   //media_filter_p->Release ();
+
+  Stream_Module_Device_Tools::freeMediaType (mediaType_out);
+
+  struct tagVIDEOINFO* video_info_p =
+    (struct tagVIDEOINFO*)mediaType_out.AllocFormatBuffer (sizeof (struct tagVIDEOINFO));
+  if (!video_info_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CMediaType::AllocFormatBuffer(%u): \"%m\", aborting\n"),
+                sizeof (struct tagVIDEOINFO)));
+    return false;
+  } // end IF
+  ZeroMemory (video_info_p, sizeof (struct tagVIDEOINFO));
+
+  // *TODO*: make this configurable (and part of a protocol)
+  video_info_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
+  video_info_p->bmiHeader.biWidth = 320;
+  video_info_p->bmiHeader.biHeight = 240;
+  video_info_p->bmiHeader.biPlanes = 1;
+  video_info_p->bmiHeader.biBitCount = 24;
+  video_info_p->bmiHeader.biCompression = BI_RGB;
+  video_info_p->bmiHeader.biSizeImage =
+    GetBitmapSize (&video_info_p->bmiHeader);
+  //video_info_p->bmiHeader.biXPelsPerMeter;
+  //video_info_p->bmiHeader.biYPelsPerMeter;
+  //video_info_p->bmiHeader.biClrUsed;
+  //video_info_p->bmiHeader.biClrImportant;
+
+  BOOL result_2 = SetRectEmpty (&(video_info_p->rcSource));
+  ACE_ASSERT (result_2);
+  result_2 = SetRectEmpty (&(video_info_p->rcTarget));
+  ACE_ASSERT (result_2);
+
+  mediaType_out.SetType (&MEDIATYPE_Video);
+  mediaType_out.SetFormatType (&FORMAT_VideoInfo);
+  mediaType_out.SetTemporalCompression (FALSE);
+
+  // work out the GUID for the subtype from the header info
+  struct _GUID SubTypeGUID = GetBitmapSubtype (&video_info_p->bmiHeader);
+  if (SubTypeGUID == GUID_NULL)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to GetBitmapSubtype(), falling back\n")));
+    SubTypeGUID = MEDIASUBTYPE_Avi; // fallback
+  } // end IF
+  mediaType_out.SetSubtype (&SubTypeGUID);
+  mediaType_out.SetSampleSize (video_info_p->bmiHeader.biSizeImage);
 
   return true;
 
@@ -580,7 +632,8 @@ do_work (unsigned int bufferSize_in,
   configuration.useReactor = useReactor_in;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.builder))
+  if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.builder,
+                                 configuration.moduleHandlerConfiguration.mediaType))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
@@ -660,22 +713,30 @@ do_work (unsigned int bufferSize_in,
     &configuration.userData;
 
   // ********************** stream configuration data **************************
+  configuration.pinConfiguration.mediaType =
+    &configuration.moduleHandlerConfiguration.mediaType;
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
   configuration.moduleHandlerConfiguration.configuration = &configuration;
-  configuration.moduleHandlerConfiguration.inbound = true;
   configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;
-  configuration.moduleHandlerConfiguration.frameSize =
-    153600;
+  configuration.moduleHandlerConfiguration.filterCLSID =
+      CLSID_ACEStream_Source_Filter;
+  configuration.moduleHandlerConfiguration.inbound = true;
+  // *TODO*: specify the preferred media type
+  //configuration.moduleHandlerConfiguration.mediaType = ;
+  configuration.moduleHandlerConfiguration.pinConfiguration =
+    &configuration.pinConfiguration;
+  //configuration.moduleHandlerConfiguration.push = false;
   configuration.moduleHandlerConfiguration.printProgressDot =
-      UIDefinitionFile_in.empty ();
+    UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
   configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  configuration.moduleHandlerConfiguration.frameSize = 230400;
 #else
   configuration.moduleHandlerConfiguration.format.type =
       V4L2_BUF_TYPE_VIDEO_CAPTURE;

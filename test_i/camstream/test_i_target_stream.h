@@ -129,6 +129,7 @@ class Test_I_Target_Stream
 #endif
   Test_I_Target_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  IGraphBuilder*                                      graphBuilder_;
 #else
   Test_I_Target_Stream_Module_Display_Module          display_;
 #endif

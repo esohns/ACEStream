@@ -22,30 +22,38 @@
 
 #include "common_tools.h"
 
+#include "stream_defines.h"
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
+#include "stream_misc_common.h"
 #include "stream_misc_defines.h"
 
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename PinConfigurationType,
+          typename MediaType>
 Stream_Misc_DirectShow_Source_T<SessionMessageType,
                                 MessageType,
                                 ConfigurationType,
-                                SessionDataType>::Stream_Misc_DirectShow_Source_T ()
+                                SessionDataType,
+                                PinConfigurationType,
+                                MediaType>::Stream_Misc_DirectShow_Source_T ()
  : inherited ()
- , inherited2 ()
  , configuration_ (NULL)
+//, pinConfiguration_ ()
  , sessionData_ (NULL)
  , isInitialized_ (false)
- , IMemAllocator_ (NULL)
+ , push_ (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
+ , IGraphBuilder_ (NULL)
+//, IMemAllocator_ (NULL)
  , IMemInputPin_ (NULL)
- //, IGraphBuilder_ (NULL)
+//, queue_ (STREAM_QUEUE_MAX_SLOTS)
  , IMediaControl_ (NULL)
  , IMediaEventEx_ (NULL)
  , ROTID_ (0)
@@ -57,18 +65,33 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename SessionDataType>
-Stream_Misc_DirectShow_Source_T<SessionMessageType,
+          typename SessionDataType,
+          typename PinConfigurationType,
+          typename MediaType>
+  Stream_Misc_DirectShow_Source_T<SessionMessageType,
                                 MessageType,
                                 ConfigurationType,
-                                SessionDataType>::~Stream_Misc_DirectShow_Source_T ()
+                                SessionDataType,
+                                PinConfigurationType,
+                                MediaType>::~Stream_Misc_DirectShow_Source_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::~Stream_Misc_DirectShow_Source_T"));
 
-  if (IMemAllocator_)
-    IMemAllocator_->Release ();
+  int result = -1;
+
+  //if (IMemAllocator_)
+  //  IMemAllocator_->Release ();
   if (IMemInputPin_)
     IMemInputPin_->Release ();
+  if (!push_)
+  {
+    //result = inherited::queue_.flush ();
+    //if (result == -1)
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to ACE_Message_Queue::flush() \"%m\", continuing\n"),
+    //              inherited::mod_->name ()));
+    inherited::queue_.waitForIdleState ();
+  } // end IF
 
   if (ROTID_)
   {
@@ -102,23 +125,30 @@ continue_:
     IMediaControl_->Stop ();
     IMediaControl_->Release ();
   } // end IF
-  //if (IGraphBuilder_)
-  //  IGraphBuilder_->Release ();
-  if (configuration_->builder)
-    configuration_->builder->Release ();
+
+  if (IGraphBuilder_)
+    IGraphBuilder_->Release ();
 }
 
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename PinConfigurationType,
+          typename MediaType>
 bool
 Stream_Misc_DirectShow_Source_T<SessionMessageType,
                                 MessageType,
                                 ConfigurationType,
-                                SessionDataType>::initialize (const ConfigurationType& configuration_in)
+                                SessionDataType,
+                                PinConfigurationType,
+                                MediaType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::initialize"));
+
+  // sanity check(s)
+  // *TODO*: remove type inference
+  ACE_ASSERT (configuration_in.pinConfiguration);
 
   // initialize COM ?
   HRESULT result = E_FAIL;
@@ -145,15 +175,19 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
     //            ACE_TEXT ("re-initializing...\n")));
 
     // clean up ?
-    if (IMemAllocator_)
-    {
-      IMemAllocator_->Release ();
-      IMemAllocator_ = NULL;
-    } // end IF
+    //if (IMemAllocator_)
+    //{
+    //  IMemAllocator_->Release ();
+    //  IMemAllocator_ = NULL;
+    //} // end IF
     if (IMemInputPin_)
     {
       IMemInputPin_->Release ();
       IMemInputPin_ = NULL;
+    } // end IF
+    if (!push_)
+    {
+      inherited::queue_.waitForIdleState ();
     } // end IF
 
     if (ROTID_)
@@ -195,15 +229,11 @@ continue_:
       IMediaControl_->Release ();
       IMediaControl_ = NULL;
     } // end IF
-    //if (IGraphBuilder_)
-    //{
-    //  IGraphBuilder_->Release ();
-    //  IGraphBuilder_ = NULL;
-    //} // end IF
-    if (configuration_->builder)
+
+    if (IGraphBuilder_)
     {
-      configuration_->builder->Release ();
-      configuration_->builder = NULL;
+      IGraphBuilder_->Release ();
+      IGraphBuilder_ = NULL;
     } // end IF
 
     if (sessionData_)
@@ -216,118 +246,27 @@ continue_:
   } // end IF
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+  // *TODO*: remove type inference
+  push_ = configuration_->push;
+  configuration_->pinConfiguration->queue = &(inherited::queue_);
 
-  IBaseFilter* filter_p = NULL;
-  result =
-    configuration_in.builder->FindFilterByName (configuration_in.sourceFilter,
-                                                &filter_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (configuration_in.sourceFilter),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (filter_p);
-
-  IEnumPins* enumerator_p = NULL;
-  result = filter_p->EnumPins (&enumerator_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (configuration_in.sourceFilter),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    filter_p->Release ();
-
-    return false;
-  } // end IF
-  ACE_ASSERT (enumerator_p);
-  filter_p->Release ();
-  IPin* pin_p = NULL;
-  PIN_DIRECTION pin_direction;
-  while (enumerator_p->Next (1, &pin_p, NULL) == S_OK)
-  {
-    ACE_ASSERT (pin_p);
-
-    result = pin_p->QueryDirection (&pin_direction);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IPin::QueryDirection(): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (configuration_in.sourceFilter),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      pin_p->Release ();
-      enumerator_p->Release ();
-
-      return false;
-    } // end IF
-    if (pin_direction != PINDIR_INPUT)
-    {
-      pin_p->Release ();
-      pin_p = NULL;
-
-      continue;
-    } // end IF
-
-    break;
-  } // end WHILE
-  enumerator_p->Release ();
-  if (!pin_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: has no input pin, aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (configuration_in.sourceFilter)));
-    return false;
-  } // end IF
-
-  result = pin_p->QueryInterface (IID_IMemInputPin,
-                                  (void**)&IMemInputPin_);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IPin::QueryInterface(IID_IMemInputPin): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    pin_p->Release ();
-
-    return false;
-  } // end IF
-  ACE_ASSERT (IMemInputPin_);
-  pin_p->Release ();
-
-  result = IMemInputPin_->GetAllocator (&IMemAllocator_);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMemInputPin::GetAllocator(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    IMemInputPin_->Release ();
-    IMemInputPin_ = NULL;
-
-    return false;
-  } // end IF
-  ACE_ASSERT (IMemAllocator_);
+  isInitialized_ = true;
 
   return true;
 }
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename PinConfigurationType,
+          typename MediaType>
 const ConfigurationType&
 Stream_Misc_DirectShow_Source_T<SessionMessageType,
                                 MessageType,
                                 ConfigurationType,
-                                SessionDataType>::get () const
+                                SessionDataType,
+                                PinConfigurationType,
+                                MediaType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::get"));
 
@@ -340,21 +279,48 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename PinConfigurationType,
+          typename MediaType>
 void
 Stream_Misc_DirectShow_Source_T<SessionMessageType,
                                 MessageType,
                                 ConfigurationType,
-                                SessionDataType>::handleDataMessage (MessageType*& message_inout,
-                                                                     bool& passMessageDownstream_out)
+                                SessionDataType,
+                                PinConfigurationType,
+                                MediaType>::handleDataMessage (MessageType*& message_inout,
+                                                               bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::handleDataMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  if (!push_)
+  {
+    ACE_Message_Block* message_block_p = message_inout->duplicate ();
+    if (!message_block_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Message_Block::duplicate(): \"%m\", returning\n")));
+      return;
+    } // end IF
+    int result = inherited::queue_.enqueue_tail (message_block_p, NULL);
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n")));
+
+      // clean up
+      message_block_p->release ();
+
+      return;
+    } // end IF
+
+    return;
+  } // end IF
+
   // sanity check(s)
-  ACE_ASSERT (message_inout);
   //ACE_ASSERT (IMemAllocator_);
   ACE_ASSERT (IMemInputPin_);
 
@@ -413,7 +379,7 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
   //  } // end IF
   //  message_inout->rd_ptr (to_copy);
 
-    //// *TODO*: use ReceiveMultiple ()
+    // *TODO*: use ReceiveMultiple ()
     result = IMemInputPin_->Receive (media_sample_p);
     if (FAILED (result))
     {
@@ -435,13 +401,17 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename PinConfigurationType,
+          typename MediaType>
 void
 Stream_Misc_DirectShow_Source_T<SessionMessageType,
                                 MessageType,
                                 ConfigurationType,
-                                SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                        bool& passMessageDownstream_out)
+                                SessionDataType,
+                                PinConfigurationType,
+                                MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                  bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::handleSessionMessage"));
 
@@ -460,13 +430,13 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
     case STREAM_SESSION_BEGIN:
     {
       // sanity check(s)
-      ACE_ASSERT (sessionData_);
+      ACE_ASSERT (!sessionData_);
       // *TODO*: remove type inference
       ACE_ASSERT (configuration_->streamConfiguration);
 
-      //inherited::sessionData_ =
-      //  &const_cast<SessionDataContainerType&> (message_inout->get ());
-      //inherited::sessionData_->increase ();
+      sessionData_ =
+        &const_cast<SessionDataType&> (message_inout->get ());
+      sessionData_->increase ();
       typename SessionDataType::DATA_T& session_data_r =
         const_cast<typename SessionDataType::DATA_T&> (sessionData_->get ());
 
@@ -479,19 +449,67 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", returning\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        break;
+        goto error;
       } // end IF
       COM_initialized = true;
 
-      if (!initialize_DirectShow (configuration_->window,
-                                  configuration_->builder))
+      IGraphBuilder* builder_p = configuration_->builder;
+      if (configuration_->builder)
+      {
+        // sanity check(s)
+        ACE_ASSERT (!IMediaControl_);
+        ACE_ASSERT (!IMediaEventEx_);
+
+        // retrieve interfaces for media control and the video window
+        result_2 =
+          configuration_->builder->QueryInterface (IID_IMediaControl,
+                                                   (void**)&IMediaControl_);
+        if (FAILED (result_2))
+          goto error_2;
+        result_2 =
+            configuration_->builder->QueryInterface (IID_IMediaEventEx,
+                                                     (void**)&IMediaEventEx_);
+        if (FAILED (result_2))
+          goto error_2;
+
+        goto do_run;
+error_2:
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (!IGraphBuilder_);
+
+      // sanity check(s)
+      ACE_ASSERT (configuration_->pinConfiguration);
+
+      if (!initialize_DirectShow (configuration_->filterCLSID,
+                                  *(configuration_->pinConfiguration),
+                                  configuration_->mediaType,
+                                  configuration_->window,
+                                  IGraphBuilder_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize_DirectShow(), returning\n")));
         goto error;
       } // end IF
-      //ACE_ASSERT (IGraphBuilder_);
-      ACE_ASSERT (configuration_->builder);
+      ACE_ASSERT (IGraphBuilder_);
+      builder_p = IGraphBuilder_;
+
+      if (_DEBUG)
+      {
+        std::string log_file_name =
+          Common_File_Tools::getLogDirectory (std::string (),
+                                              0);
+        log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+        log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+        Stream_Module_Device_Tools::debug (IGraphBuilder_,
+                                           log_file_name);
+      } // end IF
+
+do_run:
+      ACE_ASSERT (builder_p);
       ACE_ASSERT (IMediaControl_);
       ACE_ASSERT (IMediaEventEx_);
 
@@ -521,7 +539,7 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
       result_2 =
         ::StringCchPrintfW (buffer, NUMELMS (buffer),
                             ACE_TEXT_ALWAYS_WCHAR ("FilterGraph %08x [PID: %08x]\0"),
-                            (DWORD_PTR)configuration_->builder, ACE_OS::getpid ());
+                            (DWORD_PTR)builder_p, ACE_OS::getpid ());
       result_2 = CreateItemMoniker (ACE_TEXT_ALWAYS_WCHAR ("!"), buffer,
                                     &moniker_p);
       if (FAILED (result_2))
@@ -536,16 +554,16 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
         goto error;
       } // end IF
 
-        // Use the ROTFLAGS_REGISTRATIONKEEPSALIVE to ensure a strong reference
-        // to the object.  Using this flag will cause the object to remain
-        // registered until it is explicitly revoked with the Revoke() method.
-        // Not using this flag means that if GraphEdit remotely connects
-        // to this graph and then GraphEdit exits, this object registration
-        // will be deleted, causing future attempts by GraphEdit to fail until
-        // this application is restarted or until the graph is registered again.
+      // Use the ROTFLAGS_REGISTRATIONKEEPSALIVE to ensure a strong reference
+      // to the object.  Using this flag will cause the object to remain
+      // registered until it is explicitly revoked with the Revoke() method.
+      // Not using this flag means that if GraphEdit remotely connects
+      // to this graph and then GraphEdit exits, this object registration
+      // will be deleted, causing future attempts by GraphEdit to fail until
+      // this application is restarted or until the graph is registered again.
       result_2 =
         ROT_p->Register (ROTFLAGS_REGISTRATIONKEEPSALIVE,
-                         configuration_->builder, moniker_p,
+                         builder_p, moniker_p,
                          &ROTID_);
       if (FAILED (result_2))
       {
@@ -563,6 +581,7 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
                   ACE_TEXT ("registered graph in running object table (ID: %d)\n"),
                   ROTID_));
 
+      // clean up
       ROT_p->Release ();
       moniker_p->Release ();
 
@@ -579,6 +598,7 @@ error:
       } // end IF
       if (COM_initialized)
         CoUninitialize ();
+      session_data_r.aborted = true;
 
       break;
     }
@@ -627,6 +647,8 @@ error:
       } // end IF
 
 continue_:
+      finalize_DirectShow (); // stop 'streaming thread'
+
       if (IMediaEventEx_)
       {
         result_2 = IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
@@ -640,7 +662,7 @@ continue_:
 
       if (IMediaControl_)
       {
-        // stop previewing video data
+        // stop previewing video data (blocks)
         result_2 = IMediaControl_->Stop ();
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
@@ -651,18 +673,18 @@ continue_:
         IMediaControl_ = NULL;
       } // end IF
 
-      if (!Stream_Module_Device_Tools::disconnect (configuration_->builder))
+      IGraphBuilder* builder_p =
+        (configuration_->builder ? configuration_->builder
+                                 : IGraphBuilder_);
+      ACE_ASSERT (builder_p);
+      if (!Stream_Module_Device_Tools::disconnect (builder_p))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), continuing\n")));
-      //if (ICaptureGraphBuilder2_)
-      //{
-      //  ICaptureGraphBuilder2_->Release ();
-      //  ICaptureGraphBuilder2_ = NULL;
-      //} // end IF
-      if (configuration_->builder)
+
+      if (IGraphBuilder_)
       {
-        configuration_->builder->Release ();
-        configuration_->builder = NULL;
+        IGraphBuilder_->Release ();
+        IGraphBuilder_ = NULL;
       } // end IF
 
       if (COM_initialized)
@@ -684,13 +706,20 @@ continue_:
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
-          typename SessionDataType>
+          typename SessionDataType,
+          typename PinConfigurationType,
+          typename MediaType>
 bool
 Stream_Misc_DirectShow_Source_T<SessionMessageType,
                                 MessageType,
                                 ConfigurationType,
-                                SessionDataType>::initialize_DirectShow (const HWND windowHandle_in,
-                                                                         IGraphBuilder*& IGraphBuilder_out)
+                                SessionDataType,
+                                PinConfigurationType,
+                                MediaType>::initialize_DirectShow (const struct _GUID& CLSID_in,
+                                                                   const PinConfigurationType& pinConfiguration_in,
+                                                                   const struct _AMMediaType& mediaType_in,
+                                                                   const HWND windowHandle_in,
+                                                                   IGraphBuilder*& IGraphBuilder_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::initialize_DirectShow"));
 
@@ -722,25 +751,85 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
   //  return false;
   //} // end IF
 
+  std::wstring filter_name;
+
+  IBaseFilter* ibase_filter_p = NULL;
+  //ACE_NEW_NORETURN (ibase_filter_p,
+  //                  FILTER_T ());
+  //if (!filter_p)
+  //{
+  //  ACE_DEBUG ((LM_CRITICAL,
+  //              ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+  //  return false;
+  //} // end IF
   HRESULT result =
-    IGraphBuilder_out->AddFilter (this,
-                                  MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L);
+    CoCreateInstance (CLSID_in, NULL,
+                      CLSCTX_INPROC_SERVER, IID_IBaseFilter,
+                      (void**)&ibase_filter_p);
   if (FAILED (result))
   {
+    OLECHAR GUID_string[39];
+    ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
+    int nCount = StringFromGUID2 (CLSID_in,
+                                  GUID_string, sizeof (GUID_string));
+    ACE_ASSERT (nCount == 39);
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (ibase_filter_p);
+  FILTER_T* filter_p = dynamic_cast<FILTER_T*> (ibase_filter_p);
+  if (!filter_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to dynamic_cast<Stream_Misc_DirectShow_Source_Filter_T*>(%@), aborting\n"),
+                ibase_filter_p));
 
     // clean up
+    ibase_filter_p->Release ();
     IGraphBuilder_out->Release ();
     IGraphBuilder_out = NULL;
 
     return false;
   } // end IF
-  filter_pipeline.push_front (MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L);
+  // *TODO*: remove type inference
+  if (!filter_p->initialize (pinConfiguration_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Misc_DirectShow_Source_Filter_T::initialize(), aborting\n")));
+
+    // clean up
+    ibase_filter_p->Release ();
+    IGraphBuilder_out->Release ();
+    IGraphBuilder_out = NULL;
+
+    return false;
+  } // end IF
+
+  filter_name =
+    ACE_TEXT_ALWAYS_WCHAR (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ());
+  result = IGraphBuilder_out->AddFilter (ibase_filter_p,
+                                         filter_name.c_str ());
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    ibase_filter_p->Release ();
+    IGraphBuilder_out->Release ();
+    IGraphBuilder_out = NULL;
+
+    return false;
+  } // end IF
+  filter_pipeline.push_front (filter_name);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L)));
+              ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
 
   if (!Stream_Module_Device_Tools::connect (IGraphBuilder_out,
                                             filter_pipeline))
@@ -789,5 +878,124 @@ continue_:
     return false;
   } // end IF
 
+  ACE_ASSERT (configuration_);
+  ibase_filter_p = NULL;
+  result =
+    configuration_->builder->FindFilterByName (filter_name.c_str (),
+                                               &ibase_filter_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (ibase_filter_p);
+
+  IEnumPins* enumerator_p = NULL;
+  result = ibase_filter_p->EnumPins (&enumerator_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    ibase_filter_p->Release ();
+
+    return false;
+  } // end IF
+  ACE_ASSERT (enumerator_p);
+  ibase_filter_p->Release ();
+  IPin* pin_p = NULL;
+  PIN_DIRECTION pin_direction;
+  while (enumerator_p->Next (1, &pin_p, NULL) == S_OK)
+  {
+    ACE_ASSERT (pin_p);
+
+    result = pin_p->QueryDirection (&pin_direction);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to IPin::QueryDirection(): \"%s\", aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      pin_p->Release ();
+      enumerator_p->Release ();
+
+      return false;
+    } // end IF
+    if (pin_direction != PINDIR_INPUT)
+    {
+      pin_p->Release ();
+      pin_p = NULL;
+
+      continue;
+    } // end IF
+
+    break;
+  } // end WHILE
+  enumerator_p->Release ();
+  if (!pin_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: has no input pin, aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
+    return false;
+  } // end IF
+
+  result = pin_p->QueryInterface (IID_IMemInputPin,
+                                  (void**)&IMemInputPin_);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IPin::QueryInterface(IID_IMemInputPin): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    pin_p->Release ();
+
+    return false;
+  } // end IF
+  ACE_ASSERT (IMemInputPin_);
+  pin_p->Release ();
+
+  //result = IMemInputPin_->GetAllocator (&IMemAllocator_);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMemInputPin::GetAllocator(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  //  // clean up
+  //  IMemInputPin_->Release ();
+  //  IMemInputPin_ = NULL;
+
+  //  return false;
+  //} // end IF
+  //ACE_ASSERT (IMemAllocator_);
+
   return true;
+}
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename PinConfigurationType,
+          typename MediaType>
+void
+Stream_Misc_DirectShow_Source_T<SessionMessageType,
+                                MessageType,
+                                ConfigurationType,
+                                SessionDataType,
+                                PinConfigurationType,
+                                MediaType>::finalize_DirectShow ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::finalize_DirectShow"));
+
+  inherited::shutdown ();
 }

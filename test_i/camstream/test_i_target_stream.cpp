@@ -25,6 +25,9 @@
 
 #include "stream_macros.h"
 
+#include "stream_dev_defines.h"
+#include "stream_dev_tools.h"
+
 #include "test_i_source_stream.h"
 
 Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
@@ -39,14 +42,15 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
               NULL,
               false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  , directShowSource_ (ACE_TEXT_ALWAYS_CHAR ("DirectShowSource"),
-                       NULL,
-                       false)
+ , directShowSource_ (ACE_TEXT_ALWAYS_CHAR ("DirectShowSource"),
+                      NULL,
+                      false)
 #endif
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , graphBuilder_ (NULL)
 #else
  , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
              NULL,
@@ -89,6 +93,15 @@ Test_I_Target_Stream::~Test_I_Target_Stream ()
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::~Test_I_Target_Stream"));
 
   inherited::shutdown ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (_DEBUG && graphBuilder_)
+    Stream_Module_Device_Tools::debug (graphBuilder_,
+                                       std::string ());
+
+  if (graphBuilder_)
+    graphBuilder_->Release ();
+#endif
 }
 
 void
@@ -345,47 +358,134 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   if (!directShowSource_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource>(%@) failed, aborting\n"),
+                directShowSource_.writer ()));
     return false;
   } // end IF
-
-  // sanity check(s)
-  ACE_ASSERT (!configuration_r.graphBuilder);
-  std::list<std::wstring> filter_pipeline;
-  if (!Stream_Module_Device_Tools::load (configuration_r.window,
-                                         configuration_r.graphBuilder,
-                                         filter_pipeline))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
-    return false;
-  } // end IF
-  ACE_ASSERT (configuration_r.graphBuilder);
-  HRESULT result_2 =
-    configuration_r.graphBuilder->AddFilter (directShowSource_impl_p,
-                                             MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    goto error;
-  } // end IF
-  filter_pipeline.push_front (MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L);
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L)));
-
   if (!directShowSource_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
                 directShowSource_.name ()));
-    goto error;
+    return false;
   } // end IF
 
+  HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    return false;
+  } // end IF
+
+  // clean up ?
+  if (configuration_r.moduleHandlerConfiguration->builder)
+  {
+    configuration_r.moduleHandlerConfiguration->builder->Release ();
+    configuration_r.moduleHandlerConfiguration->builder = NULL;
+  } // end IF
+
+  std::wstring filter_name;
+
+  // sanity check(s)
+  ACE_ASSERT (!configuration_r.moduleHandlerConfiguration->builder);
+  std::list<std::wstring> filter_pipeline;
+  if (!Stream_Module_Device_Tools::load (configuration_r.window,
+                                         configuration_r.moduleHandlerConfiguration->builder,
+                                         filter_pipeline))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (configuration_r.moduleHandlerConfiguration->builder);
+
+  if (_DEBUG)
+  {
+    std::string log_file_name =
+        Common_File_Tools::getLogDirectory (std::string (),
+                                            0);
+    log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+    log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+    Stream_Module_Device_Tools::debug (configuration_r.moduleHandlerConfiguration->builder,
+                                       log_file_name);
+  } // end IF
+
+  IBaseFilter* ibase_filter_p = NULL;
+  //ACE_NEW_NORETURN (ibase_filter_p,
+  //                  FILTER_T ());
+  //if (!filter_p)
+  //{
+  //  ACE_DEBUG ((LM_CRITICAL,
+  //              ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+  //  return false;
+  //} // end IF
+  result_2 =
+    CoCreateInstance (configuration_in.moduleHandlerConfiguration->filterCLSID, NULL,
+                      CLSCTX_INPROC_SERVER, IID_IBaseFilter,
+                      (void**)&ibase_filter_p);
+  if (FAILED (result_2))
+  {
+    OLECHAR GUID_string[39];
+    ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
+    int nCount =
+        StringFromGUID2 (configuration_in.moduleHandlerConfiguration->filterCLSID,
+                         GUID_string, sizeof (GUID_string));
+    ACE_ASSERT (nCount == 39);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (ibase_filter_p);
+  Test_I_Target_Stream_Module_DirectShowSource::FILTER_T* filter_p =
+      dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource::FILTER_T*> (ibase_filter_p);
+  if (!filter_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to dynamic_cast<Stream_Misc_DirectShow_Source_Filter_T*>(%@), aborting\n"),
+                ibase_filter_p));
+
+    // clean up
+    ibase_filter_p->Release ();
+
+    goto error;
+  } // end IF
+  // sanity check(s)
+  ACE_ASSERT (configuration_r.moduleHandlerConfiguration->pinConfiguration);
+  if (!filter_p->initialize (*configuration_in.moduleHandlerConfiguration->pinConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Misc_DirectShow_Source_Filter_T::initialize(), aborting\n")));
+
+    // clean up
+    ibase_filter_p->Release ();
+
+    return false;
+  } // end IF
+
+  filter_name = TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME;
+      //ACE_TEXT_ALWAYS_WCHAR (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ());
+  result_2 =
+    configuration_r.moduleHandlerConfiguration->builder->AddFilter (ibase_filter_p,
+                                                                    filter_name.c_str ());
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::AddFilter(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+  filter_pipeline.push_front (filter_name);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added \"%s\"...\n"),
+              ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
+
   ACE_ASSERT (!filter_pipeline.empty ());
-  if (!Stream_Module_Device_Tools::connect (configuration_r.graphBuilder,
+  if (!Stream_Module_Device_Tools::connect (configuration_r.moduleHandlerConfiguration->builder,
                                             filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -395,8 +495,8 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   IMediaFilter* media_filter_p = NULL;
   result_2 =
-    configuration_r.graphBuilder->QueryInterface (IID_IMediaFilter,
-                                                  (void**)&media_filter_p);
+    configuration_r.moduleHandlerConfiguration->builder->QueryInterface (IID_IMediaFilter,
+                                                                         (void**)&media_filter_p);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -419,8 +519,8 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
 error:
   // clean up
-  configuration_r.graphBuilder->Release ();
-  configuration_r.graphBuilder = NULL;
+  configuration_r.moduleHandlerConfiguration->builder->Release ();
+  configuration_r.moduleHandlerConfiguration->builder = NULL;
 
   return false;
 

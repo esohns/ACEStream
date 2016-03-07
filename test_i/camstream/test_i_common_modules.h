@@ -46,7 +46,9 @@
 #include "test_i_connection_common.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
+
 #include "test_i_source_common.h"
+
 #include "test_i_target_common.h"
 
 // declare module(s)
@@ -69,7 +71,10 @@ typedef Stream_Misc_DirectShow_Source_T<Test_I_Target_Stream_SessionMessage,
 
                                         Test_I_Target_Stream_ModuleHandlerConfiguration,
 
-                                        Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_DirectShowSource;
+                                        Test_I_Target_Stream_SessionData_t,
+
+                                        Test_I_Target_DirectShow_PinConfiguration,
+                                        Test_I_Target_DirectShow_MediaType_t> Test_I_Target_Stream_Module_DirectShowSource;
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_SYNCH_MUTEX,
 

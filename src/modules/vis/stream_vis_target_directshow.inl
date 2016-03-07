@@ -114,10 +114,10 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
       // sanity check(s)
       ACE_ASSERT (!configuration_->windowController);
 
-      //const SessionDataContainerType& session_data_container_r =
-      //  message_inout->get ();
-      //const SessionDataType& session_data_r =
-      //  session_data_container_r.get ();
+      const SessionDataContainerType& session_data_container_r =
+        message_inout->get ();
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (session_data_container_r.get ());
 
       bool COM_initialized = false;
       HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
@@ -126,7 +126,7 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        break;
+        goto error;
       } // end IF
       COM_initialized = true;
 
@@ -137,16 +137,17 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize_DirectShow(), aborting\n")));
-
-        // clean up
-        if (COM_initialized)
-          CoUninitialize ();
-
-        break;
+        goto error;
       } // end IF
       ACE_ASSERT (configuration_->windowController);
       IVideoWindow_ = configuration_->windowController;
 
+      goto continue_;
+
+error:
+      session_data_r.aborted = true;
+
+continue_:
       if (COM_initialized)
         CoUninitialize ();
 
@@ -290,10 +291,13 @@ error:
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
               ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
   return false;
+
 continue_:
   ACE_ASSERT (IVideoWindow_out);
+
+  if (!windowHandle_in)
+    goto continue_2;
 
   //result = IVideoWindow_out->put_Owner ((OAHWND)windowHandle_in);
   //if (FAILED (result))

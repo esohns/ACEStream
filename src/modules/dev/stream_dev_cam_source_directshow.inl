@@ -1138,7 +1138,10 @@ error:
               ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
   return false;
+
 continue_:
+  std::list<std::wstring> filter_pipeline;
+
   ACE_ASSERT (IMediaControl_);
   ACE_ASSERT (IMediaEventEx_);
   // set the window handle used to process graph events
@@ -1150,29 +1153,27 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
+    goto error_2;
   } // end IF
 
   IBaseFilter* filter_p = NULL;
-
-
   result =
-    IGraphBuilder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE,
+    IGraphBuilder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
                                         &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
+    goto error_2;
   } // end IF
   ACE_ASSERT (filter_p);
 
   // grab
   IBaseFilter* filter_2 = NULL;
   result =
-    IGraphBuilder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER,
+    IGraphBuilder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
                                         &filter_2);
   if (FAILED (result))
   {
@@ -1180,13 +1181,9 @@ continue_:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER),
+                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-
-      return false;
+      goto error_2;
     } // end IF
 
     result = CoCreateInstance (CLSID_SampleGrabber, NULL,
@@ -1197,31 +1194,22 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(CLSID_SampleGrabber): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-
-      return false;
+      goto error_2;
     } // end IF
     ACE_ASSERT (filter_2);
     result =
       IGraphBuilder_in->AddFilter (filter_2,
-                                   MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER);
+                                   MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      filter_2->Release ();
-
-      return false;
+      goto error_2;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER)));
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB)));
   } // end IF
   ACE_ASSERT (filter_2);
   ISampleGrabber_ = NULL;
@@ -1232,12 +1220,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    filter_p->Release ();
-    filter_2->Release ();
-
-    return false;
+    goto error_2;
   } // end IF
   ACE_ASSERT (ISampleGrabber_);
   ISampleGrabber_->SetBufferSamples (false);
@@ -1247,12 +1230,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    // clean up
-    filter_p->Release ();
-    filter_2->Release ();
-
-    return false;
+    goto error_2;
   } // end IF
   //AM_MEDIA_TYPE media_type;
   //result = ISampleGrabber_->SetMediaType (&media_type);
@@ -1264,23 +1242,17 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(), aborting\n")));
-
-    // clean up
-    filter_p->Release ();
-    filter_2->Release ();
-
-    return false;
+    goto error_2;
   } // end IF
   ACE_ASSERT (media_type_p);
-  GUID media_subtype = media_type_p->subtype;
+  struct _GUID media_subtype = media_type_p->subtype;
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-  GUID decompressor_guid = CLSID_MjpegDec;
-  LPCWSTR decompressor_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_MJPG_DECOMPRESS;
+  struct _GUID decompressor_guid = CLSID_MjpegDec;
+  LPCWSTR decompressor_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_MJPG;
   if (media_subtype == MEDIASUBTYPE_YUY2)
   {
     decompressor_guid = CLSID_AVIDec;
-    decompressor_name =
-      MODULE_DEV_CAM_WIN32_FILTER_NAME_AVI_DECOMPRESS;
+    decompressor_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_AVI;
   } // end IF
   else if (media_subtype == MEDIASUBTYPE_MJPG);
   else
@@ -1288,12 +1260,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
                 ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (media_subtype).c_str ())));
-
-    // clean up
-    filter_p->Release ();
-    filter_2->Release ();
-
-    return false;
+    goto error_2;
   } // end ELSE
   IBaseFilter* filter_3 = NULL;
   if (!windowHandle_in) goto continue_2;
@@ -1308,12 +1275,7 @@ continue_:
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR (decompressor_name),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      filter_2->Release ();
-
-      return false;
+      goto error_2;
     } // end IF
 
     result = CoCreateInstance (decompressor_guid, NULL,
@@ -1325,12 +1287,7 @@ continue_:
                   ACE_TEXT ("%s: failed to CoCreateInstance() decompressor: \"%s\", aborting\n"),
                   ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (media_subtype).c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      filter_2->Release ();
-
-      return false;
+      goto error_2;
     } // end IF
     ACE_ASSERT (filter_3);
     result =
@@ -1341,13 +1298,7 @@ continue_:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      filter_2->Release ();
-      filter_3->Release ();
-
-      return false;
+      goto error_2;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
@@ -1359,8 +1310,8 @@ continue_:
 continue_2:
   IBaseFilter* filter_4 = NULL;
   result =
-    IGraphBuilder_in->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                                         : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER),
+    IGraphBuilder_in->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                                         : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL),
                                         &filter_4);
   if (FAILED (result))
   {
@@ -1368,17 +1319,10 @@ continue_2:
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                                            : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER)),
+                  ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                                            : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL)),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      filter_2->Release ();
-      if (filter_3)
-        filter_3->Release ();
-
-      return false;
+      goto error_2;
     } // end IF
 
     result = CoCreateInstance ((windowHandle_in ? CLSID_VideoRenderer
@@ -1392,39 +1336,24 @@ continue_2:
                   (windowHandle_in ? ACE_TEXT ("CLSID_VideoRenderer")
                                    : ACE_TEXT ("CLSID_NullRenderer")),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      filter_2->Release ();
-      if (filter_3)
-        filter_3->Release ();
-
-      return false;
+      goto error_2;
     } // end IF
     ACE_ASSERT (filter_4);
     result =
       IGraphBuilder_in->AddFilter (filter_4,
-                                   (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                                    : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER));
+                                   (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                                    : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      filter_p->Release ();
-      filter_2->Release ();
-      if (filter_3)
-        filter_3->Release ();
-      filter_4->Release ();
-
-      return false;
+      goto error_2;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER))));
+                ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                                          : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL))));
   } // end IF
   ACE_ASSERT (filter_4);
 
@@ -1440,45 +1369,45 @@ continue_2:
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to ICaptureGraphBuilder::RenderStream(): \"%s\", aborting\n"),
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-  //  // clean up
-  //  filter_p->Release ();
-  //  filter_2->Release ();
-  //  if (filter_3)
-  //    filter_3->Release ();
-  //  filter_4->Release ();
-
-  //  return false;
+  //  goto error_2;
   //} // end IF
-  std::list<std::wstring> filter_pipeline;
-  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE);
-  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRABBER);
+  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
+  filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
   if (windowHandle_in)
     filter_pipeline.push_back (decompressor_name);
-  filter_pipeline.push_back ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_VIDEO_RENDERER
-                                              : MODULE_DEV_CAM_WIN32_FILTER_NAME_NULL_RENDERER));
+  filter_pipeline.push_back ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                              : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
   if (!Stream_Module_Device_Tools::connect (IGraphBuilder_in,
                                             filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
-
-    // clean up
-    filter_p->Release ();
-    filter_2->Release ();
-    if (filter_3)
-      filter_3->Release ();
-    filter_4->Release ();
-
-    return false;
+    goto error_2;
   } // end IF
-  filter_p->Release ();
-  filter_2->Release ();
+
+  // clean up
+  if (filter_p)
+    filter_p->Release ();
+  if (filter_2)
+    filter_2->Release ();
   if (filter_3)
     filter_3->Release ();
-  filter_4->Release ();
+  if (filter_4)
+    filter_4->Release ();
 
   return true;
+
+error_2:
+  if (filter_p)
+    filter_p->Release ();
+  if (filter_2)
+    filter_2->Release ();
+  if (filter_3)
+    filter_3->Release ();
+  if (filter_4)
+    filter_4->Release ();
+
+  return false;
 }
 
 template <typename LockType,

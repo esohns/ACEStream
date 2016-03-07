@@ -109,14 +109,14 @@ class Stream_Base_T
 
   virtual void control (Stream_ControlType, // control type
                         bool = false);      // forward upstream ?
-  //virtual void flush (bool = false);
+  virtual void flush (bool = true,   // flush inbound data ?
+                      bool = false); // flush upstream (if any) ?
   virtual void pause ();
   virtual void rewind ();
   virtual StatusType status () const;
-  virtual void waitForCompletion (bool = true,   // wait for any worker
-                                                 // thread(s) ?
+  virtual void waitForCompletion (bool = true,   // wait for any worker thread(s) ?
                                   bool = false); // wait for upstream (if any) ?
-  virtual void waitForIdleState () const;
+  //virtual void waitForIdleState (bool = false) const; // wait for upstream (if any) ?
 
   virtual std::string name () const;
   virtual const StateType& state () const;

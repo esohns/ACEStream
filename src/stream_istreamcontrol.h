@@ -47,14 +47,20 @@ class Stream_IStreamControl_T
 
   virtual void control (Stream_ControlType, // control type
                         bool = false) = 0;  // forward upstream ?
-  // *NOTE*: this flushes the pipeline, dropping any (session-)data
-  //virtual void flush (bool = false) = 0; // flush upstream (if any) ?
+  // *NOTE*: flush the pipeline, releasing any data
+  // *NOTE*: session messages are not flushed, if all modules implement
+  //         Stream_IMessageQueue
+  // *TODO*: this last bit shouldn't be necessary
+  virtual void flush (bool = true,       // flush inbound data ?
+                      bool = false) = 0; // flush upstream (if any) ?
   virtual void pause () = 0;
   virtual void rewind () = 0;
   virtual StatusType status () const = 0;
+  // *NOTE*: wait for all data queues to drain
   virtual void waitForCompletion (bool = true,       // wait for any worker thread(s) ?
                                   bool = false) = 0; // wait for upstream (if any) ?
-  virtual void waitForIdleState () const = 0;
+  //// *NOTE*: wait for all worker threads to join
+  //virtual void waitForIdleState (bool = false) const = 0; // wait for upstream (if any) ?
 
   virtual std::string name () const = 0;
   virtual const StateType& state () const = 0;

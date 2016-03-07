@@ -26,7 +26,9 @@
 #include "ace/Time_Value.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "control.h"
+#include "strmif.h"
+#include "mmeapi.h"
+#include "mtype.h"
 #else
 //#include "linux/videodev2.h"
 
@@ -36,6 +38,8 @@
 #include "stream_dec_defines.h"
 
 #include "stream_dev_defines.h"
+
+#include "stream_misc_defines.h"
 
 #include "net_defines.h"
 #include "net_ilistener.h"
@@ -78,6 +82,18 @@ struct Test_I_Target_SocketHandlerConfiguration
   Test_I_Target_UserData* userData;
 };
 
+typedef CMediaType Test_I_Target_DirectShow_MediaType_t;
+struct Test_I_Target_DirectShow_PinConfiguration
+{
+  inline Test_I_Target_DirectShow_PinConfiguration ()
+   : mediaType (NULL)
+   , queue (NULL)
+  {};
+
+  Test_I_Target_DirectShow_MediaType_t* mediaType; // (preferred) media type
+  ACE_Message_Queue_Base*               queue;     // (inbound) buffer queue
+};
+
 struct Test_I_Target_Stream_ModuleHandlerConfiguration
  : Test_I_Stream_ModuleHandlerConfiguration
 {
@@ -86,9 +102,12 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
    , area ()
    , connection (NULL)
    , connectionManager (NULL)
-   , frameSize (0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , sourceFilter (TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME)
+   , filterCLSID ()
+   , frameSize (0)
+   , mediaType ()
+   , pinConfiguration (NULL)
+   , push (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
    , windowController (NULL)
 #endif
    , printProgressDot (false)
@@ -102,23 +121,27 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct tagRECT                         area;
-  LPCWSTR                                sourceFilter;
-  IVideoWindow*                          windowController;
+  struct tagRECT                             area;
+  struct _GUID                               filterCLSID;
+  unsigned int                               frameSize;
+  // *TODO*: specify this as part of the network protocol header/handshake
+  Test_I_Target_DirectShow_MediaType_t       mediaType;
+  Test_I_Target_DirectShow_PinConfiguration* pinConfiguration;
+  bool                                       push; // media sample passing strategy
+  IVideoWindow*                              windowController;
 #else
-  GdkRectangle                           area;
+  GdkRectangle                               area;
 #endif
-  Test_I_Target_IConnection_t*           connection; // Net source/IO module
-  Test_I_Target_InetConnectionManager_t* connectionManager; // Net IO module
-  unsigned int                           frameSize;
-  bool                                   printProgressDot;
-  std::string                            targetFileName; // file writer module
+  Test_I_Target_IConnection_t*               connection; // Net source/IO module
+  Test_I_Target_InetConnectionManager_t*     connectionManager; // Net IO module
+  bool                                       printProgressDot;
+  std::string                                targetFileName; // file writer module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                   window;
+  HWND                                       window;
 #else
-  struct v4l2_format                     format;
-  struct v4l2_window*                    v4l2Window;
-  GdkWindow*                             window;
+  struct v4l2_format                         format;
+  struct v4l2_window*                        v4l2Window;
+  GdkWindow*                                 window;
 #endif
 };
 
@@ -209,12 +232,12 @@ struct Test_I_Target_StreamConfiguration
 {
   inline Test_I_Target_StreamConfiguration ()
    : Stream_Configuration ()
-   , graphBuilder (NULL)
+   //, graphBuilder (NULL)
    , moduleHandlerConfiguration (NULL)
    , window (NULL)
   {};
 
-  IGraphBuilder*                                   graphBuilder;
+  //IGraphBuilder*                                   graphBuilder;
   Test_I_Target_Stream_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                                             window;
@@ -224,12 +247,12 @@ struct Test_I_Target_StreamConfiguration
 };
 
 struct Test_I_Target_StreamState
-  : Stream_State
+ : Stream_State
 {
   inline Test_I_Target_StreamState ()
-    : Stream_State ()
-    , currentSessionData (NULL)
-    , userData (NULL)
+   : Stream_State ()
+   , currentSessionData (NULL)
+   , userData (NULL)
   {};
 
   Test_I_Target_Stream_SessionData* currentSessionData;
@@ -260,6 +283,7 @@ struct Test_I_Target_Configuration
   // **************************** signal data **********************************
   Test_I_Target_SignalHandlerConfiguration        signalHandlerConfiguration;
   // **************************** stream data **********************************
+  Test_I_Target_DirectShow_PinConfiguration       pinConfiguration;
   Test_I_Target_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Test_I_Target_StreamConfiguration               streamConfiguration;
 

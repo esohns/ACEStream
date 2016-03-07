@@ -23,6 +23,8 @@
 
 //#include "ace/Default_Constants.h"
 
+//#include "stream_misc_defines.h"
+
 //#include "net_common.h"
 
 #define TEST_I_DEFAULT_GTK_RC_FILE                               "resources.rc"
@@ -103,7 +105,7 @@
 //---------------------------------------
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#define TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME       MODULE_DEV_CAM_WIN32_FILTER_NAME_MJPG_DECOMPRESS
+#define TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME       MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L
 #endif
 
 #endif

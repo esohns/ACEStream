@@ -75,6 +75,9 @@ class Stream_HeadModuleTaskBase_T
   virtual int module_closed (void);
   virtual int svc (void);
 
+  // implement (part of) Stream_ITask_T
+  virtual void waitForIdleState () const;
+
   // implement Stream_IModuleHandler_T
   virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&);
@@ -89,11 +92,9 @@ class Stream_HeadModuleTaskBase_T
 
   virtual void pause ();
   virtual Stream_StateMachine_ControlState status () const;
-  // *NOTE*: waits for any worker threads to join
   virtual void waitForCompletion (bool = true,   // wait for any worker
                                                  // thread(s) ?
                                   bool = false); // N/A
-  virtual void waitForIdleState () const;
 
   virtual std::string name () const;
   // *NOTE*: this is just a stub
@@ -165,7 +166,8 @@ class Stream_HeadModuleTaskBase_T
 
   // implement (part of) Stream_IStreamControl_T
   //virtual void initialize ();
-  //virtual void flush (bool = false); // N/A
+  virtual void flush (bool = true,   // flush inbound data ?
+                      bool = false); // flush upstream (if any) ?
   virtual void rewind ();
   virtual void upStream (Stream_Base_t*);
   virtual Stream_Base_t* upStream () const;
