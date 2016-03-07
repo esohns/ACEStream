@@ -713,8 +713,10 @@ do_work (unsigned int bufferSize_in,
     &configuration.userData;
 
   // ********************** stream configuration data **************************
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   configuration.pinConfiguration.mediaType =
     &configuration.moduleHandlerConfiguration.mediaType;
+#endif
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
@@ -722,14 +724,18 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   configuration.moduleHandlerConfiguration.filterCLSID =
       CLSID_ACEStream_Source_Filter;
+#endif
   configuration.moduleHandlerConfiguration.inbound = true;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *TODO*: specify the preferred media type
   //configuration.moduleHandlerConfiguration.mediaType = ;
   configuration.moduleHandlerConfiguration.pinConfiguration =
     &configuration.pinConfiguration;
   //configuration.moduleHandlerConfiguration.push = false;
+#endif
   configuration.moduleHandlerConfiguration.printProgressDot =
     UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.streamConfiguration =

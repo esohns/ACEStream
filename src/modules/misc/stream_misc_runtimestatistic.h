@@ -163,6 +163,7 @@ class Stream_Module_Statistic_WriterTask_T
   // helper method(s)
   void finalReport () const;
   void finiTimers (bool = true); // cancel both timers ? [false: cancel localReportingHandlerID_ only]
+  // *IMPORTANT NOTE*: callers must hold lock_ !
   bool putStatisticMessage ();
 
   bool                              initialized_;
@@ -177,6 +178,7 @@ class Stream_Module_Statistic_WriterTask_T
   bool                              pushStatisticMessages_; // 1-second interval
 
   // *DATA STATISTIC*
+  // *NOTE*: protects statistic and sessionData_
   mutable ACE_SYNCH_MUTEX           lock_;
 
   // *NOTE*: data messages == (messageCounter_ - sessionMessages_)

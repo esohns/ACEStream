@@ -104,23 +104,24 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 
   // *NOTE*: the RIFF-AVI (storage) format (like many others) foresees a
   //         header that contains size fields with information about
-  //         the length of the consecutively linear, structured bulk data.
-  //         Note that in a (streaming) scenario generating data, this
-  //         information often is not available prior to the event and may have
-  //         to be filled in after the stream ends (i.e. in a post-processing
-  //         step, potentially requiring reparsing of the written data).
-  //         Here, this means that, unless preconfiguration data (duration,
-  //         format) is supplied initially, either through session data/and or
-  //         module configuration, the encoding process must be split into two
-  //         separate phases (or modules, probably more adequate for modular,
-  //         pipelined processing) to comply with the standard. This
-  //         implementation contains the post-processing step by reacting to the
-  //         completion event message sent upstream by final module(s) of the
-  //         processing stream
+  //         the length of the consecutive linearly structured bulk data.
+  //         Note how in a (streaming) scenario continuously generating data,
+  //         this information often is not available during initial processing
+  //         and may therefore have to be filled in in a post-processing step
+  //         after the stream ends, potentially requiring reparsing of (written)
+  //         data. This means that, unless configuration data (duration[,
+  //         format]) is supplied externally - either through session
+  //         data/and or module configuration, the encoding process must be
+  //         split into two separate phases (or distinct processing modules -
+  //         more adequate for pipelined processing), in order to generate
+  //         standard-compliant files. This implementation fills in the size
+  //         information upon reception of completion event messages sent
+  //         upstream by trailing modules of the processing stream (i.e. reader-
+  //         side processing)
   bool                      isFirst_;
   bool                      isInitialized_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType       mediaType_;
+  struct _AMMediaType*      mediaType_;
 #else
 #endif
 };

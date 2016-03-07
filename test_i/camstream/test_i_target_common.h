@@ -82,6 +82,7 @@ struct Test_I_Target_SocketHandlerConfiguration
   Test_I_Target_UserData* userData;
 };
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef CMediaType Test_I_Target_DirectShow_MediaType_t;
 struct Test_I_Target_DirectShow_PinConfiguration
 {
@@ -93,6 +94,7 @@ struct Test_I_Target_DirectShow_PinConfiguration
   Test_I_Target_DirectShow_MediaType_t* mediaType; // (preferred) media type
   ACE_Message_Queue_Base*               queue;     // (inbound) buffer queue
 };
+#endif
 
 struct Test_I_Target_Stream_ModuleHandlerConfiguration
  : Test_I_Stream_ModuleHandlerConfiguration
@@ -100,46 +102,49 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
   inline Test_I_Target_Stream_ModuleHandlerConfiguration ()
    : Test_I_Stream_ModuleHandlerConfiguration ()
    , area ()
-   , connection (NULL)
-   , connectionManager (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , filterCLSID ()
-   , frameSize (0)
    , mediaType ()
    , pinConfiguration (NULL)
    , push (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
-   , windowController (NULL)
+#else
+   , format ()
 #endif
+   , connection (NULL)
+   , connectionManager (NULL)
+   , frameSize (0)
    , printProgressDot (false)
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-   , format ()
    , v4l2Window (NULL)
 #endif
    , window (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , windowController (NULL)
+#endif
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct tagRECT                             area;
   struct _GUID                               filterCLSID;
-  unsigned int                               frameSize;
   // *TODO*: specify this as part of the network protocol header/handshake
   Test_I_Target_DirectShow_MediaType_t       mediaType;
   Test_I_Target_DirectShow_PinConfiguration* pinConfiguration;
   bool                                       push; // media sample passing strategy
-  IVideoWindow*                              windowController;
 #else
   GdkRectangle                               area;
+  struct v4l2_format                         format;
 #endif
   Test_I_Target_IConnection_t*               connection; // Net source/IO module
   Test_I_Target_InetConnectionManager_t*     connectionManager; // Net IO module
+  unsigned int                               frameSize; // splitter module
   bool                                       printProgressDot;
   std::string                                targetFileName; // file writer module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                                       window;
+  IVideoWindow*                              windowController;
 #else
-  struct v4l2_format                         format;
   struct v4l2_window*                        v4l2Window;
   GdkWindow*                                 window;
 #endif
@@ -283,7 +288,9 @@ struct Test_I_Target_Configuration
   // **************************** signal data **********************************
   Test_I_Target_SignalHandlerConfiguration        signalHandlerConfiguration;
   // **************************** stream data **********************************
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_DirectShow_PinConfiguration       pinConfiguration;
+#endif
   Test_I_Target_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Test_I_Target_StreamConfiguration               streamConfiguration;
 

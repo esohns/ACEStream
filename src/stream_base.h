@@ -38,6 +38,7 @@
 #include "stream_itask.h"
 
 // forward declaration(s)
+class ACE_Notification_Strategy;
 class Stream_IAllocator;
 
 template <typename LockType,
@@ -202,7 +203,8 @@ class Stream_Base_T
   //            finishes (because close() of a module waits for its worker
   //            thread(s))
   bool reset ();
-  bool setup ();
+  bool setup (ACE_Notification_Strategy* = NULL); // head module (reader task)
+                                                  // notification handle
 
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();

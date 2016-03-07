@@ -196,23 +196,29 @@ Stream_Base_T<LockType,
               SessionDataType,
               SessionDataContainerType,
               SessionMessageType,
-              ProtocolMessageType>::setup ()
+              ProtocolMessageType>::setup (ACE_Notification_Strategy* notificationStrategy_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::setup"));
 
   int result = -1;
 
   // step1: reset pipeline
+  if (!finalize ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Base_T::finalize(), aborting\n")));
+    return false;
+  } // end IF
   try
   {
-    result = inherited::open (NULL,  // argument to module open()
-                              NULL,  // no head module --> allocate !
-                              NULL); // no tail module --> allocate !
+    result = inherited::open (NULL,  // argument to push()
+                              NULL,  // head --> allocate
+                              NULL); // tail --> allocate
   }
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in ACE_Stream::open(), continuing\n")));
+                ACE_TEXT ("caught exception in ACE_Stream::open(), aborting\n")));
     result = -1;
   }
   if (result == -1)
@@ -222,7 +228,35 @@ Stream_Base_T<LockType,
     return false;
   } // end IF
 
-  // step2: push all available modules
+  // step2: set notification strategy ?
+  MODULE_T* module_p = NULL;
+  if (notificationStrategy_in)
+  {
+    module_p = inherited::head ();
+    if (!module_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("no head module found, aborting\n")));
+      return false;
+    } // end IF
+    TASK_T* task_p = module_p->reader ();
+    if (!task_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("no head module reader task found, aborting\n")));
+      return false;
+    } // end IF
+    QUEUE_T* queue_p = task_p->msg_queue ();
+    if (!queue_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("no head module reader task queue found, aborting\n")));
+      return false;
+    } // end IF
+    queue_p->notification_strategy (notificationStrategy_in);
+  } // end IF
+
+  // step3: push all available modules
   for (MODULE_CONTAINER_ITERATOR_T iterator = modules_.begin ();
        iterator != modules_.end ();
        iterator++)
@@ -274,8 +308,6 @@ Stream_Base_T<LockType,
                                                 bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
-
-  int result = -1;
 
   // sanity check(s)
   // *TODO*: cannot call isRunning(), as the stream may not be initialized

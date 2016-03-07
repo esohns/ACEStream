@@ -115,6 +115,8 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_ReaderTask_T::postProcessHeader"));
 
+  ACE_UNUSED_ARG (filename_in);
+
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (false);
   ACE_NOTREACHED (return false;)
@@ -138,12 +140,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
  , isFirst_ (true)
  , isInitialized_ (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
- , mediaType_ ()
+ , mediaType_ (NULL)
 #endif
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::Stream_Decoder_AVIEncoder_WriterTask_T"));
 
-  ACE_OS::memset (&mediaType_, 0, sizeof (struct _AMMediaType));
 }
 
 template <typename SessionMessageType,
@@ -161,10 +162,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 
   if (sessionData_)
     sessionData_->decrease ();
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Stream_Module_Device_Tools::freeMediaType (mediaType_);
-#endif
 }
 
 template <typename SessionMessageType,
@@ -195,7 +192,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 
     isFirst_ = true;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    Stream_Module_Device_Tools::freeMediaType (mediaType_);
+    mediaType_ = NULL;
 #endif
 
     isInitialized_ = false;
@@ -262,20 +259,23 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
   if (isFirst_)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    if ((mediaType_.formattype != FORMAT_VideoInfo) &&
-        (mediaType_.formattype != FORMAT_VideoInfo2))
+    // sanity check(s)
+    ACE_ASSERT (mediaType_);
+
+    if ((mediaType_->formattype != FORMAT_VideoInfo) &&
+        (mediaType_->formattype != FORMAT_VideoInfo2))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media format type (was: %d), returning\n"),
-                  mediaType_.formattype));
+                  mediaType_->formattype));
       return;
     } // end IF
     struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
     struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-    if (mediaType_.formattype == FORMAT_VideoInfo)
-      video_info_header_p = (struct tagVIDEOINFOHEADER*)mediaType_.pbFormat;
-    else if (mediaType_.formattype == FORMAT_VideoInfo2)
-      video_info_header2_p = (struct tagVIDEOINFOHEADER2*)mediaType_.pbFormat;
+    if (mediaType_->formattype == FORMAT_VideoInfo)
+      video_info_header_p = (struct tagVIDEOINFOHEADER*)mediaType_->pbFormat;
+    else if (mediaType_->formattype == FORMAT_VideoInfo2)
+      video_info_header2_p = (struct tagVIDEOINFOHEADER2*)mediaType_->pbFormat;
 
     // *TODO*: remove type inference
     message_block_p =
@@ -342,11 +342,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
       AVI_header_avih.cb = ACE_SWAP_LONG (AVI_header_avih.cb);
     AVI_header_avih.dwMicroSecPerFrame =
-      ((mediaType_.formattype == FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
-                                                   : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
+      ((mediaType_->formattype == FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
+                                                    : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
     AVI_header_avih.dwMaxBytesPerSec =
-      ((mediaType_.formattype == FORMAT_VideoInfo) ? video_info_header_p->dwBitRate
-                                                   : video_info_header2_p->dwBitRate) / 8;
+      ((mediaType_->formattype == FORMAT_VideoInfo) ? video_info_header_p->dwBitRate
+                                                    : video_info_header2_p->dwBitRate) / 8;
     AVI_header_avih.dwPaddingGranularity = STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN;
     AVI_header_avih.dwFlags = AVIF_WASCAPTUREFILE;
     //AVI_header_avih.dwTotalFrames = 0; // unreliable
@@ -354,11 +354,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     AVI_header_avih.dwStreams = 1;
     //AVI_header_avih.dwSuggestedBufferSize = 0; // unreliable
     AVI_header_avih.dwWidth =
-      ((mediaType_.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biWidth
-                                                   : video_info_header2_p->bmiHeader.biWidth);
+      ((mediaType_->formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biWidth
+                                                    : video_info_header2_p->bmiHeader.biWidth);
     AVI_header_avih.dwHeight =
-      ((mediaType_.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biHeight
-                                                   : video_info_header2_p->bmiHeader.biHeight);
+      ((mediaType_->formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biHeight
+                                                    : video_info_header2_p->bmiHeader.biHeight);
     //AVI_header_avih.dwReserved = {0, 0, 0, 0};
     result = message_block_p->copy (reinterpret_cast<char*> (&AVI_header_avih),
                                     sizeof (struct _avimainheader));
@@ -389,7 +389,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
       AVI_header_strh.cb = ACE_SWAP_LONG (AVI_header_strh.cb);
     AVI_header_strh.fccType = streamtypeVIDEO;
-    FOURCCMap fourcc_map (&mediaType_.subtype);
+    FOURCCMap fourcc_map (&mediaType_->subtype);
     AVI_header_strh.fccHandler = fourcc_map.GetFOURCC ();
     //AVI_header_strh.fccHandler = 0;
     //AVI_header_strh.dwFlags = 0;
@@ -399,8 +399,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     // *NOTE*: dwRate / dwScale == fps
     AVI_header_strh.dwScale = 10000; // 100th nanoseconds --> seconds ???
     AVI_header_strh.dwRate =
-      ((mediaType_.formattype == FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
-                                                   : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
+      ((mediaType_->formattype == FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
+                                                    : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
     //AVI_header_strh.dwStart = 0;
     //AVI_header_strh.dwLength = 0;
     //AVI_header_strh.dwSuggestedBufferSize = 0;
@@ -424,8 +424,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     struct tagBITMAPINFOHEADER AVI_header_strf;
     ACE_OS::memset (&AVI_header_strf, 0, sizeof (struct tagBITMAPINFOHEADER));
     AVI_header_strf =
-      ((mediaType_.formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
-                                                   : video_info_header2_p->bmiHeader);
+      ((mediaType_->formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
+                                                    : video_info_header2_p->bmiHeader);
     result = message_block_p->copy (reinterpret_cast<char*> (&AVI_header_strf),
                                     sizeof (struct tagBITMAPINFOHEADER));
 
@@ -581,10 +581,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       // sanity check(s)
+      ACE_ASSERT (mediaType_);
       // *TODO*: remove type inference
       ACE_ASSERT (session_data_r.sampleGrabber);
       HRESULT result =
-        session_data_r.sampleGrabber->GetConnectedMediaType (&mediaType_);
+        session_data_r.sampleGrabber->GetConnectedMediaType (mediaType_);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -603,10 +604,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
         sessionData_->decrease ();
         sessionData_ = NULL;
       } // end IF
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      Stream_Module_Device_Tools::freeMediaType (mediaType_);
-#endif
 
       break;
     }

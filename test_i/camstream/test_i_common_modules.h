@@ -95,11 +95,13 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    /
                               Stream_ModuleConfiguration,                      // module configuration type
                               Test_I_Source_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Stream_Module_CamSource);                 // writer type
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
                               Common_TimePolicy_t,                             // time policy
                               Stream_ModuleConfiguration,                      // module configuration type
                               Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Target_Stream_Module_DirectShowSource);   // writer type
+#endif
 
 //typedef Stream_Decoder_AVIDecoder_T<Test_I_Target_Stream_SessionMessage,
 //                                    Test_I_Target_Stream_Message,

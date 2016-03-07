@@ -281,7 +281,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_FILECHOOSERBUTTON_OPEN_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   std::string path =
-      (data_p->configuration->moduleHandlerConfiguration.fileName.empty () ? Common_File_Tools::getUserHomeDirectory (std::string ())
+      (data_p->configuration->moduleHandlerConfiguration.fileName.empty () ? Common_File_Tools::getHomeDirectory (std::string ())
                                                                            : data_p->configuration->moduleHandlerConfiguration.fileName);
   GFile* file_p = g_file_new_for_path (path.c_str ());
   ACE_ASSERT (file_p);

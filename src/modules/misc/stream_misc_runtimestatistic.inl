@@ -94,6 +94,8 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 
   finiTimers (true);
 
+  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+
   // clean up
   if (sessionData_)
     sessionData_->decrease ();
@@ -135,22 +137,22 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     printFinalReport_ = false;
     pushStatisticMessages_ = false;
     // reset various counters...
-    {
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-      inboundMessages_ = 0;
-      outboundMessages_ = 0;
-      sessionMessages_ = 0;
-      messageCounter_ = 0;
-      lastMessagesPerSecondCount_ = 0;
+    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-      inboundBytes_ = 0.0F;
-      outboundBytes_ = 0.0F;
-      byteCounter_ = 0;
-      lastBytesPerSecondCount_ = 0;
+    inboundMessages_ = 0;
+    outboundMessages_ = 0;
+    sessionMessages_ = 0;
+    messageCounter_ = 0;
+    lastMessagesPerSecondCount_ = 0;
 
-      messageTypeStatistic_.clear ();
-    } // end lock scope
+    inboundBytes_ = 0.0F;
+    outboundBytes_ = 0.0F;
+    byteCounter_ = 0;
+    lastBytesPerSecondCount_ = 0;
+
+    messageTypeStatistic_.clear ();
+
     allocator_ = NULL;
 
     if (sessionData_)
@@ -184,9 +186,9 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
                   &one_second));
       return false;
     } // end IF
-      //   ACE_DEBUG ((LM_DEBUG,
-      //               ACE_TEXT ("scheduled second-interval timer (ID: %d)...\n"),
-      //               resetTimeoutHandlerID_));
+//    ACE_DEBUG ((LM_DEBUG,
+//                ACE_TEXT ("scheduled second-interval timer (ID: %d)...\n"),
+//                resetTimeoutHandlerID_));
   } // end IF
 
   initialized_ = true;
@@ -261,31 +263,30 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
   ACE_ASSERT (initialized_);
 
-  {
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-    // update counters...
-    // *NOTE*: currently, session messages travel only downstream...
-    //inboundMessages_++;
-    sessionMessages_++;
-    messageCounter_++;
-  } // end lock scope
+  // update counters...
+  // *NOTE*: currently, session messages travel only downstream...
+  //inboundMessages_++;
+  sessionMessages_++;
+  messageCounter_++;
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_BEGIN:
     {
+      // sanity check(s)
+      ACE_ASSERT (!sessionData_);
+
       // *TODO*: remove type inferences
       sessionData_ =
           &const_cast<typename SessionMessageType::SESSION_DATA_T&> (message_inout->get ());
       sessionData_->increase ();
 
       // statistic reporting
-      ACE_Time_Value one_second (1, 0);
-      if (reportingInterval_ !=  ACE_Time_Value::zero)
+      if (reportingInterval_ != ACE_Time_Value::zero)
       {
         // schedule the reporting interval timer
         ACE_ASSERT (localReportingHandlerID_ == -1);
@@ -355,6 +356,8 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::reset"));
 
+  bool in_session = false;
+
   // happens every second (roughly)
   {
     ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
@@ -374,21 +377,25 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     typename SessionMessageType::SESSION_DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
     ACE_ASSERT (session_data_r.lock);
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (*session_data_r.lock);
+    {
+      ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (*session_data_r.lock);
 
-    // *TODO*: remove type inferences
-    session_data_r.currentStatistic.bytes = inboundBytes_;
-    session_data_r.currentStatistic.dataMessages = inboundMessages_;
-    //session_data_r.currentStatistic.droppedMessages = 0;
-    session_data_r.currentStatistic.bytesPerSecond =
-      static_cast<float> (lastBytesPerSecondCount_);
-    session_data_r.currentStatistic.messagesPerSecond =
-      static_cast<float> (lastMessagesPerSecondCount_);
-    session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+      // *TODO*: remove type inferences
+      session_data_r.currentStatistic.bytes = inboundBytes_;
+      session_data_r.currentStatistic.dataMessages = inboundMessages_;
+      //session_data_r.currentStatistic.droppedMessages = 0;
+      session_data_r.currentStatistic.bytesPerSecond =
+          static_cast<float> (lastBytesPerSecondCount_);
+      session_data_r.currentStatistic.messagesPerSecond =
+          static_cast<float> (lastMessagesPerSecondCount_);
+      session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
+    } // end lock scope
+
+    in_session = true;
   } // end lock scope
 
 continue_:
-  if (pushStatisticMessages_)
+  if (in_session && pushStatisticMessages_)
     if (!putStatisticMessage ())
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Statistic_WriterTask_T::putStatisticMessage(), continuing\n")));
@@ -455,11 +462,12 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 
   int result = -1;
   typename SessionMessageType::SESSION_DATA_T::DATA_T* session_data_p = NULL;
+
+  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+
   if (sessionData_)
     session_data_p =
       &const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
-
-  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
   if (session_data_p)
     if (session_data_p->lock)
@@ -524,54 +532,50 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     session_data_p =
         &const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
 
-  { // synch access
-    ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
-
-    if (session_data_p)
-      if (session_data_p->lock)
-      {
-        result = session_data_p->lock->acquire ();
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", returning\n")));
-          return;
-        } // end IF
-      } // end IF
-
-    if ((inboundMessages_ + outboundMessages_))
+  if (session_data_p)
+    if (session_data_p->lock)
     {
-      // *TODO*: remove type inferences
-      ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("*** [session: %u] SESSION STATISTIC ***\ntotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
-                  (session_data_p ? session_data_p->sessionID
-                                  : std::numeric_limits<unsigned int>::max ()),
-                  inboundMessages_, outboundMessages_));
-
-      std::string protocol_string;
-      for (STATISTIC_ITERATOR_T iterator = messageTypeStatistic_.begin ();
-           iterator != messageTypeStatistic_.end ();
-           iterator++)
-        ACE_DEBUG ((LM_INFO,
-                    ACE_TEXT ("\"%s\": %u --> %.2f %%\n"),
-                    ACE_TEXT (ProtocolMessageType::CommandType2String (iterator->first).c_str ()),
-                    iterator->second,
-                    static_cast<double> (((iterator->second * 100.0) / (inboundMessages_ + outboundMessages_)))));
-    } // end IF
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("------------------------------------------\ntotal byte(s) [in/out]: %.0f/%.0f\nbytes/s: %u\n"),
-                inboundBytes_, outboundBytes_,
-                lastBytesPerSecondCount_)); // *TODO*: compute average
-
-    if (session_data_p)
-      if (session_data_p->lock)
+      result = session_data_p->lock->acquire ();
+      if (result == -1)
       {
-        result = session_data_p->lock->release ();
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", returning\n")));
+        return;
       } // end IF
-  } // end lock scope
+    } // end IF
+
+  if ((inboundMessages_ + outboundMessages_))
+  {
+    // *TODO*: remove type inferences
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("*** [session: %u] SESSION STATISTIC ***\ntotal # data message(s) [in/out]: %u/%u\n --> Protocol Info <--\n"),
+                (session_data_p ? session_data_p->sessionID
+                                : std::numeric_limits<unsigned int>::max ()),
+                inboundMessages_, outboundMessages_));
+
+    std::string protocol_string;
+    for (STATISTIC_ITERATOR_T iterator = messageTypeStatistic_.begin ();
+         iterator != messageTypeStatistic_.end ();
+         iterator++)
+      ACE_DEBUG ((LM_INFO,
+                  ACE_TEXT ("\"%s\": %u --> %.2f %%\n"),
+                  ACE_TEXT (ProtocolMessageType::CommandType2String (iterator->first).c_str ()),
+                  iterator->second,
+                  static_cast<double> (((iterator->second * 100.0) / (inboundMessages_ + outboundMessages_)))));
+  } // end IF
+  ACE_DEBUG ((LM_INFO,
+              ACE_TEXT ("------------------------------------------\ntotal byte(s) [in/out]: %.0f/%.0f\nbytes/s: %u\n"),
+              inboundBytes_, outboundBytes_,
+              lastBytesPerSecondCount_)); // *TODO*: compute average
+
+  if (session_data_p)
+    if (session_data_p->lock)
+    {
+      result = session_data_p->lock->release ();
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
+    } // end IF
 }
 
 template <typename TaskSynchType,
@@ -867,5 +871,5 @@ Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
     writer_p->messageTypeStatistic_[message_p->command ()]++;
   } // end lock scope
 
-  return inherited::put (messageBlock_in, timeValue_in);
+  return inherited::put_next (messageBlock_in, timeValue_in);
 }

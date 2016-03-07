@@ -516,20 +516,19 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
+      &configuration.streamConfiguration;
   configuration.moduleHandlerConfiguration.active =
-    !UIDefinitionFilename_in.empty ();
+      !UIDefinitionFilename_in.empty ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   configuration.moduleHandlerConfiguration.device = deviceFilename_in;
   // *TODO*: turn these into an option
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.buffers =
+  configuration.moduleHandlerConfiguration.buffers =
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.method =
-      V4L2_MEMORY_MMAP;
+  configuration.moduleHandlerConfiguration.method = V4L2_MEMORY_MMAP;
 #endif
   configuration.moduleHandlerConfiguration.streamConfiguration =
-    &configuration.streamConfiguration;
+      &configuration.streamConfiguration;
   configuration.moduleHandlerConfiguration.targetFileName =
       (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFilename_in);
@@ -539,19 +538,19 @@ do_work (unsigned int bufferSize_in,
     configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.messageAllocator = &message_allocator;
   configuration.streamConfiguration.module =
-    (!UIDefinitionFilename_in.empty () ? &event_handler
-                                       : NULL);
+      (!UIDefinitionFilename_in.empty () ? &event_handler
+                                         : NULL);
   configuration.streamConfiguration.moduleConfiguration =
-    &configuration.moduleConfiguration;
+      &configuration.moduleConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.moduleHandlerConfiguration;
+      &configuration.moduleHandlerConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
   configuration.streamConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;
 
   // step0e: initialize signal handling
   configuration.signalHandlerConfiguration.messageAllocator =
-    &message_allocator;
+      &message_allocator;
   signalHandler_in.initialize (configuration.signalHandlerConfiguration);
   if (!Common_Tools::initializeSignals (signalSet_in,
                                         ignoredSignalSet_in,
