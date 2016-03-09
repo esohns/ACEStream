@@ -94,6 +94,19 @@ struct Test_I_Target_DirectShow_PinConfiguration
   Test_I_Target_DirectShow_MediaType_t* mediaType; // (preferred) media type
   ACE_Message_Queue_Base*               queue;     // (inbound) buffer queue
 };
+struct Test_I_Target_DirectShow_FilterConfiguration
+{
+  inline Test_I_Target_DirectShow_FilterConfiguration ()
+   : mediaType ()
+   , module (NULL)
+   , pinConfiguration (NULL)
+  {};
+
+  // *TODO*: specify this as part of the network protocol header/handshake
+  Test_I_Target_DirectShow_MediaType_t       mediaType;
+  Stream_Module_t*                           module;
+  Test_I_Target_DirectShow_PinConfiguration* pinConfiguration;
+};
 #endif
 
 struct Test_I_Target_Stream_ModuleHandlerConfiguration
@@ -104,8 +117,7 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
    , area ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , filterCLSID ()
-   , mediaType ()
-   , pinConfiguration (NULL)
+   , filterConfiguration (NULL)
    , push (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
 #else
    , format ()
@@ -126,27 +138,25 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct tagRECT                             area;
-  struct _GUID                               filterCLSID;
-  // *TODO*: specify this as part of the network protocol header/handshake
-  Test_I_Target_DirectShow_MediaType_t       mediaType;
-  Test_I_Target_DirectShow_PinConfiguration* pinConfiguration;
-  bool                                       push; // media sample passing strategy
+  struct tagRECT                                area;
+  Test_I_Target_DirectShow_FilterConfiguration* filterConfiguration;
+  struct _GUID                                  filterCLSID;
+  bool                                          push; // media sample passing strategy
 #else
-  GdkRectangle                               area;
-  struct v4l2_format                         format;
+  GdkRectangle                                  area;
+  struct v4l2_format                            format;
 #endif
-  Test_I_Target_IConnection_t*               connection; // Net source/IO module
-  Test_I_Target_InetConnectionManager_t*     connectionManager; // Net IO module
-  unsigned int                               frameSize; // splitter module
-  bool                                       printProgressDot;
-  std::string                                targetFileName; // file writer module
+  Test_I_Target_IConnection_t*                  connection; // Net source/IO module
+  Test_I_Target_InetConnectionManager_t*        connectionManager; // Net IO module
+  unsigned int                                  frameSize; // splitter module
+  bool                                          printProgressDot;
+  std::string                                   targetFileName; // file writer module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                       window;
-  IVideoWindow*                              windowController;
+  HWND                                          window;
+  IVideoWindow*                                 windowController;
 #else
-  struct v4l2_window*                        v4l2Window;
-  GdkWindow*                                 window;
+  struct v4l2_window*                           v4l2Window;
+  GdkWindow*                                    window;
 #endif
 };
 
@@ -239,16 +249,16 @@ struct Test_I_Target_StreamConfiguration
    : Stream_Configuration ()
    //, graphBuilder (NULL)
    , moduleHandlerConfiguration (NULL)
-   , window (NULL)
+   //, window (NULL)
   {};
 
   //IGraphBuilder*                                   graphBuilder;
   Test_I_Target_Stream_ModuleHandlerConfiguration* moduleHandlerConfiguration;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                             window;
-#else
-  GdkWindow*                                       window;
-#endif
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  HWND                                             window;
+//#else
+//  GdkWindow*                                       window;
+//#endif
 };
 
 struct Test_I_Target_StreamState
@@ -290,6 +300,7 @@ struct Test_I_Target_Configuration
   // **************************** stream data **********************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_DirectShow_PinConfiguration       pinConfiguration;
+  Test_I_Target_DirectShow_FilterConfiguration    filterConfiguration;
 #endif
   Test_I_Target_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Test_I_Target_StreamConfiguration               streamConfiguration;
@@ -313,7 +324,7 @@ typedef Stream_MessageAllocatorHeapBase_T<Test_I_Target_AllocatorConfiguration,
                                           Test_I_Target_Stream_Message,
                                           Test_I_Target_Stream_SessionMessage> Test_I_Target_MessageAllocator_t;
 
-typedef Common_INotify_T<Test_I_Target_Stream_SessionData_t,
+typedef Common_INotify_T<Test_I_Target_Stream_SessionData,
                          Test_I_Target_Stream_Message,
                          Test_I_Target_Stream_SessionMessage> Test_I_Target_IStreamNotify_t;
 typedef std::list<Test_I_Target_IStreamNotify_t*> Test_I_Target_Subscribers_t;

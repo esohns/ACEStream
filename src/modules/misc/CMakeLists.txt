@@ -12,6 +12,9 @@ if (WIN32)
  set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
       stream_misc_common.h
       stream_misc_defines.h
+      stream_misc_directshow_asynch_source_filter.cpp
+      stream_misc_directshow_asynch_source_filter.h
+      stream_misc_directshow_asynch_source_filter.inl
       stream_misc_directshow_source.cpp
       stream_misc_directshow_source.h
       stream_misc_directshow_source.inl
@@ -81,6 +84,8 @@ if (WIN32)
  install (FILES
           stream_misc_common.h
           stream_misc_defines.h
+          stream_misc_directshow_asynch_source_filter.h
+          stream_misc_directshow_asynch_source_filter.inl
           stream_misc_directshow_source.h
           stream_misc_directshow_source.inl
           stream_misc_directshow_source_filter.h

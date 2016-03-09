@@ -39,7 +39,7 @@ class Test_I_Stream_Target_EventHandler
   virtual ~Test_I_Stream_Target_EventHandler ();
 
   // implement Common_INotify_T
-  virtual void start (const Test_I_Target_Stream_SessionData_t&);
+  virtual void start (const Test_I_Target_Stream_SessionData&);
   virtual void notify (const Test_I_Target_Stream_Message&);
   virtual void notify (const Test_I_Target_Stream_SessionMessage&);
   virtual void end ();
@@ -49,8 +49,8 @@ class Test_I_Stream_Target_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler (const Test_I_Stream_Target_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler& operator= (const Test_I_Stream_Target_EventHandler&))
 
-  Test_I_GTK_CBData*                  CBData_;
-  Test_I_Target_Stream_SessionData_t* sessionData_;
+  Test_I_GTK_CBData*                CBData_;
+  Test_I_Target_Stream_SessionData* sessionData_;
 };
 
 #endif

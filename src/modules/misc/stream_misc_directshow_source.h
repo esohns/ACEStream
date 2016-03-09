@@ -26,12 +26,14 @@
 
 #include "dshow.h"
 
+#include "common_iinitialize.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
 //#include "stream_messagequeue.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_misc_directshow_asynch_source_filter.h"
 #include "stream_misc_directshow_source_filter.h"
 
 template <typename SessionMessageType,
@@ -41,6 +43,7 @@ template <typename SessionMessageType,
           ///////////////////////////////
           typename SessionDataType,
           ///////////////////////////////
+          typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 class Stream_Misc_DirectShow_Source_T
@@ -49,14 +52,24 @@ class Stream_Misc_DirectShow_Source_T
                                  MessageType>
  , public Stream_IModuleHandler_T<ConfigurationType>
 {
+  //typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
+  //                                                      SessionMessageType,
+  //                                                      MessageType,
+
+  //                                                      PinConfigurationType,
+  //                                                      MediaType> ASYNCH_FILTER_T;
+  //typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
+  //                                               SessionMessageType,
+  //                                               MessageType,
+
+  //                                               PinConfigurationType,
+  //                                               MediaType> FILTER_T;
+  //friend class ASYNCH_FILTER_T;
+  //friend class FILTER_T;
+
  public:
   // convenience types
-  typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
-                                                 SessionMessageType,
-                                                 MessageType,
-
-                                                 PinConfigurationType,
-                                                 MediaType> FILTER_T;
+  typedef Common_IInitialize_T<FilterConfigurationType> IINITIALIZE_T;
 
   Stream_Misc_DirectShow_Source_T ();
   virtual ~Stream_Misc_DirectShow_Source_T ();
@@ -72,8 +85,9 @@ class Stream_Misc_DirectShow_Source_T
   virtual const ConfigurationType& get () const;
 
  protected:
-  ConfigurationType*  configuration_;
-  SessionDataType*    sessionData_;
+  ConfigurationType*   configuration_;
+  //struct _AMMediaType* mediaType_; // 'preferred' media type
+  SessionDataType*     sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -85,24 +99,23 @@ class Stream_Misc_DirectShow_Source_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T& operator= (const Stream_Misc_DirectShow_Source_T&))
 
   // helper methods
-  bool initialize_DirectShow (const struct _GUID&,         // source filter CLSID
-                              const PinConfigurationType&, // (output) pin configuration
-                              const struct _AMMediaType&,  // 'preferred' media type
-                              const HWND,                  // (target) window handle {NULL: NullRenderer}
-                              IGraphBuilder*&);            // return value: (capture) graph builder handle
+  bool initialize_DirectShow (const struct _GUID&,            // (source) filter CLSID
+                              const FilterConfigurationType&, // (source) filter configuration
+                              const struct _AMMediaType&,     // 'preferred' media type
+                              const HWND,                     // (target) window handle {NULL: NullRenderer}
+                              IGraphBuilder*&);               // return value: (capture) graph builder handle
   void finalize_DirectShow ();
 
-  bool                isInitialized_;
-  bool                push_; // push/pull strategy
+  bool                 isInitialized_;
+  bool                 push_; // push/pull strategy
 
-  IGraphBuilder*      IGraphBuilder_;
+  IGraphBuilder*       IGraphBuilder_;
   //IMemAllocator*     IMemAllocator_;
-  IMemInputPin*       IMemInputPin_; // 'push' handle
-  //Stream_MessageQueue queue_;
+  //IMemInputPin*       IMemInputPin_; // 'push' handle
 
-  IMediaControl*      IMediaControl_;
-  IMediaEventEx*      IMediaEventEx_;
-  DWORD               ROTID_;
+  IMediaControl*       IMediaControl_;
+  IMediaEventEx*       IMediaEventEx_;
+  DWORD                ROTID_;
 };
 
 // include template definition

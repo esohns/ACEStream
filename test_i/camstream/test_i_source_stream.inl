@@ -343,7 +343,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   source_.arg (inherited::sessionData_);
 
   if (setupPipeline_in)
-    if (!inherited::setup ())
+    if (!inherited::setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to setup pipeline, aborting\n")));

@@ -32,16 +32,14 @@
 #include "test_i_session_message.h"
 
 class Test_I_Stream_Source_EventHandler
- : public Common_INotify_T<Test_I_Source_Stream_SessionData_t,
-                           Test_I_Source_Stream_Message,
-                           Test_I_Source_Stream_SessionMessage>
+ : public Test_I_Source_IStreamNotify_t
 {
  public:
   Test_I_Stream_Source_EventHandler (Test_I_GTK_CBData*); // GTK state
   virtual ~Test_I_Stream_Source_EventHandler ();
 
   // implement Common_INotify_T
-  virtual void start (const Test_I_Source_Stream_SessionData_t&);
+  virtual void start (const Test_I_Source_Stream_SessionData&);
   virtual void notify (const Test_I_Source_Stream_Message&);
   virtual void notify (const Test_I_Source_Stream_SessionMessage&);
   virtual void end ();
@@ -51,8 +49,8 @@ class Test_I_Stream_Source_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Source_EventHandler (const Test_I_Stream_Source_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Source_EventHandler& operator= (const Test_I_Stream_Source_EventHandler&))
 
-  Test_I_GTK_CBData*                  CBData_;
-  Test_I_Source_Stream_SessionData_t* sessionData_;
+  Test_I_GTK_CBData*                CBData_;
+  Test_I_Source_Stream_SessionData* sessionData_;
 };
 
 #endif

@@ -291,17 +291,22 @@ Stream_Module_Net_Target_T<SessionMessageType,
           } // end IF
         } // end IF
         ACE_ASSERT (iconnector_);
-//        ACE_ASSERT (configuration_->streamConfiguration);
-//        bool clone_module, delete_module;
-//        clone_module =
-//          configuration_->streamConfiguration->cloneModule;
-//        delete_module =
-//          configuration_->streamConfiguration->deleteModule;
-//        typename ConnectorType::STREAM_T::MODULE_T* module_p =
-//          configuration_->streamConfiguration->module;
-//        configuration_->streamConfiguration->cloneModule = false;
-//        configuration_->streamConfiguration->deleteModule = false;
-//        configuration_->streamConfiguration->module = NULL;
+
+        // *NOTE*: the stream configuration may contain a module handle that is
+        //         meant to be the final module of this processing stream. As
+        //         the connection stream will be prepended to this pipeline, the
+        //         connection should not enqueue that same module again
+        //         --> temporarily 'hide' the module handle (if any)
+        ACE_ASSERT (configuration_->streamConfiguration);
+        bool clone_module, delete_module;
+        clone_module = configuration_->streamConfiguration->cloneModule;
+        delete_module = configuration_->streamConfiguration->deleteModule;
+        typename ConnectorType::STREAM_T::MODULE_T* module_p =
+          configuration_->streamConfiguration->module;
+        configuration_->streamConfiguration->cloneModule = false;
+        configuration_->streamConfiguration->deleteModule = false;
+        configuration_->streamConfiguration->module = NULL;
+
         if (!iconnector_->initialize (*configuration_->socketHandlerConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -388,11 +393,10 @@ Stream_Module_Net_Target_T<SessionMessageType,
                     buffer));
 
 reset:
-//        configuration_->streamConfiguration->cloneModule =
-//          clone_module;
-//        configuration_->streamConfiguration->deleteModule =
-//          delete_module;
-//        configuration_->streamConfiguration->module = module_p;
+        configuration_->streamConfiguration->cloneModule = clone_module;
+        configuration_->streamConfiguration->deleteModule = delete_module;
+        configuration_->streamConfiguration->module = module_p;
+
         if (!configuration_->connection)
           break;
 
@@ -404,6 +408,17 @@ reset:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T>(0x%@): \"%m\", returning\n"),
                       configuration_->connection));
+          goto error;
+        } // end IF
+        // *NOTE*: To avoid a subtle race condition, wait for the connection
+        //         stream to initialize, before linking (this ensures that all
+        //         modules have been pushed).
+        // *TODO*: wait for STREAM_STATE_INITIALIZED
+        if (!isocket_connection_p->wait (STREAM_STATE_RUNNING,
+                                         NULL))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Net_ISocketConnection_T::wait(STREAM_STATE_RUNNING), returning\n")));
           goto error;
         } // end IF
         stream_p =

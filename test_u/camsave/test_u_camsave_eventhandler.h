@@ -39,7 +39,7 @@ class Stream_CamSave_EventHandler
   virtual ~Stream_CamSave_EventHandler ();
 
   // implement Common_INotify_T
-  virtual void start (const Stream_CamSave_SessionData_t&);
+  virtual void start (const Stream_CamSave_SessionData&);
   virtual void notify (const Stream_CamSave_Message&);
   virtual void notify (const Stream_CamSave_SessionMessage&);
   virtual void end ();
@@ -49,8 +49,8 @@ class Stream_CamSave_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler (const Stream_CamSave_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler& operator= (const Stream_CamSave_EventHandler&))
 
-  Stream_CamSave_GTK_CBData*    CBData_;
-  Stream_CamSave_SessionData_t* sessionData_;
+  Stream_CamSave_GTK_CBData*  CBData_;
+  Stream_CamSave_SessionData* sessionData_;
 };
 
 #endif

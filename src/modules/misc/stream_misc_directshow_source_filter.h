@@ -41,11 +41,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           ///////////////////////////////
+          typename ConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 class Stream_Misc_DirectShow_Source_Filter_T
  : public CSource
- , public Common_IInitialize_T<PinConfigurationType>
+ , public Common_IInitialize_T<ConfigurationType>
 {
  public:
   //// *NOTE*: the non-COM (!) ctor
@@ -53,7 +54,7 @@ class Stream_Misc_DirectShow_Source_Filter_T
   virtual ~Stream_Misc_DirectShow_Source_Filter_T ();
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const PinConfigurationType&);
+  virtual bool initialize (const ConfigurationType&);
 
   // ------------------------------------
   static CUnknown* WINAPI CreateInstance (LPUNKNOWN, // aggregating IUnknown interface handle ('owner')
@@ -71,12 +72,16 @@ class Stream_Misc_DirectShow_Source_Filter_T
   //static void operator delete (void*,   // instance handle
   //                             size_t); // number of bytes
 
+ protected:
+  ConfigurationType* configuration_;
+
  private:
   typedef CSource inherited;
 
   typedef Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                                  SessionMessageType,
                                                  ProtocolMessageType,
+                                                 ConfigurationType,
                                                  PinConfigurationType,
                                                  MediaType> OWN_TYPE_T;
   typedef Stream_Misc_DirectShow_Source_Filter_OutputPin_T<PinConfigurationType,
@@ -94,7 +99,7 @@ class Stream_Misc_DirectShow_Source_Filter_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_T (const Stream_Misc_DirectShow_Source_Filter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_Filter_T& operator= (const Stream_Misc_DirectShow_Source_Filter_T&))
 
-  //bool hasCOMReference_;
+  //bool               hasCOMReference_;
 }; // Stream_Misc_DirectShow_Source_Filter_T
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -137,7 +142,7 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
 
  protected:
   bool                    isInitialized_;        // initialized
-  MediaType*              mediaType_;            // (preferred) media type
+  //MediaType*              mediaType_;            // (preferred) media type
   ACE_Message_Queue_Base* queue_;                // inbound queue (active object)
 
  private:

@@ -277,75 +277,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
   // - push them onto the stream (tail-first) !
   // ------------------------------------
 
-  typename inherited::MODULE_T* module_p = NULL;
-  if (configuration_in.notificationStrategy)
-  {
-    module_p = inherited::head ();
-    if (!module_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("no head module found, aborting\n")));
-      return false;
-    } // end IF
-    typename inherited::TASK_T* task_p = module_p->reader ();
-    if (!task_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("no head module reader task found, aborting\n")));
-      return false;
-    } // end IF
-    typename inherited::QUEUE_T* queue_p = task_p->msg_queue ();
-    if (!queue_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("no head module reader task queue found, aborting\n")));
-      return false;
-    } // end IF
-    queue_p->notification_strategy (configuration_in.notificationStrategy);
-  } // end IF
-//  configuration_in.moduleConfiguration.streamState = &state_;
-
-  // ---------------------------------------------------------------------------
-  if (configuration_in.module)
-  {
-    // *TODO*: (at least part of) this procedure belongs in libACEStream
-    //         --> remove type inferences
-    typename inherited::IMODULE_T* module_2 =
-        dynamic_cast<typename inherited::IMODULE_T*> (configuration_in.module);
-    if (!module_2)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    //if (!module_2->initialize (configuration_in.moduleConfiguration_2))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-    //              configuration_in.module->name ()));
-    //  return false;
-    //} // end IF
-    //Stream_Task_t* task_p = configuration_in.module->writer ();
-    //ACE_ASSERT (task_p);
-    //typename inherited::IMODULEHANDLER_T* module_handler_p =
-    //  dynamic_cast<typename inherited::IMODULEHANDLER_T*> (task_p);
-    //if (!module_handler_p)
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-    //              configuration_in.module->name ()));
-    //  return false;
-    //} // end IF
-    //if (!module_handler_p->initialize (configuration_in.moduleHandlerConfiguration_2))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
-    //              configuration_in.module->name ()));
-    //  return false;
-    //} // end IF
-    inherited::modules_.push_front (configuration_in.module);
-  } // end IF
+  //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
 
@@ -400,7 +332,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
   IO_.arg (inherited::sessionData_);
 
   if (setupPipeline_in)
-    if (!inherited::setup ())
+    if (!inherited::setup (configuration_in.notificationStrategy))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to setup pipeline, aborting\n")));

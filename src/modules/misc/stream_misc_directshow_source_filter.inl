@@ -22,9 +22,6 @@
 #include "ace/Message_Block.h"
 #include "ace/OS_Memory.h"
 
-#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
-#include "streams.h"
-
 #include "common_tools.h"
 
 #include "stream_macros.h"
@@ -35,12 +32,14 @@
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename ConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 CUnknown* WINAPI
 Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                        SessionMessageType,
                                        ProtocolMessageType,
+                                       ConfigurationType,
                                        PinConfigurationType,
                                        MediaType>::CreateInstance (LPUNKNOWN IUnknown_in,
                                                                    HRESULT* result_out)
@@ -71,12 +70,14 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename ConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 void WINAPI
 Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                        SessionMessageType,
                                        ProtocolMessageType,
+                                       ConfigurationType,
                                        PinConfigurationType,
                                        MediaType>::DeleteInstance (void* pointer_in)
 {
@@ -95,12 +96,14 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename ConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 void
 Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                        SessionMessageType,
                                        ProtocolMessageType,
+                                       ConfigurationType,
                                        PinConfigurationType,
                                        MediaType>::operator delete (void* pointer_in)
 {
@@ -210,11 +213,13 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename ConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                        SessionMessageType,
                                        ProtocolMessageType,
+                                       ConfigurationType,
                                        PinConfigurationType,
                                        MediaType>::~Stream_Misc_DirectShow_Source_Filter_T ()
 {
@@ -224,11 +229,13 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename ConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                        SessionMessageType,
                                        ProtocolMessageType,
+                                       ConfigurationType,
                                        PinConfigurationType,
                                        MediaType>::Stream_Misc_DirectShow_Source_Filter_T (LPTSTR name_in,
                                                                                            LPUNKNOWN owner_in,
@@ -266,14 +273,16 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
+          typename ConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 bool
 Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                                        SessionMessageType,
                                        ProtocolMessageType,
+                                       ConfigurationType,
                                        PinConfigurationType,
-                                       MediaType>::Stream_Misc_DirectShow_Source_Filter_T::initialize (const PinConfigurationType& pinConfiguration_in)
+                                       MediaType>::Stream_Misc_DirectShow_Source_Filter_T::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_T::initialize"));
 
@@ -291,12 +300,15 @@ Stream_Misc_DirectShow_Source_Filter_T<TimePolicyType,
                 ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
     return false;
   } // end IF
-  if (!pin_p->initialize (pinConfiguration_in))
+  // *TODO*: remove type inference
+  if (!pin_p->initialize (*configuration_in.pinConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Misc_DirectShow_Source_Filter_OutputPin_T::initialize(), aborting\n")));
     return false;
   } // end IF
+
+  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
   return true;
 }
@@ -316,7 +328,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
               parent_in,
               pinName_in)
  , isInitialized_ (false)
- , mediaType_ (NULL)
+ //, mediaType_ (NULL)
  , queue_ (NULL)
  , configuration_ (NULL)
  , defaultFrameInterval_ (MODULE_MISC_DS_WIN32_FILTER_SOURCE_FRAME_INTERVAL)
@@ -353,7 +365,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
   // *TODO*: remove type inferences
-  mediaType_ = configuration_->mediaType;
+  //mediaType_ = configuration_->mediaType;
   queue_ = configuration_->queue;
 
   isInitialized_ = true;
@@ -382,6 +394,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   //if ((*(mediaType_in->Type ()) != MEDIATYPE_Video) ||
   //    !mediaType_in->IsFixedSize ())
   //  return E_FAIL;
+  ACE_ASSERT (configuration_);
   ACE_ASSERT (inherited::m_pFilter);
 
   CAutoLock cAutoLock (inherited::m_pFilter->pStateLock ());
@@ -389,13 +402,13 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (isInitialized_)
   {
     // sanity check(s)
-    ACE_ASSERT (mediaType_);
+    ACE_ASSERT (configuration_->mediaType);
 
-    if (!mediaType_->MatchesPartial (mediaType_in))
+    if (!configuration_->mediaType->MatchesPartial (mediaType_in))
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("incompatible media types (\"%s\"\n\"%s\")\n"),
-                  ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*mediaType_).c_str ()),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*configuration_->mediaType).c_str ()),
                   ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*mediaType_in).c_str ())));
       return E_FAIL;
     } // end IF
@@ -455,13 +468,17 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (static_cast<unsigned int> (position_in) > (numberOfMediaTypes_ - 1))
     return VFW_S_NO_MORE_ITEMS;
   ACE_ASSERT (mediaType_out);
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::m_pFilter);
+
   CAutoLock cAutoLock (inherited::m_pFilter->pStateLock ());
+
   if (isInitialized_)
   {
     // sanity check(s)
-    ACE_ASSERT (mediaType_);
+    ACE_ASSERT (configuration_->mediaType);
 
-    result = mediaType_out->Set (*mediaType_);
+    result = mediaType_out->Set (*configuration_->mediaType);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -472,7 +489,6 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
     return S_OK;
   } // end IF
-  ACE_ASSERT (inherited::m_pFilter);
 
   struct tagVIDEOINFO* video_info_p =
     (struct tagVIDEOINFO*)mediaType_out->AllocFormatBuffer (sizeof (struct tagVIDEOINFO));
@@ -905,7 +921,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
   size_t data_length_2 = message_block_p->length ();
   ACE_ASSERT (static_cast<size_t> (data_length_l) >= data_length_2);
-  // *TODO*: this shouldn't happen --> implement a 'direct' push strategy
+  // *TODO*: use the pull strategy instead (see: IAsyncReader)
   ACE_OS::memcpy (data_p,
                   message_block_p->rd_ptr (), data_length_2);
   result = mediaSample_in->SetActualDataLength (data_length_2);

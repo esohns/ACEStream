@@ -202,7 +202,6 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 
   // sanity check(s)
   ACE_ASSERT (lock_ && subscribers_);
-  ACE_ASSERT (message_inout);
 
   switch (message_inout->type ())
   {
@@ -210,7 +209,9 @@ Stream_Module_MessageHandler_T<SessionMessageType,
     {
       // forward the session data to any subscriber(s)
       // *TODO*: remove type inference
-      const SessionDataType& session_data_r = message_inout->get ();
+      const SessionDataType& session_data_container_r = message_inout->get ();
+      const typename SessionDataType::DATA_T& session_data_r =
+          session_data_container_r.get ();
 
       // synch access
       {

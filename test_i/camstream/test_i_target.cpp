@@ -633,7 +633,7 @@ do_work (unsigned int bufferSize_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.builder,
-                                 configuration.moduleHandlerConfiguration.mediaType))
+                                 configuration.filterConfiguration.mediaType))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
@@ -715,25 +715,29 @@ do_work (unsigned int bufferSize_in,
   // ********************** stream configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   configuration.pinConfiguration.mediaType =
-    &configuration.moduleHandlerConfiguration.mediaType;
+    &configuration.filterConfiguration.mediaType;
+  configuration.filterConfiguration.pinConfiguration =
+    &configuration.pinConfiguration;
 #endif
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
+  configuration.moduleHandlerConfiguration.push = true;
   configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   configuration.moduleHandlerConfiguration.filterCLSID =
-      CLSID_ACEStream_Source_Filter;
+    (configuration.moduleHandlerConfiguration.push ? CLSID_ACEStream_Source_Filter
+                                                   : CLSID_ACEStream_Asynch_Source_Filter);
 #endif
   configuration.moduleHandlerConfiguration.inbound = true;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *TODO*: specify the preferred media type
   //configuration.moduleHandlerConfiguration.mediaType = ;
-  configuration.moduleHandlerConfiguration.pinConfiguration =
-    &configuration.pinConfiguration;
+  configuration.moduleHandlerConfiguration.filterConfiguration =
+    &configuration.filterConfiguration;
   //configuration.moduleHandlerConfiguration.push = false;
 #endif
   configuration.moduleHandlerConfiguration.printProgressDot =

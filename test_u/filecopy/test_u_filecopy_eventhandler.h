@@ -39,7 +39,7 @@ class Stream_Filecopy_EventHandler
   virtual ~Stream_Filecopy_EventHandler ();
 
   // implement Common_INotify_T
-  virtual void start (const Stream_Filecopy_SessionData_t&);
+  virtual void start (const Stream_Filecopy_SessionData&);
   virtual void notify (const Stream_Filecopy_Message&);
   virtual void notify (const Stream_Filecopy_SessionMessage&);
   virtual void end ();
@@ -49,8 +49,8 @@ class Stream_Filecopy_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler (const Stream_Filecopy_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler& operator= (const Stream_Filecopy_EventHandler&))
 
-  Stream_Filecopy_GTK_CBData*    CBData_;
-  Stream_Filecopy_SessionData_t* sessionData_;
+  Stream_Filecopy_GTK_CBData*  CBData_;
+  Stream_Filecopy_SessionData* sessionData_;
 };
 
 #endif

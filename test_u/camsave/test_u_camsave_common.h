@@ -226,7 +226,7 @@ typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
                                           Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
 #endif
 
-typedef Common_INotify_T<Stream_CamSave_SessionData_t,
+typedef Common_INotify_T<Stream_CamSave_SessionData,
                          Stream_CamSave_Message,
                          Stream_CamSave_SessionMessage> Stream_CamSave_IStreamNotify_t;
 typedef std::list<Stream_CamSave_IStreamNotify_t*> Stream_CamSave_Subscribers_t;

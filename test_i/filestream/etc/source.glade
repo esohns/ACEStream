@@ -26,16 +26,16 @@
     <property name="step_increment">1</property>
     <property name="page_increment">1</property>
   </object>
-  <object class="GtkAdjustment" id="adjustment_data_messages">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">1</property>
-  </object>
   <object class="GtkAdjustment" id="adjustment_loop">
     <property name="lower">-1</property>
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_messages">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">1</property>
   </object>
   <object class="GtkAdjustment" id="adjustment_port">
     <property name="lower">1</property>
@@ -47,7 +47,7 @@
   <object class="GtkAdjustment" id="adjustment_session_messages">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
-    <property name="page_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
@@ -58,9 +58,9 @@
     <property name="skip_taskbar_hint">True</property>
     <property name="skip_pager_hint">True</property>
     <property name="deletable">False</property>
-    <property name="program_name">stream source</property>
+    <property name="program_name">filestream source</property>
     <property name="version">0.1</property>
-    <property name="copyright" translatable="yes">Copyright (C) 2009 by Erik Sohns</property>
+    <property name="copyright" translatable="yes">Copyright (C) 2016 by Erik Sohns</property>
     <property name="website">http://www.github.com/esohns/libACEStream</property>
     <property name="website_label" translatable="yes">github project site</property>
     <property name="authors">Erik Sohns</property>
@@ -198,6 +198,7 @@
                                     <property name="caps_lock_warning">False</property>
                                     <property name="adjustment">adjustment_session_messages</property>
                                     <property name="numeric">True</property>
+                                    <property name="wrap">True</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -217,8 +218,9 @@
                                     <property name="invisible_char">●</property>
                                     <property name="xalign">1</property>
                                     <property name="caps_lock_warning">False</property>
-                                    <property name="adjustment">adjustment_data_messages</property>
+                                    <property name="adjustment">adjustment_messages</property>
                                     <property name="numeric">True</property>
+                                    <property name="wrap">True</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>

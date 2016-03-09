@@ -391,7 +391,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   // sanity check(s)
   ACE_ASSERT (!configuration_r.moduleHandlerConfiguration->builder);
   std::list<std::wstring> filter_pipeline;
-  if (!Stream_Module_Device_Tools::load (configuration_r.window,
+  if (!Stream_Module_Device_Tools::load (configuration_r.moduleHandlerConfiguration->window,
                                          configuration_r.moduleHandlerConfiguration->builder,
                                          filter_pipeline))
   {
@@ -440,12 +440,12 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     goto error;
   } // end IF
   ACE_ASSERT (ibase_filter_p);
-  Test_I_Target_Stream_Module_DirectShowSource::FILTER_T* filter_p =
-      dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource::FILTER_T*> (ibase_filter_p);
-  if (!filter_p)
+  Test_I_Target_Stream_Module_DirectShowSource::IINITIALIZE_T* iinitialize_p =
+      dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource::IINITIALIZE_T*> (ibase_filter_p);
+  if (!iinitialize_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<Stream_Misc_DirectShow_Source_Filter_T*>(%@), aborting\n"),
+                ACE_TEXT ("failed to dynamic_cast<Common_IInitialize_T*>(%@), aborting\n"),
                 ibase_filter_p));
 
     // clean up
@@ -454,11 +454,12 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     goto error;
   } // end IF
   // sanity check(s)
-  ACE_ASSERT (configuration_r.moduleHandlerConfiguration->pinConfiguration);
-  if (!filter_p->initialize (*configuration_in.moduleHandlerConfiguration->pinConfiguration))
+  // *TODO*: remove type inferences
+  ACE_ASSERT (configuration_r.moduleHandlerConfiguration->filterConfiguration);
+  if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration->filterConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Misc_DirectShow_Source_Filter_T::initialize(), aborting\n")));
+                ACE_TEXT ("failed to Common_IInitialize_T::initialize(), aborting\n")));
 
     // clean up
     ibase_filter_p->Release ();
@@ -466,7 +467,9 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     return false;
   } // end IF
 
-  filter_name = TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME;
+  filter_name =
+    (configuration_r.moduleHandlerConfiguration->push ? TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME
+                                                      : TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME);
       //ACE_TEXT_ALWAYS_WCHAR (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ());
   result_2 =
     configuration_r.moduleHandlerConfiguration->builder->AddFilter (ibase_filter_p,

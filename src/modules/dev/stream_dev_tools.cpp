@@ -311,7 +311,8 @@ Stream_Module_Device_Tools::debug (IGraphBuilder* builder_in,
 
   // sanity check(s)
   ACE_ASSERT (builder_in);
-  ACE_ASSERT (Stream_Module_Device_Tools::logFileHandle == ACE_INVALID_HANDLE);
+  if (Stream_Module_Device_Tools::logFileHandle != ACE_INVALID_HANDLE)
+    goto continue_;
 
   if (!fileName_in.empty ())
   {
@@ -332,6 +333,7 @@ Stream_Module_Device_Tools::debug (IGraphBuilder* builder_in,
     } // end IF
   } // end IF
 
+continue_:
   HRESULT result =
       builder_in->SetLogFile (((Stream_Module_Device_Tools::logFileHandle != ACE_INVALID_HANDLE) ? reinterpret_cast<DWORD_PTR> (Stream_Module_Device_Tools::logFileHandle)
                                                                                                  : NULL));

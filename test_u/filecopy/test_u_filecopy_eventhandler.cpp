@@ -45,36 +45,33 @@ Stream_Filecopy_EventHandler::~Stream_Filecopy_EventHandler ()
 }
 
 void
-Stream_Filecopy_EventHandler::start (const Stream_Filecopy_SessionData_t& sessionData_in)
+Stream_Filecopy_EventHandler::start (const Stream_Filecopy_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::start"));
 
   int result = -1;
-  Stream_Filecopy_SessionData* session_data_p = NULL;
-
-  sessionData_ = &const_cast<Stream_Filecopy_SessionData_t&> (sessionData_in);
-  sessionData_->increase ();
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
+  ACE_ASSERT (!sessionData_);
+
+  sessionData_ = &const_cast<Stream_Filecopy_SessionData&> (sessionData_in);
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
-  session_data_p =
-      &const_cast<Stream_Filecopy_SessionData&> (sessionData_->get ());
-  if (session_data_p->lock)
+  if (sessionData_->lock)
   {
-    result = session_data_p->lock->acquire ();
+    result = sessionData_->lock->acquire ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
   } // end IF
 
-  CBData_->progressData.size = session_data_p->size;
+  CBData_->progressData.size = sessionData_->size;
 
-  if (session_data_p->lock)
+  if (sessionData_->lock)
   {
-    result = session_data_p->lock->release ();
+    result = sessionData_->lock->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
@@ -169,8 +166,5 @@ Stream_Filecopy_EventHandler::end ()
   CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
 
   if (sessionData_)
-  {
-    sessionData_->decrease ();
     sessionData_ = NULL;
-  } // end IF
 }

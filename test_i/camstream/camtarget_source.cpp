@@ -34,6 +34,7 @@
 
 #include "stream_misc_common.h"
 #include "stream_misc_defines.h"
+#include "stream_misc_directshow_asynch_source_filter.h"
 #include "stream_misc_directshow_source_filter.h"
 
 #include "test_i_common.h"
@@ -44,12 +45,11 @@
 
 //#include "test_i_target_common.h"
 
-// initialize static variables
-static const WCHAR g_wszName[] =
-  TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME;
+//// initialize static variables
+//static const WCHAR g_wszName[] =
+//  TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME;
 
 //// *TODO*: move
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //// {F9F62434-535B-4934-A695-BE8D10A4C699}
 //DEFINE_GUID (CLSID_CamStream_Target_Source_Filter,
 //             0xf9f62434,
@@ -57,7 +57,13 @@ static const WCHAR g_wszName[] =
 //             0x4934,
 //             0xa6, 0x95,
 //             0xbe, 0x8d, 0x10, 0xa4, 0xc6, 0x99);
-//#endif
+//// c553f2c0-1529-11d0-b4d1-00805f6cbbea
+//DEFINE_GUID (CLSID_CamStream_Target_Asynch_Source_Filter,
+//             0xc553f2c0,
+//             0x1529,
+//             0x11d0,
+//             0xb4, 0xd1,
+//             0x00, 0x80, 0x5f, 0x6c, 0xbb, 0xea);
 
 // Setup data
 const AMOVIESETUP_MEDIATYPE sudMediaTypes[] =
@@ -139,6 +145,7 @@ const AMOVIESETUP_PIN sudOutputPinAM =
   1,                                           // Number of media types
   sudMediaTypes                                // Pointer to media types.
 };
+
 const AMOVIESETUP_FILTER sudFilterRegAM =
 {
   &CLSID_ACEStream_Source_Filter,                     // Filter CLSID.
@@ -147,6 +154,14 @@ const AMOVIESETUP_FILTER sudFilterRegAM =
   1,                                                  // Number of pin types.
   &sudOutputPinAM                                     // Pointer to pin information.
 };
+const AMOVIESETUP_FILTER sudFilterRegAM2 =
+{
+  &CLSID_ACEStream_Asynch_Source_Filter,                    // Filter CLSID.
+  TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME, // Filter name.
+  MERIT_NORMAL,                                              // Merit.
+  1,                                                         // Number of pin types.
+  &sudOutputPinAM                                            // Pointer to pin information.
+};
 
 // -----------------------------------------------------------------------------
 
@@ -154,8 +169,17 @@ typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
                                                Test_I_Target_Stream_SessionMessage,
                                                Test_I_Target_Stream_Message,
 
+                                               Test_I_Target_DirectShow_FilterConfiguration,
                                                Test_I_Target_DirectShow_PinConfiguration,
                                                Test_I_Target_DirectShow_MediaType_t> Stream_Misc_DirectShow_Source_Filter_t;
+typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
+                                                       Test_I_Target_Stream_SessionMessage,
+                                                       Test_I_Target_Stream_Message,
+
+                                                       Test_I_Target_DirectShow_FilterConfiguration,
+                                                       Test_I_Target_DirectShow_PinConfiguration,
+                                                       Test_I_Target_DirectShow_MediaType_t> Stream_Misc_DirectShow_Asynch_Source_Filter_t;
+
 void WINAPI InitRoutine (BOOL, const CLSID*);
 
 CFactoryTemplate g_Templates[] = {
@@ -164,6 +188,12 @@ CFactoryTemplate g_Templates[] = {
   , Stream_Misc_DirectShow_Source_Filter_t::CreateInstance // Creation function.
   , InitRoutine                                            // Initialization function.
   , &sudFilterRegAM }                                      // Pointer to filter information.
+
+  , { TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME   // Name.
+  , &CLSID_ACEStream_Asynch_Source_Filter                         // CLSID.
+  , Stream_Misc_DirectShow_Asynch_Source_Filter_t::CreateInstance // Creation function.
+  , InitRoutine                                                   // Initialization function.
+  , &sudFilterRegAM2 }                                            // Pointer to filter information.
 };
 int g_cTemplates = sizeof (g_Templates) / sizeof (g_Templates[0]);
 
@@ -297,6 +327,20 @@ DllRegisterServer ()
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto clean;
   } // end IF
+  result =
+    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Asynch_Source_Filter,                      // Filter CLSID.
+                                      TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME, // Filter name.
+                                      NULL,                                                      // Device moniker.
+                                      &CLSID_VideoInputDeviceCategory,                           // Video capture category.
+                                      TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME, // Instance data.
+                                      &sudFilterReg);                                            // Pointer to filter information.
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IFilterMapper2::RegisterFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto clean;
+  } // end IF
 
 clean:
   if (ifilter_mapper_p)
@@ -321,33 +365,44 @@ DllUnregisterServer ()
     return result;
   } // end IF
 
-//  IFilterMapper2* ifilter_mapper_p = NULL;
-//  result = CoCreateInstance (CLSID_FilterMapper2, NULL, CLSCTX_INPROC_SERVER,
-//                             IID_IFilterMapper2, (void**)&ifilter_mapper_p);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterMapper2): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    return result;
-//  } // end IF
-//  ACE_ASSERT (ifilter_mapper_p);
-//
-// result =
-//  ifilter_mapper_p->UnregisterFilter (&CLSID_VideoInputDeviceCategory,
-//                                      g_wszName,
-//                                      CLSID_ACEStream_Source_Filter);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to IFilterMapper2::RegisterFilter(): \"%s\", aborting\n"),
-//                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto clean;
-//  } // end IF
-//
-//clean:
-//  if (ifilter_mapper_p)
-//    ifilter_mapper_p->Release ();
+  IFilterMapper2* ifilter_mapper_p = NULL;
+  result = CoCreateInstance (CLSID_FilterMapper2, NULL, CLSCTX_INPROC_SERVER,
+                             IID_IFilterMapper2, (void**)&ifilter_mapper_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterMapper2): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return result;
+  } // end IF
+  ACE_ASSERT (ifilter_mapper_p);
+
+ result =
+  ifilter_mapper_p->UnregisterFilter (&CLSID_VideoInputDeviceCategory,
+                                      TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME,
+                                      CLSID_ACEStream_Source_Filter);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IFilterMapper2::UnregisterFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto clean;
+  } // end IF
+  result =
+    ifilter_mapper_p->UnregisterFilter (&CLSID_VideoInputDeviceCategory,
+                                        TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME,
+                                        CLSID_ACEStream_Asynch_Source_Filter);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IFilterMapper2::UnregisterFilter(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto clean;
+  } // end IF
+
+clean:
+  if (ifilter_mapper_p)
+    ifilter_mapper_p->Release ();
 
   return result;
 } // DllUnregisterServer

@@ -86,7 +86,7 @@ Stream_StateMachine_Control_T<LockType>::wait (Stream_StateMachine_ControlState 
     } // end IF
   } // end IF
 
-  while (inherited::state_ != state_in)
+  while (inherited::state_ < state_in)
   {
     result_2 = inherited::condition_->wait (timeout_in);
     if (result_2 == -1)
@@ -96,13 +96,22 @@ Stream_StateMachine_Control_T<LockType>::wait (Stream_StateMachine_ControlState 
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Condition::wait(%#T): \"%m\", aborting\n"),
                     timeout_in));
-
       goto unlock; // timed out ?
     } // end IF
   } // end WHILE
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("reached state \"%s\"...\n"),
-  //            ACE_TEXT (state2String (state_in).c_str ())));
+  if (inherited::state_ != state_in)
+  {
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("reached state \"%s\" (requested: \"%s\"), continuing\n"),
+                ACE_TEXT (state2String (inherited::state_).c_str ()),
+                ACE_TEXT (state2String (state_in).c_str ())));
+  } // end IF
+  //else
+  //{
+  //  ACE_DEBUG ((LM_DEBUG,
+  //              ACE_TEXT ("reached state \"%s\"...\n"),
+  //              ACE_TEXT (state2String (state_in).c_str ())));
+  //} // end ELSE
   result = true;
 
 unlock:

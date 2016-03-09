@@ -1906,6 +1906,15 @@ Stream_Base_T<LockType,
   {
     if (hasFinal_)
     {
+      if (state_.deleteModule)
+      {
+        ACE_ASSERT (state_.module);
+        delete state_.module;
+
+        state_.deleteModule = false;
+      } // end IF
+      state_.module = NULL;
+
       modules_.pop_front ();
       hasFinal_ = false;
     } // end IF

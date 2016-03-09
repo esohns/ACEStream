@@ -216,8 +216,8 @@ do_processArguments (int argc_in,
   //gtkRcFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_GTK_RC_FILE);
   hostName_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_HOSTNAME);
   gtkGladeFile_out = path;
-  //gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  //gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
+  gtkGladeFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SOURCE_GLADE_FILE);
   logToFile_out = false;
   useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
   port_out = TEST_I_DEFAULT_PORT;
@@ -454,9 +454,8 @@ do_initialize_directshow (const std::string& deviceName_in,
   if (FAILED (hresult))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
-    return false;
   } // end IF
 
   Stream_Module_Device_Tools::initialize ();

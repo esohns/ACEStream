@@ -24,7 +24,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "guiddef.h"
 
-// *TODO*: move this somewhere else
+// *TODO*: move these somewhere else
 // {F9F62434-535B-4934-A695-BE8D10A4C699}
 DEFINE_GUID (CLSID_ACEStream_Source_Filter,
              0xf9f62434,
@@ -32,6 +32,13 @@ DEFINE_GUID (CLSID_ACEStream_Source_Filter,
              0x4934,
              0xa6, 0x95,
              0xbe, 0x8d, 0x10, 0xa4, 0xc6, 0x99);
+// c553f2c0-1529-11d0-b4d1-00805f6cbbea
+DEFINE_GUID (CLSID_ACEStream_Asynch_Source_Filter,
+             0xc553f2c0,
+             0x1529,
+             0x11d0,
+             0xb4, 0xd1,
+             0x00, 0x80, 0x5f, 0x6c, 0xbb, 0xea);
 #endif
 
 #endif

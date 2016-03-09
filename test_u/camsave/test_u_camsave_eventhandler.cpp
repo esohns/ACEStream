@@ -46,15 +46,15 @@ Stream_CamSave_EventHandler::~Stream_CamSave_EventHandler ()
 }
 
 void
-Stream_CamSave_EventHandler::start (const Stream_CamSave_SessionData_t& sessionData_in)
+Stream_CamSave_EventHandler::start (const Stream_CamSave_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::start"));
 
-  sessionData_ = &const_cast<Stream_CamSave_SessionData_t&> (sessionData_in);
-  sessionData_->increase ();
-
   // sanity check(s)
   ACE_ASSERT (CBData_);
+  ACE_ASSERT (!sessionData_);
+
+  sessionData_ = &const_cast<Stream_CamSave_SessionData&> (sessionData_in);
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
@@ -80,7 +80,6 @@ Stream_CamSave_EventHandler::notify (const Stream_CamSave_SessionMessage& sessio
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::notify"));
 
   int result = -1;
-  Stream_CamSave_SessionData* session_data_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -98,11 +97,9 @@ Stream_CamSave_EventHandler::notify (const Stream_CamSave_SessionMessage& sessio
       if (!sessionData_)
         goto continue_;
 
-      session_data_p =
-          &const_cast<Stream_CamSave_SessionData&> (sessionData_->get ());
-      if (session_data_p->lock)
+      if (sessionData_->lock)
       {
-        result = session_data_p->lock->acquire ();
+        result = sessionData_->lock->acquire ();
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n")));
@@ -111,12 +108,12 @@ Stream_CamSave_EventHandler::notify (const Stream_CamSave_SessionMessage& sessio
       // *NOTE*: the byte counter is more current than what is received here
       //         (see above) --> do not update
       current_bytes = CBData_->progressData.statistic.bytes;
-      CBData_->progressData.statistic = session_data_p->currentStatistic;
+      CBData_->progressData.statistic = sessionData_->currentStatistic;
       CBData_->progressData.statistic.bytes = current_bytes;
 
-      if (session_data_p->lock)
+      if (sessionData_->lock)
       {
-        result = session_data_p->lock->release ();
+        result = sessionData_->lock->release ();
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
@@ -156,8 +153,5 @@ Stream_CamSave_EventHandler::end ()
   CBData_->eventSourceIds.insert (event_source_id);
 
   if (sessionData_)
-  {
-    sessionData_->decrease ();
     sessionData_ = NULL;
-  } // end IF
 }
