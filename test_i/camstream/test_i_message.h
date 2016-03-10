@@ -23,8 +23,6 @@
 
 #include "ace/Global_Macros.h"
 
-#include "common_referencecounter_base.h"
-
 #include "stream_data_message_base.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_directshow_message_base.h"
@@ -48,7 +46,6 @@ class Test_I_Source_Stream_Message
                                    //////
                                    Test_I_Source_MessageData,
                                    Test_I_CommandType_t>
- , public Common_ReferenceCounterBase
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
@@ -81,7 +78,6 @@ class Test_I_Source_Stream_Message
                                    //////
                                    Test_I_Source_MessageData,
                                    int> inherited;
-  typedef Common_ReferenceCounterBase inherited2;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_Message ())
   // *NOTE*: to be used by message allocators...

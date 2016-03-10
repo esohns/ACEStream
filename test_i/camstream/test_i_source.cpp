@@ -445,35 +445,71 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
 do_initialize_directshow (const std::string& deviceName_in,
-                          IGraphBuilder*& IGraphBuilder_inout,
-                          IAMStreamConfig*& IAMStreamConfig_out)
+                          IGraphBuilder*& IGraphBuilder_out,
+                          IAMStreamConfig*& IAMStreamConfig_out,
+                          bool coInitialize_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
-  HRESULT hresult = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-  if (FAILED (hresult))
+  HRESULT result = E_FAIL;
+
+  // sanity check(s)
+  ACE_ASSERT (!IGraphBuilder_out);
+  ACE_ASSERT (!IAMStreamConfig_out);
+
+  if (!coInitialize_in)
+    goto continue_;
+
+  result = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", continuing\n"),
-                ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
-  } // end IF
-
-  Stream_Module_Device_Tools::initialize ();
-
-  if (!Stream_Module_Device_Tools::load (deviceName_in,
-                                         IGraphBuilder_inout,
-                                         IAMStreamConfig_out))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
-  ACE_ASSERT (IGraphBuilder_inout);
+
+continue_:
+  Stream_Module_Device_Tools::initialize ();
+
+  // sanity check(s)
+  if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
+                                                    IGraphBuilder_out,
+                                                    IAMStreamConfig_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                ACE_TEXT (deviceName_in.c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (IGraphBuilder_out);
   ACE_ASSERT (IAMStreamConfig_out);
 
+  std::list<std::wstring> filter_pipeline;
+
+  struct _AMMediaType* media_type_p = NULL;
+  if (!Stream_Module_Device_Tools::getCaptureFormat (IGraphBuilder_out,
+                                                     media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (media_type_p);
+
+  if (!Stream_Module_Device_Tools::loadRendererGraph (*media_type_p,
+                                                      NULL,
+                                                      IGraphBuilder_out,
+                                                      filter_pipeline))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererGraph(), aborting\n")));
+    goto error;
+  } // end IF
+
   IMediaFilter* media_filter_p = NULL;
-  HRESULT result = IGraphBuilder_inout->QueryInterface (IID_IMediaFilter,
-                                                        (void**)&media_filter_p);
+  result = IGraphBuilder_out->QueryInterface (IID_IMediaFilter,
+                                              (void**)&media_filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -497,8 +533,13 @@ do_initialize_directshow (const std::string& deviceName_in,
 error:
   if (media_filter_p)
     media_filter_p->Release ();
-  IGraphBuilder_inout->Release ();
-  IGraphBuilder_inout = NULL;
+
+  if (media_type_p)
+    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  IGraphBuilder_out->Release ();
+  IGraphBuilder_out = NULL;
+
   IAMStreamConfig_out->Release ();
   IAMStreamConfig_out = NULL;
 
@@ -579,16 +620,14 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *NOTE*: in UI mode COM has already been initialized for this thread (why ?)
   if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
                                  configuration.moduleHandlerConfiguration.builder,
-                                 CBData_in.streamConfiguration))
+                                 CBData_in.streamConfiguration,
+                                 UIDefinitionFilename_in.empty ())) // initialize COM ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
-
-    //// clean up
-    //CoUninitialize ();
-
     return;
   } // end IF
   ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);

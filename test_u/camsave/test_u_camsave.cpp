@@ -403,6 +403,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
 do_initialize_directshow (const std::string& deviceName_in,
+                          const HWND windowHandle_in,
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out)
 {
@@ -419,16 +420,75 @@ do_initialize_directshow (const std::string& deviceName_in,
 
   Stream_Module_Device_Tools::initialize ();
 
-  if (!Stream_Module_Device_Tools::load (deviceName_in,
-                                         IGraphBuilder_out,
-                                         IAMStreamConfig_out))
+  if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
+                                                    IGraphBuilder_out,
+                                                    IAMStreamConfig_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                ACE_TEXT (deviceName_in.c_str ())));
     return false;
   } // end IF
+  ACE_ASSERT (IGraphBuilder_out);
+  ACE_ASSERT (IAMStreamConfig_out);
+
+  if (_DEBUG)
+  {
+    std::string log_file_name =
+      Common_File_Tools::getLogDirectory (std::string (),
+                                          0);
+    log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+    log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+    Stream_Module_Device_Tools::debug (IGraphBuilder_out,
+                                       log_file_name);
+  } // end IF
+
+  //std::list<std::wstring> filter_pipeline;
+  //if (!Stream_Module_Device_Tools::loadRendererGraph (windowHandle_in,
+  //                                                    IGraphBuilder_out,
+  //                                                    filter_pipeline))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererGraph(), aborting\n")));
+  //  goto error;
+  //} // end IF
+
+  //IMediaFilter* media_filter_p = NULL;
+  //HRESULT result = IGraphBuilder_out->QueryInterface (IID_IMediaFilter,
+  //                                                    (void**)&media_filter_p);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (media_filter_p);
+  //result = media_filter_p->SetSyncSource (NULL);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //media_filter_p->Release ();
 
   return true;
+
+//error:
+//  if (IAMStreamConfig_out)
+//  {
+//    IAMStreamConfig_out->Release ();
+//    IAMStreamConfig_out = NULL;
+//  } // end IF
+//  if (IGraphBuilder_out)
+//  {
+//    IGraphBuilder_out->Release ();
+//    IGraphBuilder_out = NULL;
+//  } // end IF
+
+  //return false;
 }
 
 void
@@ -478,6 +538,7 @@ do_work (unsigned int bufferSize_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
+                                 configuration.moduleHandlerConfiguration.window,
                                  configuration.moduleHandlerConfiguration.builder,
                                  CBData_in.streamConfiguration))
   {

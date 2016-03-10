@@ -317,7 +317,7 @@ DllRegisterServer ()
     ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Source_Filter,                      // Filter CLSID.
                                       TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME, // Filter name.
                                       NULL,                                               // Device moniker.
-                                      &CLSID_VideoInputDeviceCategory,                    // Video capture category.
+                                      &CLSID_LegacyAmFilterCategory,                      // Video capture category.
                                       TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME, // Instance data.
                                       &sudFilterReg);                                     // Pointer to filter information.
   if (FAILED (result))
@@ -331,7 +331,7 @@ DllRegisterServer ()
     ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Asynch_Source_Filter,                      // Filter CLSID.
                                       TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME, // Filter name.
                                       NULL,                                                      // Device moniker.
-                                      &CLSID_VideoInputDeviceCategory,                           // Video capture category.
+                                      &CLSID_LegacyAmFilterCategory,                             // Video capture category.
                                       TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME, // Instance data.
                                       &sudFilterReg);                                            // Pointer to filter information.
   if (FAILED (result))

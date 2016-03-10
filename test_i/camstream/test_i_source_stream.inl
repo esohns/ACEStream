@@ -153,100 +153,63 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
 
-  // things to be done here:
-  // [- initialize base class]
-  // ------------------------------------
-  // - initialize notification strategy (if any)
-  // ------------------------------------
-  // - push the final module onto the stream (if any)
-  // ------------------------------------
-  // - initialize modules
-  // - push them onto the stream (tail-first) !
-  // ------------------------------------
-
-  //inherited::MODULE_T* module_p = NULL;
-  //if (configuration_in.notificationStrategy)
-  //{
-  //  module_p = inherited::head ();
-  //  if (!module_p)
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("no head module found, aborting\n")));
-  //    return false;
-  //  } // end IF
-  //  inherited::TASK_T* task_p = module_p->reader ();
-  //  if (!task_p)
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("no head module reader task found, aborting\n")));
-  //    return false;
-  //  } // end IF
-  //  inherited::QUEUE_T* queue_p = task_p->msg_queue ();
-  //  if (!queue_p)
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("no head module reader task queue found, aborting\n")));
-  //    return false;
-  //  } // end IF
-  //  queue_p->notification_strategy (configuration_in.notificationStrategy);
-  //} // end IF
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
   ACE_ASSERT (configuration_in.moduleConfiguration);
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
-//  if (configuration_in.module)
-//  {
-//    // *TODO*: (at least part of) this procedure belongs in libACEStream
-//    //         --> remove type inferences
-//    typename inherited::IMODULE_T* imodule_p = NULL;
-//    try
-//    {
-//      imodule_p =
-//          dynamic_cast<typename inherited::IMODULE_T*> (configuration_in.module);
-//    }
-//    catch (...)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: caught exception in dynamic_cast<Stream_IModule_T>(%@), aborting\n"),
-//                  configuration_in.module->name (),
-//                  configuration_in.module));
-//      imodule_p = NULL;
-//    }
-//    if (!imodule_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-//                  configuration_in.module->name ()));
-//      return false;
-//    } // end IF
-//    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-//                  configuration_in.module->name ()));
-//      return false;
-//    } // end IF
-//    imodule_p->reset ();
-//    inherited::IMODULEHANDLER_T* module_handler_p =
-//      dynamic_cast<inherited::IMODULEHANDLER_T*> (configuration_in.module->writer ());
-//    if (!module_handler_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-//                  configuration_in.module->name ()));
-//      return false;
-//    } // end IF
-//    if (!module_handler_p->initialize (*configuration_in.moduleHandlerConfiguration))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
-//                  configuration_in.module->name ()));
-//      return false;
-//    } // end IF
-//    inherited::modules_.push_front (configuration_in.module);
-//  } // end IF
+  if (configuration_in.module)
+  {
+    // *TODO*: (at least part of) this procedure belongs in libACEStream
+    //         --> remove type inferences
+    typename inherited::IMODULE_T* imodule_p = NULL;
+    try
+    {
+      imodule_p =
+          dynamic_cast<typename inherited::IMODULE_T*> (configuration_in.module);
+    }
+    catch (...)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: caught exception in dynamic_cast<Stream_IModule_T>(%@), aborting\n"),
+                  configuration_in.module->name (),
+                  configuration_in.module));
+      imodule_p = NULL;
+    }
+    if (!imodule_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
+                  configuration_in.module->name ()));
+      return false;
+    } // end IF
+    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
+                  configuration_in.module->name ()));
+      return false;
+    } // end IF
+    imodule_p->reset ();
+    inherited::IMODULEHANDLER_T* module_handler_p =
+      dynamic_cast<inherited::IMODULEHANDLER_T*> (configuration_in.module->writer ());
+    if (!module_handler_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
+                  configuration_in.module->name ()));
+      return false;
+    } // end IF
+    if (!module_handler_p->initialize (*configuration_in.moduleHandlerConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
+                  configuration_in.module->name ()));
+      return false;
+    } // end IF
+    inherited::modules_.push_front (configuration_in.module);
+  } // end IF
 
   // ---------------------------------------------------------------------------
 
@@ -281,14 +244,14 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Net_Target_T> failed, aborting\n")));
-    goto failed;
+    return false;
   } // end IF
   if (!netTarget_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize module, aborting\n"),
                 netTarget_.name ()));
-    goto failed;
+    return false;
   } // end IF
 
   // ******************* Runtime Statistic ************************
@@ -299,7 +262,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_RuntimeStatistic> failed, aborting\n")));
-    goto failed;
+    return false;
   } // end IF
   if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
                                             true,                                        // push 1-second interval statistic messages downstream ?
@@ -309,10 +272,100 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize module, aborting\n"),
                 runtimeStatistic_.name ()));
-    goto failed;
+    return false;
   } // end IF
 
   // ******************* Camera Source ************************
+  std::list<std::wstring> filter_pipeline;
+  bool graph_loaded = false;
+  bool COM_initialized = false;
+
+  if (configuration_in.moduleHandlerConfiguration->builder)
+  {
+    if (!Stream_Module_Device_Tools::resetDeviceGraph (configuration_in.moduleHandlerConfiguration->builder))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::resetDeviceGraph(): \"%s\", aborting\n")));
+      return false;
+    } // end IF
+
+    goto continue_;
+  } // end IF
+  else
+  {
+    HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      return false;
+    } // end IF
+    COM_initialized = true;
+
+    // sanity check(s)
+    ACE_ASSERT (!configuration_in.moduleHandlerConfiguration->builder);
+    IAMStreamConfig* stream_config_p = NULL;
+    if (!Stream_Module_Device_Tools::loadDeviceGraph (configuration_in.moduleHandlerConfiguration->device,
+                                                      configuration_in.moduleHandlerConfiguration->builder,
+                                                      stream_config_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                  ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (configuration_in.moduleHandlerConfiguration->builder);
+    ACE_ASSERT (stream_config_p);
+    graph_loaded = true;
+
+    // clean up
+    stream_config_p->Release ();
+  } // end IF
+
+  struct _AMMediaType* media_type_p = NULL;
+  if (!Stream_Module_Device_Tools::getCaptureFormat (configuration_in.moduleHandlerConfiguration->builder,
+                                                     media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (media_type_p);
+
+  if (!Stream_Module_Device_Tools::loadRendererGraph (*media_type_p,
+                                                      configuration_in.moduleHandlerConfiguration->window,
+                                                      configuration_in.moduleHandlerConfiguration->builder,
+                                                      filter_pipeline))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererGraph(), aborting\n")));
+    goto error;
+  } // end IF
+
+  IMediaFilter* media_filter_p = NULL;
+  result =
+    configuration_in.moduleHandlerConfiguration->builder->QueryInterface (IID_IMediaFilter,
+                                                                          (void**)&media_filter_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (media_filter_p);
+  result = media_filter_p->SetSyncSource (NULL);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  media_filter_p->Release ();
+
+continue_:
   source_.initialize (*configuration_in.moduleConfiguration);
   source_impl_p =
     dynamic_cast<Test_I_Stream_Module_CamSource*> (source_.writer ());
@@ -320,21 +373,21 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_CamSource> failed, aborting\n")));
-    goto failed;
+    goto error;
   } // end IF
   if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
                 source_.name ()));
-    goto failed;
+    goto error;
   } // end IF
   if (!source_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
                 source_.name ()));
-    goto failed;
+    goto error;
   } // end IF
   //fileReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
@@ -347,7 +400,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to setup pipeline, aborting\n")));
-      return false;
+      goto error;
     } // end IF
 
   // -------------------------------------------------------------
@@ -366,12 +419,24 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   // OK: all went well
   inherited::isInitialized_ = true;
 
+  if (COM_initialized)
+    CoUninitialize ();
+
   return true;
 
-failed:
-  if (!inherited::reset ())
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::reset(): \"%m\", continuing\n")));
+error:
+  if (media_type_p)
+    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  if (graph_loaded)
+    if (configuration_in.moduleHandlerConfiguration->builder)
+    {
+      configuration_in.moduleHandlerConfiguration->builder->Release ();
+      configuration_in.moduleHandlerConfiguration->builder = NULL;
+    } // end IF
+
+  if (COM_initialized)
+    CoUninitialize ();
 
   return false;
 }

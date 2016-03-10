@@ -36,7 +36,6 @@
 
 Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (unsigned int size_in)
  : inherited (size_in)
- , inherited2 (1, false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -44,7 +43,6 @@ Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (unsigned int size_in
 
 Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (const Test_I_Source_Stream_Message& message_in)
  : inherited (message_in)
- , inherited2 (1, false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -56,7 +54,6 @@ Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (ACE_Data_Block* data
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
               messageAllocator_in, // re-use the same allocator
               incrementMessageCounter_in)
- , inherited2 (1, false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -64,7 +61,6 @@ Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (ACE_Data_Block* data
 
 Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
- , inherited2 (1, false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -89,11 +85,61 @@ Test_I_Source_Stream_Message::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::duplicate"));
 
-  Test_I_Source_Stream_Message* this_p =
-      const_cast<Test_I_Source_Stream_Message*> (this);
-  this_p->increase ();
+  Test_I_Source_Stream_Message* message_p = NULL;
 
-  return this_p;
+  // create a new Test_I_Source_Stream_Message that contains unique copies of
+  // the message block fields, but a (reference counted) shallow duplicate of
+  // the ACE_Data_Block
+
+  // if there is no allocator, use the standard new and delete calls.
+  if (inherited::message_block_allocator_ == NULL)
+    ACE_NEW_NORETURN (message_p,
+                      Test_I_Source_Stream_Message (*this));
+  else // otherwise, use the existing message_block_allocator
+  {
+    // *NOTE*: the argument to alloc() does not really matter, as this creates
+    //         a shallow copy of the existing data block
+    ACE_NEW_MALLOC_NORETURN (message_p,
+                             static_cast<Test_I_Source_Stream_Message*> (inherited::message_block_allocator_->calloc (inherited::capacity (),
+                                                                                                                      '\0')),
+                             Test_I_Source_Stream_Message (*this));
+  } // end ELSE
+  if (!message_p)
+  {
+    Stream_IAllocator* allocator_p =
+      dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
+    ACE_ASSERT (allocator_p);
+    if (allocator_p->block ())
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate Test_I_Source_Stream_Message: \"%m\", aborting\n")));
+    return NULL;
+  } // end IF
+
+    // increment the reference counts of any continuation messages
+  if (inherited::cont_)
+  {
+    message_p->cont_ = inherited::cont_->duplicate ();
+    if (!message_p->cont_)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Test_I_Source_Stream_Message::duplicate(): \"%m\", aborting\n")));
+
+      // clean up
+      message_p->release ();
+
+      return NULL;
+    } // end IF
+  } // end IF
+
+  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ULONG reference_count = 0;
+  if (inherited::data_.sample)
+    reference_count = inherited::data_.sample->AddRef ();
+#endif
+
+  return message_p;
 }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 ACE_Message_Block*
@@ -101,12 +147,13 @@ Test_I_Source_Stream_Message::release (void)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::release"));
 
-  unsigned int reference_count = inherited2::decrease ();
-
+  ULONG reference_count = 0;
+  if (inherited::data_.sample)
+    reference_count = inherited::data_.sample->Release ();
   if (reference_count == 0)
-    return inherited::release ();
+    inherited::data_.sample = NULL;
 
-  return NULL;
+  return inherited::release ();
 }
 #else
 ACE_Message_Block*

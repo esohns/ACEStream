@@ -3721,9 +3721,9 @@ g_value_unset (&value_2);
     data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder =
       NULL;
   } // end IF
-  if (!Stream_Module_Device_Tools::load (device_string,
-                                         data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
-                                         data_p->streamConfiguration))
+  if (!Stream_Module_Device_Tools::loadDeviceGraph (device_string,
+                                                    data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
+                                                    data_p->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), returning\n"),
@@ -3881,11 +3881,11 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
     goto error;
   } // end IF
   //DeleteMediaType (media_type_p);
@@ -3902,11 +3902,11 @@ error:
   // sanity check(s)
   ACE_ASSERT (data_p->device != -1);
 
-  if (!Stream_Module_Device_Tools::setFormat (data_p->device,
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->device,
                                               format_i))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
     return;
   } // end IF
 
@@ -4080,11 +4080,11 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
     goto error;
   } // end IF
   //DeleteMediaType (media_type_p);
@@ -4228,11 +4228,11 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
                                               *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
     goto error;
   } // end IF
     //DeleteMediaType (media_type_p);

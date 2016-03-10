@@ -22,8 +22,7 @@
 #define TEST_I_SOURCE_COMMON_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "control.h"
-//#include "qedit.h"
+#include "strmif.h"
 #else
 #include "linux/videodev2.h"
 
@@ -149,7 +148,7 @@ struct Test_I_Source_Stream_SessionData
    : Stream_SessionData ()
    , connectionState (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , sampleGrabber (NULL)
+   , mediaType (NULL)
 #else
    , format ()
 #endif
@@ -172,11 +171,11 @@ struct Test_I_Source_Stream_SessionData
 
   Test_I_Source_ConnectionState* connectionState;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ISampleGrabber*         sampleGrabber;
+  struct _AMMediaType*           mediaType;
 #else
-  struct v4l2_format      format;
+  struct v4l2_format             format;
 #endif
-  Test_I_Source_UserData* userData;
+  Test_I_Source_UserData*        userData;
 };
 typedef Stream_SessionData_T<Test_I_Source_Stream_SessionData> Test_I_Source_Stream_SessionData_t;
 

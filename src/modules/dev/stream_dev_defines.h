@@ -15,8 +15,9 @@
 // DirectShow
 // *TODO*: move these somewhere else
 #define MODULE_DEV_DIRECTSHOW_LOGFILE_NAME               "directshow.log"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO   L"Capture Filter"
-#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB     L"RGB Converter"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO   L"Capture Video"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB     L"Color Space Converter"
+#define MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_YUV     L"AVI Decoder"
 // *NOTE*: the 'AVI decompressor' (CLSID_AVIDec) supports conversions of YUV
 //         to RGB formats via the MSYUV Color Space Converter Codec
 #define MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_AVI  L"AVI Decompressor"

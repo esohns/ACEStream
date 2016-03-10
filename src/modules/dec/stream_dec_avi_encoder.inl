@@ -261,7 +261,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     // sanity check(s)
     ACE_ASSERT (mediaType_);
-
     if ((mediaType_->formattype != FORMAT_VideoInfo) &&
         (mediaType_->formattype != FORMAT_VideoInfo2))
     {
@@ -270,6 +269,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
                   mediaType_->formattype));
       return;
     } // end IF
+
     struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
     struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
     if (mediaType_->formattype == FORMAT_VideoInfo)
@@ -577,28 +577,22 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
       sessionData_ =
         &const_cast<SessionDataContainerType&> (message_inout->get ());
       sessionData_->increase ();
-      const SessionDataType& session_data_r = sessionData_->get ();
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (sessionData_->get ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       // sanity check(s)
-      ACE_ASSERT (mediaType_);
+      ACE_ASSERT (!mediaType_);
       // *TODO*: remove type inference
-      ACE_ASSERT (session_data_r.sampleGrabber);
-      HRESULT result =
-        session_data_r.sampleGrabber->GetConnectedMediaType (mediaType_);
-      if (FAILED (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ISampleGrabber::GetConnectedMediaType(): \"%m\", returning\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-        return;
-      } // end IF
+      mediaType_ = session_data_r.mediaType;
 #endif
 
       break;
     }
     case STREAM_SESSION_END:
     {
+      mediaType_ = NULL;
+
       if (sessionData_)
       {
         sessionData_->decrease ();

@@ -26,7 +26,7 @@
 #include <string>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "qedit.h"
+#include "strmif.h"
 #else
 #include "linux/videodev2.h"
 
@@ -79,13 +79,13 @@ struct Stream_CamSave_MessageData
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IMediaSample*  sample;
-  double         sampleTime;
+  IMediaSample* sample;
+  double        sampleTime;
 #else
-  int            device; // (capture) device file descriptor
-  __u32          index;  // 'index' field of v4l2_buffer
-  v4l2_memory    method;
-  bool           release;
+  int           device; // (capture) device file descriptor
+  __u32         index;  // 'index' field of v4l2_buffer
+  v4l2_memory   method;
+  bool          release;
 #endif
 };
 //typedef Stream_DataBase_T<Stream_CamSave_MessageData> Stream_CamSave_MessageData_t;
@@ -96,7 +96,7 @@ struct Stream_CamSave_SessionData
   inline Stream_CamSave_SessionData ()
    : Stream_SessionData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , sampleGrabber (NULL)
+   , mediaType (NULL)
 #else
    , format ()
 #endif
@@ -105,12 +105,12 @@ struct Stream_CamSave_SessionData
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ISampleGrabber*     sampleGrabber;
+  struct _AMMediaType* mediaType;
 #else
-  struct v4l2_format  format;
+  struct v4l2_format   format;
 #endif
   //  unsigned int size;
-  std::string  targetFileName;
+  std::string          targetFileName;
 };
 typedef Stream_SessionData_T<Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;
 

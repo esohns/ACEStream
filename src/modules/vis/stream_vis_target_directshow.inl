@@ -55,15 +55,29 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::~Stream_Vis_Target_DirectShow_T"));
 
+  HRESULT result = E_FAIL;
+  IVideoWindow* video_window_p =
+    (IVideoWindow_ ? IVideoWindow_
+                   : (configuration_ ? configuration_->windowController
+                                     : NULL));
+  if (video_window_p)
+  {
+    //result = video_window_p->put_Owner (NULL);
+    //if (FAILED (result_2))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    result = video_window_p->put_MessageDrain (NULL);
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IVideoWindow::put_MessageDrain() \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  } // end IF
   if (IVideoWindow_)
   {
-    HRESULT result_2 = IVideoWindow_->put_Owner (NULL);
-    if (FAILED (result_2))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-
     IVideoWindow_->Release ();
+    configuration_->windowController = NULL;
   } // end IF
 }
 
@@ -102,10 +116,12 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::handleSessionMessage"));
 
   int result = -1;
+  HRESULT result_2 = E_FAIL;
+  bool COM_initialized = false;
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
-  ACE_ASSERT (message_inout);
+  //ACE_ASSERT (!IVideoWindow_);
 
   switch (message_inout->type ())
   {
@@ -119,8 +135,7 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
       SessionDataType& session_data_r =
         const_cast<SessionDataType&> (session_data_container_r.get ());
 
-      bool COM_initialized = false;
-      HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+      result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -130,17 +145,26 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
       } // end IF
       COM_initialized = true;
 
-      if (!initialize_DirectShow (configuration_->window,
-                                  configuration_->area,
-                                  configuration_->builder,
-                                  configuration_->windowController))
+      IVideoWindow* video_window_p = configuration_->windowController;
+      if (!video_window_p)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to initialize_DirectShow(), aborting\n")));
-        goto error;
+        // sanity check(s)
+        ACE_ASSERT (!IVideoWindow_);
+
+        if (!initialize_DirectShow (configuration_->window,
+                                    configuration_->area,
+                                    configuration_->builder,
+                                    IVideoWindow_))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to initialize_DirectShow(), aborting\n")));
+          goto error;
+        } // end IF
+        ACE_ASSERT (IVideoWindow_);
+        configuration_->windowController = IVideoWindow_;
+        video_window_p = IVideoWindow_;
       } // end IF
-      ACE_ASSERT (configuration_->windowController);
-      IVideoWindow_ = configuration_->windowController;
+      ACE_ASSERT (video_window_p);
 
       goto continue_;
 
@@ -155,8 +179,7 @@ continue_:
     }
     case STREAM_SESSION_END:
     {
-      bool COM_initialized = false;
-      HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+      result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -166,25 +189,37 @@ continue_:
       } // end IF
       COM_initialized = true;
 
+      IVideoWindow* video_window_p =
+        (IVideoWindow_ ? IVideoWindow_
+                       : configuration_->windowController);
+
       // *IMPORTANT NOTE*: "Reset the owner to NULL before releasing the Filter
       //                   Graph Manager. Otherwise, messages will continue to
       //                   be sent to this window and errors will likely occur
       //                   when the application is terminated. ..."
-      if (IVideoWindow_)
+      if (video_window_p)
       {
         // *TODO*: this call blocks indefinetly
         //         --> needs to be called from somewhere else ?
-        //HRESULT result_2 = IVideoWindow_->put_Owner (NULL);
+        //HRESULT result_2 = configuration_->windowController->put_Owner (NULL);
         //if (FAILED (result_2))
         //  ACE_DEBUG ((LM_ERROR,
         //              ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
         //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
+        result_2 = video_window_p->put_MessageDrain (NULL);
+        if (FAILED (result_2))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IVideoWindow::put_MessageDrain() \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      } // end IF
+
+      if (IVideoWindow_)
+      {
+        configuration_->windowController = NULL;
         IVideoWindow_->Release ();
         IVideoWindow_ = NULL;
       } // end IF
-      if (configuration_->windowController)
-        configuration_->windowController = NULL;
 
       if (COM_initialized)
         CoUninitialize ();
@@ -210,18 +245,28 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::initialize"));
 
+  HRESULT result = E_FAIL;
+
   if (isInitialized_)
   {
     isInitialized_ = false;
 
     if (IVideoWindow_)
     {
-      HRESULT result_2 = IVideoWindow_->put_Owner (NULL);
-      if (FAILED (result_2))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      //result = IVideoWindow_->put_Owner (NULL);
+      //if (FAILED (result))
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
+      result = IVideoWindow_->put_MessageDrain (NULL);
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IVideoWindow::put_MessageDrain() \"%s\", continuing\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      if (configuration_->windowController)
+        configuration_->windowController = NULL;
       IVideoWindow_->Release ();
       IVideoWindow_ = NULL;
     } // end IF
@@ -276,7 +321,7 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
     IVideoWindow_out = NULL;
   } // end IF
 
-    // sanity check(s)
+  // sanity check(s)
   ACE_ASSERT (IGraphBuilder_in);
 
   // retrieve interfaces for media control and the video window 
@@ -302,8 +347,10 @@ continue_:
   //result = IVideoWindow_out->put_Owner ((OAHWND)windowHandle_in);
   //if (FAILED (result))
   //  goto error_2;
+
+  // redirect mouse and keyboard events to the main gtk window
   result = IVideoWindow_out->put_MessageDrain ((OAHWND)windowHandle_in);
-  if (FAILED (result))
+  if (FAILED (result)) // VFW_E_NOT_CONNECTED: 0x80040209
     goto error_2;
   //result = IVideoWindow_out->put_WindowStyle (WS_CHILD | WS_CLIPCHILDREN);
   //if (FAILED (result))
@@ -327,9 +374,8 @@ continue_:
 
 error_2:
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("failed to configure IVideoWindow (was: 0x%@): \"%s\", aborting\n"),
-              windowHandle_in,
-              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+              ACE_TEXT ("failed to configure IVideoWindow: \"%s\" (0x%x), aborting\n"),
+              ACE_TEXT (Common_Tools::error2String (result).c_str ()), result));
   return false;
 
 continue_2:

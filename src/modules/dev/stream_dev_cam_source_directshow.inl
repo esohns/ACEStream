@@ -59,10 +59,10 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
                                 false)
  , timerID_ (-1)
  , isFirst_ (true)
-//, ICaptureGraphBuilder2_ (NULL)
+ , ICaptureGraphBuilder2_ (NULL)
  , IMediaControl_ (NULL)
  , IMediaEventEx_ (NULL)
- , ISampleGrabber_ (NULL)
+ //, ISampleGrabber_ (NULL)
  , ROTID_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::Stream_Dev_Cam_Source_DirectShow_T"));
@@ -138,19 +138,10 @@ continue_:
     IMediaControl_->Stop ();
     IMediaControl_->Release ();
   } // end IF
-  if (ISampleGrabber_)
-  {
-    ISampleGrabber_->Release ();
-    ISampleGrabber_ = NULL;
-  } // end IF
-//if (ICaptureGraphBuilder2_)
-//  ICaptureGraphBuilder2_->Release ();
-  //if (inherited::configuration_)
-  //  if (inherited::configuration_->builder)
-  //  {
-  //    inherited::configuration_->builder->Release ();
-  //    inherited::configuration_->builder = NULL;
-  //  } // end IF
+  //if (ISampleGrabber_)
+  //  ISampleGrabber_->Release ();
+  if (ICaptureGraphBuilder2_)
+    ICaptureGraphBuilder2_->Release ();
 }
 
 template <typename LockType,
@@ -254,16 +245,11 @@ continue_:
       IMediaControl_->Release ();
       IMediaControl_ = NULL;
     } // end IF
-    //if (ICaptureGraphBuilder2_)
-    //{
-    //  ICaptureGraphBuilder2_->Release ();
-    //  ICaptureGraphBuilder2_ = NULL;
-    //} // end IF
-    //if (inherited::configuration_->builder)
-    //{
-    //  inherited::configuration_->builder->Release ();
-    //  inherited::configuration_->builder = NULL;
-    //} // end IF
+    if (ICaptureGraphBuilder2_)
+    {
+      ICaptureGraphBuilder2_->Release ();
+      ICaptureGraphBuilder2_ = NULL;
+    } // end IF
 
     if (inherited::sessionData_)
     {
@@ -339,22 +325,18 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (isInitialized_);
+
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_BEGIN:
     {
-      // sanity check(s)
-      ACE_ASSERT (inherited::sessionData_);
       // *TODO*: remove type inference
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
-
-      //inherited::sessionData_ =
-      //  &const_cast<SessionDataContainerType&> (message_inout->get ());
-      //inherited::sessionData_->increase ();
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
       if (inherited::configuration_->streamConfiguration->statisticReportingInterval)
       {
@@ -370,8 +352,8 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
         if (timerID_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", returning\n")));
-          return;
+                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n")));
+          goto error;
         } // end IF
         //        ACE_DEBUG ((LM_DEBUG,
         //                    ACE_TEXT ("scheduled statistics collecting timer (ID: %d) for interval %#T...\n"),
@@ -386,35 +368,115 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", returning\n"),
+                    ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        break;
+        goto error;
       } // end IF
       COM_initialized = true;
 
-      if (!initialize_DirectShow (inherited::configuration_->device,
-                                  //ICaptureGraphBuilder2_,
-                                  inherited::configuration_->builder,
-                                  inherited::configuration_->window))
+      IGraphBuilder* builder_p = inherited::configuration_->builder;
+      if (inherited::configuration_->builder)
       {
+        // sanity check(s)
+        ACE_ASSERT (!IMediaControl_);
+        ACE_ASSERT (!IMediaEventEx_);
+
+        // retrieve interfaces for media control and the video window
+        result_2 =
+          inherited::configuration_->builder->QueryInterface (IID_IMediaControl,
+                                                              (void**)&IMediaControl_);
+        if (FAILED (result_2))
+          goto error_2;
+        result_2 =
+          inherited::configuration_->builder->QueryInterface (IID_IMediaEventEx,
+                                                              (void**)&IMediaEventEx_);
+        if (FAILED (result_2))
+          goto error_2;
+
+        goto do_run;
+error_2:
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to initialize_DirectShow(), returning\n")));
+                    ACE_TEXT ("failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         goto error;
       } // end IF
-      //ACE_ASSERT (ICaptureGraphBuilder2_);
-      ACE_ASSERT (inherited::configuration_->builder);
+      ACE_ASSERT (!ICaptureGraphBuilder2_);
+
+      ISampleGrabber* sample_grabber_p = NULL;
+      // *TODO*: remove type inferences
+      if (!initialize_DirectShow (inherited::configuration_->device,
+                                  inherited::configuration_->window,
+                                  ICaptureGraphBuilder2_,
+                                  sample_grabber_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to initialize_DirectShow(), aborting\n")));
+        goto error;
+      } // end IF
+      ACE_ASSERT (ICaptureGraphBuilder2_);
+      //ACE_ASSERT (ISampleGrabber_);
+      ACE_ASSERT (sample_grabber_p);
+
+      result_2 = sample_grabber_p->SetBufferSamples (false);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ISampleGrabber::SetBufferSamples(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        goto error;
+      } // end IF
+      result_2 = sample_grabber_p->SetCallback (this, 0);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        goto error;
+      } // end IF
+      sample_grabber_p->Release ();
+
+      result_2 = ICaptureGraphBuilder2_->GetFiltergraph (&builder_p);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ICaptureGraphBuilder2::GetFiltergraph(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        goto error;
+      } // end IF
+      inherited::configuration_->builder = builder_p;
+
+      ACE_ASSERT (!session_data_r.mediaType);
+      if (!Stream_Module_Device_Tools::getOutputFormat (builder_p,
+                                                        session_data_r.mediaType))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+        goto error;
+      } // end IF
+      ACE_ASSERT (session_data_r.mediaType);
+
+      if (_DEBUG)
+      {
+        std::string log_file_name =
+          Common_File_Tools::getLogDirectory (std::string (),
+                                              0);
+        log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+        log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+        Stream_Module_Device_Tools::debug (builder_p,
+                                           log_file_name);
+      } // end IF
+
+do_run:
+      ACE_ASSERT (builder_p);
       ACE_ASSERT (IMediaControl_);
       ACE_ASSERT (IMediaEventEx_);
-      ACE_ASSERT (ISampleGrabber_);
-      // *TODO*: remove type inference
-      session_data_r.sampleGrabber = ISampleGrabber_;
 
-      // start previewing video data
+      // start displaying video data
       result_2 = IMediaControl_->Run ();
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMediaControl::Run(): \"%s\", returning\n"),
+                    ACE_TEXT ("failed to IMediaControl::Run(): \"%s\", aborting\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         goto error;
       } // end IF
@@ -427,7 +489,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to GetRunningObjectTable(): \"%s\", returning\n"),
+                    ACE_TEXT ("failed to GetRunningObjectTable(): \"%s\", aborting\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         goto error;
       } // end IF
@@ -435,13 +497,13 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
       result_2 =
         ::StringCchPrintfW (buffer, NUMELMS (buffer),
                             ACE_TEXT_ALWAYS_WCHAR ("FilterGraph %08x [PID: %08x]\0"),
-                            (DWORD_PTR)inherited::configuration_->builder, ACE_OS::getpid ());
+                            (DWORD_PTR)builder_p, ACE_OS::getpid ());
       result_2 = CreateItemMoniker (ACE_TEXT_ALWAYS_WCHAR ("!"), buffer,
                                     &moniker_p);
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to CreateItemMoniker(): \"%s\", returning\n"),
+                    ACE_TEXT ("failed to CreateItemMoniker(): \"%s\", aborting\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
         // clean up
@@ -480,6 +542,10 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
       ROT_p->Release ();
       moniker_p->Release ();
 
+      if (ICaptureGraphBuilder2_)
+        if (builder_p)
+          builder_p->Release ();
+
       break;
 
 error:
@@ -491,8 +557,23 @@ error:
                       ACE_TEXT ("failed to IMediaControl::Stop(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       } // end IF
+
+      if (ICaptureGraphBuilder2_)
+      {
+        // --> the filter graph is ours
+
+        if (builder_p)
+          builder_p->Release ();
+
+        Stream_Module_Device_Tools::deleteMediaType (session_data_r.mediaType);
+
+        ICaptureGraphBuilder2_->Release ();
+        ICaptureGraphBuilder2_ = NULL;
+      } // end IF
       if (COM_initialized)
         CoUninitialize ();
+
+      session_data_r.aborted = true;
 
       break;
     }
@@ -601,17 +682,21 @@ continue_:
       //builder_p->Release ();
 
 //continue_2:
-      if (ISampleGrabber_)
-      {
-        ISampleGrabber_->Release ();
-        ISampleGrabber_ = NULL;
-      } // end IF
-      //if (ICaptureGraphBuilder2_)
+      //if (ISampleGrabber_)
       //{
-      //  ICaptureGraphBuilder2_->Release ();
-      //  ICaptureGraphBuilder2_ = NULL;
+      //  ISampleGrabber_->Release ();
+      //  ISampleGrabber_ = NULL;
       //} // end IF
+      if (ICaptureGraphBuilder2_)
+      {
+        // --> the filter graph is ours
 
+        if (session_data_r.mediaType)
+          Stream_Module_Device_Tools::deleteMediaType (session_data_r.mediaType);
+
+        ICaptureGraphBuilder2_->Release ();
+        ICaptureGraphBuilder2_ = NULL;
+      } // end IF
       if (COM_initialized)
         CoUninitialize ();
 
@@ -695,6 +780,30 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   ACE_NOTSUP;
 
   ACE_NOTREACHED (return;)
+}
+
+template <typename LockType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
+HRESULT
+Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::NotifyRelease (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::NotifyRelease"));
+
+  
+  return S_OK;
 }
 
 template <typename LockType,
@@ -943,147 +1052,147 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 //  ACE_NOTREACHED (return NULL;)
 //}
 
-//template <typename LockType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//int
-//Stream_Dev_Cam_Source_DirectShow_T<LockType,
-//                                   SessionMessageType,
-//                                   ProtocolMessageType,
-//                                   ConfigurationType,
-//                                   StreamStateType,
-//                                   SessionDataType,
-//                                   SessionDataContainerType,
-//                                   StatisticContainerType>::svc (void)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::svc"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::configuration_);
-//  ACE_ASSERT (isInitialized_);
-//
-//  int result = -1;
-//  int result_2 = -1;
-//  ACE_Message_Block* message_block_p = NULL;
-//  ACE_Time_Value no_wait = COMMON_TIME_NOW;
-//  int message_type = -1;
-//  bool finished = false;
-//  bool stop_processing = false;
-//
-//  // step1: start processing data...
-//  //   ACE_DEBUG ((LM_DEBUG,
-//  //               ACE_TEXT ("entering processing loop...\n")));
-//  do
-//  {
-//    message_block_p = NULL;
-//    result = inherited::getq (message_block_p,
-//                              &no_wait);
-//    if (result == 0)
-//    {
-//      ACE_ASSERT (message_block_p);
-//      message_type = message_block_p->msg_type ();
-//      switch (message_type)
-//      {
-//        case ACE_Message_Block::MB_STOP:
-//        {
-//          // clean up
-//          message_block_p->release ();
-//          message_block_p = NULL;
-//
-//          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
-//          //         not have been set at this stage
-//
-//          // signal the controller ?
-//          if (!finished)
-//          {
-//            finished = true;
-//            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-//            //         --> continue
-//            inherited::finished ();
-//            // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
-//            //         --> done
-//            if (inherited::thr_count_ == 0)
-//            {
-//              result_2 = 0; // success
-//              goto done; // finished processing
-//            } // end IF
-//
-//          } // end IF
-//          continue;
-//        }
-//        default:
-//          break;
-//      } // end SWITCH
-//
-//        // process
-//        // *NOTE*: fire-and-forget message_block_p here
-//      inherited::handleMessage (message_block_p,
-//                                stop_processing);
-//      if (stop_processing)
-//      {
-//        //        SessionMessageType* session_message_p = NULL;
-//        //        // downcast message
-//        //        session_message_p = dynamic_cast<SessionMessageType*> (message_block_p);
-//        //        if (!session_message_p)
-//        //        {
-//        //          if (inherited::module ())
-//        //            ACE_DEBUG ((LM_ERROR,
-//        //                        ACE_TEXT ("%s: dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
-//        //                        inherited::name (),
-//        //                        message_block_p,
-//        //                        message_type));
-//        //          else
-//        //            ACE_DEBUG ((LM_ERROR,
-//        //                        ACE_TEXT ("dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
-//        //                        message_block_p,
-//        //                        message_type));
-//        //          break;
-//        //        } // end IF
-//        //        if (session_message_p->type () == STREAM_SESSION_END)
-//        result_2 = 0; // success
-//        goto done; // finished processing
-//      } // end IF
-//    } // end IF
-//    else if (result == -1)
-//    {
-//      int error = ACE_OS::last_error ();
-//      if (error != EWOULDBLOCK) // Win32: 10035
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
-//
-//        // signal the controller ?
-//        if (!finished)
-//        {
-//          finished = true;
-//          inherited::finished ();
-//        } // end IF
-//
-//        break;
-//      } // end IF
-//
-//      // session aborted ? (i.e. connection failed)
-//      ACE_ASSERT (inherited::sessionData_);
-//      const SessionDataType& session_data_r = inherited::sessionData_->get ();
-//      if (session_data_r.aborted)
-//      {
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("session aborted...\n")));
-//
-//        inherited::shutdown ();
-//        continue;
-//      } // end IF
-//    } // end IF
-//  } while (true);
-//
-//done:
-//  return result_2;
-//}
+template <typename LockType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
+int
+Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   SessionMessageType,
+                                   ProtocolMessageType,
+                                   ConfigurationType,
+                                   StreamStateType,
+                                   SessionDataType,
+                                   SessionDataContainerType,
+                                   StatisticContainerType>::svc (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::svc"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (isInitialized_);
+
+  int result = -1;
+  int result_2 = -1;
+  ACE_Message_Block* message_block_p = NULL;
+  ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  int message_type = -1;
+  bool finished = false;
+  bool stop_processing = false;
+
+  // step1: start processing data...
+  //   ACE_DEBUG ((LM_DEBUG,
+  //               ACE_TEXT ("entering processing loop...\n")));
+  do
+  {
+    message_block_p = NULL;
+    result = inherited::getq (message_block_p,
+                              &no_wait);
+    if (result == 0)
+    {
+      ACE_ASSERT (message_block_p);
+      message_type = message_block_p->msg_type ();
+      switch (message_type)
+      {
+        case ACE_Message_Block::MB_STOP:
+        {
+          // clean up
+          message_block_p->release ();
+          message_block_p = NULL;
+
+          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
+          //         not have been set at this stage
+
+          // signal the controller ?
+          if (!finished)
+          {
+            finished = true;
+            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+            //         --> continue
+            inherited::finished ();
+            // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
+            //         --> done
+            if (inherited::thr_count_ == 0)
+            {
+              result_2 = 0; // success
+              goto done; // finished processing
+            } // end IF
+
+          } // end IF
+          continue;
+        }
+        default:
+          break;
+      } // end SWITCH
+
+        // process
+        // *NOTE*: fire-and-forget message_block_p here
+      inherited::handleMessage (message_block_p,
+                                stop_processing);
+      if (stop_processing)
+      {
+        //        SessionMessageType* session_message_p = NULL;
+        //        // downcast message
+        //        session_message_p = dynamic_cast<SessionMessageType*> (message_block_p);
+        //        if (!session_message_p)
+        //        {
+        //          if (inherited::module ())
+        //            ACE_DEBUG ((LM_ERROR,
+        //                        ACE_TEXT ("%s: dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
+        //                        inherited::name (),
+        //                        message_block_p,
+        //                        message_type));
+        //          else
+        //            ACE_DEBUG ((LM_ERROR,
+        //                        ACE_TEXT ("dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
+        //                        message_block_p,
+        //                        message_type));
+        //          break;
+        //        } // end IF
+        //        if (session_message_p->type () == STREAM_SESSION_END)
+        result_2 = 0; // success
+        goto done; // finished processing
+      } // end IF
+    } // end IF
+    else if (result == -1)
+    {
+      int error = ACE_OS::last_error ();
+      if (error != EWOULDBLOCK) // Win32: 10035
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+
+        // signal the controller ?
+        if (!finished)
+        {
+          finished = true;
+          inherited::finished ();
+        } // end IF
+
+        break;
+      } // end IF
+
+      // session aborted ? (i.e. connection failed)
+      ACE_ASSERT (inherited::sessionData_);
+      const SessionDataType& session_data_r = inherited::sessionData_->get ();
+      if (session_data_r.aborted)
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("session aborted...\n")));
+
+        inherited::shutdown ();
+        continue;
+      } // end IF
+    } // end IF
+  } while (true);
+
+done:
+  return result_2;
+}
 
 template <typename LockType,
           typename SessionMessageType,
@@ -1102,48 +1211,86 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType>::initialize_DirectShow (const std::string& deviceName_in,
-                                                                                   IGraphBuilder* IGraphBuilder_in,
-                                                                                   const HWND windowHandle_in)
+                                                                                   const HWND windowHandle_in,
+                                                                                   ICaptureGraphBuilder2*& ICaptureGraphBuilder2_out,
+                                                                                   ISampleGrabber*& ISampleGrabber_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::initialize_DirectShow"));
 
   // sanity check(s)
-  ACE_ASSERT (IGraphBuilder_in);
+  ACE_ASSERT (!ICaptureGraphBuilder2_out);
+  ACE_ASSERT (!ISampleGrabber_out);
 
-  // *NOTE*: (re-)Connect()ion of the video renderer input pin fails
-  //         consistently, so reuse is not feasible
-  //         --> rebuild the whole graph from scratch each time
-  if (!Stream_Module_Device_Tools::reset (IGraphBuilder_in))
+  HRESULT result =
+    CoCreateInstance (CLSID_CaptureGraphBuilder2, NULL,
+                      CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2,
+                      (void**)&ICaptureGraphBuilder2_out);
+  if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::reset(), aborting\n")));
+                ACE_TEXT ("failed to CoCreateInstance(CLSID_CaptureGraphBuilder2): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
   } // end IF
+  ACE_ASSERT (ICaptureGraphBuilder2_out);
+
+  std::list<std::wstring> filter_pipeline;
+
+  IGraphBuilder* graph_builder_p = NULL;
+  IAMStreamConfig* stream_config_p = NULL;
+  if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
+                                                    graph_builder_p,
+                                                    stream_config_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+                ACE_TEXT (deviceName_in.c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (graph_builder_p);
+  ACE_ASSERT (stream_config_p);
+
+  result = ICaptureGraphBuilder2_out->SetFiltergraph (graph_builder_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ICaptureGraphBuilder2::SetFiltergraph(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
+  //// *NOTE*: (re-)Connect()ion of the video renderer input pin fails
+  ////         consistently, so reuse is not feasible
+  ////         --> rebuild the whole graph from scratch each time
+  //if (!Stream_Module_Device_Tools::reset (IGraphBuilder_in))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::reset(), aborting\n")));
+  //  return false;
+  //} // end IF
 
   // retrieve interfaces for media control and the video window
-  HRESULT result = IGraphBuilder_in->QueryInterface (IID_IMediaControl,
-                                                     (void**)&IMediaControl_);
+  result = graph_builder_p->QueryInterface (IID_IMediaControl,
+                                            (void**)&IMediaControl_);
   if (FAILED (result))
-    goto error;
-  result = IGraphBuilder_in->QueryInterface (IID_IMediaEventEx,
-                                             (void**)&IMediaEventEx_);
+    goto error_2;
+  result = graph_builder_p->QueryInterface (IID_IMediaEventEx,
+                                            (void**)&IMediaEventEx_);
   if (FAILED (result))
-    goto error;
+    goto error_2;
 
   goto continue_;
 
-error:
+error_2:
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("failed to IGraphBuilder::QueryInterface(): \"%s\", aborting\n"),
               ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-  return false;
+  goto error;
 
 continue_:
-  std::list<std::wstring> filter_pipeline;
-
   ACE_ASSERT (IMediaControl_);
   ACE_ASSERT (IMediaEventEx_);
+
   // set the window handle used to process graph events
   result =
     IMediaEventEx_->SetNotifyWindow ((OAHWND)windowHandle_in,
@@ -1153,120 +1300,61 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error_2;
+    goto error;
   } // end IF
 
   IBaseFilter* filter_p = NULL;
   result =
-    IGraphBuilder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
-                                        &filter_p);
+    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+                                       &filter_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error_2;
+    goto error;
   } // end IF
   ACE_ASSERT (filter_p);
 
-  // grab
-  IBaseFilter* filter_2 = NULL;
-  result =
-    IGraphBuilder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
-                                        &filter_2);
-  if (FAILED (result))
-  {
-    if (result != VFW_E_NOT_FOUND)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error_2;
-    } // end IF
-
-    result = CoCreateInstance (CLSID_SampleGrabber, NULL,
-                               CLSCTX_INPROC_SERVER, IID_IBaseFilter,
-                               (void**)&filter_2);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoCreateInstance(CLSID_SampleGrabber): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error_2;
-    } // end IF
-    ACE_ASSERT (filter_2);
-    result =
-      IGraphBuilder_in->AddFilter (filter_2,
-                                   MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error_2;
-    } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("added \"%s\"...\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB)));
-  } // end IF
-  ACE_ASSERT (filter_2);
-  ISampleGrabber_ = NULL;
-  result = filter_2->QueryInterface (IID_ISampleGrabber,
-                                     (void**)&ISampleGrabber_);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error_2;
-  } // end IF
-  ACE_ASSERT (ISampleGrabber_);
-  ISampleGrabber_->SetBufferSamples (false);
-  result = ISampleGrabber_->SetCallback (this, 0);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error_2;
-  } // end IF
-  //AM_MEDIA_TYPE media_type;
-  //result = ISampleGrabber_->SetMediaType (&media_type);
-
   // decompress ?
   struct _AMMediaType* media_type_p = NULL;
-  if (!Stream_Module_Device_Tools::getFormat (IGraphBuilder_in,
-                                              media_type_p))
+  if (!Stream_Module_Device_Tools::getCaptureFormat (graph_builder_p,
+                                                     media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(), aborting\n")));
-    goto error_2;
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+    goto error;
   } // end IF
   ACE_ASSERT (media_type_p);
   struct _GUID media_subtype = media_type_p->subtype;
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-  struct _GUID decompressor_guid = CLSID_MjpegDec;
-  LPCWSTR decompressor_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_MJPG;
+  struct _GUID decompressor_guid = CLSID_Colour;
+  LPCWSTR decompressor_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB;
+  bool needs_converter = false;
   if (media_subtype == MEDIASUBTYPE_YUY2)
   {
+    // *NOTE*: the AVI Decompressor supports decoding YUV-formats to RGB
     decompressor_guid = CLSID_AVIDec;
     decompressor_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_AVI;
   } // end IF
-  else if (media_subtype == MEDIASUBTYPE_MJPG);
+  else if (media_subtype == MEDIASUBTYPE_MJPG)
+  {
+    decompressor_guid = CLSID_MjpegDec;
+    decompressor_name = MODULE_DEV_CAM_WIN32_FILTER_NAME_DECOMPRESS_MJPG;
+  } // end IF
   else
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
                 ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (media_subtype).c_str ())));
-    goto error_2;
+    goto error;
   } // end ELSE
-  IBaseFilter* filter_3 = NULL;
+  IBaseFilter* filter_2 = NULL;
   if (!windowHandle_in) goto continue_2;
   result =
-    IGraphBuilder_in->FindFilterByName (decompressor_name,
-                                        &filter_3);
+    graph_builder_p->FindFilterByName (decompressor_name,
+                                       &filter_2);
   if (FAILED (result))
   {
     if (result != VFW_E_NOT_FOUND)
@@ -1275,44 +1363,96 @@ continue_:
                   ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                   ACE_TEXT_WCHAR_TO_TCHAR (decompressor_name),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error_2;
+      goto error;
     } // end IF
 
     result = CoCreateInstance (decompressor_guid, NULL,
                                CLSCTX_INPROC_SERVER, IID_IBaseFilter,
-                               (void**)&filter_3);
+                               (void**)&filter_2);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CoCreateInstance() decompressor: \"%s\", aborting\n"),
                   ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (media_subtype).c_str ()),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error_2;
+      goto error;
     } // end IF
-    ACE_ASSERT (filter_3);
+    ACE_ASSERT (filter_2);
     result =
-      IGraphBuilder_in->AddFilter (filter_3,
-                                   decompressor_name);
+      graph_builder_p->AddFilter (filter_2,
+                                  decompressor_name);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error_2;
+      goto error;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (decompressor_name)));
   } // end IF
+  ACE_ASSERT (filter_2);
+
+  // grab
+  IBaseFilter* filter_3 = NULL;
+  result =
+    graph_builder_p->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
+                                       &filter_3);
+  if (FAILED (result))
+  {
+    if (result != VFW_E_NOT_FOUND)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+
+    result = CoCreateInstance (CLSID_SampleGrabber, NULL,
+                               CLSCTX_INPROC_SERVER, IID_IBaseFilter,
+                               (void**)&filter_3);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoCreateInstance(CLSID_SampleGrabber): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (filter_3);
+    result = graph_builder_p->AddFilter (filter_3,
+                                         MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("added \"%s\"...\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB)));
+  } // end IF
   ACE_ASSERT (filter_3);
+  result = filter_3->QueryInterface (IID_ISampleGrabber,
+                                     (void**)&ISampleGrabber_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (ISampleGrabber_out);
 
   // render to a window (GtkDrawingArea) ?
 continue_2:
   IBaseFilter* filter_4 = NULL;
   result =
-    IGraphBuilder_in->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                         : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL),
-                                        &filter_4);
+    graph_builder_p->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                                        : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL),
+                                       &filter_4);
   if (FAILED (result))
   {
     if (result != VFW_E_NOT_FOUND)
@@ -1322,7 +1462,7 @@ continue_2:
                   ACE_TEXT_WCHAR_TO_TCHAR ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
                                                             : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL)),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error_2;
+      goto error;
     } // end IF
 
     result = CoCreateInstance ((windowHandle_in ? CLSID_VideoRenderer
@@ -1336,19 +1476,19 @@ continue_2:
                   (windowHandle_in ? ACE_TEXT ("CLSID_VideoRenderer")
                                    : ACE_TEXT ("CLSID_NullRenderer")),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error_2;
+      goto error;
     } // end IF
     ACE_ASSERT (filter_4);
     result =
-      IGraphBuilder_in->AddFilter (filter_4,
-                                   (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
-                                                    : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
+      graph_builder_p->AddFilter (filter_4,
+                                  (windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
+                                                   : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error_2;
+      goto error;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added \"%s\"...\n"),
@@ -1372,17 +1512,16 @@ continue_2:
   //  goto error_2;
   //} // end IF
   filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
+  filter_pipeline.push_back (decompressor_name);
   filter_pipeline.push_back (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB);
-  if (windowHandle_in)
-    filter_pipeline.push_back (decompressor_name);
   filter_pipeline.push_back ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
                                               : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL));
-  if (!Stream_Module_Device_Tools::connect (IGraphBuilder_in,
+  if (!Stream_Module_Device_Tools::connect (graph_builder_p,
                                             filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
-    goto error_2;
+    goto error;
   } // end IF
 
   // clean up
@@ -1395,17 +1534,30 @@ continue_2:
   if (filter_4)
     filter_4->Release ();
 
+  // *NOTE*: apparently, this is necessary
+  //         (see: https://msdn.microsoft.com/en-us/library/windows/desktop/dd373396(v=vs.85).aspx)
+  graph_builder_p->Release ();
+  graph_builder_p = NULL;
+  stream_config_p->Release ();
+
   return true;
 
-error_2:
-  if (filter_p)
-    filter_p->Release ();
-  if (filter_2)
-    filter_2->Release ();
-  if (filter_3)
-    filter_3->Release ();
-  if (filter_4)
-    filter_4->Release ();
+error:
+  if (graph_builder_p)
+    graph_builder_p->Release ();
+  if (stream_config_p)
+    stream_config_p->Release ();
+
+  if (ISampleGrabber_out)
+  {
+    ISampleGrabber_out->Release ();
+    ISampleGrabber_out = NULL;
+  } // end IF
+  if (ICaptureGraphBuilder2_out)
+  {
+    ICaptureGraphBuilder2_out->Release ();
+    ICaptureGraphBuilder2_out = NULL;
+  } // end IF
 
   return false;
 }

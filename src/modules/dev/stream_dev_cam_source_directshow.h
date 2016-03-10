@@ -63,6 +63,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                       SessionDataType,
                                       SessionDataContainerType>
  , public Common_IStatistic_T<StatisticContainerType>
+ , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
 {
  public:
@@ -98,6 +99,9 @@ class Stream_Dev_Cam_Source_DirectShow_T
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   virtual void report () const;
 
+  // implement IMemAllocatorNotifyCallbackTemp
+  virtual STDMETHODIMP NotifyRelease (void);
+
   // implement ISampleGrabberCB
   virtual STDMETHODIMP BufferCB (double, // SampleTime
                                  BYTE*,  // Buffer
@@ -129,12 +133,13 @@ class Stream_Dev_Cam_Source_DirectShow_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T (const Stream_Dev_Cam_Source_DirectShow_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T& operator= (const Stream_Dev_Cam_Source_DirectShow_T&))
 
-  //virtual int svc (void);
+  virtual int svc (void);
 
   // helper methods
-  bool initialize_DirectShow (const std::string&, // (source) device name (FriendlyName)
-                              IGraphBuilder*,     // capture graph handle
-                              const HWND);        // (target) window handle [NULL: NullRenderer]
+  bool initialize_DirectShow (const std::string&,      // (source) device name (FriendlyName)
+                              const HWND,              // (target) window handle [NULL: NullRenderer]
+                              ICaptureGraphBuilder2*&, // return value: (capture) graph builder handle
+                              ISampleGrabber*&);       // return value: sample grabber handle
   bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
   bool                              isInitialized_;
@@ -145,10 +150,10 @@ class Stream_Dev_Cam_Source_DirectShow_T
 
   // DirectShow
   bool                              isFirst_;
-  //ICaptureGraphBuilder2*            ICaptureGraphBuilder2_;
+  ICaptureGraphBuilder2*            ICaptureGraphBuilder2_;
   IMediaControl*                    IMediaControl_;
   IMediaEventEx*                    IMediaEventEx_;
-  ISampleGrabber*                   ISampleGrabber_;
+  //ISampleGrabber*                   ISampleGrabber_;
   DWORD                             ROTID_;
 };
 

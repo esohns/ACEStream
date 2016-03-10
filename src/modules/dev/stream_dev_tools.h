@@ -63,13 +63,40 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool graphConnect (IGraphBuilder*,                  // graph handle
                             const std::list<std::wstring>&); // graph
   static bool disconnect (IGraphBuilder*); // graph handle
-  static bool load (const std::string&,  // device ("FriendlyName")
-                    IGraphBuilder*&,     // return value: (capture) graph handle
-                    IAMStreamConfig*&);  // return value: stream configuration handle
-  static bool load (const HWND,                // window handle [NULL: NullRenderer]
-                    IGraphBuilder*&,           // return value: graph handle
-                    std::list<std::wstring>&); // return value: pipeline filter configuration
-  static bool reset (IGraphBuilder*); // graph handle
+
+  // -------------------------------------
+
+  // *NOTE*: currently, these work for capture graphs only
+  // *IMPORTANT NOTE*: caller must deleteMediaType() the result !
+  static bool getCaptureFormat (IGraphBuilder*,         // graph handle
+                                struct _AMMediaType*&); // return value: media type
+  static bool setCaptureFormat (IGraphBuilder*,              // graph handle
+                                const struct _AMMediaType&); // media type
+  static bool getOutputFormat (IGraphBuilder*,         // graph handle
+                               struct _AMMediaType*&); // return value: media type
+  // *NOTE*: loads the capture device filter and puts it into an empty (capture)
+  //         graph
+  static bool loadDeviceGraph (const std::string&,  // device ("FriendlyName")
+                               IGraphBuilder*&,     // return value: (capture) graph handle
+                               IAMStreamConfig*&);  // return value: format configuration handle
+  // *NOTE*: disconnects the (capture) graph and removes all but the capture
+  //         filter
+  static bool resetDeviceGraph (IGraphBuilder*); // filter graph handle
+
+  // -------------------------------------
+  // *TODO*: remove these ASAP
+
+  // *NOTE*: loads a filter graph (source side)
+  static bool loadRendererGraph (const struct _AMMediaType&, // media type
+                                 const HWND,                 // window handle [NULL: NullRenderer]
+                                 IGraphBuilder*,             // graph handle
+                                 std::list<std::wstring>&);  // return value: pipeline filter configuration
+  // *NOTE*: loads a filter graph (target side)
+  static bool loadTargetRendererGraph (const HWND,                // window handle [NULL: NullRenderer]
+                                       IGraphBuilder*&,           // return value: graph handle
+                                       std::list<std::wstring>&); // return value: pipeline filter configuration
+
+  // -------------------------------------
 
   // *NOTE*: close an existing log file by supplying an empty file name
   static void debug (IGraphBuilder*,      // graph handle
@@ -81,13 +108,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   //         graph..."
   static std::string name (IBaseFilter*); // filter handle
 
-  static bool getFormat (IGraphBuilder*,         // graph handle
-                         struct _AMMediaType*&); // return value: media type
-  static bool setFormat (IGraphBuilder*,              // graph handle
-                         const struct _AMMediaType&); // media type
   static void deleteMediaType (struct _AMMediaType*&); // handle
   static void freeMediaType (struct _AMMediaType&);
-  static std::string mediaSubTypeToString (const GUID&); // GUID
+  static std::string mediaSubTypeToString (const struct _GUID&); // GUID
   static std::string mediaTypeToString (const struct _AMMediaType&); // media type
 #else
   static bool canOverlay (int); // file descriptor

@@ -511,7 +511,7 @@ do_run:
       ACE_ASSERT (IMediaControl_);
       ACE_ASSERT (IMediaEventEx_);
 
-      // start previewing video data
+      // start displaying video data
       result_2 = IMediaControl_->Run ();
       if (FAILED (result_2))
       {
@@ -733,12 +733,12 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
   IGraphBuilder_out = NULL;
 
   std::list<std::wstring> filter_pipeline;
-  if (!Stream_Module_Device_Tools::load (windowHandle_in,
-                                         IGraphBuilder_out,
-                                         filter_pipeline))
+  if (!Stream_Module_Device_Tools::loadTargetRendererGraph (windowHandle_in,
+                                                            IGraphBuilder_out,
+                                                            filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::load(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadTargetRendererGraph(), aborting\n")));
     return false;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);

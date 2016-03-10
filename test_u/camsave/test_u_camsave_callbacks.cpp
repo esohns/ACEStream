@@ -58,6 +58,9 @@
 #include "test_u_camsave_defines.h"
 #include "test_u_camsave_stream.h"
 
+// initialize statics
+bool asynchronous_stream_error = false;
+
 int
 dirent_selector (const dirent* dirEntry_in)
 {
@@ -859,6 +862,14 @@ stream_processing_function (void* arg_in)
 #endif
 
 error:
+  guint event_source_id = g_idle_add (idle_session_end_cb,
+                                      data_p->CBData);
+  if (event_source_id == 0)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
+  else
+    data_p->CBData->eventSourceIds.insert (event_source_id);
+
   { // synch access
     ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->CBData->lock);
     data_p->CBData->progressData.completedActions.insert (data_p->eventSourceID);
@@ -1861,6 +1872,11 @@ idle_session_end_cb (gpointer userData_in)
     GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
   ACE_ASSERT (toggle_action_p);
+  if (gtk_toggle_action_get_active (toggle_action_p))
+  {
+    asynchronous_stream_error = true;
+    gtk_action_activate (GTK_ACTION (toggle_action_p));
+  } // end IF
   gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
 
   return G_SOURCE_REMOVE;
@@ -1898,7 +1914,8 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
   const Stream_StateMachine_ControlState& status_r =
     data_p->stream->status ();
   if ((status_r == STREAM_STATE_RUNNING) ||
-      (status_r == STREAM_STATE_PAUSED))
+      (status_r == STREAM_STATE_PAUSED)  ||
+      asynchronous_stream_error) // (asynch) stream error
   {
     data_p->stream->stop (false, true);
 
@@ -1934,6 +1951,9 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
     // *NOTE*: this disables "activity mode" (in Gtk2)
     gtk_progress_bar_set_fraction (progressbar_p, 0.0);
     gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
+
+    if (asynchronous_stream_error)
+      asynchronous_stream_error = false;
 
     return;
   } // end IF
@@ -2383,15 +2403,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     data_p->streamConfiguration->Release ();
     data_p->streamConfiguration = NULL;
   } // end IF
-  if (data_p->configuration->moduleHandlerConfiguration.builder)
-  {
-    data_p->configuration->moduleHandlerConfiguration.builder->Release ();
-    data_p->configuration->moduleHandlerConfiguration.builder =
-      NULL;
-  } // end IF
-  if (!Stream_Module_Device_Tools::load (device_string,
-                                         data_p->configuration->moduleHandlerConfiguration.builder,
-                                         data_p->streamConfiguration))
+  if (!Stream_Module_Device_Tools::loadDeviceGraph (device_string,
+                                                    data_p->configuration->moduleHandlerConfiguration.builder,
+                                                    data_p->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), returning\n"),
@@ -2548,11 +2562,11 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-                                              *media_type_p))
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+                                                     *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
     goto error;
   } // end IF
   //DeleteMediaType (media_type_p);
@@ -2747,11 +2761,11 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-                                              *media_type_p))
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+                                                     *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
     goto error;
   } // end IF
   //DeleteMediaType (media_type_p);
@@ -2895,11 +2909,11 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-                                              *media_type_p))
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+                                                     *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFormat(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
     goto error;
   } // end IF
     //DeleteMediaType (media_type_p);

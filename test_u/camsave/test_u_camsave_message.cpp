@@ -85,7 +85,7 @@ Stream_CamSave_Message::duplicate (void) const
 
   Stream_CamSave_Message* message_p = NULL;
 
-  // create a new Stream_MessageBase that contains unique copies of
+  // create a new Stream_CamSave_Message that contains unique copies of
   // the message block fields, but a (reference counted) shallow duplicate of
   // the ACE_Data_Block
 
@@ -109,7 +109,7 @@ Stream_CamSave_Message::duplicate (void) const
     ACE_ASSERT (allocator_p);
     if (allocator_p->block ())
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate Stream_MessageBase: \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to allocate Stream_CamSave_Message: \"%m\", aborting\n")));
     return NULL;
   } // end IF
 
@@ -120,7 +120,7 @@ Stream_CamSave_Message::duplicate (void) const
     if (!message_p->cont_)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MessageBase::duplicate(): \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to Stream_CamSave_Message::duplicate(): \"%m\", aborting\n")));
 
       // clean up
       message_p->release ();

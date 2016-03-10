@@ -147,7 +147,7 @@ Stream_CamSave_EventHandler::end ()
   if (event_source_id == 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to g_idle_add(idle_start_target_UI_cb): \"%m\", returning\n")));
+                ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", returning\n")));
     return;
   } // end IF
   CBData_->eventSourceIds.insert (event_source_id);

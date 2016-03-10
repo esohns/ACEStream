@@ -1,7 +1,10 @@
 cmake_minimum_required (VERSION 2.8)
 
 if (WIN32)
- include_directories ("$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+ set (DIRECTSHOW_BASECLASSES_DIRECTORY
+      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+
+ include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
@@ -69,6 +72,14 @@ add_dependencies (${PROJECT_NAME}_Miscellaneous Common)
 add_dependencies (${PROJECT_NAME}_Miscellaneous ${PROJECT_NAME})
 
 if (WIN32)
+# if (CMAKE_BUILD_TYPE STREQUAL Debug)
+#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
+#  target_link_libraries (${PROJECT_NAME}_Miscellaneous ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
+# else ()
+#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
+#  target_link_libraries (${PROJECT_NAME}_Miscellaneous strmbase.lib)
+# endif ()
+# target_link_libraries (${PROJECT_NAME}_Miscellaneous winmm.lib)
  target_link_libraries (${PROJECT_NAME}_Miscellaneous ${ACE_LIBRARY})
 endif ()
 

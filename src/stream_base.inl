@@ -203,12 +203,6 @@ Stream_Base_T<LockType,
   int result = -1;
 
   // step1: reset pipeline
-  if (!finalize ())
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::finalize(), aborting\n")));
-    return false;
-  } // end IF
   try
   {
     result = inherited::open (NULL,  // argument to push()
@@ -310,47 +304,7 @@ Stream_Base_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
   // sanity check(s)
-  // *TODO*: cannot call isRunning(), as the stream may not be initialized
-//  ACE_ASSERT (!isRunning ());
-
-  if (isInitialized_)
-  {
-    // *NOTE*: fini() calls close(), resetting the writer/reader tasks
-    //         of all enqueued modules --> reset them !
-    IMODULE_T* imodule_p = NULL;
-    for (MODULE_CONTAINER_ITERATOR_T iterator = modules_.begin ();
-         iterator != modules_.end ();
-         iterator++)
-    {
-      // need a downcast...
-      imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
-      if (!imodule_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, returning\n"),
-                    (*iterator)->name ()));
-        return;
-      } // end IF
-      try
-      {
-        imodule_p->reset ();
-      }
-      catch (...)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("caught exception in Stream_IModule::reset(), continuing\n")));
-      }
-    } // end FOR
-
-    if (resetSessionData_in &&
-        sessionData_)
-    {
-      sessionData_->decrease ();
-      sessionData_ = NULL;
-    } // end IF
-
-    isInitialized_ = false;
-  } // end IF
+  ACE_ASSERT (!isInitialized_);
 
   // step1: allocate session data
   if (resetSessionData_in)
@@ -717,6 +671,12 @@ Stream_Base_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isRunning"));
 
   int result = -1;
+
+  // sanity check(s)
+  // *NOTE*: top() uses inherited::stream_head_. If the stream has not been
+  //         open()ed yet, or failed to initialize(), this will crash
+  if (!const_cast<OWN_TYPE_T*> (this)->head ())
+    return false;
 
   // delegate to the head module
   MODULE_T* module_p = NULL;
@@ -1187,6 +1147,12 @@ Stream_Base_T<LockType,
 
   StatusType result = static_cast<StatusType> (-1);
   int result_2 = -1;
+
+  // sanity check(s)
+  // *NOTE*: top() uses inherited::stream_head_. If the stream has not been
+  //         open()ed yet, or failed to initialize(), this will crash
+  if (!const_cast<OWN_TYPE_T*> (this)->head ())
+    return result;
 
   // delegate to the head module
   MODULE_T* module_p = NULL;
@@ -1902,8 +1868,43 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
+  IMODULE_T* imodule_p = NULL;
+
   if (isInitialized_)
   {
+    if (!finalize ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Base_T::finalize(), aborting\n")));
+      return false;
+    } // end IF
+
+    // *NOTE*: finialize() calls close(), resetting the writer/reader tasks
+    //         of all enqueued modules --> reset them !
+    for (MODULE_CONTAINER_ITERATOR_T iterator = modules_.begin ();
+         iterator != modules_.end ();
+         iterator++)
+    {
+      // need a downcast...
+      imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
+      if (!imodule_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
+                    (*iterator)->name ()));
+        return false;
+      } // end IF
+      try
+      {
+        imodule_p->reset ();
+      }
+      catch (...)
+      {
+        ACE_DEBUG ((LM_ERROR,
+          ACE_TEXT ("caught exception in Stream_IModule::reset(), continuing\n")));
+      }
+    } // end FOR
+
     if (hasFinal_)
     {
       if (state_.deleteModule)
@@ -1918,6 +1919,15 @@ Stream_Base_T<LockType,
       modules_.pop_front ();
       hasFinal_ = false;
     } // end IF
+
+    if (resetSessionData_in &&
+        sessionData_)
+    {
+      sessionData_->decrease ();
+      sessionData_ = NULL;
+    } // end IF
+
+    isInitialized_ = false;
   } // end IF
 
   // *TODO*: remove type inferences
@@ -1927,19 +1937,19 @@ Stream_Base_T<LockType,
     ACE_ASSERT (!hasFinal_);
     ACE_ASSERT (!state_.module);
 
+    imodule_p =
+        dynamic_cast<IMODULE_T*> (configuration_inout.module);
+    if (!imodule_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
+                  configuration_inout.module->name ()));
+      return false;
+    } // end IF
+
     // step1: clone final module (if any) ?
-    IMODULE_T* imodule_p = NULL;
     if (configuration_inout.cloneModule)
     {
-      // need a downcast...
-      imodule_p = dynamic_cast<IMODULE_T*> (configuration_inout.module);
-      if (!imodule_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("\"%s\": dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                    configuration_inout.module->name ()));
-        return false;
-      } // end IF
       MODULE_T* clone_p = NULL;
       try
       {
@@ -1967,6 +1977,10 @@ Stream_Base_T<LockType,
     } // end IF
     else
     {
+      // *NOTE*: if the module is ever reused, the reader/writer handles may need
+      //         to be reset
+      imodule_p->reset ();
+
       state_.module = configuration_inout.module;
       state_.deleteModule = configuration_inout.deleteModule;
     } // end ELSE
@@ -1975,15 +1989,6 @@ Stream_Base_T<LockType,
     modules_.push_front (state_.module);
     hasFinal_ = true;
 
-    // step2: initialize final module
-    imodule_p = dynamic_cast<IMODULE_T*> (state_.module);
-    if (!imodule_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                  state_.module->name ()));
-      return false;
-    } // end IF
     if (!imodule_p->initialize (*configuration_inout.moduleConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
