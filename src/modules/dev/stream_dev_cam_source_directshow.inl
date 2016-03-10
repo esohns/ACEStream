@@ -828,6 +828,10 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::BufferCB"));
 
+  ACE_UNUSED_ARG (sampleTime_in);
+  ACE_UNUSED_ARG (buffer_in);
+  ACE_UNUSED_ARG (bufferLen_in);
+
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (E_FAIL);
 

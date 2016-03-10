@@ -84,7 +84,7 @@ class Stream_Misc_DirectShow_Asynch_Source_Filter_T
 
   // implement/overload IUnknown
   DECLARE_IUNKNOWN
-  STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
+  virtual STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
 
   // ------------------------------------
 
