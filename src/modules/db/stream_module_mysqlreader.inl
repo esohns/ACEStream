@@ -511,7 +511,7 @@ Stream_Module_MySQLReader_T<LockType,
   //         (and propagate it downstream ?)
 
   // step1: send the container downstream
-  if (!putStatisticMessage (data_out)) // data container
+  if (!inherited::putStatisticMessage (data_out)) // data container
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to putStatisticMessage(), aborting\n")));
@@ -521,84 +521,31 @@ Stream_Module_MySQLReader_T<LockType,
   return true;
 }
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-void
-Stream_Module_MySQLReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::report"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-void
-Stream_Module_MySQLReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::upStream (Stream_Base_t* streamBase_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::upStream"));
-
-  ACE_UNUSED_ARG (streamBase_in);
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-Stream_Base_t*
-Stream_Module_MySQLReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::upStream () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::upStream"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (NULL);
-
-  ACE_NOTREACHED (return NULL;)
-}
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//void
+//Stream_Module_MySQLReader_T<LockType,
+//                           SessionMessageType,
+//                           ProtocolMessageType,
+//                           ConfigurationType,
+//                           StreamStateType,
+//                           SessionDataType,
+//                           SessionDataContainerType,
+//                           StatisticContainerType>::report () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::report"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//
+//  ACE_NOTREACHED (return;)
+//}
 
 template <typename LockType,
           typename SessionMessageType,
@@ -794,112 +741,112 @@ done:
   return result_2;
 }
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-ProtocolMessageType*
-Stream_Module_MySQLReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::allocateMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
-
-  // initialize return value(s)
-  ProtocolMessageType* message_out = NULL;
-
-  if (inherited::configuration_.streamConfiguration->messageAllocator)
-  {
-    try
-    {
-      // *TODO*: remove type inference
-      message_out =
-          static_cast<ProtocolMessageType*> (inherited::configuration_.streamConfiguration->messageAllocator->malloc (requestedSize_in));
-    }
-    catch (...)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                  requestedSize_in));
-      message_out = NULL;
-    }
-  } // end IF
-  else
-  {
-    ACE_NEW_NORETURN (message_out,
-                      ProtocolMessageType (requestedSize_in));
-  } // end ELSE
-  if (!message_out)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
-                requestedSize_in));
-  } // end IF
-
-  return message_out;
-}
-
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-bool
-Stream_Module_MySQLReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::putStatisticMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  // *TODO*: remove type inferences
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
-
-  // step1: update session state
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (inherited::sessionData_->get ());
-  // *TODO*: remove type inferences
-  session_data_r.currentStatistic = statisticData_in;
-
-  // *TODO*: attach stream state information to the session data
-
-//  // step2: create session data object container
-//  SessionDataContainerType* session_data_p = NULL;
-//  ACE_NEW_NORETURN (session_data_p,
-//                    SessionDataContainerType (inherited::sessionData_,
-//                                              false));
-//  if (!session_data_p)
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//ProtocolMessageType*
+//Stream_Module_MySQLReader_T<LockType,
+//                           SessionMessageType,
+//                           ProtocolMessageType,
+//                           ConfigurationType,
+//                           StreamStateType,
+//                           SessionDataType,
+//                           SessionDataContainerType,
+//                           StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::allocateMessage"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+//
+//  // initialize return value(s)
+//  ProtocolMessageType* message_out = NULL;
+//
+//  if (inherited::configuration_.streamConfiguration->messageAllocator)
+//  {
+//    try
+//    {
+//      // *TODO*: remove type inference
+//      message_out =
+//          static_cast<ProtocolMessageType*> (inherited::configuration_.streamConfiguration->messageAllocator->malloc (requestedSize_in));
+//    }
+//    catch (...)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+//                  requestedSize_in));
+//      message_out = NULL;
+//    }
+//  } // end IF
+//  else
+//  {
+//    ACE_NEW_NORETURN (message_out,
+//                      ProtocolMessageType (requestedSize_in));
+//  } // end ELSE
+//  if (!message_out)
 //  {
 //    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-//    return false;
+//                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
+//                requestedSize_in));
 //  } // end IF
+//
+//  return message_out;
+//}
 
-  // step3: send the statistic data downstream
-//  // *NOTE*: fire-and-forget session_data_p here
-  // *TODO*: remove type inference
-  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-                                       *inherited::sessionData_,
-                                       inherited::configuration_.streamConfiguration->messageAllocator);
-}
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//bool
+//Stream_Module_MySQLReader_T<LockType,
+//                           SessionMessageType,
+//                           ProtocolMessageType,
+//                           ConfigurationType,
+//                           StreamStateType,
+//                           SessionDataType,
+//                           SessionDataContainerType,
+//                           StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::putStatisticMessage"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::sessionData_);
+//  // *TODO*: remove type inferences
+//  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+//
+//  // step1: update session state
+//  SessionDataType& session_data_r =
+//      const_cast<SessionDataType&> (inherited::sessionData_->get ());
+//  // *TODO*: remove type inferences
+//  session_data_r.currentStatistic = statisticData_in;
+//
+//  // *TODO*: attach stream state information to the session data
+//
+////  // step2: create session data object container
+////  SessionDataContainerType* session_data_p = NULL;
+////  ACE_NEW_NORETURN (session_data_p,
+////                    SessionDataContainerType (inherited::sessionData_,
+////                                              false));
+////  if (!session_data_p)
+////  {
+////    ACE_DEBUG ((LM_CRITICAL,
+////                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
+////    return false;
+////  } // end IF
+//
+//  // step3: send the statistic data downstream
+////  // *NOTE*: fire-and-forget session_data_p here
+//  // *TODO*: remove type inference
+//  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
+//                                       *inherited::sessionData_,
+//                                       inherited::configuration_.streamConfiguration->messageAllocator);
+//}

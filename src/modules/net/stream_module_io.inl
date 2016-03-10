@@ -57,12 +57,7 @@ Stream_Module_Net_IOWriter_T<LockType,
               false, // auto-start ?
               false) // run svc() routine on start ? (passive only)
  , connection_ (NULL)
- , isInitialized_ (false)
  , lock_ ()
- , statisticCollectionHandler_ (ACTION_COLLECT,
-                                this,
-                                false)
- , timerID_ (-1)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::Stream_Module_Net_IOWriter_T"));
 
@@ -94,21 +89,21 @@ Stream_Module_Net_IOWriter_T<LockType,
   int result = -1;
   ACE_TCHAR buffer[BUFSIZ];
 
-  if (timerID_ != -1)
-  {
-    const void* act_p = NULL;
-    result =
-      COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-                                                                &act_p);
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                  timerID_));
-    else
-      ACE_DEBUG ((LM_WARNING, // this should happen in END_SESSION
-                  ACE_TEXT ("cancelled timer (ID: %d)\n"),
-                  timerID_));
-  } // end IF
+  //if (timerID_ != -1)
+  //{
+  //  const void* act_p = NULL;
+  //  result =
+  //    COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
+  //                                                              &act_p);
+  //  if (result == -1)
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+  //                timerID_));
+  //  else
+  //    ACE_DEBUG ((LM_WARNING, // this should happen in END_SESSION
+  //                ACE_TEXT ("cancelled timer (ID: %d)\n"),
+  //                timerID_));
+  //} // end IF
 
   if (connection_)
   {
@@ -156,45 +151,29 @@ Stream_Module_Net_IOWriter_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::initialize"));
 
-  int result = -1;
+  bool result = false;
 
-  if (isInitialized_)
+  if (inherited::initialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
-
-    // clean up
-    if (timerID_ != -1)
-    {
-      const void* act_p = NULL;
-      result =
-        COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-                                                                  &act_p);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                    timerID_));
-    } // end IF
-    timerID_ = -1;
 
     if (connection_)
     {
       connection_->decrease ();
       connection_ = NULL;
     } // end IF
-
-    isInitialized_ = false;
   } // end IF
 
-  isInitialized_ = inherited::initialize (configuration_in);
-  if (!isInitialized_)
+  result = inherited::initialize (configuration_in);
+  if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
     return false;
   } // end IF
 
-  return true;
+  return result;
 }
 
 template <typename LockType,
@@ -297,8 +276,7 @@ Stream_Module_Net_IOWriter_T<LockType,
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (message_inout);
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::initialized_);
 
   Stream_Module_t* module_p = NULL;
   Stream_Task_t* task_p = NULL;
@@ -312,23 +290,23 @@ Stream_Module_Net_IOWriter_T<LockType,
       {
         // schedule regular statistic collection
         ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION_INTERVAL, 0);
-        ACE_ASSERT (timerID_ == -1);
+        ACE_ASSERT (inherited::timerID_ == -1);
         ACE_Event_Handler* handler_p = &statisticCollectionHandler_;
-        timerID_ =
+        inherited::timerID_ =
           COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                  // event handler
                                                                       NULL,                       // argument
                                                                       COMMON_TIME_NOW + interval, // first wakeup time
                                                                       interval);                  // interval
-        if (timerID_ == -1)
+        if (inherited::timerID_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", returning\n")));
           return;
         } // end IF
-        //        ACE_DEBUG ((LM_DEBUG,
-        //                    ACE_TEXT ("scheduled statistics collecting timer (ID: %d) for interval %#T...\n"),
-        //                    timerID_,
-        //                    &interval));
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("scheduled statistic collecting timer (ID: %d) for interval %#T...\n"),
+//                    inherited::timerID_,
+//                    &interval));
       } // end IF
 
       // *WARNING*: ward consecutive STREAM_SESSION_BEGIN messages here
@@ -425,17 +403,17 @@ Stream_Module_Net_IOWriter_T<LockType,
     {
       ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-      if (timerID_ != -1)
+      if (inherited::timerID_ != -1)
       {
         const void* act_p = NULL;
         result =
-          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
+          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (inherited::timerID_,
                                                                     &act_p);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                      timerID_));
-        timerID_ = -1;
+                      inherited::timerID_));
+        inherited::timerID_ = -1;
       } // end IF
 
       if (connection_)
@@ -604,7 +582,7 @@ Stream_Module_Net_IOWriter_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::initialized_);
 
   // step0: initialize container
   //  data_out.dataMessages = 0;
@@ -616,7 +594,7 @@ Stream_Module_Net_IOWriter_T<LockType,
   //         (and propagate it downstream ?)
 
   // step1: send the container downstream
-  if (!putStatisticMessage (data_out)) // data container
+  if (!inherited::putStatisticMessage (data_out)) // data container
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to putStatisticMessage(), aborting\n")));
@@ -626,96 +604,34 @@ Stream_Module_Net_IOWriter_T<LockType,
   return true;
 }
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename AddressType,
-          typename ConnectionManagerType>
-void
-Stream_Module_Net_IOWriter_T<LockType,
-                             SessionMessageType,
-                             ProtocolMessageType,
-                             ConfigurationType,
-                             StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             StatisticContainerType,
-                             AddressType,
-                             ConnectionManagerType>::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::report"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename AddressType,
-          typename ConnectionManagerType>
-void
-Stream_Module_Net_IOWriter_T<LockType,
-                             SessionMessageType,
-                             ProtocolMessageType,
-                             ConfigurationType,
-                             StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             StatisticContainerType,
-                             AddressType,
-                             ConnectionManagerType>::upStream (Stream_Base_t* streamBase_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::upStream"));
-
-  ACE_UNUSED_ARG (streamBase_in);
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename AddressType,
-          typename ConnectionManagerType>
-Stream_Base_t*
-Stream_Module_Net_IOWriter_T<LockType,
-                             SessionMessageType,
-                             ProtocolMessageType,
-                             ConfigurationType,
-                             StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             StatisticContainerType,
-                             AddressType,
-                             ConnectionManagerType>::upStream () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::upStream"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (NULL);
-
-  ACE_NOTREACHED (return NULL;)
-}
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType,
+//          typename AddressType,
+//          typename ConnectionManagerType>
+//void
+//Stream_Module_Net_IOWriter_T<LockType,
+//                             SessionMessageType,
+//                             ProtocolMessageType,
+//                             ConfigurationType,
+//                             StreamStateType,
+//                             SessionDataType,
+//                             SessionDataContainerType,
+//                             StatisticContainerType,
+//                             AddressType,
+//                             ConnectionManagerType>::report () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::report"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//  ACE_NOTREACHED (return;)
+//}
 
 //template <typename SessionMessageType,
 //          typename ProtocolMessageType,
@@ -782,124 +698,124 @@ Stream_Module_Net_IOWriter_T<LockType,
 //  return result;
 //}
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename AddressType,
-          typename ConnectionManagerType>
-ProtocolMessageType*
-Stream_Module_Net_IOWriter_T<LockType,
-                             SessionMessageType,
-                             ProtocolMessageType,
-                             ConfigurationType,
-                             StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             StatisticContainerType,
-                             AddressType,
-                             ConnectionManagerType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::allocateMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
-
-  // initialize return value(s)
-  ProtocolMessageType* message_out = NULL;
-
-  if (inherited::configuration_.streamConfiguration->messageAllocator)
-  {
-    try
-    {
-      // *TODO*: remove type inference
-      message_out =
-        static_cast<ProtocolMessageType*> (inherited::configuration_.streamConfiguration->messageAllocator->malloc (requestedSize_in));
-    }
-    catch (...)
-    {
-      ACE_DEBUG ((LM_ERROR,
-        ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-        requestedSize_in));
-      message_out = NULL;
-    }
-  } // end IF
-  else
-  {
-    ACE_NEW_NORETURN (message_out,
-                      ProtocolMessageType (requestedSize_in));
-  } // end ELSE
-  if (!message_out)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
-                requestedSize_in));
-  } // end IF
-
-  return message_out;
-}
-
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType,
-          typename AddressType,
-          typename ConnectionManagerType>
-bool
-Stream_Module_Net_IOWriter_T<LockType,
-                             SessionMessageType,
-                             ProtocolMessageType,
-                             ConfigurationType,
-                             StreamStateType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             StatisticContainerType,
-                             AddressType,
-                             ConnectionManagerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::putStatisticMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::sessionData_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-
-  // step1: update session state
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (inherited::sessionData_->get ());
-  // *TODO*: remove type inferences
-  session_data_r.currentStatistic = statisticData_in;
-
-  // *TODO*: attach stream state information to the session data
-
-//  // step2: create session data object container
-//  SessionDataContainerType* session_data_p = NULL;
-//  ACE_NEW_NORETURN (session_data_p,
-//                    SessionDataContainerType (inherited::sessionData_,
-//                    false));
-//  if (!session_data_p)
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType,
+//          typename AddressType,
+//          typename ConnectionManagerType>
+//ProtocolMessageType*
+//Stream_Module_Net_IOWriter_T<LockType,
+//                             SessionMessageType,
+//                             ProtocolMessageType,
+//                             ConfigurationType,
+//                             StreamStateType,
+//                             SessionDataType,
+//                             SessionDataContainerType,
+//                             StatisticContainerType,
+//                             AddressType,
+//                             ConnectionManagerType>::allocateMessage (unsigned int requestedSize_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::allocateMessage"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+//
+//  // initialize return value(s)
+//  ProtocolMessageType* message_out = NULL;
+//
+//  if (inherited::configuration_.streamConfiguration->messageAllocator)
+//  {
+//    try
+//    {
+//      // *TODO*: remove type inference
+//      message_out =
+//        static_cast<ProtocolMessageType*> (inherited::configuration_.streamConfiguration->messageAllocator->malloc (requestedSize_in));
+//    }
+//    catch (...)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//        ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+//        requestedSize_in));
+//      message_out = NULL;
+//    }
+//  } // end IF
+//  else
+//  {
+//    ACE_NEW_NORETURN (message_out,
+//                      ProtocolMessageType (requestedSize_in));
+//  } // end ELSE
+//  if (!message_out)
 //  {
 //    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-//    return false;
+//                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
+//                requestedSize_in));
 //  } // end IF
-
-  // step3: send the statistic data downstream
-//  // *NOTE*: fire-and-forget session_data_p here
-  // *TODO*: remove type inference
-  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-                                       *inherited::sessionData_,
-                                       inherited::configuration_->streamConfiguration->messageAllocator);
-}
+//
+//  return message_out;
+//}
+//
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType,
+//          typename AddressType,
+//          typename ConnectionManagerType>
+//bool
+//Stream_Module_Net_IOWriter_T<LockType,
+//                             SessionMessageType,
+//                             ProtocolMessageType,
+//                             ConfigurationType,
+//                             StreamStateType,
+//                             SessionDataType,
+//                             SessionDataContainerType,
+//                             StatisticContainerType,
+//                             AddressType,
+//                             ConnectionManagerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::putStatisticMessage"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_);
+//  ACE_ASSERT (inherited::sessionData_);
+//  // *TODO*: remove type inference
+//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
+//
+//  // step1: update session state
+//  SessionDataType& session_data_r =
+//      const_cast<SessionDataType&> (inherited::sessionData_->get ());
+//  // *TODO*: remove type inferences
+//  session_data_r.currentStatistic = statisticData_in;
+//
+//  // *TODO*: attach stream state information to the session data
+//
+////  // step2: create session data object container
+////  SessionDataContainerType* session_data_p = NULL;
+////  ACE_NEW_NORETURN (session_data_p,
+////                    SessionDataContainerType (inherited::sessionData_,
+////                    false));
+////  if (!session_data_p)
+////  {
+////    ACE_DEBUG ((LM_CRITICAL,
+////                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
+////    return false;
+////  } // end IF
+//
+//  // step3: send the statistic data downstream
+////  // *NOTE*: fire-and-forget session_data_p here
+//  // *TODO*: remove type inference
+//  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
+//                                       *inherited::sessionData_,
+//                                       inherited::configuration_->streamConfiguration->messageAllocator);
+//}
 
 /////////////////////////////////////////
 

@@ -37,7 +37,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
                             TimePolicyType,
@@ -46,16 +47,22 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::Stream_HeadModuleTaskBase_T (LockType* lock_in,
-                                                                                    bool active_in,
-                                                                                    bool autoStart_in,
-                                                                                    bool runSvcRoutineOnStart_in,
-                                                                                    bool generateSessionMessages_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::Stream_HeadModuleTaskBase_T (LockType* lock_in,
+                                                                                  bool active_in,
+                                                                                  bool autoStart_in,
+                                                                                  bool runSvcRoutineOnStart_in,
+                                                                                  bool generateSessionMessages_in)
  : inherited (lock_in)
  , inherited2 ()
  , configuration_ (NULL)
+ , initialized_ (false)
  , sessionData_ (NULL)
  , streamState_ (NULL)
+ , statisticCollectionHandler_ (ACTION_COLLECT,
+                                this,
+                                false)
+ , timerID_ (-1)
  , active_ (active_in)
  , autoStart_ (autoStart_in)
  , generateSessionMessages_ (generateSessionMessages_in)
@@ -83,7 +90,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
                             TimePolicyType,
@@ -92,9 +100,28 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::~Stream_HeadModuleTaskBase_T ()
+                            SessionDataContainerType,
+                            StatisticContainerType>::~Stream_HeadModuleTaskBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::~Stream_HeadModuleTaskBase_T"));
+
+  int result = -1;
+
+  if (timerID_ != -1)
+  {
+    const void* act_p = NULL;
+    result =
+      COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
+                                                                &act_p);
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                  timerID_));
+    else
+      ACE_DEBUG ((LM_WARNING, // <-- should happen in STREAM_END_SESSION
+                  ACE_TEXT ("cancelled timer in Stream_HeadModuleTaskBase_T dtor (id was: %d)\n"),
+                  timerID_));
+  } // end IF
 
   if (sessionData_)
     sessionData_->decrease ();
@@ -118,7 +145,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -128,8 +156,9 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::put (ACE_Message_Block* messageBlock_in,
-                                                            ACE_Time_Value* timeout_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::put (ACE_Message_Block* messageBlock_in,
+                                                          ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::put"));
 
@@ -163,7 +192,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -173,7 +203,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::open (void* arg_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::open (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::open"));
 
@@ -244,7 +275,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -254,7 +286,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::close (u_long arg_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::close (u_long arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::close"));
 
@@ -311,7 +344,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -321,7 +355,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::module_closed (void)
+                            SessionDataContainerType,
+                            StatisticContainerType>::module_closed (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::module_closed"));
 
@@ -364,7 +399,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -374,7 +410,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::svc (void)
+                            SessionDataContainerType,
+                            StatisticContainerType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
@@ -444,7 +481,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -454,7 +492,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::waitForIdleState () const
+                            SessionDataContainerType,
+                            StatisticContainerType>::waitForIdleState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::waitForIdleState"));
 
@@ -478,7 +517,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -488,21 +528,67 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                             bool& passMessageDownstream_out)
+                            SessionDataContainerType,
+                            StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                           bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::handleSessionMessage"));
+
+  int result = -1;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
+  ACE_ASSERT (configuration_);
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_BEGIN:
+    {
+      // *TODO*: remove type inference
+      ACE_ASSERT (configuration_->streamConfiguration);
+
+      if (configuration_->streamConfiguration->statisticReportingInterval)
+      {
+        // schedule regular statistics collection...
+        ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION_INTERVAL, 0);
+        ACE_ASSERT (timerID_ == -1);
+        ACE_Event_Handler* handler_p = &statisticCollectionHandler_;
+        timerID_ =
+          COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                  // event handler
+                                                                      NULL,                       // argument
+                                                                      COMMON_TIME_NOW + interval, // first wakeup time
+                                                                      interval);                  // interval
+        if (timerID_ == -1)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", return\n")));
+          return;
+        } // end IF
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("scheduled statistic collecting timer (ID: %d) for interval %#T...\n"),
+//                    timerID_,
+//                    &interval));
+      } // end IF
+
+      break;
+    }
     case STREAM_SESSION_END:
     {
+      if (timerID_ != -1)
+      {
+        const void* act_p = NULL;
+        result =
+          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
+                                                                    &act_p);
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                      timerID_));
+        timerID_ = -1;
+      } // end IF
+
       inherited2::shutdown ();
       break;
     }
@@ -519,7 +605,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 const ConfigurationType&
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -529,7 +616,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::get () const
+                            SessionDataContainerType,
+                            StatisticContainerType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::get"));
 
@@ -546,7 +634,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -556,57 +645,52 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
+
+  bool result = false;
+  int result_2 = -1;
 
   // sanity check(s)
   // *TODO*: remove type inference
   ACE_ASSERT (configuration_in.stateMachineLock);
+
+  if (initialized_)
+  {
+    if (timerID_ != -1)
+    {
+      const void* act_p = NULL;
+      result_2 =
+        COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
+                                                                  &act_p);
+      if (result_2 == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                    timerID_));
+    } // end IF
+    timerID_ = -1;
+
+    initialized_ = false;
+  } // end IF
 
   // *TODO*: remove type inference
   active_ = configuration_in.active;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
   // *TODO*: remove type inference
-  bool result = inherited::initialize (*configuration_->stateMachineLock);
+  result = inherited::initialize (*configuration_->stateMachineLock);
   if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_StateMachine_Base_T::initialize(), aborting\n")));
     return false;
   } // end IF
-
   inherited::change (STREAM_STATE_INITIALIZED);
 
-  return true;
+  return result;
 }
-
-//template <typename TaskSynchType,
-//          typename TimePolicyType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType>
-//void
-//Stream_HeadModuleTaskBase_T<TaskSynchType,
-//                            TimePolicyType,
-//                            SessionMessageType,
-//                            ProtocolMessageType,
-//                            ConfigurationType,
-//                            StreamStateType,
-//                            SessionDataType,
-//                            SessionDataContainerType>::initialize ()
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
-
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-
-//  ACE_NOTREACHED (return;)
-//}
 
 template <typename LockType,
           typename TaskSynchType,
@@ -616,7 +700,39 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
+bool
+Stream_HeadModuleTaskBase_T<LockType,
+                            TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::collect (StatisticContainerType& data_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::collect"));
+
+  ACE_UNUSED_ARG (data_out);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (false);
+  ACE_NOTREACHED (return false;)
+}
+
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -626,8 +742,38 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::control (Stream_ControlType control_in,
-                                                                bool /* forwardUpStream_in */)
+                            SessionDataContainerType,
+                            StatisticContainerType>::report () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::report"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+  ACE_NOTREACHED (return;)
+}
+
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
+void
+Stream_HeadModuleTaskBase_T<LockType,
+                            TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::control (Stream_ControlType control_in,
+                                                              bool /* forwardUpStream_in */)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::control"));
 
@@ -666,7 +812,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -676,7 +823,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::start ()
+                            SessionDataContainerType,
+                            StatisticContainerType>::start ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::start"));
 
@@ -700,7 +848,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -710,8 +859,9 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::stop (bool waitForCompletion_in,
-                                                             bool lockedAccess_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::stop (bool waitForCompletion_in,
+                                                           bool lockedAccess_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::stop"));
 
@@ -732,7 +882,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -742,7 +893,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::isRunning () const
+                            SessionDataContainerType,
+                            StatisticContainerType>::isRunning () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::isRunning"));
 
@@ -759,7 +911,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -769,8 +922,9 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::flush (bool flushInbound_in,
-                                                              bool flushUpStream_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::flush (bool flushInbound_in,
+                                                            bool flushUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
 
@@ -791,7 +945,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -801,7 +956,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::pause ()
+                            SessionDataContainerType,
+                            StatisticContainerType>::pause ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::pause"));
 
@@ -817,7 +973,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 ProtocolMessageType*
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -827,7 +984,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage"));
 
@@ -890,7 +1048,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -900,13 +1059,13 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::rewind ()
+                            SessionDataContainerType,
+                            StatisticContainerType>::rewind ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::rewind"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
-
   ACE_NOTREACHED (return;)
 }
 
@@ -918,7 +1077,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -928,7 +1088,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::upStream (Stream_Base_t* upStream_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::upStream (Stream_Base_t* upStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::upStream"));
 
@@ -936,7 +1097,6 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
-
   ACE_NOTREACHED (return;)
 }
 template <typename LockType,
@@ -947,7 +1107,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 Stream_Base_t*
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -957,13 +1118,13 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::upStream () const
+                            SessionDataContainerType,
+                            StatisticContainerType>::upStream () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::upStream"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (NULL);
-
   ACE_NOTREACHED (return NULL;)
 }
 
@@ -975,7 +1136,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 Stream_StateMachine_ControlState
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -985,7 +1147,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::status () const
+                            SessionDataContainerType,
+                            StatisticContainerType>::status () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::status"));
 
@@ -1002,7 +1165,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -1012,8 +1176,9 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::waitForCompletion (bool waitForThreads_in,
-                                                                          bool waitForUpStream_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::waitForCompletion (bool waitForThreads_in,
+                                                                        bool waitForUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::waitForCompletion"));
 
@@ -1091,7 +1256,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 std::string
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -1101,7 +1267,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::name () const
+                            SessionDataContainerType,
+                            StatisticContainerType>::name () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::name"));
 
@@ -1117,7 +1284,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 const StreamStateType&
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -1127,13 +1295,13 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::state () const
+                            SessionDataContainerType,
+                            StatisticContainerType>::state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::state"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (StreamStateType ());
-
   ACE_NOTREACHED (return StreamStateType ());
 }
 
@@ -1145,7 +1313,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -1155,7 +1324,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::initialize (const StreamStateType& streamState_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::initialize (const StreamStateType& streamState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
 
@@ -1175,7 +1345,66 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
+bool
+Stream_HeadModuleTaskBase_T<LockType,
+                            TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putStatisticMessage"));
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+  // *TODO*: remove type inference
+  ACE_ASSERT (configuration_->streamConfiguration);
+  ACE_ASSERT (sessionData_);
+
+  // step1: update session state
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (sessionData_->get ());
+  // *TODO*: remove type inferences
+  session_data_r.currentStatistic = statisticData_in;
+
+  // *TODO*: attach stream state information to the session data
+
+  //  // step2: create session data object container
+  //  SessionDataContainerType* session_data_p = NULL;
+  //  ACE_NEW_NORETURN (session_data_p,
+  //                    SessionDataContainerType (inherited::sessionData_,
+  //                                              false));
+  //  if (!session_data_p)
+  //  {
+  //    ACE_DEBUG ((LM_CRITICAL,
+  //                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
+  //    return false;
+  //  } // end IF
+
+  // step3: send the statistic data downstream
+  //  // *NOTE*: fire-and-forget session_data_p here
+  // *TODO*: remove type inference
+  return putSessionMessage (STREAM_SESSION_STATISTIC,
+                            *sessionData_,
+                            configuration_->streamConfiguration->messageAllocator);
+}
+
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -1185,7 +1414,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::onChange (Stream_StateType_t newState_in)
+                            SessionDataContainerType,
+                            StatisticContainerType>::onChange (Stream_StateType_t newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::onChange"));
 
@@ -1557,7 +1787,8 @@ template <typename LockType,
           typename ConfigurationType,
           typename StreamStateType,
           typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -1567,9 +1798,10 @@ Stream_HeadModuleTaskBase_T<LockType,
                             ConfigurationType,
                             StreamStateType,
                             SessionDataType,
-                            SessionDataContainerType>::putSessionMessage (Stream_SessionMessageType messageType_in,
-                                                                          SessionDataContainerType& sessionData_in,
-                                                                          Stream_IAllocator* allocator_in) const
+                            SessionDataContainerType,
+                            StatisticContainerType>::putSessionMessage (Stream_SessionMessageType messageType_in,
+                                                                        SessionDataContainerType& sessionData_in,
+                                                                        Stream_IAllocator* allocator_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putSessionMessage"));
 
@@ -1662,66 +1894,3 @@ allocate:
 
   return true;
 }
-
-//template <typename TaskSynchType,
-//          typename TimePolicyType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType>
-//bool
-//Stream_HeadModuleTaskBase_T<TaskSynchType,
-//                            TimePolicyType,
-//                            SessionMessageType,
-//                            ProtocolMessageType,
-//                            ConfigurationType,
-//                            StreamStateType,
-//                            SessionDataType,
-//                            SessionDataContainerType>::putSessionMessage (Stream_SessionMessageType messageType_in,
-//                                                                          SessionDataType* sessionData_in,
-//                                                                          bool deleteSessionData_in) const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putSessionMessage"));
-
-//  // sanity check(s)
-//  // *TODO*: remove type inference
-//  ACE_ASSERT (configuration_.streamConfiguration);
-
-//  // create session data
-//  SessionDataContainerType* session_data_container_p = NULL;
-//  switch (messageType_in)
-//  {
-//    case STREAM_SESSION_BEGIN:
-//    case STREAM_SESSION_STEP:
-//    case STREAM_SESSION_END:
-//    {
-//      ACE_NEW_NORETURN (session_data_container_p,
-//                        SessionDataContainerType (sessionData_in,
-//                                                  deleteSessionData_in));
-//      if (!session_data_container_p)
-//      {
-//        ACE_DEBUG ((LM_CRITICAL,
-//                    ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-//        return false;
-//      } // end IF
-
-//      break;
-//    }
-//    case STREAM_SESSION_STATISTIC:
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown session message type (was: %d), aborting\n"),
-//                  messageType_in));
-//      return false;
-//    }
-//  } // end SWITCH
-
-//  // *IMPORTANT NOTE*: "fire-and-forget" session_data_container_p
-//  // *TODO*: remove type inference
-//  return putSessionMessage (messageType_in,
-//                            session_data_container_p,
-//                            configuration_.streamConfiguration->messageAllocator);
-//}

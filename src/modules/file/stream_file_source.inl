@@ -54,13 +54,8 @@ Stream_Module_FileReader_T<LockType,
                             //         transitions during processing a tricky
                             //         affair, as the calling thread may be
                             //         holding the lock --> check carefully
- , isInitialized_ (false)
  , isOpen_ (false)
  , stream_ ()
- , statisticCollectionHandler_ (ACTION_COLLECT,
-                                this,
-                                false)
- , timerID_ (-1)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::Stream_Module_FileReader_T"));
 
@@ -86,22 +81,6 @@ Stream_Module_FileReader_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::~Stream_Module_FileReader_T"));
 
   int result = -1;
-
-  if (timerID_ != -1)
-  {
-    const void* act_p = NULL;
-    result =
-        COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-                                                                  &act_p);
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                  timerID_));
-    else
-      ACE_DEBUG ((LM_WARNING, // this should happen in END_SESSION
-                  ACE_TEXT ("cancelled timer (ID: %d)\n"),
-                  timerID_));
-  } // end IF
 
   if (isOpen_)
   {
@@ -132,31 +111,18 @@ Stream_Module_FileReader_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::initialize"));
 
-  int result = -1;
-  if (isInitialized_)
+  bool result = false;
+  int result_2 = -1;
+
+  if (inherited::initialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
 
-    // clean up
-    if (timerID_ != -1)
-    {
-      const void* act_p = NULL;
-      result =
-          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-                                                                    &act_p);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                    timerID_));
-    } // end IF
-    timerID_ = -1;
-    isInitialized_ = false;
-
     if (isOpen_)
     {
-      result = stream_.close ();
-      if (result == -1)
+      result_2 = stream_.close ();
+      if (result_2 == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_File_Stream::close(): \"%m\", continuing\n")));
 
@@ -164,12 +130,12 @@ Stream_Module_FileReader_T<LockType,
     } // end IF
   } // end IF
 
-  isInitialized_ = inherited::initialize (configuration_in);
-  if (!isInitialized_)
+  result = inherited::initialize (configuration_in);
+  if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
 
-  return isInitialized_;
+  return result;
 }
 
 //template <typename SessionMessageType,
@@ -301,7 +267,7 @@ Stream_Module_FileReader_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::initialized_);
 
   // step0: initialize container
 //  data_out.dataMessages = 0;
@@ -313,7 +279,7 @@ Stream_Module_FileReader_T<LockType,
   //         (and propagate it downstream ?)
 
   // step1: send the container downstream
-  if (!putStatisticMessage (data_out)) // data container
+  if (!inherited::putStatisticMessage (data_out)) // data container
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to putStatisticMessage(), aborting\n")));
@@ -323,84 +289,30 @@ Stream_Module_FileReader_T<LockType,
   return true;
 }
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-void
-Stream_Module_FileReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::report"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-void
-Stream_Module_FileReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::upStream (Stream_Base_t* streamBase_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::upStream"));
-
-  ACE_UNUSED_ARG (streamBase_in);
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-Stream_Base_t*
-Stream_Module_FileReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::upStream () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::upStream"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (NULL);
-
-  ACE_NOTREACHED (return NULL;)
-}
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//void
+//Stream_Module_FileReader_T<LockType,
+//                           SessionMessageType,
+//                           ProtocolMessageType,
+//                           ConfigurationType,
+//                           StreamStateType,
+//                           SessionDataType,
+//                           SessionDataContainerType,
+//                           StatisticContainerType>::report () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::report"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//  ACE_NOTREACHED (return;)
+//}
 
 template <typename LockType,
           typename SessionMessageType,
@@ -621,115 +533,115 @@ done:
   return result_2;
 }
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-ProtocolMessageType*
-Stream_Module_FileReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::allocateMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-
-  // initialize return value(s)
-  ProtocolMessageType* message_out = NULL;
-
-  if (inherited::configuration_->streamConfiguration->messageAllocator)
-  {
-    try
-    {
-      // *TODO*: remove type inference
-      message_out =
-          static_cast<ProtocolMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
-    }
-    catch (...)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-                  requestedSize_in));
-      message_out = NULL;
-    }
-  } // end IF
-  else
-  {
-    ACE_NEW_NORETURN (message_out,
-                      ProtocolMessageType (requestedSize_in));
-  } // end ELSE
-  if (!message_out)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
-                requestedSize_in));
-  } // end IF
-
-  return message_out;
-}
-
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-bool
-Stream_Module_FileReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::putStatisticMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::sessionData_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-
-  // step1: update session state
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (inherited::sessionData_->get ());
-  // *TODO*: remove type inferences
-  session_data_r.currentStatistic = statisticData_in;
-
-  // *TODO*: attach stream state information to the session data
-
-//  // step2: create session data object container
-//  SessionDataContainerType* session_data_p = NULL;
-//  ACE_NEW_NORETURN (session_data_p,
-//                    SessionDataContainerType (inherited::sessionData_,
-//                                              false));
-//  if (!session_data_p)
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//ProtocolMessageType*
+//Stream_Module_FileReader_T<LockType,
+//                           SessionMessageType,
+//                           ProtocolMessageType,
+//                           ConfigurationType,
+//                           StreamStateType,
+//                           SessionDataType,
+//                           SessionDataContainerType,
+//                           StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::allocateMessage"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_);
+//  // *TODO*: remove type inference
+//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
+//
+//  // initialize return value(s)
+//  ProtocolMessageType* message_out = NULL;
+//
+//  if (inherited::configuration_->streamConfiguration->messageAllocator)
+//  {
+//    try
+//    {
+//      // *TODO*: remove type inference
+//      message_out =
+//          static_cast<ProtocolMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
+//    }
+//    catch (...)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
+//                  requestedSize_in));
+//      message_out = NULL;
+//    }
+//  } // end IF
+//  else
+//  {
+//    ACE_NEW_NORETURN (message_out,
+//                      ProtocolMessageType (requestedSize_in));
+//  } // end ELSE
+//  if (!message_out)
 //  {
 //    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-//    return false;
+//                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
+//                requestedSize_in));
 //  } // end IF
-
-  // step3: send the statistic data downstream
-//  // *NOTE*: fire-and-forget session_data_p here
-  // *TODO*: remove type inference
-  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-                                       *inherited::sessionData_,
-                                       inherited::configuration_->streamConfiguration->messageAllocator);
-}
+//
+//  return message_out;
+//}
+//
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//bool
+//Stream_Module_FileReader_T<LockType,
+//                           SessionMessageType,
+//                           ProtocolMessageType,
+//                           ConfigurationType,
+//                           StreamStateType,
+//                           SessionDataType,
+//                           SessionDataContainerType,
+//                           StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::putStatisticMessage"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_);
+//  ACE_ASSERT (inherited::sessionData_);
+//  // *TODO*: remove type inference
+//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
+//
+//  // step1: update session state
+//  SessionDataType& session_data_r =
+//      const_cast<SessionDataType&> (inherited::sessionData_->get ());
+//  // *TODO*: remove type inferences
+//  session_data_r.currentStatistic = statisticData_in;
+//
+//  // *TODO*: attach stream state information to the session data
+//
+////  // step2: create session data object container
+////  SessionDataContainerType* session_data_p = NULL;
+////  ACE_NEW_NORETURN (session_data_p,
+////                    SessionDataContainerType (inherited::sessionData_,
+////                                              false));
+////  if (!session_data_p)
+////  {
+////    ACE_DEBUG ((LM_CRITICAL,
+////                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
+////    return false;
+////  } // end IF
+//
+//  // step3: send the statistic data downstream
+////  // *NOTE*: fire-and-forget session_data_p here
+//  // *TODO*: remove type inference
+//  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
+//                                       *inherited::sessionData_,
+//                                       inherited::configuration_->streamConfiguration->messageAllocator);
+//}

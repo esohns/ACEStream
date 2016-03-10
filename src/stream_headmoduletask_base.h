@@ -26,6 +26,7 @@
 #include "ace/Global_Macros.h"
 
 #include "common_iinitialize.h"
+#include "common_istatistic.h"
 
 #include "stream_imodule.h"
 #include "stream_istreamcontrol.h"
@@ -50,7 +51,9 @@ template <typename LockType,
           typename StreamStateType,
           ///////////////////////////////
           typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataContainerType, // session message payload (reference counted)
+          ///////////////////////////////
+          typename StatisticContainerType>
 class Stream_HeadModuleTaskBase_T
  : public Stream_StateMachine_Control_T<LockType>
  , public Stream_TaskBase_T<TaskSynchType,
@@ -61,6 +64,7 @@ class Stream_HeadModuleTaskBase_T
  , public Stream_IStreamControl_T<Stream_StateMachine_ControlState,
                                   StreamStateType>
  , public Common_IInitialize_T<StreamStateType>
+ , public Common_IStatistic_T<StatisticContainerType>
 {
  public:
   virtual ~Stream_HeadModuleTaskBase_T ();
@@ -103,6 +107,11 @@ class Stream_HeadModuleTaskBase_T
   // implement Common_IInitialize_T
   virtual bool initialize (const StreamStateType&);
 
+  // implement Common_IStatistic
+  // *NOTE*: implements regular (timer-based) statistic collection
+  virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
+  virtual void report () const;
+
  protected:
   Stream_HeadModuleTaskBase_T (LockType*,    // lock handle (state machine)
                                //////////
@@ -124,15 +133,20 @@ class Stream_HeadModuleTaskBase_T
   bool putSessionMessage (Stream_SessionMessageType,        // session message type
                           SessionDataContainerType&,        // session data container
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
+  bool putStatisticMessage (const StatisticContainerType&) const; // statistic information
 
   // implement state machine callback
   // *NOTE*: this method is threadsafe
   virtual void onChange (Stream_StateType_t); // new state
 
-  ConfigurationType*        configuration_;
-  //bool              isActive_;
-  SessionDataContainerType* sessionData_;
-  StreamStateType*          streamState_;
+  ConfigurationType*                configuration_;
+  bool                              initialized_;
+  SessionDataContainerType*         sessionData_;
+  StreamStateType*                  streamState_;
+
+  // timer
+  Stream_StatisticHandler_Reactor_t statisticCollectionHandler_;
+  long                              timerID_;
 
  private:
   typedef Stream_StateMachine_Control_T<LockType> inherited;
@@ -154,7 +168,9 @@ class Stream_HeadModuleTaskBase_T
                                       StreamStateType,
                                       ///
                                       SessionDataType,
-                                      SessionDataContainerType> OWN_TYPE_T;
+                                      SessionDataContainerType,
+                                      ///
+                                      StatisticContainerType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T (const Stream_HeadModuleTaskBase_T&))
@@ -172,12 +188,12 @@ class Stream_HeadModuleTaskBase_T
   virtual void upStream (Stream_Base_t*);
   virtual Stream_Base_t* upStream () const;
 
-  bool                      active_;
-  bool                      autoStart_; // start worker thread in open ()
-  bool                      generateSessionMessages_;
-  bool                      runSvcRoutineOnStart_;
-  bool                      sessionEndSent_;
-  ACE_Thread_ID             threadID_;
+  bool                              active_;
+  bool                              autoStart_; // start worker thread in open ()
+  bool                              generateSessionMessages_;
+  bool                              runSvcRoutineOnStart_;
+  bool                              sessionEndSent_;
+  ACE_Thread_ID                     threadID_;
 };
 
 // include template implementation

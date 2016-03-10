@@ -24,7 +24,6 @@
 #include "ace/FILE_IO.h"
 #include "ace/Global_Macros.h"
 
-#include "common_istatistic.h"
 #include "common_time_common.h"
 
 #include "stream_headmoduletask_base.h"
@@ -105,10 +104,9 @@ class Stream_Module_FileWriterH_T
                                       StreamStateType,
                                       ///
                                       SessionDataType,
-                                      SessionDataContainerType>
- // implement this to have a generic (timed) event handler to trigger
- // periodic statistic collection
- , public Common_IStatistic_T<StatisticContainerType>
+                                      SessionDataContainerType,
+                                      ///
+                                      StatisticContainerType>
 {
  public:
   Stream_Module_FileWriterH_T ();
@@ -117,18 +115,15 @@ class Stream_Module_FileWriterH_T
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
   using Stream_HeadModuleTaskBase_T<LockType,
-                                    /////
                                     TaskSynchType,
                                     TimePolicyType,
                                     SessionMessageType,
                                     ProtocolMessageType,
-                                    /////
                                     ConfigurationType,
-                                    /////
                                     StreamStateType,
-                                    /////
                                     SessionDataType,
-                                    SessionDataContainerType>::initialize;
+                                    SessionDataContainerType,
+                                    StatisticContainerType>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual const ConfigurationType& get () const;
@@ -143,7 +138,7 @@ class Stream_Module_FileWriterH_T
   // implement Common_IStatistic
   // *NOTE*: this reuses the interface to implement timer-based data collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  virtual void report () const;
+  //virtual void report () const;
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
@@ -158,7 +153,9 @@ class Stream_Module_FileWriterH_T
                                       StreamStateType,
                                       ///
                                       SessionDataType,
-                                      SessionDataContainerType> inherited;
+                                      SessionDataContainerType,
+                                      ///
+                                      StatisticContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T (const Stream_Module_FileWriterH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T& operator= (const Stream_Module_FileWriterH_T&))
@@ -170,15 +167,9 @@ class Stream_Module_FileWriterH_T
   // helper methods
   bool putStatisticMessage (const StatisticContainerType&) const;
 
-  // timer
-  STATISTICHANDLER_T statisticCollectHandler_;
-  long               statisticCollectHandlerID_;
-
-  bool               isOpen_;
-  int                previousError_; // print (significant) errors message once only
-  ACE_FILE_IO        stream_;
-
-  bool               initialized_;
+  bool        isOpen_;
+  int         previousError_; // print (significant) errors message once only
+  ACE_FILE_IO stream_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

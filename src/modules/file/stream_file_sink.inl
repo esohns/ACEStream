@@ -458,14 +458,9 @@ Stream_Module_FileWriterH_T<LockType,
               false, // DON'T auto-start !
               false, // do not run the svc() routine on start
               true)  // push session messages
- , statisticCollectHandler_ (ACTION_COLLECT,
-                             this,
-                             false)
- , statisticCollectHandlerID_ (-1)
  , isOpen_ (false)
  , previousError_ (0)
  , stream_ ()
- , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::Stream_Module_FileWriterH_T"));
 
@@ -495,17 +490,6 @@ Stream_Module_FileWriterH_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::~Stream_Module_FileWriterH_T"));
 
   int result = -1;
-
-  // clean up timer if necessary
-  if (statisticCollectHandlerID_ != -1)
-  {
-    result =
-     COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel (statisticCollectHandlerID_);
-    if (result <= 0)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                  statisticCollectHandlerID_));
-  } // end IF
 
   if (isOpen_)
   {
@@ -812,61 +796,23 @@ Stream_Module_FileWriterH_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::initialize"));
 
-  int result = -1;
+  bool result = false;
+  int result_2 = -1;
 
-  if (initialized_)
+  if (inherited::initialized_)
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("re-initializing...\n")));
 
-    // clean up
-    if (statisticCollectHandlerID_ != -1)
-    {
-      int result =
-       COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel (statisticCollectHandlerID_);
-      if (result <= 0)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                    statisticCollectHandlerID_));
-      statisticCollectHandlerID_ = -1;
-    } // end IF
-
     if (isOpen_)
     {
-      result = stream_.close ();
-      if (result == -1)
+      result_2 = stream_.close ();
+      if (result_2 == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_File_Stream::close(): \"%m\", continuing\n")));
     } // end IF
     isOpen_ = false;
-
-    initialized_ = false;
   } // end IF
-
-  if (configuration_in.streamConfiguration->statisticReportingInterval)
-  {
-    // schedule regular statistic collection
-    ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION_INTERVAL, 0);
-    ACE_ASSERT (statisticCollectHandlerID_ == -1);
-    ACE_Event_Handler* handler_p = &statisticCollectHandler_;
-    statisticCollectHandlerID_ =
-      COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule (handler_p,                        // event handler
-                                                            NULL,                             // act
-                                                            COMMON_TIME_POLICY () + interval, // first wakeup time
-                                                            interval);                        // interval
-    if (statisticCollectHandlerID_ == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_Timer_Manager::schedule(): \"%m\", aborting\n")));
-      return false;
-    } // end IF
-//     ACE_DEBUG ((LM_DEBUG,
-//                 ACE_TEXT ("scheduled statistics collecting timer (ID: %d) for intervals of %u second(s)...\n"),
-//                 statisticCollectHandlerID_,
-//                 statisticCollectionInterval_in));
-  } // end IF
-
-  // *NOTE*: need to clean up timer beyond this point !
 
   //// sanity check(s)
   //// *TODO*: remove type inferences
@@ -876,15 +822,15 @@ Stream_Module_FileWriterH_T<LockType,
   //              ACE_TEXT (configuration_.fileName.c_str ())));
 
   // OK: all's well...
-  initialized_ = inherited::initialize (configuration_in);
-  if (!initialized_)
+  result = inherited::initialize (configuration_in);
+  if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
     return false;
   } // end IF
 
-  return initialized_;
+  return result;
 }
 template <typename LockType,
           typename TaskSynchType,
@@ -952,7 +898,7 @@ Stream_Module_FileWriterH_T<LockType,
   // *NOTE*: information is collected by the statistic module (if any)
 
   // step1: send the container downstream
-  if (!putStatisticMessage (data_out)) // data container
+  if (!inherited::putStatisticMessage (data_out)) // data container
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to putStatisticMessage(SESSION_STATISTICS), aborting\n")));
@@ -962,104 +908,98 @@ Stream_Module_FileWriterH_T<LockType,
   return true;
 }
 
-template <typename LockType,
-          typename TaskSynchType,
-          typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-void
-Stream_Module_FileWriterH_T<LockType,
-                            TaskSynchType,
-                            TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType,
-                            ConfigurationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::report"));
+//template <typename LockType,
+//          typename TaskSynchType,
+//          typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//void
+//Stream_Module_FileWriterH_T<LockType,
+//                            TaskSynchType,
+//                            TimePolicyType,
+//                            SessionMessageType,
+//                            ProtocolMessageType,
+//                            ConfigurationType,
+//                            StreamStateType,
+//                            SessionDataType,
+//                            SessionDataContainerType,
+//                            StatisticContainerType>::report () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::report"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//  ACE_NOTREACHED (return);
+//}
 
-  // sanity check(s)
-  ACE_ASSERT (initialized_);
-
-  // *TODO*: support (local) reporting here as well ?
-  //         --> leave this to any downstream modules...
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return);
-}
-
-template <typename LockType,
-          typename TaskSynchType,
-          typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-bool
-Stream_Module_FileWriterH_T<LockType,
-                            TaskSynchType,
-                            TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType,
-                            ConfigurationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::putStatisticMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-
-//  // step1: initialize session data
-//  IRC_StreamSessionData* session_data_p = NULL;
-//  ACE_NEW_NORETURN (session_data_p,
-//                    IRC_StreamSessionData ());
-//  if (!session_data_p)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
-//    return false;
-//  } // end IF
-//  //ACE_OS::memset (data_p, 0, sizeof (IRC_SessionData));
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (inherited::sessionData_->get ());
-  session_data_r.currentStatistic = statisticData_in;
-
-//  // step2: allocate session data container
-//  IRC_StreamSessionData_t* session_data_container_p = NULL;
-//  // *NOTE*: fire-and-forget stream_session_data_p
-//  ACE_NEW_NORETURN (session_data_container_p,
-//                    IRC_StreamSessionData_t (stream_session_data_p,
-//                                                    true));
-//  if (!session_data_container_p)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
-
-//    // clean up
-//    delete stream_session_data_p;
-
-//    return false;
-//  } // end IF
-
-  // step3: send the data downstream...
-  // *NOTE*: fire-and-forget session_data_container_p
-  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-                                       *inherited::sessionData_,
-                                       inherited::configuration_->streamConfiguration->messageAllocator);
-}
+//template <typename LockType,
+//          typename TaskSynchType,
+//          typename TimePolicyType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//bool
+//Stream_Module_FileWriterH_T<LockType,
+//                            TaskSynchType,
+//                            TimePolicyType,
+//                            SessionMessageType,
+//                            ProtocolMessageType,
+//                            ConfigurationType,
+//                            StreamStateType,
+//                            SessionDataType,
+//                            SessionDataContainerType,
+//                            StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::putStatisticMessage"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_);
+//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
+//
+////  // step1: initialize session data
+////  IRC_StreamSessionData* session_data_p = NULL;
+////  ACE_NEW_NORETURN (session_data_p,
+////                    IRC_StreamSessionData ());
+////  if (!session_data_p)
+////  {
+////    ACE_DEBUG ((LM_CRITICAL,
+////                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+////    return false;
+////  } // end IF
+////  //ACE_OS::memset (data_p, 0, sizeof (IRC_SessionData));
+//  SessionDataType& session_data_r =
+//      const_cast<SessionDataType&> (inherited::sessionData_->get ());
+//  session_data_r.currentStatistic = statisticData_in;
+//
+////  // step2: allocate session data container
+////  IRC_StreamSessionData_t* session_data_container_p = NULL;
+////  // *NOTE*: fire-and-forget stream_session_data_p
+////  ACE_NEW_NORETURN (session_data_container_p,
+////                    IRC_StreamSessionData_t (stream_session_data_p,
+////                                                    true));
+////  if (!session_data_container_p)
+////  {
+////    ACE_DEBUG ((LM_CRITICAL,
+////                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+//
+////    // clean up
+////    delete stream_session_data_p;
+//
+////    return false;
+////  } // end IF
+//
+//  // step3: send the data downstream...
+//  // *NOTE*: fire-and-forget session_data_container_p
+//  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
+//                                       *inherited::sessionData_,
+//                                       inherited::configuration_->streamConfiguration->messageAllocator);
+//}

@@ -24,7 +24,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_istatistic.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -60,8 +59,9 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       StreamStateType,
                                       ///
                                       SessionDataType,
-                                      SessionDataContainerType>
- , public Common_IStatistic_T<StatisticContainerType>
+                                      SessionDataContainerType,
+                                      ///
+                                      StatisticContainerType>
 {
  public:
   Stream_Module_Net_IOWriter_T ();
@@ -78,7 +78,8 @@ class Stream_Module_Net_IOWriter_T // --> output
                                     ConfigurationType,
                                     StreamStateType,
                                     SessionDataType,
-                                    SessionDataContainerType>::initialize;
+                                    SessionDataContainerType,
+                                    StatisticContainerType>::initialize;
 #endif
 
   // override (part of) Stream_IModuleHandler_T
@@ -96,10 +97,10 @@ class Stream_Module_Net_IOWriter_T // --> output
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistics collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  virtual void report () const;
+  //virtual void report () const;
 
-  virtual void upStream (Stream_Base_t*);
-  virtual Stream_Base_t* upStream () const;
+  //virtual void upStream (Stream_Base_t*);
+  //virtual Stream_Base_t* upStream () const;
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
@@ -114,7 +115,9 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       StreamStateType,
                                       ///
                                       SessionDataType,
-                                      SessionDataContainerType> inherited;
+                                      SessionDataContainerType,
+                                      ///
+                                      StatisticContainerType> inherited;
   typedef ACE_Message_Queue<ACE_MT_SYNCH,
                             Common_TimePolicy_t> MESSAGEQUEUE_T;
 
@@ -124,18 +127,18 @@ class Stream_Module_Net_IOWriter_T // --> output
 
   // helper methods
   //  virtual int svc (void);
-  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
-  bool putStatisticMessage (const StatisticContainerType&) const; // statistic info
+  //ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
+  //bool putStatisticMessage (const StatisticContainerType&) const; // statistic info
 
   typename ConnectionManagerType::CONNECTION_T* connection_;
-  bool                                          isInitialized_;
+  //bool                                          isInitialized_;
   // *NOTE*: this lock prevents races during (ordered) shutdown
   // *TODO*: remove surplus STREAM_SESSION_END messages
   ACE_SYNCH_MUTEX                               lock_;
 
-  // timer
-  Stream_StatisticHandler_Reactor_t             statisticCollectionHandler_;
-  long                                          timerID_;
+  //// timer
+  //Stream_StatisticHandler_Reactor_t             statisticCollectionHandler_;
+  //long                                          timerID_;
 };
 
 /////////////////////////////////////////

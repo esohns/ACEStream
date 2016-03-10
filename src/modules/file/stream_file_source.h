@@ -25,7 +25,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_istatistic.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -57,8 +56,9 @@ class Stream_Module_FileReader_T
                                       StreamStateType,
                                       ///
                                       SessionDataType,
-                                      SessionDataContainerType>
- , public Common_IStatistic_T<StatisticContainerType>
+                                      SessionDataContainerType,
+                                      ///
+                                      StatisticContainerType>
 {
  public:
   Stream_Module_FileReader_T (bool = false,  // active object ?
@@ -76,7 +76,8 @@ class Stream_Module_FileReader_T
                                     ConfigurationType,
                                     StreamStateType,
                                     SessionDataType,
-                                    SessionDataContainerType>::initialize;
+                                    SessionDataContainerType,
+                                    StatisticContainerType>::initialize;
 #endif
 
   // override (part of) Stream_IModuleHandler_T
@@ -92,12 +93,12 @@ class Stream_Module_FileReader_T
 //                                     bool&);               // return value: pass message downstream ?
 
   // implement Common_IStatistic
-  // *NOTE*: implements regular (timer-based) statistics collection
+  // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  virtual void report () const;
+  //virtual void report () const;
 
-  virtual void upStream (Stream_Base_t*);
-  virtual Stream_Base_t* upStream () const;
+  //virtual void upStream (Stream_Base_t*);
+  //virtual Stream_Base_t* upStream () const;
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
@@ -112,7 +113,9 @@ class Stream_Module_FileReader_T
                                       StreamStateType,
                                       ///
                                       SessionDataType,
-                                      SessionDataContainerType> inherited;
+                                      SessionDataContainerType,
+                                      ///
+                                      StatisticContainerType> inherited;
 
 //  ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_T (const Stream_Module_FileReader_T&))
@@ -120,16 +123,11 @@ class Stream_Module_FileReader_T
 
   // helper methods
   virtual int svc (void);
-  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
-  bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
+  //ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
+  //bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
-  bool                              isInitialized_;
-  bool                              isOpen_;
-  ACE_FILE_IO                       stream_;
-
-  // timer
-  Stream_StatisticHandler_Reactor_t statisticCollectionHandler_;
-  long                              timerID_;
+  bool        isOpen_;
+  ACE_FILE_IO stream_;
 };
 
 #include "stream_file_source.inl"

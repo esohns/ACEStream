@@ -29,7 +29,6 @@
 #include "dshow.h"
 #include "qedit.h"
 
-#include "common_istatistic.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -61,8 +60,9 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                       StreamStateType,
                                       ///
                                       SessionDataType,
-                                      SessionDataContainerType>
- , public Common_IStatistic_T<StatisticContainerType>
+                                      SessionDataContainerType,
+                                      ///
+                                      StatisticContainerType>
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
 {
@@ -80,10 +80,16 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                     ConfigurationType,
                                     StreamStateType,
                                     SessionDataType,
-                                    SessionDataContainerType>::initialize;
+                                    SessionDataContainerType,
+                                    StatisticContainerType>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&);
+
+  // implement Common_IStatistic
+  // *NOTE*: implements regular (timer-based) statistic collection
+  virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
+  //virtual void report () const;
 
   // info
   bool isInitialized () const;
@@ -93,11 +99,6 @@ class Stream_Dev_Cam_Source_DirectShow_T
 //                                  bool&);                // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
-
-  // implement Common_IStatistic
-  // *NOTE*: implements regular (timer-based) statistic collection
-  virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  virtual void report () const;
 
   // implement IMemAllocatorNotifyCallbackTemp
   virtual STDMETHODIMP NotifyRelease (void);
@@ -112,9 +113,6 @@ class Stream_Dev_Cam_Source_DirectShow_T
   virtual ULONG STDMETHODCALLTYPE AddRef ();
   virtual ULONG STDMETHODCALLTYPE Release ();
 
-//  virtual void upStream (Stream_Base_t*);
-//  virtual Stream_Base_t* upStream () const;
-
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
                                       ///
@@ -128,7 +126,9 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                       StreamStateType,
                                       ///
                                       SessionDataType,
-                                      SessionDataContainerType> inherited;
+                                      SessionDataContainerType,
+                                      ///
+                                      StatisticContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T (const Stream_Dev_Cam_Source_DirectShow_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T& operator= (const Stream_Dev_Cam_Source_DirectShow_T&))
@@ -139,21 +139,14 @@ class Stream_Dev_Cam_Source_DirectShow_T
   bool initialize_DirectShow (const std::string&,      // (source) device name (FriendlyName)
                               const HWND,              // (target) window handle [NULL: NullRenderer]
                               ICaptureGraphBuilder2*&, // return value: (capture) graph builder handle
+                              IAMDroppedFrames*&,      // return value: capture filter statistic handle
                               ISampleGrabber*&);       // return value: sample grabber handle
-  bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
-  bool                              isInitialized_;
-
-  // timer
-  Stream_StatisticHandler_Reactor_t statisticCollectionHandler_;
-  long                              timerID_;
-
-  // DirectShow
   bool                              isFirst_;
+  IAMDroppedFrames*                 IAMDroppedFrames_;
   ICaptureGraphBuilder2*            ICaptureGraphBuilder2_;
   IMediaControl*                    IMediaControl_;
   IMediaEventEx*                    IMediaEventEx_;
-  //ISampleGrabber*                   ISampleGrabber_;
   DWORD                             ROTID_;
 };
 

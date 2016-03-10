@@ -47,11 +47,7 @@ Stream_Module_QueueReader_T<LockType,
               isActive_in,
               autoStart_in,
               true)
- , isInitialized_ (false)
- , statisticCollectionHandler_ (ACTION_COLLECT,
-                                this,
-                                false)
- , timerID_ (-1)
+ , queue_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::Stream_Module_QueueReader_T"));
 
@@ -76,23 +72,6 @@ Stream_Module_QueueReader_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::~Stream_Module_QueueReader_T"));
 
-  int result = -1;
-
-  if (timerID_ != -1)
-  {
-    const void* act_p = NULL;
-    result =
-        COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-                                                                  &act_p);
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                  timerID_));
-    else
-      ACE_DEBUG ((LM_WARNING, // this should happen in END_SESSION
-                  ACE_TEXT ("cancelled timer (ID: %d)\n"),
-                  timerID_));
-  } // end IF
 }
 
 template <typename LockType,
@@ -115,35 +94,22 @@ Stream_Module_QueueReader_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::initialize"));
 
-  int result = -1;
+  bool result = false;
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
-
-    // clean up
-    if (timerID_ != -1)
-    {
-      const void* act_p = NULL;
-      result =
-          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-                                                                    &act_p);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                    timerID_));
-    } // end IF
-    timerID_ = -1;
-    isInitialized_ = false;
+  
+    queue_ = NULL;
   } // end IF
 
-  isInitialized_ = inherited::initialize (configuration_in);
-  if (!isInitialized_)
+  result = inherited::initialize (configuration_in);
+  if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
 
-  return isInitialized_;
+  return result;
 }
 
 //template <typename SessionMessageType,
@@ -266,7 +232,7 @@ Stream_Module_QueueReader_T<LockType,
   //         (and propagate it downstream ?)
 
   // step1: send the container downstream
-  if (!putStatisticsMessage (data_out)) // data container
+  if (!inherited::putStatisticsMessage (data_out)) // data container
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to putSessionMessage(SESSION_STATISTICS), aborting\n")));
@@ -276,31 +242,30 @@ Stream_Module_QueueReader_T<LockType,
   return true;
 }
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-void
-Stream_Module_QueueReader_T<LockType,
-                            SessionMessageType,
-                            ProtocolMessageType,
-                            ConfigurationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::report"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//void
+//Stream_Module_QueueReader_T<LockType,
+//                            SessionMessageType,
+//                            ProtocolMessageType,
+//                            ConfigurationType,
+//                            StreamStateType,
+//                            SessionDataType,
+//                            SessionDataContainerType,
+//                            StatisticContainerType>::report () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::report"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//  ACE_NOTREACHED (return;)
+//}
 
 template <typename LockType,
           typename SessionMessageType,
@@ -406,53 +371,53 @@ done:
 //   return message_out;
 // }
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-bool
-Stream_Module_QueueReader_T<LockType,
-                            SessionMessageType,
-                            ProtocolMessageType,
-                            ConfigurationType,
-                            StreamStateType,
-                            SessionDataType,
-                            SessionDataContainerType,
-                            StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::putStatisticMessage"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  // *TODO*: remove type inferences
-  ACE_ASSERT (inherited::configuration_.streamConfiguration);
-
-  // step1: update session state
-  // *TODO*: remove type inferences
-  inherited::sessionData_->currentStatistic = statisticData_in;
-
-  // *TODO*: attach stream state information to the session data
-
-  // step2: create session data object container
-  SessionDataContainerType* session_data_p = NULL;
-  ACE_NEW_NORETURN (session_data_p,
-                    SessionDataContainerType (inherited::sessionData_,
-                                              false));
-  if (!session_data_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-    return false;
-  } // end IF
-
-  // step3: send the statistic data downstream
-  // *NOTE*: fire-and-forget session_data_p here
-  // *TODO*: remove type inference
-  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-                                       session_data_p,
-                                       inherited::configuration_.streamConfiguration->messageAllocator);
-}
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//bool
+//Stream_Module_QueueReader_T<LockType,
+//                            SessionMessageType,
+//                            ProtocolMessageType,
+//                            ConfigurationType,
+//                            StreamStateType,
+//                            SessionDataType,
+//                            SessionDataContainerType,
+//                            StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::putStatisticMessage"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::sessionData_);
+//  // *TODO*: remove type inferences
+//  ACE_ASSERT (inherited::configuration_.streamConfiguration);
+//
+//  // step1: update session state
+//  // *TODO*: remove type inferences
+//  inherited::sessionData_->currentStatistic = statisticData_in;
+//
+//  // *TODO*: attach stream state information to the session data
+//
+//  // step2: create session data object container
+//  SessionDataContainerType* session_data_p = NULL;
+//  ACE_NEW_NORETURN (session_data_p,
+//                    SessionDataContainerType (inherited::sessionData_,
+//                                              false));
+//  if (!session_data_p)
+//  {
+//    ACE_DEBUG ((LM_CRITICAL,
+//                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
+//    return false;
+//  } // end IF
+//
+//  // step3: send the statistic data downstream
+//  // *NOTE*: fire-and-forget session_data_p here
+//  // *TODO*: remove type inference
+//  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
+//                                       session_data_p,
+//                                       inherited::configuration_.streamConfiguration->messageAllocator);
+//}

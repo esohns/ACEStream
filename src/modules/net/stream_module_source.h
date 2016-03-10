@@ -24,7 +24,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_istatistic.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -59,8 +58,9 @@ class Stream_Module_Net_Source_T
                                       StreamStateType,
                                       ///
                                       SessionDataType,
-                                      SessionDataContainerType>
- , public Common_IStatistic_T<StatisticContainerType>
+                                      SessionDataContainerType,
+                                      ///
+                                      StatisticContainerType>
 {
  public:
   // *NOTE*: this module has two modes of operation:
@@ -80,7 +80,8 @@ class Stream_Module_Net_Source_T
                                     ConfigurationType,
                                     StreamStateType,
                                     SessionDataType,
-                                    SessionDataContainerType>::initialize;
+                                    SessionDataContainerType,
+                                    StatisticContainerType>::initialize;
 #endif
 
   // override (part of) Stream_IModuleHandler_T
@@ -96,9 +97,9 @@ class Stream_Module_Net_Source_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement Common_IStatistic
-  // *NOTE*: implements regular (timer-based) statistics collection
+  // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  virtual void report () const;
+  //virtual void report () const;
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
@@ -113,7 +114,9 @@ class Stream_Module_Net_Source_T
                                       StreamStateType,
                                       ///
                                       SessionDataType,
-                                      SessionDataContainerType> inherited;
+                                      SessionDataContainerType,
+                                      ///
+                                      StatisticContainerType> inherited;
 
 //  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_T (const Stream_Module_Net_Source_T&))
@@ -121,21 +124,16 @@ class Stream_Module_Net_Source_T
 
   // helper methods
 //  virtual int svc (void);
-  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
-  bool putStatisticMessage (const StatisticContainerType&) const; // statistic info
+  //ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
+  //bool putStatisticMessage (const StatisticContainerType&) const; // statistic info
 
   //typename ConnectionManagerType::CONNECTION_T* connection_;
-  bool                                          isInitialized_;
   bool                                          isLinked_;
   bool                                          isPassive_;
   // *NOTE*: this lock prevents races during (ordered) shutdown
   // *TODO*: remove surplus STREAM_SESSION_END message(s)
   ACE_SYNCH_MUTEX                               lock_;
   bool                                          sessionEndInProgress_;
-
-  // timer
-  Stream_StatisticHandler_Reactor_t             statisticCollectionHandler_;
-  long                                          timerID_;
 };
 
 #include "stream_module_source.inl"
