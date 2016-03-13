@@ -142,12 +142,12 @@ class Stream_Dev_Cam_Source_DirectShow_T
                               IAMDroppedFrames*&,      // return value: capture filter statistic handle
                               ISampleGrabber*&);       // return value: sample grabber handle
 
-  bool                              isFirst_;
-  IAMDroppedFrames*                 IAMDroppedFrames_;
-  ICaptureGraphBuilder2*            ICaptureGraphBuilder2_;
-  IMediaControl*                    IMediaControl_;
-  IMediaEventEx*                    IMediaEventEx_;
-  DWORD                             ROTID_;
+  bool                   isFirst_;
+  IAMDroppedFrames*      IAMDroppedFrames_;
+  ICaptureGraphBuilder2* ICaptureGraphBuilder2_;
+  IMediaControl*         IMediaControl_;
+  IMediaEventEx*         IMediaEventEx_;
+  DWORD                  ROTID_;
 };
 
 #include "stream_dev_cam_source_directshow.inl"

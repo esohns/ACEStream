@@ -70,6 +70,7 @@ struct Test_I_Source_SocketHandlerConfiguration
 
 struct Test_I_Source_StreamState;
 struct Test_I_Source_StreamConfiguration;
+struct Test_I_Source_Stream_StatisticData;
 struct Test_I_Source_Stream_ModuleHandlerConfiguration;
 class Test_I_Source_Stream_SessionMessage;
 class Test_I_Source_Stream_Message;
@@ -83,7 +84,7 @@ typedef Stream_Base_T<ACE_SYNCH_MUTEX,
                       /////////////////
                       Test_I_Source_StreamConfiguration,
                       /////////////////
-                      Test_I_RuntimeStatistic_t,
+                      Test_I_Source_Stream_StatisticData,
                       /////////////////
                       Stream_ModuleConfiguration,
                       Test_I_Source_Stream_ModuleHandlerConfiguration,
@@ -102,6 +103,7 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
    , connectionManager (NULL)
    , device ()
    , socketHandlerConfiguration (NULL)
+   , statisticCollectionInterval (ACE_Time_Value::zero)
    , stream (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , windowController (NULL)
@@ -127,6 +129,7 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
   std::string                               device;
   Test_I_Source_SocketHandlerConfiguration* socketHandlerConfiguration;
+  ACE_Time_Value                            statisticCollectionInterval;
   Test_I_Source_StreamBase_t*               stream;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -138,6 +141,31 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
   v4l2_memory                               method; // v4l camera source
   struct v4l2_window*                       v4l2Window;
   GdkWindow*                                window;
+#endif
+};
+
+struct Test_I_Source_Stream_StatisticData
+ : Stream_Statistic
+{
+  inline Test_I_Source_Stream_StatisticData ()
+    : Stream_Statistic ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    , capturedFrames (0)
+#endif
+  {};
+
+  inline Test_I_Source_Stream_StatisticData operator+= (const Test_I_Source_Stream_StatisticData& rhs_in)
+  {
+    Stream_Statistic::operator+= (rhs_in);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    capturedFrames += rhs_in.capturedFrames;
+#endif
+
+    return *this;
+  };
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  unsigned int capturedFrames;
 #endif
 };
 

@@ -451,7 +451,7 @@ Stream_Module_FileReader_T<LockType,
 
     // *TODO*: remove type inference
     message_p =
-        allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+        inherited::allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,

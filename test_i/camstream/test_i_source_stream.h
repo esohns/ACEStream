@@ -54,7 +54,7 @@ class Test_I_Source_Stream_T
                         /////////////////
                         Test_I_Source_StreamConfiguration,
                         /////////////////
-                        Test_I_RuntimeStatistic_t,
+                        Test_I_Source_Stream_StatisticData,
                         /////////////////
                         Stream_ModuleConfiguration,
                         Test_I_Source_Stream_ModuleHandlerConfiguration,
@@ -78,7 +78,7 @@ class Test_I_Source_Stream_T
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Test_I_RuntimeStatistic_t&); // return value: statistic data
+  virtual bool collect (Test_I_Source_Stream_StatisticData&); // return value: statistic data
   virtual void report () const;
 
  private:
@@ -92,7 +92,7 @@ class Test_I_Source_Stream_T
                         /////////////////
                         Test_I_Source_StreamConfiguration,
                         /////////////////
-                        Test_I_RuntimeStatistic_t,
+                        Test_I_Source_Stream_StatisticData,
                         /////////////////
                         Stream_ModuleConfiguration,
                         Test_I_Source_Stream_ModuleHandlerConfiguration,

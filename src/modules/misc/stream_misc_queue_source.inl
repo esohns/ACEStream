@@ -100,7 +100,7 @@ Stream_Module_QueueReader_T<LockType,
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
-  
+
     queue_ = NULL;
   } // end IF
 
@@ -220,7 +220,7 @@ Stream_Module_QueueReader_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::initialized_);
 
   // step0: initialize container
 //  data_out.dataMessages = 0;

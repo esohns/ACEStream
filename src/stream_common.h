@@ -99,6 +99,8 @@ struct Stream_Statistic
     dataMessages += rhs_in.dataMessages;
     droppedMessages += rhs_in.droppedMessages;
 
+    timeStamp = rhs_in.timeStamp;
+
     return *this;
   };
 

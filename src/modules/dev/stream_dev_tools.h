@@ -67,6 +67,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   // -------------------------------------
 
   // *NOTE*: currently, these work for capture graphs only
+  static bool getBufferNegotiation (IGraphBuilder*,          // graph handle
+                                    IAMBufferNegotiation*&); // return value: capture filter output pin buffer allocator configuration handle
   // *IMPORTANT NOTE*: caller must deleteMediaType() the result !
   static bool getCaptureFormat (IGraphBuilder*,         // graph handle
                                 struct _AMMediaType*&); // return value: media type
@@ -76,9 +78,10 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                struct _AMMediaType*&); // return value: media type
   // *NOTE*: loads the capture device filter and puts it into an empty (capture)
   //         graph
-  static bool loadDeviceGraph (const std::string&,  // device ("FriendlyName")
-                               IGraphBuilder*&,     // return value: (capture) graph handle
-                               IAMStreamConfig*&);  // return value: format configuration handle
+  static bool loadDeviceGraph (const std::string&,     // device ("FriendlyName")
+                               IGraphBuilder*&,        // return value: (capture) graph handle
+                               IAMBufferNegotiation*&, // return value: capture filter output pin buffer allocator configuration handle
+                               IAMStreamConfig*&);     // return value: format configuration handle
   // *NOTE*: disconnects the (capture) graph and removes all but the capture
   //         filter
   static bool resetDeviceGraph (IGraphBuilder*); // filter graph handle
@@ -102,6 +105,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void debug (IGraphBuilder*,      // graph handle
                      const std::string&); // log file name
   static void dump (IPin*); // pin handle
+  // *NOTE*: return value (if any) has an outstanding reference --> Release()
+  static IPin* pin (IBaseFilter*,        // filter handle
+                    enum _PinDirection); // direction
   // *NOTE*: return value (if any) has an outstanding reference --> Release()
   static IBaseFilter* pin2Filter (IPin*); // pin handle
   // *NOTE*: "...filters are given names when they participate in a filter
@@ -139,10 +145,10 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                               unsigned int,   // number of buffers
                               unsigned int&); // return value: #done
 
-  static bool setFormat (int,    // file descriptor
-                         __u32); // format (fourcc)
-  static bool getFormat (int,                  // file descriptor
-                         struct v4l2_format&); // return value: format
+  static bool setCaptureFormat (int,    // device handle file descriptor
+                                __u32); // format (fourcc)
+  static bool getCaptureFormat (int,                  // device handle file descriptor
+                                struct v4l2_format&); // return value: format
   static bool setResolution (int,           // file descriptor
                              unsigned int,  // width
                              unsigned int); // height

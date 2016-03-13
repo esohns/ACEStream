@@ -25,6 +25,16 @@
 
 #include "ace/Global_Macros.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#ifdef __cplusplus
+extern "C"
+{
+#include "libavformat/avformat.h"
+}
+#endif
+#endif
+
 #include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
@@ -61,6 +71,8 @@ class Stream_Decoder_AVIEncoder_ReaderTask_T
   // helper function(s)
   bool postProcessHeader (const std::string&); // file name
 };
+
+//////////////////////////////////////////
 
 template <typename SessionMessageType,
           typename MessageType,
@@ -101,6 +113,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 
   // helper methods
   MessageType* allocateMessage (unsigned int); // requested size
+  bool generateIndex (ACE_Message_Block*); // message buffer handle
 
   // *NOTE*: the RIFF-AVI (storage) format (like many others) foresees a
   //         header that contains size fields with information about
@@ -123,6 +136,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType*      mediaType_;
 #else
+  AVFormatContext*          formatContext_;
 #endif
 };
 

@@ -153,7 +153,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 //    pixelBuffer_ = NULL;
 //  } // end IF
 
-  int bits_per_sample = 8;
+//  int bits_per_sample = 8;
   int row_stride = session_data_r.format.fmt.pix.bytesperline;
   switch (session_data_r.format.fmt.pix.pixelformat)
   {

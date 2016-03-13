@@ -307,27 +307,26 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
       // *TODO*: remove type inference
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
-      if (inherited::configuration_->streamConfiguration->statisticReportingInterval)
+      if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       {
-        // schedule regular statistics collection...
-        ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION_INTERVAL, 0);
-        ACE_ASSERT (timerID_ == -1);
+        // schedule regular statistic collection
+        ACE_ASSERT (inherited::timerID_ == -1);
         ACE_Event_Handler* handler_p = &(inherited::statisticCollectionHandler_);
-        timerID_ =
-            COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                  // event handler
-                                                                        NULL,                       // argument
-                                                                        COMMON_TIME_NOW + interval, // first wakeup time
-                                                                        interval);                  // interval
-        if (timerID_ == -1)
+        inherited::timerID_ =
+            COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                                                                // event handler
+                                                                        NULL,                                                                     // argument
+                                                                        COMMON_TIME_NOW + inherited::configuration_->statisticCollectionInterval, // first wakeup time
+                                                                        inherited::configuration_->statisticCollectionInterval);                  // interval
+        if (inherited::timerID_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n")));
           goto error;
         } // end IF
-        //        ACE_DEBUG ((LM_DEBUG,
-        //                    ACE_TEXT ("scheduled statistics collecting timer (ID: %d) for interval %#T...\n"),
-        //                    timerID_,
-        //                    &interval));
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("scheduled statistic collecting timer (ID: %d) for interval %#T...\n"),
+//                    inherited::timerID_,
+//                    &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
       bool COM_initialized = false;
@@ -585,17 +584,17 @@ error:
       // *TODO*: remove type inference
       //ACE_ASSERT (inherited::configuration_->builder);
 
-      if (timerID_ != -1)
+      if (inherited::timerID_ != -1)
       {
         const void* act_p = NULL;
         result =
-            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
+            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (inherited::timerID_,
                                                                       &act_p);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                      timerID_));
-        timerID_ = -1;
+                      inherited::timerID_));
+        inherited::timerID_ = -1;
       } // end IF
 
       bool COM_initialized = false;
@@ -737,21 +736,44 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (IAMDroppedFrames_);
 
   // step0: initialize container
-//  data_out.dataMessages = 0;
-//  data_out.droppedMessages = 0;
-//  data_out.bytes = 0.0;
   data_out.timeStamp = COMMON_TIME_NOW;
 
+  // step1: collect data
+  HRESULT result = E_FAIL;
+  long average_frame_size = 0;
 
-  // step1: send the container downstream
-  if (!inherited::putStatisticMessage (data_out)) // data container
-  {
+  // *NOTE*: "...Some filters that expose this interface do not implement the
+  //         GetDroppedInfo or GetAverageFrameSize method."
+  result = IAMDroppedFrames_->GetAverageFrameSize (&average_frame_size);
+  if (FAILED (result))
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("failed to IAMDroppedFrames::GetAverageFrameSize(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  ACE_UNUSED_ARG (average_frame_size);
+
+  long captured_frames = 0;
+  result = IAMDroppedFrames_->GetNumNotDropped (&captured_frames);
+  //result = IAMDroppedFrames_->GetNumNotDropped (reinterpret_cast<long*> (&(data_out.capturedFrames)));
+  if (FAILED (result))
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::putStatisticMessage(), aborting\n")));
-    return false;
-  } // end IF
+                ACE_TEXT ("failed to IAMDroppedFrames::GetNumNotDropped(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  result = IAMDroppedFrames_->GetNumDropped (reinterpret_cast<long*> (&(data_out.droppedMessages)));
+  if (FAILED (result))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMDroppedFrames::GetNumDropped(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  //// step2: send the information downstream
+  //if (!inherited::putStatisticMessage (data_out)) // data container
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::putStatisticMessage(), aborting\n")));
+  //  return false;
+  //} // end IF
 
   return true;
 }
@@ -1190,9 +1212,11 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   std::list<std::wstring> filter_pipeline;
 
   IGraphBuilder* graph_builder_p = NULL;
+  IAMBufferNegotiation* buffer_negotiation_p = NULL;
   IAMStreamConfig* stream_config_p = NULL;
   if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
                                                     graph_builder_p,
+                                                    buffer_negotiation_p,
                                                     stream_config_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1201,6 +1225,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
     goto error;
   } // end IF
   ACE_ASSERT (graph_builder_p);
+  ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (stream_config_p);
 
   result = ICaptureGraphBuilder2_out->SetFiltergraph (graph_builder_p);
@@ -1460,6 +1485,22 @@ continue_2:
   } // end IF
   ACE_ASSERT (filter_4);
 
+  struct _AllocatorProperties allocator_properties;
+  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+  allocator_properties.cbAlign = 1;
+  allocator_properties.cbBuffer = 0;
+  allocator_properties.cbPrefix = 0;
+  allocator_properties.cBuffers =
+    MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+  result = buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
   //result =
   //  ICaptureGraphBuilder2_in->RenderStream (//&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
   //                                          &PIN_CATEGORY_CAPTURE, NULL,
@@ -1487,6 +1528,23 @@ continue_2:
     goto error;
   } // end IF
 
+  // debug info
+  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+  result = buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+              allocator_properties.cBuffers,
+              allocator_properties.cbBuffer,
+              allocator_properties.cbAlign,
+              allocator_properties.cbPrefix));
+
   // clean up
   if (filter_p)
     filter_p->Release ();
@@ -1508,6 +1566,8 @@ continue_2:
 error:
   if (graph_builder_p)
     graph_builder_p->Release ();
+  if (buffer_negotiation_p)
+    buffer_negotiation_p->Release ();
   if (stream_config_p)
     stream_config_p->Release ();
 

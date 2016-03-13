@@ -24,8 +24,10 @@
 #include "ace/INET_Addr.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "dshow.h"
 #include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs (see test_i_target_common.h)
+#endif
 
 #include "common_time_common.h"
 
@@ -75,7 +77,7 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_MUTEX,
                                            Test_I_Source_Stream_SessionData,
                                            Test_I_Source_Stream_SessionData_t,
 
-                                           Stream_Statistic> Test_I_Stream_Module_CamSource;
+                                           Test_I_Source_Stream_StatisticData> Test_I_Stream_Module_CamSource;
 typedef Stream_Misc_DirectShow_Source_T<Test_I_Target_Stream_SessionMessage,
                                         Test_I_Target_Stream_Message,
 
@@ -99,7 +101,7 @@ typedef Stream_Module_CamSource_V4L_T<ACE_SYNCH_MUTEX,
                                       Test_I_Source_Stream_SessionData,
                                       Test_I_Source_Stream_SessionData_t,
 
-                                      Stream_Statistic> Test_I_Stream_Module_CamSource;
+                                      Test_I_Source_Stream_StatisticData> Test_I_Stream_Module_CamSource;
 #endif
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
                               Common_TimePolicy_t,                             // time policy
@@ -157,7 +159,7 @@ typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_MUTEX,
                                      Test_I_Source_Stream_SessionData,
                                      Test_I_Source_Stream_SessionData_t,
                                      ////
-                                     Test_I_RuntimeStatistic_t,
+                                     Test_I_Source_Stream_StatisticData,
                                      ////
                                      ACE_INET_Addr,
                                      Test_I_Source_InetConnectionManager_t> Test_I_Source_Stream_Module_Net_Writer_t;
@@ -222,7 +224,7 @@ typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Test_I_Source_Stream_SessionMessage,
                                              Test_I_Source_Stream_Message,
                                              Test_I_CommandType_t,
-                                             Test_I_RuntimeStatistic_t,
+                                             Test_I_Source_Stream_StatisticData,
                                              Test_I_Source_Stream_SessionData,
                                              Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
@@ -230,7 +232,7 @@ typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Test_I_Source_Stream_SessionMessage,
                                              Test_I_Source_Stream_Message,
                                              Test_I_CommandType_t,
-                                             Test_I_RuntimeStatistic_t,
+                                             Test_I_Source_Stream_StatisticData,
                                              Test_I_Source_Stream_SessionData,
                                              Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Statistic_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                       // task synch type

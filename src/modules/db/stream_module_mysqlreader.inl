@@ -58,12 +58,7 @@ Stream_Module_MySQLReader_T<LockType,
                             //         affair, as the calling thread may be
                             //         holding the lock --> check carefully
  , state_ (NULL)
- , isInitialized_ (false)
  , manageLibrary_ (manageLibrary_in)
- , statisticCollectionHandler_ (ACTION_COLLECT,
-                                this,
-                                false)
- , timerID_ (-1)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::Stream_Module_MySQLReader_T"));
 
@@ -100,24 +95,6 @@ Stream_Module_MySQLReader_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::~Stream_Module_MySQLReader_T"));
 
-  int result = -1;
-
-  if (timerID_ != -1)
-  {
-    const void* act_p = NULL;
-    result =
-        COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-                                                                  &act_p);
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                  timerID_));
-    else
-      ACE_DEBUG ((LM_WARNING, // this should happen in END_SESSION
-                  ACE_TEXT ("cancelled timer (ID: %d)\n"),
-                  timerID_));
-  } // end IF
-
   if (state_)
     mysql_close (state_);
 
@@ -145,16 +122,17 @@ Stream_Module_MySQLReader_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::initialize"));
 
-  int result = -1;
+  bool result = false;
+  int result_2 = -1;
 
   // step0: initialize library ?
   static bool first_run = true;
   if (first_run && manageLibrary_)
   {
-    result = mysql_library_init (0,     // argc
-                                 NULL,  // argv
-                                 NULL); // groups
-    if (result)
+    result_2 = mysql_library_init (0,     // argc
+                                   NULL,  // argv
+                                   NULL); // groups
+    if (result_2)
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("failed to mysql_library_init(): \"%s\", aborting\n"),
@@ -164,30 +142,14 @@ Stream_Module_MySQLReader_T<LockType,
     first_run = false;
   } // end IF
 
-  if (isInitialized_)
+  if (inherited::initialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
 
-    // clean up
-    if (timerID_ != -1)
-    {
-      const void* act_p = NULL;
-      result =
-          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
-                                                                    &act_p);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                    timerID_));
-    } // end IF
-    timerID_ = -1;
-
     if (state_)
       mysql_close (state_);
     state_ = NULL;
-
-    isInitialized_ = false;
   } // end IF
 
   //  mysql_thread_init ();
@@ -222,10 +184,10 @@ Stream_Module_MySQLReader_T<LockType,
     //      connection_string += ACE_TEXT_ALWAYS_CHAR (buffer);
     // MYSQL_OPT_PROTOCOL, MYSQL_SET_CHARSET_NAME, MYSQL_OPT_RECONNECT...
   //  char* argument_p = configuration_.DBOptionFileName.c_str ();
-  result = mysql_options (state_,
-                          MYSQL_READ_DEFAULT_FILE,
-                          configuration_in.DBOptionFileName.c_str ());
-  if (result)
+  result_2 = mysql_options (state_,
+                            MYSQL_READ_DEFAULT_FILE,
+                            configuration_in.DBOptionFileName.c_str ());
+  if (result_2)
   {
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("failed to mysql_options(MYSQL_READ_DEFAULT_FILE,\"%s\"): \"%s\", aborting\n"),
@@ -234,12 +196,12 @@ Stream_Module_MySQLReader_T<LockType,
     return false;
   } // end IF
 
-  isInitialized_ = inherited::initialize (configuration_in);
-  if (!isInitialized_)
+  result = inherited::initialize (configuration_in);
+  if (!result)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
 
-  return isInitialized_;
+  return result;
 }
 
 //template <typename SessionMessageType,
@@ -295,8 +257,7 @@ Stream_Module_MySQLReader_T<LockType,
   // sanity check(s)
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_.streamConfiguration);
-  ACE_ASSERT (message_inout);
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::initialized_);
 
   const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
       message_inout->get ();
@@ -306,28 +267,28 @@ Stream_Module_MySQLReader_T<LockType,
   {
     case STREAM_SESSION_BEGIN:
     {
-
-      if (inherited::configuration_.streamConfiguration->statisticReportingInterval)
+      // schedule regular statistic collection ?
+      if (inherited::configuration_.streamConfiguration->statisticReportingInterval !=
+          ACE_Time_Value::zero)
       {
-        // schedule regular statistics collection...
-        ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION_INTERVAL, 0);
-        ACE_ASSERT (timerID_ == -1);
-        ACE_Event_Handler* handler_p = &statisticCollectionHandler_;
-        timerID_ =
+        ACE_Time_Value interval (STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL, 0);
+        ACE_ASSERT (inherited::timerID_ == -1);
+        ACE_Event_Handler* handler_p = &inherited::statisticCollectionHandler_;
+        inherited::timerID_ =
             COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                  // event handler
                                                                         NULL,                       // argument
                                                                         COMMON_TIME_NOW + interval, // first wakeup time
                                                                         interval);                  // interval
-        if (timerID_ == -1)
+        if (inherited::timerID_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", aborting\n")));
           return;
         } // end IF
-        //        ACE_DEBUG ((LM_DEBUG,
-        //                    ACE_TEXT ("scheduled statistics collecting timer (ID: %d) for interval %#T...\n"),
-        //                    timerID_,
-        //                    &interval));
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("scheduled statistic collecting timer (ID: %d) for interval %#T...\n"),
+//                    inherited::timerID_,
+//                    &interval));
       } // end IF
 
       // sanity check(s)
@@ -449,17 +410,17 @@ Stream_Module_MySQLReader_T<LockType,
     }
     case STREAM_SESSION_END:
     {
-      if (timerID_ != -1)
+      if (inherited::timerID_ != -1)
       {
         const void* act_p = NULL;
         result =
-            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
+            COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (inherited::timerID_,
                                                                       &act_p);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
-                      timerID_));
-        timerID_ = -1;
+                      inherited::timerID_));
+        inherited::timerID_ = -1;
       } // end IF
 
       // sanity check(s)
@@ -499,7 +460,7 @@ Stream_Module_MySQLReader_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::initialized_);
 
   // step0: initialize container
 //  data_out.dataMessages = 0;

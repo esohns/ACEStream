@@ -24,7 +24,6 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_istatistic.h"
 #include "common_time_common.h"
 
 #include "stream_headmoduletask_base.h"
@@ -44,19 +43,20 @@ template <typename LockType,
           typename StatisticContainerType>
 class Stream_Module_CamSource_V4L_T
  : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
-                                      SessionDataContainerType>
- , public Common_IStatistic_T<StatisticContainerType>
+                                      SessionDataContainerType,
+                                      ////
+                                      StatisticContainerType>
 {
  public:
   Stream_Module_CamSource_V4L_T (bool = false,  // active object ?
@@ -73,7 +73,8 @@ class Stream_Module_CamSource_V4L_T
                                     ConfigurationType,
                                     StreamStateType,
                                     SessionDataType,
-                                    SessionDataContainerType>::initialize;
+                                    SessionDataContainerType,
+                                    StatisticContainerType>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&);
@@ -87,22 +88,24 @@ class Stream_Module_CamSource_V4L_T
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  virtual void report () const;
+//  virtual void report () const;
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
-                                      SessionDataContainerType> inherited;
+                                      SessionDataContainerType,
+                                      ////
+                                      StatisticContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_CamSource_V4L_T (const Stream_Module_CamSource_V4L_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_CamSource_V4L_T& operator= (const Stream_Module_CamSource_V4L_T&))
@@ -113,13 +116,11 @@ class Stream_Module_CamSource_V4L_T
 //  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
-  int                       captureFileDescriptor_; // capture
-  int                       overlayFileDescriptor_; // preview
+  int  captureFileDescriptor_; // capture
+  int  overlayFileDescriptor_; // preview
 
-  bool                      debug_; // log device status (to kernel log)
-  bool                      isPassive_;
-
-  bool                      isInitialized_;
+  bool debug_; // log device status (to kernel log)
+  bool isPassive_;
 };
 
 #include "stream_dev_cam_source_v4l.inl"

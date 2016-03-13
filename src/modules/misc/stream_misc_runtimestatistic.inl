@@ -48,6 +48,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
  , initialized_ (false)
  , resetTimeoutHandler_ (this)
  , resetTimeoutHandlerID_ (-1)
+ , timerThreadID_ (0)
  , localReportingHandler_ (ACTION_REPORT,
                            this,
                            false)
@@ -171,14 +172,18 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   if ((reportingInterval_ != ACE_Time_Value::zero) ||
       pushStatisticMessages_)
   {
+    Common_Timer_Manager_t* timer_manager_p =
+        COMMON_TIMERMANAGER_SINGLETON::instance ();
+    ACE_ASSERT (timer_manager_p);
+    timerThreadID_ = timer_manager_p->thr_id ();
     // schedule the second-granularity timer
     ACE_Time_Value one_second (1, 0); // one-second interval
     ACE_Event_Handler* event_handler_p = &resetTimeoutHandler_;
     resetTimeoutHandlerID_ =
-      COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (event_handler_p,              // event handler
-                                                                  NULL,                         // ACT
-                                                                  COMMON_TIME_NOW + one_second, // first wakeup time
-                                                                  one_second);                  // interval
+      timer_manager_p->schedule_timer (event_handler_p,              // event handler
+                                       NULL,                         // ACT
+                                       COMMON_TIME_NOW + one_second, // first wakeup time
+                                       one_second);                  // interval
     if (resetTimeoutHandlerID_ == -1)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -271,7 +276,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   // *NOTE*: currently, session messages travel only downstream...
   //inboundMessages_++;
   sessionMessages_++;
-  messageCounter_++;
+  //messageCounter_++;
 
   switch (message_inout->type ())
   {
@@ -282,7 +287,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 
       // *TODO*: remove type inferences
       sessionData_ =
-          &const_cast<typename SessionMessageType::SESSION_DATA_T&> (message_inout->get ());
+          &const_cast<SessionDataContainerType&> (message_inout->get ());
       sessionData_->increase ();
 
       // statistic reporting
@@ -303,13 +308,46 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
                       &reportingInterval_));
           return;
         } // end IF
-        //     ACE_DEBUG ((LM_DEBUG,
-        //                 ACE_TEXT ("scheduled (local) reporting timer (ID: %d) for intervals of %u second(s)...\n"),
-        //                 localReportingHandlerID_,
-        //                 reportingInterval_in));
+//     ACE_DEBUG ((LM_DEBUG,
+//                 ACE_TEXT ("scheduled (local) reporting timer (ID: %d) for intervals of %u second(s)...\n"),
+//                 localReportingHandlerID_,
+//                 reportingInterval_in));
       } // end IF
       // *NOTE*: even if this doesn't report, it might still be triggered from
       //         outside
+
+      break;
+    }
+    case STREAM_SESSION_STATISTIC:
+    {
+      // *NOTE*: in some scenarios, the reset timer generates statistic session
+      //         messages (see reset()). In this case, the session data has
+      //         already been updated
+      //         --> return
+      // *TODO*: this will not work if 'this' is asynchronous
+      if (ACE_Thread::self () == timerThreadID_)
+        break; // done
+
+      // sanity check(s)
+      ACE_ASSERT (sessionData_);
+
+      typename SessionDataContainerType::DATA_T& session_data_r =
+        const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->get ());
+
+      // *NOTE*: the message contains statistic information (most probably, from
+      //         some upstream module, e.g. some hardware capture device driver)
+      //         --> aggregate this data
+      const SessionDataContainerType& session_data_container_r =
+        message_inout->get ();
+      const typename SessionDataContainerType::DATA_T& session_data_2 =
+        session_data_container_r.get ();
+
+      {
+        ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (*session_data_r.lock);
+        //ACE_Guard<ACE_SYNCH_MUTEX> aGuard_3 (*session_data_2.lock);
+
+        session_data_r.currentStatistic += session_data_2.currentStatistic;
+      } // end lock scope
 
       break;
     }
@@ -356,9 +394,10 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::reset"));
 
+  // *NOTE*: reset() occurs every second (roughly)
+
   bool in_session = false;
 
-  // happens every second (roughly)
   {
     ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
@@ -434,7 +473,6 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     // *TODO*: remove type inferences
     data_out.bytes = (inboundBytes_ + outboundBytes_);
     data_out.dataMessages = (inboundMessages_ + outboundMessages_);
-//    data_out.droppedMessages = 0;
   } // end lock scope
 
   return true;

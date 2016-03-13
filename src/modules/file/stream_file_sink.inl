@@ -887,7 +887,7 @@ Stream_Module_FileWriterH_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (initialized_);
+  ACE_ASSERT (inherited::initialized_);
 
   // step1: initialize info container POD
   data_out.bytes = 0.0;

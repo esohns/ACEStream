@@ -58,7 +58,6 @@ Stream_Module_CamSource_V4L_T<LockType,
  , overlayFileDescriptor_ (-1)
  , debug_ (false)
  , isPassive_ (false)
- , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::Stream_Module_CamSource_V4L_T"));
 
@@ -159,7 +158,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::initialized_);
 
   switch (message_inout->type ())
   {
@@ -174,11 +173,11 @@ Stream_Module_CamSource_V4L_T<LockType,
       int toggle = 1;
 
       // step0: retain current format as session data
-      if (!Stream_Module_Device_Tools::getFormat (captureFileDescriptor_,
-                                                  session_data_r.format))
+      if (!Stream_Module_Device_Tools::getCaptureFormat (captureFileDescriptor_,
+                                                         session_data_r.format))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_Tools::getFormat(%d): \"%m\", aborting\n"),
+                    ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(%d): \"%m\", aborting\n"),
                     captureFileDescriptor_));
         goto error;
       } // end IF
@@ -333,7 +332,7 @@ Stream_Module_CamSource_V4L_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::initialized_);
 
   // step0: initialize container
 //  data_out.dataMessages = 0;
@@ -345,7 +344,7 @@ Stream_Module_CamSource_V4L_T<LockType,
   //         (and propagate it downstream ?)
 
   // step1: send the container downstream
-  if (!putStatisticMessage (data_out)) // data container
+  if (!inherited::putStatisticMessage (data_out)) // data container
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to putStatisticMessage(), aborting\n")));
@@ -355,31 +354,30 @@ Stream_Module_CamSource_V4L_T<LockType,
   return true;
 }
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-void
-Stream_Module_CamSource_V4L_T<LockType,
-                              SessionMessageType,
-                              ProtocolMessageType,
-                              ConfigurationType,
-                              StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
-                              StatisticContainerType>::report () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::report"));
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//void
+//Stream_Module_CamSource_V4L_T<LockType,
+//                              SessionMessageType,
+//                              ProtocolMessageType,
+//                              ConfigurationType,
+//                              StreamStateType,
+//                              SessionDataType,
+//                              SessionDataContainerType,
+//                              StatisticContainerType>::report () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::report"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP;
+//  ACE_NOTREACHED (return;)
+//}
 
 template <typename LockType,
           typename SessionMessageType,
@@ -401,15 +399,16 @@ Stream_Module_CamSource_V4L_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::initialize"));
 
-  int result = -1;
+  bool result = false;
+  int result_2 = -1;
 
-  if (isInitialized_)
+  if (inherited::initialized_)
   {
     if (!isPassive_)
       if (captureFileDescriptor_ != -1)
       {
-        result = v4l2_close (captureFileDescriptor_);
-        if (result == -1)
+        result_2 = v4l2_close (captureFileDescriptor_);
+        if (result_2 == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                       captureFileDescriptor_));
@@ -417,8 +416,8 @@ Stream_Module_CamSource_V4L_T<LockType,
       } // end IF
     if (overlayFileDescriptor_ != -1)
     {
-      result = v4l2_close (overlayFileDescriptor_);
-      if (result == -1)
+      result_2 = v4l2_close (overlayFileDescriptor_);
+      if (result_2 == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                     overlayFileDescriptor_));
@@ -427,8 +426,6 @@ Stream_Module_CamSource_V4L_T<LockType,
 
     debug_ = false;
     isPassive_ = false;
-
-    isInitialized_ = false;
   } // end IF
 
   // *NOTE*: use O_NONBLOCK with a reactor (v4l2_select()) or proactor
@@ -497,21 +494,21 @@ Stream_Module_CamSource_V4L_T<LockType,
     } // end IF
   } // end IF
 
-  isInitialized_ = inherited::initialize (configuration_in);
-  if (!isInitialized_)
+  result = inherited::initialize (configuration_in);
+  if (!result)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
     goto error;
   } // end IF
 
-  return isInitialized_;
+  return result;
 
 error:
   if (captureFileDescriptor_ != -1)
   {
-    result = v4l2_close (captureFileDescriptor_);
-    if (result == -1)
+    result_2 = v4l2_close (captureFileDescriptor_);
+    if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                   captureFileDescriptor_));
@@ -519,8 +516,8 @@ error:
   } // end IF
   if (overlayFileDescriptor_ != -1)
   {
-    result = v4l2_close (overlayFileDescriptor_);
-    if (result == -1)
+    result_2 = v4l2_close (overlayFileDescriptor_);
+    if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                   overlayFileDescriptor_));
@@ -552,7 +549,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::initialized_);
 
   int result = -1;
   int result_2 = -1;
@@ -568,7 +565,7 @@ Stream_Module_CamSource_V4L_T<LockType,
   struct v4l2_event event;
   ACE_OS::memset (&event, 0, sizeof (struct v4l2_event));
   INDEX2BUFFER_MAP_ITERATOR_T iterator;
-  unsigned int queued, done = 0;
+//  unsigned int queued, done = 0;
 
   // step1: start processing data...
 //   ACE_DEBUG ((LM_DEBUG,
@@ -824,56 +821,56 @@ done:
 //  return message_out;
 //}
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-bool
-Stream_Module_CamSource_V4L_T<LockType,
-                              SessionMessageType,
-                              ProtocolMessageType,
-                              ConfigurationType,
-                              StreamStateType,
-                              SessionDataType,
-                              SessionDataContainerType,
-                              StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::putStatisticMessage"));
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//bool
+//Stream_Module_CamSource_V4L_T<LockType,
+//                              SessionMessageType,
+//                              ProtocolMessageType,
+//                              ConfigurationType,
+//                              StreamStateType,
+//                              SessionDataType,
+//                              SessionDataContainerType,
+//                              StatisticContainerType>::putStatisticMessage (const StatisticContainerType& statisticData_in) const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::putStatisticMessage"));
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::sessionData_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->streamConfiguration);
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_);
+//  ACE_ASSERT (inherited::sessionData_);
+//  // *TODO*: remove type inference
+//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
-  // step1: update session state
-  SessionDataType& session_data_r =
-      const_cast<SessionDataType&> (inherited::sessionData_->get ());
-  // *TODO*: remove type inferences
-  session_data_r.currentStatistic = statisticData_in;
+//  // step1: update session state
+//  SessionDataType& session_data_r =
+//      const_cast<SessionDataType&> (inherited::sessionData_->get ());
+//  // *TODO*: remove type inferences
+//  session_data_r.currentStatistic = statisticData_in;
 
-  // *TODO*: attach stream state information to the session data
+//  // *TODO*: attach stream state information to the session data
 
-//  // step2: create session data object container
-//  SessionDataContainerType* session_data_p = NULL;
-//  ACE_NEW_NORETURN (session_data_p,
-//                    SessionDataContainerType (inherited::sessionData_,
-//                                              false));
-//  if (!session_data_p)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-//    return false;
-//  } // end IF
+////  // step2: create session data object container
+////  SessionDataContainerType* session_data_p = NULL;
+////  ACE_NEW_NORETURN (session_data_p,
+////                    SessionDataContainerType (inherited::sessionData_,
+////                                              false));
+////  if (!session_data_p)
+////  {
+////    ACE_DEBUG ((LM_CRITICAL,
+////                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
+////    return false;
+////  } // end IF
 
-  // step3: send the statistic data downstream
-//  // *NOTE*: fire-and-forget session_data_p here
-  // *TODO*: remove type inference
-  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
-                                       *inherited::sessionData_,
-                                       inherited::configuration_->streamConfiguration->messageAllocator);
-}
+//  // step3: send the statistic data downstream
+////  // *NOTE*: fire-and-forget session_data_p here
+//  // *TODO*: remove type inference
+//  return inherited::putSessionMessage (STREAM_SESSION_STATISTIC,
+//                                       *inherited::sessionData_,
+//                                       inherited::configuration_->streamConfiguration->messageAllocator);
+//}

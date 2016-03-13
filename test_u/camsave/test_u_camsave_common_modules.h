@@ -57,7 +57,7 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_MUTEX,
                                            Stream_CamSave_SessionData,
                                            Stream_CamSave_SessionData_t,
 
-                                           Stream_Statistic> Stream_CamSave_Module_Source;
+                                           Stream_CamSave_StatisticData> Stream_CamSave_Module_Source;
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_SYNCH_MUTEX,
                                       ////
@@ -71,7 +71,7 @@ typedef Stream_Module_CamSource_V4L_T<ACE_SYNCH_MUTEX,
                                       Stream_CamSave_SessionData,
                                       Stream_CamSave_SessionData_t,
                                       ////
-                                      Stream_Statistic> Stream_CamSave_Module_Source;
+                                      Stream_CamSave_StatisticData> Stream_CamSave_Module_Source;
 #endif
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task synch type
                               Common_TimePolicy_t,                       // time policy
@@ -84,7 +84,7 @@ typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Stream_CamSave_SessionMessage,
                                              Stream_CamSave_Message,
                                              Stream_CommandType_t,
-                                             Stream_Statistic,
+                                             Stream_CamSave_StatisticData,
                                              Stream_CamSave_SessionData,
                                              Stream_CamSave_SessionData_t> Stream_CamSave_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
@@ -92,7 +92,7 @@ typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Stream_CamSave_SessionMessage,
                                              Stream_CamSave_Message,
                                              Stream_CommandType_t,
-                                             Stream_Statistic,
+                                             Stream_CamSave_StatisticData,
                                              Stream_CamSave_SessionData,
                                              Stream_CamSave_SessionData_t> Stream_CamSave_Module_Statistic_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                 // task synch type

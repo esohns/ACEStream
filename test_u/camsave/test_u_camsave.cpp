@@ -405,6 +405,7 @@ bool
 do_initialize_directshow (const std::string& deviceName_in,
                           const HWND windowHandle_in,
                           IGraphBuilder*& IGraphBuilder_out,
+                          IAMBufferNegotiation*& IAMBufferNegotiation_out,
                           IAMStreamConfig*& IAMStreamConfig_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
@@ -422,6 +423,7 @@ do_initialize_directshow (const std::string& deviceName_in,
 
   if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
                                                     IGraphBuilder_out,
+                                                    IAMBufferNegotiation_out,
                                                     IAMStreamConfig_out))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -430,6 +432,7 @@ do_initialize_directshow (const std::string& deviceName_in,
     return false;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
+  ACE_ASSERT (IAMBufferNegotiation_out);
   ACE_ASSERT (IAMStreamConfig_out);
 
   if (_DEBUG)
@@ -537,9 +540,11 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  IAMBufferNegotiation* buffer_negotiation_p = NULL;
   if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
                                  configuration.moduleHandlerConfiguration.window,
                                  configuration.moduleHandlerConfiguration.builder,
+                                 buffer_negotiation_p,
                                  CBData_in.streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -551,7 +556,10 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
   ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
+  ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (CBData_in.streamConfiguration);
+
+  buffer_negotiation_p->Release ();
 #endif
 
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
@@ -590,6 +598,9 @@ do_work (unsigned int bufferSize_in,
 #endif
   configuration.moduleHandlerConfiguration.streamConfiguration =
       &configuration.streamConfiguration;
+  //if (statisticReportingInterval_in != 0)
+    configuration.moduleHandlerConfiguration.statisticCollectionInterval.set (0,
+                                                                              MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
   configuration.moduleHandlerConfiguration.targetFileName =
       (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFilename_in);

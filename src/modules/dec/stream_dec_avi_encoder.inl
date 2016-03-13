@@ -22,7 +22,7 @@
 #include "aviriff.h"
 #include "dvdmedia.h"
 #include "fourcc.h"
-//#include "Streams.h"
+//#include "streams.h"
 #else
 #endif
 
@@ -141,6 +141,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
  , isInitialized_ (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaType_ (NULL)
+#else
+ , formatContext_ (NULL)
 #endif
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::Stream_Decoder_AVIEncoder_WriterTask_T"));
@@ -162,6 +164,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 
   if (sessionData_)
     sessionData_->decrease ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  if (formatContext_)
+    avformat_free_context (formatContext_);
+#endif
 }
 
 template <typename SessionMessageType,
@@ -193,15 +201,130 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     isFirst_ = true;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     mediaType_ = NULL;
+#else
+    if (formatContext_)
+    {
+      avformat_free_context (formatContext_);
+      formatContext_ = NULL;
+    } // end IF
 #endif
 
     isInitialized_ = false;
   } // end IF
 
+
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  avcodec_register_all ();
+
+  ACE_ASSERT (!formatContext_);
+  formatContext_ = avformat_alloc_context ();
+  if (!formatContext_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("avformat_alloc_context() failed: \"%m\", returning\n")));
+    return;
+  } // end IF
+  ACE_ASSERT (!formatContext_->oformat);
+  formatContext_->oformat =
+      av_guess_format (ACE_TEXT_ALWAYS_CHAR ("rawvideo"), // short name
+                       NULL,                              // file name
+                       NULL);                             // MIME-type
+  if (!formatContext_->oformat)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("av_guess_format(\"%s\") failed: \"%m\", returning\n"),
+                ACE_TEXT ("rawvideo")));
+    goto error;
+  } // end IF
+
+  formatContext_->oformat->video_codec = AV_CODEC_ID_RAWVIDEO;
+  AVCodec* codec_p =
+      avcodec_find_encoder (formatContext_->oformat->video_codec);
+  if (!codec_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("avcodec_find_encoder(%d) failed: \"%m\", returning\n"),
+                AV_CODEC_ID_RAWVIDEO));
+    goto error;
+  } // end IF
+
+  ACE_ASSERT (!formatContext_->streams[0]);
+  formatContext_->streams[0] = avformat_new_stream (formatContext_,
+                                                    codec_p);
+  if (!formatContext_->streams[0])
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("avformat_new_stream() failed: \"%m\", returning\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (formatContext_->streams[0]->codec);
+  int result = avcodec_get_context_defaults3 (formatContext_->streams[0]->codec,
+                                              codec_p);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("avcodec_get_context_defaults3() failed: \"%m\", returning\n")));
+    goto error;
+  } // end IF
+  formatContext_->streams[0]->codec->codec_id = codec_p->id;
+  // formatContext_->streams[0]->codec->codec_tag = 0; //if I comment this line write header works.
+  formatContext_->streams[0]->codec->codec_type = codec_p->type;
+  formatContext_->streams[0]->codec->width = i_img.getWidth ();
+  formatContext_->streams[0]->codec->height = i_img.getHeight ();
+  formatContext_->streams[0]->codec->time_base.num = 1;
+  formatContext_->streams[0]->codec->time_base.den = 25;
+  formatContext_->streams[0]->codec->pix_fmt = codec_p->pix_fmts[0];
+
+  result = avcodec_open2 (formatContext_->streams[0]->codec,
+                          codec_p,
+                          NULL);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("avcodec_open2() failed: \"%m\", returning\n")));
+    goto error;
+  } // end IF
+
+  result = avio_open2 (&formatContext_->pb,
+                       "d:/temp/test.avi",
+                       AVIO_FLAG_WRITE,
+                       0, 0);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("avio_open2() failed: \"%m\", returning\n")));
+    goto error;
+  } // end IF
+
+  result = avformat_write_header (formatContext_, 0); //this gives me an error
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("avformat_write_header() failed: \"%m\", returning\n")));
+    goto error;
+  } // end IF
+
+#endif
+
   isInitialized_ = true;
 
   return isInitialized_;
+
+error:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+//  if (codec_p)
+//    avcodec_close (codec_p);
+  if (formatContext_)
+  {
+    avformat_free_context (formatContext_);
+    formatContext_ = NULL;
+  } // end IF
+#endif
+
+  return false;
 }
 template <typename SessionMessageType,
           typename MessageType,
@@ -469,29 +592,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     //  RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
     //result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
     //                                sizeof (struct _riffchunk));
+#else
 
-    //struct _avisuperindex AVI_header_indx;
-    //ACE_OS::memset (&AVI_header_indx, 0, sizeof (struct _avisuperindex));
-    //AVI_header_indx.fcc = 0;
-    //AVI_header_indx.cb = 0;
-    //AVI_header_indx.wLongsPerEntry = 0;
-    //AVI_header_indx.bIndexSubType = 0;
-    //AVI_header_indx.bIndexType = 0;
-    //AVI_header_indx.nEntriesInUse = 0;
-    //AVI_header_indx.dwChunkId = 0;
-    //AVI_header_indx.dwReserved = 0;
-    ////AVI_header_indx.aIndex = 0;
-    //struct _avisuperindex_entry AVI_header_indx_entry_0;
-    //ACE_OS::memset (&AVI_header_indx_entry_0, 0, sizeof (struct _avisuperindex_entry));
-    //struct _avisuperindex_entry AVI_header_indx_entry_1;
-    //ACE_OS::memset (&AVI_header_indx_entry_1, 0, sizeof (struct _avisuperindex_entry));
-    //struct _avisuperindex_entry AVI_header_indx_entry_2;
-    //ACE_OS::memset (&AVI_header_indx_entry_2, 0, sizeof (struct _avisuperindex_entry));
-    //struct _avisuperindex_entry AVI_header_indx_entry_3;
-    //ACE_OS::memset (&AVI_header_indx_entry_3, 0, sizeof (struct _avisuperindex_entry));
-    //result =
-    //  message_block_p->copy (reinterpret_cast<char*> (&AVI_header_indx),
-    //                   sizeof (struct _avisuperindex));
 #endif
 
     result = inherited::put_next (message_block_p, NULL);
@@ -529,6 +631,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
   RIFF_chunk.cb = message_inout->length ();
   result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                   sizeof (struct _riffchunk));
+#else
+
 #endif
 
   message_block_p->cont (message_inout);
@@ -564,7 +668,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
   ACE_ASSERT (isInitialized_);
 
   switch (message_inout->type ())
@@ -591,13 +694,70 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     }
     case STREAM_SESSION_END:
     {
+      // sanity check(s)
+      ACE_ASSERT (configuration_);
+      ACE_ASSERT (configuration_->streamConfiguration);
+
+      int result = -1;
+
+      // *TODO*: remove type inference
+      ACE_Message_Block* message_block_p =
+        allocateMessage (configuration_->streamConfiguration->bufferSize);
+      if (!message_block_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("allocateMessage(%d) failed: \"%m\", continuing\n"),
+                    configuration_->streamConfiguration->bufferSize));
+        goto continue_;
+      } // end IF
+      ACE_ASSERT (message_block_p);
+
+      if (!generateIndex (message_block_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex(): \"%m\", continuing\n")));
+
+        // clean up
+        message_block_p->release ();
+
+        goto continue_;
+      } // end IF
+
+      result = inherited::put_next (message_block_p, NULL);
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", continuing\n")));
+
+        // clean up
+        message_block_p->release ();
+
+        goto continue_;
+      } // end IF
+
+continue_:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       mediaType_ = NULL;
+#else
+      // sanity check(s)
+      ACE_ASSERT (formatContext_);
+
+      result = avformat_write_trailer (formatContext_);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("avformat_write_trailer() failed: \"%m\", continuing\n")));
+#endif
 
       if (sessionData_)
       {
         sessionData_->decrease ();
         sessionData_ = NULL;
       } // end IF
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      avformat_free_context (formatContext_);
+      formatContext_ = NULL;
+#endif
 
       break;
     }
@@ -664,4 +824,58 @@ allocate:
   } // end IF
 
   return message_block_p;
+}
+
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataContainerType,
+          typename SessionDataType>
+bool
+Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
+                                       MessageType,
+                                       ConfigurationType,
+                                       SessionDataContainerType,
+                                       SessionDataType>::generateIndex (ACE_Message_Block* messageBlock_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::generateIndex"));
+
+  // sanity check(s)
+  ACE_ASSERT (messageBlock_inout);
+
+  int result = -1;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _avisuperindex AVI_header_index;
+  ACE_OS::memset (&AVI_header_index, 0, sizeof (struct _avisuperindex));
+//  AVI_header_index.fcc = 0;
+//  AVI_header_index.cb = 0;
+//  AVI_header_index.wLongsPerEntry = 0;
+//  AVI_header_index.bIndexSubType = 0;
+//  AVI_header_index.bIndexType = 0;
+//  AVI_header_index.nEntriesInUse = 0;
+//  AVI_header_index.dwChunkId = 0;
+//  AVI_header_index.dwReserved = 0;
+//  AVI_header_index.aIndex = 0;
+
+//  struct _avisuperindex_entry AVI_header_index_entry_0;
+//  ACE_OS::memset (&AVI_header_index_entry_0, 0, sizeof (struct _avisuperindex_entry));
+//  struct _avisuperindex_entry AVI_header_index_entry_1;
+//  ACE_OS::memset (&AVI_header_index_entry_1, 0, sizeof (struct _avisuperindex_entry));
+//  struct _avisuperindex_entry AVI_header_index_entry_2;
+//  ACE_OS::memset (&AVI_header_index_entry_2, 0, sizeof (struct _avisuperindex_entry));
+//  struct _avisuperindex_entry AVI_header_index_entry_3;
+//  ACE_OS::memset (&AVI_header_index_entry_3, 0, sizeof (struct _avisuperindex_entry));
+
+  result =
+    messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_index),
+                              sizeof (struct _avisuperindex));
+#else
+
+  result =
+    messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_index),
+                              sizeof (struct _avisuperindex));
+#endif
+
+  return true;
 }

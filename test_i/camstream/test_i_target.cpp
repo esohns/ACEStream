@@ -723,7 +723,9 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   configuration.moduleHandlerConfiguration.push = true;
+#endif
   configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;

@@ -88,13 +88,38 @@ struct Stream_CamSave_MessageData
   bool          release;
 #endif
 };
-//typedef Stream_DataBase_T<Stream_CamSave_MessageData> Stream_CamSave_MessageData_t;
+
+struct Stream_CamSave_StatisticData
+ : Stream_Statistic
+{
+  inline Stream_CamSave_StatisticData ()
+   : Stream_Statistic ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , capturedFrames (0)
+#endif
+  {};
+
+  inline Stream_CamSave_StatisticData operator+= (const Stream_CamSave_StatisticData& rhs_in)
+  {
+    Stream_Statistic::operator+= (rhs_in);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    capturedFrames += rhs_in.capturedFrames;
+#endif
+
+    return *this;
+  };
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  unsigned int capturedFrames;
+#endif
+};
 
 struct Stream_CamSave_SessionData
  : Stream_SessionData
 {
   inline Stream_CamSave_SessionData ()
    : Stream_SessionData ()
+   , currentStatistic ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaType (NULL)
 #else
@@ -104,13 +129,14 @@ struct Stream_CamSave_SessionData
    , targetFileName ()
   {};
 
+  Stream_CamSave_StatisticData currentStatistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType* mediaType;
+  struct _AMMediaType*         mediaType;
 #else
-  struct v4l2_format   format;
+  struct v4l2_format           format;
 #endif
   //  unsigned int size;
-  std::string          targetFileName;
+  std::string                  targetFileName;
 };
 typedef Stream_SessionData_T<Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;
 
@@ -146,6 +172,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , device ()
    , fileDescriptor (-1)
    , printProgressDot (true)
+   , statisticCollectionInterval (ACE_Time_Value::zero)
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -171,6 +198,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   std::string         device;
   int                 fileDescriptor;
   bool                printProgressDot;
+  ACE_Time_Value      statisticCollectionInterval;
   std::string         targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                window;
@@ -253,7 +281,7 @@ struct Stream_CamSave_GTK_ProgressData
   Common_UI_GTKState*               GTKState;
   Stream_CamSave_PendingActions_t   pendingActions;
 
-  Stream_Statistic                  statistic;
+  Stream_CamSave_StatisticData      statistic;
 };
 
 struct Stream_CamSave_GTK_CBData

@@ -202,7 +202,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         ACE_ASSERT (reinterpret_cast<HANDLE> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
 #else
-        ACE_ASSERT (session_data_r.sessionID != ACE_INVALID_HANDLE);
+        ACE_ASSERT (static_cast<int> (session_data_r.sessionID) != ACE_INVALID_HANDLE);
 #endif
 
         // *TODO*: remove type inference

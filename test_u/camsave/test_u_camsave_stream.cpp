@@ -89,10 +89,9 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   // allocate a new session state, reset stream
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   if (!inherited::initialize (configuration_in,
                               false,
                               resetSessionData_in))
@@ -111,13 +110,11 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   session_data_r.targetFileName =
     configuration_in.moduleHandlerConfiguration->targetFileName;
 
-  int result = -1;
+//  int result = -1;
 
   // ---------------------------------------------------------------------------
-
   // sanity check(s)
   ACE_ASSERT (configuration_in.moduleConfiguration);
-  //ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   // ******************* File Writer ************************
   fileWriter_.initialize (*configuration_in.moduleConfiguration);
@@ -195,9 +192,13 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   } // end IF
 
   // ******************* Camera Source ************************
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::list<std::wstring> filter_pipeline;
   bool graph_loaded = false;
   bool COM_initialized = false;
+  struct _AllocatorProperties allocator_properties;
+  IAMBufferNegotiation* buffer_negotiation_p = NULL;
+  HRESULT result_2 = E_FAIL;
 
   if (configuration_in.moduleHandlerConfiguration->builder)
   {
@@ -210,11 +211,20 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     //  return false;
     //} // end IF
 
+    if (!Stream_Module_Device_Tools::getBufferNegotiation (configuration_in.moduleHandlerConfiguration->builder,
+                                                           buffer_negotiation_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getBufferNegotiation(): \"%s\", aborting\n")));
+      return false;
+    } // end IF
+    ACE_ASSERT (buffer_negotiation_p);
+
     goto continue_;
   } // end IF
   else
   {
-    HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+    result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -229,6 +239,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     IAMStreamConfig* stream_config_p = NULL;
     if (!Stream_Module_Device_Tools::loadDeviceGraph (configuration_in.moduleHandlerConfiguration->device,
                                                       configuration_in.moduleHandlerConfiguration->builder,
+                                                      buffer_negotiation_p,
                                                       stream_config_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -237,6 +248,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
       goto error;
     } // end IF
     ACE_ASSERT (configuration_in.moduleHandlerConfiguration->builder);
+    ACE_ASSERT (buffer_negotiation_p);
     ACE_ASSERT (stream_config_p);
     graph_loaded = true;
 
@@ -286,40 +298,41 @@ continue_:
   filter_pipeline.push_front (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
 
   IBaseFilter* filter_p = NULL;
-  result =
+  result_2 =
     configuration_in.moduleHandlerConfiguration->builder->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
                                                                             &filter_p);
-  if (FAILED (result))
+  if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (filter_p);
   ISampleGrabber* isample_grabber_p = NULL;
-  result = filter_p->QueryInterface (IID_ISampleGrabber,
-                                     (void**)&isample_grabber_p);
-  if (FAILED (result))
+  result_2 = filter_p->QueryInterface (IID_ISampleGrabber,
+                                       (void**)&isample_grabber_p);
+  if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (isample_grabber_p);
   filter_p->Release ();
   filter_p = NULL;
 
-  result = isample_grabber_p->SetBufferSamples (false);
-  if (FAILED (result))
+  result_2 = isample_grabber_p->SetBufferSamples (false);
+  if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
+#endif
 
   Stream_CamSave_Module_Source* source_impl_p =
     dynamic_cast<Stream_CamSave_Module_Source*> (source_.writer ());
@@ -329,16 +342,34 @@ continue_:
                 ACE_TEXT ("dynamic_cast<Strean_CamSave_Module_CamSource> failed, aborting\n")));
     goto error;
   } // end IF
-  result = isample_grabber_p->SetCallback (source_impl_p, 0);
-  if (FAILED (result))
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  result_2 = isample_grabber_p->SetCallback (source_impl_p, 0);
+  if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
   isample_grabber_p->Release ();
   isample_grabber_p = NULL;
+
+  ACE_ASSERT (buffer_negotiation_p);
+  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+  allocator_properties.cbAlign = -1; // <-- use default
+  allocator_properties.cbBuffer = -1; // <-- use default
+  allocator_properties.cbPrefix = -1; // <-- use default
+  allocator_properties.cBuffers =
+    MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+  result_2 =
+      buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
 
   if (!Stream_Module_Device_Tools::connect (configuration_in.moduleHandlerConfiguration->builder,
                                             filter_pipeline))
@@ -347,6 +378,26 @@ continue_:
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
     goto error;
   } // end IF
+
+  // debug info
+  //ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+  //result_2 =
+  //    buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
+  //if (FAILED (result_2)) // E_FAIL (0x80004005)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+  //            allocator_properties.cBuffers,
+  //            allocator_properties.cbBuffer,
+  //            allocator_properties.cbAlign,
+  //            allocator_properties.cbPrefix));
+  buffer_negotiation_p->Release ();
+  buffer_negotiation_p = NULL;
 
   ACE_ASSERT (!session_data_r.mediaType);
   if (!Stream_Module_Device_Tools::getOutputFormat (configuration_in.moduleHandlerConfiguration->builder,
@@ -358,27 +409,28 @@ continue_:
   } // end IF
   ACE_ASSERT (session_data_r.mediaType);
 
-  result =
+  result_2 =
     configuration_in.moduleHandlerConfiguration->builder->QueryInterface (IID_IMediaFilter,
                                                                           (void**)&media_filter_p);
-  if (FAILED (result))
+  if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (media_filter_p);
-  result = media_filter_p->SetSyncSource (NULL);
-  if (FAILED (result))
+  result_2 = media_filter_p->SetSyncSource (NULL);
+  if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
   media_filter_p->Release ();
   media_filter_p = NULL;
+#endif
 
   source_.initialize (*configuration_in.moduleConfiguration);
   if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
@@ -416,12 +468,17 @@ continue_:
   // OK: all went well
   inherited::isInitialized_ = true;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (COM_initialized)
     CoUninitialize ();
+#endif
 
   return true;
 
 error:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (buffer_negotiation_p)
+    buffer_negotiation_p->Release ();
   if (isample_grabber_p)
     isample_grabber_p->Release ();
   if (filter_p)
@@ -442,12 +499,13 @@ error:
 
   if (COM_initialized)
     CoUninitialize ();
+#endif
 
   return false;
 }
 
 bool
-Stream_CamSave_Stream::collect (Stream_Statistic& data_out)
+Stream_CamSave_Stream::collect (Stream_CamSave_StatisticData& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::collect"));
 
@@ -481,7 +539,7 @@ Stream_CamSave_Stream::collect (Stream_Statistic& data_out)
 
   session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
 
-  // delegate to the statistics module...
+  // delegate to the statistic module
   bool result_2 = false;
   try
   {

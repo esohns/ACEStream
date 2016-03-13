@@ -90,56 +90,56 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
-  int result = -1;
+//  int result = -1;
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-  if (inherited::isInitialized_)
-  {
-    // *TODO*: move this to stream_base.inl ?
-    const inherited::MODULE_T* module_p = NULL;
-    inherited::IMODULE_T* imodule_p = NULL;
-    for (inherited::ITERATOR_T iterator (*this);
-         (iterator.next (module_p) != 0);
-         iterator.advance ())
-    {
-      if ((module_p == inherited::head ()) ||
-          (module_p == inherited::tail ()))
-        continue;
+  //if (inherited::isInitialized_)
+  //{
+  //  // *TODO*: move this to stream_base.inl ?
+  //  const inherited::MODULE_T* module_p = NULL;
+  //  inherited::IMODULE_T* imodule_p = NULL;
+  //  for (inherited::ITERATOR_T iterator (*this);
+  //       (iterator.next (module_p) != 0);
+  //       iterator.advance ())
+  //  {
+  //    if ((module_p == inherited::head ()) ||
+  //        (module_p == inherited::tail ()))
+  //      continue;
 
-      // need a downcast...
-      imodule_p =
-        dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
-      if (!imodule_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
-                    module_p->name ()));
-        return false;
-      } // end IF
-      if (imodule_p->isFinal ())
-      {
-        //ACE_ASSERT (module_p == configuration_in.module);
-        result = inherited::remove (module_p->name (),
-                                    ACE_Module_Base::M_DELETE_NONE);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
-                      module_p->name ()));
-          return false;
-        } // end IF
-        imodule_p->reset ();
+  //    // need a downcast...
+  //    imodule_p =
+  //      dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
+  //    if (!imodule_p)
+  //    {
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
+  //                  module_p->name ()));
+  //      return false;
+  //    } // end IF
+  //    if (imodule_p->isFinal ())
+  //    {
+  //      //ACE_ASSERT (module_p == configuration_in.module);
+  //      result = inherited::remove (module_p->name (),
+  //                                  ACE_Module_Base::M_DELETE_NONE);
+  //      if (result == -1)
+  //      {
+  //        ACE_DEBUG ((LM_ERROR,
+  //                    ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
+  //                    module_p->name ()));
+  //        return false;
+  //      } // end IF
+  //      imodule_p->reset ();
 
-        break; // done
-      } // end IF
-    } // end FOR
+  //      break; // done
+  //    } // end IF
+  //  } // end FOR
 
-    if (!inherited::finalize ())
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Base_T::finalize(): \"%m\", continuing\n")));
-  } // end IF
+  //  if (!inherited::finalize ())
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to Stream_Base_T::finalize(): \"%m\", continuing\n")));
+  //} // end IF
 
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in,
@@ -152,10 +152,15 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Source_Stream_SessionData& session_data_r =
+    const_cast<Test_I_Source_Stream_SessionData&> (inherited::sessionData_->get ());
+#endif
 
 //  configuration_in.moduleConfiguration.streamState = &state_;
 
   // ---------------------------------------------------------------------------
+  // sanity check(s)
   ACE_ASSERT (configuration_in.moduleConfiguration);
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
@@ -276,18 +281,32 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   } // end IF
 
   // ******************* Camera Source ************************
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::list<std::wstring> filter_pipeline;
   bool graph_loaded = false;
   bool COM_initialized = false;
+  struct _AllocatorProperties allocator_properties;
+  IAMBufferNegotiation* buffer_negotiation_p = NULL;
 
   if (configuration_in.moduleHandlerConfiguration->builder)
   {
-    if (!Stream_Module_Device_Tools::resetDeviceGraph (configuration_in.moduleHandlerConfiguration->builder))
+    // *NOTE*: Stream_Module_Device_Tools::loadRendererGraph() resets the graph
+    //         (see below)
+    //if (!Stream_Module_Device_Tools::resetDeviceGraph (configuration_in.moduleHandlerConfiguration->builder))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::resetDeviceGraph(): \"%s\", aborting\n")));
+    //  return false;
+    //} // end IF
+
+    if (!Stream_Module_Device_Tools::getBufferNegotiation (configuration_in.moduleHandlerConfiguration->builder,
+                                                           buffer_negotiation_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::resetDeviceGraph(): \"%s\", aborting\n")));
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getBufferNegotiation(): \"%s\", aborting\n")));
       return false;
     } // end IF
+    ACE_ASSERT (buffer_negotiation_p);
 
     goto continue_;
   } // end IF
@@ -308,6 +327,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     IAMStreamConfig* stream_config_p = NULL;
     if (!Stream_Module_Device_Tools::loadDeviceGraph (configuration_in.moduleHandlerConfiguration->device,
                                                       configuration_in.moduleHandlerConfiguration->builder,
+                                                      buffer_negotiation_p,
                                                       stream_config_p))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -316,34 +336,165 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
       goto error;
     } // end IF
     ACE_ASSERT (configuration_in.moduleHandlerConfiguration->builder);
+    ACE_ASSERT (buffer_negotiation_p);
     ACE_ASSERT (stream_config_p);
     graph_loaded = true;
 
     // clean up
     stream_config_p->Release ();
+
+    if (_DEBUG)
+    {
+      std::string log_file_name =
+        Common_File_Tools::getLogDirectory (std::string (),
+                                            0);
+      log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+      log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+      Stream_Module_Device_Tools::debug (configuration_in.moduleHandlerConfiguration->builder,
+                                         log_file_name);
+    } // end IF
   } // end IF
 
-  struct _AMMediaType* media_type_p = NULL;
+continue_:
+  ACE_ASSERT (!session_data_r.mediaType);
+  IMediaFilter* media_filter_p = NULL;
+
   if (!Stream_Module_Device_Tools::getCaptureFormat (configuration_in.moduleHandlerConfiguration->builder,
-                                                     media_type_p))
+                                                     session_data_r.mediaType))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (media_type_p);
-
-  if (!Stream_Module_Device_Tools::loadRendererGraph (*media_type_p,
+  ACE_ASSERT (session_data_r.mediaType);
+  if (!Stream_Module_Device_Tools::loadRendererGraph (*session_data_r.mediaType,
                                                       configuration_in.moduleHandlerConfiguration->window,
                                                       configuration_in.moduleHandlerConfiguration->builder,
                                                       filter_pipeline))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererGraph(), aborting\n")));
+
+    // clean up
+    Stream_Module_Device_Tools::deleteMediaType (session_data_r.mediaType);
+    session_data_r.mediaType = NULL;
+
+    goto error;
+  } // end IF
+  Stream_Module_Device_Tools::deleteMediaType (session_data_r.mediaType);
+  session_data_r.mediaType = NULL;
+  filter_pipeline.push_front (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
+
+  IBaseFilter* filter_p = NULL;
+  result =
+    configuration_in.moduleHandlerConfiguration->builder->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
+                                                                            &filter_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (filter_p);
+  ISampleGrabber* isample_grabber_p = NULL;
+  result = filter_p->QueryInterface (IID_ISampleGrabber,
+                                     (void**)&isample_grabber_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (isample_grabber_p);
+  filter_p->Release ();
+  filter_p = NULL;
+
+  result = isample_grabber_p->SetBufferSamples (false);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+#endif
+
+  source_impl_p =
+    dynamic_cast<Test_I_Stream_Module_CamSource*> (source_.writer ());
+  if (!source_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_CamSource> failed, aborting\n")));
+    goto error;
+  } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  result = isample_grabber_p->SetCallback (source_impl_p, 0);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  isample_grabber_p->Release ();
+  isample_grabber_p = NULL;
+
+  ACE_ASSERT (buffer_negotiation_p);
+  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+  allocator_properties.cbAlign = 1;
+  allocator_properties.cbBuffer = 0;
+  allocator_properties.cbPrefix = 0;
+  allocator_properties.cBuffers =
+    MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+  result = buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
 
-  IMediaFilter* media_filter_p = NULL;
+  if (!Stream_Module_Device_Tools::connect (configuration_in.moduleHandlerConfiguration->builder,
+                                            filter_pipeline))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
+    goto error;
+  } // end IF
+
+    // debug info
+  ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
+  result = buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+              allocator_properties.cBuffers,
+              allocator_properties.cbBuffer,
+              allocator_properties.cbAlign,
+              allocator_properties.cbPrefix));
+  buffer_negotiation_p->Release ();
+  buffer_negotiation_p = NULL;
+
+  ACE_ASSERT (!session_data_r.mediaType);
+  if (!Stream_Module_Device_Tools::getOutputFormat (configuration_in.moduleHandlerConfiguration->builder,
+    session_data_r.mediaType))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (session_data_r.mediaType);
+
   result =
     configuration_in.moduleHandlerConfiguration->builder->QueryInterface (IID_IMediaFilter,
                                                                           (void**)&media_filter_p);
@@ -364,17 +515,10 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     goto error;
   } // end IF
   media_filter_p->Release ();
+  media_filter_p = NULL;
+#endif
 
-continue_:
   source_.initialize (*configuration_in.moduleConfiguration);
-  source_impl_p =
-    dynamic_cast<Test_I_Stream_Module_CamSource*> (source_.writer ());
-  if (!source_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_CamSource> failed, aborting\n")));
-    goto error;
-  } // end IF
   if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -419,31 +563,45 @@ continue_:
   // OK: all went well
   inherited::isInitialized_ = true;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (COM_initialized)
     CoUninitialize ();
+#endif
 
   return true;
 
 error:
-  if (media_type_p)
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (buffer_negotiation_p)
+    buffer_negotiation_p->Release ();
+  if (isample_grabber_p)
+    isample_grabber_p->Release ();
+  if (filter_p)
+    filter_p->Release ();
+  if (media_filter_p)
+    media_filter_p->Release ();
   if (graph_loaded)
     if (configuration_in.moduleHandlerConfiguration->builder)
     {
       configuration_in.moduleHandlerConfiguration->builder->Release ();
       configuration_in.moduleHandlerConfiguration->builder = NULL;
     } // end IF
+  if (session_data_r.mediaType)
+  {
+    Stream_Module_Device_Tools::deleteMediaType (session_data_r.mediaType);
+    session_data_r.mediaType = NULL;
+  } // end IF
 
   if (COM_initialized)
     CoUninitialize ();
+#endif
 
   return false;
 }
 
 template <typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_out)
+Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_Source_Stream_StatisticData& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::collect"));
 
@@ -526,6 +684,5 @@ Test_I_Source_Stream_T<ConnectorType>::report () const
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
-
   ACE_NOTREACHED (return;)
 }

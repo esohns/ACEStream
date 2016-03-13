@@ -22,7 +22,7 @@
 #include "ace/Message_Block.h"
 
 #include "common_defines.h"
-#include "common_timer_manager.h"
+#include "common_timer_manager_common.h"
 #include "common_tools.h"
 
 #include "stream_defines.h"
@@ -549,10 +549,13 @@ Stream_HeadModuleTaskBase_T<LockType,
       // *TODO*: remove type inference
       ACE_ASSERT (configuration_->streamConfiguration);
 
-      if (configuration_->streamConfiguration->statisticReportingInterval)
+      // schedule regular statistic collection ?
+      // *NOTE*: the runtime-statistic module is responsible for regular
+      //         reporting, the head module merely collects information
+      if (configuration_->streamConfiguration->statisticReportingInterval !=
+          ACE_Time_Value::zero)
       {
-        // schedule regular statistics collection...
-        ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION_INTERVAL, 0);
+        ACE_Time_Value interval (STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL, 0);
         ACE_ASSERT (timerID_ == -1);
         ACE_Event_Handler* handler_p = &statisticCollectionHandler_;
         timerID_ =
@@ -688,6 +691,8 @@ Stream_HeadModuleTaskBase_T<LockType,
     return false;
   } // end IF
   inherited::change (STREAM_STATE_INITIALIZED);
+
+  initialized_ = true;
 
   return result;
 }

@@ -3721,8 +3721,10 @@ g_value_unset (&value_2);
     data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder =
       NULL;
   } // end IF
+  IAMBufferNegotiation* buffer_negotiation_p = NULL;
   if (!Stream_Module_Device_Tools::loadDeviceGraph (device_string,
                                                     data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
+                                                    buffer_negotiation_p,
                                                     data_p->streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3731,7 +3733,11 @@ g_value_unset (&value_2);
     return;
   } // end IF
   ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder);
+  ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (data_p->streamConfiguration);
+
+  buffer_negotiation_p->Release ();
+
   if (!load_formats (data_p->streamConfiguration,
 #else
   int result = -1;
@@ -3903,7 +3909,7 @@ error:
   ACE_ASSERT (data_p->device != -1);
 
   if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->device,
-                                              format_i))
+                                                     format_i))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));

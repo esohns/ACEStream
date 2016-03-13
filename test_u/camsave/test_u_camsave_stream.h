@@ -49,7 +49,7 @@ class Stream_CamSave_Stream
                         /////////////////
                         Stream_CamSave_StreamConfiguration,
                         /////////////////
-                        Stream_Statistic,
+                        Stream_CamSave_StatisticData,
                         /////////////////
                         Stream_ModuleConfiguration,
                         Stream_CamSave_ModuleHandlerConfiguration,
@@ -70,7 +70,7 @@ class Stream_CamSave_Stream
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
-  virtual bool collect (Stream_Statistic&); // return value: statistic data
+  virtual bool collect (Stream_CamSave_StatisticData&); // return value: statistic data
   virtual void report () const;
 
  private:
@@ -84,7 +84,7 @@ class Stream_CamSave_Stream
                         /////////////////
                         Stream_CamSave_StreamConfiguration,
                         /////////////////
-                        Stream_Statistic,
+                        Stream_CamSave_StatisticData,
                         /////////////////
                         Stream_ModuleConfiguration,
                         Stream_CamSave_ModuleHandlerConfiguration,

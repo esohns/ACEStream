@@ -32,10 +32,12 @@
 
 #include "stream_macros.h"
 
-//#include "stream_dev_tools.h"
-
 Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (unsigned int size_in)
  : inherited (size_in)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+ , inherited2 (1, false)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -43,6 +45,10 @@ Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (unsigned int size_in
 
 Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (const Test_I_Source_Stream_Message& message_in)
  : inherited (message_in)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+ , inherited2 (1, false)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -54,6 +60,10 @@ Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (ACE_Data_Block* data
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) this data block
               messageAllocator_in, // re-use the same allocator
               incrementMessageCounter_in)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+ , inherited2 (1, false)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -61,6 +71,10 @@ Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (ACE_Data_Block* data
 
 Test_I_Source_Stream_Message::Test_I_Source_Stream_Message (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // message block allocator
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+ , inherited2 (1, false)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::Test_I_Source_Stream_Message"));
 
@@ -87,6 +101,7 @@ Test_I_Source_Stream_Message::duplicate (void) const
 
   Test_I_Source_Stream_Message* message_p = NULL;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // create a new Test_I_Source_Stream_Message that contains unique copies of
   // the message block fields, but a (reference counted) shallow duplicate of
   // the ACE_Data_Block
@@ -133,10 +148,12 @@ Test_I_Source_Stream_Message::duplicate (void) const
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ULONG reference_count = 0;
   if (inherited::data_.sample)
     reference_count = inherited::data_.sample->AddRef ();
+#else
+  message_p = const_cast<Test_I_Source_Stream_Message*> (this);
+  message_p->increase ();
 #endif
 
   return message_p;

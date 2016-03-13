@@ -313,12 +313,15 @@ Stream_Module_Net_Source_T<LockType,
       if (inherited::configuration_->connection)
         goto done;
 
-      if (inherited::configuration_->streamConfiguration->statisticReportingInterval)
+      // schedule regular statistic collection ?
+      if (inherited::configuration_->streamConfiguration->statisticReportingInterval !=
+          ACE_Time_Value::zero)
       {
-        // schedule regular statistics collection...
-        ACE_Time_Value interval (STREAM_STATISTIC_COLLECTION_INTERVAL, 0);
+        ACE_Time_Value interval (STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL,
+                                 0);
         ACE_ASSERT (inherited::timerID_ == -1);
-        ACE_Event_Handler* handler_p = &statisticCollectionHandler_;
+        ACE_Event_Handler* handler_p =
+            &(inherited::statisticCollectionHandler_);
         inherited::timerID_ =
             COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                  // event handler
                                                                         NULL,                       // argument

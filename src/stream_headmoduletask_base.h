@@ -120,6 +120,9 @@ class Stream_HeadModuleTaskBase_T
                                bool = true,  // run svc() routine on start ? (passive only)
                                bool = true); // generate session messages ?
 
+  // convenient types
+  typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
+
   // helper methods
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   // *TODO*: clean this API
@@ -139,14 +142,14 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: this method is threadsafe
   virtual void onChange (Stream_StateType_t); // new state
 
-  ConfigurationType*                configuration_;
-  bool                              initialized_;
-  SessionDataContainerType*         sessionData_;
-  StreamStateType*                  streamState_;
+  ConfigurationType*        configuration_;
+  bool                      initialized_;
+  SessionDataContainerType* sessionData_;
+  StreamStateType*          streamState_;
 
   // timer
-  Stream_StatisticHandler_Reactor_t statisticCollectionHandler_;
-  long                              timerID_;
+  COLLECTION_HANDLER_T      statisticCollectionHandler_;
+  long                      timerID_;
 
  private:
   typedef Stream_StateMachine_Control_T<LockType> inherited;
@@ -188,12 +191,12 @@ class Stream_HeadModuleTaskBase_T
   virtual void upStream (Stream_Base_t*);
   virtual Stream_Base_t* upStream () const;
 
-  bool                              active_;
-  bool                              autoStart_; // start worker thread in open ()
-  bool                              generateSessionMessages_;
-  bool                              runSvcRoutineOnStart_;
-  bool                              sessionEndSent_;
-  ACE_Thread_ID                     threadID_;
+  bool                      active_;
+  bool                      autoStart_; // start worker thread in open ()
+  bool                      generateSessionMessages_;
+  bool                      runSvcRoutineOnStart_;
+  bool                      sessionEndSent_;
+  ACE_Thread_ID             threadID_;
 };
 
 // include template implementation

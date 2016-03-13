@@ -472,9 +472,10 @@ do_initialize_directshow (const std::string& deviceName_in,
 continue_:
   Stream_Module_Device_Tools::initialize ();
 
-  // sanity check(s)
+  IAMBufferNegotiation* buffer_negotiation_p = NULL;
   if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
                                                     IGraphBuilder_out,
+                                                    buffer_negotiation_p,
                                                     IAMStreamConfig_out))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -483,7 +484,10 @@ continue_:
     return false;
   } // end IF
   ACE_ASSERT (IGraphBuilder_out);
+  ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (IAMStreamConfig_out);
+
+  buffer_negotiation_p->Release ();
 
   std::list<std::wstring> filter_pipeline;
 

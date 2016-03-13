@@ -404,6 +404,106 @@ Stream_Module_Device_Tools::dump (IPin* pin_in)
   ienum_media_types_p->Release ();
 }
 
+IPin*
+Stream_Module_Device_Tools::pin (IBaseFilter* filter_in,
+                                 enum _PinDirection direction_in)
+{
+  IPin* result = NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (filter_in);
+
+  IEnumPins* enumerator_p = NULL;
+  HRESULT result_2 = filter_in->EnumPins (&enumerator_p);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IBaseFilter::EnumPins(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    return NULL;
+  } // end IF
+  ACE_ASSERT (enumerator_p);
+
+  IKsPropertySet* property_set_p = NULL;
+  struct _GUID GUID_s;
+  ACE_OS::memset (&GUID_s, 0, sizeof (struct _GUID));
+  enum _PinDirection pin_direction;
+  while (S_OK == enumerator_p->Next (1, &result, NULL))
+  {
+    ACE_ASSERT (result);
+
+    result_2 = result->QueryDirection (&pin_direction);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IPin::QueryDirection(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+      // clean up
+      result->Release ();
+      enumerator_p->Release ();
+
+      return false;
+    } // end IF
+    if (pin_direction == direction_in)
+      break;
+
+    result->Release ();
+    result = NULL;
+
+    //property_set_p = NULL;
+    //result = pin_p->QueryInterface (IID_PPV_ARGS (&property_set_p));
+    //if (FAILED (result))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //    ACE_TEXT ("failed to IPin::QueryInterface(IKsPropertySet): \"%s\", aborting\n"),
+    //    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    //  // clean up
+    //  pin_p->Release ();
+    //  enumerator_p->Release ();
+
+    //  goto error;
+    //} // end IF
+    //ACE_ASSERT (property_set_p);
+    //result = property_set_p->Get (AMPROPSETID_Pin, AMPROPERTY_PIN_CATEGORY,
+    //  NULL, 0,
+    //  &GUID_s, sizeof (struct _GUID), &returned_size);
+    //if (FAILED (result))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //    ACE_TEXT ("failed to IKsPropertySet::Get(AMPROPERTY_PIN_CATEGORY): \"%s\", aborting\n"),
+    //    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    //  // clean up
+    //  property_set_p->Release ();
+    //  pin_p->Release ();
+    //  enumerator_p->Release ();
+
+    //  goto error;
+    //} // end IF
+    //ACE_ASSERT (returned_size == sizeof (struct _GUID));
+    //if (GUID_s == PIN_CATEGORY_CAPTURE)
+    //  break;
+
+    //property_set_p->Release ();
+    //pin_p->Release ();
+    //pin_p = NULL;
+  } // end WHILE
+  enumerator_p->Release ();
+
+  if (!result)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("0x%@: no pin found (direction was: %d), aborting\n"),
+                filter_in,
+                direction_in));
+    return NULL;
+  } // end IF
+
+  return result;
+}
+
 IBaseFilter*
 Stream_Module_Device_Tools::pin2Filter (IPin* pin_in)
 {
@@ -457,11 +557,17 @@ Stream_Module_Device_Tools::name (IBaseFilter* filter_in)
 bool
 Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
                                              IGraphBuilder*& IGraphBuilder_inout,
+                                             IAMBufferNegotiation*& IAMBufferNegotiation_out,
                                              IAMStreamConfig*& IAMStreamConfig_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadDeviceGraph"));
 
   // sanity check(s)
+  if (IAMBufferNegotiation_out)
+  {
+    IAMBufferNegotiation_out->Release ();
+    IAMBufferNegotiation_out = NULL;
+  } // end IF
   if (IAMStreamConfig_out)
   {
     IAMStreamConfig_out->Release ();
@@ -497,7 +603,6 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
 
       // clean up
       builder_2->Release ();
-      builder_2 = NULL;
 
       return false;
     } // end IF
@@ -744,6 +849,21 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
     goto error;
   } // end IF
 
+  result = pin_p->QueryInterface (IID_IAMBufferNegotiation,
+                                  (void**)&IAMBufferNegotiation_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMBufferNegotiation): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    pin_p->Release ();
+
+    goto error;
+  } // end IF
+  ACE_ASSERT (IAMBufferNegotiation_out);
+
   result = pin_p->QueryInterface (IID_IAMStreamConfig,
                                   (void**)&IAMStreamConfig_out);
   if (FAILED (result))
@@ -763,8 +883,21 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
   return true;
 
 error:
-  IGraphBuilder_inout->Release ();
-  IGraphBuilder_inout = NULL;
+  if (IGraphBuilder_inout)
+  {
+    IGraphBuilder_inout->Release ();
+    IGraphBuilder_inout = NULL;
+  } // end IF
+  if (IAMBufferNegotiation_out)
+  {
+    IAMBufferNegotiation_out->Release ();
+    IAMBufferNegotiation_out = NULL;
+  } // end IF
+  if (IAMStreamConfig_out)
+  {
+    IAMStreamConfig_out->Release ();
+    IAMStreamConfig_out = NULL;
+  } // end IF
 
   return false;
 }
@@ -2098,6 +2231,68 @@ Stream_Module_Device_Tools::resetDeviceGraph (IGraphBuilder* builder_in)
 }
 
 bool
+Stream_Module_Device_Tools::getBufferNegotiation (IGraphBuilder* builder_in,
+                                                  IAMBufferNegotiation*& IAMBufferNegotiation_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getBufferNegotiation"));
+
+  // sanity check(s)
+  ACE_ASSERT (builder_in);
+  if (IAMBufferNegotiation_out)
+  {
+    IAMBufferNegotiation_out->Release ();
+    IAMBufferNegotiation_out = NULL;
+  } // end IF
+
+  IBaseFilter* filter_p = NULL;
+  HRESULT result =
+    builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
+                                  &filter_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
+                ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (filter_p);
+
+  IPin* pin_p = Stream_Module_Device_Tools::pin (filter_p,
+                                                 PINDIR_OUTPUT);
+  if (!pin_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::pin(\"%s\",PINDIR_OUTPUT), aborting\n"),
+                ACE_TEXT (Stream_Module_Device_Tools::name (filter_p).c_str ())));
+
+    // clean up
+    filter_p->Release ();
+
+    return false;
+  } // end IF
+  filter_p->Release ();
+
+  result = pin_p->QueryInterface (IID_IAMBufferNegotiation,
+                                  (void**)&IAMBufferNegotiation_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMBufferNegotiation): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    pin_p->Release ();
+
+    return false;
+  } // end IF
+  ACE_ASSERT (IAMBufferNegotiation_out);
+  pin_p->Release ();
+
+  return true;
+}
+
+bool
 Stream_Module_Device_Tools::getCaptureFormat (IGraphBuilder* builder_in,
                                               struct _AMMediaType*& mediaType_out)
 {
@@ -3183,10 +3378,10 @@ Stream_Module_Device_Tools::queued (int fd_in,
 }
 
 bool
-Stream_Module_Device_Tools::setFormat (int fd_in,
-                                       __u32 format_in)
+Stream_Module_Device_Tools::setCaptureFormat (int fd_in,
+                                              __u32 format_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setCaptureFormat"));
 
   // sanity check(s)
   ACE_ASSERT (fd_in != -1);
@@ -3222,10 +3417,10 @@ Stream_Module_Device_Tools::setFormat (int fd_in,
   return true;
 }
 bool
-Stream_Module_Device_Tools::getFormat (int fd_in,
-                                       struct v4l2_format& format_out)
+Stream_Module_Device_Tools::getCaptureFormat (int fd_in,
+                                              struct v4l2_format& format_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getCaptureFormat"));
 
   // sanity check(s)
   ACE_ASSERT (fd_in != -1);

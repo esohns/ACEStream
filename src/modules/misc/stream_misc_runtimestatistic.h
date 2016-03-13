@@ -149,6 +149,7 @@ class Stream_Module_Statistic_WriterTask_T
                                                StatisticContainerType,
                                                SessionDataType,
                                                SessionDataContainerType> OWN_TYPE_T;
+  typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> REPORTING_HANDLER_T;
 
   // message type counters
   typedef std::map<ProtocolCommandType,
@@ -166,44 +167,45 @@ class Stream_Module_Statistic_WriterTask_T
   // *IMPORTANT NOTE*: callers must hold lock_ !
   bool putStatisticMessage ();
 
-  bool                              initialized_;
+  bool                       initialized_;
 
   // timer stuff
-  Stream_ResetCounterHandler        resetTimeoutHandler_;
-  long                              resetTimeoutHandlerID_;
-  Stream_StatisticHandler_Reactor_t localReportingHandler_;
-  long                              localReportingHandlerID_;
-  ACE_Time_Value                    reportingInterval_; // [ACE_Time_Value::zero: off]
-  bool                              printFinalReport_;
-  bool                              pushStatisticMessages_; // 1-second interval
+  Stream_ResetCounterHandler resetTimeoutHandler_;
+  long                       resetTimeoutHandlerID_;
+  ACE_thread_t               timerThreadID_;
+  REPORTING_HANDLER_T        localReportingHandler_;
+  long                       localReportingHandlerID_;
+  ACE_Time_Value             reportingInterval_; // [ACE_Time_Value::zero: off]
+  bool                       printFinalReport_;
+  bool                       pushStatisticMessages_; // 1-second interval
 
   // *DATA STATISTIC*
   // *NOTE*: protects statistic and sessionData_
-  mutable ACE_SYNCH_MUTEX           lock_;
+  mutable ACE_SYNCH_MUTEX    lock_;
 
   // *NOTE*: data messages == (messageCounter_ - sessionMessages_)
-  unsigned int                      inboundMessages_;
-  unsigned int                      outboundMessages_;
-  unsigned int                      sessionMessages_;
+  unsigned int               inboundMessages_;
+  unsigned int               outboundMessages_;
+  unsigned int               sessionMessages_;
   // used to compute message throughput...
-  unsigned int                      messageCounter_;
+  unsigned int               messageCounter_;
   // *NOTE: support asynchronous collecting/reporting of data
-  unsigned int                      lastMessagesPerSecondCount_;
+  unsigned int               lastMessagesPerSecondCount_;
 
-  float                             inboundBytes_;
-  float                             outboundBytes_;
+  float                      inboundBytes_;
+  float                      outboundBytes_;
   // used to compute data throughput...
-  size_t                            byteCounter_;
+  size_t                     byteCounter_;
   // *NOTE: support asynchronous collecting/reporting of data
-  size_t                            lastBytesPerSecondCount_;
+  size_t                     lastBytesPerSecondCount_;
 
   // *TYPE STATISTIC*
-  STATISTIC_T                       messageTypeStatistic_;
+  STATISTIC_T                messageTypeStatistic_;
 
   // *CACHE STATISTIC*
-  Stream_IAllocator*                allocator_;
+  Stream_IAllocator*         allocator_;
 
-  SessionDataContainerType*         sessionData_;
+  SessionDataContainerType*  sessionData_;
 };
 
 // include template implementation
