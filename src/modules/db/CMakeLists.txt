@@ -1,7 +1,9 @@
 cmake_minimum_required (VERSION 2.8)
 
-#include (FindPkgConfig)
-#pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
+include (FindPkgConfig)
+if (UNIX)
+# pkg_check_modules (PKG_MYSQL REQUIRED libmysqlclient-dev)
+endif ()
 
 # *TODO*: add dependencies
 set (MYSQL_LIB_FILE libmysqlclient.so)

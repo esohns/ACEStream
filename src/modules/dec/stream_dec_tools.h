@@ -17,29 +17,30 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "stdafx.h"
 
-#include "stream_dec_avi_encoder.h"
+#ifndef STREAM_MODULE_DEC_TOOLS_H
+#define STREAM_MODULE_DEC_TOOLS_H
+
+#include <string>
+
+#include "ace/Global_Macros.h"
+
+#include "stream_dec_exports.h"
+
+class Stream_Dec_Export Stream_Module_Decoder_Tools
+{
+ public:
+  static void initialize ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-int
-stream_decoder_aviencoder_libav_write_cb (void* opaque_in,
-                                          uint8_t* buffer_in,
-                                          int buf_size_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::stream_decoder_aviencoder_libav_write_cb"));
+  static std::string errorToString (int); // libav error
+#endif
 
-  // sanity check(s)
-  ACE_ASSERT (opaque_in);
-  ACE_Message_Block* message_block_p =
-      static_cast<ACE_Message_Block*> (opaque_in);
-  ACE_ASSERT (message_block_p);
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools (const Stream_Module_Decoder_Tools&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Decoder_Tools& operator= (const Stream_Module_Decoder_Tools&))
+};
 
-  // *NOTE*: the data has already been written at this point
-  //         --> simply adjust the write pointer to reflect the message size
-  message_block_p->wr_ptr (buf_size_in);
-
-  return 0;
-}
 #endif

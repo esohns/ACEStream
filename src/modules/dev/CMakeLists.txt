@@ -1,5 +1,10 @@
 cmake_minimum_required (VERSION 2.8)
 
+include (FindPkgConfig)
+if (UNIX)
+ pkg_check_modules (PKG_LIBV4L2 REQUIRED libv4l2)
+endif ()
+
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)

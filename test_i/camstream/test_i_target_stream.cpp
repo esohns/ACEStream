@@ -121,63 +121,8 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::initialize"));
 
-  bool result = true;
-
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
-
-  //if (inherited::isInitialized_)
-  //{
-  //  // *TODO*: move this to stream_base.inl ?
-  //  int result_2 = -1;
-  //  const inherited::MODULE_T* module_p = NULL;
-  //  inherited::IMODULE_T* imodule_p = NULL;
-  //  for (inherited::ITERATOR_T iterator (*this);
-  //       (iterator.next (module_p) != 0);
-  //       iterator.advance ())
-  //  {
-  //    if ((module_p == inherited::head ()) ||
-  //        (module_p == inherited::tail ()))
-  //      continue;
-
-  //    // need a downcast...
-  //    imodule_p =
-  //      dynamic_cast<inherited::IMODULE_T*> (const_cast<inherited::MODULE_T*> (module_p));
-  //    if (!imodule_p)
-  //    {
-  //      ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
-  //                  module_p->name ()));
-  //      return false;
-  //    } // end IF
-  //    if (imodule_p->isFinal ())
-  //    {
-  //      //ACE_ASSERT (module_p == configuration_in.module);
-  //      result_2 = inherited::remove (module_p->name (),
-  //                                    ACE_Module_Base::M_DELETE_NONE);
-  //      if (result_2 == -1)
-  //      {
-  //        ACE_DEBUG ((LM_ERROR,
-  //                    ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
-  //                    module_p->name ()));
-  //        return false;
-  //      } // end IF
-  //      imodule_p->reset ();
-  //      ACE_DEBUG ((LM_DEBUG,
-  //                  ACE_TEXT ("\"%s\" removed from stream \"%s\"...\n"),
-  //                  module_p->name (),
-  //                  ACE_TEXT (name ().c_str ())));
-
-  //      break; // done
-  //    } // end IF
-  //  } // end FOR
-
-  //  if (inherited::sessionData_)
-  //  {
-  //    inherited::sessionData_->decrease ();
-  //    inherited::sessionData_ = NULL;
-  //  } // end IF
-  //} // end IF
 
   // allocate a new session state, reset stream
   // sanity check(s)
@@ -213,48 +158,6 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
       const_cast<Test_I_Target_StreamConfiguration&> (configuration_in);
   configuration_r.moduleHandlerConfiguration->stateMachineLock =
     &inherited::state_.stateMachineLock;
-
-  // ---------------------------------------------------------------------------
-
-  if (configuration_in.module)
-  {
-    // *TODO*: (at least part of) this procedure belongs in libACEStream
-    //         --> remove type inferences
-    inherited::IMODULE_T* imodule_p =
-        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
-    if (!imodule_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    imodule_p->reset ();
-    inherited::IMODULEHANDLER_T* module_handler_p =
-      dynamic_cast<inherited::IMODULEHANDLER_T*> (configuration_in.module->writer ());
-    if (!module_handler_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!module_handler_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    inherited::modules_.push_front (configuration_in.module);
-  } // end IF
 
   // ---------------------------------------------------------------------------
 
@@ -581,10 +484,7 @@ continue_:
   // set (session) message allocator
   inherited::allocator_ = configuration_in.messageAllocator;
 
-  // OK: all went well
-  inherited::isInitialized_ = true;
-
-  return result;
+  return true;
 }
 
 bool

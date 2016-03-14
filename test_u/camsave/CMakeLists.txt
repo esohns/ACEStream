@@ -42,7 +42,7 @@ if (UNIX)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
- pkg_check_modules (PKG_AVCODEC REQUIRED libavutil libavcodec)
+ pkg_check_modules (PKG_AVCODEC REQUIRED libavcodec libavformat)
  pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
@@ -156,7 +156,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_AVCODEC_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_GTK_GLADE_LIBRARIES})
 elseif (WIN32)
- target_link_libraries (${EXECUTABLE} Strmiids.lib)
+ target_link_libraries (${EXECUTABLE} strmiids.lib)
 # *TODO*: repair WIN32 pkgconfig support
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gio-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
@@ -173,6 +173,7 @@ if (WIN32)
 endif ()
 target_link_libraries (${EXECUTABLE} CommonUI)
 target_link_libraries (${EXECUTABLE} ACEStream)
+target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
 target_link_libraries (${EXECUTABLE} ACEStream_Device)
 
 install (TARGETS ${EXECUTABLE}

@@ -122,6 +122,7 @@ class Test_I_Target_Stream_Message
   // --> create a "shallow" copy of ourselves that references the same packet
   // *NOTE*: this uses our allocator (if any) to create a new message
   virtual ACE_Message_Block* duplicate (void) const;
+  virtual ACE_Message_Block* release (void);
 
   // implement Stream_MessageBase_T
   virtual Test_I_CommandType_t command () const; // return value: message type

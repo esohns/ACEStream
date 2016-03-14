@@ -70,6 +70,7 @@ gboolean idle_session_end_cb (gpointer);
 gboolean idle_update_info_display_cb (gpointer);
 gboolean idle_update_log_display_cb (gpointer);
 gboolean idle_update_progress_cb (gpointer);
+gboolean idle_update_video_display_cb (gpointer);
 
 //------------------------------------------------------------------------------
 

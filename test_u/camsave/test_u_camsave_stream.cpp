@@ -37,10 +37,10 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
- , encoder_ (ACE_TEXT_ALWAYS_CHAR ("AVIEncoder"),
+ , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
              NULL,
              false)
- , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
+ , encoder_ (ACE_TEXT_ALWAYS_CHAR ("AVIEncoder"),
              NULL,
              false)
  , fileWriter_ (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
@@ -56,8 +56,8 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
   //         close()d
   inherited::modules_.push_front (&source_);
   inherited::modules_.push_front (&runtimeStatistic_);
-  inherited::modules_.push_front (&encoder_);
   inherited::modules_.push_front (&display_);
+  inherited::modules_.push_front (&encoder_);
   inherited::modules_.push_front (&fileWriter_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
@@ -106,7 +106,26 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     const_cast<Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_r.sessionID = ++Stream_CamSave_Stream::currentSessionID;
-//  session_data_r.size = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->fileDescriptor != -1);
+  if (!Stream_Module_Device_Tools::getCaptureFormat (configuration_in.moduleHandlerConfiguration->fileDescriptor,
+                                                     session_data_r.format))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(%d), aborting\n"),
+                configuration_in.moduleHandlerConfiguration->fileDescriptor));
+    return false;
+  } // end IF
+  if (!Stream_Module_Device_Tools::getFrameRate (configuration_in.moduleHandlerConfiguration->fileDescriptor,
+                                                 session_data_r.frameRate))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getFrameRate(%d), aborting\n"),
+                configuration_in.moduleHandlerConfiguration->fileDescriptor));
+    return false;
+  } // end IF
+#endif
   session_data_r.targetFileName =
     configuration_in.moduleHandlerConfiguration->targetFileName;
 
@@ -134,24 +153,6 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     return false;
   } // end IF
 
-  // ******************* Display ************************
-  display_.initialize (*configuration_in.moduleConfiguration);
-  Stream_CamSave_Module_Display* display_impl_p =
-    dynamic_cast<Stream_CamSave_Module_Display*> (display_.writer ());
-  if (!display_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_Display> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                display_.name ()));
-    return false;
-  } // end IF
-
   // ******************* AVI Encoder ************************
   encoder_.initialize (*configuration_in.moduleConfiguration);
   Stream_CamSave_Module_AVIEncoder_WriterTask_t* encoder_impl_p =
@@ -167,6 +168,24 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
                 encoder_.name ()));
+    return false;
+  } // end IF
+
+  // ******************* Display ************************
+  display_.initialize (*configuration_in.moduleConfiguration);
+  Stream_CamSave_Module_Display* display_impl_p =
+    dynamic_cast<Stream_CamSave_Module_Display*> (display_.writer ());
+  if (!display_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_Display> failed, aborting\n")));
+    return false;
+  } // end IF
+  if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+                display_.name ()));
     return false;
   } // end IF
 

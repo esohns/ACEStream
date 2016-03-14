@@ -53,6 +53,8 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
  , cairoFormat_ (MODULE_VIS_DEFAULT_CAIRO_FORMAT)
  , cairoSurface_ (NULL)
 // , pixelBuffer_ (NULL)
+ , isFirst_ (true)
+ , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::Stream_Module_Vis_GTK_DrawingArea_T"));
 
@@ -116,36 +118,42 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::handleDataMessage"));
 
+//  ACE_Message_Block* message_block_p = message_inout;
+
   // sanity check(s)
   ACE_ASSERT (configuration_);
   if (!configuration_->window)
     return; // done
+//  if (configuration_->hasHeader &&
+//      isFirst_)
+//  {
+//    isFirst_ = false;
+//    return; // done
+//  } // end IF
+//  // *NOTE*: some formats (e.g. AVI frames) have (i.e. RIFF) 'chunk' header
+//  //         prefixes that will have been prepended upstream (first
+//  //         continuation) and need to be skipped over
+//  if (configuration_->hasChunkHeaders)
+//  {
+//    ACE_ASSERT (message_block_p->cont ());
+//    message_block_p = message_block_p->cont ();
+//  } // end IF
   ACE_ASSERT (sessionData_);
   ACE_ASSERT (cairoFormat_ != CAIRO_FORMAT_INVALID);
   ACE_ASSERT (cairoSurface_);
   const SessionDataType& session_data_r =
       sessionData_->get ();
-  ACE_ASSERT (message_inout->total_length () ==
+  unsigned int total_length = message_inout->total_length ();
+  ACE_ASSERT (total_length ==
               session_data_r.format.fmt.pix.sizeimage);
 
-  // step1: copy (fragmented) data into (contiguous) memory buffer
-  unsigned char* data_p = cairo_image_surface_get_data (cairoSurface_);
-  if (!data_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to cairo_image_surface_get_data(%@), returning\n"),
-                cairoSurface_));
-    return;
-  } // end IF
-  unsigned int offset = 0;
-  for (ACE_Message_Block* message_block_p = message_inout;
-       message_block_p;
-       message_block_p = message_block_p->cont ())
-  {
-    ACE_OS::memcpy (data_p + offset, message_block_p->rd_ptr (),
-                    message_block_p->length ());
-    offset += message_block_p->length ();
-  } // end FOR
+  ACE_Message_Block* message_block_p = message_inout;
+  unsigned int offset = 0, length = message_block_p->length ();
+  unsigned char* data_p =
+      reinterpret_cast<unsigned char*> (message_block_p->rd_ptr ());
+  ACE_ASSERT (data_p);
+  unsigned char* data_2 = cairo_image_surface_get_data (cairoSurface_);
+  ACE_ASSERT (data_2);
 
 //  if (pixelBuffer_)
 //  {
@@ -155,14 +163,17 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 
 //  int bits_per_sample = 8;
   int row_stride = session_data_r.format.fmt.pix.bytesperline;
+  unsigned char* pixel_p = data_p;
+  unsigned int* pixel_2 = (unsigned int*)data_2;
   switch (session_data_r.format.fmt.pix.pixelformat)
   {
     // RGB formats
     case V4L2_PIX_FMT_BGR24:
     {
-      // convert BGR to RGB (in-place)
-      unsigned char* pixel_p = NULL;
-      unsigned char B = 0;
+      // convert BGR (24bit) to RGB (32bit)
+      row_stride =
+          cairo_format_stride_for_width (cairoFormat_,
+                                         session_data_r.format.fmt.pix.width);
       for (unsigned int y = 0;
            y < session_data_r.format.fmt.pix.height;
            ++y)
@@ -170,17 +181,43 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
              x < session_data_r.format.fmt.pix.width;
              ++x)
         {
-          pixel_p = data_p + ((y * row_stride) + (x * 3));
+          pixel_p = data_p + offset;
+          pixel_2 = (unsigned int*)(data_2 + ((y * row_stride) + (x * 4)));
 
-          B = *pixel_p;
-          *pixel_p = *(pixel_p + 2);
-          *(pixel_p + 2) = B;
+          *pixel_2 = ((*(pixel_p + 2) << 16) |
+                      (*(pixel_p + 1) << 8)  |
+                      *pixel_p);
+
+          offset += 3;
         } // end FOR
 
       break;
     }
     case V4L2_PIX_FMT_RGB24:
+    {
+      // convert RGB (24bit) to RGB (32bit)
+      row_stride =
+          cairo_format_stride_for_width (cairoFormat_,
+                                         session_data_r.format.fmt.pix.width);
+      for (unsigned int y = 0;
+           y < session_data_r.format.fmt.pix.height;
+           ++y)
+        for (unsigned int x = 0;
+             x < session_data_r.format.fmt.pix.width;
+             ++x)
+        {
+          pixel_p = data_p + offset;
+          pixel_2 = (unsigned int*)(data_2 + ((y * row_stride) + (x * 4)));
+
+          *pixel_2 = (*pixel_p        << 16) |
+                      (*(pixel_p + 1) << 8)  |
+                      (*(pixel_p + 2));
+
+          offset += 3;
+        } // end FOR
+
       break;
+    }
     // luminance / chrominance formats
     case V4L2_PIX_FMT_YVU420:
     {
@@ -561,7 +598,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
                     ACE_TEXT ("failed to avcodec_get_context_defaults3(): \"%m\", returning\n")));
         goto clean;
       } // end IF
-      context_p->flags2 |= AV_CODEC_FLAG2_FAST;
+//      context_p->flags2 |= AV_CODEC_FLAG2_FAST;
       context_p->pix_fmt = AVPixelFormat::AV_PIX_FMT_ARGB;
       context_p->width = session_data_r.format.fmt.pix.width;
       context_p->height = session_data_r.format.fmt.pix.height;
@@ -705,11 +742,26 @@ clean:
 //  cairo_surface_flush (cairoSurface_);
 
   // step5: schedule an 'expose' event
-//  gtk_widget_queue_draw_area ();
-  gdk_window_invalidate_rect (configuration_->window,
-//                              &configuration_->area,
-                              NULL,
-                              false);
+  // *NOTE*: gdk_window_invalidate_rect() is not thread-safe. It will race with
+  //         the UI refresh and eventually crash (even though gdk_threads_enter/
+  //         gdk_threads_leave is in effect)
+  //         --> schedule a refresh with gtk_widget_queue_draw_area() instead
+  // *NOTE*: this does not work either... :-(
+  //         --> let the downstream event handler queue an idle request
+//  gdk_window_invalidate_rect (configuration_->window,
+//                              NULL,
+//                              false);
+//  GtkWidget* widget_p = NULL;
+//  gdk_window_get_user_data (configuration_->window,
+//                            reinterpret_cast<gpointer*> (&widget_p));
+//  ACE_ASSERT (widget_p);
+//  gtk_widget_queue_draw (widget_p);
+//  GtkAllocation allocation;
+//  gtk_widget_get_allocation (widget_p,
+//                             &allocation);
+//  gtk_widget_queue_draw_area (widget_p,
+//                              allocation.x, allocation.y,
+//                              allocation.width, allocation.height);
 
   gdk_threads_leave ();
 }
@@ -798,10 +850,15 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::initialize"));
 
-  configuration_ = &configuration_in;
-
   if (isInitialized_)
   {
+    configuration_ = NULL;
+    if (sessionData_)
+    {
+      sessionData_->decrease ();
+      sessionData_ = NULL;
+    } // end IF
+
     if (cairoSurface_)
     {
       cairo_surface_destroy (cairoSurface_);
@@ -814,14 +871,12 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
       cairoContext_ = NULL;
     } // end IF
 
-    if (sessionData_)
-    {
-      sessionData_->decrease ();
-      sessionData_ = NULL;
-    } // end IF
+    isFirst_ = true;
 
     isInitialized_ = false;
   } // end IF
+
+  configuration_ = &configuration_in;
 
   // *TODO*: remove type inference
   if (configuration_->window)

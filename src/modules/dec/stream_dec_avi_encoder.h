@@ -46,6 +46,14 @@ class ACE_Message_Block;
 class ACE_Time_Value;
 class Stream_IAllocator;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+int
+stream_decoder_aviencoder_libav_write_cb (void*,    // act
+                                          uint8_t*, // buffer address
+                                          int);     // buffer size
+#endif
+
 template <typename TaskSynchType,
           typename TimePolicyType,
           typename SessionDataContainerType,
@@ -113,6 +121,7 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
 
   // helper methods
   MessageType* allocateMessage (unsigned int); // requested size
+  bool generateHeader (ACE_Message_Block*); // message buffer handle
   bool generateIndex (ACE_Message_Block*); // message buffer handle
 
   // *NOTE*: the RIFF-AVI (storage) format (like many others) foresees a

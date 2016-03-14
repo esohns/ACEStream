@@ -152,8 +152,10 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool setResolution (int,           // file descriptor
                              unsigned int,  // width
                              unsigned int); // height
-  static bool setInterval (int,                       // file descriptor
-                           const struct v4l2_fract&); // frame interval
+  static bool getFrameRate (int,                 // device handle file descriptor
+                            struct v4l2_fract&); // return value: frame rate (in time-per-frame)
+  static bool setFrameRate (int,                       // file descriptor
+                            const struct v4l2_fract&); // frame rate (in time-per-frame)
 
   static std::string formatToString (__u32); // format (fourcc)
 #endif

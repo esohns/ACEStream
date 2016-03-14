@@ -1,7 +1,9 @@
 cmake_minimum_required (VERSION 2.8)
 
 include (FindPkgConfig)
-pkg_check_modules (PKG_LIBAVFORMAT REQUIRED libavcodec)
+if (UNIX)
+ pkg_check_modules (PKG_LIBAVFORMAT REQUIRED libavformat)
+endif ()
 
 if (UNIX)
  include_directories (${PKG_LIBAVFORMAT_INCLUDE_DIRS})
@@ -29,6 +31,8 @@ set (${PROJECT_NAME}_Decoder_LIB_SRCS
      stream_dec_exports.h
      stream_dec_riff_scanner.cpp
      stream_dec_riff_scanner.h
+     stream_dec_tools.cpp
+     stream_dec_tools.h
      stdafx.cpp
      stdafx.h)
 
@@ -60,6 +64,7 @@ install (FILES
          stream_dec_defines.h
          stream_dec_exports.h
          stream_dec_riff_scanner.h
+         stream_dec_tools.h
          DESTINATION include)
 install (TARGETS ${PROJECT_NAME}_Decoder
          EXPORT ${PROJECT_NAME}Targets

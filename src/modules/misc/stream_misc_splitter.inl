@@ -292,13 +292,22 @@ Stream_Module_SplitterH_T<LockType,
   ACE_ASSERT (message_block_p);
 
   unsigned int total_length = currentBuffer_->total_length ();
+  // *TODO*: remove type inference
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (total_length < configuration_->frameSize)
+#else
+  if (total_length < configuration_->format.fmt.pix.sizeimage)
+#endif
     return; // done
 
   // received enough data --> (split and) forward
   message_block_p = currentBuffer_;
   unsigned int remainder = (total_length -
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             configuration_->frameSize);
+#else
+                            configuration_->format.fmt.pix.sizeimage);
+#endif
   if (remainder)
   {
     currentBuffer_ = message_inout->duplicate ();

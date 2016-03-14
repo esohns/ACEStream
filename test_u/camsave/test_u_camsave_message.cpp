@@ -140,8 +140,17 @@ Stream_CamSave_Message::release (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Message::release"));
 
+  // release any continuations first
+  if (inherited::cont_)
+  {
+    inherited::cont_->release ();
+    inherited::cont_ = NULL;
+  } // end IF
+
   int reference_count = inherited::reference_count ();
-  if ((reference_count > 1) || (inherited::data_.release))
+  if ((reference_count > 1)           || // not the last reference
+      (inherited::data_.device == -1) || // not a device data buffer
+      inherited::data_.release)          // clean up (device data)
     return inherited::release ();
 
   // sanity check(s)
@@ -158,13 +167,6 @@ Stream_CamSave_Message::release (void)
   } // end lock scope
 
 continue_:
-  // release any continuations
-  if (inherited::cont_)
-  {
-    inherited::cont_->release ();
-    inherited::cont_ = NULL;
-  } // end IF
-
   struct v4l2_buffer buffer;
   ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
   buffer.index = inherited::data_.index;

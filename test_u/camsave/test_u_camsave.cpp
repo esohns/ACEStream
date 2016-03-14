@@ -588,6 +588,8 @@ do_work (unsigned int bufferSize_in,
       &configuration.streamConfiguration;
   configuration.moduleHandlerConfiguration.active =
       !UIDefinitionFilename_in.empty ();
+  configuration.moduleHandlerConfiguration.hasHeader = true; // write AVI files
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   configuration.moduleHandlerConfiguration.device = deviceFilename_in;

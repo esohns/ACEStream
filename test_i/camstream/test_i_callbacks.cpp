@@ -4257,11 +4257,11 @@ error:
   ACE_OS::memset (&frame_interval_fract, 0, sizeof (struct v4l2_fract));
   frame_interval_fract.numerator = frame_interval;
   frame_interval_fract.denominator = frame_interval_denominator;
-  if (!Stream_Module_Device_Tools::setInterval (data_p->device,
-                                                frame_interval_fract))
+  if (!Stream_Module_Device_Tools::setFrameRate (data_p->device,
+                                                 frame_interval_fract))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setInterval(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(), returning\n")));
     return;
   } // end IF
 #endif

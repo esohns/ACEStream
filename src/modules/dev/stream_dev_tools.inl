@@ -377,7 +377,7 @@ Stream_Module_Device_Tools::finalizeBuffers (int fd_in,
     message_block_p->release ();
 
     // *NOTE*: unfortunately, V4L2_BUF_FLAG_LAST is not set consistently
-    if ((buffer.flags & V4L2_BUF_FLAG_LAST) ||
+    if (//(buffer.flags & V4L2_BUF_FLAG_LAST) ||
         (buffer.index == (bufferMap_inout.size () - 1)))
       break; // done
 

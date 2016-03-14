@@ -41,6 +41,7 @@ include (FindPkgConfig)
 if (UNIX)
 # *NOTE*: libCommon requires libcap
   pkg_check_modules (PKG_CAP REQUIRED libcap)
+  pkg_check_modules (PKG_LIBAVUTIL REQUIRED libavutil)
 endif ()
 
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
@@ -114,6 +115,7 @@ target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_LIBAVUTIL_LIBRARIES})
 endif ()
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} ACEStream)

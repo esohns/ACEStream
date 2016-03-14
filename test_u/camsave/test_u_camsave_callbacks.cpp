@@ -1534,6 +1534,44 @@ idle_finalize_UI_cb (gpointer userData_in)
 }
 
 gboolean
+idle_session_end_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_session_end_cb"));
+
+  Stream_CamSave_GTK_CBData* data_p =
+    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  // synch access
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  GtkFrame* frame_p =
+    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
+  ACE_ASSERT (frame_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
+
+  GtkToggleAction* toggle_action_p =
+    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
+  ACE_ASSERT (toggle_action_p);
+  if (gtk_toggle_action_get_active (toggle_action_p))
+  {
+    asynchronous_stream_error = true;
+    gtk_action_activate (GTK_ACTION (toggle_action_p));
+  } // end IF
+  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
+
+  return G_SOURCE_REMOVE;
+}
+
+gboolean
 idle_update_log_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
@@ -1833,10 +1871,11 @@ idle_update_progress_cb (gpointer userData_in)
   // --> reschedule
   return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
 }
+
 gboolean
-idle_session_end_cb (gpointer userData_in)
+idle_update_video_display_cb (gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::idle_session_end_cb"));
+  STREAM_TRACE (ACE_TEXT ("::idle_update_video_display_cb"));
 
   Stream_CamSave_GTK_CBData* data_p =
     static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
@@ -1851,22 +1890,14 @@ idle_session_end_cb (gpointer userData_in)
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkFrame* frame_p =
-    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
-  ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
+  GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
+  ACE_ASSERT (drawing_area_p);
 
-  GtkToggleAction* toggle_action_p =
-    GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
-  ACE_ASSERT (toggle_action_p);
-  if (gtk_toggle_action_get_active (toggle_action_p))
-  {
-    asynchronous_stream_error = true;
-    gtk_action_activate (GTK_ACTION (toggle_action_p));
-  } // end IF
-  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
+  gdk_window_invalidate_rect (GTK_WIDGET (drawing_area_p)->window,
+                              NULL,
+                              false);
 
   return G_SOURCE_REMOVE;
 }
@@ -2918,11 +2949,11 @@ error:
   ACE_OS::memset (&frame_interval_fract, 0, sizeof (struct v4l2_fract));
   frame_interval_fract.numerator = frame_interval;
   frame_interval_fract.denominator = frame_interval_denominator;
-  if (!Stream_Module_Device_Tools::setInterval (data_p->device,
-                                                frame_interval_fract))
+  if (!Stream_Module_Device_Tools::setFrameRate (data_p->device,
+                                                 frame_interval_fract))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setInterval(), returning\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(), returning\n")));
     return;
   } // end IF
 #endif

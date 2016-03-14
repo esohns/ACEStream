@@ -22,7 +22,7 @@
 #define TEST_U_STREAM_CAMSAVE_DEFINES_H
 
 #define TEST_U_STREAM_CAMSAVE_DEFAULT_GLADE_FILE            "camsave.glade"
-#define TEST_U_STREAM_CAMSAVE_DEFAULT_OUTPUT_FILE           "output.tmp"
+#define TEST_U_STREAM_CAMSAVE_DEFAULT_OUTPUT_FILE           "output.avi"
 #define TEST_U_STREAM_CAMSAVE_THREAD_NAME                   "stream processor"
 
 #define TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE           524288 // bytes

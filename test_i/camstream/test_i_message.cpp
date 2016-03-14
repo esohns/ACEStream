@@ -178,12 +178,19 @@ Test_I_Source_Stream_Message::release (void)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::release"));
 
+  // release any continuations first
+  if (inherited::cont_)
+  {
+    inherited::cont_->release ();
+    inherited::cont_ = NULL;
+  } // end IF
+
   unsigned int reference_count = inherited2::decrease ();
   if (reference_count > 0)
     return NULL; // done
 
-  if ((inherited::data_.device == -1) || // inbound
-      inherited::data_.release)
+  if ((inherited::data_.device == -1) || // not a device data buffer
+      inherited::data_.release)          // clean up (device data)
     return inherited::release ();
 
   // reset reference counter/message
@@ -193,13 +200,6 @@ Test_I_Source_Stream_Message::release (void)
 
   // *NOTE*: this is a device data buffer
   //         --> return it to the pool
-
-  // release any continuations
-  if (inherited::cont_)
-  {
-    inherited::cont_->release ();
-    inherited::cont_ = NULL;
-  } // end IF
 
   struct v4l2_buffer buffer;
   ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
@@ -366,6 +366,20 @@ Test_I_Target_Stream_Message::duplicate (void) const
     // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
   return message_p;
+}
+ACE_Message_Block*
+Test_I_Target_Stream_Message::release (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream_Message::release"));
+
+  // release any continuations
+  if (inherited::cont_)
+  {
+    inherited::cont_->release ();
+    inherited::cont_ = NULL;
+  } // end IF
+
+  return inherited::release ();
 }
 
 Test_I_CommandType_t

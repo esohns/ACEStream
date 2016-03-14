@@ -76,6 +76,7 @@ class Stream_Module_Vis_GTK_DrawingArea_T
   cairo_surface_t*          cairoSurface_;
 //  GdkPixbuf*                pixelBuffer_;
 
+  bool                      isFirst_;
   bool                      isInitialized_;
 };
 

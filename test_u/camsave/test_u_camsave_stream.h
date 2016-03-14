@@ -100,8 +100,8 @@ class Stream_CamSave_Stream
   // modules
   Stream_CamSave_Module_Source_Module           source_;
   Stream_CamSave_Module_RuntimeStatistic_Module runtimeStatistic_;
-  Stream_CamSave_Module_AVIEncoder_Module       encoder_;
   Stream_CamSave_Module_Display_Module          display_;
+  Stream_CamSave_Module_AVIEncoder_Module       encoder_;
   Stream_CamSave_Module_FileWriter_Module       fileWriter_;
 
   static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentSessionID;

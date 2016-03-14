@@ -19,27 +19,49 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_avi_encoder.h"
+#include "stream_dec_tools.h"
+
+#include "ace/Log_Msg.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-int
-stream_decoder_aviencoder_libav_write_cb (void* opaque_in,
-                                          uint8_t* buffer_in,
-                                          int buf_size_in)
+#ifdef __cplusplus
+extern "C"
 {
-  STREAM_TRACE (ACE_TEXT ("::stream_decoder_aviencoder_libav_write_cb"));
-
-  // sanity check(s)
-  ACE_ASSERT (opaque_in);
-  ACE_Message_Block* message_block_p =
-      static_cast<ACE_Message_Block*> (opaque_in);
-  ACE_ASSERT (message_block_p);
-
-  // *NOTE*: the data has already been written at this point
-  //         --> simply adjust the write pointer to reflect the message size
-  message_block_p->wr_ptr (buf_size_in);
-
-  return 0;
+#include "libavutil/avutil.h"
 }
 #endif
+#endif
+
+#include "stream_macros.h"
+
+void
+Stream_Module_Decoder_Tools::initialize ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::initialize"));
+
+}
+
+std::string
+Stream_Module_Decoder_Tools::errorToString (int error_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::errorToString"));
+
+  std::string result;
+
+  int result_2 = -1;
+  char buffer[BUFSIZ];
+  ACE_OS::memset (buffer, 0, sizeof (buffer));
+
+  result_2 = av_strerror (error_in,
+                          buffer,
+                          sizeof (buffer));
+  if (result_2 < 0)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to av_strerror(%d): \"%m\", continuing\n"),
+                error_in));
+
+  result = buffer;
+
+  return result;
+}

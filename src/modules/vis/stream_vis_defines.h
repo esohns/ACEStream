@@ -5,6 +5,9 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+// *NOTE*: "...each pixel is a 32-bit quantity, with the upper 8 bits unused.
+//         Red, Green, and Blue are stored in the remaining 24 bits in that
+//         order. ..."
 #define MODULE_VIS_DEFAULT_CAIRO_FORMAT CAIRO_FORMAT_RGB24
 #endif
 

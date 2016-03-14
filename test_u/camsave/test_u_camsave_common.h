@@ -124,6 +124,7 @@ struct Stream_CamSave_SessionData
    , mediaType (NULL)
 #else
    , format ()
+   , frameRate ()
 #endif
 //   , size (0)
    , targetFileName ()
@@ -134,6 +135,7 @@ struct Stream_CamSave_SessionData
   struct _AMMediaType*         mediaType;
 #else
   struct v4l2_format           format;
+  struct v4l2_fract            frameRate; // time-per-frame
 #endif
   //  unsigned int size;
   std::string                  targetFileName;
