@@ -58,6 +58,7 @@ class Stream_MessageBase_T
 
   // implement Stream_IDataMessage
   virtual CommandType command () const;
+  virtual int crunch (void);
   virtual unsigned int getID () const;
   static std::string CommandType2String (CommandType);
 

@@ -164,15 +164,18 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , area ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , builder (NULL)
+   , format (NULL)
    , windowController (NULL)
 #else
    , bufferMap ()
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
+   , fileDescriptor (-1)
+   , format ()
+   , frameRate ()
    , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
 #endif
    , contextID (0)
    , device ()
-   , fileDescriptor (-1)
    , printProgressDot (true)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , targetFileName ()
@@ -181,32 +184,42 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , v4l2Window (NULL)
 #endif
    , window (NULL)
-  {};
-
-  bool                active;
+  {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct tagRECT      area;
-  IGraphBuilder*      builder;
-  IVideoWindow*       windowController;
 #else
-  GdkRectangle        area;
-  INDEX2BUFFER_MAP_T  bufferMap;
-  __u32               buffers; // v4l device buffers
-  v4l2_memory         method; // v4l camera source
+    ACE_OS::memset (&format, 0, sizeof (format));
+    format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    ACE_OS::memset (&frameRate, 0, sizeof (frameRate));
 #endif
-  guint               contextID;
+  };
+
+  bool                 active;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct tagRECT       area;
+  IGraphBuilder*       builder;
+  struct _AMMediaType* format;
+  IVideoWindow*        windowController;
+#else
+  GdkRectangle         area;
+  INDEX2BUFFER_MAP_T   bufferMap;
+  __u32                buffers; // v4l device buffers
+  int                  fileDescriptor;
+  struct v4l2_format   format;
+  struct v4l2_fract    frameRate; // time-per-frame (s)
+  v4l2_memory          method; // v4l camera source
+#endif
+  guint                contextID;
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
-  std::string         device;
-  int                 fileDescriptor;
-  bool                printProgressDot;
-  ACE_Time_Value      statisticCollectionInterval;
-  std::string         targetFileName;
+  std::string          device;
+  bool                 printProgressDot;
+  ACE_Time_Value       statisticCollectionInterval;
+  std::string          targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                window;
+  HWND                 window;
 #else
-  struct v4l2_window* v4l2Window;
-  GdkWindow*          window;
+  struct v4l2_window*  v4l2Window;
+  GdkWindow*           window;
 #endif
 };
 

@@ -29,6 +29,7 @@ class Stream_IDataMessage
 
   // exposed interface
   virtual CommandType command () const = 0;
+  virtual int crunch (void) = 0;
   virtual unsigned int getID () const = 0;
 };
 

@@ -753,10 +753,11 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.format.type =
       V4L2_BUF_TYPE_VIDEO_CAPTURE;
   configuration.moduleHandlerConfiguration.format.fmt.pix.bytesperline = 960;
-  configuration.moduleHandlerConfiguration.format.fmt.pix.field = 1;
+//  configuration.moduleHandlerConfiguration.format.fmt.pix.field =
+//      V4L2_FIELD_NONE;
   configuration.moduleHandlerConfiguration.format.fmt.pix.height = 240;
   configuration.moduleHandlerConfiguration.format.fmt.pix.pixelformat =
-      861030210;
+      V4L2_PIX_FMT_RGB24;
   configuration.moduleHandlerConfiguration.format.fmt.pix.sizeimage = 230400;
   configuration.moduleHandlerConfiguration.format.fmt.pix.width = 320;
 #endif

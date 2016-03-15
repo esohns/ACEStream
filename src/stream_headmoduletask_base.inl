@@ -1189,6 +1189,16 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   ACE_UNUSED_ARG (waitForUpStream_in);
 
+  // *IMPORTANT NOTE*: when a connection is close()d, a race condition may
+  //                   arise here between any of the following actors:
+  // - the application (main) thread waiting in Stream_Base_T::waitForCompletion
+  // - a (network) event dispatching thread (connection hanndler calling
+  //   handle_close() --> waitForCompletion() of the (network) data processing
+  //   (sub-)stream)
+  // - a stream head module thread pushing the SESSION_END message (i.e.
+  //   processing in the 'Net Source/Target' module)
+  // - a 'Net IO' module thread processing the SESSION_END message
+
   int result = -1;
 
   // step1: wait for final state
@@ -1200,28 +1210,38 @@ Stream_HeadModuleTaskBase_T<LockType,
   {
     ACE_thread_t thread_id = ACE_Thread::self ();
 
-    // *IMPORTANT NOTE*: (on Win32) only one thread can inherited2::wait() at
-    //                   a time, otherwise the is a race condition (calling
-    //                   ::CloseHandle() on the same handle twice throws an
-    //                   exception)
+    // *NOTE*: pthread_join() returns EDEADLK when the calling thread IS the
+    //         the thread to join
+    //         --> prevent this by comparing thread ids
+    if (ACE_OS::thr_equal (thread_id,
+                           threadID_.id ()))
+      goto continue_;
+
+    // *IMPORTANT NOTE*: (on Win32) only one thread may inherited2::wait(),
+    //                   because ::CloseHandle() was being called twice on the
+    //                   same handle, throwing exceptions
+    // *TODO*: This is a bug in ACE being worked around here
+    //         --> clarify the issue and submit a patch
     ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
 
     if (inherited2::thr_count_)
     {
-      ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (inherited2::lock_);
-      {
-        ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX> > aGuard_2 (reverse_lock);
+      // *NOTE*: the task has a dedicated worker thread
+
+//      ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (inherited2::lock_);
+//      {
+//        ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX> > aGuard_2 (reverse_lock);
 
         result = inherited2::wait ();
-      } // end lock scope
+//      } // end lock scope
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
     } // end IF
-    else if (runSvcRoutineOnStart_ &&
-             !ACE_OS::thr_equal (thread_id,
-                                 threadID_.id ()))
+    else if (runSvcRoutineOnStart_)
     {
+      // *NOTE*: the stream head module is using the calling thread
+
       thread_id = threadID_.id ();
       ACE_THR_FUNC_RETURN status;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1247,10 +1267,14 @@ Stream_HeadModuleTaskBase_T<LockType,
 #endif
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Thread::join(%d): \"%m\", continuing\n"),
+                    ACE_TEXT ("failed to ACE_Thread::join(%u): \"%m\", continuing\n"),
                     thread_id));
     } // end IF
   } // end IF
+
+continue_:
+
+  return;
 }
 
 template <typename LockType,
@@ -1558,6 +1582,15 @@ Stream_HeadModuleTaskBase_T<LockType,
           //                     ACE_TEXT ("started worker thread (group: %d, id: %u)...\n"),
           //                     inherited::grp_id (),
           //                     thread_ids[0]));
+
+          // *NOTE*: this may not work if the thread count is > 1 (see
+          //         waitForCompletion() above)
+          {
+            ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (inherited2::lock_);
+
+            threadID_.id (thread_ids[0]);
+            threadID_.handle (thread_handles[0]);
+          } // end lock scope
         } // end IF
         else if (runSvcRoutineOnStart_)
         {

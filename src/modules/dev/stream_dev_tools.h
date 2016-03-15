@@ -145,13 +145,10 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                               unsigned int,   // number of buffers
                               unsigned int&); // return value: #done
 
-  static bool setCaptureFormat (int,    // device handle file descriptor
-                                __u32); // format (fourcc)
+  static bool setCaptureFormat (int,                        // device handle file descriptor
+                                const struct v4l2_format&); // capture format
   static bool getCaptureFormat (int,                  // device handle file descriptor
                                 struct v4l2_format&); // return value: format
-  static bool setResolution (int,           // file descriptor
-                             unsigned int,  // width
-                             unsigned int); // height
   static bool getFrameRate (int,                 // device handle file descriptor
                             struct v4l2_fract&); // return value: frame rate (in time-per-frame)
   static bool setFrameRate (int,                       // file descriptor

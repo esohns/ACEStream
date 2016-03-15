@@ -3379,33 +3379,17 @@ Stream_Module_Device_Tools::queued (int fd_in,
 
 bool
 Stream_Module_Device_Tools::setCaptureFormat (int fd_in,
-                                              __u32 format_in)
+                                              const struct v4l2_format& format_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setCaptureFormat"));
 
   // sanity check(s)
   ACE_ASSERT (fd_in != -1);
+  ACE_ASSERT (format_in.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
 
-  int result = -1;
-  struct v4l2_format format;
-  ACE_OS::memset (&format, 0, sizeof (struct v4l2_format));
-  format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  result = v4l2_ioctl (fd_in,
-                       VIDIOC_G_FMT,
-                       &format);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_G_FMT")));
-    return false;
-  } // end IF
-//  ACE_ASSERT (format.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
-  format.fmt.pix.pixelformat = format_in;
-
-  result = v4l2_ioctl (fd_in,
-                       VIDIOC_S_FMT,
-                       &format);
+  int result = v4l2_ioctl (fd_in,
+                           VIDIOC_S_FMT,
+                           &format_in);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3439,47 +3423,6 @@ Stream_Module_Device_Tools::getCaptureFormat (int fd_in,
     return false;
   } // end IF
 //  ACE_ASSERT (format_out.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
-
-  return true;
-}
-bool
-Stream_Module_Device_Tools::setResolution (int fd_in,
-                                           unsigned int width_in,
-                                           unsigned int height_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setResolution"));
-
-  // sanity check(s)
-  ACE_ASSERT (fd_in != -1);
-
-  int result = -1;
-  struct v4l2_format format;
-  ACE_OS::memset (&format, 0, sizeof (struct v4l2_format));
-  format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  result = v4l2_ioctl (fd_in,
-                       VIDIOC_G_FMT,
-                       &format);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_G_FMT")));
-    return false;
-  } // end IF
-//  ACE_ASSERT (format.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
-  format.fmt.pix.width = width_in;
-  format.fmt.pix.height = height_in;
-
-  result = v4l2_ioctl (fd_in,
-                       VIDIOC_S_FMT,
-                       &format);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
-                fd_in, ACE_TEXT ("VIDIOC_S_FMT")));
-    return false;
-  } // end IF
 
   return true;
 }

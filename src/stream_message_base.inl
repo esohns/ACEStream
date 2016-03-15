@@ -171,6 +171,72 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 
 template <typename AllocatorConfigurationType,
           typename CommandType>
+CommandType
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::command () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::command"));
+
+  return static_cast<CommandType> (ACE_Message_Block::MB_DATA);
+}
+template <typename AllocatorConfigurationType,
+          typename CommandType>
+int
+Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::crunch (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::crunch"));
+
+  int result = -1;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::data_block_);
+  ACE_ASSERT (inherited::total_length () <=
+              inherited::data_block_->capacity ());
+
+  // step1: shift head message data down to the base and adust the pointers
+  result = inherited::crunch ();
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Block::crunch(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+
+  // step2: copy data from any continuations into the head message block buffer
+  ACE_Message_Block* message_block_p = NULL;
+  for (message_block_p = inherited::cont_;
+       message_block_p;
+       message_block_p = message_block_p->cont ())
+  {
+    result = inherited::copy (message_block_p->rd_ptr (),
+                              message_block_p->length ());
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
+      return false;
+    } // end IF
+  } // end FOR
+
+  // step3: release any continuations
+  ACE_Message_Block* message_block_2 = NULL;
+  message_block_p = inherited::cont_;
+  while (message_block_p)
+  {
+    message_block_2 = message_block_p->cont ();
+
+    message_block_p->cont (NULL);
+    message_block_p->release ();
+
+    message_block_p = message_block_2;
+  } // end WHILE
+  inherited::cont_ = NULL;
+
+  return true;
+}
+template <typename AllocatorConfigurationType,
+          typename CommandType>
 unsigned int
 Stream_MessageBase_T<AllocatorConfigurationType,
                      CommandType>::getID () const
@@ -180,17 +246,6 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   return messageID_;
 }
 
-// partial specialization
-template <typename AllocatorConfigurationType,
-          typename CommandType>
-CommandType
-Stream_MessageBase_T<AllocatorConfigurationType,
-                     CommandType>::command () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::command"));
-
-  return static_cast<CommandType> (ACE_Message_Block::MB_DATA);
-}
 template <typename AllocatorConfigurationType,
           typename CommandType>
 std::string

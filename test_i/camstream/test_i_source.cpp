@@ -721,6 +721,12 @@ do_work (unsigned int bufferSize_in,
   // *TODO*: turn these into an option
   configuration.moduleHandlerConfiguration.buffers =
       MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.pixelformat =
+      V4L2_PIX_FMT_RGB24;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.width = 320;
+  configuration.moduleHandlerConfiguration.format.fmt.pix.height = 240;
+  configuration.moduleHandlerConfiguration.frameRate.numerator = 1;
+  configuration.moduleHandlerConfiguration.frameRate.denominator = 30;
   configuration.moduleHandlerConfiguration.method = V4L2_MEMORY_MMAP;
 #endif
 

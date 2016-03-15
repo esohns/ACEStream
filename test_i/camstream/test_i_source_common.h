@@ -102,6 +102,12 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
    , connection (NULL)
    , connectionManager (NULL)
    , device ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , format (NULL)
+#else
+   , format ()
+   , frameRate ()
+#endif
    , socketHandlerConfiguration (NULL)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , stream (NULL)
@@ -115,7 +121,14 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
    , v4l2Window (NULL)
 #endif
    , window (NULL)
-  {};
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+    ACE_OS::memset (&format, 0, sizeof (format));
+    format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    ACE_OS::memset (&frameRate, 0, sizeof (frameRate));
+#endif
+  };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct tagRECT                            area;
@@ -128,6 +141,12 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
   std::string                               device;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType*                      format;
+#else
+  struct v4l2_format                        format;
+  struct v4l2_fract                         frameRate; // time-per-frame (s)
+#endif
   Test_I_Source_SocketHandlerConfiguration* socketHandlerConfiguration;
   ACE_Time_Value                            statisticCollectionInterval;
   Test_I_Source_StreamBase_t*               stream;
@@ -179,6 +198,7 @@ struct Test_I_Source_Stream_SessionData
    , mediaType (NULL)
 #else
    , format ()
+   , frameRate ()
 #endif
    , userData (NULL)
   {};
@@ -202,6 +222,7 @@ struct Test_I_Source_Stream_SessionData
   struct _AMMediaType*           mediaType;
 #else
   struct v4l2_format             format;
+  struct v4l2_fract              frameRate;
 #endif
   Test_I_Source_UserData*        userData;
 };

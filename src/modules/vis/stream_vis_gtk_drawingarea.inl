@@ -147,6 +147,18 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
   ACE_ASSERT (total_length ==
               session_data_r.format.fmt.pix.sizeimage);
 
+  // *NOTE*: 'crunching' the message data simplifies the data transformation
+  //         algorithms, at the cost of several memory copies. This is a
+  //         tradeoff that may warrant further optimization efforts
+  if (!message_inout->crunch ())
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MessageBase_T::crunch(): \"%m\", returning\n")));
+    return;
+  } // end IF
+  ACE_ASSERT (message_inout->length () ==
+              session_data_r.format.fmt.pix.sizeimage);
+
   ACE_Message_Block* message_block_p = message_inout;
   unsigned int offset = 0, length = message_block_p->length ();
   unsigned char* data_p =

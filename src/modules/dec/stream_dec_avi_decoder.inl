@@ -230,7 +230,7 @@ Stream_Decoder_AVIDecoder_T<SessionMessageType,
       goto error;
     } // end IF
 
-      // step2: copy available data
+    // step2: copy available data
     for (ACE_Message_Block* message_block_p = buffer_;
          message_block_p;
          message_block_p = message_block_p->cont ())

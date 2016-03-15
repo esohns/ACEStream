@@ -288,9 +288,12 @@ Stream_Module_SplitterH_T<LockType,
     while (message_block_p->cont ())
       message_block_p = message_block_p->cont ();
     message_block_p->cont (message_inout);
+    message_block_p = message_inout;
   } // end ELSE
   ACE_ASSERT (message_block_p);
 
+continue_:
+  // *NOTE*: message_block_p points to the trailing fragment
   unsigned int total_length = currentBuffer_->total_length ();
   // *TODO*: remove type inference
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -301,7 +304,7 @@ Stream_Module_SplitterH_T<LockType,
     return; // done
 
   // received enough data --> (split and) forward
-  message_block_p = currentBuffer_;
+  ACE_Message_Block* message_block_2 = NULL;
   unsigned int remainder = (total_length -
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             configuration_->frameSize);
@@ -310,26 +313,35 @@ Stream_Module_SplitterH_T<LockType,
 #endif
   if (remainder)
   {
-    currentBuffer_ = message_inout->duplicate ();
-    if (!currentBuffer_)
+    message_block_2 = message_block_p->duplicate ();
+    if (!message_block_2)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
                   inherited::mod_->name ()));
-
-      // clean up
-      message_block_p->release ();
-
       return;
     } // end IF
-
-    currentBuffer_->rd_ptr (remainder);
+    message_block_2->rd_ptr (message_block_p->length () - remainder);
+    ACE_ASSERT (message_block_2->length () == remainder);
 
     message_block_p->reset ();
-    message_block_p->wr_ptr (remainder);
+    message_block_p->wr_ptr (message_block_2->rd_ptr ());
+    message_block_p = currentBuffer_;
+
+    currentBuffer_ = message_block_2;
   } // end IF
   else
+  {
+    message_block_p = currentBuffer_;
     currentBuffer_ = NULL;
+  } // end IF
+
+  ACE_ASSERT (message_block_p->total_length () ==
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+              configuration_->frameSize);
+#else
+              configuration_->format.fmt.pix.sizeimage);
+#endif
 
   int result = inherited::put_next (message_block_p, NULL);
   if (result == -1)
@@ -343,6 +355,12 @@ Stream_Module_SplitterH_T<LockType,
 
     return;
   } // end IF
+  message_block_p = currentBuffer_;
+
+  // *NOTE*: more than one frame may have been received
+  //         --> split again ?
+  if (currentBuffer_)
+    goto continue_;
 }
 
 template <typename LockType,

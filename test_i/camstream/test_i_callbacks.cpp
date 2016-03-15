@@ -3803,6 +3803,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -3859,12 +3860,10 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
 
-  // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -3878,17 +3877,17 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   ACE_ASSERT (media_type_p);
   media_type_p->subtype = GUID_i;
 
-  // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
-  //         the filter pins are associated. IGraphConfig::Reconnect fails
-  //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder))
+  // *NOTE*: the graph may (!) be stopped, but in a "connected" state, i.e. with
+  //         associated filter pins. IGraphConfig::Reconnect fails unless the
+  //         graph is "disconnected" first
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
-                                              *media_type_p))
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+                                                     *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
@@ -3905,18 +3904,8 @@ error:
 
   return;
 #else
-  // sanity check(s)
-  ACE_ASSERT (data_p->device != -1);
-
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->device,
-                                                     format_i))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
-    return;
-  } // end IF
-
-  goto continue_;
+  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.pixelformat =
+      format_i;
 #endif
 continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -3956,6 +3945,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -4043,12 +4033,10 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
 
-  // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -4080,14 +4068,14 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
   //         the filter pins are associated. IGraphConfig::Reconnect fails
   //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder))
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
-                                              *media_type_p))
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+                                                     *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
@@ -4104,18 +4092,10 @@ error:
 
   return;
 #else
-  // sanity check(s)
-  ACE_ASSERT (data_p->device != -1);
-
-  if (!Stream_Module_Device_Tools::setResolution (data_p->device,
-                                                  width, height))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setResolution(), returning\n")));
-    return;
-  } // end IF
-
-  goto continue_;
+  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.width =
+      width;
+  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.height =
+      height;
 #endif
 continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -4158,6 +4138,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -4191,14 +4172,12 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   unsigned int frame_interval_denominator = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
 
-  // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_UNUSED_ARG (frame_interval_denominator);
 
   // sanity check(s)
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
   ACE_ASSERT (data_p->streamConfiguration);
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -4228,14 +4207,14 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
   //         the filter pins are associated. IGraphConfig::Reconnect fails
   //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder))
+  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
     goto error;
   } // end IF
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
-                                              *media_type_p))
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+                                                     *media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
@@ -4250,20 +4229,10 @@ error:
   //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 #else
-  // sanity check(s)
-  ACE_ASSERT (data_p->device != -1);
-
-  struct v4l2_fract frame_interval_fract;
-  ACE_OS::memset (&frame_interval_fract, 0, sizeof (struct v4l2_fract));
-  frame_interval_fract.numerator = frame_interval;
-  frame_interval_fract.denominator = frame_interval_denominator;
-  if (!Stream_Module_Device_Tools::setFrameRate (data_p->device,
-                                                 frame_interval_fract))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(), returning\n")));
-    return;
-  } // end IF
+  data_p->configuration->moduleHandlerConfiguration.frameRate.numerator =
+      frame_interval;
+  data_p->configuration->moduleHandlerConfiguration.frameRate.denominator =
+      frame_interval_denominator;
 #endif
 } // combobox_rate_changed_cb
 

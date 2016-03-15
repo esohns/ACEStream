@@ -471,6 +471,26 @@ Stream_Module_CamSource_V4L_T<LockType,
               ACE_TEXT (configuration_in.device.c_str ()),
               captureFileDescriptor_));
 
+  // *TODO*: remove type inference
+  if (!Stream_Module_Device_Tools::setCaptureFormat (captureFileDescriptor_,
+                                                     configuration_in.format))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(%d): \"%m\", aborting\n"),
+                captureFileDescriptor_));
+    goto error;
+  } // end IF
+
+  // *TODO*: remove type inference
+  if (!Stream_Module_Device_Tools::setFrameRate (captureFileDescriptor_,
+                                                 configuration_in.frameRate))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(%d), returning\n"),
+                captureFileDescriptor_));
+    goto error;
+  } // end IF
+
   if (Stream_Module_Device_Tools::canStream (captureFileDescriptor_))
     if (!Stream_Module_Device_Tools::initializeCapture (captureFileDescriptor_,
                                                         configuration_in.method,

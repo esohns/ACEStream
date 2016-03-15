@@ -2496,6 +2496,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2551,12 +2552,10 @@ combobox_format_changed_cb (GtkWidget* widget_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
 
-  // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  ACE_ASSERT (data_p->streamConfiguration);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+  ACE_ASSERT (data_p->streamConfiguration);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -2596,22 +2595,12 @@ error:
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   return;
-#else
-  // sanity check(s)
-  ACE_ASSERT (data_p->device != -1);
 
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->device,
-                                                     format_i))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(%d), returning\n"),
-                data_p->device));
-    return;
-  } // end IF
-
-  goto continue_;
-#endif
 continue_:
+#else
+  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.pixelformat =
+      format_i;
+#endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!load_resolutions (data_p->streamConfiguration,
                          GUID_i,
@@ -2650,6 +2639,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2736,12 +2726,10 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RATE_NAME)));
   ACE_ASSERT (list_store_p);
 
-  // sanity check(s)
-  ACE_ASSERT (data_p->configuration);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  ACE_ASSERT (data_p->streamConfiguration);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+  ACE_ASSERT (data_p->streamConfiguration);
 
   AM_MEDIA_TYPE* media_type_p = NULL;
   result = data_p->streamConfiguration->GetFormat (&media_type_p);
@@ -2796,21 +2784,14 @@ error:
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   return;
-#else
-  // sanity check(s)
-  ACE_ASSERT (data_p->device != -1);
 
-  if (!Stream_Module_Device_Tools::setResolution (data_p->device,
-                                                  width, height))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setResolution(), returning\n")));
-    return;
-  } // end IF
-
-  goto continue_;
-#endif
 continue_:
+#else
+  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.width =
+      width;
+  data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.height =
+      height;
+#endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!load_rates (data_p->streamConfiguration,
                    GUID_i,
@@ -2851,6 +2832,7 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2942,20 +2924,10 @@ error:
   //DeleteMediaType (media_type_p);
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 #else
-  // sanity check(s)
-  ACE_ASSERT (data_p->device != -1);
-
-  struct v4l2_fract frame_interval_fract;
-  ACE_OS::memset (&frame_interval_fract, 0, sizeof (struct v4l2_fract));
-  frame_interval_fract.numerator = frame_interval;
-  frame_interval_fract.denominator = frame_interval_denominator;
-  if (!Stream_Module_Device_Tools::setFrameRate (data_p->device,
-                                                 frame_interval_fract))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(), returning\n")));
-    return;
-  } // end IF
+  data_p->configuration->moduleHandlerConfiguration.frameRate.numerator =
+      frame_interval;
+  data_p->configuration->moduleHandlerConfiguration.frameRate.denominator =
+      frame_interval_denominator;
 #endif
 } // combobox_rate_changed_cb
 
