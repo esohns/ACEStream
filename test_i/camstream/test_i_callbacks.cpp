@@ -726,7 +726,7 @@ load_rates (int fd_in,
   gtk_list_store_clear (listStore_in);
 
   int result = -1;
-  std::set<v4l2_fract, less_fract> frame_intervals;
+  std::set<struct v4l2_fract, less_fract> frame_intervals;
   struct v4l2_frmivalenum frame_interval_description;
   ACE_OS::memset (&frame_interval_description,
                   0,
@@ -743,19 +743,50 @@ load_rates (int fd_in,
     {
       int error = ACE_OS::last_error ();
       if (error != EINVAL)
+      {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
                     fd_in, ACE_TEXT ("VIDIOC_ENUM_FRAMEINTERVALS")));
-      break;
+        return false;
+      } // end IF
+      break; // done
     } // end IF
-    ++frame_interval_description.index;
 
-    if (frame_interval_description.type != V4L2_FRMIVAL_TYPE_DISCRETE)
-      continue;
+    if (frame_interval_description.index == 0)
+    {
+      switch (frame_interval_description.type)
+      {
+        case V4L2_FRMIVAL_TYPE_DISCRETE:
+          break;
+        case V4L2_FRMIVAL_TYPE_CONTINUOUS:
+        case V4L2_FRMIVAL_TYPE_STEPWISE:
+        {
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("the device supports 'non-discrete' frame rates (min/max/step: %u/%u/%u); this is currently not supported\n"),
+                      frame_interval_description.stepwise.min.denominator, frame_interval_description.stepwise.max.denominator,
+                      frame_interval_description.stepwise.step));
+
+          frame_intervals.insert (frame_interval_description.stepwise.max);
+
+          goto continue_;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown frame interval type (was: %d), aborting\n"),
+                      frame_interval_description.type));
+          return false;
+        }
+      } // end SWITCH
+    } // end IF
+    ACE_ASSERT (frame_interval_description.type ==
+                V4L2_FRMIVAL_TYPE_DISCRETE);
+    ++frame_interval_description.index;
 
     frame_intervals.insert (frame_interval_description.discrete);
   } while (true);
 
+continue_:
   GtkTreeIter iterator;
   guint frame_rate = 0;
   for (std::set<v4l2_fract, less_fract>::const_iterator iterator_2 = frame_intervals.begin ();
@@ -1514,11 +1545,12 @@ idle_end_source_UI_cb (gpointer userData_in)
     GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TOGGLEACTION_STREAM_NAME)));
   ACE_ASSERT (toggle_action_p);
+  gtk_action_set_stock_id (GTK_ACTION (toggle_action_p), GTK_STOCK_MEDIA_PLAY);
   if (gtk_toggle_action_get_active (toggle_action_p))
   {
-    gtk_action_set_stock_id (GTK_ACTION (toggle_action_p), GTK_STOCK_MEDIA_PLAY);
-//    un_toggling_stream = true;
-    gtk_action_activate (GTK_ACTION (toggle_action_p)); // untoggle
+    // --> untoggle button
+    un_toggling_stream = true;
+    gtk_action_activate (GTK_ACTION (toggle_action_p));
   } // end IF
 
   GtkAction* action_p =
@@ -1531,6 +1563,31 @@ idle_end_source_UI_cb (gpointer userData_in)
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME)));
   ACE_ASSERT (action_p);
   gtk_action_set_sensitive (action_p, true);
+
+  // stop progress reporting
+  ACE_ASSERT (data_p->progressEventSourceID);
+  {
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+
+    if (!g_source_remove (data_p->progressEventSourceID))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                  data_p->progressEventSourceID));
+    data_p->eventSourceIds.erase (data_p->progressEventSourceID);
+    data_p->progressEventSourceID = 0;
+
+    ACE_OS::memset (&(data_p->progressData.statistic),
+                    0,
+                    sizeof (data_p->progressData.statistic));
+  } // end lock scope
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+  // *NOTE*: this disables "activity mode" (in Gtk2)
+  gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
+  gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
+  gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), false);
 
   return G_SOURCE_REMOVE;
 }
@@ -2222,6 +2279,14 @@ idle_end_target_UI_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
 
+  Test_I_Target_InetConnectionManager_t* connection_manager_p =
+    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
+  // *TODO*: this doesn't always work as conceived. Depending on the runtime
+  //         (and scheduling), the (last) connection may not yet have
+  //         deregistered with the manager at this stage
+  unsigned int connection_count = connection_manager_p->count ();
+
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
@@ -2231,14 +2296,28 @@ idle_end_target_UI_cb (gpointer userData_in)
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME)));
   ACE_ASSERT (action_p);
-  Test_I_Target_InetConnectionManager_t* connection_manager_p =
-    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (connection_manager_p);
   gtk_action_set_sensitive (action_p,
-                            (connection_manager_p->count () != 0));
+                            (connection_count != 0));
+
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+  if (connection_count == 0)
+  {
+    {
+      ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+
+      ACE_OS::memset (&(data_p->progressData.statistic),
+                      0,
+                      sizeof (data_p->progressData.statistic));
+    } // end lock scope
+
+    gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
+  } // end IF
 
   return G_SOURCE_REMOVE;
-}
+} // idle_end_target_UI_cb
 
 gboolean
 idle_reset_target_UI_cb (gpointer userData_in)
@@ -2662,53 +2741,6 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   {
     stream_p->stop (false, true);
 
-    //if (!data_p->configuration->moduleHandlerConfiguration.active)
-    //{
-    //  ACE_ASSERT (!data_p->progressData.pendingActions.empty ());
-    //  Stream_PendingActionsIterator_t iterator =
-    //    data_p->progressData.pendingActions.begin ();
-    //  if (status_r == STREAM_STATE_RUNNING)
-    //    result = ACE_Thread::suspend ((*iterator).second.handle);
-    //  else
-    //    result = ACE_Thread::resume ((*iterator).second.handle);
-    //  if (result == -1)
-    //    ACE_DEBUG ((LM_ERROR,
-    //                ACE_TEXT ("failed to ACE_Thread::suspend/resume(): \"%m\", continuing\n")));
-    //} // end ELSE
-
-    // step0: modify widgets
-    gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_PLAY);
-    GtkAction* action_p =
-//      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-//                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_SETTINGS_NAME)));
-//    ACE_ASSERT (action_p);
-//    gtk_action_set_sensitive (action_p, false);
-//    action_p =
-      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                          ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_RESET_NAME)));
-    ACE_ASSERT (action_p);
-    gtk_action_set_sensitive (action_p, true);
-
-    // stop progress reporting
-    ACE_ASSERT (data_p->progressEventSourceID);
-    {
-      ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
-
-      if (!g_source_remove (data_p->progressEventSourceID))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-                    data_p->progressEventSourceID));
-      data_p->eventSourceIds.erase (data_p->progressEventSourceID);
-      data_p->progressEventSourceID = 0;
-    } // end lock scope
-    GtkProgressBar* progressbar_p =
-      GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-    ACE_ASSERT (progressbar_p);
-    // *NOTE*: this disables "activity mode" (in Gtk2)
-    gtk_progress_bar_set_fraction (progressbar_p, 0.0);
-    gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
-
     return;
   } // end IF
 
@@ -3010,8 +3042,6 @@ action_close_all_activate_cb (GtkAction* action_in,
     ACE_ASSERT (toggle_action_p);
     gtk_action_activate (GTK_ACTION (toggle_action_p));
   } // end IF
-
-  idle_reset_target_UI_cb (userData_in);
 } // action_close_all_activate_cb
 
 void
@@ -3306,6 +3336,9 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     ACE_ASSERT (frame_p);
     gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
 
+    // reset info
+    idle_reset_target_UI_cb (userData_in);
+
     // stop progress reporting
     ACE_ASSERT (data_p->progressEventSourceID);
     {
@@ -3324,6 +3357,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     ACE_ASSERT (progress_bar_p);
     // *NOTE*: this disables "activity mode" (in Gtk2)
     gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
+//    gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
     gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), false);
   } // end ELSE
 } // action_listen_activate_cb
@@ -3903,11 +3937,12 @@ error:
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   return;
+
+continue_:
 #else
   data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.pixelformat =
       format_i;
 #endif
-continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!load_resolutions (data_p->streamConfiguration,
                          GUID_i,
@@ -4091,13 +4126,14 @@ error:
   Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   return;
+
+continue_:
 #else
   data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.width =
       width;
   data_p->configuration->moduleHandlerConfiguration.format.fmt.pix.height =
       height;
 #endif
-continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!load_rates (data_p->streamConfiguration,
                    GUID_i,

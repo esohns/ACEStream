@@ -3452,7 +3452,11 @@ Stream_Module_Device_Tools::getFrameRate (int fd_in,
                 fd_in, ACE_TEXT ("VIDIOC_G_PARM")));
     return false;
   } // end IF
-//  ACE_ASSERT (stream_parameters.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+  if ((stream_parameters.parm.capture.capability & V4L2_CAP_TIMEPERFRAME) == 0)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("the device driver does not support frame interval settings, continuing\n")));
+
+  //  ACE_ASSERT (stream_parameters.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
 
   frameRate_out = stream_parameters.parm.capture.timeperframe;
 
@@ -3481,9 +3485,11 @@ Stream_Module_Device_Tools::setFrameRate (int fd_in,
                 fd_in, ACE_TEXT ("VIDIOC_G_PARM")));
     return false;
   } // end IF
-  ACE_ASSERT (stream_parameters.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+//  ACE_ASSERT (stream_parameters.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
+  // sanity check(s)
   if ((stream_parameters.parm.capture.capability & V4L2_CAP_TIMEPERFRAME) == 0)
     goto no_support;
+
   stream_parameters.parm.capture.timeperframe = interval_in;
 
   result = v4l2_ioctl (fd_in,
@@ -3497,11 +3503,18 @@ Stream_Module_Device_Tools::setFrameRate (int fd_in,
     return false;
   } // end IF
 
+  // validate setting
+  if ((stream_parameters.parm.capture.timeperframe.numerator   != interval_in.numerator)  ||
+      (stream_parameters.parm.capture.timeperframe.denominator != interval_in.denominator))
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("the device driver has not accepted the supplied frame rate (requested: %u, is: %u), continuing\n"),
+                interval_in.denominator, stream_parameters.parm.capture.timeperframe.denominator));
+
   return true;
 
 no_support:
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("the capture driver does not support frame interval settings, aborting\n")));
+              ACE_TEXT ("the device driver does not support frame interval settings, aborting\n")));
   return false;
 }
 

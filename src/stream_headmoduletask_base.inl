@@ -681,6 +681,8 @@ Stream_HeadModuleTaskBase_T<LockType,
   // *TODO*: remove type inference
   active_ = configuration_in.active;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+  if (active_)
+    runSvcRoutineOnStart_ = false;
 
   // *TODO*: remove type inference
   result = inherited::initialize (*configuration_->stateMachineLock);
@@ -1267,7 +1269,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 #endif
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Thread::join(%u): \"%m\", continuing\n"),
+                    ACE_TEXT ("failed to ACE_Thread::join(%lu): \"%m\", continuing\n"),
                     thread_id));
     } // end IF
   } // end IF

@@ -117,7 +117,7 @@ class Stream_HeadModuleTaskBase_T
                                //////////
                                bool = false, // active object ?
                                bool = false, // auto-start ?
-                               bool = true,  // run svc() routine on start ? (passive only)
+                               bool = true,  // run svc() routine on start ? (applies to 'passive' mode only)
                                bool = true); // generate session messages ?
 
   // convenient types

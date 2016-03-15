@@ -139,7 +139,7 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
     TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
   if (close_all)
-    connection_manager_p->abort ();
+    connection_manager_p->abort (false);
 
 //check_shutdown:
   // ...shutdown ?

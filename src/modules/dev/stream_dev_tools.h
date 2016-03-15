@@ -149,8 +149,10 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                 const struct v4l2_format&); // capture format
   static bool getCaptureFormat (int,                  // device handle file descriptor
                                 struct v4l2_format&); // return value: format
+  // *NOTE*: v4l uses time-per-frame (s) intervals, so the actual frame rate
+  //         (fps) is the reciprocal of this value
   static bool getFrameRate (int,                 // device handle file descriptor
-                            struct v4l2_fract&); // return value: frame rate (in time-per-frame)
+                            struct v4l2_fract&); // return value: frame rate (in time-per-frame (s))
   static bool setFrameRate (int,                       // file descriptor
                             const struct v4l2_fract&); // frame rate (in time-per-frame)
 

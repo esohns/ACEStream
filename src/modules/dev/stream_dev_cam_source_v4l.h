@@ -114,13 +114,13 @@ class Stream_Module_CamSource_V4L_T
 
   // helper methods
 //  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
-  bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
+  bool putStatisticMessage (const StatisticContainerType&) const; // statistic
 
   int  captureFileDescriptor_; // capture
   int  overlayFileDescriptor_; // preview
 
   bool debug_; // log device status (to kernel log)
-  bool isPassive_;
+  bool isPassive_; // foreign device descriptor ?
 };
 
 #include "stream_dev_cam_source_v4l.inl"
