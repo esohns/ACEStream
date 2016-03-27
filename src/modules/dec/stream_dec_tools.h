@@ -21,7 +21,10 @@
 #ifndef STREAM_MODULE_DEC_TOOLS_H
 #define STREAM_MODULE_DEC_TOOLS_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 #include <string>
+#endif
 
 #include "ace/Global_Macros.h"
 

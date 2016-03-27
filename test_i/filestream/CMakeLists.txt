@@ -175,8 +175,13 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
          COMPONENT dev)
-install (FILES etc/source.glade etc/resources.rc
-         DESTINATION etc/libACEStream/filestream COMPONENT config)
+if (WIN32)
+ install (FILES etc/source.glade
+          DESTINATION lib${PROJECT_NAME}/filestream COMPONENT config)
+elseif (UNIX)
+ install (FILES etc/source.glade
+          DESTINATION share/lib${PROJECT_NAME}/filestream COMPONENT config)
+endif ()
 
 ############## next target ################
 set (filetarget_EXE_SRCS
@@ -244,5 +249,10 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
          COMPONENT dev)
-install (FILES etc/target.glade etc/resources.rc
-         DESTINATION etc/libACEStream/filestream COMPONENT config)
+if (WIN32)
+ install (FILES etc/target.glade
+          DESTINATION lib${PROJECT_NAME}/filestream COMPONENT config)
+elseif (UNIX)
+ install (FILES etc/target.glade
+          DESTINATION share/lib${PROJECT_NAME}/filestream COMPONENT config)
+endif ()

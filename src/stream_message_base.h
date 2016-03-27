@@ -56,7 +56,7 @@ class Stream_MessageBase_T
  public:
   virtual ~Stream_MessageBase_T ();
 
-  // implement Stream_IDataMessage
+  // implement (part of) Stream_IDataMessage<CommandType>
   virtual CommandType command () const;
   virtual int crunch (void);
   virtual unsigned int getID () const;

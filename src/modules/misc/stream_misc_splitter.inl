@@ -336,10 +336,11 @@ continue_:
     currentBuffer_ = NULL;
   } // end IF
 
-  ACE_ASSERT (message_block_p->total_length () ==
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (message_block_p->total_length () ==
               configuration_->frameSize);
 #else
+  ACE_ASSERT (message_block_p->total_length () ==
               configuration_->format.fmt.pix.sizeimage);
 #endif
 

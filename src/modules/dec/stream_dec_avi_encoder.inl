@@ -850,9 +850,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
         (mediaType_->formattype != FORMAT_VideoInfo2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media format type (was: %d), returning\n"),
+                  ACE_TEXT ("invalid/unknown media format type (was: %d), aborting\n"),
                   mediaType_->formattype));
-      return;
+      return false;
     } // end IF
 
     struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
@@ -871,40 +871,40 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     //         impossible until/unless this value is preconfigured in some way.
     //         Notice how this oversight confounds the whole standard
     // sizeof (fccListType) [4] + sizeof (data) --> == total (file) size - 8
-    RIFF_list.cb = sizeof (FOURCC) +
-      sizeof (struct _rifflist) +           // hdrl
-      sizeof (struct _avimainheader) +
+    RIFF_list.cb = sizeof (FOURCC)        +
+      sizeof (struct _rifflist)           + // hdrl
+      sizeof (struct _avimainheader)      +
       // sizeof (LIST strl)
-      sizeof (struct _rifflist) +
-      sizeof (struct _avistreamheader) +    // strh
-      sizeof (struct _riffchunk) +          // strf
+      sizeof (struct _rifflist)           +
+      sizeof (struct _avistreamheader)    + // strh
+      sizeof (struct _riffchunk)          + // strf
       sizeof (struct tagBITMAPINFOHEADER) + // strf
-      sizeof (struct _riffchunk) +          // JUNK
-      1820 +                                // pad bytes
-      sizeof (struct _rifflist) +           // movi
-      sizeof (struct _riffchunk) +          // 00db
-      message_inout->length ();             // (part of) frame
+      sizeof (struct _riffchunk)          + // JUNK
+      1820                                + // pad bytes
+      sizeof (struct _rifflist)           + // movi
+      sizeof (struct _riffchunk)          + // 00db
+      messageBlock_inout->length ();        // (part of) frame
     if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
       RIFF_list.cb = ACE_SWAP_LONG (RIFF_list.cb);
     RIFF_list.fccListType = FCC ('AVI ');
-    result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_list),
-                                    sizeof (struct _rifflist));
+    result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
+                                       sizeof (struct _rifflist));
 
     // hdrl
     RIFF_list.fcc = FCC ('LIST');
     // sizeof (fccListType) [4] + sizeof (LIST data)
-    RIFF_list.cb = sizeof (FOURCC) +
-      sizeof (struct _avimainheader) +
-      // sizeof (LIST strl)
-      sizeof (struct _rifflist) +
-      sizeof (struct _avistreamheader) + // strh
-      sizeof (struct _riffchunk) + // strf
-      sizeof (struct tagBITMAPINFOHEADER); // strf
+    RIFF_list.cb = sizeof (FOURCC)                    +
+                   sizeof (struct _avimainheader)     +
+                   // sizeof (LIST strl)
+                   sizeof (struct _rifflist)          +
+                   sizeof (struct _avistreamheader)   + // strh
+                   sizeof (struct _riffchunk)         + // strf
+                   sizeof (struct tagBITMAPINFOHEADER); // strf
     if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
       RIFF_list.cb = ACE_SWAP_LONG (RIFF_list.cb);
     RIFF_list.fccListType = FCC ('hdrl');
-    result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_list),
-                                    sizeof (struct _rifflist));
+    result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
+                                       sizeof (struct _rifflist));
 
     // *NOTE*: "...the 'hdrl' list begins with the main AVI header, which is
     //         contained in an 'avih' chunk. ..."
@@ -933,8 +933,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
       ((mediaType_->formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biHeight
                                                     : video_info_header2_p->bmiHeader.biHeight);
     //AVI_header_avih.dwReserved = {0, 0, 0, 0};
-    result = message_block_p->copy (reinterpret_cast<char*> (&AVI_header_avih),
-                                    sizeof (struct _avimainheader));
+    result = messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_avih),
+                                       sizeof (struct _avimainheader));
 
     // *NOTE*: "One or more 'strl' lists follow the main header. A 'strl' list
     //         is required for each data stream. Each 'strl' list contains
@@ -951,8 +951,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
       RIFF_list.cb = ACE_SWAP_LONG (RIFF_list.cb);
     RIFF_list.fccListType = ckidSTREAMLIST;
-    result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_list),
-                                    sizeof (struct _rifflist));
+    result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
+                                       sizeof (struct _rifflist));
 
     // strl --> strh
     struct _avistreamheader AVI_header_strh;
@@ -980,27 +980,26 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     AVI_header_strh.dwQuality = -1; // default
                                     //AVI_header_strh.dwSampleSize = 0;
                                     //AVI_header_strh.rcFrame = {0, 0, 0, 0};
-    result = message_block_p->copy (reinterpret_cast<char*> (&AVI_header_strh),
-                                    sizeof (struct _avistreamheader));
+    result = messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_strh),
+                                       sizeof (struct _avistreamheader));
 
     // strl --> strf
     // *NOTE*: there is no definition for AVI stream format chunks, as their
     //         contents differ, depending on the stream type
-    struct _riffchunk RIFF_chunk;
     ACE_OS::memset (&RIFF_chunk, 0, sizeof (struct _riffchunk));
     RIFF_chunk.fcc = ckidSTREAMFORMAT;
     RIFF_chunk.cb = sizeof (struct tagBITMAPINFOHEADER);
     if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
       RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
-    result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
-                                    sizeof (struct _riffchunk));
+    result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_chunk),
+                                       sizeof (struct _riffchunk));
     struct tagBITMAPINFOHEADER AVI_header_strf;
     ACE_OS::memset (&AVI_header_strf, 0, sizeof (struct tagBITMAPINFOHEADER));
     AVI_header_strf =
       ((mediaType_->formattype == FORMAT_VideoInfo) ? video_info_header_p->bmiHeader
                                                     : video_info_header2_p->bmiHeader);
-    result = message_block_p->copy (reinterpret_cast<char*> (&AVI_header_strf),
-                                    sizeof (struct tagBITMAPINFOHEADER));
+    result = messageBlock_inout->copy (reinterpret_cast<char*> (&AVI_header_strf),
+                                       sizeof (struct tagBITMAPINFOHEADER));
 
     // strl --> strd
     // strl --> strn
@@ -1010,7 +1009,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     // insert JUNK chunk to align the 'movi' chunk at 2048 bytes
     // --> should speed up CD-ROM access
     unsigned int pad_bytes =
-      AVI_header_avih.dwPaddingGranularity - message_block_p->length () - 8 - 12;
+      AVI_header_avih.dwPaddingGranularity - messageBlock_inout->length () - 8 - 12;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("inserting JUNK chunk (%d pad byte(s))...\n"),
                 pad_bytes));
@@ -1018,23 +1017,23 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     RIFF_chunk.cb = pad_bytes;
     if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
       RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
-    result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
-                                    sizeof (struct _riffchunk));
-    ACE_OS::memset (message_block_p->wr_ptr (), 0, pad_bytes);
-    message_block_p->wr_ptr (RIFF_chunk.cb);
+    result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_chunk),
+                                       sizeof (struct _riffchunk));
+    ACE_OS::memset (messageBlock_inout->wr_ptr (), 0, pad_bytes);
+    messageBlock_inout->wr_ptr (RIFF_chunk.cb);
 
     // movi
     RIFF_list.fcc = FCC ('LIST');
     // *NOTE*: see above
     // sizeof (fccListType) [4] + sizeof (LIST data)
-    RIFF_list.cb = sizeof (FOURCC) +
-      sizeof (struct _riffchunk) + // 00db
-      message_inout->length ();    // (part of) frame
+    RIFF_list.cb = sizeof (FOURCC)              +
+                   sizeof (struct _riffchunk)   + // 00db
+                   messageBlock_inout->length (); // (part of) frame
     if (ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN)
       RIFF_chunk.cb = ACE_SWAP_LONG (RIFF_chunk.cb);
     RIFF_list.fccListType = FCC ('movi');
-    result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_list),
-                                    sizeof (struct _rifflist));
+    result = messageBlock_inout->copy (reinterpret_cast<char*> (&RIFF_list),
+                                       sizeof (struct _rifflist));
 
     //RIFF_chunk.fcc = FCC ('00db');
     //RIFF_chunk.cb = message_inout->length ();

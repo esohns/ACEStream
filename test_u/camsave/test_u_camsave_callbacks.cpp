@@ -2610,9 +2610,15 @@ continue_:
 #endif
                          list_store_p))
   {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_resolutions(\"%s\"), returning\n"),
+                Stream_Module_Device_Tools::mediaSubTypeToString (GUID_i).c_str ()));
+#else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_resolutions(%d), returning\n"),
                 data_p->device));
+#endif
     return;
   } // end IF
   gint n_rows =

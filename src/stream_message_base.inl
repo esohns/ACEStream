@@ -190,6 +190,17 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   int result = -1;
 
   // sanity check(s)
+  // *NOTE*: assuming stream processing is indeed single-threaded (CHECK !!!),
+  //         then the reference count at this stage should be <=2: "this", and
+  //         (most probably), the next, trailing "message head" (of course, it
+  //         could be just "this")
+  // *IMPORTANT NOTE*: this check is NOT enough. Also, there may be trailing
+  //                   messages (in fact, that should be the norm), and/or
+  //                   (almost any) number(s) of fragments referencing the same
+  //                   buffer
+  // *TODO*: to be clarified
+  //ACE_ASSERT (inherited::reference_count () <= 2);
+
   ACE_ASSERT (inherited::data_block_);
   ACE_ASSERT (inherited::total_length () <=
               inherited::data_block_->capacity ());

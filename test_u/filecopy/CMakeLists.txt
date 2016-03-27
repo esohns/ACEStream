@@ -154,5 +154,10 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
          COMPONENT dev)
-install (FILES etc/filecopy.glade
-         DESTINATION etc/lib${PROJECT_NAME}/filecopy COMPONENT config)
+if (WIN32)
+ install (FILES etc/filecopy.glade
+          DESTINATION lib${PROJECT_NAME}/filecopy COMPONENT config)
+elseif (UNIX)
+ install (FILES etc/filecopy.glade
+          DESTINATION share/lib${PROJECT_NAME}/filecopy COMPONENT config)
+endif ()

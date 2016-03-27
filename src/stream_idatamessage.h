@@ -29,6 +29,26 @@ class Stream_IDataMessage
 
   // exposed interface
   virtual CommandType command () const = 0;
+  // this is meant to "normalize" the PDU data in this message (fragment)
+  // *NOTE*: steps to consider when implemented on top of an ACE_Message_Block:
+  // 1. aligning the rd_ptr with base()
+  //    --> ACE_Message_Block::crunch()/::memmove()]
+  // *WARNING*: for obvious reasons, this will not work with shared buffers
+  //            (i.e. ACE_Message_Block::duplicate())
+  // 2. copying all bits from any continuation(s) into the head buffer (until
+  //    ACE_Message_Block::capacity() is reached)
+  // 3. adjusting the write pointer
+  // 4. releasing any (obsoleted) continuations
+  // --> *NOTE*: when applied throughout, AND:
+  //     - the (leading/first) message buffer has capacity for a complete
+  //       message (i.e. maximum allowed size)
+  //     - the peer keeps to the standard and doesn't send oversized (!)
+  //       messages
+  //     THEN this method can be used to ensure that all (head) message buffers
+  //     contain CONSISTENT (as in contiguous) and therefore COMPLETE messages.
+  //     This function may be required to simplify parsing of protocol PDUs
+  // *NOTE*: the C-ish signature reflects the fact that this may be implemented
+  //         as an overload to ACE_Message_Block::crunch() (see above)
   virtual int crunch (void) = 0;
   virtual unsigned int getID () const = 0;
 };

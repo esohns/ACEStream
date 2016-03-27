@@ -42,6 +42,8 @@ Stream_Module_Decoder_Tools::initialize ()
 
 }
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 std::string
 Stream_Module_Decoder_Tools::errorToString (int error_in)
 {
@@ -65,3 +67,4 @@ Stream_Module_Decoder_Tools::errorToString (int error_in)
 
   return result;
 }
+#endif

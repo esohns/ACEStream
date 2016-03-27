@@ -187,6 +187,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   bool COM_initialized = false;
   struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
+  HRESULT result = E_FAIL;
 
   if (configuration_in.moduleHandlerConfiguration->builder)
   {
@@ -212,12 +213,12 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   } // end IF
   else
   {
-    HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-    if (FAILED (result_2))
+    result = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+    if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       return false;
     } // end IF
     COM_initialized = true;
@@ -253,7 +254,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
       Stream_Module_Device_Tools::debug (configuration_in.moduleHandlerConfiguration->builder,
                                          log_file_name);
     } // end IF
-  } // end IF
+  } // end ELSE
 
 continue_:
   ACE_ASSERT (!session_data_r.mediaType);
