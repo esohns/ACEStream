@@ -152,7 +152,7 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
   // - push them onto the stream (tail-first) !
   // ------------------------------------
 
-  int result = -1;
+//  int result = -1;
 //  inherited::MODULE_T* module_p = NULL;
 //  if (configuration_in.notificationStrategy)
 //  {

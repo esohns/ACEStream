@@ -254,9 +254,9 @@ struct Stream_Configuration
    , printFinalReport (false)
    , serializeOutput (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , sessionID (reinterpret_cast<size_t> (ACE_INVALID_HANDLE))
+   , sessionID (reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE))
 #else
-   , sessionID (static_cast<size_t> (ACE_INVALID_HANDLE))
+   , sessionID (static_cast<unsigned int> (ACE_INVALID_HANDLE))
 #endif
    , statisticReportingInterval (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
    , useThreadPerConnection (false)
@@ -276,7 +276,7 @@ struct Stream_Configuration
   //                   (most notably, ACE_TP_Reactor)
   //                   --> enforce proper serialization
   bool                               serializeOutput;
-  size_t                             sessionID;
+  unsigned int                       sessionID;
   ACE_Time_Value                     statisticReportingInterval; // [ACE_Time_Value::zero: off]
   bool                               useThreadPerConnection;
 };

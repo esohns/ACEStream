@@ -160,7 +160,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
               session_data_r.format.fmt.pix.sizeimage);
 
   ACE_Message_Block* message_block_p = message_inout;
-  unsigned int offset = 0, length = message_block_p->length ();
+  unsigned int offset = 0;//, length = message_block_p->length ();
   unsigned char* data_p =
       reinterpret_cast<unsigned char*> (message_block_p->rd_ptr ());
   ACE_ASSERT (data_p);

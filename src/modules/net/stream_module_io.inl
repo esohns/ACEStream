@@ -321,9 +321,6 @@ Stream_Module_Net_IOWriter_T<LockType,
       //         second message arrives (see stream_module_io_stream.inl:232)
       if (!connection_)
       {
-        // sanity check(s)
-        ACE_ASSERT (inherited::configuration_->connectionManager);
-
         const SessionDataContainerType& session_data_container_r =
           message_inout->get ();
         const SessionDataType& session_data_r =
@@ -334,7 +331,12 @@ Stream_Module_Net_IOWriter_T<LockType,
 #else
         handle = static_cast<ACE_HANDLE> (session_data_r.sessionID);
 #endif
-        connection_ = inherited::configuration_->connectionManager->get (handle);
+
+        ConnectionManagerType* connection_manager_p =
+          ConnectionManagerType::SINGLETON_T::instance ();
+        ACE_ASSERT (connection_manager_p);
+
+        connection_ = connection_manager_p->get (handle);
         if (!connection_)
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -946,7 +948,7 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
     {
       // sanity check(s)
       ACE_ASSERT (!connection_);
-      ACE_ASSERT (configuration_.connectionManager);
+      //ACE_ASSERT (configuration_.connectionManager);
 
       const SessionDataContainerType& session_data_container_r =
         message_inout->get ();
@@ -960,7 +962,12 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
       handle = static_cast<ACE_HANDLE> (session_data_r.sessionID);
 #endif
       ACE_ASSERT (handle != ACE_INVALID_HANDLE);
-      connection_ = configuration_.connectionManager->get (handle);
+
+      ConnectionManagerType* connection_manager_p =
+        ConnectionManagerType::SINGLETON_T::instance ();
+      ACE_ASSERT (connection_manager_p);
+
+      connection_ = connection_manager_p->get (handle);
       if (!connection_)
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

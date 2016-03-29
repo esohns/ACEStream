@@ -293,24 +293,24 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 
   return isInitialized_;
 
-error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  if (formatContext_)
-  {
-    if (formatContext_->streams[0])
-      if (formatContext_->streams[0]->codec)
-      {
-        result = avcodec_close (formatContext_->streams[0]->codec);
-        if (result == -1)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("avcodec_close() failed: \"%s\", continuing\n"),
-                      ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
-      } // end IF
+//error:
+//  if (formatContext_)
+//  {
+//    if (formatContext_->streams[0])
+//      if (formatContext_->streams[0]->codec)
+//      {
+//        result = avcodec_close (formatContext_->streams[0]->codec);
+//        if (result == -1)
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("avcodec_close() failed: \"%s\", continuing\n"),
+//                      ACE_TEXT (Stream_Module_Decoder_Tools::errorToString (result).c_str ())));
+//      } // end IF
 
-    avformat_free_context (formatContext_);
-    formatContext_ = NULL;
-  } // end IF
+//    avformat_free_context (formatContext_);
+//    formatContext_ = NULL;
+//  } // end IF
 #endif
 
   return false;

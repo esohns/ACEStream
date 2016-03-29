@@ -171,7 +171,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   // - push them onto the stream (tail-first) !
   // ------------------------------------
 
-  int result = -1;
+//  int result = -1;
   inherited::MODULE_T* module_p = NULL;
   if (configuration_in.notificationStrategy)
   {

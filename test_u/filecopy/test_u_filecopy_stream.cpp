@@ -157,7 +157,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
   // - push them onto the stream (tail-first) !
   // ------------------------------------
 
-  int result = -1;
+//  int result = -1;
 //  inherited::MODULE_T* module_p = NULL;
 //  if (configuration_in.notificationStrategy)
 //  {

@@ -42,12 +42,12 @@ project (ACEStream
 #set (INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 
 # make relative paths absolute (needed later on)
-#foreach (path LIB BIN INCLUDE CMAKE)
-# set (var INSTALL_${path}_DIR)
+foreach (path LIB BIN INCLUDE CMAKE)
+ set (var INSTALL_${path}_DIR)
 # if (NOT IS_ABSOLUTE "${${var}}")
-#  set (${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
+  set (${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
 # endif ()
-#endforeach ()
+endforeach ()
 
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)

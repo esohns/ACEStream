@@ -296,7 +296,8 @@ Stream_Module_Net_Target_T<SessionMessageType,
         //         meant to be the final module of this processing stream. As
         //         the connection stream will be prepended to this pipeline, the
         //         connection should not enqueue that same module again
-        //         --> temporarily 'hide' the module handle (if any)
+        //         --> temporarily 'hide' the module handle, if any
+        // *TODO*: remove this ASAP
         ACE_ASSERT (configuration_->streamConfiguration);
         bool clone_module, delete_module;
         clone_module = configuration_->streamConfiguration->cloneModule;
