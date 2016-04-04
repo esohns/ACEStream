@@ -132,9 +132,9 @@ struct Stream_SessionData
    , lastCollectionTimeStamp (ACE_Time_Value::zero)
    , lock (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , sessionID (reinterpret_cast<size_t> (ACE_INVALID_HANDLE))
+   , sessionID (reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE))
 #else
-   , sessionID (static_cast<size_t> (ACE_INVALID_HANDLE))
+   , sessionID (static_cast<unsigned int> (ACE_INVALID_HANDLE))
 #endif
    , startOfSession (ACE_Time_Value::zero)
    , userData (NULL)
@@ -152,12 +152,12 @@ struct Stream_SessionData
     lock = rhs_in.lock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     sessionID =
-        ((sessionID == reinterpret_cast<size_t> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
-                                                                      : sessionID);
+        ((sessionID == reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
+                                                                            : sessionID);
 #else
     sessionID =
-        ((sessionID == static_cast<size_t> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
-                                                                 : sessionID);
+        ((sessionID == static_cast<unsigned int> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
+                                                                       : sessionID);
 #endif
     startOfSession =
         (startOfSession > rhs_in.startOfSession ? startOfSession
@@ -176,7 +176,7 @@ struct Stream_SessionData
   ACE_Time_Value   lastCollectionTimeStamp;
   ACE_SYNCH_MUTEX* lock;
 
-  size_t           sessionID; // (== socket handle !)
+  unsigned int     sessionID; // (== socket handle !)
   ACE_Time_Value   startOfSession;
 
   Stream_UserData* userData;

@@ -41,12 +41,20 @@ project (ACEStream
 #endif ()
 #set (INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 
-# make relative paths absolute (needed later on)
-foreach (path LIB BIN INCLUDE CMAKE)
+## make relative paths absolute (needed later on)
+foreach (path BIN CMAKE ETC INCLUDE LIB)
  set (var INSTALL_${path}_DIR)
 # if (NOT IS_ABSOLUTE "${${var}}")
-  set (${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
-# endif ()
+ string (TOLOWER "${path}" RELATIVE_INSTALL_PATH)
+
+if (UNIX)
+ set (${var} "${CMAKE_INSTALL_PREFIX}/${RELATIVE_INSTALL_PATH}")
+elseif (WIN32)
+ set (${var} ${RELATIVE_INSTALL_PATH})
+endif ()
+# message (STATUS "set \"${var}\" to \"${${var}}\"")
+
+#endif ()
 endforeach ()
 
 # Export the package for use from the build-tree

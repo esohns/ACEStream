@@ -46,7 +46,8 @@ Stream_CamSave_EventHandler::~Stream_CamSave_EventHandler ()
 }
 
 void
-Stream_CamSave_EventHandler::start (const Stream_CamSave_SessionData& sessionData_in)
+Stream_CamSave_EventHandler::start (unsigned int sessionID_in,
+                                    const Stream_CamSave_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::start"));
 
@@ -62,9 +63,12 @@ Stream_CamSave_EventHandler::start (const Stream_CamSave_SessionData& sessionDat
 }
 
 void
-Stream_CamSave_EventHandler::notify (const Stream_CamSave_Message& message_in)
+Stream_CamSave_EventHandler::notify (unsigned int sessionID_in,
+                                     const Stream_CamSave_Message& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::notify"));
+
+  ACE_UNUSED_ARG (sessionID_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -85,17 +89,19 @@ Stream_CamSave_EventHandler::notify (const Stream_CamSave_Message& message_in)
 //  CBData_->eventSourceIds.insert (event_source_id);
 }
 void
-Stream_CamSave_EventHandler::notify (const Stream_CamSave_SessionMessage& sessionMessage_in)
+Stream_CamSave_EventHandler::notify (unsigned int sessionID_in,
+                                     const Stream_CamSave_SessionMessage& sessionMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::notify"));
 
-  int result = -1;
+  ACE_UNUSED_ARG (sessionID_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
+  int result = -1;
   Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
@@ -141,9 +147,11 @@ continue_:
 }
 
 void
-Stream_CamSave_EventHandler::end ()
+Stream_CamSave_EventHandler::end (unsigned int sessionID_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::end"));
+
+  ACE_UNUSED_ARG (sessionID_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);

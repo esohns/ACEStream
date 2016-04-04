@@ -1937,8 +1937,7 @@ Stream_Base_T<LockType,
     ACE_ASSERT (!hasFinal_);
     ACE_ASSERT (!state_.module);
 
-    imodule_p =
-        dynamic_cast<IMODULE_T*> (configuration_inout.module);
+    imodule_p = dynamic_cast<IMODULE_T*> (configuration_inout.module);
     if (!imodule_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1972,8 +1971,25 @@ Stream_Base_T<LockType,
       state_.module = clone_p;
       state_.deleteModule = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("cloned final module \"%s\"...\n"),
-                  configuration_inout.module->name ()));
+                  ACE_TEXT ("%s: cloned final module 0x%@ (handle is: 0x%@\n"),
+                  configuration_inout.module->name (),
+                  configuration_inout.module,
+                  state_.module));
+
+      imodule_p = dynamic_cast<IMODULE_T*> (clone_p);
+      if (!imodule_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
+                    configuration_inout.module->name ()));
+
+        // clean up
+        state_.module = NULL;
+        state_.deleteModule = false;
+        delete clone_p;
+
+        return false;
+      } // end IF
     } // end IF
     else
     {
@@ -1999,7 +2015,7 @@ Stream_Base_T<LockType,
     Stream_Task_t* task_p = state_.module->writer ();
     ACE_ASSERT (task_p);
     IMODULEHANDLER_T* imodule_handler_p =
-      dynamic_cast<IMODULEHANDLER_T*> (task_p);
+        dynamic_cast<IMODULEHANDLER_T*> (task_p);
     if (!imodule_handler_p)
     {
       ACE_DEBUG ((LM_ERROR,

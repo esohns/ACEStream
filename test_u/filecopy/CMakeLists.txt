@@ -152,12 +152,12 @@ target_link_libraries (${EXECUTABLE} ACEStream)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT bin
          COMPONENT dev)
-if (WIN32)
- install (FILES etc/filecopy.glade
-          DESTINATION lib${PROJECT_NAME}/filecopy COMPONENT config)
-elseif (UNIX)
- install (FILES etc/filecopy.glade
-          DESTINATION share/lib${PROJECT_NAME}/filecopy COMPONENT config)
+if (UNIX)
+ install (FILES etc/${EXECUTABLE}.glade
+          DESTINATION share/lib${PROJECT_NAME}/${EXECUTABLE} COMPONENT config)
+elseif (WIN32)
+ install (FILES etc/${EXECUTABLE}.glade
+          DESTINATION $ENV{APPDATA}/lib${PROJECT_NAME}/${EXECUTABLE}/${INSTALL_ETC_DIR} COMPONENT config)
 endif ()

@@ -184,7 +184,7 @@ add_executable (${EXECUTABLE} ${http_get_EXE_SRCS})
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 if (WIN32)
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
+ # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
@@ -207,5 +207,5 @@ target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT bin
          COMPONENT dev)

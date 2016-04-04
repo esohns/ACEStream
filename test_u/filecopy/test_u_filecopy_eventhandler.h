@@ -39,10 +39,13 @@ class Stream_Filecopy_EventHandler
   virtual ~Stream_Filecopy_EventHandler ();
 
   // implement Common_INotify_T
-  virtual void start (const Stream_Filecopy_SessionData&);
-  virtual void notify (const Stream_Filecopy_Message&);
-  virtual void notify (const Stream_Filecopy_SessionMessage&);
-  virtual void end ();
+  virtual void start (unsigned int,
+                      const Stream_Filecopy_SessionData&);
+  virtual void notify (unsigned int,
+                       const Stream_Filecopy_Message&);
+  virtual void notify (unsigned int,
+                       const Stream_Filecopy_SessionMessage&);
+  virtual void end (unsigned int);
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler ())

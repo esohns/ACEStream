@@ -39,10 +39,13 @@ class Test_I_Stream_Target_EventHandler
   virtual ~Test_I_Stream_Target_EventHandler ();
 
   // implement Common_INotify_T
-  virtual void start (const Test_I_Target_Stream_SessionData&);
-  virtual void notify (const Test_I_Target_Stream_Message&);
-  virtual void notify (const Test_I_Target_Stream_SessionMessage&);
-  virtual void end ();
+  virtual void start (unsigned int,
+                      const Test_I_Target_Stream_SessionData&);
+  virtual void notify (unsigned int,
+                       const Test_I_Target_Stream_Message&);
+  virtual void notify (unsigned int,
+                       const Test_I_Target_Stream_SessionMessage&);
+  virtual void end (unsigned int);
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler ())

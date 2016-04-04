@@ -343,12 +343,12 @@ target_link_libraries (${EXECUTABLE} ACENetwork)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT bin
          COMPONENT dev)
-if (WIN32)
- install (FILES etc/target.glade
-          DESTINATION lib${PROJECT_NAME}/camstream COMPONENT config)
-elseif (UNIX)
+if (UNIX)
  install (FILES etc/target.glade
           DESTINATION share/lib${PROJECT_NAME}/camstream COMPONENT config)
+elseif (WIN32)
+ install (FILES etc/target.glade
+          DESTINATION $ENV{APPDATA}/lib${PROJECT_NAME}/camstream/${INSTALL_ETC_DIR} COMPONENT config)
 endif ()

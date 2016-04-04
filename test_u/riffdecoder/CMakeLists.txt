@@ -123,5 +123,5 @@ target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT bin
          COMPONENT dev)

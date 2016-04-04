@@ -48,9 +48,12 @@ Test_I_Stream_Target_EventHandler::~Test_I_Stream_Target_EventHandler ()
 }
 
 void
-Test_I_Stream_Target_EventHandler::start (const Test_I_Target_Stream_SessionData& sessionData_in)
+Test_I_Stream_Target_EventHandler::start (unsigned int sessionID_in,
+                                          const Test_I_Target_Stream_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::start"));
+
+  ACE_UNUSED_ARG (sessionID_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -76,9 +79,12 @@ Test_I_Stream_Target_EventHandler::start (const Test_I_Target_Stream_SessionData
 }
 
 void
-Test_I_Stream_Target_EventHandler::notify (const Test_I_Target_Stream_Message& message_in)
+Test_I_Stream_Target_EventHandler::notify (unsigned int sessionID_in,
+                                           const Test_I_Target_Stream_Message& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::notify"));
+
+  ACE_UNUSED_ARG (sessionID_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -89,18 +95,20 @@ Test_I_Stream_Target_EventHandler::notify (const Test_I_Target_Stream_Message& m
   CBData_->eventStack.push_back (TEST_I_GTKEVENT_DATA);
 }
 void
-Test_I_Stream_Target_EventHandler::notify (const Test_I_Target_Stream_SessionMessage& sessionMessage_in)
+Test_I_Stream_Target_EventHandler::notify (unsigned int sessionID_in,
+                                           const Test_I_Target_Stream_SessionMessage& sessionMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::notify"));
 
-  int result = -1;
-  Test_I_GTK_Event event = TEST_I_GKTEVENT_INVALID;
+  ACE_UNUSED_ARG (sessionID_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
   ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 
+  int result = -1;
+  Test_I_GTK_Event event = TEST_I_GKTEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_STATISTIC:
@@ -143,9 +151,11 @@ continue_:
 }
 
 void
-Test_I_Stream_Target_EventHandler::end ()
+Test_I_Stream_Target_EventHandler::end (unsigned int sessionID_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::end"));
+
+  ACE_UNUSED_ARG (sessionID_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);

@@ -40,6 +40,7 @@ class Stream_CamSave_Module_EventHandler
 
                                          Stream_CamSave_ModuleHandlerConfiguration,
 
+                                         unsigned int,
                                          Stream_CamSave_SessionData_t>
 {
  public:
@@ -55,6 +56,7 @@ class Stream_CamSave_Module_EventHandler
 
                                          Stream_CamSave_ModuleHandlerConfiguration,
 
+                                         unsigned int,
                                          Stream_CamSave_SessionData_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Module_EventHandler (const Stream_CamSave_Module_EventHandler&))

@@ -41,6 +41,7 @@ class Test_I_Source_Stream_Module_EventHandler
 
                                          Test_I_Source_Stream_ModuleHandlerConfiguration,
 
+                                         unsigned int,
                                          Test_I_Source_Stream_SessionData_t>
 {
  public:
@@ -56,6 +57,7 @@ class Test_I_Source_Stream_Module_EventHandler
 
                                          Test_I_Source_Stream_ModuleHandlerConfiguration,
 
+                                         unsigned int,
                                          Test_I_Source_Stream_SessionData_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_Module_EventHandler (const Test_I_Source_Stream_Module_EventHandler&))
@@ -77,6 +79,7 @@ class Test_I_Target_Stream_Module_EventHandler
 
                                          Test_I_Target_Stream_ModuleHandlerConfiguration,
 
+                                         unsigned int,
                                          Test_I_Target_Stream_SessionData_t>
 {
   public:
@@ -92,6 +95,7 @@ class Test_I_Target_Stream_Module_EventHandler
 
                                          Test_I_Target_Stream_ModuleHandlerConfiguration,
 
+                                         unsigned int,
                                          Test_I_Target_Stream_SessionData_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream_Module_EventHandler (const Test_I_Target_Stream_Module_EventHandler&))

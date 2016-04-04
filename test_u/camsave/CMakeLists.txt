@@ -168,7 +168,7 @@ elseif (WIN32)
 endif ()
 target_link_libraries (${EXECUTABLE} Common)
 if (WIN32)
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
+ # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
 target_link_libraries (${EXECUTABLE} CommonUI)
@@ -178,9 +178,12 @@ target_link_libraries (${EXECUTABLE} ACEStream_Device)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT bin
          COMPONENT dev)
-if (WIN32)
+if (UNIX)
+ install (FILES etc/${EXECUTABLE}.glade
+          DESTINATION share/lib${PROJECT_NAME}/camstream/${INSTALL_ETC_DIR} COMPONENT config)
+elseif (WIN32)
  get_filename_component (ACE_LIB_PATH ${ACE_LIBRARY}
                          DIRECTORY)
  set (ACE_DLL_FILE ACE${LIB_FILE_SUFFIX}.dll)
@@ -215,10 +218,7 @@ if (WIN32)
                 ${ACENetwork_DIR}/src/Debug/ACENetwork.dll
                 ${ACENetwork_DIR}/src/protocol/http/Debug/ACENetwork_Protocol_HTTP.dll
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/libmysql/Debug/libmysql.dll
-          DESTINATION bin COMPONENT bin)
+          DESTINATION ${INSTALL_BIN_DIR} COMPONENT bin)
  install (FILES etc/${EXECUTABLE}.glade
-          DESTINATION share/lib${PROJECT_NAME}/${EXECUTABLE} COMPONENT config)
-elseif (UNIX)
- install (FILES etc/${EXECUTABLE}.glade
-          DESTINATION $ENV{APPDATA}/lib${PROJECT_NAME}/${EXECUTABLE} COMPONENT config)
+          DESTINATION $ENV{APPDATA}/lib${PROJECT_NAME}/camstream/${INSTALL_ETC_DIR} COMPONENT config)
 endif ()

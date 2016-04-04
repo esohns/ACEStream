@@ -27,16 +27,19 @@
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
+          typename SessionIdType,
           typename SessionDataType>
 Stream_Module_MessageHandler_T<SessionMessageType,
                                MessageType,
                                ModuleHandlerConfigurationType,
+                               SessionIdType,
                                SessionDataType>::Stream_Module_MessageHandler_T ()
  : inherited ()
- , configuration_ ()
+ , configuration_ (NULL)
  , delete_ (false)
  , lock_ (NULL)
  , subscribers_ (NULL)
+ , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::Stream_Module_MessageHandler_T"));
 
@@ -45,10 +48,12 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
+          typename SessionIdType,
           typename SessionDataType>
 Stream_Module_MessageHandler_T<SessionMessageType,
                                MessageType,
                                ModuleHandlerConfigurationType,
+                               SessionIdType,
                                SessionDataType>::~Stream_Module_MessageHandler_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::~Stream_Module_MessageHandler_T"));
@@ -64,11 +69,13 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
+          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Module_MessageHandler_T<SessionMessageType,
                                MessageType,
                                ModuleHandlerConfigurationType,
+                               SessionIdType,
                                SessionDataType>::initialize (SUBSCRIBERS_T* subscribers_in,
                                                              ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
 {
@@ -124,16 +131,20 @@ Stream_Module_MessageHandler_T<SessionMessageType,
       return;
     } // end IF
   } // end IF
+
+  sessionData_ = NULL;
 }
 
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
+          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Module_MessageHandler_T<SessionMessageType,
                                MessageType,
                                ModuleHandlerConfigurationType,
+                               SessionIdType,
                                SessionDataType>::handleDataMessage (MessageType*& message_inout,
                                                                     bool& passMessageDownstream_out)
 {
@@ -144,7 +155,7 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 
   // sanity check(s)
   ACE_ASSERT (lock_ && subscribers_);
-  ACE_ASSERT (message_inout);
+  ACE_ASSERT (sessionData_);
 
 //   try
 //   {
@@ -173,7 +184,9 @@ Stream_Module_MessageHandler_T<SessionMessageType,
     {
       try
       {
-        (*iterator++)->notify (*message_inout);
+        // *TODO*: remove type inference
+        (*iterator++)->notify (sessionData_->sessionID,
+                               *message_inout);
       }
       catch (...)
       {
@@ -187,11 +200,13 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
+          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Module_MessageHandler_T<SessionMessageType,
                                MessageType,
                                ModuleHandlerConfigurationType,
+                               SessionIdType,
                                SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                        bool& passMessageDownstream_out)
 {
@@ -207,11 +222,13 @@ Stream_Module_MessageHandler_T<SessionMessageType,
   {
     case STREAM_SESSION_BEGIN:
     {
+      // sanity check(s)
+      ACE_ASSERT (!sessionData_);
+
       // forward the session data to any subscriber(s)
-      // *TODO*: remove type inference
       const SessionDataType& session_data_container_r = message_inout->get ();
-      const typename SessionDataType::DATA_T& session_data_r =
-          session_data_container_r.get ();
+      sessionData_ =
+          &const_cast<typename SessionDataType::DATA_T&> (session_data_container_r.get ());
 
       // synch access
       {
@@ -228,7 +245,9 @@ Stream_Module_MessageHandler_T<SessionMessageType,
         {
           try
           {
-            (*iterator++)->start (session_data_r);
+            // *TODO*: remove type inference
+            (*iterator++)->start (sessionData_->sessionID,
+                                  *sessionData_);
           }
           catch (...)
           {
@@ -242,6 +261,9 @@ Stream_Module_MessageHandler_T<SessionMessageType,
     }
     case STREAM_SESSION_END:
     {
+      // sanity check(s)
+      ACE_ASSERT (sessionData_);
+
       // refer the data back to any subscriber(s)
 
       // synch access
@@ -259,7 +281,8 @@ Stream_Module_MessageHandler_T<SessionMessageType,
         {
           try
           {
-            (*(iterator++))->end ();
+            // *TODO*: remove type inference
+            (*(iterator++))->end (sessionData_->sessionID);
           }
           catch (...)
           {
@@ -269,10 +292,15 @@ Stream_Module_MessageHandler_T<SessionMessageType,
         } // end FOR
       } // end lock scope
 
+      sessionData_ = NULL;
+
       break;
     }
     default:
     {
+      // sanity check(s)
+      ACE_ASSERT (sessionData_);
+
       // refer the data back to any subscriber(s)
 
       // synch access
@@ -290,7 +318,9 @@ Stream_Module_MessageHandler_T<SessionMessageType,
         {
           try
           {
-            (*(iterator++))->notify (*message_inout);
+            // *TODO*: remove type inference
+            (*(iterator++))->notify (sessionData_->sessionID,
+                                     *message_inout);
           }
           catch (...)
           {
@@ -308,42 +338,52 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
+          typename SessionIdType,
           typename SessionDataType>
 bool
 Stream_Module_MessageHandler_T<SessionMessageType,
                                MessageType,
                                ModuleHandlerConfigurationType,
+                               SessionIdType,
                                SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::initialize"));
 
-  configuration_ = configuration_in;
+  configuration_ =
+      &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
 
   return true;
 }
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
+          typename SessionIdType,
           typename SessionDataType>
 const ModuleHandlerConfigurationType&
 Stream_Module_MessageHandler_T<SessionMessageType,
                                MessageType,
                                ModuleHandlerConfigurationType,
+                               SessionIdType,
                                SessionDataType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::get"));
 
-  return configuration_;
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  return *configuration_;
 }
 
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
+          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Module_MessageHandler_T<SessionMessageType,
                                MessageType,
                                ModuleHandlerConfigurationType,
+                               SessionIdType,
                                SessionDataType>::subscribe (INOTIFY_T* interfaceHandle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::subscribe"));
@@ -368,11 +408,13 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
+          typename SessionIdType,
           typename SessionDataType>
 void
 Stream_Module_MessageHandler_T<SessionMessageType,
                                MessageType,
                                ModuleHandlerConfigurationType,
+                               SessionIdType,
                                SessionDataType>::unsubscribe (INOTIFY_T* interfaceHandle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::unsubscribe"));

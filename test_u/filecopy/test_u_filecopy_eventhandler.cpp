@@ -45,15 +45,18 @@ Stream_Filecopy_EventHandler::~Stream_Filecopy_EventHandler ()
 }
 
 void
-Stream_Filecopy_EventHandler::start (const Stream_Filecopy_SessionData& sessionData_in)
+Stream_Filecopy_EventHandler::start (unsigned int sessionID_in,
+                                     const Stream_Filecopy_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::start"));
 
-  int result = -1;
+  ACE_UNUSED_ARG (sessionID_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
   ACE_ASSERT (!sessionData_);
+
+  int result = -1;
 
   sessionData_ = &const_cast<Stream_Filecopy_SessionData&> (sessionData_in);
 
@@ -93,9 +96,12 @@ Stream_Filecopy_EventHandler::start (const Stream_Filecopy_SessionData& sessionD
 }
 
 void
-Stream_Filecopy_EventHandler::notify (const Stream_Filecopy_Message& message_in)
+Stream_Filecopy_EventHandler::notify (unsigned int sessionID_in,
+                                      const Stream_Filecopy_Message& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::notify"));
+
+  ACE_UNUSED_ARG (sessionID_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -107,9 +113,12 @@ Stream_Filecopy_EventHandler::notify (const Stream_Filecopy_Message& message_in)
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
 }
 void
-Stream_Filecopy_EventHandler::notify (const Stream_Filecopy_SessionMessage& sessionMessage_in)
+Stream_Filecopy_EventHandler::notify (unsigned int sessionID_in,
+                                      const Stream_Filecopy_SessionMessage& sessionMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::notify"));
+
+  ACE_UNUSED_ARG (sessionID_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);
@@ -126,9 +135,11 @@ Stream_Filecopy_EventHandler::notify (const Stream_Filecopy_SessionMessage& sess
 }
 
 void
-Stream_Filecopy_EventHandler::end ()
+Stream_Filecopy_EventHandler::end (unsigned int sessionID_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::end"));
+
+  ACE_UNUSED_ARG (sessionID_in);
 
   // sanity check(s)
   ACE_ASSERT (CBData_);

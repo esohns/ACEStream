@@ -39,10 +39,13 @@ class Stream_CamSave_EventHandler
   virtual ~Stream_CamSave_EventHandler ();
 
   // implement Common_INotify_T
-  virtual void start (const Stream_CamSave_SessionData&);
-  virtual void notify (const Stream_CamSave_Message&);
-  virtual void notify (const Stream_CamSave_SessionMessage&);
-  virtual void end ();
+  virtual void start (unsigned int,
+                      const Stream_CamSave_SessionData&);
+  virtual void notify (unsigned int,
+                       const Stream_CamSave_Message&);
+  virtual void notify (unsigned int,
+                       const Stream_CamSave_SessionMessage&);
+  virtual void end (unsigned int);
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler ())

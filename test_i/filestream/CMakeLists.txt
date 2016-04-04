@@ -237,7 +237,7 @@ elseif (WIN32)
 endif ()
 target_link_libraries (${EXECUTABLE} Common)
 if (WIN32)
- # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE""
+ # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
 target_link_libraries (${EXECUTABLE} CommonUI)
@@ -249,10 +249,10 @@ install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
          COMPONENT dev)
-if (WIN32)
- install (FILES etc/target.glade
-          DESTINATION lib${PROJECT_NAME}/filestream COMPONENT config)
-elseif (UNIX)
+if (UNIX)
  install (FILES etc/target.glade
           DESTINATION share/lib${PROJECT_NAME}/filestream COMPONENT config)
+elseif (WIN32)
+ install (FILES etc/target.glade
+          DESTINATION $ENV{APPDATA}/lib${PROJECT_NAME}/filestream/${INSTALL_ETC_DIR} COMPONENT config)
 endif ()

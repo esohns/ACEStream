@@ -40,19 +40,22 @@ template <typename SessionMessageType,
           ///////////////////////////////
           typename ModuleHandlerConfigurationType,
           ///////////////////////////////
+          typename SessionIdType,
           typename SessionDataType>
 class Stream_Module_MessageHandler_T
  : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
                                  SessionMessageType,
                                  MessageType>
  , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
- , public Common_ISubscribe_T<Common_INotify_T<typename SessionDataType::DATA_T,
+ , public Common_ISubscribe_T<Common_INotify_T<SessionIdType,
+                                               typename SessionDataType::DATA_T,
                                                MessageType,
                                                SessionMessageType> >
  , public Common_IClone_T<Stream_Module_t>
 {
  public:
-  typedef Common_INotify_T<typename SessionDataType::DATA_T,
+  typedef Common_INotify_T<SessionIdType,
+                           typename SessionDataType::DATA_T,
                            MessageType,
                            SessionMessageType> INOTIFY_T;
   typedef std::list<INOTIFY_T*> SUBSCRIBERS_T;
@@ -78,20 +81,23 @@ class Stream_Module_MessageHandler_T
   virtual void unsubscribe (INOTIFY_T*); // existing subscriber
 
  protected:
-  ModuleHandlerConfigurationType configuration_;
+  ModuleHandlerConfigurationType*   configuration_;
 
-  bool                           delete_;
-   // *NOTE*: recursive so that callees may unsubscribe from within the
-   //         notification callbacks...
-   ACE_SYNCH_RECURSIVE_MUTEX*    lock_;
-   SUBSCRIBERS_T*                subscribers_;
+  bool                              delete_;
+  // *NOTE*: recursive so that callees may unsubscribe from within the
+  //         notification callbacks...
+  ACE_SYNCH_RECURSIVE_MUTEX*        lock_;
+  SUBSCRIBERS_T*                    subscribers_;
+
+  typename SessionDataType::DATA_T* sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
                                  SessionMessageType,
                                  MessageType> inherited;
 
-  typedef Stream_Module_MessageHandler_T<SessionMessageType,
+  typedef Stream_Module_MessageHandler_T<SessionIdType,
+                                         SessionMessageType,
                                          MessageType,
                                          
                                          ModuleHandlerConfigurationType,

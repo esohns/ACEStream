@@ -278,7 +278,8 @@ typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
                                           Test_I_Source_Stream_Message,
                                           Test_I_Source_Stream_SessionMessage> Test_I_MessageAllocator_t;
 
-typedef Common_INotify_T<Test_I_Stream_SessionData,
+typedef Common_INotify_T<unsigned int,
+                         Test_I_Stream_SessionData,
                          Test_I_Source_Stream_Message,
                          Test_I_Source_Stream_SessionMessage> Test_I_IStreamNotify_t;
 typedef std::list<Test_I_IStreamNotify_t*> Test_I_Subscribers_t;
