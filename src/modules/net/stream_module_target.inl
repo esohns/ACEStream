@@ -218,11 +218,11 @@ Stream_Module_Net_Target_T<SessionMessageType,
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to retrieve connection (handle was: 0x%@), returning\n"),
+                      ACE_TEXT ("failed to retrieve connection (handle was: 0x%@), aborting\n"),
                       handle));
 #else
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
+                      ACE_TEXT ("failed to retrieve connection (handle was: %d), aborting\n"),
                       handle));
 #endif
 
@@ -280,7 +280,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
           if (!iconnector_)
           {
             ACE_DEBUG ((LM_CRITICAL,
-                        ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+                        ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
 
             // clean up
             ACE_ASSERT (session_data_r.lock);
@@ -311,7 +311,13 @@ Stream_Module_Net_Target_T<SessionMessageType,
         if (!iconnector_->initialize (*configuration_->socketHandlerConfiguration))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to initialize connector: \"%m\", returning\n")));
+                      ACE_TEXT ("failed to initialize connector: \"%m\", aborting\n")));
+
+          // clean up
+          ACE_ASSERT (session_data_r.lock);
+          ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_r.lock);
+          session_data_r.aborted = true;
+
           goto reset;
         } // end IF
 
@@ -358,7 +364,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
                 if (!isocket_connection_p)
                 {
                   ACE_DEBUG ((LM_ERROR,
-                              ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T>(0x%@), returning\n"),
+                              ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T>(0x%@), aborting\n"),
                               configuration_->connection));
 
                   // clean up
@@ -378,7 +384,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
         if (!configuration_->connection)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to connect to \"%s\", returning\n"),
+                      ACE_TEXT ("failed to connect to \"%s\", aborting\n"),
                       buffer));
 
           // clean up
@@ -407,7 +413,7 @@ reset:
         if (!isocket_connection_p)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T>(0x%@): \"%m\", returning\n"),
+                      ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T>(0x%@): \"%m\", aborting\n"),
                       configuration_->connection));
           goto error;
         } // end IF
@@ -419,7 +425,7 @@ reset:
                                          NULL))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Net_ISocketConnection_T::wait(STREAM_STATE_RUNNING), returning\n")));
+                      ACE_TEXT ("failed to Net_ISocketConnection_T::wait(STREAM_STATE_RUNNING), aborting\n")));
           goto error;
         } // end IF
         stream_p =
@@ -429,7 +435,7 @@ reset:
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("\"%s\": failed to Stream_Base_T::link(\"%s\"): \"%m\", returning\n"),
+                      ACE_TEXT ("\"%s\": failed to Stream_Base_T::link(\"%s\"): \"%m\", aborting\n"),
                       ACE_TEXT (stream_p->name ().c_str ()),
                       ACE_TEXT (configuration_->stream->name ().c_str ())));
           goto error;
@@ -450,12 +456,13 @@ error:
         configuration_->connection->decrease ();
         configuration_->connection = NULL;
 
+//failed:
         ACE_ASSERT (session_data_r.lock);
         ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_r.lock);
         session_data_r.aborted = true;
 
         break;
-      } // end ELSE
+      } // end ELSE (--> !isPassive)
 
 done:
       // set session ID

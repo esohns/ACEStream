@@ -65,7 +65,7 @@ install (FILES
          stream_dec_exports.h
          stream_dec_riff_scanner.h
          stream_dec_tools.h
-         DESTINATION include)
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
 install (TARGETS ${PROJECT_NAME}_Decoder
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib

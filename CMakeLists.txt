@@ -13,6 +13,22 @@ if (VERSION_DEVEL)
  set (VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}-${VERSION_DEVEL})
 endif ()
 
+set (PACKAGE_DESCRIPTION "\
+user-space wrapper library for the pipes-and-filters pattern, based on the ACE \
+framework (see: http://www.cs.wustl.edu/~schmidt/ACE.html). In particular, the \
+library lightly encapsulates the ACE_Stream and ACE_Module classes, introducing\
+ a new set of (control) interfaces to support asynchronous operation, and \
+additional concepts, such as 'session' data and messages. In conjunction with \
+additional, modular data processing functionality (see e.g.: \
+https://github.com/esohns/libACENetwork), this approach facilitates the \
+separation of data processing from application-specific logic and therefore \
+enables portable approaches to (distributed) application design")
+set (PACKAGE_DESCRIPTION_SUMMARY "(wrapper) library for streams functionality, based on the ACE framework")
+
+# Package section (see http://packages.debian.org/stable/)
+set (PACKAGE_SECTION "devel") # Debian
+#set (PACKAGE_SECTION "Development/Libraries")
+
 # *NOTE*: if the user specifies -DCMAKE_BUILD_TYPE on the command line, take
 #         their definition and dump it in the cache along with proper
 #         documentation, otherwise set CMAKE_BUILD_TYPE to Debug prior to
@@ -42,7 +58,7 @@ project (ACEStream
 #set (INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 
 ## make relative paths absolute (needed later on)
-foreach (path BIN CMAKE ETC INCLUDE LIB)
+foreach (path BIN CMAKE SHARE INCLUDE LIB)
  set (var INSTALL_${path}_DIR)
 # if (NOT IS_ABSOLUTE "${${var}}")
  string (TOLOWER "${path}" RELATIVE_INSTALL_PATH)

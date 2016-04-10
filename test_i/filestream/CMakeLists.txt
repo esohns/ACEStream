@@ -177,10 +177,10 @@ install (TARGETS ${EXECUTABLE}
          COMPONENT dev)
 if (WIN32)
  install (FILES etc/source.glade
-          DESTINATION lib${PROJECT_NAME}/filestream COMPONENT config)
+          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
 elseif (UNIX)
  install (FILES etc/source.glade
-          DESTINATION share/lib${PROJECT_NAME}/filestream COMPONENT config)
+          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/filestream" COMPONENT config)
 endif ()
 
 ############## next target ################
@@ -251,8 +251,8 @@ install (TARGETS ${EXECUTABLE}
          COMPONENT dev)
 if (UNIX)
  install (FILES etc/target.glade
-          DESTINATION share/lib${PROJECT_NAME}/filestream COMPONENT config)
+          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/filestream" COMPONENT config)
 elseif (WIN32)
  install (FILES etc/target.glade
-          DESTINATION $ENV{APPDATA}/lib${PROJECT_NAME}/filestream/${INSTALL_ETC_DIR} COMPONENT config)
+          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
 endif ()

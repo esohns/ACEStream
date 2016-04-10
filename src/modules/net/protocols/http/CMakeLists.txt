@@ -39,7 +39,7 @@ install (FILES
          stream_module_source_http_get.h
          stream_module_source_http_get.inl
          stream_net_http_exports.h
-         DESTINATION include)
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
 install (TARGETS ${PROJECT_NAME}_Network_Protocol_HTTPGet
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib

@@ -86,7 +86,7 @@ install (FILES
          stream_dev_cam_source_directshow.inl
          stream_dev_cam_source_v4l.h
          stream_dev_cam_source_v4l.inl
-         DESTINATION include)
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
 install (TARGETS ${PROJECT_NAME}_Device
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib

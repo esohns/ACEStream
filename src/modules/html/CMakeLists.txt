@@ -53,7 +53,7 @@ install (FILES
          stream_module_xpathquery.h
          stream_module_xpathquery.inl
          stream_html_exports.h
-         DESTINATION include)
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
 install (TARGETS ${PROJECT_NAME}_HTML
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib

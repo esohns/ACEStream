@@ -115,7 +115,7 @@ if (WIN32)
           stream_misc_queue_source.inl
           stream_misc_runtimestatistic.h
           stream_misc_runtimestatistic.inl
-          DESTINATION include)
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
 elseif (UNIX)
  install (FILES
           stream_misc_common.h
@@ -131,7 +131,7 @@ elseif (UNIX)
           stream_misc_runtimestatistic.inl
           stream_misc_splitter.h
           stream_misc_splitter.inl
-          DESTINATION include)
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
 endif ()
 
 install (TARGETS ${PROJECT_NAME}_Miscellaneous

@@ -85,7 +85,7 @@ install (FILES
          stream_vis_target_directshow.h
          stream_vis_target_directshow.inl
          stream_vis_tools.h
-         DESTINATION include)
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
 install (TARGETS ${PROJECT_NAME}_Visualization
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib

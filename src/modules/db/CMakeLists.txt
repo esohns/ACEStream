@@ -80,7 +80,7 @@ install (FILES
          stream_module_mysqlreader.inl
          stream_module_mysqlwriter.h
          stream_module_mysqlwriter.inl
-         DESTINATION include)
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
 install (TARGETS ${PROJECT_NAME}_Database
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib

@@ -250,7 +250,7 @@ install (FILES
          stream_task_base_synch.h
          stream_task_base_synch.inl
          stream_tools.h
-         DESTINATION include)
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
 install (TARGETS ${PROJECT_NAME}
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT lib

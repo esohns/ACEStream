@@ -298,9 +298,6 @@ Stream_Module_MessageHandler_T<SessionMessageType,
     }
     default:
     {
-      // sanity check(s)
-      ACE_ASSERT (sessionData_);
-
       // refer the data back to any subscriber(s)
 
       // synch access
@@ -319,7 +316,8 @@ Stream_Module_MessageHandler_T<SessionMessageType,
           try
           {
             // *TODO*: remove type inference
-            (*(iterator++))->notify (sessionData_->sessionID,
+            (*(iterator++))->notify ((sessionData_ ? sessionData_->sessionID
+                                                   : 0),
                                      *message_inout);
           }
           catch (...)
