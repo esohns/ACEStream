@@ -167,6 +167,23 @@ endif ()
 option (BUILD_MODULES
         "build (git) sub-modules" OFF)
 
+#add_definitions (-DHAVE_CONFIG_H)
+#set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
+if (WIN32)
+ if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND
+     NOT DEFINED IN_CPACK)
+  add_definitions (-DDEBUG_DEBUGGER)
+ endif ()
+endif ()
+
+################################################################################
+
+if (UNIX)
+ include (GNUInstallDirs)
+elseif (WIN32)
+ include (InstallRequiredSystemLibraries)
+endif ()
+
 #set (NSIS_PROJECT_FILE "lib${PROJECT_NAME}.nsi")
 #add_custom_command (TARGET ${PROJECT_NAME}
 #                    POST_BUILD
@@ -175,18 +192,15 @@ option (BUILD_MODULES
 #                    COMMENT "making installer..."
 #                    VERBATIM)
 
+# build a CPack driven installer package
+include (CPack)
+
 ################################################################################
 
-# build a CPack driven installer package
-include (InstallRequiredSystemLibraries)
-set (CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
-set (CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
-set (CPACK_PACKAGE_VERSION_PATCH ${VERSION_MICRO})
-set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
-set (CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README)
-
-include (CPack)
+# enable (unit/integration) tests
+enable_testing ()
 
 add_subdirectory (src)
 add_subdirectory (test_u)
 add_subdirectory (test_i)
+

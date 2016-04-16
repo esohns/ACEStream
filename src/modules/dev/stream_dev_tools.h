@@ -59,6 +59,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   //         (i.e. IGraphBuilder::Connect()) as fallback.
   static bool connect (IGraphBuilder*,                  // graph handle
                        const std::list<std::wstring>&); // graph
+  static bool connectFirst (IGraphBuilder*); // graph handle
+  static bool connected (IGraphBuilder*); // graph handle
   // *NOTE*: uses the 'intelligent' IGraphBuilder::Connect() API for all pins
   static bool graphConnect (IGraphBuilder*,                  // graph handle
                             const std::list<std::wstring>&); // graph

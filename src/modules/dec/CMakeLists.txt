@@ -42,6 +42,11 @@ add_dependencies (${PROJECT_NAME}_Decoder Common)
 add_dependencies (${PROJECT_NAME}_Decoder ${PROJECT_NAME})
 
 if (WIN32)
+# if (MSVC)
+#  if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+   target_link_libraries (${PROJECT_NAME}_Decoder vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
+#  endif ()
+# endif ()
  target_link_libraries (${PROJECT_NAME}_Decoder ${ACE_LIBRARY})
 endif ()
 
@@ -65,10 +70,10 @@ install (FILES
          stream_dec_exports.h
          stream_dec_riff_scanner.h
          stream_dec_tools.h
-         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_Decoder
          EXPORT ${PROJECT_NAME}Targets
-         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
-         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
-         COMPONENT dev)
+         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
+         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
+         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT mod_lib)

@@ -71,11 +71,11 @@ add_definitions (-DSTREAM_HAS_DLL)
 
 add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)
-if (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  add_definitions (-DDEBUG_DEBUGGER)
- endif ()
-endif ()
+#if (WIN32)
+# if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+#  add_definitions (-DDEBUG_DEBUGGER)
+# endif ()
+#endif ()
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
@@ -178,8 +178,7 @@ target_link_libraries (${EXECUTABLE} ACEStream_Device)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT bin
-         COMPONENT dev)
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
 if (UNIX)
  install (FILES etc/${EXECUTABLE}.glade
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
@@ -218,7 +217,8 @@ elseif (WIN32)
                 ${ACENetwork_DIR}/src/Debug/ACENetwork.dll
                 ${ACENetwork_DIR}/src/protocol/http/Debug/ACENetwork_Protocol_HTTP.dll
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/libmysql/Debug/libmysql.dll
-          DESTINATION ${INSTALL_BIN_DIR} COMPONENT bin)
+          DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
  install (FILES etc/${EXECUTABLE}.glade
-          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+          DESTINATION "data/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
+#          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/${EXECUTABLE}" COMPONENT config)
 endif ()

@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+#cmake_minimum_required (VERSION 2.8)
 
 # target system introspection (see configure.ac)
 include (CheckFunctionExists)
@@ -29,7 +29,9 @@ if (UNIX)
                 DOC "searching for ${ACE_LIB_FILE} (system paths)")
  endif ()
 elseif (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
+# *TODO*: this does not work
+ if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
+     CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
   set (LIB_FILE_SUFFIX d)
  endif ()
  unset (ACE_LIB_FILE)
@@ -179,6 +181,11 @@ set_target_properties (${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL STREAM_BUILD_DLL
 set_target_properties (${PROJECT_NAME} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 if (WIN32)
+# if (MSVC)
+#  if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+   target_link_libraries (${PROJECT_NAME} vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
+#  endif ()
+# endif ()
  target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
 endif ()
 
@@ -250,12 +257,12 @@ install (FILES
          stream_task_base_synch.h
          stream_task_base_synch.inl
          stream_tools.h
-         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         COMPONENT include)
 install (TARGETS ${PROJECT_NAME}
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT lib
-         LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT shlib
-         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT bin
-         COMPONENT dev)
+         LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT lib
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT lib)
 
 add_subdirectory (modules)

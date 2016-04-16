@@ -654,6 +654,9 @@ continue_2:
       if (IMediaControl_)
       {
         // stop previewing video data
+        // *NOTE*: there may be still be data messages to be delivered at this
+        //         point
+        // *TODO*: flush the queue ?
         result_2 = IMediaControl_->Stop ();
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
@@ -707,6 +710,7 @@ continue_2:
         inherited::sessionData_ = NULL;
       } // end IF
 
+      inherited::shutdown ();
       break;
     }
     default:
@@ -971,7 +975,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
                                    SessionDataType,
                                    SessionDataContainerType,
                                    StatisticContainerType>::QueryInterface (const IID&,
-                                                                            void **)
+                                                                            void**)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::QueryInterface"));
 
@@ -1025,147 +1029,158 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   return 0;
 }
 
-template <typename LockType,
-          typename SessionMessageType,
-          typename ProtocolMessageType,
-          typename ConfigurationType,
-          typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename StatisticContainerType>
-int
-Stream_Dev_Cam_Source_DirectShow_T<LockType,
-                                   SessionMessageType,
-                                   ProtocolMessageType,
-                                   ConfigurationType,
-                                   StreamStateType,
-                                   SessionDataType,
-                                   SessionDataContainerType,
-                                   StatisticContainerType>::svc (void)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::svc"));
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::initialized_);
-
-  int result = -1;
-  int result_2 = -1;
-  ACE_Message_Block* message_block_p = NULL;
-  ACE_Time_Value no_wait = COMMON_TIME_NOW;
-  int message_type = -1;
-  bool finished = false;
-  bool stop_processing = false;
-
-  // step1: start processing data...
-  //   ACE_DEBUG ((LM_DEBUG,
-  //               ACE_TEXT ("entering processing loop...\n")));
-  do
-  {
-    message_block_p = NULL;
-    result = inherited::getq (message_block_p,
-                              &no_wait);
-    if (result == 0)
-    {
-      ACE_ASSERT (message_block_p);
-      message_type = message_block_p->msg_type ();
-      switch (message_type)
-      {
-        case ACE_Message_Block::MB_STOP:
-        {
-          // clean up
-          message_block_p->release ();
-          message_block_p = NULL;
-
-          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
-          //         not have been set at this stage
-
-          // signal the controller ?
-          if (!finished)
-          {
-            finished = true;
-            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-            //         --> continue
-            inherited::finished ();
-            // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
-            //         --> done
-            if (inherited::thr_count_ == 0)
-            {
-              result_2 = 0; // success
-              goto done; // finished processing
-            } // end IF
-
-          } // end IF
-          continue;
-        }
-        default:
-          break;
-      } // end SWITCH
-
-        // process
-        // *NOTE*: fire-and-forget message_block_p here
-      inherited::handleMessage (message_block_p,
-                                stop_processing);
-      if (stop_processing)
-      {
-        //        SessionMessageType* session_message_p = NULL;
-        //        // downcast message
-        //        session_message_p = dynamic_cast<SessionMessageType*> (message_block_p);
-        //        if (!session_message_p)
-        //        {
-        //          if (inherited::module ())
-        //            ACE_DEBUG ((LM_ERROR,
-        //                        ACE_TEXT ("%s: dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
-        //                        inherited::name (),
-        //                        message_block_p,
-        //                        message_type));
-        //          else
-        //            ACE_DEBUG ((LM_ERROR,
-        //                        ACE_TEXT ("dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
-        //                        message_block_p,
-        //                        message_type));
-        //          break;
-        //        } // end IF
-        //        if (session_message_p->type () == STREAM_SESSION_END)
-        result_2 = 0; // success
-        goto done; // finished processing
-      } // end IF
-    } // end IF
-    else if (result == -1)
-    {
-      int error = ACE_OS::last_error ();
-      if (error != EWOULDBLOCK) // Win32: 10035
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
-
-        // signal the controller ?
-        if (!finished)
-        {
-          finished = true;
-          inherited::finished ();
-        } // end IF
-
-        break;
-      } // end IF
-
-      // session aborted ? (i.e. connection failed)
-      ACE_ASSERT (inherited::sessionData_);
-      const SessionDataType& session_data_r = inherited::sessionData_->get ();
-      if (session_data_r.aborted)
-      {
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("session aborted...\n")));
-
-        inherited::shutdown ();
-        continue;
-      } // end IF
-    } // end IF
-  } while (true);
-
-done:
-  return result_2;
-}
+//template <typename LockType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType,
+//          typename ConfigurationType,
+//          typename StreamStateType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename StatisticContainerType>
+//int
+//Stream_Dev_Cam_Source_DirectShow_T<LockType,
+//                                   SessionMessageType,
+//                                   ProtocolMessageType,
+//                                   ConfigurationType,
+//                                   StreamStateType,
+//                                   SessionDataType,
+//                                   SessionDataContainerType,
+//                                   StatisticContainerType>::svc (void)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::svc"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_);
+//  ACE_ASSERT (inherited::initialized_);
+//  ACE_ASSERT (inherited::sessionData_);
+//
+//  int result = -1;
+//  int result_2 = -1;
+//  ACE_Message_Block* message_block_p = NULL;
+//  ACE_Time_Value no_wait = COMMON_TIME_NOW;
+//  ACE_Time_Value sleep_interval (0,
+//                                 STREAM_DEFAULT_MODULE_SOURCE_EVENT_POLL_INTERVAL * 1000);
+//  const SessionDataType& session_data_r = inherited::sessionData_->get ();
+//  int message_type = -1;
+//  bool finished = false;
+//  bool stop_processing = false;
+//
+//  // step1: start processing data...
+//  //   ACE_DEBUG ((LM_DEBUG,
+//  //               ACE_TEXT ("entering processing loop...\n")));
+//  do
+//  {
+//    message_block_p = NULL;
+//    result = inherited::getq (message_block_p,
+//                              &no_wait);
+//    if (result == 0)
+//    {
+//      ACE_ASSERT (message_block_p);
+//      message_type = message_block_p->msg_type ();
+//      switch (message_type)
+//      {
+//        case ACE_Message_Block::MB_STOP:
+//        {
+//          // clean up
+//          message_block_p->release ();
+//          message_block_p = NULL;
+//
+//          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
+//          //         not have been set at this stage
+//
+//          // signal the controller ?
+//          if (!finished)
+//          {
+//            finished = true;
+//            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+//            //         --> continue
+//            inherited::finished ();
+//            // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
+//            //         --> done
+//            if (inherited::thr_count_ == 0)
+//            {
+//              result_2 = 0; // success
+//              goto done; // finished processing
+//            } // end IF
+//
+//          } // end IF
+//          continue;
+//        }
+//        default:
+//          break;
+//      } // end SWITCH
+//
+//      // process
+//      // *NOTE*: fire-and-forget message_block_p here
+//      inherited::handleMessage (message_block_p,
+//                                stop_processing);
+//      if (stop_processing)
+//      {
+//        //        SessionMessageType* session_message_p = NULL;
+//        //        // downcast message
+//        //        session_message_p = dynamic_cast<SessionMessageType*> (message_block_p);
+//        //        if (!session_message_p)
+//        //        {
+//        //          if (inherited::module ())
+//        //            ACE_DEBUG ((LM_ERROR,
+//        //                        ACE_TEXT ("%s: dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
+//        //                        inherited::name (),
+//        //                        message_block_p,
+//        //                        message_type));
+//        //          else
+//        //            ACE_DEBUG ((LM_ERROR,
+//        //                        ACE_TEXT ("dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
+//        //                        message_block_p,
+//        //                        message_type));
+//        //          break;
+//        //        } // end IF
+//        //        if (session_message_p->type () == STREAM_SESSION_END)
+//        result_2 = 0; // success
+//        goto done; // finished processing
+//      } // end IF
+//    } // end IF
+//    else if (result == -1)
+//    {
+//      int error = ACE_OS::last_error ();
+//      if (error != EWOULDBLOCK) // Win32: 10035
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+//
+//        // signal the controller ?
+//        if (!finished)
+//        {
+//          finished = true;
+//          inherited::finished ();
+//        } // end IF
+//
+//        break;
+//      } // end IF
+//
+//      // session aborted ? (i.e. connection failed)
+//      if (session_data_r.aborted)
+//      {
+//        ACE_DEBUG ((LM_DEBUG,
+//                    ACE_TEXT ("session aborted...\n")));
+//
+//        inherited::shutdown ();
+//
+//        continue;
+//      } // end IF
+//      else
+//      {
+//        result = ACE_OS::sleep (sleep_interval);
+//        if (result == -1)
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("failed to ACE_OS::sleep(@#T): \"%m\", continuing\n"),
+//                      &sleep_interval));
+//      } // end ELSE
+//    } // end IF
+//  } while (true);
+//
+//done:
+//  return result_2;
+//}
 
 template <typename LockType,
           typename SessionMessageType,

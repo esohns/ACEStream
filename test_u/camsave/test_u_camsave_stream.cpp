@@ -397,6 +397,24 @@ continue_:
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
     goto error;
   } // end IF
+  // *NOTE*: for some (unknown) reason, connect()ing the sample grabber to the
+  //         null renderer 'breaks' the connection between the AVI decompressor
+  //         and the sample grabber (go ahead, try it in with graphedit.exe)
+  //         --> reconnect the AVI decompressor to the (connected) sample
+  //             grabber; this seems to work
+  if (!Stream_Module_Device_Tools::connected (configuration_in.moduleHandlerConfiguration->builder))
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("reconnecting...\n")));
+
+    if (!Stream_Module_Device_Tools::connectFirst (configuration_in.moduleHandlerConfiguration->builder))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::connectFirst(), aborting\n")));
+      goto error;
+    } // end IF
+  } // end IF
+  ACE_ASSERT (Stream_Module_Device_Tools::connected (configuration_in.moduleHandlerConfiguration->builder));
 
   // debug info
   //ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));

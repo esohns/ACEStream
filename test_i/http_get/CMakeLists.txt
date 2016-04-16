@@ -207,5 +207,4 @@ target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT bin
-         COMPONENT dev)
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)

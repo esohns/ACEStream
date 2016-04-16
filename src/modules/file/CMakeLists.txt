@@ -40,10 +40,10 @@ install (FILES
          stream_file_source.inl
          stream_file_sink.h
          stream_file_sink.inl
-         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_File
          EXPORT ${PROJECT_NAME}Targets
-         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
-         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
-         COMPONENT dev)
+         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
+         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
+         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT mod_lib)

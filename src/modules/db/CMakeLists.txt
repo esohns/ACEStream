@@ -59,6 +59,11 @@ add_dependencies (${PROJECT_NAME}_Database Common)
 add_dependencies (${PROJECT_NAME}_Database ${PROJECT_NAME})
 
 if (WIN32)
+# if (MSVC)
+#  if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+   target_link_libraries (${PROJECT_NAME}_Database vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
+#  endif ()
+# endif ()
  target_link_libraries (${PROJECT_NAME}_Database ${ACE_LIBRARY})
  target_link_libraries (${PROJECT_NAME}_Database ${MYSQL_LIBRARY})
 endif ()
@@ -80,10 +85,10 @@ install (FILES
          stream_module_mysqlreader.inl
          stream_module_mysqlwriter.h
          stream_module_mysqlwriter.inl
-         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
+         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_Database
          EXPORT ${PROJECT_NAME}Targets
-         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
-         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
-         COMPONENT dev)
+         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
+         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
+         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT mod_lib)

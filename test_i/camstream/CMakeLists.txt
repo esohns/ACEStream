@@ -207,11 +207,11 @@ target_link_libraries (${EXECUTABLE} ACENetwork)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
-         COMPONENT dev)
+         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
 if (WIN32)
  install (FILES etc/source.glade
-          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
+          DESTINATION "data/${PROJECT_NAME}/camstream" COMPONENT config)
+#          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
 elseif (UNIX)
  install (FILES etc/source.glade
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/camstream" COMPONENT config)
@@ -256,10 +256,9 @@ if (WIN32)
 
  install (TARGETS ${LIBRARY}
           EXPORT ${PROJECT_NAME}Targets
-          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
-          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
-          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
-          COMPONENT dev)
+#          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
+          LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
+          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
 endif ()
 
 ############## next target ################
@@ -343,12 +342,12 @@ target_link_libraries (${EXECUTABLE} ACENetwork)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT bin
-         COMPONENT dev)
+         RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
 if (UNIX)
  install (FILES etc/target.glade
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/camstream" COMPONENT config)
 elseif (WIN32)
  install (FILES etc/target.glade
-          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
+          DESTINATION "data/${PROJECT_NAME}/camstream" COMPONENT config)
+#          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
 endif ()

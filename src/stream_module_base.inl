@@ -204,7 +204,7 @@ Stream_Module_Base_T<TaskSynchType,
   inherited::reader (reader_,
                      inherited::M_DELETE_NONE);
 
-  //inherited::next_ = NULL;
+  inherited::next (NULL);
 }
 
 template <typename TaskSynchType,

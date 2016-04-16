@@ -37,9 +37,7 @@
 #include "common_isubscribe.h"
 
 #include "stream_common.h"
-//#include "stream_data_base.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "stream_directshow_allocator_base.h"
 #include "stream_messageallocatorheap_base.h"
 #else
 #include "stream_messageallocatorheap_base.h"

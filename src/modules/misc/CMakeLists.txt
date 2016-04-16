@@ -115,7 +115,8 @@ if (WIN32)
           stream_misc_queue_source.inl
           stream_misc_runtimestatistic.h
           stream_misc_runtimestatistic.inl
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
 elseif (UNIX)
  install (FILES
           stream_misc_common.h
@@ -131,12 +132,12 @@ elseif (UNIX)
           stream_misc_runtimestatistic.inl
           stream_misc_splitter.h
           stream_misc_splitter.inl
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}")
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
 endif ()
 
 install (TARGETS ${PROJECT_NAME}_Miscellaneous
          EXPORT ${PROJECT_NAME}Targets
-         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
-         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
-         COMPONENT dev)
+         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
+         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
+         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT mod_lib)

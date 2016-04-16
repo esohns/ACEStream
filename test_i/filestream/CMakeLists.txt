@@ -173,11 +173,11 @@ target_link_libraries (${EXECUTABLE} ACENetwork)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
-         COMPONENT dev)
+         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
 if (WIN32)
  install (FILES etc/source.glade
-          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
+          DESTINATION "data/${PROJECT_NAME}/filestream" COMPONENT config)
+#          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
 elseif (UNIX)
  install (FILES etc/source.glade
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/filestream" COMPONENT config)
@@ -247,12 +247,12 @@ target_link_libraries (${EXECUTABLE} ACENetwork)
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
-         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
-         COMPONENT dev)
+         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
 if (UNIX)
  install (FILES etc/target.glade
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/filestream" COMPONENT config)
 elseif (WIN32)
  install (FILES etc/target.glade
-          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
+          DESTINATION "data/${PROJECT_NAME}/filestream" COMPONENT config)
+#          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
 endif ()

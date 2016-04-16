@@ -155,7 +155,6 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 
   // sanity check(s)
   ACE_ASSERT (lock_ && subscribers_);
-  ACE_ASSERT (sessionData_);
 
 //   try
 //   {
@@ -185,7 +184,7 @@ Stream_Module_MessageHandler_T<SessionMessageType,
       try
       {
         // *TODO*: remove type inference
-        (*iterator++)->notify (sessionData_->sessionID,
+        (*iterator++)->notify ((sessionData_ ? sessionData_->sessionID : 0),
                                *message_inout);
       }
       catch (...)

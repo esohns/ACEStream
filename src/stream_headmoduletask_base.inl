@@ -415,9 +415,14 @@ Stream_HeadModuleTaskBase_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
-  int result = -1;
-  ACE_Message_Block* message_block_p = NULL;
-  bool               stop_processing = false;
+  // sanity check(s)
+  ACE_ASSERT (sessionData_);
+
+  bool                   finished        = false;
+  int                    result          = -1;
+  ACE_Message_Block*     message_block_p = NULL;
+  bool                   stop_processing = false;
+  const SessionDataType& session_data_r  = sessionData_->get ();
 
   // step1: process data
 //   ACE_DEBUG ((LM_DEBUG,
@@ -433,13 +438,33 @@ Stream_HeadModuleTaskBase_T<LockType,
     {
       case ACE_Message_Block::MB_STOP:
       {
-        // signal the controller
-        this->finished ();
-
         // clean up
         message_block_p->release ();
+        message_block_p = NULL;
 
-        break;
+        // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
+        //         not have been set at this stage
+        
+        // signal the controller ?
+        if (!finished)
+        {
+          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+          //         --> continue
+          inherited::finished ();
+          finished = true;
+
+          // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
+          //         --> done
+          if (inherited2::thr_count_ == 0)
+            goto done; // finished processing
+
+          continue;
+        } // end IF
+
+done:
+        result = 0;
+
+        goto continue_; // STREAM_SESSION_END has been processed
       }
       default:
       {
@@ -453,12 +478,24 @@ Stream_HeadModuleTaskBase_T<LockType,
     {
       // *IMPORTANT NOTE*: message_block_p has already been released() !
 
-//       ACE_DEBUG ((LM_DEBUG,
-//                   ACE_TEXT ("leaving processing loop...\n")));
+      // signal the controller
+      inherited::finished ();
+      finished = true;
 
-      result = 0;
+      continue;
+    } // end IF
 
-      goto done;
+    // session aborted ?
+    if (session_data_r.aborted)
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("session aborted...\n")));
+
+      // signal the controller
+      inherited::finished ();
+      finished = true;
+
+      continue;
     } // end IF
 
     // clean up
@@ -469,7 +506,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
-done:
+continue_:
   return result;
 }
 
@@ -1654,6 +1691,8 @@ Stream_HeadModuleTaskBase_T<LockType,
           // *NOTE*: check if any of the modules failed to initialize
           //         --> just signal the controller
 
+          // sanity check(s)
+          ACE_ASSERT (sessionData_);
           // *TODO*: remove type inferences
           SessionDataType& session_data_r =
               const_cast<SessionDataType&> (sessionData_->get ());

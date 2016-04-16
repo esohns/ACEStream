@@ -43,7 +43,6 @@
 #include "common_tools.h"
 
 #include "common_ui_defines.h"
-//#include "common_ui_glade_definition.h"
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager.h"
 
@@ -410,14 +409,15 @@ do_initialize_directshow (const std::string& deviceName_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
-  //HRESULT hresult = CoInitializeEx (NULL, COINIT_MULTITHREADED);
-  //if (FAILED (hresult))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (hresult).c_str ())));
-  //  return false;
-  //} // end IF
+  HRESULT result = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  if (FAILED (result))
+  {
+    // *NOTE*: most probable reason: already initialized (happens in the debugger)
+    //         --> continue
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  } // end IF
 
   Stream_Module_Device_Tools::initialize ();
 
@@ -514,7 +514,7 @@ do_finalize_directshow (Stream_CamSave_GTK_CBData& CBData_in)
     CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
   } // end IF
 
-  //CoUninitialize ();
+  CoUninitialize ();
 }
 #endif
 
