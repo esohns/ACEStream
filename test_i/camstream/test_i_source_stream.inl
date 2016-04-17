@@ -367,28 +367,30 @@ continue_:
     goto error;
   } // end IF
 
-    // debug info
+  // debug info
+  // *TODO*: this fails for unknown reasons
   ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
   result = buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
+    //goto error;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
-              allocator_properties.cBuffers,
-              allocator_properties.cbBuffer,
-              allocator_properties.cbAlign,
-              allocator_properties.cbPrefix));
+  else
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
+                allocator_properties.cBuffers,
+                allocator_properties.cbBuffer,
+                allocator_properties.cbAlign,
+                allocator_properties.cbPrefix));
   buffer_negotiation_p->Release ();
   buffer_negotiation_p = NULL;
 
   ACE_ASSERT (!session_data_r.mediaType);
   if (!Stream_Module_Device_Tools::getOutputFormat (configuration_in.moduleHandlerConfiguration->builder,
-    session_data_r.mediaType))
+                                                    session_data_r.mediaType))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
