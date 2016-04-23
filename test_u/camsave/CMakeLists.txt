@@ -209,9 +209,9 @@ elseif (WIN32)
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/bin/zlib1.dll
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/bin/libglade-2.0-0.dll
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1/.libs/libxml2-2.dll
-                H:/software/Development/dll/libgcc_s_dw2-1.dll
-                H:/software/Development/dll/libexpat-1.dll
-                H:/software/Development/dll/libiconv-2.dll
+                G:/software/Development/dll/libgcc_s_dw2-1.dll
+                G:/software/Development/dll/libexpat-1.dll
+                G:/software/Development/dll/libiconv-2.dll
                 ${Common_DIR}/src/Debug/Common.dll
                 ${Common_DIR}/src/ui/Debug/CommonUI.dll
                 ${ACENetwork_DIR}/src/Debug/ACENetwork.dll

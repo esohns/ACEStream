@@ -453,6 +453,12 @@ error_2:
 
       if (_DEBUG)
       {
+        std::string media_type_string =
+          Stream_Module_Device_Tools::mediaTypeToString (*session_data_r.mediaType);
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("output format: \"%s\"...\n"),
+                    ACE_TEXT (media_type_string.c_str ())));
+
         std::string log_file_name =
           Common_File_Tools::getLogDirectory (std::string (),
                                               0);

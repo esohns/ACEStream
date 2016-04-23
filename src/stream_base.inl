@@ -1971,7 +1971,7 @@ Stream_Base_T<LockType,
       state_.module = clone_p;
       state_.deleteModule = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: cloned final module 0x%@ (handle is: 0x%@\n"),
+                  ACE_TEXT ("%s: cloned final module 0x%@ (handle is: 0x%@)\n"),
                   configuration_inout.module->name (),
                   configuration_inout.module,
                   state_.module));

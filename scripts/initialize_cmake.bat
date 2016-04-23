@@ -41,6 +41,13 @@ if NOT exist "%ProjectsDirectory%" (
 @rem  echo compiler not found ^(was: "!CXX!"^)^, exiting
 @rem  goto Failed
 @rem )
+set CMAKE="%programfiles(x86)%\cmake\bin\cmake.exe"
+if NOT exist "!CMAKE!" (
+ echo cmake not found ^(was: "!CMAKE!"^)^, exiting
+ goto Failed
+)
+
+@rem echo working directory ^"%cd%^"
 
 @rem set CMakeParameters=-DCMAKE_SYSTEM_VERSION=10.0.10586.0 -G "Visual Studio 14 2015" -T v140 -Wdev
 set CMakeParameters=-G "Visual Studio 14 2015" -Wdev
@@ -76,8 +83,8 @@ for %%a in (%Projects%) do (
  )
  
  set CMakeSourcePath=!ProjectPath!
- cmake.exe !CMakeParameters! !CMakeSourcePath!
- cmake.exe !CMakeParameters! !CMakeSourcePath!
+ !CMAKE! !CMakeParameters! !CMakeSourcePath!
+ !CMAKE! !CMakeParameters! !CMakeSourcePath!
  if %ERRORLEVEL% NEQ 0 (
   echo failed to cmake ^(source path was: "!CMakeSourcePath!"^)^, exiting
   set RC=%ERRORLEVEL%
@@ -106,4 +113,3 @@ exit /b %1
 
 :Error_Level
 call :Exit %ResultCode%
-

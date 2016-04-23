@@ -205,6 +205,21 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // ******************* DirectShow Source ************************
+  Test_I_Target_Stream_Module_DirectShowSource* directShowSource_impl_p =
+    dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource*> (directShowSource_.writer ());
+  if (!directShowSource_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource>(%@) failed, aborting\n"),
+                directShowSource_.writer ()));
+    return false;
+  } // end IF
+  ACE_ASSERT (configuration_r.moduleHandlerConfiguration);
+  ACE_ASSERT (configuration_r.moduleHandlerConfiguration->filterConfiguration);
+  ACE_ASSERT (configuration_r.moduleHandlerConfiguration->filterConfiguration->pinConfiguration);
+  configuration_r.moduleHandlerConfiguration->filterConfiguration->pinConfiguration->queue =
+    directShowSource_impl_p->msg_queue ();
+
   std::wstring filter_name;
   std::list<std::wstring> filter_pipeline;
 
@@ -244,14 +259,6 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   } // end IF
 
   IBaseFilter* ibase_filter_p = NULL;
-  //ACE_NEW_NORETURN (ibase_filter_p,
-  //                  FILTER_T ());
-  //if (!filter_p)
-  //{
-  //  ACE_DEBUG ((LM_CRITICAL,
-  //              ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
-  //  return false;
-  //} // end IF
   result_2 =
     CoCreateInstance (configuration_in.moduleHandlerConfiguration->filterCLSID, NULL,
                       CLSCTX_INPROC_SERVER, IID_IBaseFilter,
@@ -265,12 +272,14 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
                        GUID_string, sizeof (GUID_string));
     ACE_ASSERT (nCount == 39);
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (ibase_filter_p);
+  // *TODO*: this should read
+  //         'Test_I_Target_Stream_Module_DirectShowSource::[ASYNCH_]FILTER_T::IINITIALIZE_T*'
   Test_I_Target_Stream_Module_DirectShowSource::IINITIALIZE_T* iinitialize_p =
     dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource::IINITIALIZE_T*> (ibase_filter_p);
   if (!iinitialize_p)
@@ -360,15 +369,6 @@ error:
 
 continue_:
   directShowSource_.initialize (*configuration_in.moduleConfiguration);
-  Test_I_Target_Stream_Module_DirectShowSource* directShowSource_impl_p =
-    dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource*> (directShowSource_.writer ());
-  if (!directShowSource_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource>(%@) failed, aborting\n"),
-                directShowSource_.writer ()));
-    return false;
-  } // end IF
   if (!directShowSource_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,

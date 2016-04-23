@@ -29,8 +29,6 @@
 
 #include "common_iinitialize.h"
 
-#include "stream_task_base_synch.h"
-
 // forward declarations
 template <typename ConfigurationType,
           typename FilterType,

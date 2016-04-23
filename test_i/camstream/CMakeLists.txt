@@ -217,6 +217,31 @@ elseif (UNIX)
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/camstream" COMPONENT config)
 endif ()
 
+add_test (NAME camstream_source
+          COMMAND ${EXECUTABLE} -l -t
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+set_tests_properties (camstream_source
+                      PROPERTIES
+                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
+
+#guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
+create_target_launcher (${EXECUTABLE}
+                        ARGS "-g.\\\\test_i\\\\camstream\\\\etc\\\\source.glade -l -t"
+                        #FORWARD_ARGS 
+                        RUNTIME_LIBRARY_DIRS D:/projects/ATCD/ACE/lib
+                                             D:/projects/gtk/bin
+                                             D:/projects/libglade/bin
+                                             D:/projects/libxml2-2.9.1/.libs
+                                             G:/software/Development/dll
+                                             ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                             ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                             ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                             ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                             ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+                        ENVIRONMENT foo=bar)
+
 ############## next target ################
 if (WIN32)
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
@@ -351,3 +376,27 @@ elseif (WIN32)
           DESTINATION "data/${PROJECT_NAME}/camstream" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
 endif ()
+
+create_target_launcher (${EXECUTABLE}
+                        ARGS "-g.\\\\test_i\\\\camstream\\\\etc\\\\target.glade -l -t"
+#                        FORWARD_ARGS
+                        RUNTIME_LIBRARY_DIRS D:/projects/ATCD/ACE/lib
+                                             D:/projects/gtk/bin
+                                             D:/projects/libglade/bin
+                                             D:/projects/libxml2-2.9.1/.libs
+                                             G:/software/Development/dll
+                                             ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                             ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                             ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                             ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                             ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+                        ENVIRONMENT foo=bar)
+
+add_test (NAME camstream_target
+          COMMAND ${EXECUTABLE} -l -t
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+set_tests_properties (camstream_target
+                      PROPERTIES
+                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")

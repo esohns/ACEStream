@@ -9,8 +9,12 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
 elseif (WIN32)
+ # *NOTE*: workaround
+ set(_PF86 "ProgramFiles(x86)")
  set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
 
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party/msvc)
@@ -93,4 +97,3 @@ install (TARGETS ${PROJECT_NAME}_Device
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT mod_lib)
-

@@ -776,7 +776,7 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
                                   GUID_string, sizeof (GUID_string));
     ACE_ASSERT (nCount == 39);
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(%s): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
