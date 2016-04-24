@@ -33,6 +33,12 @@
 #include "ace/Synch.h"
 #include "ace/Version.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "dshow.h"
+#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
+#include "strmif.h"
+#endif
+
 #ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
 #include "valgrind/valgrind.h"
 #endif
@@ -114,9 +120,9 @@ do_printUsage (const std::string& programName_in)
             << gtk_rc_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : (target) file name [\"")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f[[STRING]]: (target) file name [\"")
             << ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE)
-            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << ACE_TEXT_ALWAYS_CHAR ("\"] {\"\" --> do not save}")
             << std::endl;
   std::string UI_file = path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -138,7 +144,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
   // *TODO*: this doesn't really make sense (yet)
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o          : use loopback [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o          : use loopback device [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
@@ -170,6 +176,11 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  // *TODO*: implement a format negotiation handshake protocol
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-z [VALUE]  : frame size (byte(s)) [")
+            << TEST_I_DEFAULT_FRAME_SIZE
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
 }
 
 bool
@@ -190,7 +201,8 @@ do_processArguments (int argc_in,
                      bool& traceInformation_out,
                      bool& useUDP_out,
                      bool& printVersionAndExit_out,
-                     unsigned int& numberOfDispatchThreads_out)
+                     unsigned int& numberOfDispatchThreads_out,
+                     unsigned int& frameSize_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -236,10 +248,11 @@ do_processArguments (int argc_in,
   printVersionAndExit_out = false;
   numberOfDispatchThreads_out =
     TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
+  frameSize_out = TEST_I_DEFAULT_FRAME_SIZE;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:c:e:f:g::hln:op:rs:tuvx:"),
+                              ACE_TEXT ("b:c:e:f::g::hln:op:rs:tuvx:z:"),
                               1,                          // skip command name
                               1,                          // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS,  // ordering
@@ -274,7 +287,11 @@ do_processArguments (int argc_in,
       }
       case 'f':
       {
-        outputFile_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
+        if (opt_arg)
+          outputFile_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        else
+          outputFile_out.clear ();
         break;
       }
       case 'g':
@@ -348,6 +365,14 @@ do_processArguments (int argc_in,
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
         converter >> numberOfDispatchThreads_out;
+        break;
+      }
+      case 'z':
+      {
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argumentParser.opt_arg ();
+        converter >> frameSize_out;
         break;
       }
       // error handling
@@ -459,7 +484,7 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
 do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out,
-                          CMediaType& mediaType_out)
+                          struct _AMMediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
@@ -525,16 +550,21 @@ do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out,
 
   Stream_Module_Device_Tools::freeMediaType (mediaType_out);
 
-  struct tagVIDEOINFO* video_info_p =
-    (struct tagVIDEOINFO*)mediaType_out.AllocFormatBuffer (sizeof (struct tagVIDEOINFO));
-  if (!video_info_p)
+  ACE_ASSERT (!mediaType_out.pbFormat);
+  mediaType_out.pbFormat =
+      static_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFO)));
+  if (!mediaType_out.pbFormat)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CMediaType::AllocFormatBuffer(%u): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to CoTaskMemAlloc(%u): \"%m\", aborting\n"),
                 sizeof (struct tagVIDEOINFO)));
     return false;
   } // end IF
-  ZeroMemory (video_info_p, sizeof (struct tagVIDEOINFO));
+  ACE_OS::memset (mediaType_out.pbFormat,
+                  0,
+                  sizeof (struct tagVIDEOINFO));
+  struct tagVIDEOINFO* video_info_p =
+    reinterpret_cast<struct tagVIDEOINFO*> (mediaType_out.pbFormat);
 
   // *TODO*: make this configurable (and part of a protocol)
   video_info_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
@@ -550,15 +580,12 @@ do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out,
   //video_info_p->bmiHeader.biClrUsed;
   //video_info_p->bmiHeader.biClrImportant;
 
-  BOOL result_2 = SetRectEmpty (&(video_info_p->rcSource));
+  BOOL result_2 = SetRectEmpty (&video_info_p->rcSource);
   ACE_ASSERT (result_2);
-  result_2 = SetRectEmpty (&(video_info_p->rcTarget));
+  result_2 = SetRectEmpty (&video_info_p->rcTarget);
   ACE_ASSERT (result_2);
 
-  mediaType_out.SetType (&MEDIATYPE_Video);
-  mediaType_out.SetFormatType (&FORMAT_VideoInfo);
-  mediaType_out.SetTemporalCompression (FALSE);
-
+  mediaType_out.majortype = MEDIATYPE_Video;
   // work out the GUID for the subtype from the header info
   struct _GUID SubTypeGUID = GetBitmapSubtype (&video_info_p->bmiHeader);
   if (SubTypeGUID == GUID_NULL)
@@ -567,8 +594,12 @@ do_initialize_directshow (IGraphBuilder*& IGraphBuilder_out,
                 ACE_TEXT ("failed to GetBitmapSubtype(), falling back\n")));
     SubTypeGUID = MEDIASUBTYPE_Avi; // fallback
   } // end IF
-  mediaType_out.SetSubtype (&SubTypeGUID);
-  mediaType_out.SetSampleSize (video_info_p->bmiHeader.biSizeImage);
+  mediaType_out.subtype = SubTypeGUID;
+  mediaType_out.bFixedSizeSamples = TRUE;
+  mediaType_out.bTemporalCompression = FALSE;
+  mediaType_out.lSampleSize = video_info_p->bmiHeader.biSizeImage;
+  mediaType_out.formattype = FORMAT_VideoInfo;
+  mediaType_out.cbFormat = sizeof (struct tagVIDEOINFO);
 
   return true;
 
@@ -609,6 +640,7 @@ do_work (unsigned int bufferSize_in,
          unsigned int statisticReportingInterval_in,
          bool useUDP_in,
          unsigned int numberOfDispatchThreads_in,
+         unsigned int frameSize_in,
          Test_I_Target_GTK_CBData& CBData_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -632,8 +664,11 @@ do_work (unsigned int bufferSize_in,
   configuration.useReactor = useReactor_in;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (configuration.filterConfiguration.format);
+
   if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.builder,
-                                 configuration.filterConfiguration.mediaType))
+                                 *configuration.moduleHandlerConfiguration.format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
@@ -714,10 +749,14 @@ do_work (unsigned int bufferSize_in,
 
   // ********************** stream configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  configuration.pinConfiguration.mediaType =
-    &configuration.filterConfiguration.mediaType;
+  // ********************** DirectShow configuration data **************************
+  configuration.filterConfiguration.format =
+    configuration.moduleHandlerConfiguration.format;
   configuration.filterConfiguration.pinConfiguration =
     &configuration.pinConfiguration;
+
+  configuration.pinConfiguration.format =
+    configuration.filterConfiguration.format;
 #endif
   // ********************** module configuration data **************************
   configuration.moduleConfiguration.streamConfiguration =
@@ -748,7 +787,7 @@ do_work (unsigned int bufferSize_in,
     &configuration.streamConfiguration;
   configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  configuration.moduleHandlerConfiguration.frameSize = 230400;
+  configuration.moduleHandlerConfiguration.format->lSampleSize = frameSize_in;
 #else
   configuration.moduleHandlerConfiguration.format.type =
       V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -1295,6 +1334,7 @@ ACE_TMAIN (int argc_in,
   bool print_version_and_exit = false;
   unsigned int number_of_dispatch_threads =
     TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
+  unsigned int frame_size = TEST_I_DEFAULT_FRAME_SIZE;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -1314,7 +1354,8 @@ ACE_TMAIN (int argc_in,
                             trace_information,
                             use_UDP,
                             print_version_and_exit,
-                            number_of_dispatch_threads))
+                            number_of_dispatch_threads,
+                            frame_size))
   {
     // make 'em learn...
     do_printUsage (ACE::basename (argv_in[0]));
@@ -1347,7 +1388,8 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
     use_thread_pool = true;
   } // end IF
-  if ((gtk_glade_file.empty () &&
+  if ((frame_size > buffer_size)                                           ||
+      (gtk_glade_file.empty () &&
        !Common_File_Tools::isValidFilename (output_file))                  ||
       (!gtk_glade_file.empty () &&
        !Common_File_Tools::isReadable (gtk_glade_file))                    ||
@@ -1540,6 +1582,7 @@ ACE_TMAIN (int argc_in,
            statistic_reporting_interval,
            use_UDP,
            number_of_dispatch_threads,
+           frame_size,
            gtk_cb_user_data,
            signal_set,
            ignored_signal_set,

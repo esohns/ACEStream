@@ -25,8 +25,7 @@
 #include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "dshow.h"
-#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs (see test_i_target_common.h)
+#include "strmif.h"
 #endif
 
 #include "common_time_common.h"
@@ -37,7 +36,7 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_cam_source_directshow.h"
 
-#include "stream_misc_common.h"
+//#include "stream_misc_common.h"
 #include "stream_misc_directshow_source.h"
 
 #include "stream_vis_target_directshow.h"
@@ -87,7 +86,7 @@ typedef Stream_Misc_DirectShow_Source_T<Test_I_Target_Stream_SessionMessage,
 
                                         Test_I_Target_DirectShow_FilterConfiguration,
                                         Test_I_Target_DirectShow_PinConfiguration,
-                                        Test_I_Target_DirectShow_MediaType_t> Test_I_Target_Stream_Module_DirectShowSource;
+                                        struct _AMMediaType> Test_I_Target_Stream_Module_DirectShowSource;
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_SYNCH_MUTEX,
 

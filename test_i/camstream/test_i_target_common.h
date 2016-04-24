@@ -26,9 +26,9 @@
 #include "ace/Time_Value.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#include "mmeapi.h"
+//#include "mtype.h"
 #include "strmif.h"
-#include "mmeapi.h"
-#include "mtype.h"
 #else
 //#include "linux/videodev2.h"
 
@@ -38,6 +38,7 @@
 #include "stream_dec_defines.h"
 
 #include "stream_dev_defines.h"
+#include "stream_dev_tools.h"
 
 #include "stream_misc_defines.h"
 
@@ -83,29 +84,28 @@ struct Test_I_Target_SocketHandlerConfiguration
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef CMediaType Test_I_Target_DirectShow_MediaType_t;
 struct Test_I_Target_DirectShow_PinConfiguration
 {
   inline Test_I_Target_DirectShow_PinConfiguration ()
-   : mediaType (NULL)
+   : format (NULL)
    , queue (NULL)
   {};
 
-  Test_I_Target_DirectShow_MediaType_t* mediaType; // (preferred) media type
-  ACE_Message_Queue_Base*               queue;     // (inbound) buffer queue
+  struct _AMMediaType*    format; // (preferred) media type handle
+  ACE_Message_Queue_Base* queue;  // (inbound) buffer queue handle
 };
 struct Test_I_Target_DirectShow_FilterConfiguration
 {
   inline Test_I_Target_DirectShow_FilterConfiguration ()
-   : mediaType ()
+   : format (NULL)
    , module (NULL)
    , pinConfiguration (NULL)
   {};
 
   // *TODO*: specify this as part of the network protocol header/handshake
-  Test_I_Target_DirectShow_MediaType_t       mediaType;
-  Stream_Module_t*                           module;
-  Test_I_Target_DirectShow_PinConfiguration* pinConfiguration;
+  struct _AMMediaType*                       format; // handle
+  Stream_Module_t*                           module; // handle
+  Test_I_Target_DirectShow_PinConfiguration* pinConfiguration; // handle
 };
 #endif
 
@@ -118,13 +118,13 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , filterCLSID ()
    , filterConfiguration (NULL)
+   , format (NULL)
    , push (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
 #else
    , format ()
 #endif
    , connection (NULL)
    , connectionManager (NULL)
-   , frameSize (0)
    , printProgressDot (false)
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -135,20 +135,28 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , windowController (NULL)
 #endif
-  {};
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    format =
+      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+    if (!format)
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory, continuing\n")));
+#endif
+  };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct tagRECT                                area;
   Test_I_Target_DirectShow_FilterConfiguration* filterConfiguration;
   struct _GUID                                  filterCLSID;
+  struct _AMMediaType*                          format; // splitter module
   bool                                          push; // media sample passing strategy
 #else
   GdkRectangle                                  area;
-  struct v4l2_format                            format;
+  struct v4l2_format                            format; // splitter module
 #endif
   Test_I_Target_IConnection_t*                  connection; // Net source/IO module
   Test_I_Target_InetConnectionManager_t*        connectionManager; // Net IO module
-  unsigned int                                  frameSize; // splitter module
   bool                                          printProgressDot;
   std::string                                   targetFileName; // file writer module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -206,21 +214,35 @@ struct Test_I_Target_Stream_SessionData
    : Test_I_Stream_SessionData ()
    , connectionState (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//   , frameSize (0)
+   , format (NULL)
 #else
    , format ()
 #endif
    , targetFileName ()
    , userData (NULL)
-  {};
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    format =
+      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+    if (!format)
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory, continuing\n")));
+#endif
+  };
   inline Test_I_Target_Stream_SessionData& operator+= (Test_I_Target_Stream_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data...
     Test_I_Stream_SessionData::operator+= (rhs_in);
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
-//    frameSize = rhs_in.frameSize;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    // sanity check(s)
+    ACE_ASSERT (rhs_in.format);
+
+    if (!Stream_Module_Device_Tools::copyMediaType (*rhs_in.format,
+                                                    format))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), continuing\n")));
 #else
     format = rhs_in.format;
 #endif
@@ -232,8 +254,8 @@ struct Test_I_Target_Stream_SessionData
   }
 
   Test_I_Target_ConnectionState* connectionState;
-//  unsigned int                   frameSize; // *TODO*: remove this ASAP
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType*           format;
 #else
   struct v4l2_format             format;
 #endif

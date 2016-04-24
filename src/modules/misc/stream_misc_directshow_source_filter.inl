@@ -402,15 +402,24 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (isInitialized_)
   {
     // sanity check(s)
-    ACE_ASSERT (configuration_->mediaType);
+    ACE_ASSERT (configuration_->format);
 
-    if (!configuration_->mediaType->MatchesPartial (mediaType_in))
+    CMediaType media_type;
+    HRESULT result = media_type.Set (*configuration_->format);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CMediaType::Set(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return E_FAIL;
+    } // end IF
+    if (!media_type.MatchesPartial (mediaType_in))
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("incompatible media types (\"%s\"\n\"%s\")\n"),
-                  ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*configuration_->mediaType).c_str ()),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*configuration_->format).c_str ()),
                   ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*mediaType_in).c_str ())));
-      return E_FAIL;
+      return S_FALSE;
     } // end IF
 
     return S_OK;
@@ -423,7 +432,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
       (*sub_type_p != MEDIASUBTYPE_RGB32) &&
       (*sub_type_p != MEDIASUBTYPE_MJPG)  &&
       (*sub_type_p != MEDIASUBTYPE_YUY2))
-    return E_FAIL;
+    return S_FALSE;
 
   struct tagVIDEOINFO* video_info_p =
     (struct tagVIDEOINFO*)mediaType_in->Format ();
@@ -437,7 +446,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   // *TODO*: stream-dependent --> make this configurable
   if (video_info_p->bmiHeader.biWidth  != 320 ||
       video_info_p->bmiHeader.biHeight != 240)
-    return E_FAIL;
+    return S_FALSE;
 
   return S_OK;
 } // CheckMediaType
@@ -461,12 +470,13 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
   HRESULT result = E_FAIL;
 
-  // sanity check(s)
   if (position_in < 0)
     return E_INVALIDARG;
   // *TODO*: implement a default set of supported media types
   if (static_cast<unsigned int> (position_in) > (numberOfMediaTypes_ - 1))
     return VFW_S_NO_MORE_ITEMS;
+
+  // sanity check(s)
   ACE_ASSERT (mediaType_out);
   ACE_ASSERT (configuration_);
   ACE_ASSERT (inherited::m_pFilter);
@@ -476,9 +486,9 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
   if (isInitialized_)
   {
     // sanity check(s)
-    ACE_ASSERT (configuration_->mediaType);
+    ACE_ASSERT (configuration_->format);
 
-    result = mediaType_out->Set (*configuration_->mediaType);
+    result = mediaType_out->Set (*configuration_->format);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,

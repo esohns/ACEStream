@@ -2781,20 +2781,66 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
 
   return true;
 }
+
+bool
+Stream_Module_Device_Tools::copyMediaType (const struct _AMMediaType& mediaType_in,
+                                           struct _AMMediaType*& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::copyMediaType"));
+
+  bool free_memory = false;
+
+  // sanity check(s)
+  if (mediaType_out)
+    FreeMediaType (*mediaType_out);
+  else
+  {
+    mediaType_out =
+      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+    if (!mediaType_out)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory, aborting\n")));
+      return false;
+    } // end IF
+
+    free_memory = true;
+  } // end ELSE
+
+  HRESULT result = CopyMediaType (mediaType_out,
+                                  &mediaType_in);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CopyMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    if (free_memory)
+    {
+      CoTaskMemFree (mediaType_out);
+      mediaType_out = NULL;
+    } // end IF
+
+    return false;
+  } // end IF
+
+  return true;
+}
 void
 Stream_Module_Device_Tools::deleteMediaType (struct _AMMediaType*& mediaType_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::deleteMediaType"));
 
-  // sanity check(s)
-  if (!mediaType_inout)
-    return;
+  //// sanity check(s)
+  //if (!mediaType_inout)
+  //  return;
 
-  if (mediaType_inout->cbFormat)
-    CoTaskMemFree ((PVOID)mediaType_inout->pbFormat);
-  if (mediaType_inout->pUnk)
-    mediaType_inout->pUnk->Release ();
-  CoTaskMemFree (mediaType_inout);
+  //Stream_Module_Device_Tools::freeMediaType (*mediaType_inout);
+
+  //CoTaskMemFree (mediaType_inout);
+  DeleteMediaType (mediaType_inout);
+
   mediaType_inout = NULL;
 }
 void
@@ -2802,18 +2848,19 @@ Stream_Module_Device_Tools::freeMediaType (struct _AMMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::freeMediaType"));
 
-  if (mediaType_in.cbFormat != 0)
-  {
-    CoTaskMemFree ((PVOID)mediaType_in.pbFormat);
-    mediaType_in.cbFormat = 0;
-    mediaType_in.pbFormat = NULL;
-  } // end IF
-  if (mediaType_in.pUnk != NULL)
-  {
-    // pUnk should not be used.
-    mediaType_in.pUnk->Release ();
-    mediaType_in.pUnk = NULL;
-  } // end IF
+  //if (mediaType_in.cbFormat != 0)
+  //{
+  //  CoTaskMemFree (static_cast<LPVOID> (mediaType_in.pbFormat));
+  //  mediaType_in.cbFormat = 0;
+  //  mediaType_in.pbFormat = NULL;
+  //} // end IF
+  //if (mediaType_in.pUnk)
+  //{
+  //  // pUnk should not be used.
+  //  mediaType_in.pUnk->Release ();
+  //  mediaType_in.pUnk = NULL;
+  //} // end IF
+  FreeMediaType (mediaType_in);
 }
 
 std::string

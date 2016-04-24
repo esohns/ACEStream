@@ -26,7 +26,7 @@
 
 #include "stream_macros.h"
 
-#include "stream_misc_common.h"
+//#include "stream_misc_common.h"
 #include "stream_misc_defines.h"
 
 template <typename TimePolicyType,
@@ -588,18 +588,27 @@ Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
   ACE_ASSERT (configuration_);
   ACE_ASSERT (parentFilter_);
 
-  CAutoLock cAutoLock (&(parentFilter_->lock_));
+  CAutoLock cAutoLock (&parentFilter_->lock_);
 
   if (isInitialized_)
   {
     // sanity check(s)
-    ACE_ASSERT (configuration_->mediaType);
+    ACE_ASSERT (configuration_->format);
 
-    if (!configuration_->mediaType->MatchesPartial (mediaType_in))
+    CMediaType media_type;
+    HRESULT result = media_type.Set (*configuration_->format);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CMediaType::Set(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return E_FAIL;
+    } // end IF
+    if (!media_type.MatchesPartial (mediaType_in))
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("incompatible media types (\"%s\"\n\"%s\")\n"),
-                  ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*configuration_->mediaType).c_str ()),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*configuration_->format).c_str ()),
                   ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (*mediaType_in).c_str ())));
       return S_FALSE;
     } // end IF
@@ -656,13 +665,13 @@ Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType,
     return VFW_S_NO_MORE_ITEMS;
 
   // sanity check(s)
-  CheckPointer (mediaType_out, E_POINTER);
+  //CheckPointer (mediaType_out, E_POINTER);
+  ACE_ASSERT (mediaType_out);
   ACE_ASSERT (configuration_);
-
   // *TODO*: remove type inference
-  *mediaType_out = *configuration_->mediaType;
+  ACE_ASSERT (configuration_->format);
 
-  return S_OK;
+  return mediaType_out->Set (*configuration_->format);
 } // GetMediaType
 
 //

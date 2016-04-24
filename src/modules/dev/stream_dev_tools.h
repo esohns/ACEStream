@@ -116,6 +116,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   //         graph..."
   static std::string name (IBaseFilter*); // filter handle
 
+  static bool copyMediaType (const struct _AMMediaType&, // media type
+                             struct _AMMediaType*&);     // return value: handle
   static void deleteMediaType (struct _AMMediaType*&); // handle
   static void freeMediaType (struct _AMMediaType&);
   static std::string mediaSubTypeToString (const struct _GUID&); // GUID

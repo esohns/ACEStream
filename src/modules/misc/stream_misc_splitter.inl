@@ -297,7 +297,10 @@ continue_:
   unsigned int total_length = currentBuffer_->total_length ();
   // *TODO*: remove type inference
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (total_length < configuration_->frameSize)
+  // sanity check(s)
+  ACE_ASSERT (configuration_->format);
+
+  if (total_length < configuration_->format->lSampleSize)
 #else
   if (total_length < configuration_->format.fmt.pix.sizeimage)
 #endif
@@ -307,7 +310,7 @@ continue_:
   ACE_Message_Block* message_block_2 = NULL;
   unsigned int remainder = (total_length -
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            configuration_->frameSize);
+                            configuration_->format->lSampleSize);
 #else
                             configuration_->format.fmt.pix.sizeimage);
 #endif
@@ -338,7 +341,7 @@ continue_:
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (message_block_p->total_length () ==
-              configuration_->frameSize);
+              configuration_->format->lSampleSize);
 #else
   ACE_ASSERT (message_block_p->total_length () ==
               configuration_->format.fmt.pix.sizeimage);

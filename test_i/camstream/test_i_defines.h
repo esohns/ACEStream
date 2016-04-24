@@ -34,6 +34,9 @@
 #define TEST_I_THREAD_NAME                                        "stream processor"
 
 #define TEST_I_DEFAULT_BUFFER_SIZE                                524288 // bytes
+// *NOTE*: 320x240 RGB(A) --> 76800 * 1+1+1(+1) = 307200
+// *TODO*: implement a format negotiation handshake protocol
+#define TEST_I_DEFAULT_FRAME_SIZE                                 307200 // bytes
 #define TEST_I_MAX_MESSAGES                                       0 // 0 --> no limits
 
 #define TEST_I_DEFAULT_TARGET_HOSTNAME                            ACE_LOCALHOST

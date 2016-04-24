@@ -29,7 +29,7 @@
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
-#include "stream_misc_common.h"
+//#include "stream_misc_common.h"
 #include "stream_misc_defines.h"
 
 template <typename SessionMessageType,
@@ -483,8 +483,8 @@ error_2:
       ACE_ASSERT (configuration_->filterConfiguration);
 
       if (!initialize_DirectShow (configuration_->filterCLSID,
-                                  *(configuration_->filterConfiguration),
-                                  configuration_->filterConfiguration->mediaType,
+                                  *configuration_->filterConfiguration,
+                                  *configuration_->filterConfiguration->format,
                                   configuration_->window,
                                   IGraphBuilder_))
       {

@@ -199,9 +199,21 @@ continue_:
       //                   when the application is terminated. ..."
       if (video_window_p)
       {
+        result_2 = configuration_->windowController->put_Visible (OAFALSE);
+        if (FAILED (result_2))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IVideoWindow::put_Visible() \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+        result_2 = configuration_->windowController->put_AutoShow (OAFALSE);
+        if (FAILED (result_2))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IVideoWindow::put_AutoShow() \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
         // *TODO*: this call blocks indefinetly
         //         --> needs to be called from somewhere else ?
-        //HRESULT result_2 = configuration_->windowController->put_Owner (NULL);
+        //result_2 = configuration_->windowController->put_Owner (NULL);
         //if (FAILED (result_2))
         //  ACE_DEBUG ((LM_ERROR,
         //              ACE_TEXT ("failed to IVideoWindow::put_Owner() \"%s\", continuing\n"),

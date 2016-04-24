@@ -648,7 +648,9 @@ error:
 continue_2:
       if (IMediaEventEx_)
       {
-        result_2 = IMediaEventEx_->SetNotifyWindow (NULL, 0, 0);
+        result_2 = IMediaEventEx_->SetNotifyWindow (NULL,
+                                                    0,
+                                                    NULL);
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMediaEventEx::SetNotifyWindow(): \"%s\", continuing\n"),
@@ -663,6 +665,7 @@ continue_2:
         // *NOTE*: there may be still be data messages to be delivered at this
         //         point
         // *TODO*: flush the queue ?
+        //result_2 = IMediaControl_->StopWhenReady ();
         result_2 = IMediaControl_->Stop ();
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,

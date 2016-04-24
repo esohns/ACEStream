@@ -24,6 +24,7 @@
 #include "dshow.h"
 #include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs (see test_i_target_common.h)
 #include "streams.h"
+#include "strmif.h"
 
 #include "common_time_common.h"
 #include "common_tools.h"
@@ -171,14 +172,14 @@ typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
 
                                                Test_I_Target_DirectShow_FilterConfiguration,
                                                Test_I_Target_DirectShow_PinConfiguration,
-                                               Test_I_Target_DirectShow_MediaType_t> Stream_Misc_DirectShow_Source_Filter_t;
+                                               struct _AMMediaType> Stream_Misc_DirectShow_Source_Filter_t;
 typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
                                                        Test_I_Target_Stream_SessionMessage,
                                                        Test_I_Target_Stream_Message,
 
                                                        Test_I_Target_DirectShow_FilterConfiguration,
                                                        Test_I_Target_DirectShow_PinConfiguration,
-                                                       Test_I_Target_DirectShow_MediaType_t> Stream_Misc_DirectShow_Asynch_Source_Filter_t;
+                                                       struct _AMMediaType> Stream_Misc_DirectShow_Asynch_Source_Filter_t;
 
 void WINAPI InitRoutine (BOOL, const CLSID*);
 

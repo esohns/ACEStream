@@ -398,6 +398,23 @@ continue_:
   } // end IF
   ACE_ASSERT (session_data_r.mediaType);
 
+  if (_DEBUG)
+  {
+    std::string media_type_string =
+      Stream_Module_Device_Tools::mediaTypeToString (*session_data_r.mediaType);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("output format: \"%s\"...\n"),
+                ACE_TEXT (media_type_string.c_str ())));
+
+    //std::string log_file_name =
+      // Common_File_Tools::getLogDirectory (std::string (),
+      //  0);
+    //log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+    //log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+    //Stream_Module_Device_Tools::debug (builder_p,
+      // log_file_name);
+  } // end IF
+
   result =
     configuration_in.moduleHandlerConfiguration->builder->QueryInterface (IID_IMediaFilter,
                                                                           (void**)&media_filter_p);
