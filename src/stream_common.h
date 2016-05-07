@@ -298,6 +298,7 @@ struct Stream_ModuleHandlerConfiguration
    : active (false)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
    , hasHeader (false)
+   , passive (true)
    , stateMachineLock (NULL)
    , streamConfiguration (NULL)
    , traceParsing (STREAM_DEFAULT_YACC_TRACE)
@@ -309,6 +310,7 @@ struct Stream_ModuleHandlerConfiguration
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
   bool                  crunchMessages;
   bool                  hasHeader;
+  bool                  passive; // *NOTE*: head module(s)
 
   ACE_SYNCH_MUTEX*      stateMachineLock;
 

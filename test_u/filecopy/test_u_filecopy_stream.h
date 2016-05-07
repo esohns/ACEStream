@@ -48,12 +48,12 @@ class Stream_Filecopy_Stream
                         Stream_StateMachine_ControlState,
                         Stream_State,
                         /////////////////
-                        Stream_Test_U_StreamConfiguration,
+                        Stream_Filecopy_StreamConfiguration,
                         /////////////////
                         Stream_Statistic,
                         /////////////////
                         Stream_ModuleConfiguration,
-                        Stream_ModuleHandlerConfiguration,
+                        Stream_Filecopy_ModuleHandlerConfiguration,
                         /////////////////
                         Stream_Filecopy_SessionData,   // session data
                         Stream_Filecopy_SessionData_t, // session data container (reference counted)
@@ -65,9 +65,9 @@ class Stream_Filecopy_Stream
   virtual ~Stream_Filecopy_Stream ();
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Stream_Test_U_StreamConfiguration&, // configuration
-                           bool = true,                              // setup pipeline ?
-                           bool = true);                             // reset session data ?
+  virtual bool initialize (const Stream_Filecopy_StreamConfiguration&, // configuration
+                           bool = true,                                // setup pipeline ?
+                           bool = true);                               // reset session data ?
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -83,12 +83,12 @@ class Stream_Filecopy_Stream
                         Stream_StateMachine_ControlState,
                         Stream_State,
                         /////////////////
-                        Stream_Test_U_StreamConfiguration,
+                        Stream_Filecopy_StreamConfiguration,
                         /////////////////
                         Stream_Statistic,
                         /////////////////
                         Stream_ModuleConfiguration,
-                        Stream_ModuleHandlerConfiguration,
+                        Stream_Filecopy_ModuleHandlerConfiguration,
                         /////////////////
                         Stream_Filecopy_SessionData,   // session data
                         Stream_Filecopy_SessionData_t, // session data container (reference counted)

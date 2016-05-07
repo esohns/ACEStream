@@ -403,48 +403,104 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 bool
 do_initialize_directshow (const std::string& deviceName_in,
                           const HWND windowHandle_in,
-                          IGraphBuilder*& IGraphBuilder_out,
-                          IAMBufferNegotiation*& IAMBufferNegotiation_out,
-                          IAMStreamConfig*& IAMStreamConfig_out)
+                          //IGraphBuilder*& IGraphBuilder_out,
+                          IMFMediaSource*& IMFMediaSource_out,
+                          IMFSourceReader*& IMFSourceReader_out,
+                          //IAMBufferNegotiation*& IAMBufferNegotiation_out,
+                          //IAMStreamConfig*& IAMStreamConfig_out)
+                          bool loadDevice_in,
+                          bool coInitialize_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
-  HRESULT result = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  HRESULT result = E_FAIL;
+
+  if (!coInitialize_in)
+    goto continue_;
+
+  result = CoInitializeEx (NULL,
+                           (COINIT_MULTITHREADED    |
+                            COINIT_DISABLE_OLE1DDE  |
+                            COINIT_SPEED_OVER_MEMORY));
   if (FAILED (result))
   {
     // *NOTE*: most probable reason: already initialized (happens in the debugger)
     //         --> continue
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", continuing\n"),
+                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   } // end IF
 
-  Stream_Module_Device_Tools::initialize ();
-
-  if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
-                                                    IGraphBuilder_out,
-                                                    IAMBufferNegotiation_out,
-                                                    IAMStreamConfig_out))
+  result = MFStartup (MF_VERSION,
+                      MFSTARTUP_LITE);
+  if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-                ACE_TEXT (deviceName_in.c_str ())));
-    return false;
+                ACE_TEXT ("failed to MFStartup(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
   } // end IF
-  ACE_ASSERT (IGraphBuilder_out);
-  ACE_ASSERT (IAMBufferNegotiation_out);
-  ACE_ASSERT (IAMStreamConfig_out);
 
-  if (_DEBUG)
+continue_:
+  Stream_Module_Device_Tools::initialize ();
+
+  if (!loadDevice_in)
+    goto continue_2;
+
+  //if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
+  //                                                  IGraphBuilder_out,
+  //                                                  IAMBufferNegotiation_out,
+  //                                                  IAMStreamConfig_out))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+  //              ACE_TEXT (deviceName_in.c_str ())));
+  //  return false;
+  //} // end IF
+  //ACE_ASSERT (IGraphBuilder_out);
+  //ACE_ASSERT (IAMBufferNegotiation_out);
+  //ACE_ASSERT (IAMStreamConfig_out);
+
+  bool release_media_source = false;
+  if (!IMFMediaSource_out)
+    if (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
+                                                     IMFMediaSource_out))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
+                  ACE_TEXT (deviceName_in.c_str ())));
+      goto error;
+    } // end IF
+    else
+      release_media_source = true;
+  ACE_ASSERT (IMFMediaSource_out);
+
+  // sanity check(s)
+  ACE_ASSERT (!IMFSourceReader_out);
+  // *NOTE*: the source reader assumes responsibility for the media source
+  //         handle
+  if (!Stream_Module_Device_Tools::getSourceReader (IMFMediaSource_out,
+                                                    NULL,
+                                                    NULL,
+                                                    IMFSourceReader_out))
   {
-    std::string log_file_name =
-      Common_File_Tools::getLogDirectory (std::string (),
-                                          0);
-    log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-    log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
-    Stream_Module_Device_Tools::debug (IGraphBuilder_out,
-                                       log_file_name);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), aborting\n")));
+    goto error;
   } // end IF
+  ACE_ASSERT (IMFSourceReader_out);
+
+continue_2:
+  //if (_DEBUG)
+  //{
+  //  std::string log_file_name =
+  //    Common_File_Tools::getLogDirectory (std::string (),
+  //                                        0);
+  //  log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+  //  log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+  //  Stream_Module_Device_Tools::debug (IGraphBuilder_out,
+  //                                     log_file_name);
+  //} // end IF
 
   //std::list<std::wstring> filter_pipeline;
   //if (!Stream_Module_Device_Tools::loadRendererGraph (windowHandle_in,
@@ -479,7 +535,7 @@ do_initialize_directshow (const std::string& deviceName_in,
 
   return true;
 
-//error:
+error:
 //  if (IAMStreamConfig_out)
 //  {
 //    IAMStreamConfig_out->Release ();
@@ -490,8 +546,27 @@ do_initialize_directshow (const std::string& deviceName_in,
 //    IGraphBuilder_out->Release ();
 //    IGraphBuilder_out = NULL;
 //  } // end IF
+  if (release_media_source)
+  {
+    IMFMediaSource_out->Release ();
+    IMFMediaSource_out = NULL;
+  } // end IF
+  if (IMFSourceReader_out)
+  {
+    IMFSourceReader_out->Release ();
+    IMFSourceReader_out = NULL;
+  } // end IF
 
-  //return false;
+  result = MFShutdown ();
+  if (FAILED (result))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  if (coInitialize_in)
+    CoUninitialize ();
+
+  return false;
 }
 
 void
@@ -503,15 +578,20 @@ do_finalize_directshow (Stream_CamSave_GTK_CBData& CBData_in)
   ACE_ASSERT (CBData_in.configuration);
 
   HRESULT result = E_FAIL;
-  if (CBData_in.streamConfiguration)
+  //if (CBData_in.streamConfiguration)
+  //{
+  //  CBData_in.streamConfiguration->Release ();
+  //  CBData_in.streamConfiguration = NULL;
+  //} // end IF
+  //if (CBData_in.configuration->moduleHandlerConfiguration.builder)
+  //{
+  //  CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
+  //  CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
+  //} // end IF
+  if (CBData_in.configuration->moduleHandlerConfiguration.sourceReader)
   {
-    CBData_in.streamConfiguration->Release ();
-    CBData_in.streamConfiguration = NULL;
-  } // end IF
-  if (CBData_in.configuration->moduleHandlerConfiguration.builder)
-  {
-    CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
-    CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
+    CBData_in.configuration->moduleHandlerConfiguration.sourceReader->Release ();
+    CBData_in.configuration->moduleHandlerConfiguration.sourceReader = NULL;
   } // end IF
 
   CoUninitialize ();
@@ -540,26 +620,26 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IAMBufferNegotiation* buffer_negotiation_p = NULL;
+  //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
                                  configuration.moduleHandlerConfiguration.window,
-                                 configuration.moduleHandlerConfiguration.builder,
-                                 buffer_negotiation_p,
-                                 CBData_in.streamConfiguration))
+                                 //configuration.moduleHandlerConfiguration.builder,
+                                 configuration.moduleHandlerConfiguration.mediaSource,
+                                 configuration.moduleHandlerConfiguration.sourceReader,
+                                 //buffer_negotiation_p,
+                                 //CBData_in.streamConfiguration))
+                                 UIDefinitionFilename_in.empty (),  // load device ?
+                                 UIDefinitionFilename_in.empty ())) // initialize COM ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
-
-    //// clean up
-    //CoUninitialize ();
-
     return;
   } // end IF
-  ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
-  ACE_ASSERT (buffer_negotiation_p);
-  ACE_ASSERT (CBData_in.streamConfiguration);
+  //ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
+  //ACE_ASSERT (buffer_negotiation_p);
+  //ACE_ASSERT (CBData_in.streamConfiguration);
 
-  buffer_negotiation_p->Release ();
+  //buffer_negotiation_p->Release ();
 #endif
 
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;

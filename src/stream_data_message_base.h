@@ -107,9 +107,9 @@ template <typename AllocatorConfigurationType,
           typename DataType, // *NOTE*: implements Common_IReferenceCount !
           typename CommandType>
 class Stream_DataMessageBase_2
-  : public Stream_MessageBase_T<AllocatorConfigurationType,
-                                CommandType>
-  , public Common_IGet_T<DataType>
+ : public Stream_MessageBase_T<AllocatorConfigurationType,
+                               CommandType>
+ , public Common_IGet_T<DataType>
 {
  public:
   // convenient types

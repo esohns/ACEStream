@@ -94,6 +94,16 @@
     <property name="step_increment">1</property>
     <property name="page_increment">1</property>
   </object>
+  <object class="GtkListStore" id="liststore_rate">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name numerator -->
+      <column type="guint"/>
+      <!-- column-name denominator -->
+      <column type="guint"/>
+    </columns>
+  </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -736,6 +746,9 @@
                                                     <child>
                                                       <placeholder/>
                                                     </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
                                                   </object>
                                                 </child>
                                               </object>
@@ -1204,16 +1217,6 @@
       <column type="gchararray"/>
       <!-- column-name GUID -->
       <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_rate">
-    <columns>
-      <!-- column-name text -->
-      <column type="guint"/>
-      <!-- column-name interval -->
-      <column type="guint"/>
-      <!-- column-name denominator -->
-      <column type="guint"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore_resolution">

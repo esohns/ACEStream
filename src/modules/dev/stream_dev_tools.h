@@ -32,6 +32,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "dshow.h"
+#include "d3d9.h"
+#include "dxva2api.h"
+#include "mfidl.h"
+#include "mfreadwrite.h"
 #else
 #include "linux/videodev2.h"
 #endif
@@ -78,6 +82,30 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                 const struct _AMMediaType&); // media type
   static bool getOutputFormat (IGraphBuilder*,         // graph handle
                                struct _AMMediaType*&); // return value: media type
+
+  static bool getCaptureFormat (IMFSourceReader*, // source handle
+                                IMFMediaType*&);  // return value: media type
+  static bool setCaptureFormat (IMFSourceReader*,     // source handle
+                                const IMFMediaType*); // media type
+  static bool getOutputFormat (IMFSourceReader*, // source handle
+                               IMFMediaType*&);  // return value: media type
+
+  static bool getSourceReader (IMFMediaSource*&,               // media device handle (in/out)
+                               const IDirect3DDeviceManager9*, // Direct3D device manager handle
+                               const IMFSourceReaderCallback*, // callback handle
+                               IMFSourceReader*&);             // return value: source reader handle
+  static bool getMediaSource (const std::string&, // device ("FriendlyName")
+                              IMFMediaSource*&);  // return value: media device handle
+  static bool getDirect3DDevice (const HWND,                      // target window handle
+                                 const IMFMediaType*,             // media format handle
+                                 IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
+                                 struct _D3DPRESENT_PARAMETERS_&, // return value: Direct3D presentation parameters
+                                 IDirect3DDeviceManager9*&,       // return value: Direct3D device manager handle
+                                 UINT&);                          // return value: reset token
+  static bool initializeDirect3DManager (const IDirect3DDevice9Ex*, // Direct3D device handle
+                                         IDirect3DDeviceManager9*&, // return value: Direct3D device manager handle
+                                         UINT&);                    // return value: reset token
+
   // *NOTE*: loads the capture device filter and puts it into an empty (capture)
   //         graph
   static bool loadDeviceGraph (const std::string&,     // device ("FriendlyName")
@@ -107,6 +135,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void debug (IGraphBuilder*,      // graph handle
                      const std::string&); // log file name
   static void dump (IPin*); // pin handle
+  static void dump (IMFSourceReader*); // source reader handle
   // *NOTE*: return value (if any) has an outstanding reference --> Release()
   static IPin* pin (IBaseFilter*,        // filter handle
                     enum _PinDirection); // direction
@@ -116,12 +145,16 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   //         graph..."
   static std::string name (IBaseFilter*); // filter handle
 
+  static bool copyAttribute (IMFAttributes*,       // source
+                             IMFAttributes*,       // destination
+                             const struct _GUID&); // key
   static bool copyMediaType (const struct _AMMediaType&, // media type
                              struct _AMMediaType*&);     // return value: handle
   static void deleteMediaType (struct _AMMediaType*&); // handle
   static void freeMediaType (struct _AMMediaType&);
   static std::string mediaSubTypeToString (const struct _GUID&); // GUID
   static std::string mediaTypeToString (const struct _AMMediaType&); // media type
+  static std::string mediaTypeToString (const IMFMediaType*); // media type
 #else
   static bool canOverlay (int); // file descriptor
   static bool canStream (int); // file descriptor
@@ -171,7 +204,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct less_guid
   {
-    bool operator() (const GUID& lhs_in, const GUID& rhs_in) const
+    bool operator () (const struct _GUID& lhs_in,
+                      const struct _GUID& rhs_in) const
     {
       //ACE_ASSERT (lhs_in.Data2 == rhs_in.Data2);
       //ACE_ASSERT (lhs_in.Data3 == rhs_in.Data3);
@@ -180,7 +214,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
       return (lhs_in.Data1 < rhs_in.Data1);
     }
   };
-  typedef std::map<GUID, std::string, less_guid> GUID2STRING_MAP_T;
+  typedef std::map<struct _GUID, std::string, less_guid> GUID2STRING_MAP_T;
   typedef GUID2STRING_MAP_T::const_iterator GUID2STRING_MAP_ITERATOR_T;
   static GUID2STRING_MAP_T Stream_MediaMajorType2StringMap;
   static GUID2STRING_MAP_T Stream_MediaSubType2StringMap;

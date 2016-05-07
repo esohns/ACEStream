@@ -73,7 +73,7 @@ Stream_Filecopy_Stream::~Stream_Filecopy_Stream ()
 }
 
 bool
-Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& configuration_in,
+Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& configuration_in,
                                     bool setupPipeline_in,
                                     bool resetSessionData_in)
 {
@@ -135,60 +135,26 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
                 ACE_TEXT (inherited::name ().c_str ())));
     return false;
   } // end IF
+  // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
   Stream_Filecopy_SessionData& session_data_r =
     const_cast<Stream_Filecopy_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_r.sessionID =
     ++Stream_Filecopy_Stream::currentSessionID;
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   session_data_r.fileName =
-    configuration_in.moduleHandlerConfiguration_2.fileName;
+    configuration_in.moduleHandlerConfiguration->fileName;
   session_data_r.size =
-    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration_2.fileName);
-
-  // things to be done here:
-  // [- initialize base class]
-  // ------------------------------------
-  // - initialize notification strategy (if any)
-  // ------------------------------------
-  // - push the final module onto the stream (if any)
-  // ------------------------------------
-  // - initialize modules
-  // - push them onto the stream (tail-first) !
-  // ------------------------------------
-
-//  int result = -1;
-//  inherited::MODULE_T* module_p = NULL;
-//  if (configuration_in.notificationStrategy)
-//  {
-//    module_p = inherited::head ();
-//    if (!module_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("no head module found, aborting\n")));
-//      return false;
-//    } // end IF
-//    inherited::TASK_T* task_p = module_p->reader ();
-//    if (!task_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("no head module reader task found, aborting\n")));
-//      return false;
-//    } // end IF
-//    inherited::QUEUE_T* queue_p = task_p->msg_queue ();
-//    if (!queue_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("no head module reader task queue found, aborting\n")));
-//      return false;
-//    } // end IF
-//    queue_p->notification_strategy (configuration_in.notificationStrategy);
-//  } // end IF
-//  configuration_in.moduleConfiguration.streamState = &state_;
+    Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
   // ---------------------------------------------------------------------------
   if (configuration_in.module)
   {
+    // sanity check(s)
+    ACE_ASSERT (configuration_in.moduleConfiguration);
+
     // *TODO*: (at least part of) this procedure belongs in libACEStream
     //         --> remove type inferences
     inherited::IMODULE_T* module_2 =
@@ -200,7 +166,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    if (!module_2->initialize (configuration_in.moduleConfiguration_2))
+    if (!module_2->initialize (*configuration_in.moduleConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to initialize module, aborting\n"),
@@ -218,7 +184,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    if (!module_handler_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+    if (!module_handler_p->initialize (*configuration_in.moduleHandlerConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
@@ -230,7 +196,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
   // ---------------------------------------------------------------------------
 
   // ******************* File Writer ************************
-  fileWriter_.initialize (configuration_in.moduleConfiguration_2);
+  fileWriter_.initialize (*configuration_in.moduleConfiguration);
   Stream_Filecopy_Module_FileWriter* fileWriter_impl_p =
     dynamic_cast<Stream_Filecopy_Module_FileWriter*> (fileWriter_.writer ());
   if (!fileWriter_impl_p)
@@ -239,7 +205,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
                 ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_FileWriter> failed, aborting\n")));
     return false;
   } // end IF
-  if (!fileWriter_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
@@ -248,7 +214,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
   } // end IF
 
   // ******************* Runtime Statistic ************************
-  runtimeStatistic_.initialize (configuration_in.moduleConfiguration_2);
+  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
   Stream_Filecopy_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
       dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl_p)
@@ -269,7 +235,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
   } // end IF
 
   // ******************* File Reader ************************
-  fileReader_.initialize (configuration_in.moduleConfiguration_2);
+  fileReader_.initialize (*configuration_in.moduleConfiguration);
   Stream_Filecopy_Module_FileReader* fileReader_impl_p =
     dynamic_cast<Stream_Filecopy_Module_FileReader*> (fileReader_.writer ());
   if (!fileReader_impl_p)
@@ -278,7 +244,7 @@ Stream_Filecopy_Stream::initialize (const Stream_Test_U_StreamConfiguration& con
                 ACE_TEXT ("dynamic_cast<Strean_Filecopy_Module_FileReader> failed, aborting\n")));
     return false;
   } // end IF
-  if (!fileReader_impl_p->initialize (configuration_in.moduleHandlerConfiguration_2))
+  if (!fileReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),

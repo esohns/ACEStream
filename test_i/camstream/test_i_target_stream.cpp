@@ -42,15 +42,18 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
               NULL,
               false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
- , directShowSource_ (ACE_TEXT_ALWAYS_CHAR ("DirectShowSource"),
-                      NULL,
-                      false)
+ //, directShowSource_ (ACE_TEXT_ALWAYS_CHAR ("DirectShowSource"),
+ //                     NULL,
+ //                     false)
+ , mediaFoundationSource_ (ACE_TEXT_ALWAYS_CHAR ("MediaFoundationSource"),
+                           NULL,
+                           false)
 #endif
  , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                       NULL,
                       false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
- , graphBuilder_ (NULL)
+ //, graphBuilder_ (NULL)
 #else
  , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
              NULL,
@@ -68,7 +71,8 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
 //  inherited::modules_.push_front (&decoder_);
   inherited::modules_.push_front (&splitter_);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  inherited::modules_.push_front (&directShowSource_);
+  //inherited::modules_.push_front (&directShowSource_);
+  inherited::modules_.push_front (&mediaFoundationSource_);
 #endif
   inherited::modules_.push_front (&runtimeStatistic_);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -95,12 +99,12 @@ Test_I_Target_Stream::~Test_I_Target_Stream ()
   inherited::shutdown ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (_DEBUG && graphBuilder_)
-    Stream_Module_Device_Tools::debug (graphBuilder_,
-                                       std::string ());
+  //if (_DEBUG && graphBuilder_)
+  //  Stream_Module_Device_Tools::debug (graphBuilder_,
+  //                                     std::string ());
 
-  if (graphBuilder_)
-    graphBuilder_->Release ();
+  //if (graphBuilder_)
+  //  graphBuilder_->Release ();
 #endif
 }
 
@@ -162,6 +166,9 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   // ---------------------------------------------------------------------------
 
+  bool graph_loaded = false;
+  bool COM_initialized = false;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   // ******************* Display ************************
@@ -172,14 +179,14 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Display> failed, aborting\n")));
-    return false;
+    goto error;
   } // end IF
   if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
                 display_.name ()));
-    return false;
+    goto error;
   } // end IF
 #endif
 
@@ -191,7 +198,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Statistic_WriterTask_T> failed, aborting\n")));
-    return false;
+    goto error;
   } // end IF
   if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval
                                             true,                                        // push statistic messages
@@ -201,180 +208,295 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
                 runtimeStatistic_.name ()));
-    return false;
+    goto error;
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // ******************* DirectShow Source ************************
-  Test_I_Target_Stream_Module_DirectShowSource* directShowSource_impl_p =
-    dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource*> (directShowSource_.writer ());
-  if (!directShowSource_impl_p)
+  //Test_I_Target_Stream_Module_DirectShowSource* directShowSource_impl_p =
+  //  dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource*> (directShowSource_.writer ());
+  //if (!directShowSource_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource>(%@) failed, aborting\n"),
+  //              directShowSource_.writer ()));
+  //  goto error;
+  //} // end IF
+  Test_I_Target_Stream_Module_MediaFoundationSource* mediaFoundationSource_impl_p =
+    dynamic_cast<Test_I_Target_Stream_Module_MediaFoundationSource*> (mediaFoundationSource_.writer ());
+  if (!mediaFoundationSource_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource>(%@) failed, aborting\n"),
-                directShowSource_.writer ()));
-    return false;
+                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_MediaFoundationSource>(%@) failed, aborting\n"),
+                mediaFoundationSource_.writer ()));
+    goto error;
   } // end IF
   ACE_ASSERT (configuration_r.moduleHandlerConfiguration);
-  ACE_ASSERT (configuration_r.moduleHandlerConfiguration->filterConfiguration);
-  ACE_ASSERT (configuration_r.moduleHandlerConfiguration->filterConfiguration->pinConfiguration);
-  configuration_r.moduleHandlerConfiguration->filterConfiguration->pinConfiguration->queue =
-    directShowSource_impl_p->msg_queue ();
+  //ACE_ASSERT (configuration_r.moduleHandlerConfiguration->filterConfiguration);
+  //ACE_ASSERT (configuration_r.moduleHandlerConfiguration->filterConfiguration->pinConfiguration);
+  configuration_r.moduleHandlerConfiguration->queue =
+    mediaFoundationSource_impl_p->msg_queue ();
 
-  std::wstring filter_name;
-  std::list<std::wstring> filter_pipeline;
+  //std::wstring filter_name;
+  //std::list<std::wstring> filter_pipeline;
+  //bool release_builder = false;
 
-  if (configuration_r.moduleHandlerConfiguration->builder)
+  //if (configuration_r.moduleHandlerConfiguration->builder)
+  if (configuration_r.moduleHandlerConfiguration->sourceReader)
     goto continue_;
 
-  HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  HRESULT result_2 = CoInitializeEx (NULL,
+                                     (COINIT_MULTITHREADED    |
+                                      COINIT_DISABLE_OLE1DDE  |
+                                      COINIT_SPEED_OVER_MEMORY));
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    return false;
+    goto error;
   } // end IF
 
   // sanity check(s)
-  ACE_ASSERT (!configuration_r.moduleHandlerConfiguration->builder);
-  if (!Stream_Module_Device_Tools::loadTargetRendererGraph (configuration_r.moduleHandlerConfiguration->window,
-                                                            configuration_r.moduleHandlerConfiguration->builder,
-                                                            filter_pipeline))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadTargetRendererGraph(), aborting\n")));
-    goto error;
-  } // end IF
-  ACE_ASSERT (configuration_r.moduleHandlerConfiguration->builder);
+  //if (!Stream_Module_Device_Tools::loadTargetRendererGraph (configuration_r.moduleHandlerConfiguration->window,
+  //                                                          configuration_r.moduleHandlerConfiguration->builder,
+  //                                                          filter_pipeline))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::loadTargetRendererGraph(), aborting\n")));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (configuration_r.moduleHandlerConfiguration->builder);
+  //release_builder = true;
 
-  if (_DEBUG)
-  {
-    std::string log_file_name =
-      Common_File_Tools::getLogDirectory (std::string (),
-                                          0);
-    log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-    log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
-    Stream_Module_Device_Tools::debug (configuration_r.moduleHandlerConfiguration->builder,
-                                       log_file_name);
-  } // end IF
-
-  IBaseFilter* ibase_filter_p = NULL;
-  result_2 =
-    CoCreateInstance (configuration_in.moduleHandlerConfiguration->filterCLSID, NULL,
-                      CLSCTX_INPROC_SERVER, IID_IBaseFilter,
-                      (void**)&ibase_filter_p);
-  if (FAILED (result_2))
-  {
-    OLECHAR GUID_string[39];
-    ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
-    int nCount =
-      StringFromGUID2 (configuration_in.moduleHandlerConfiguration->filterCLSID,
-                       GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (nCount == 39);
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (ibase_filter_p);
-  // *TODO*: this should read
-  //         'Test_I_Target_Stream_Module_DirectShowSource::[ASYNCH_]FILTER_T::IINITIALIZE_T*'
-  Test_I_Target_Stream_Module_DirectShowSource::IINITIALIZE_T* iinitialize_p =
-    dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource::IINITIALIZE_T*> (ibase_filter_p);
-  if (!iinitialize_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<Common_IInitialize_T*>(%@), aborting\n"),
-                ibase_filter_p));
-
-    // clean up
-    ibase_filter_p->Release ();
-
-    goto error;
-  } // end IF
   // sanity check(s)
-  // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_r.moduleHandlerConfiguration->filterConfiguration);
-  if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration->filterConfiguration))
+  ACE_ASSERT (!session_data_r.direct3DDevice);
+
+  IDirect3DDeviceManager9* direct3D_manager_p = NULL;
+  struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
+  if (!Stream_Module_Device_Tools::getDirect3DDevice (configuration_in.moduleHandlerConfiguration->window,
+                                                      configuration_in.moduleHandlerConfiguration->format,
+                                                      session_data_r.direct3DDevice,
+                                                      d3d_presentation_parameters,
+                                                      direct3D_manager_p,
+                                                      session_data_r.resetToken))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_IInitialize_T::initialize(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getDirect3DDevice(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (direct3D_manager_p);
+
+  // sanity check(s)
+  ACE_ASSERT (!configuration_in.moduleHandlerConfiguration->mediaSource);
+  if (!Stream_Module_Device_Tools::getMediaSource (configuration_in.moduleHandlerConfiguration->device,
+                                                   configuration_in.moduleHandlerConfiguration->mediaSource))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
+                ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->mediaSource);
+  // *NOTE*: the source reader assumes responsibility for media_source_p
+  if (!Stream_Module_Device_Tools::getSourceReader (configuration_in.moduleHandlerConfiguration->mediaSource,
+                                                    direct3D_manager_p,
+                                                    mediaFoundationSource_impl_p,
+                                                    configuration_in.moduleHandlerConfiguration->sourceReader))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
+                ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
 
     // clean up
-    ibase_filter_p->Release ();
+    configuration_in.moduleHandlerConfiguration->mediaSource->Release ();
+    configuration_in.moduleHandlerConfiguration->mediaSource = NULL;
 
     goto error;
   } // end IF
+  direct3D_manager_p->Release ();
+  direct3D_manager_p = NULL;
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->sourceReader);
 
-  filter_name =
-    (configuration_r.moduleHandlerConfiguration->push ? TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME
-                                                      : TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME);
-  //ACE_TEXT_ALWAYS_WCHAR (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ());
-  result_2 =
-    configuration_r.moduleHandlerConfiguration->builder->AddFilter (ibase_filter_p,
-                                                                    filter_name.c_str ());
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::AddFilter(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    goto error;
-  } // end IF
-  filter_pipeline.push_front (filter_name);
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("added \"%s\"...\n"),
-              ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
+  //if (_DEBUG)
+  //{
+  //  std::string log_file_name =
+  //    Common_File_Tools::getLogDirectory (std::string (),
+  //                                        0);
+  //  log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+  //  log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+  //  Stream_Module_Device_Tools::debug (configuration_r.moduleHandlerConfiguration->builder,
+  //                                     log_file_name);
+  //} // end IF
 
-  ACE_ASSERT (!filter_pipeline.empty ());
-  if (!Stream_Module_Device_Tools::connect (configuration_r.moduleHandlerConfiguration->builder,
-                                            filter_pipeline))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
-    goto error;
-  } // end IF
+  //IBaseFilter* ibase_filter_p = NULL;
+  //result_2 =
+  //  CoCreateInstance (configuration_in.moduleHandlerConfiguration->filterCLSID, NULL,
+  //                    CLSCTX_INPROC_SERVER, IID_IBaseFilter,
+  //                    (void**)&ibase_filter_p);
+  //if (FAILED (result_2))
+  //{
+  //  OLECHAR GUID_string[39];
+  //  ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
+  //  int nCount =
+  //    StringFromGUID2 (configuration_in.moduleHandlerConfiguration->filterCLSID,
+  //                     GUID_string, sizeof (GUID_string));
+  //  ACE_ASSERT (nCount == 39);
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
+  //              ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (ibase_filter_p);
+  //// *TODO*: this should read
+  ////         'Test_I_Target_Stream_Module_DirectShowSource::[ASYNCH_]FILTER_T::IINITIALIZE_T*'
+  //Test_I_Target_Stream_Module_DirectShowSource::IINITIALIZE_T* iinitialize_p =
+  //  dynamic_cast<Test_I_Target_Stream_Module_DirectShowSource::IINITIALIZE_T*> (ibase_filter_p);
+  //if (!iinitialize_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to dynamic_cast<Common_IInitialize_T*>(%@), aborting\n"),
+  //              ibase_filter_p));
 
-  IMediaFilter* media_filter_p = NULL;
-  result_2 =
-    configuration_r.moduleHandlerConfiguration->builder->QueryInterface (IID_IMediaFilter,
-                                                                         (void**)&media_filter_p);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (media_filter_p);
-  result_2 = media_filter_p->SetSyncSource (NULL);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    goto error;
-  } // end IF
-  media_filter_p->Release ();
+  //  // clean up
+  //  ibase_filter_p->Release ();
+
+  //  goto error;
+  //} // end IF
+  //// sanity check(s)
+  //// *TODO*: remove type inferences
+  //ACE_ASSERT (configuration_r.moduleHandlerConfiguration->filterConfiguration);
+  //if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration->filterConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Common_IInitialize_T::initialize(), aborting\n")));
+
+  //  // clean up
+  //  ibase_filter_p->Release ();
+
+  //  goto error;
+  //} // end IF
+
+  //filter_name =
+  //  (configuration_r.moduleHandlerConfiguration->push ? TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME
+  //                                                    : TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME);
+  ////ACE_TEXT_ALWAYS_WCHAR (Stream_Module_Device_Tools::name (ibase_filter_p).c_str ());
+  //result_2 =
+  //  configuration_r.moduleHandlerConfiguration->builder->AddFilter (ibase_filter_p,
+  //                                                                  filter_name.c_str ());
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IGraphBuilder::AddFilter(\"%s\"): \"%s\", aborting\n"),
+  //              ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ()),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
+  //filter_pipeline.push_front (filter_name);
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("added \"%s\"...\n"),
+  //            ACE_TEXT_WCHAR_TO_TCHAR (filter_name.c_str ())));
+
+  //ACE_ASSERT (!filter_pipeline.empty ());
+  //if (!Stream_Module_Device_Tools::connect (configuration_r.moduleHandlerConfiguration->builder,
+  //                                          filter_pipeline))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
+  //  goto error;
+  //} // end IF
+  ////// *NOTE*: for some (unknown) reason, connect()ing the sample grabber to the
+  //////         null renderer 'breaks' the connection between the AVI decompressor
+  //////         and the sample grabber (go ahead, try it in with graphedit.exe)
+  //////         --> reconnect the AVI decompressor to the (connected) sample
+  //////             grabber; this seems to work
+  ////if (!Stream_Module_Device_Tools::connected (configuration_r.moduleHandlerConfiguration->builder))
+  ////{
+  ////  ACE_DEBUG ((LM_DEBUG,
+  ////              ACE_TEXT ("reconnecting...\n")));
+
+  ////  if (!Stream_Module_Device_Tools::connectFirst (configuration_r.moduleHandlerConfiguration->builder))
+  ////  {
+  ////    ACE_DEBUG ((LM_ERROR,
+  ////                ACE_TEXT ("failed to Stream_Module_Device_Tools::connectFirst(), aborting\n")));
+  ////    goto error;
+  ////  } // end IF
+  ////} // end IF
+  ////ACE_ASSERT (Stream_Module_Device_Tools::connected (configuration_r.moduleHandlerConfiguration->builder));
+
+  //IMediaFilter* media_filter_p = NULL;
+  //result_2 =
+  //  configuration_r.moduleHandlerConfiguration->builder->QueryInterface (IID_IMediaFilter,
+  //                                                                       (void**)&media_filter_p);
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (media_filter_p);
+  //result_2 = media_filter_p->SetSyncSource (NULL);
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
+  //media_filter_p->Release ();
 
   goto continue_;
 
 error:
-  // clean up
-  configuration_r.moduleHandlerConfiguration->builder->Release ();
-  configuration_r.moduleHandlerConfiguration->builder = NULL;
+  //if (release_builder)
+  //{
+  //  configuration_r.moduleHandlerConfiguration->builder->Release ();
+  //  configuration_r.moduleHandlerConfiguration->builder = NULL;
+  //} // end IF
+  if (direct3D_manager_p)
+    direct3D_manager_p->Release ();
+  if (graph_loaded)
+  {
+    //configuration_in.moduleHandlerConfiguration->builder->Release ();
+    //configuration_in.moduleHandlerConfiguration->builder = NULL;
+    configuration_in.moduleHandlerConfiguration->sourceReader->Release ();
+    configuration_in.moduleHandlerConfiguration->sourceReader = NULL;
+  } // end IF
+  if (session_data_r.direct3DDevice)
+  {
+    session_data_r.direct3DDevice->Release ();
+    session_data_r.direct3DDevice = NULL;
+  } // end IF
+  if (session_data_r.format)
+  {
+    //Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+    session_data_r.format->Release ();
+    session_data_r.format = NULL;
+  } // end IF
+  session_data_r.resetToken = 0;
+
+  if (COM_initialized)
+    CoUninitialize ();
 
   return false;
 
 continue_:
-  directShowSource_.initialize (*configuration_in.moduleConfiguration);
-  if (!directShowSource_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //directShowSource_.initialize (*configuration_in.moduleConfiguration);
+  //if (!directShowSource_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+  //              directShowSource_.name ()));
+  //  return false;
+  //} // end IF
+  mediaFoundationSource_.initialize (*configuration_in.moduleConfiguration);
+  if (!mediaFoundationSource_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                directShowSource_.name ()));
+                mediaFoundationSource_.name ()));
     return false;
   } // end IF
 #endif

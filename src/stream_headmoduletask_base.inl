@@ -718,8 +718,10 @@ Stream_HeadModuleTaskBase_T<LockType,
   // *TODO*: remove type inference
   active_ = configuration_in.active;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  if (active_)
-    runSvcRoutineOnStart_ = false;
+  runSvcRoutineOnStart_ = (!configuration_in.active &&
+                            configuration_in.passive);
+  // sanity check(s)
+  ACE_ASSERT (!(active_ && runSvcRoutineOnStart_));
 
   // *TODO*: remove type inference
   result = inherited::initialize (*configuration_->stateMachineLock);
@@ -1561,145 +1563,143 @@ Stream_HeadModuleTaskBase_T<LockType,
 
         break;
       } // end IF
+
+      // send initial session message downstream ?
+      if (generateSessionMessages_)
+      {
+        ACE_ASSERT (sessionData_);
+        if (!putSessionMessage (STREAM_SESSION_BEGIN,                                   // type
+                                *sessionData_,                                          // session data
+                                configuration_->streamConfiguration->messageAllocator)) // allocator
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
+          break;
+        } // end IF
+      } // end IF
+
+      if (active_)
+      {
+        // OK: start worker
+        ACE_hthread_t thread_handles[1];
+        thread_handles[0] = 0;
+        ACE_thread_t thread_ids[1];
+        thread_ids[0] = 0;
+        char thread_name[BUFSIZ];
+        ACE_OS::memset (thread_name, 0, sizeof (thread_name));
+        ACE_OS::strcpy (thread_name, STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME);
+        const char* thread_names[1];
+        thread_names[0] = thread_name;
+        result =
+          inherited2::activate ((THR_NEW_LWP      |
+                                  THR_JOINABLE     |
+                                  THR_INHERIT_SCHED),         // flags
+                                inherited2::threadCount_,    // number of threads
+                                0,                           // force spawning
+                                ACE_DEFAULT_THREAD_PRIORITY, // priority
+                                inherited2::grp_id (),       // group id (see above)
+                                NULL,                        // corresp. task --> use 'this'
+                                thread_handles,              // thread handle(s)
+                                NULL,                        // thread stack(s)
+                                NULL,                        // thread stack size(s)
+                                thread_ids,                  // thread id(s)
+                                thread_names);               // thread name(s)
+        if (result == -1)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", continuing\n")));
+          break;
+        } // end IF
+
+        //       if (inherited::module ())
+        //         ACE_DEBUG ((LM_DEBUG,
+        //                     ACE_TEXT ("module \"%s\" started worker thread (group: %d, id: %u)...\n"),
+        //                     ACE_TEXT (inherited::name ()),
+        //                     inherited::grp_id (),
+        //                     thread_ids[0]));
+        //       else
+        //         ACE_DEBUG ((LM_DEBUG,
+        //                     ACE_TEXT ("started worker thread (group: %d, id: %u)...\n"),
+        //                     inherited::grp_id (),
+        //                     thread_ids[0]));
+
+        // *NOTE*: this may not work if the thread count is > 1 (see
+        //         waitForCompletion() above)
+        {
+          ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (inherited2::lock_);
+
+          threadID_.id (thread_ids[0]);
+          threadID_.handle (thread_handles[0]);
+        } // end lock scope
+      } // end IF
+      else if (runSvcRoutineOnStart_)
+      {
+        // *NOTE*: if the implementation is 'passive', the whole operation
+        //         pertaining to newState_in is processed 'in-line' by the
+        //         calling thread and would complete before the state
+        //         actually has been set to 'running'
+        //         --> in this case set the state early
+        // *TODO*: this may not be the best way to implement that case
+        inherited::state_ = STREAM_STATE_RUNNING;
+
+        {
+          ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
+
+          threadID_.id (ACE_Thread::self ());
+          ACE_hthread_t handle = ACE_INVALID_HANDLE;
+          ACE_Thread::self (handle);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+          HANDLE process_handle = ::GetCurrentProcess ();
+          if (!::DuplicateHandle (process_handle,
+                                  handle,
+                                  process_handle,
+                                  &handle,
+                                  0,
+                                  FALSE,
+                                  DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS))
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to DuplicateHandle(0x%@): \"%s\", continuing\n"),
+                        handle,
+                        ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
+#endif
+          threadID_.handle (handle);
+        } // end lock scope
+
+        {
+          ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX> > aGuard_2 (reverse_lock);
+          result = svc ();
+        } // end lock scope
+        //if (result == -1) // *NOTE*: most probable reason: session aborted
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
+
+//        // send initial session message downstream...
+//        if (!putSessionMessage (STREAM_SESSION_END,
+//                                sessionData_,
+//                                false))
+//        {
+//          ACE_DEBUG ((LM_ERROR,
+//                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
+//          break;
+//        } // end IF
+      } // end IF
       else
       {
-        // send initial session message downstream ?
-        if (generateSessionMessages_)
-        {
-          ACE_ASSERT (sessionData_);
-          if (!putSessionMessage (STREAM_SESSION_BEGIN,                                   // type
-                                  *sessionData_,                                          // session data
-                                  configuration_->streamConfiguration->messageAllocator)) // allocator
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("putSessionMessage(SESSION_BEGIN) failed, continuing\n")));
-            break;
-          } // end IF
-        } // end IF
+        // *IMPORTANT NOTE*: this means that there is no worker thread
+        //                   driving this module; neither in-line, nor
+        //                   dedicated
 
-        if (active_)
-        {
-          // OK: start worker
-          ACE_hthread_t thread_handles[1];
-          thread_handles[0] = 0;
-          ACE_thread_t thread_ids[1];
-          thread_ids[0] = 0;
-          char thread_name[BUFSIZ];
-          ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-          ACE_OS::strcpy (thread_name, STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME);
-          const char* thread_names[1];
-          thread_names[0] = thread_name;
-          result =
-            inherited2::activate ((THR_NEW_LWP      |
-                                   THR_JOINABLE     |
-                                   THR_INHERIT_SCHED),         // flags
-                                  inherited2::threadCount_,    // number of threads
-                                  0,                           // force spawning
-                                  ACE_DEFAULT_THREAD_PRIORITY, // priority
-                                  inherited2::grp_id (),       // group id (see above)
-                                  NULL,                        // corresp. task --> use 'this'
-                                  thread_handles,              // thread handle(s)
-                                  NULL,                        // thread stack(s)
-                                  NULL,                        // thread stack size(s)
-                                  thread_ids,                  // thread id(s)
-                                  thread_names);               // thread name(s)
-          if (result == -1)
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_Task_Base::activate(): \"%m\", continuing\n")));
-            break;
-          } // end IF
+        // *NOTE*: check if any of the modules failed to initialize
+        //         --> just signal the controller
 
-          //       if (inherited::module ())
-          //         ACE_DEBUG ((LM_DEBUG,
-          //                     ACE_TEXT ("module \"%s\" started worker thread (group: %d, id: %u)...\n"),
-          //                     ACE_TEXT (inherited::name ()),
-          //                     inherited::grp_id (),
-          //                     thread_ids[0]));
-          //       else
-          //         ACE_DEBUG ((LM_DEBUG,
-          //                     ACE_TEXT ("started worker thread (group: %d, id: %u)...\n"),
-          //                     inherited::grp_id (),
-          //                     thread_ids[0]));
-
-          // *NOTE*: this may not work if the thread count is > 1 (see
-          //         waitForCompletion() above)
-          {
-            ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (inherited2::lock_);
-
-            threadID_.id (thread_ids[0]);
-            threadID_.handle (thread_handles[0]);
-          } // end lock scope
-        } // end IF
-        else if (runSvcRoutineOnStart_)
-        {
-          // *NOTE*: if the implementation is 'passive', the whole operation
-          //         pertaining to newState_in is processed 'in-line' by the
-          //         calling thread and would complete before the state
-          //         actually has been set to 'running'
-          //         --> in this case set the state early
-          // *TODO*: this may not be the best way to implement that case
-          inherited::state_ = STREAM_STATE_RUNNING;
-
-          {
-            ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
-
-            threadID_.id (ACE_Thread::self ());
-            ACE_hthread_t handle = ACE_INVALID_HANDLE;
-            ACE_Thread::self (handle);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-            HANDLE process_handle = ::GetCurrentProcess ();
-            if (!::DuplicateHandle (process_handle,
-                                    handle,
-                                    process_handle,
-                                    &handle,
-                                    0,
-                                    FALSE,
-                                    DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS))
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("failed to DuplicateHandle(0x%@): \"%s\", continuing\n"),
-                          handle,
-                          ACE_TEXT (Common_Tools::error2String (GetLastError ()).c_str ())));
-#endif
-            threadID_.handle (handle);
-          } // end lock scope
-
-          {
-            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX> > aGuard_2 (reverse_lock);
-            result = svc ();
-          } // end lock scope
-          //if (result == -1) // *NOTE*: most probable reason: session aborted
-          //  ACE_DEBUG ((LM_ERROR,
-          //              ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
-
-  //        // send initial session message downstream...
-  //        if (!putSessionMessage (STREAM_SESSION_END,
-  //                                sessionData_,
-  //                                false))
-  //        {
-  //          ACE_DEBUG ((LM_ERROR,
-  //                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
-  //          break;
-  //        } // end IF
-        } // end IF
-        else
-        {
-          // *IMPORTANT NOTE*: this means that there is no worker thread
-          //                   driving this module; neither in-line, nor
-          //                   dedicated
-
-          // *NOTE*: check if any of the modules failed to initialize
-          //         --> just signal the controller
-
-          // sanity check(s)
-          ACE_ASSERT (sessionData_);
-          // *TODO*: remove type inferences
-          SessionDataType& session_data_r =
-              const_cast<SessionDataType&> (sessionData_->get ());
-          if (session_data_r.aborted)
-            this->finished ();
-        } // end IF
-      } // end ELSE
+        // sanity check(s)
+        ACE_ASSERT (sessionData_);
+        // *TODO*: remove type inferences
+        SessionDataType& session_data_r =
+            const_cast<SessionDataType&> (sessionData_->get ());
+        if (session_data_r.aborted)
+          this->finished ();
+      } // end IF
 
       break;
     }

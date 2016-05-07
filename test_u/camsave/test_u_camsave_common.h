@@ -26,6 +26,11 @@
 #include <string>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "d3d9.h"
+#include "evr.h"
+#include "mfapi.h"
+#include "mfobjects.h"
+#include "mfreadwrite.h"
 #include "strmif.h"
 #else
 #include "linux/videodev2.h"
@@ -35,6 +40,7 @@
 
 #include "common_inotify.h"
 #include "common_isubscribe.h"
+#include "common_tools.h"
 
 #include "stream_common.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -67,7 +73,7 @@ struct Stream_CamSave_MessageData
   inline Stream_CamSave_MessageData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    : sample (NULL)
-   , sampleTime (0.0)
+   , sampleTime (0)
 #else
    : device (-1)
    , index (0)
@@ -77,13 +83,13 @@ struct Stream_CamSave_MessageData
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IMediaSample* sample;
-  double        sampleTime;
+  IMFSample* sample;
+  LONGLONG   sampleTime;
 #else
-  int           device; // (capture) device file descriptor
-  __u32         index;  // 'index' field of v4l2_buffer
-  v4l2_memory   method;
-  bool          release;
+  int             device; // (capture) device file descriptor
+  __u32           index;  // 'index' field of v4l2_buffer
+  v4l2_memory     method;
+  bool            release;
 #endif
 };
 
@@ -119,18 +125,38 @@ struct Stream_CamSave_SessionData
    : Stream_SessionData ()
    , currentStatistic ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaType (NULL)
+   , direct3DDevice (NULL)
+   , format (NULL)
+   , resetToken (0)
 #else
    , format ()
    , frameRate ()
 #endif
 //   , size (0)
    , targetFileName ()
-  {};
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    //format =
+    //  static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+    //if (!format)
+    //  ACE_DEBUG ((LM_CRITICAL,
+    //              ACE_TEXT ("failed to allocate memory, continuing\n")));
+    //else
+    //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+    HRESULT result = MFCreateMediaType (&format);
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+#endif
+  };
 
   Stream_CamSave_StatisticData currentStatistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType*         mediaType;
+  //struct _AMMediaType*         format;
+  IDirect3DDevice9Ex*          direct3DDevice;
+  IMFMediaType*                format;
+  UINT                         resetToken; // direct 3D manager 'id'
 #else
   struct v4l2_format           format;
   struct v4l2_fract            frameRate; // time-per-frame
@@ -154,14 +180,15 @@ struct Stream_CamSave_SignalHandlerConfiguration
 };
 
 struct Stream_CamSave_ModuleHandlerConfiguration
- : Stream_ModuleHandlerConfiguration
+ : Stream_Test_U_ModuleHandlerConfiguration
 {
   inline Stream_CamSave_ModuleHandlerConfiguration ()
-   : Stream_ModuleHandlerConfiguration ()
-   , active (false)
+   : Stream_Test_U_ModuleHandlerConfiguration ()
    , area ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , builder (NULL)
+   //, builder (NULL)
+   , mediaSource (NULL)
+   , sourceReader (NULL)
    , format (NULL)
    , windowController (NULL)
 #else
@@ -172,9 +199,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , frameRate ()
    , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
 #endif
-   , contextID (0)
    , device ()
-   , printProgressDot (true)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -184,6 +209,20 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , window (NULL)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    //format =
+    //  static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+    //if (!format)
+    //{
+    //  ACE_DEBUG ((LM_CRITICAL,
+    //              ACE_TEXT ("failed to allocate memory, continuing\n")));
+    //} // end IF
+    //else
+    //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+    HRESULT result = MFCreateMediaType (&format);
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #else
     ACE_OS::memset (&format, 0, sizeof (format));
     format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -191,38 +230,39 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #endif
   };
 
-  bool                 active;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct tagRECT       area;
-  IGraphBuilder*       builder;
-  struct _AMMediaType* format;
-  IVideoWindow*        windowController;
+  struct tagRECT          area;
+  //IGraphBuilder*       builder;
+  IMFMediaSource*        mediaSource;
+  IMFSourceReader*       sourceReader;
+  //struct _AMMediaType* format;
+  IMFMediaType*           format;
+  //IVideoWindow*        windowController;
+  IMFVideoDisplayControl* windowController;
 #else
-  GdkRectangle         area;
-  INDEX2BUFFER_MAP_T   bufferMap;
-  __u32                buffers; // v4l device buffers
-  int                  fileDescriptor;
-  struct v4l2_format   format;
-  struct v4l2_fract    frameRate; // time-per-frame (s)
-  v4l2_memory          method; // v4l camera source
+  GdkRectangle            area;
+  INDEX2BUFFER_MAP_T      bufferMap;
+  __u32                   buffers; // v4l device buffers
+  int                     fileDescriptor;
+  struct v4l2_format      format;
+  struct v4l2_fract       frameRate; // time-per-frame (s)
+  v4l2_memory             method; // v4l camera source
 #endif
-  guint                contextID;
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
-  std::string          device;
-  bool                 printProgressDot;
-  ACE_Time_Value       statisticCollectionInterval;
-  std::string          targetFileName;
+  std::string             device;
+  ACE_Time_Value          statisticCollectionInterval;
+  std::string             targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                 window;
+  HWND                    window;
 #else
-  struct v4l2_window*  v4l2Window;
-  GdkWindow*           window;
+  struct v4l2_window*     v4l2Window;
+  GdkWindow*              window;
 #endif
 };
 
 struct Stream_CamSave_StreamConfiguration
-  : Stream_Configuration
+ : Stream_Configuration
 {
   inline Stream_CamSave_StreamConfiguration ()
    : Stream_Configuration ()
@@ -311,7 +351,7 @@ struct Stream_CamSave_GTK_CBData
    , subscribers ()
    , subscribersLock ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , streamConfiguration (NULL)
+   //, streamConfiguration (NULL)
 #else
    , device (-1)
 #endif
@@ -325,7 +365,7 @@ struct Stream_CamSave_GTK_CBData
   Stream_CamSave_Subscribers_t    subscribers;
   ACE_SYNCH_RECURSIVE_MUTEX       subscribersLock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IAMStreamConfig*                streamConfiguration;
+  //IAMStreamConfig*                streamConfiguration;
 #else
   int                             device; // (capture) device file descriptor
 #endif

@@ -121,17 +121,18 @@ class Test_I_Target_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 
   // modules
-//  Test_I_Target_Stream_Module_Net_IO_Module           source_;
-//  Test_I_Target_Stream_Module_AVIDecoder_Module       decoder_;
-  Test_I_Target_Stream_Module_Splitter_Module         splitter_;
+  //Test_I_Target_Stream_Module_Net_IO_Module                source_;
+  //Test_I_Target_Stream_Module_AVIDecoder_Module            decoder_;
+  Test_I_Target_Stream_Module_Splitter_Module              splitter_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_Stream_Module_DirectShowSource_Module directShowSource_;
+  //Test_I_Target_Stream_Module_DirectShowSource_Module directShowSource_;
+  Test_I_Target_Stream_Module_MediaFoundationSource_Module mediaFoundationSource_;
 #endif
-  Test_I_Target_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
+  Test_I_Target_Stream_Module_RuntimeStatistic_Module      runtimeStatistic_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IGraphBuilder*                                      graphBuilder_;
+  //IGraphBuilder*                                           graphBuilder_;
 #else
-  Test_I_Target_Stream_Module_Display_Module          display_;
+  Test_I_Target_Stream_Module_Display_Module               display_;
 #endif
 };
 

@@ -37,12 +37,15 @@ endif ()
 add_definitions (-DACE_HAS_DLL)
 
 include (FindPkgConfig)
-#pkg_check_modules (PKG_ACE REQUIRED ACE)
+##pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
-# *NOTE*: libCommon requires libcap
-  pkg_check_modules (PKG_CAP REQUIRED libcap)
-  pkg_check_modules (PKG_LIBAVUTIL REQUIRED libavutil)
+## *NOTE*: libCommon requires libcap
+#  pkg_check_modules (PKG_CAP REQUIRED libcap)
+#  pkg_check_modules (PKG_LIBAVUTIL REQUIRED libavutil)
+# pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
+ pkg_check_modules (PKG_GTK_GLADE REQUIRED gtk+-2.0)
 endif ()
+# *TODO*: repair WIN32 pkgconfig support
 
 find_package (Common ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
               REQUIRED
@@ -76,11 +79,24 @@ endif ()
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
- include_directories (${PKG_CAP_INCLUDE_DIRS})
+# include_directories (${PKG_CAP_INCLUDE_DIRS})
+ include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src/ui)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ATCD/ACE)
+ # *TODO*: repair pkgconfig support
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/atk-1.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/pango-1.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/cairo)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/glib-2.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gdk-pixbuf-2.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-2.0/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gtk-2.0)
+# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src/ui)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)

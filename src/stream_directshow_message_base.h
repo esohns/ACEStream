@@ -24,14 +24,12 @@
 #include "ace/Global_Macros.h"
 
 #include "dshow.h"
+#include "mfobjects.h"
 
 #include "stream_common.h"
-#include "stream_message_base.h"
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_data_message_base.h"
 #include "stream_directshow_allocator_base.h"
-#else
-#include "stream_messageallocatorheap_base.h"
-#endif
+#include "stream_message_base.h"
 #include "stream_session_message_base.h"
 
 // forward declarations
@@ -46,7 +44,6 @@ class Stream_DirectShowMessageBase_T
  , public IMediaSample
 {
   // grant access to specific ctors
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   friend class Stream_DirectShowAllocatorBase_T<AllocatorConfigurationType,
 
                                                 Stream_DirectShowMessageBase_T<AllocatorConfigurationType>,
@@ -54,15 +51,6 @@ class Stream_DirectShowMessageBase_T
 
                                                                             Stream_SessionData,
                                                                             Stream_UserData> >;
-#else
-  friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
-
-                                                 Stream_DirectShowMessageBase_T<AllocatorConfigurationType>,
-                                                 Stream_SessionMessageBase_T<AllocatorConfigurationType,
-
-                                                                             Stream_SessionData,
-                                                                             Stream_UserData> >;
-#endif
  public:
   virtual ~Stream_DirectShowMessageBase_T ();
 
@@ -121,6 +109,140 @@ class Stream_DirectShowMessageBase_T
   virtual ACE_Message_Block* duplicate (void) const;
 
   double timeStamp_;
+};
+
+//////////////////////////////////////////
+
+template <typename AllocatorConfigurationType,
+          typename DataType>
+class Stream_MediaFoundationMessageBase_T
+ : public Stream_DataMessageBase_T<AllocatorConfigurationType,
+                                   DataType,
+                                   int>
+ //, public IMFSample
+{
+ public:
+  // convenient types
+  typedef DataType DATA_T;
+
+  virtual ~Stream_MediaFoundationMessageBase_T ();
+
+  //// implement IMFSample
+  //virtual HRESULT STDMETHODCALLTYPE GetSampleFlags (DWORD*);
+  //virtual HRESULT STDMETHODCALLTYPE SetSampleFlags (DWORD);
+  //virtual HRESULT STDMETHODCALLTYPE GetSampleTime (LONGLONG*);
+  //virtual HRESULT STDMETHODCALLTYPE SetSampleTime (LONGLONG);
+  //virtual HRESULT STDMETHODCALLTYPE GetSampleDuration (LONGLONG*);
+  //virtual HRESULT STDMETHODCALLTYPE SetSampleDuration (LONGLONG);
+  //virtual HRESULT STDMETHODCALLTYPE GetBufferCount (DWORD*);
+  //virtual HRESULT STDMETHODCALLTYPE GetBufferByIndex (DWORD,
+  //                                                    IMFMediaBuffer**);
+  //virtual HRESULT STDMETHODCALLTYPE ConvertToContiguousBuffer (IMFMediaBuffer**);
+  //virtual HRESULT STDMETHODCALLTYPE AddBuffer (IMFMediaBuffer*);
+  //virtual HRESULT STDMETHODCALLTYPE RemoveBufferByIndex (DWORD);
+  //virtual HRESULT STDMETHODCALLTYPE RemoveAllBuffers (void);
+  //virtual HRESULT STDMETHODCALLTYPE GetTotalLength (DWORD*);
+  //virtual HRESULT STDMETHODCALLTYPE CopyToBuffer (IMFMediaBuffer*);
+  //// implement IMFAttributes
+  //virtual HRESULT STDMETHODCALLTYPE GetItem (const struct _GUID&,
+  //                                           struct tagPROPVARIANT*);
+  //virtual HRESULT STDMETHODCALLTYPE GetItemType (const struct _GUID&,
+  //                                               enum _MF_ATTRIBUTE_TYPE*);
+  //virtual HRESULT STDMETHODCALLTYPE CompareItem (const struct _GUID&,
+  //                                               const struct tagPROPVARIANT&,
+  //                                               BOOL*);
+  //virtual HRESULT STDMETHODCALLTYPE Compare (IMFAttributes*,
+  //                                           enum _MF_ATTRIBUTES_MATCH_TYPE,
+  //                                           BOOL*);
+  //virtual HRESULT STDMETHODCALLTYPE GetUINT32 (const struct _GUID&,
+  //                                             UINT32*);
+  //virtual HRESULT STDMETHODCALLTYPE GetUINT64 (const struct _GUID&,
+  //                                             UINT64*);
+  //virtual HRESULT STDMETHODCALLTYPE GetDouble (const struct _GUID&,
+  //                                             double*);
+  //virtual HRESULT STDMETHODCALLTYPE GetGUID (const struct _GUID&,
+  //                                           struct _GUID*);
+  //virtual HRESULT STDMETHODCALLTYPE GetStringLength (const struct _GUID&,
+  //                                                   UINT32*);
+  //virtual HRESULT STDMETHODCALLTYPE GetString (const struct _GUID&,
+  //                                             LPWSTR,
+  //                                             UINT32,
+  //                                             UINT32*);
+  //virtual HRESULT STDMETHODCALLTYPE GetAllocatedString (const struct _GUID&,
+  //                                                      LPWSTR*,
+  //                                                      UINT32*);
+  //virtual HRESULT STDMETHODCALLTYPE GetBlobSize (const struct _GUID&,
+  //                                               UINT32*);
+  //virtual HRESULT STDMETHODCALLTYPE GetBlob (const struct _GUID&,
+  //                                           UINT8*,
+  //                                           UINT32,
+  //                                           UINT32*);
+  //virtual HRESULT STDMETHODCALLTYPE GetAllocatedBlob (const struct _GUID&,
+  //                                                    UINT8**,
+  //                                                    UINT32*);
+  //virtual HRESULT STDMETHODCALLTYPE GetUnknown (const struct _GUID&,
+  //                                              const IID&,
+  //                                              LPVOID*);
+  //virtual HRESULT STDMETHODCALLTYPE SetItem (const struct _GUID&,
+  //                                           const struct tagPROPVARIANT&);
+  //virtual HRESULT STDMETHODCALLTYPE DeleteItem (const struct _GUID&);
+  //virtual HRESULT STDMETHODCALLTYPE DeleteAllItems (void);
+  //virtual HRESULT STDMETHODCALLTYPE SetUINT32 (const struct _GUID&,
+  //                                             UINT32);
+  //virtual HRESULT STDMETHODCALLTYPE SetUINT64 (const struct _GUID&,
+  //                                             UINT64);
+  //virtual HRESULT STDMETHODCALLTYPE SetDouble (const struct _GUID&,
+  //                                             double);
+  //virtual HRESULT STDMETHODCALLTYPE SetGUID (const struct _GUID&,
+  //                                           const struct _GUID&);
+  //virtual HRESULT STDMETHODCALLTYPE SetString (const struct _GUID&,
+  //                                             LPCWSTR);
+  //virtual HRESULT STDMETHODCALLTYPE SetBlob (const struct _GUID&,
+  //                                           const UINT8*,
+  //                                           UINT32);
+  //virtual HRESULT STDMETHODCALLTYPE SetUnknown (const struct _GUID&,
+  //                                              IUnknown*);
+  //virtual HRESULT STDMETHODCALLTYPE LockStore (void);
+  //virtual HRESULT STDMETHODCALLTYPE UnlockStore (void);
+  //virtual HRESULT STDMETHODCALLTYPE GetCount (UINT32*);
+  //virtual HRESULT STDMETHODCALLTYPE GetItemByIndex (UINT32,
+  //                                                  struct _GUID*,
+  //                                                  const struct tagPROPVARIANT*);
+  //virtual HRESULT STDMETHODCALLTYPE CopyAllItems (IMFAttributes*);
+  //// implement IUnknown
+  //virtual HRESULT STDMETHODCALLTYPE QueryInterface (const IID&,
+  //                                                  void**);
+  //virtual ULONG STDMETHODCALLTYPE AddRef (void);
+  //virtual ULONG STDMETHODCALLTYPE Release (void);
+
+  // implement Common_IDumpState
+  virtual void dump_state () const;
+
+ protected:
+  Stream_MediaFoundationMessageBase_T (unsigned int); // size
+  // copy ctor, to be used by derivates
+  Stream_MediaFoundationMessageBase_T (const Stream_MediaFoundationMessageBase_T<AllocatorConfigurationType,
+                                                                                 DataType>&);
+  // *NOTE*: to be used by message allocators
+  Stream_MediaFoundationMessageBase_T (ACE_Data_Block*, // data block
+                                       ACE_Allocator*,  // message allocator
+                                       bool = true);    // increment running message counter ?
+  Stream_MediaFoundationMessageBase_T (ACE_Allocator*); // message allocator
+
+ private:
+  typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
+                                   DataType,
+                                   int> inherited;
+
+  // convenient types
+  typedef Stream_MediaFoundationMessageBase_T<AllocatorConfigurationType,
+                                              DataType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFoundationMessageBase_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MediaFoundationMessageBase_T& operator= (const Stream_MediaFoundationMessageBase_T&))
+
+  // overriden from ACE_Message_Block
+  virtual ACE_Message_Block* duplicate (void) const;
 };
 
 // include template implementation

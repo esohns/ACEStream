@@ -84,20 +84,18 @@ struct Stream_Test_U_ModuleHandlerConfiguration
 {
   inline Stream_Test_U_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
-   , active (false)
    , contextID (0)
-   , queue (NULL)
+   //, queue (NULL)
    , fileName ()
    , printProgressDot (false)
-   , targetFileName ()
+   //, targetFileName ()
   {};
 
-  bool                    active;
-  guint                   contextID;
-  ACE_Message_Queue_Base* queue;
-  std::string             fileName;
-  bool                    printProgressDot;
-  std::string             targetFileName;
+  guint                   contextID; // display module
+  //ACE_Message_Queue_Base* queue; // head module
+  std::string             fileName; // file writer module
+  bool                    printProgressDot; // file writer module
+  //std::string             targetFileName;
 };
 
 struct Stream_Test_U_StreamConfiguration

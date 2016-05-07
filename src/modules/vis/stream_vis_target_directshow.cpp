@@ -19,4 +19,4 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_vis_gtk_drawingarea.h"
+#include "stream_vis_target_directshow.h"

@@ -22,6 +22,8 @@
 #define TEST_I_SOURCE_COMMON_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "evr.h"
+#include "mfapi.h"
 #include "strmif.h"
 #else
 #include "linux/videodev2.h"
@@ -33,6 +35,7 @@
 
 #include "stream_dev_common.h"
 #include "stream_dev_defines.h"
+#include "stream_dev_tools.h"
 
 #include "test_i_common.h"
 
@@ -123,6 +126,20 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
    , window (NULL)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    //format =
+    //  static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+    //if (!format)
+    //{
+    //  ACE_DEBUG ((LM_CRITICAL,
+    //              ACE_TEXT ("failed to allocate memory, continuing\n")));
+    //} // end IF
+    //else
+    //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+    HRESULT result = MFCreateMediaType (&format);
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #else
     ACE_OS::memset (&format, 0, sizeof (format));
     format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -132,7 +149,8 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct tagRECT                            area;
-  IVideoWindow*                             windowController;
+  //IVideoWindow*                             windowController;
+  IMFVideoDisplayControl*                   windowController;
 #else
   GdkRectangle                              area;
 #endif
@@ -142,7 +160,8 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
   std::string                               device;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType*                      format;
+  //struct _AMMediaType*                      format;
+  IMFMediaType*                             format;
 #else
   struct v4l2_format                        format;
   struct v4l2_fract                         frameRate; // time-per-frame (s)
@@ -167,9 +186,9 @@ struct Test_I_Source_Stream_StatisticData
  : Stream_Statistic
 {
   inline Test_I_Source_Stream_StatisticData ()
-    : Stream_Statistic ()
+   : Stream_Statistic ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    , capturedFrames (0)
+   , capturedFrames (0)
 #endif
   {};
 
@@ -195,13 +214,30 @@ struct Test_I_Source_Stream_SessionData
    : Stream_SessionData ()
    , connectionState (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , mediaType (NULL)
+   , direct3DDevice (NULL)
+   , format (NULL)
+   , resetToken (0)
 #else
    , format ()
    , frameRate ()
 #endif
    , userData (NULL)
-  {};
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    //format =
+    //  static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+    //if (!format)
+    //  ACE_DEBUG ((LM_CRITICAL,
+    //              ACE_TEXT ("failed to allocate memory, continuing\n")));
+    //else
+    //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+    HRESULT result = MFCreateMediaType (&format);
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+#endif
+  };
   inline Test_I_Source_Stream_SessionData& operator+= (Test_I_Source_Stream_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data...
@@ -209,8 +245,51 @@ struct Test_I_Source_Stream_SessionData
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+    // sanity check(s)
+    ACE_ASSERT (rhs_in.format);
+
+    if (format)
+    {
+      format->Release ();
+      format = NULL;
+    } // end IF
+
+    //if (!Stream_Module_Device_Tools::copyMediaType (*rhs_in.format,
+    //                                                format))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), continuing\n")));
+    struct _AMMediaType media_type;
+    ACE_OS::memset (&media_type, 0, sizeof (media_type));
+    HRESULT result = MFInitAMMediaTypeFromMFMediaType (rhs_in.format,
+                                                       GUID_NULL,
+                                                       &media_type);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto continue_;
+    } // end IF
+
+    result = MFInitMediaTypeFromAMMediaType (format,
+                                             &media_type);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      Stream_Module_Device_Tools::freeMediaType (media_type);
+
+      goto continue_;
+    } // end IF
+
+    // clean up
+    Stream_Module_Device_Tools::freeMediaType (media_type);
+continue_:
 #else
-//    format = rhs_in.format;
+    format = rhs_in.format;
 #endif
     userData = (userData ? userData : rhs_in.userData);
 
@@ -219,7 +298,10 @@ struct Test_I_Source_Stream_SessionData
 
   Test_I_Source_ConnectionState* connectionState;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType*           mediaType;
+  //struct _AMMediaType*           format;
+  IDirect3DDevice9Ex*            direct3DDevice;
+  IMFMediaType*                  format;
+  UINT                           resetToken; // direct 3D manager 'id'
 #else
   struct v4l2_format             format;
   struct v4l2_fract              frameRate;
@@ -240,12 +322,12 @@ struct Test_I_Source_StreamConfiguration
 };
 
 struct Test_I_Source_StreamState
-  : Stream_State
+ : Stream_State
 {
   inline Test_I_Source_StreamState ()
-    : Stream_State ()
-    , currentSessionData (NULL)
-    , userData (NULL)
+   : Stream_State ()
+   , currentSessionData (NULL)
+   , userData (NULL)
   {};
 
   Test_I_Source_Stream_SessionData* currentSessionData;

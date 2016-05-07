@@ -29,8 +29,11 @@
 #include "stream_streammodule_base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "stream_dev_cam_source_directshow.h"
-#include "stream_vis_target_directshow.h"
+//#include "stream_dev_cam_source_directshow.h"
+#include "stream_dev_cam_source_mediafoundation.h"
+//#include "stream_vis_target_directshow.h"
+//#include "stream_vis_target_mediafoundation.h"
+#include "stream_vis_target_direct3d.h"
 #else
 #include "stream_dev_cam_source_v4l.h"
 #include "stream_vis_gtk_drawingarea.h"
@@ -45,19 +48,32 @@
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_MUTEX,
+//typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_MUTEX,
+//
+//                                           Stream_CamSave_SessionMessage,
+//                                           Stream_CamSave_Message,
+//
+//                                           Stream_CamSave_ModuleHandlerConfiguration,
+//
+//                                           Stream_State,
+//
+//                                           Stream_CamSave_SessionData,
+//                                           Stream_CamSave_SessionData_t,
+//
+//                                           Stream_CamSave_StatisticData> Stream_CamSave_Module_Source;
+typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_MUTEX,
 
-                                           Stream_CamSave_SessionMessage,
-                                           Stream_CamSave_Message,
+                                                Stream_CamSave_SessionMessage,
+                                                Stream_CamSave_Message,
 
-                                           Stream_CamSave_ModuleHandlerConfiguration,
+                                                Stream_CamSave_ModuleHandlerConfiguration,
 
-                                           Stream_State,
+                                                Stream_State,
 
-                                           Stream_CamSave_SessionData,
-                                           Stream_CamSave_SessionData_t,
+                                                Stream_CamSave_SessionData,
+                                                Stream_CamSave_SessionData_t,
 
-                                           Stream_CamSave_StatisticData> Stream_CamSave_Module_Source;
+                                                Stream_CamSave_StatisticData> Stream_CamSave_Module_Source;
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_SYNCH_MUTEX,
                                       ////
@@ -124,13 +140,27 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                  // task
                           Stream_CamSave_Module_AVIEncoder);             // name
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Vis_Target_DirectShow_T<Stream_CamSave_SessionMessage,
-                                       Stream_CamSave_Message,
-                                       ///
-                                       Stream_CamSave_ModuleHandlerConfiguration,
-                                       ///
-                                       Stream_CamSave_SessionData,
-                                       Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
+//typedef Stream_Vis_Target_DirectShow_T<Stream_CamSave_SessionMessage,
+//                                       Stream_CamSave_Message,
+//                                       ///
+//                                       Stream_CamSave_ModuleHandlerConfiguration,
+//                                       ///
+//                                       Stream_CamSave_SessionData,
+//                                       Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
+//typedef Stream_Vis_Target_MediaFoundation_T<Stream_CamSave_SessionMessage,
+//                                            Stream_CamSave_Message,
+//                                            
+//                                            Stream_CamSave_ModuleHandlerConfiguration,
+//                                            
+//                                            Stream_CamSave_SessionData,
+//                                            Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
+typedef Stream_Vis_Target_Direct3D_T<Stream_CamSave_SessionMessage,
+                                     Stream_CamSave_Message,
+                                     /////
+                                     Stream_CamSave_ModuleHandlerConfiguration,
+                                     /////
+                                     Stream_CamSave_SessionData,
+                                     Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
 #else
 typedef Stream_Module_Vis_GTK_DrawingArea_T<Stream_CamSave_SessionMessage,
                                             Stream_CamSave_Message,

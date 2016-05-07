@@ -189,61 +189,10 @@ Stream_Module_Net_IO_Stream_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::initialize"));
 
+  bool result = false;
+
   // sanity check(s)
   ACE_ASSERT (!this->isRunning ());
-
-  if (inherited::isInitialized_)
-  {
-    // *TODO*: move this to stream_base.inl ?
-    int result = -1;
-    const typename inherited::MODULE_T* module_p = NULL;
-    typename inherited::IMODULE_T* imodule_p = NULL;
-    for (typename inherited::ITERATOR_T iterator (*this);
-         (iterator.next (module_p) != 0);
-         iterator.advance ())
-    {
-      if ((module_p == inherited::head ()) ||
-          (module_p == inherited::tail ()))
-        continue;
-
-      // need a downcast...
-      imodule_p =
-        dynamic_cast<typename inherited::IMODULE_T*> (const_cast<typename inherited::MODULE_T*> (module_p));
-      if (!imodule_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule> failed, aborting\n"),
-                    module_p->name ()));
-        return false;
-      } // end IF
-      if (imodule_p->isFinal ())
-      {
-        //ACE_ASSERT (module_p == configuration_in.module);
-        result = inherited::remove (module_p->name (),
-                                    ACE_Module_Base::M_DELETE_NONE);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", aborting\n"),
-                      module_p->name ()));
-          return false;
-        } // end IF
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("removed final module (was: \"%s\")...\n"),
-                    module_p->name ()));
-        imodule_p->reset ();
-
-        break; // done
-      } // end IF
-    } // end FOR
-
-    if (resetSessionData_in &&
-        inherited::sessionData_)
-    {
-      inherited::sessionData_->decrease ();
-      inherited::sessionData_ = NULL;
-    } // end IF
-  } // end IF
 
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in,
@@ -266,20 +215,34 @@ Stream_Module_Net_IO_Stream_T<LockType,
     //  &const_cast<StateType&> (inherited::state ());
   } // end IF
 
-  // things to be done here:
-  // [- initialize base class]
-  // ------------------------------------
-  // - initialize notification strategy (if any)
-  // ------------------------------------
-  // - push the final module onto the stream (if any)
-  // ------------------------------------
-  // - initialize modules
-  // - push them onto the stream (tail-first) !
-  // ------------------------------------
+  // *IMPORTANT NOTE*: a connection data processing stream may be appended
+  //                   ('outbound' scenario) or prepended ('inbound' (e.g.
+  //                   listener-based) scenario) to another stream. In the first
+  //                   case, the net io (head) module behaves in a somewhat
+  //                   particular manner, as it may be neither 'active' (run a
+  //                   dedicated thread) nor 'passive' (borrow calling thread in
+  //                   start()). Instead, it can behave as a regular
+  //                   synchronous (i.e. passive) module; this reduces the
+  //                   thread-count and generally improves efficiency
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
+  // *TODO*: remove type inference
+  bool reset_configuration = false;
+  bool is_active, is_passive;
+  if (!configuration_in.moduleHandlerConfiguration->inbound)
+  {
+    is_active = configuration_in.moduleHandlerConfiguration->active;
+    is_passive = configuration_in.moduleHandlerConfiguration->passive;
 
-  //  configuration_in.moduleConfiguration.streamState = &state_;
+    configuration_in.moduleHandlerConfiguration->active = false;
+    configuration_in.moduleHandlerConfiguration->passive = false;
+
+    reset_configuration = true;
+  } // end IF
 
   // ---------------------------------------------------------------------------
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.moduleConfiguration);
 
   // ******************* IO ************************
   IO_.initialize (*configuration_in.moduleConfiguration);
@@ -288,21 +251,21 @@ Stream_Module_Net_IO_Stream_T<LockType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n")));
-    return false;
+    goto reset;
   } // end IF
   if (!IOWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOWriter_T, aborting\n"),
                 IO_.name ()));
-    return false;
+    goto reset;
   } // end IF
   if (!IOWriter_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOWriter_T, aborting\n"),
                 IO_.name ()));
-    return false;
+    goto reset;
   } // end IF
 //  IOWriter_impl_p->reset ();
   READER_T* IOReader_impl_p = dynamic_cast<READER_T*> (IO_.reader ());
@@ -310,14 +273,14 @@ Stream_Module_Net_IO_Stream_T<LockType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOReader_T> failed, aborting\n")));
-    return false;
+    goto reset;
   } // end IF
   if (!IOReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOReader_T, aborting\n"),
                 IO_.name ()));
-    return false;
+    goto reset;
   } // end IF
   //if (!IOReader_impl_p->initialize (inherited::state_))
   //{
@@ -336,7 +299,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to setup pipeline, aborting\n")));
-      return false;
+      goto reset;
     } // end IF
 
   // -------------------------------------------------------------
@@ -347,7 +310,16 @@ Stream_Module_Net_IO_Stream_T<LockType,
   // OK: all went well
   inherited::isInitialized_ = true;
 
-  return true;
+  result = true;
+
+reset:
+  if (reset_configuration)
+  {
+    configuration_in.moduleHandlerConfiguration->active = is_active;
+    configuration_in.moduleHandlerConfiguration->passive = is_passive;
+  } // end IF
+
+  return result;
 }
 
 template <typename LockType,

@@ -34,6 +34,8 @@
 #include "ace/Synch.h"
 #include "ace/Version.h"
 
+#include "mfapi.h"
+
 #ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
 #include "valgrind/valgrind.h"
 #endif
@@ -444,108 +446,237 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-do_initialize_directshow (const std::string& deviceName_in,
-                          IGraphBuilder*& IGraphBuilder_out,
-                          IAMStreamConfig*& IAMStreamConfig_out,
-                          bool coInitialize_in)
+//do_initialize_directshow (const std::string& deviceName_in,
+//                          IGraphBuilder*& IGraphBuilder_out,
+//                          IAMStreamConfig*& IAMStreamConfig_out,
+//                          struct _AMMediaType*& mediaType_out,
+//                          bool coInitialize_in)
+do_initialize_directshow (bool coInitialize_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
   HRESULT result = E_FAIL;
+  //std::list<std::wstring> filter_pipeline;
 
   // sanity check(s)
-  ACE_ASSERT (!IGraphBuilder_out);
-  ACE_ASSERT (!IAMStreamConfig_out);
+  //ACE_ASSERT (!IGraphBuilder_out);
+  //ACE_ASSERT (!IAMStreamConfig_out);
+  ////ACE_ASSERT (!mediaType_out);
 
   if (!coInitialize_in)
     goto continue_;
 
-  result = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  result = CoInitializeEx (NULL,
+                           (COINIT_MULTITHREADED    |
+                            COINIT_DISABLE_OLE1DDE  |
+                            COINIT_SPEED_OVER_MEMORY));
+  if (FAILED (result))
+  {
+    // *NOTE*: most probable reason: already initialized (happens in the debugger)
+    //         --> continue
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  } // end IF
+
+  result = MFStartup (MF_VERSION,
+                      MFSTARTUP_LITE);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoInitializeEx(COINIT_MULTITHREADED): \"%s\", continuing\n"),
+                ACE_TEXT ("failed to MFStartup(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
+    goto error;
   } // end IF
 
 continue_:
   Stream_Module_Device_Tools::initialize ();
 
-  IAMBufferNegotiation* buffer_negotiation_p = NULL;
-  if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
-                                                    IGraphBuilder_out,
-                                                    buffer_negotiation_p,
-                                                    IAMStreamConfig_out))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-                ACE_TEXT (deviceName_in.c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (IGraphBuilder_out);
-  ACE_ASSERT (buffer_negotiation_p);
-  ACE_ASSERT (IAMStreamConfig_out);
+  //IAMBufferNegotiation* buffer_negotiation_p = NULL;
+  //if (!Stream_Module_Device_Tools::loadDeviceGraph (deviceName_in,
+  //                                                  IGraphBuilder_out,
+  //                                                  buffer_negotiation_p,
+  //                                                  IAMStreamConfig_out))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
+  //              ACE_TEXT (deviceName_in.c_str ())));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (IGraphBuilder_out);
+  //ACE_ASSERT (buffer_negotiation_p);
+  //ACE_ASSERT (IAMStreamConfig_out);
 
-  buffer_negotiation_p->Release ();
+  //buffer_negotiation_p->Release ();
 
-  std::list<std::wstring> filter_pipeline;
+  //IMediaFilter* media_filter_p = NULL;
 
-  struct _AMMediaType* media_type_p = NULL;
-  if (!Stream_Module_Device_Tools::getCaptureFormat (IGraphBuilder_out,
-                                                     media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
-    goto error;
-  } // end IF
-  ACE_ASSERT (media_type_p);
+  //ACE_ASSERT (mediaType_out);
+  //Stream_Module_Device_Tools::freeMediaType (*mediaType_out);
 
-  if (!Stream_Module_Device_Tools::loadRendererGraph (*media_type_p,
-                                                      NULL,
-                                                      IGraphBuilder_out,
-                                                      filter_pipeline))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererGraph(), aborting\n")));
-    goto error;
-  } // end IF
+  //ACE_ASSERT (!mediaType_out->pbFormat);
+  //mediaType_out->pbFormat =
+  //  static_cast<BYTE*> (CoTaskMemAlloc (sizeof (struct tagVIDEOINFO)));
+  //if (!mediaType_out->pbFormat)
+  //{
+  //  ACE_DEBUG ((LM_CRITICAL,
+  //              ACE_TEXT ("failed to CoTaskMemAlloc(%u): \"%m\", aborting\n"),
+  //              sizeof (struct tagVIDEOINFO)));
+  //  goto error;
+  //} // end IF
+  //ACE_OS::memset (mediaType_out->pbFormat, 0, sizeof (struct tagVIDEOINFO));
+  //struct tagVIDEOINFO* video_info_p = NULL;
+  //  reinterpret_cast<struct tagVIDEOINFO*> (mediaType_out->pbFormat);
 
-  IMediaFilter* media_filter_p = NULL;
-  result = IGraphBuilder_out->QueryInterface (IID_IMediaFilter,
-                                              (void**)&media_filter_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (media_filter_p);
-  result = media_filter_p->SetSyncSource (NULL);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  media_filter_p->Release ();
+  //video_info_p->AvgTimePerFrame = 333333; // --> 30 fps
+
+  //// *TODO*: make this configurable (and part of a protocol)
+  //video_info_p->bmiHeader.biSize = sizeof (struct tagBITMAPINFOHEADER);
+  //video_info_p->bmiHeader.biWidth = 320;
+  //video_info_p->bmiHeader.biHeight = 240;
+  //video_info_p->bmiHeader.biPlanes = 1;
+  ////video_info_p->bmiHeader.biBitCount = 24;
+  //video_info_p->bmiHeader.biBitCount = 32;
+  //video_info_p->bmiHeader.biCompression = BI_RGB;
+  //video_info_p->bmiHeader.biSizeImage =
+  //  GetBitmapSize (&video_info_p->bmiHeader);
+  ////video_info_p->bmiHeader.biXPelsPerMeter;
+  ////video_info_p->bmiHeader.biYPelsPerMeter;
+  ////video_info_p->bmiHeader.biClrUsed;
+  ////video_info_p->bmiHeader.biClrImportant;
+
+  //video_info_p->dwBitErrorRate = 0;
+  //video_info_p->dwBitRate = 36864000;
+
+  //BOOL result_2 = SetRectEmpty (&video_info_p->rcSource);
+  //ACE_ASSERT (result_2);
+  //video_info_p->rcSource.right = 320;
+  //video_info_p->rcSource.bottom = 240;
+  //result_2 = SetRectEmpty (&video_info_p->rcTarget);
+  //ACE_ASSERT (result_2);
+  //video_info_p->rcTarget.right = 320;
+  //video_info_p->rcTarget.bottom = 240;
+
+  //video_info_p->bmiColors = ;
+  //video_info_p->dwBitMasks = {0, 0, 0};
+  //video_info_p->TrueColorInfo = ;
+
+  //mediaType_out->majortype = MEDIATYPE_Video;
+  //// work out the GUID for the subtype from the header info
+  //// *TODO*: cannot use GetBitmapSubtype(), as it returns MEDIASUBTYPE_RGB32
+  ////         for uncompressed RGB (the Color Space Converter expects
+  ////         MEDIASUBTYPE_ARGB32)
+  //struct _GUID sub_type = MEDIASUBTYPE_MJPG;
+  ////struct _GUID sub_type = GetBitmapSubtype (&video_info_p->bmiHeader);
+  ////if (sub_type == GUID_NULL)
+  ////{
+  ////  ACE_DEBUG ((LM_ERROR,
+  ////              ACE_TEXT ("failed to GetBitmapSubtype(), falling back\n")));
+  ////  sub_type = MEDIASUBTYPE_Avi; // fallback
+  ////} // end IF
+  //mediaType_out->bFixedSizeSamples = true;
+  //mediaType_out->bTemporalCompression = false;
+  ////mediaType_out->lSampleSize = video_info_p->bmiHeader.biSizeImage;
+  //mediaType_out->formattype = FORMAT_VideoInfo;
+  //mediaType_out->cbFormat = sizeof (struct tagVIDEOINFO);
+
+  //if (!Stream_Module_Device_Tools::getCaptureFormat (IGraphBuilder_out,
+  //                                                   mediaType_out))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (mediaType_out);
+
+  //video_info_p =
+  //  reinterpret_cast<struct tagVIDEOINFO*> (mediaType_out->pbFormat);
+
+  //// *NOTE*: 320x240 * 4 * 30 * 8
+  //video_info_p->dwBitRate = 73728000;
+
+  //BOOL result_2 = SetRectEmpty (&video_info_p->rcSource);
+  //ACE_ASSERT (result_2);
+  //video_info_p->rcSource.right = 320;
+  //video_info_p->rcSource.bottom = 240;
+  //result_2 = SetRectEmpty (&video_info_p->rcTarget);
+  //ACE_ASSERT (result_2);
+  //video_info_p->rcTarget.right = 320;
+  //video_info_p->rcTarget.bottom = 240;
+
+  //video_info_p->bmiHeader.biWidth = 320;
+  //video_info_p->bmiHeader.biHeight = 240;
+  //video_info_p->bmiHeader.biBitCount = 32;
+  //video_info_p->bmiHeader.biSizeImage =
+  //  GetBitmapSize (&video_info_p->bmiHeader);
+
+  //mediaType_out->subtype = sub_type;
+  //mediaType_out->lSampleSize = video_info_p->bmiHeader.biSizeImage;
+
+  //if (!Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder_out,
+  //                                                   *mediaType_out))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+  //  goto error;
+  //} // end IF
+
+  //if (!Stream_Module_Device_Tools::loadRendererGraph (*mediaType_out,
+  //                                                    NULL,
+  //                                                    IGraphBuilder_out,
+  //                                                    filter_pipeline))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererGraph(), aborting\n")));
+  //  goto error;
+  //} // end IF
+
+  //result = IGraphBuilder_out->QueryInterface (IID_IMediaFilter,
+  //                                            (void**)&media_filter_p);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (media_filter_p);
+  //result = media_filter_p->SetSyncSource (NULL);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+  //media_filter_p->Release ();
 
   return true;
 
 error:
-  if (media_filter_p)
-    media_filter_p->Release ();
+  //if (media_filter_p)
+  //  media_filter_p->Release ();
 
-  if (media_type_p)
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //if (mediaType_out)
+  //{
+  //  Stream_Module_Device_Tools::deleteMediaType (mediaType_out);
+  //  mediaType_out = NULL;
+  //} // end IF
 
-  IGraphBuilder_out->Release ();
-  IGraphBuilder_out = NULL;
+  //IGraphBuilder_out->Release ();
+  //IGraphBuilder_out = NULL;
 
-  IAMStreamConfig_out->Release ();
-  IAMStreamConfig_out = NULL;
+  //IAMStreamConfig_out->Release ();
+  //IAMStreamConfig_out = NULL;
+
+  result = MFShutdown ();
+  if (FAILED (result))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  if (coInitialize_in)
+    CoUninitialize ();
 
   return false;
 }
@@ -556,18 +687,25 @@ do_finalize_directshow (Test_I_Source_GTK_CBData& CBData_in)
   STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
 
   HRESULT result = E_FAIL;
-  if (CBData_in.streamConfiguration)
-  {
-    CBData_in.streamConfiguration->Release ();
-    CBData_in.streamConfiguration = NULL;
-  } // end IF
-  if (CBData_in.configuration->moduleHandlerConfiguration.builder)
-  {
-    CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
-    CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
-  } // end IF
 
-    //CoUninitialize ();
+  //if (CBData_in.streamConfiguration)
+  //{
+  //  CBData_in.streamConfiguration->Release ();
+  //  CBData_in.streamConfiguration = NULL;
+  //} // end IF
+  //if (CBData_in.configuration->moduleHandlerConfiguration.builder)
+  //{
+  //  CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
+  //  CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
+  //} // end IF
+
+  result = MFShutdown ();
+  if (FAILED (result))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  CoUninitialize ();
 }
 #endif
 
@@ -625,16 +763,18 @@ do_work (unsigned int bufferSize_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: in UI mode COM has already been initialized for this thread (why ?)
-  if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
-                                 configuration.moduleHandlerConfiguration.builder,
-                                 CBData_in.streamConfiguration,
-                                 UIDefinitionFilename_in.empty ())) // initialize COM ?
+  //if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
+  //                               configuration.moduleHandlerConfiguration.builder,
+  //                               CBData_in.streamConfiguration,
+  //                               configuration.moduleHandlerConfiguration.format,
+  //                               UIDefinitionFilename_in.empty ())) // initialize COM ?
+  if (!do_initialize_directshow (UIDefinitionFilename_in.empty ())) // initialize COM ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
     return;
   } // end IF
-  ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
+  //ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
   ACE_ASSERT (CBData_in.streamConfiguration);
 #endif
 
@@ -713,8 +853,8 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
-  configuration.moduleHandlerConfiguration.active =
-      !UIDefinitionFilename_in.empty ();
+  //configuration.moduleHandlerConfiguration.active =
+  //    !UIDefinitionFilename_in.empty ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   configuration.moduleHandlerConfiguration.device = deviceFilename_in;

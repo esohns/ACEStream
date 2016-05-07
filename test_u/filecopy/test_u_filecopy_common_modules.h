@@ -42,7 +42,7 @@ typedef Stream_Module_FileReader_T<ACE_SYNCH_MUTEX,
                                    Stream_Filecopy_SessionMessage,
                                    Stream_Filecopy_Message,
                                    //////
-                                   Stream_Test_U_ModuleHandlerConfiguration,
+                                   Stream_Filecopy_ModuleHandlerConfiguration,
                                    //////
                                    Stream_State,
                                    //////
@@ -50,11 +50,11 @@ typedef Stream_Module_FileReader_T<ACE_SYNCH_MUTEX,
                                    Stream_Filecopy_SessionData_t,
                                    //////
                                    Stream_Statistic> Stream_Filecopy_Module_FileReader;
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                       // task synch type
-                              Common_TimePolicy_t,                // time policy
-                              Stream_ModuleConfiguration,         // module configuration type
-                              Stream_ModuleHandlerConfiguration,  // module handler configuration type
-                              Stream_Filecopy_Module_FileReader); // writer type
+DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                               // task synch type
+                              Common_TimePolicy_t,                        // time policy
+                              Stream_ModuleConfiguration,                 // module configuration type
+                              Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_Filecopy_Module_FileReader);         // writer type
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
@@ -75,7 +75,7 @@ typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
 DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                  // task synch type
                           Common_TimePolicy_t,                           // time policy type
                           Stream_ModuleConfiguration,                    // module configuration type
-                          Stream_ModuleHandlerConfiguration,             // module handler configuration type
+                          Stream_Filecopy_ModuleHandlerConfiguration,    // module handler configuration type
                           Stream_Filecopy_Module_Statistic_ReaderTask_t, // reader type
                           Stream_Filecopy_Module_Statistic_WriterTask_t, // writer type
                           Stream_Filecopy_Module_RuntimeStatistic);      // name
@@ -83,13 +83,13 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                  // task
 typedef Stream_Module_FileWriter_T<Stream_Filecopy_SessionMessage,
                                    Stream_Filecopy_Message,
                                    //////
-                                   Stream_Test_U_ModuleHandlerConfiguration,
+                                   Stream_Filecopy_ModuleHandlerConfiguration,
                                    //////
                                    Stream_Filecopy_SessionData> Stream_Filecopy_Module_FileWriter;
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                       // task synch type
-                              Common_TimePolicy_t,                // time policy
-                              Stream_ModuleConfiguration,         // module configuration type
-                              Stream_ModuleHandlerConfiguration,  // module handler configuration type
-                              Stream_Filecopy_Module_FileWriter); // writer type
+DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                               // task synch type
+                              Common_TimePolicy_t,                        // time policy
+                              Stream_ModuleConfiguration,                 // module configuration type
+                              Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_Filecopy_Module_FileWriter);         // writer type
 
 #endif

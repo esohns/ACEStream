@@ -403,13 +403,14 @@ do_work (unsigned int bufferSize_in,
                                                         &heap_allocator,                     // heap allocator handle
                                                         true);                               // block ?
   // ********************** module configuration data **************************
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.active =
-      !UIDefinitionFile_in.empty ();
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.printProgressDot =
-      UIDefinitionFile_in.empty ();
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.fileName =
-      fileName_in;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.targetFileName =
+  configuration.moduleHandlerConfiguration.active =
+    !UIDefinitionFile_in.empty ();
+  configuration.moduleHandlerConfiguration.printProgressDot =
+    UIDefinitionFile_in.empty ();
+  configuration.moduleHandlerConfiguration.fileName = fileName_in;
+  configuration.moduleHandlerConfiguration.streamConfiguration =
+    &configuration.streamConfiguration;
+  configuration.moduleHandlerConfiguration.targetFileName =
       (targetFileName_in.empty () ? Common_File_Tools::getTempDirectory ()
                                   : targetFileName_in);
 
@@ -421,13 +422,11 @@ do_work (unsigned int bufferSize_in,
     (!UIDefinitionFile_in.empty () ? &event_handler
                                    : NULL);
   configuration.streamConfiguration.moduleConfiguration =
-    &configuration.streamConfiguration.moduleConfiguration_2;
-  configuration.streamConfiguration.moduleConfiguration_2.streamConfiguration =
+    &configuration.moduleConfiguration;
+  configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
-    &configuration.streamConfiguration.moduleHandlerConfiguration_2;
-  configuration.streamConfiguration.moduleHandlerConfiguration_2.streamConfiguration =
-    &configuration.streamConfiguration;
+    &configuration.moduleHandlerConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
   configuration.streamConfiguration.statisticReportingInterval =
       statisticReportingInterval_in;

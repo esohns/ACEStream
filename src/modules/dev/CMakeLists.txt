@@ -36,6 +36,9 @@ set (${PROJECT_NAME}_Device_LIB_SRCS
      stream_dev_cam_source_directshow.cpp
      stream_dev_cam_source_directshow.h
      stream_dev_cam_source_directshow.inl
+     stream_dev_cam_source_mediafoundation.cpp
+     stream_dev_cam_source_mediafoundation.h
+     stream_dev_cam_source_mediafoundation.inl
      stdafx.cpp
      stdafx.h)
 elseif (UNIX)
@@ -60,8 +63,15 @@ add_dependencies (${PROJECT_NAME}_Device ${PROJECT_NAME})
 
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Device ${ACE_LIBRARY})
+ target_link_libraries (${PROJECT_NAME}_Device shlwapi.lib)
+ target_link_libraries (${PROJECT_NAME}_Device d3d9.lib)
+ target_link_libraries (${PROJECT_NAME}_Device dxva2.lib)
+ target_link_libraries (${PROJECT_NAME}_Device mf.lib)
+ target_link_libraries (${PROJECT_NAME}_Device mfplat.lib)
+ target_link_libraries (${PROJECT_NAME}_Device mfreadwrite.lib)
+ target_link_libraries (${PROJECT_NAME}_Device mfuuid.lib)
  target_link_libraries (${PROJECT_NAME}_Device strmiids.lib)
-  if (CMAKE_BUILD_TYPE STREQUAL Debug)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
   link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
   target_link_libraries (${PROJECT_NAME}_Device ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
  else ()
@@ -80,18 +90,31 @@ export (TARGETS ${PROJECT_NAME}_Device
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
-install (FILES
-         stream_dev_exports.h
-         stream_dev_common.h
-         stream_dev_defines.h
-         stream_dev_tools.h
-         stream_dev_tools.inl
-         stream_dev_cam_source_directshow.h
-         stream_dev_cam_source_directshow.inl
-         stream_dev_cam_source_v4l.h
-         stream_dev_cam_source_v4l.inl
-         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-         COMPONENT mod_include)
+if (WIN32)
+ install (FILES
+          stream_dev_exports.h
+          stream_dev_common.h
+          stream_dev_defines.h
+          stream_dev_tools.h
+          stream_dev_tools.inl
+          stream_dev_cam_source_directshow.h
+          stream_dev_cam_source_directshow.inl
+          stream_dev_cam_source_mediafoundation.h
+          stream_dev_cam_source_mediafoundation.inl
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+elseif (UNIX)
+ install (FILES
+          stream_dev_exports.h
+          stream_dev_common.h
+          stream_dev_defines.h
+          stream_dev_tools.h
+          stream_dev_tools.inl
+          stream_dev_cam_source_v4l.h
+          stream_dev_cam_source_v4l.inl
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+endif ()
 install (TARGETS ${PROJECT_NAME}_Device
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib

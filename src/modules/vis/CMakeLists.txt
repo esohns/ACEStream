@@ -36,9 +36,15 @@ if (WIN32)
       stream_vis_gtk_drawingarea.cpp
       stream_vis_gtk_drawingarea.h
       stream_vis_gtk_drawingarea.inl
+      stream_vis_target_direct3d.cpp
+      stream_vis_target_direct3d.h
+      stream_vis_target_direct3d.inl
       stream_vis_target_directshow.cpp
       stream_vis_target_directshow.h
       stream_vis_target_directshow.inl
+      stream_vis_target_mediafoundation.cpp
+      stream_vis_target_mediafoundation.h
+      stream_vis_target_mediafoundation.inl
       stream_vis_tools.cpp
       stream_vis_tools.h
       stdafx.cpp
@@ -64,6 +70,7 @@ add_dependencies (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
+ target_link_libraries (${PROJECT_NAME}_Visualization mfplat.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization strmiids.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization Common)
 endif ()

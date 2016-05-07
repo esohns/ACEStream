@@ -26,6 +26,9 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "dvdmedia.h"
 //#include "ksuuids.h"
+#include "mfapi.h"
+#include "mferror.h"
+//#include "mftransform.h"
 #include "mtype.h"
 #include "strmif.h"
 #include "qedit.h"
@@ -52,6 +55,7 @@ Stream_Module_Device_Tools::initialize ()
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::initialize"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // DirectShow
   Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Video, ACE_TEXT_ALWAYS_CHAR ("vids")));
   Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Audio, ACE_TEXT_ALWAYS_CHAR ("auds")));
   Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_Text, ACE_TEXT_ALWAYS_CHAR ("txts")));
@@ -77,6 +81,19 @@ Stream_Module_Device_Tools::initialize ()
 
   Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_DVD_ENCRYPTED_PACK, ACE_TEXT_ALWAYS_CHAR ("DVD_ENCRYPTED_PACK")));
   Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MEDIATYPE_DVD_NAVIGATION, ACE_TEXT_ALWAYS_CHAR ("DVD_NAVIGATION")));
+
+  // Media Foundation
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Default, ACE_TEXT_ALWAYS_CHAR ("MF default")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Audio, ACE_TEXT_ALWAYS_CHAR ("MF audio")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Video, ACE_TEXT_ALWAYS_CHAR ("MF video")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Protected, ACE_TEXT_ALWAYS_CHAR ("MF protected")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_SAMI, ACE_TEXT_ALWAYS_CHAR ("MF SAMI")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Script, ACE_TEXT_ALWAYS_CHAR ("MF script")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Image, ACE_TEXT_ALWAYS_CHAR ("MF image")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_HTML, ACE_TEXT_ALWAYS_CHAR ("MF HTML")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Binary, ACE_TEXT_ALWAYS_CHAR ("MF binary")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_FileTransfer, ACE_TEXT_ALWAYS_CHAR ("MF file transfer")));
+  Stream_Module_Device_Tools::Stream_MediaMajorType2StringMap.insert (std::make_pair (MFMediaType_Stream, ACE_TEXT_ALWAYS_CHAR ("MF stream")));
 
   /////////////////////////////////////// AUDIO
   // uncompressed audio
@@ -403,11 +420,52 @@ Stream_Module_Device_Tools::dump (IPin* pin_in)
 
   ienum_media_types_p->Release ();
 }
+void
+Stream_Module_Device_Tools::dump (IMFSourceReader* IMFSourceReader_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::dump"));
+
+  // sanity check(s)
+  ACE_ASSERT (IMFSourceReader_in);
+
+  HRESULT result = S_OK;
+  DWORD count = 0;
+  IMFMediaType* media_type_p = NULL;
+  while (true)
+  {
+    media_type_p = NULL;
+    result =
+      IMFSourceReader_in->GetNativeMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+                                              count,
+                                              &media_type_p);
+    if (FAILED (result)) break;
+
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("#%d: %s\n"),
+                count + 1,
+                ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (media_type_p).c_str ())));
+
+    // clean up
+    media_type_p->Release ();
+
+    ++count;
+  } // end WHILE
+  if (result != MF_E_NO_MORE_TYPES)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", returning\n"),
+                count,
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+}
 
 IPin*
 Stream_Module_Device_Tools::pin (IBaseFilter* filter_in,
                                  enum _PinDirection direction_in)
 {
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::pin"));
+
   IPin* result = NULL;
 
   // sanity check(s)
@@ -553,6 +611,583 @@ Stream_Module_Device_Tools::name (IBaseFilter* filter_in)
     filter_info.pGraph->Release ();
 
   return result;
+}
+
+bool
+Stream_Module_Device_Tools::getSourceReader (IMFMediaSource*& mediaSource_inout,
+                                             const IDirect3DDeviceManager9* IDirect3DDeviceManager9_in,
+                                             const IMFSourceReaderCallback* callback_in,
+                                             IMFSourceReader*& sourceReader_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getSourceReader"));
+
+  bool result = false;
+
+  if (sourceReader_out)
+  {
+    sourceReader_out->Release ();
+    sourceReader_out = NULL;
+  } // end IF
+
+  if (!mediaSource_inout)
+    if (!Stream_Module_Device_Tools::getMediaSource (std::string (),
+                                                     mediaSource_inout))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
+      return false;
+    } // end IF
+  ACE_ASSERT (mediaSource_inout);
+
+  IMFAttributes* attributes_p = NULL;
+  HRESULT result_2 = MFCreateAttributes (&attributes_p, 10);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    return false;
+  } // end IF
+
+  IUnknown* iunknown_p = NULL;
+  result_2 = attributes_p->SetUINT32 (MF_READWRITE_DISABLE_CONVERTERS,
+                                      FALSE);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_READWRITE_DISABLE_CONVERTERS): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+
+  if (IDirect3DDeviceManager9_in)
+  {
+    result_2 = attributes_p->SetUINT32 (MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS,
+                                        TRUE);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
+    } // end IF
+  } // end IF
+
+  if (callback_in)
+  {
+    iunknown_p = const_cast<IMFSourceReaderCallback*> (callback_in);
+    result_2 =
+      attributes_p->SetUnknown (MF_SOURCE_READER_ASYNC_CALLBACK,
+                                iunknown_p);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFAttributes::SetUnknown(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
+    } // end IF
+  } // end IF
+
+  if (IDirect3DDeviceManager9_in)
+  {
+    iunknown_p =
+      const_cast<IDirect3DDeviceManager9*> (IDirect3DDeviceManager9_in);
+    result_2 =
+      attributes_p->SetUnknown (MF_SOURCE_READER_D3D_MANAGER,
+                                iunknown_p);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFAttributes::SetUnknown(MF_SOURCE_READER_D3D_MANAGER): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
+    } // end IF
+
+    result_2 = attributes_p->SetUINT32 (MF_SOURCE_READER_DISABLE_DXVA,
+                                        FALSE);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_DISABLE_DXVA): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
+    } // end IF
+  } // end IF
+
+  //result_2 = attributes_p->SetUnknown (MF_SOURCE_READER_MEDIASOURCE_CONFIG,
+  //                                     NULL); // IPropertyBag handle
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_MEDIASOURCE_CONFIG): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
+  //result_2 = attributes_p->SetUINT32 (MF_SOURCE_READER_MEDIASOURCE_CHARACTERISTICS,
+  //                                    TRUE);
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_MEDIASOURCE_CHARACTERISTICS): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
+  // *NOTE*: allow conversion from YUV to RGB-32 ?
+  // *NOTE*: "...Avoid this setting if you are using Direct3D to display the
+  //         video frames, because the GPU generally provides better video
+  //         processing capabilities. ..."
+  if (!IDirect3DDeviceManager9_in)
+  {
+    result_2 = attributes_p->SetUINT32 (MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING,
+                                        TRUE);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
+    } // end IF
+  } // end IF
+  else
+  {
+    // *NOTE*: "... If this attribute is TRUE, the
+    //         MF_READWRITE_DISABLE_CONVERTERS attribute must be FALSE. ..."
+    result_2 = attributes_p->SetUINT32 (MF_SOURCE_READER_ENABLE_ADVANCED_VIDEO_PROCESSING,
+                                        TRUE);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_ENABLE_ADVANCED_VIDEO_PROCESSING): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
+    } // end IF
+  } // end IF
+
+  result_2 = attributes_p->SetUINT32 (MF_SOURCE_READER_DISABLE_CAMERA_PLUGINS,
+                                      TRUE);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_DISABLE_CAMERA_PLUGINS): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+
+  //result_2 = attributes_p->SetUINT32 (MF_SOURCE_READER_DISCONNECT_MEDIASOURCE_ON_SHUTDOWN,
+  //                                    TRUE);
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_DISCONNECT_MEDIASOURCE_ON_SHUTDOWN): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
+  //result_2 = attributes_p->SetUINT32 (MF_SOURCE_READER_ENABLE_TRANSCODE_ONLY_TRANSFORMS,
+  //                                    FALSE);
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFAttributes::SetUINT32(MF_SOURCE_READER_ENABLE_TRANSCODE_ONLY_TRANSFORMS): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
+
+  //result_2 = attributes_p->SetUnknown (MFT_FIELDOFUSE_UNLOCK_Attribute,
+  //                                     NULL); // IMFFieldOfUseMFTUnlock handle
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFAttributes::SetUnknown(MFT_FIELDOFUSE_UNLOCK_Attribute): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
+
+  result_2 = MFCreateSourceReaderFromMediaSource (mediaSource_inout,
+                                                  attributes_p,
+                                                  &sourceReader_out);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateSourceReaderFromMediaSource(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+
+  result = true;
+
+error:
+  if (attributes_p)
+    attributes_p->Release ();
+
+  return result;
+}
+bool
+Stream_Module_Device_Tools::getMediaSource (const std::string& deviceName_in,
+                                            IMFMediaSource*& mediaSource_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getDeviceHandle"));
+
+  bool result = false;
+
+  if (mediaSource_out)
+  {
+    mediaSource_out->Release ();
+    mediaSource_out = NULL;
+  } // end IF
+
+  IMFAttributes* attributes_p = NULL;
+  HRESULT result_2 = MFCreateAttributes (&attributes_p, 1);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    return false;
+  } // end IF
+
+  result_2 =
+    attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+                           MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+
+  IMFActivate** devices_pp = NULL;
+  UINT32 count = 0;
+  result_2 = MFEnumDeviceSources (attributes_p,
+                                  &devices_pp,
+                                  &count);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (devices_pp);
+  if (count == 0)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("no capture devices found, aborting\n")));
+    goto error;
+  } // end IF
+
+  unsigned int index = 0;
+  if (!deviceName_in.empty ())
+  {
+    WCHAR friendly_name_string[BUFSIZ];
+    UINT32 length;
+    bool found = false;
+    for (UINT32 i = 0; i < count; i++)
+    {
+      ACE_OS::memset (friendly_name_string, 0, sizeof (friendly_name_string));
+      length = 0;
+      result_2 =
+        devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
+                                      friendly_name_string,
+                                      sizeof (friendly_name_string),
+                                      &length);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFActivate::GetString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        goto error;
+      } // end IF
+      if (ACE_OS::strcmp (friendly_name_string,
+                          ACE_TEXT_ALWAYS_WCHAR (deviceName_in.c_str ())) == 0)
+      {
+        found = true;
+        index = i;
+        break;
+      } // end IF
+    } // end FOR
+    if (!found)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("capture device (was: \"%s\") not found, aborting\n"),
+                  ACE_TEXT (deviceName_in.c_str ())));
+      goto error;
+    } // end IF
+  } // end IF
+  result_2 =
+    devices_pp[index]->ActivateObject (IID_PPV_ARGS (&mediaSource_out));
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFActivate::ActivateObject(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+
+  result = true;
+
+error:
+  if (attributes_p)
+    attributes_p->Release ();
+
+  for (UINT32 i = 0; i < count; i++)
+    devices_pp[i]->Release ();
+  CoTaskMemFree (devices_pp);
+
+  if (!result && mediaSource_out)
+  {
+    mediaSource_out->Release ();
+    mediaSource_out = NULL;
+  } // end IF
+
+  return result;
+}
+bool
+Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
+                                               const IMFMediaType* IMFMediaType_in,
+                                               IDirect3DDevice9Ex*& IDirect3DDevice9Ex_out,
+                                               struct _D3DPRESENT_PARAMETERS_& presentationParameters_out,
+                                               IDirect3DDeviceManager9*& IDirect3DDeviceManager9_out,
+                                               UINT& resetToken_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getDirect3DDevice"));
+
+  HRESULT result = E_FAIL;
+
+  // initialize return value(s)
+  if (IDirect3DDevice9Ex_out)
+  {
+    IDirect3DDevice9Ex_out->Release ();
+    IDirect3DDevice9Ex_out = NULL;
+  } // end IF
+  ACE_OS::memset (&presentationParameters_out,
+                  0,
+                  sizeof (struct _D3DPRESENT_PARAMETERS_));
+  if (IDirect3DDeviceManager9_out)
+  {
+    IDirect3DDeviceManager9_out->Release ();
+    IDirect3DDeviceManager9_out = NULL;
+  } // end IF
+  ACE_ASSERT (resetToken_out == 0);
+
+  UINT32 width, height;
+  result = MFGetAttributeSize (const_cast<IMFMediaType*> (IMFMediaType_in),
+                               MF_MT_FRAME_SIZE,
+                               &width, &height);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+
+  IDirect3D9Ex* Direct3D9_p = NULL;
+  result = Direct3DCreate9Ex (D3D_SDK_VERSION, &Direct3D9_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Direct3DCreate9Ex(%d): \"%s\", aborting\n"),
+                D3D_SDK_VERSION,
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+
+  struct _D3DDISPLAYMODE d3d_display_mode;
+  ACE_OS::memset (&d3d_display_mode,
+                  0,
+                  sizeof (struct _D3DDISPLAYMODE));
+  result = Direct3D9_p->GetAdapterDisplayMode (D3DADAPTER_DEFAULT,
+                                               &d3d_display_mode);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IDirect3D9Ex::GetAdapterDisplayMode(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = Direct3D9_p->CheckDeviceType (D3DADAPTER_DEFAULT,
+                                         D3DDEVTYPE_HAL,
+                                         d3d_display_mode.Format,
+                                         D3DFMT_X8R8G8B8,
+                                         TRUE);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IDirect3D9Ex::CheckDeviceType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
+  //if (Mode == "fullscreen")
+  //{
+  //  presentationParameters_out.BackBufferWidth = x;
+  //  presentationParameters_out.BackBufferHeight = y;
+  //} // end IF
+  //else if (Mode == "winmode")
+  //{
+  presentationParameters_out.BackBufferWidth = width;
+  presentationParameters_out.BackBufferHeight = height;
+  //} // end IF
+  presentationParameters_out.BackBufferFormat = D3DFMT_X8R8G8B8;
+  presentationParameters_out.BackBufferCount =
+    MODULE_DEV_CAM_MEDIAFOUNDATION_DEFAULT_BACK_BUFFERS;
+  //presentationParameters_out.MultiSampleType = ;
+  //presentationParameters_out.MultiSampleQuality = ;
+  presentationParameters_out.SwapEffect = D3DSWAPEFFECT_FLIP;
+  presentationParameters_out.hDeviceWindow = windowHandle_in;
+  presentationParameters_out.Windowed = true;
+  //presentationParameters_out.EnableAutoDepthStencil = ;
+  //presentationParameters_out.AutoDepthStencilFormat = ;
+  presentationParameters_out.Flags =
+    (D3DPRESENTFLAG_LOCKABLE_BACKBUFFER            |
+     //D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL           |
+     D3DPRESENTFLAG_DEVICECLIP                     |
+     D3DPRESENTFLAG_VIDEO);//                          |
+     //D3DPRESENTFLAG_NOAUTOROTATE                   |
+     //D3DPRESENTFLAG_UNPRUNEDMODE                   |
+     //D3DPRESENTFLAG_OVERLAY_LIMITEDRGB             |
+     //D3DPRESENTFLAG_OVERLAY_YCbCr_BT709            |
+     //D3DPRESENTFLAG_OVERLAY_YCbCr_xvYCC            |
+     //D3DPRESENTFLAG_RESTRICTED_CONTENT             |
+     //D3DPRESENTFLAG_RESTRICT_SHARED_RESOURCE_DRIVER);
+  //d3d_present_parameters.FullScreen_RefreshRateInHz = ;
+  presentationParameters_out.PresentationInterval =
+    D3DPRESENT_INTERVAL_IMMEDIATE;
+  DWORD behavior_flags = (//D3DCREATE_ADAPTERGROUP_DEVICE          |
+                          //D3DCREATE_DISABLE_DRIVER_MANAGEMENT    |
+                          //D3DCREATE_DISABLE_DRIVER_MANAGEMENT_EX |
+                          //D3DCREATE_DISABLE_PRINTSCREEN          |
+                          //D3DCREATE_DISABLE_PSGP_THREADING       |
+                          //D3DCREATE_ENABLE_PRESENTSTATS          |
+                          D3DCREATE_FPU_PRESERVE                 |
+                          D3DCREATE_HARDWARE_VERTEXPROCESSING    |
+                          //D3DCREATE_MIXED_VERTEXPROCESSING       |
+                          D3DCREATE_MULTITHREADED);//                |
+                          //D3DCREATE_NOWINDOWCHANGES              |
+                          //D3DCREATE_PUREDEVICE                   |
+                          //D3DCREATE_SCREENSAVER                  |
+                          //D3DCREATE_SOFTWARE_VERTEXPROCESSING);
+  result =
+    Direct3D9_p->CreateDeviceEx (D3DADAPTER_DEFAULT,          // adapter
+                                 D3DDEVTYPE_HAL,              // device type
+                                 windowHandle_in,             // focus window handle
+                                 behavior_flags,              // behavior flags
+                                 &presentationParameters_out, // presentation parameters
+                                 NULL,                        // (fullscreen) display mode
+                                 &IDirect3DDevice9Ex_out);    // return value: device handle
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IDirect3D9Ex::CreateDeviceEx(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  Direct3D9_p->Release ();
+  Direct3D9_p = NULL;
+
+  result = DXVA2CreateDirect3DDeviceManager9 (&resetToken_out,
+                                              &IDirect3DDeviceManager9_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to DXVA2CreateDirect3DDeviceManager9(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
+  result =
+    IDirect3DDeviceManager9_out->ResetDevice (IDirect3DDevice9Ex_out,
+                                              resetToken_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IDirect3DDeviceManager9::ResetDevice(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
+  goto continue_;
+
+error:
+  if (Direct3D9_p)
+    Direct3D9_p->Release ();
+  if (IDirect3DDevice9Ex_out)
+  {
+    IDirect3DDevice9Ex_out->Release ();
+    IDirect3DDevice9Ex_out = NULL;
+  } // end IF
+  ACE_OS::memset (&presentationParameters_out,
+                  0,
+                  sizeof (struct _D3DPRESENT_PARAMETERS_));
+  if (IDirect3DDeviceManager9_out)
+  {
+    IDirect3DDeviceManager9_out->Release ();
+    IDirect3DDeviceManager9_out = NULL;
+  } // end IF
+  resetToken_out = 0;
+
+  return false;
+
+continue_:
+  return true;
+}
+bool
+Stream_Module_Device_Tools::initializeDirect3DManager (const IDirect3DDevice9Ex* IDirect3DDevice9Ex_in,
+                                                       IDirect3DDeviceManager9*& IDirect3DDeviceManager9_out,
+                                                       UINT& resetToken_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::initializeDirect3DManager"));
+
+  HRESULT result = E_FAIL;
+
+  // initialize return value(s)
+  if (IDirect3DDeviceManager9_out)
+  {
+    IDirect3DDeviceManager9_out->Release ();
+    IDirect3DDeviceManager9_out = NULL;
+  } // end IF
+  ACE_ASSERT (resetToken_out == 0);
+
+  // sanity check(s)
+  ACE_ASSERT (IDirect3DDevice9Ex_in);
+
+  result =
+    DXVA2CreateDirect3DDeviceManager9 (&resetToken_out,
+                                       &IDirect3DDeviceManager9_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to DXVA2CreateDirect3DDeviceManager9(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
+  result =
+    IDirect3DDeviceManager9_out->ResetDevice (const_cast<IDirect3DDevice9Ex*> (IDirect3DDevice9Ex_in),
+                                              resetToken_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IDirect3DDeviceManager9::ResetDevice(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
+  goto continue_;
+
+error:
+  if (IDirect3DDeviceManager9_out)
+  {
+    IDirect3DDeviceManager9_out->Release ();
+    IDirect3DDeviceManager9_out = NULL;
+  } // end IF
+  resetToken_out = 0;
+
+  return false;
+
+continue_:
+  return true;
 }
 
 bool
@@ -2362,6 +2997,234 @@ Stream_Module_Device_Tools::getBufferNegotiation (IGraphBuilder* builder_in,
 }
 
 bool
+Stream_Module_Device_Tools::getCaptureFormat (IMFSourceReader* sourceReader_in,
+                                              IMFMediaType*& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getCaptureFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (sourceReader_in);
+  if (mediaType_out)
+  {
+    mediaType_out->Release ();
+    mediaType_out = NULL;
+  } // end IF
+
+  HRESULT result =
+    sourceReader_in->GetCurrentMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+                                          &mediaType_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFSourceReader::GetCurrentMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (mediaType_out);
+
+  return true;
+}
+bool
+Stream_Module_Device_Tools::getOutputFormat (IMFSourceReader* sourceReader_in,
+                                             IMFMediaType*& mediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getOutputFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (sourceReader_in);
+  if (mediaType_out)
+  {
+    mediaType_out->Release ();
+    mediaType_out = NULL;
+  } // end IF
+
+  HRESULT result = MFCreateMediaType (&mediaType_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+
+  result =
+    sourceReader_in->GetCurrentMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+                                          &mediaType_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFSourceReader::GetCurrentMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (mediaType_out);
+
+  return true;
+
+error:
+  if (mediaType_out)
+  {
+    mediaType_out->Release ();
+    mediaType_out = NULL;
+  } // end IF
+
+  return false;
+}
+
+bool
+Stream_Module_Device_Tools::setCaptureFormat (IMFSourceReader* IMFSourceReader_in,
+                                              const IMFMediaType* IMFMediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setCaptureFormat"));
+
+  // sanit ycheck(s)
+  ACE_ASSERT (IMFSourceReader_in);
+  ACE_ASSERT (IMFMediaType_in);
+
+  HRESULT result = E_FAIL;
+  //  IMFSourceReader_in->SetCurrentMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+  //                                           NULL,
+  //                                           const_cast<IMFMediaType*> (IMFMediaType_in));
+  //if (FAILED (result)) // MF_E_INVALIDMEDIATYPE: 0xC00D36B4L
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFSourceReader::SetCurrentMediaType(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return false;
+  //} // end IF
+
+  struct _GUID GUID_s = { 0 };
+  UINT32 width, height;
+  UINT32 numerator, denominator;
+  result =
+    const_cast<IMFMediaType*> (IMFMediaType_in)->GetGUID (MF_MT_SUBTYPE,
+                                                          &GUID_s);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  result = MFGetAttributeSize (const_cast<IMFMediaType*> (IMFMediaType_in),
+                               MF_MT_FRAME_SIZE,
+                               &width, &height);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  result = MFGetAttributeRatio (const_cast<IMFMediaType*> (IMFMediaType_in),
+                                MF_MT_FRAME_RATE,
+                                &numerator, &denominator);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFGetAttributeRatio(MF_MT_FRAME_RATE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+
+  DWORD count = 0;
+  IMFMediaType* media_type_p = NULL;
+  struct _GUID GUID_2 = { 0 };
+  UINT32 width_2, height_2;
+  UINT32 numerator_2, denominator_2;
+  while (result == S_OK)
+  {
+    media_type_p = NULL;
+    result =
+      IMFSourceReader_in->GetNativeMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+                                              count,
+                                              &media_type_p);
+    if (result != S_OK) break;
+
+    result = media_type_p->GetGUID (MF_MT_SUBTYPE, &GUID_2);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      media_type_p->Release ();
+
+      return false;
+    } // end IF
+    if (GUID_s != GUID_2) goto continue_;
+
+    result = MFGetAttributeSize (media_type_p,
+                                 MF_MT_FRAME_SIZE,
+                                 &width_2, &height_2);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      media_type_p->Release ();
+
+      return false;
+    } // end IF
+    if (width != width_2) goto continue_;
+
+    result = MFGetAttributeRatio (media_type_p,
+                                  MF_MT_FRAME_RATE,
+                                  &numerator_2, &denominator_2);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFGetAttributeRatio(MF_MT_FRAME_RATE): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      media_type_p->Release ();
+
+      return false;
+    } // end IF
+    if ((numerator   != numerator_2)  ||
+        (denominator != denominator_2)) goto continue_;
+
+    result =
+      IMFSourceReader_in->SetCurrentMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+                                               NULL,
+                                               media_type_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFSourceReader::SetCurrentMediaType(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (media_type_p).c_str ()),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      media_type_p->Release ();
+
+      return false;
+    } // end IF
+    media_type_p->Release ();
+
+    return true;
+
+continue_:
+    media_type_p->Release ();
+
+    ++count;
+  } // end WHILE
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("device does not support media type (was: \"%s\"), aborting\n"),
+              ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (IMFMediaType_in).c_str ())));
+
+  // debug info
+  Stream_Module_Device_Tools::dump (IMFSourceReader_in);
+
+  return false;
+}
+
+bool
 Stream_Module_Device_Tools::getCaptureFormat (IGraphBuilder* builder_in,
                                               struct _AMMediaType*& mediaType_out)
 {
@@ -2539,6 +3402,7 @@ Stream_Module_Device_Tools::getOutputFormat (IGraphBuilder* builder_in,
                 ACE_TEXT ("failed to allocate memory(): \"%m\", aborting\n")));
     return false;
   } // end IF
+  ACE_OS::memset (mediaType_out, 0, sizeof (struct _AMMediaType));
 
   IBaseFilter* filter_p = NULL;
   HRESULT result =
@@ -2608,18 +3472,6 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
   // sanit ycheck(s)
   ACE_ASSERT (builder_in);
 
-  //IGraphConfig* graph_config_p = NULL;
-  //HRESULT result = builder_in->QueryInterface (IID_IGraphConfig,
-  //                                             (void**)&graph_config_p);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IGraphConfig): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  return false;
-  //} // end IF
-  //ACE_ASSERT (graph_config_p);
-
   IBaseFilter* filter_p = NULL;
   HRESULT result =
     builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO,
@@ -2630,10 +3482,6 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
                 ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-    //// clean up
-    //graph_config_p->Release ();
-
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
@@ -2647,7 +3495,6 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
 
     // clean up
     filter_p->Release ();
-    //graph_config_p->Release ();
 
     return false;
   } // end IF
@@ -2673,7 +3520,6 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
       // clean up
       pin_p->Release ();
       enumerator_p->Release ();
-      //graph_config_p->Release ();
 
       return false;
     } // end IF
@@ -2695,7 +3541,6 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
       // clean up
       pin_p->Release ();
       enumerator_p->Release ();
-      //graph_config_p->Release ();
 
       return false;
     } // end IF
@@ -2713,7 +3558,6 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
       property_set_p->Release ();
       pin_p->Release ();
       enumerator_p->Release ();
-      //graph_config_p->Release ();
 
       return false;
     } // end IF
@@ -2730,10 +3574,6 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("no capture pin found, aborting\n")));
-
-    // clean up
-    //graph_config_p->Release ();
-
     return false;
   } // end IF
 
@@ -2745,41 +3585,77 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IPin::QueryInterface(IID_IAMStreamConfig): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    pin_p->Release ();
+
     return false;
   } // end IF
   ACE_ASSERT (stream_config_p);
 
-  //result = graph_config_p->Reconnect (pin_p,
-  //                                    NULL,
-  //                                    //pin_2,
-  //                                    &mediaType_in,
-  //                                    NULL,
-  //                                    NULL,
-  //                                    0);
+  pin_p->Release ();
+
   result =
     stream_config_p->SetFormat (&const_cast<struct _AMMediaType&> (mediaType_in));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                //ACE_TEXT ("failed to IGraphConfig::Reconnect(): \"%s\", aborting\n"),
                 ACE_TEXT ("failed to IAMStreamConfig::SetFormat(): \"%s\" (0x%x) (media type was: %s), aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ()), result,
                 ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (mediaType_in).c_str ())));
 
     // clean up
     stream_config_p->Release ();
-    //pin_2->Release ();
-    pin_p->Release ();
-    //graph_config_p->Release ();
 
     return false;
   } // end IF
   stream_config_p->Release ();
-  //pin_2->Release ();
-  pin_p->Release ();
-  //graph_config_p->Release ();
+
+  //struct _AMMediaType* media_type_p;
+  //stream_config_p->GetFormat (&media_type_p);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("set capture format: %s\n"),
+              ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (mediaType_in).c_str ())));
 
   return true;
+}
+
+bool
+Stream_Module_Device_Tools::copyAttribute (IMFAttributes* source_in,
+                                           IMFAttributes* destination_in,
+                                           const struct _GUID& key_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::copyAttribute"));
+
+  // sanity check(s)
+  ACE_ASSERT (source_in);
+  ACE_ASSERT (destination_in);
+
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+
+  HRESULT result = source_in->GetItem (key_in, &property_s);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFAttributes::GetItem(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto clean;
+  } // end IF
+  result = destination_in->SetItem (key_in, property_s);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFAttributes::SetItem(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto clean;
+  } // end IF
+
+clean:
+  PropVariantClear (&property_s);
+
+  return (result == S_OK);
 }
 
 bool
@@ -2889,6 +3765,34 @@ Stream_Module_Device_Tools::mediaSubTypeToString (const struct _GUID& GUID_in)
   return result;
 }
 
+std::string
+Stream_Module_Device_Tools::mediaTypeToString (const IMFMediaType* mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::mediaTypeToString"));
+
+  std::string result;
+
+  struct _AMMediaType media_type;
+  ACE_OS::memset (&media_type, 0, sizeof (media_type));
+  HRESULT result_2 =
+    MFInitAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (mediaType_in),
+                                      GUID_NULL,
+                                      &media_type);
+  if (FAILED (result_2)) // MF_E_ATTRIBUTENOTFOUND: 0xC00D36E6L
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    return std::string ();
+  } // end IF
+
+  result = Stream_Module_Device_Tools::mediaTypeToString (media_type);
+
+  // clean up
+  Stream_Module_Device_Tools::freeMediaType (media_type);
+
+  return result;
+}
 std::string
 Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaType_in)
 {

@@ -31,6 +31,9 @@
 #include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "mfidl.h"
+//#include "mfobjects.h"
+#include "mfreadwrite.h"
 #else
 #include "linux/videodev2.h"
 
@@ -104,7 +107,7 @@ struct Test_I_Source_MessageData
   inline Test_I_Source_MessageData ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    : sample (NULL)
-   , sampleTime (0.0)
+   , sampleTime (0)
 #else
    : device (-1)
    , index (0)
@@ -114,8 +117,10 @@ struct Test_I_Source_MessageData
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IMediaSample* sample;
-  double        sampleTime;
+  //IMediaSample* sample;
+  //double        sampleTime;
+  IMFSample* sample;
+  LONGLONG   sampleTime;
 #else
   int           device; // (capture) device file descriptor
   __u32         index;  // 'index' field of v4l2_buffer
@@ -184,20 +189,23 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   inline Test_I_Stream_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , builder (NULL)
+   //, builder (NULL)
+   , mediaSource (NULL)
+   , sourceReader (NULL)
 #endif
    , configuration (NULL)
    //, connection (NULL)
    //, connectionManager (NULL)
    , contextID (0)
    , inbound (false)
-   , passive (false)
    , socketConfiguration (NULL)
    , socketHandlerConfiguration (NULL)
   {};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  IGraphBuilder*                            builder;
+  //IGraphBuilder*                            builder;
+  IMFMediaSource*                           mediaSource;
+  IMFSourceReader*                          sourceReader;
 #else
 #endif
   Test_I_Configuration*                     configuration;
@@ -205,7 +213,6 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   //Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
   guint                                     contextID;
   bool                                      inbound; // TCP IO module
-  bool                                      passive;
   Net_SocketConfiguration*                  socketConfiguration;
   Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
 };

@@ -21,11 +21,17 @@
 #ifndef TEST_I_TARGET_COMMON_H
 #define TEST_I_TARGET_COMMON_H
 
+#include <string>
+
 #include "ace/INET_Addr.h"
 #include "ace/os_include/sys/os_socket.h"
 #include "ace/Time_Value.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "d3d9.h"
+#include "evr.h"
+#include "mfapi.h"
+//#include "mfidl.h"
 //#include "mmeapi.h"
 //#include "mtype.h"
 #include "strmif.h"
@@ -55,6 +61,19 @@
 struct v4l2_window;
 #endif
 class Test_I_Target_Stream_Message;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_MessageData
+{
+  inline Test_I_Target_MessageData ()
+   : sample (NULL)
+   , sampleTime (0)
+  {};
+
+  IMFMediaBuffer* sample;
+  LONGLONG        sampleTime;
+};
+#endif
 
 struct Test_I_Target_Configuration;
 struct Test_I_Target_StreamConfiguration;
@@ -116,10 +135,13 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
    : Test_I_Stream_ModuleHandlerConfiguration ()
    , area ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , filterCLSID ()
-   , filterConfiguration (NULL)
+   , device ()
+   //, filterCLSID ()
+   //, filterConfiguration (NULL)
    , format (NULL)
-   , push (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
+   , mediaSource (NULL)
+   //, push (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
+   , queue (NULL)
 #else
    , format ()
 #endif
@@ -137,34 +159,48 @@ struct Test_I_Target_Stream_ModuleHandlerConfiguration
 #endif
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    format =
-      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    if (!format)
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory, continuing\n")));
+    //format =
+    //  static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+    //if (!format)
+    //{
+    //  ACE_DEBUG ((LM_CRITICAL,
+    //              ACE_TEXT ("failed to allocate memory, continuing\n")));
+    //} // end IF
+    //else
+    //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+    HRESULT result = MFCreateMediaType (&format);
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #endif
   };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct tagRECT                                area;
-  Test_I_Target_DirectShow_FilterConfiguration* filterConfiguration;
-  struct _GUID                                  filterCLSID;
-  struct _AMMediaType*                          format; // splitter module
-  bool                                          push; // media sample passing strategy
+  struct tagRECT                                  area;
+  std::string                                     device; // FriendlyName
+  //Test_I_Target_DirectShow_FilterConfiguration*   filterConfiguration;
+  //struct _GUID                                    filterCLSID;
+  //struct _AMMediaType*                            format; // splitter module
+  IMFMediaType*                                   format;
+  IMFMediaSource*                                 mediaSource;
+  //bool                                          push; // media sample passing strategy
+  ACE_Message_Queue_Base*                         queue;  // (inbound) buffer queue handle
 #else
-  GdkRectangle                                  area;
-  struct v4l2_format                            format; // splitter module
+  GdkRectangle                                    area;
+  struct v4l2_format                              format; // splitter module
 #endif
-  Test_I_Target_IConnection_t*                  connection; // Net source/IO module
-  Test_I_Target_InetConnectionManager_t*        connectionManager; // Net IO module
-  bool                                          printProgressDot;
-  std::string                                   targetFileName; // file writer module
+  Test_I_Target_IConnection_t*                    connection; // Net source/IO module
+  Test_I_Target_InetConnectionManager_t*          connectionManager; // Net IO module
+  bool                                            printProgressDot;
+  std::string                                     targetFileName; // file writer module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                          window;
-  IVideoWindow*                                 windowController;
+  HWND                                            window;
+  //IVideoWindow*                                   windowController;
+  IMFVideoDisplayControl*                         windowController;
 #else
-  struct v4l2_window*                           v4l2Window;
-  GdkWindow*                                    window;
+  struct v4l2_window*                             v4l2Window;
+  GdkWindow*                                      window;
 #endif
 };
 
@@ -214,7 +250,9 @@ struct Test_I_Target_Stream_SessionData
    : Test_I_Stream_SessionData ()
    , connectionState (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , direct3DDevice (NULL)
    , format (NULL)
+   , resetToken (0)
 #else
    , format ()
 #endif
@@ -222,11 +260,20 @@ struct Test_I_Target_Stream_SessionData
    , userData (NULL)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    format =
-      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    if (!format)
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory, continuing\n")));
+    //format =
+    //  static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+    //if (!format)
+    //{
+    //  ACE_DEBUG ((LM_CRITICAL,
+    //              ACE_TEXT ("failed to allocate memory, continuing\n")));
+    //} // end IF
+    //else
+    //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+    HRESULT result = MFCreateMediaType (&format);
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #endif
   };
   inline Test_I_Target_Stream_SessionData& operator+= (Test_I_Target_Stream_SessionData& rhs_in)
@@ -239,10 +286,46 @@ struct Test_I_Target_Stream_SessionData
     // sanity check(s)
     ACE_ASSERT (rhs_in.format);
 
-    if (!Stream_Module_Device_Tools::copyMediaType (*rhs_in.format,
-                                                    format))
+    if (format)
+    {
+      format->Release ();
+      format = NULL;
+    } // end IF
+
+    //if (!Stream_Module_Device_Tools::copyMediaType (*rhs_in.format,
+    //                                                format))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), continuing\n")));
+    struct _AMMediaType media_type;
+    ACE_OS::memset (&media_type, 0, sizeof (media_type));
+    HRESULT result = MFInitAMMediaTypeFromMFMediaType (rhs_in.format,
+                                                       GUID_NULL,
+                                                       &media_type);
+    if (FAILED (result))
+    {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), continuing\n")));
+                  ACE_TEXT ("failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto continue_;
+    } // end IF
+
+    result = MFInitMediaTypeFromAMMediaType (format,
+                                             &media_type);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      Stream_Module_Device_Tools::freeMediaType (media_type);
+
+      goto continue_;
+    } // end IF
+
+    // clean up
+    Stream_Module_Device_Tools::freeMediaType (media_type);
+continue_:
 #else
     format = rhs_in.format;
 #endif
@@ -255,7 +338,10 @@ struct Test_I_Target_Stream_SessionData
 
   Test_I_Target_ConnectionState* connectionState;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType*           format;
+  //struct _AMMediaType*           format;
+  IDirect3DDevice9Ex*            direct3DDevice;
+  IMFMediaType*                  format;
+  UINT                           resetToken; // direct 3D manager 'id'
 #else
   struct v4l2_format             format;
 #endif
@@ -306,6 +392,10 @@ struct Test_I_Target_Configuration
    //, listener (NULL)
    , listenerConfiguration ()
    , signalHandlerConfiguration ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   //, pinConfiguration ()
+   //, filterConfiguration ()
+#endif
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
@@ -321,8 +411,8 @@ struct Test_I_Target_Configuration
   Test_I_Target_SignalHandlerConfiguration        signalHandlerConfiguration;
   // **************************** stream data **********************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_DirectShow_PinConfiguration       pinConfiguration;
-  Test_I_Target_DirectShow_FilterConfiguration    filterConfiguration;
+  //Test_I_Target_DirectShow_PinConfiguration       pinConfiguration;
+  //Test_I_Target_DirectShow_FilterConfiguration    filterConfiguration;
 #endif
   Test_I_Target_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Test_I_Target_StreamConfiguration               streamConfiguration;

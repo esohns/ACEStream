@@ -12,6 +12,8 @@
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
 
+#include "targetver.h"
+
 // Windows Header Files
 #include <windows.h>
 #endif
@@ -39,10 +41,6 @@
 
 // Local Header Files
 #include "stream_macros.h"
-
-#if defined _MSC_VER
-#include "targetver.h"
-#endif
 
 // *TODO*: reference additional headers your program requires here
 

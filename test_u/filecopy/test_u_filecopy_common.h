@@ -37,12 +37,22 @@
 #include "test_u_common.h"
 
 #include "test_u_filecopy_message.h"
-//#include "test_u_filecopy_session_message.h"
 
 // forward declarations
 class Stream_IAllocator;
 class Stream_Filecopy_Stream;
 class Stream_Filecopy_Session_Message;
+
+struct Stream_Filecopy_ModuleHandlerConfiguration
+ : Stream_Test_U_ModuleHandlerConfiguration
+{
+  inline Stream_Filecopy_ModuleHandlerConfiguration ()
+   : Stream_Test_U_ModuleHandlerConfiguration ()
+   , targetFileName ()
+  {};
+
+  std::string             targetFileName;
+};
 
 struct Stream_Filecopy_SessionData
  : Stream_SessionData
@@ -60,6 +70,17 @@ struct Stream_Filecopy_SessionData
 };
 typedef Stream_SessionData_T<Stream_Filecopy_SessionData> Stream_Filecopy_SessionData_t;
 
+struct Stream_Filecopy_StreamConfiguration
+ : Stream_Configuration
+{
+  inline Stream_Filecopy_StreamConfiguration ()
+   : Stream_Configuration ()
+   , moduleHandlerConfiguration (NULL)
+  {};
+
+  Stream_Filecopy_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+};
+
 struct Stream_Filecopy_SignalHandlerConfiguration
 {
   inline Stream_Filecopy_SignalHandlerConfiguration ()
@@ -74,14 +95,22 @@ struct Stream_Filecopy_SignalHandlerConfiguration
 };
 
 struct Stream_Filecopy_Configuration
- : Stream_Test_U_Configuration
 {
   inline Stream_Filecopy_Configuration ()
-   : Stream_Test_U_Configuration ()
+   : moduleConfiguration ()
+   , moduleHandlerConfiguration ()
+   , streamConfiguration ()
    , signalHandlerConfiguration ()
+   , streamUserData ()
   {};
 
+  Stream_ModuleConfiguration                 moduleConfiguration;
+  Stream_Filecopy_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  Stream_Filecopy_StreamConfiguration        streamConfiguration;
+
   Stream_Filecopy_SignalHandlerConfiguration signalHandlerConfiguration;
+
+  Stream_UserData                            streamUserData;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,

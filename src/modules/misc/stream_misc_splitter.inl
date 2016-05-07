@@ -293,14 +293,26 @@ Stream_Module_SplitterH_T<LockType,
   ACE_ASSERT (message_block_p);
 
 continue_:
-  // *NOTE*: message_block_p points to the trailing fragment
+  // message_block_p points at the trailing fragment
+
   unsigned int total_length = currentBuffer_->total_length ();
   // *TODO*: remove type inference
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   ACE_ASSERT (configuration_->format);
 
-  if (total_length < configuration_->format->lSampleSize)
+  //if (total_length < configuration_->format->lSampleSize)
+  UINT32 sample_size = 0;
+  HRESULT result = configuration_->format->GetUINT32 (MF_MT_SAMPLE_SIZE,
+                                                      &sample_size);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_SAMPLE_SIZE,%u): \"%s\", returning\n"),
+                sample_size,
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
 #else
   if (total_length < configuration_->format.fmt.pix.sizeimage)
 #endif
@@ -310,7 +322,8 @@ continue_:
   ACE_Message_Block* message_block_2 = NULL;
   unsigned int remainder = (total_length -
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            configuration_->format->lSampleSize);
+                            //configuration_->format->lSampleSize);
+                            sample_size);
 #else
                             configuration_->format.fmt.pix.sizeimage);
 #endif
@@ -341,14 +354,15 @@ continue_:
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (message_block_p->total_length () ==
-              configuration_->format->lSampleSize);
+              //configuration_->format->lSampleSize);
+              sample_size);
 #else
   ACE_ASSERT (message_block_p->total_length () ==
               configuration_->format.fmt.pix.sizeimage);
 #endif
 
-  int result = inherited::put_next (message_block_p, NULL);
-  if (result == -1)
+  int result_2 = inherited::put_next (message_block_p, NULL);
+  if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),

@@ -143,7 +143,6 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   bool                      isFirst_;
   bool                      isInitialized_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _AMMediaType*      mediaType_;
 #else
   AVFormatContext*          formatContext_;
 #endif

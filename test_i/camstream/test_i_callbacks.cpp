@@ -31,8 +31,11 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "dshow.h"
-#include "Dvdmedia.h"
- //#include "streams.h"
+#include "dvdmedia.h"
+#include "mferror.h"
+#include "mfidl.h"
+#include "mfreadwrite.h"
+//#include "streams.h"
 
 #include "gdk/gdkwin32.h"
 #else
@@ -80,7 +83,6 @@ dirent_selector (const dirent* dirEntry_in)
 //     ACE_DEBUG ((LM_DEBUG,
 //                 ACE_TEXT ("ignoring \"%s\"...\n"),
 //                 ACE_TEXT (dirEntry_in->d_name)));
-
     return 0;
   } // end IF
 
@@ -105,85 +107,161 @@ load_capture_devices (GtkListStore* listStore_in)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result_2 = E_FAIL;
-  ICreateDevEnum* enumerator_p = NULL;
-  result_2 =
-    CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
-                      CLSCTX_INPROC_SERVER, IID_PPV_ARGS (&enumerator_p));
+  //ICreateDevEnum* enumerator_p = NULL;
+  //result_2 =
+  //  CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
+  //                    CLSCTX_INPROC_SERVER, IID_PPV_ARGS (&enumerator_p));
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  return false;
+  //} // end IF
+  //ACE_ASSERT (enumerator_p);
+
+  //IEnumMoniker* enum_moniker_p = NULL;
+  //result_2 =
+  //  enumerator_p->CreateClassEnumerator (CLSID_VideoInputDeviceCategory,
+  //                                       &enum_moniker_p,
+  //                                       0);
+  //if (result_2 != S_OK)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(CLSID_VideoInputDeviceCategory): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  //result_2 = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (enum_moniker_p);
+
+  //IMoniker* moniker_p = NULL;
+  //IPropertyBag* properties_p = NULL;
+  //VARIANT variant;
+  //GtkTreeIter iterator;
+  //while (enum_moniker_p->Next (1, &moniker_p, NULL) == S_OK)
+  //{
+  //  ACE_ASSERT (moniker_p);
+
+  //  properties_p = NULL;
+  //  result = moniker_p->BindToStorage (0, 0, IID_PPV_ARGS (&properties_p));
+  //  if (FAILED (result_2))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
+  //                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //    goto error;
+  //  } // end IF
+  //  ACE_ASSERT (properties_p);
+
+  //  VariantInit (&variant);
+  //  result_2 = properties_p->Read (L"FriendlyName", &variant, 0);
+  //  if (FAILED (result_2))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IPropertyBag::Read(Description/FriendlyName): \"%s\", aborting\n"),
+  //                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //    goto error;
+  //  } // end IF
+  //  properties_p->Release ();
+  //  properties_p = NULL;
+  //  ACE_Wide_To_Ascii converter (variant.bstrVal);
+  //  VariantClear (&variant);
+  //  gtk_list_store_append (listStore_in, &iterator);
+  //  gtk_list_store_set (listStore_in, &iterator,
+  //                      0, converter.char_rep (),
+  //                      -1);
+
+  //  moniker_p->Release ();
+  //  moniker_p = NULL;
+  //} // end WHILE
+  IMFAttributes* attributes_p = NULL;
+  result_2 = MFCreateAttributes (&attributes_p, 1);
   if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     return false;
   } // end IF
-  ACE_ASSERT (enumerator_p);
 
-  IEnumMoniker* enum_moniker_p = NULL;
   result_2 =
-    enumerator_p->CreateClassEnumerator (CLSID_VideoInputDeviceCategory,
-                                         &enum_moniker_p,
-                                         0);
-  if (result_2 != S_OK)
+    attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+                           MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+  if (FAILED (result_2))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(CLSID_VideoInputDeviceCategory): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    //result_2 = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
     goto error;
   } // end IF
-  ACE_ASSERT (enum_moniker_p);
 
-  IMoniker* moniker_p = NULL;
-  IPropertyBag* properties_p = NULL;
-  VARIANT variant;
-  GtkTreeIter iterator;
-  while (enum_moniker_p->Next (1, &moniker_p, NULL) == S_OK)
+  IMFActivate** devices_pp = NULL;
+  UINT32 count = 0;
+  result_2 = MFEnumDeviceSources (attributes_p,
+                                  &devices_pp,
+                                  &count);
+  if (FAILED (result_2))
   {
-    ACE_ASSERT (moniker_p);
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
+  attributes_p->Release ();
+  attributes_p = NULL;
+  ACE_ASSERT (devices_pp);
 
-    properties_p = NULL;
-    result = moniker_p->BindToStorage (0, 0, IID_PPV_ARGS (&properties_p));
+  GtkTreeIter iterator;
+  WCHAR friendly_name_string[BUFSIZ];
+  UINT32 length = 0;
+  unsigned int index = 0;
+  for (UINT32 index = 0; index < count; index++)
+  {
+    ACE_OS::memset (friendly_name_string, 0, sizeof (friendly_name_string));
+    length = 0;
+    result_2 =
+      devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
+                                    friendly_name_string,
+                                    sizeof (friendly_name_string),
+                                    &length);
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to IMFActivate::GetString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       goto error;
     } // end IF
-    ACE_ASSERT (properties_p);
 
-    VariantInit (&variant);
-    result_2 = properties_p->Read (L"FriendlyName", &variant, 0);
-    if (FAILED (result_2))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IPropertyBag::Read(Description/FriendlyName): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-      goto error;
-    } // end IF
-    properties_p->Release ();
-    properties_p = NULL;
-    ACE_Wide_To_Ascii converter (variant.bstrVal);
-    VariantClear (&variant);
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, converter.char_rep (),
+                        0, ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (friendly_name_string)),
                         -1);
+  } // end FOR
 
-    moniker_p->Release ();
-    moniker_p = NULL;
-  } // end WHILE
+  for (UINT32 i = 0; i < count; i++)
+    devices_pp[i]->Release ();
+  CoTaskMemFree (devices_pp);
+
   result = true;
 
 error:
-  if (properties_p)
-    properties_p->Release ();
-  if (moniker_p)
-    moniker_p->Release ();
-  if (enum_moniker_p)
-    enum_moniker_p->Release ();
-  if (enumerator_p)
-    enumerator_p->Release ();
+  //if (properties_p)
+  //  properties_p->Release ();
+  //if (moniker_p)
+  //  moniker_p->Release ();
+  //if (enum_moniker_p)
+  //  enum_moniker_p->Release ();
+  //if (enumerator_p)
+  //  enumerator_p->Release ();
+  if (attributes_p)
+    attributes_p->Release ();
+  if (devices_pp)
+  {
+    for (UINT32 i = 0; i < count; i++)
+      devices_pp[i]->Release ();
+    CoTaskMemFree (devices_pp);
+  } // end IF
 #else
   std::string directory (ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY));
   ACE_Dirent_Selector entries;
@@ -286,78 +364,116 @@ struct less_guid
 };
 
 bool
-load_formats (IAMStreamConfig* IAMStreamConfig_in,
+//load_formats (IAMStreamConfig* IAMStreamConfig_in,
+load_formats (IMFSourceReader* IMFSourceReader_in,
               GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_formats"));
 
   // sanity check(s)
-  ACE_ASSERT (IAMStreamConfig_in);
+  //ACE_ASSERT (IAMStreamConfig_in);
+  ACE_ASSERT (IMFSourceReader_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  HRESULT result;
-  int count = 0, size = 0;
-  std::set<GUID, less_guid> GUIDs;
+  HRESULT result = E_FAIL;
+  //int count = 0, size = 0;
+  std::set<struct _GUID, less_guid> GUIDs;
   std::string media_subtype_string;
   std::string GUID_stdstring;
-  result = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  AM_MEDIA_TYPE* media_type_p = NULL;
-  struct _VIDEO_STREAM_CONFIG_CAPS capabilities;
-  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-  for (int i = 0; i < count; ++i)
+  //result = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return false;
+  //} // end IF
+  //struct _AMMediaType* media_type_p = NULL;
+  //struct _VIDEO_STREAM_CONFIG_CAPS capabilities;
+  //struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  //struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  //for (int i = 0; i < count; ++i)
+  //{
+  //  media_type_p = NULL;
+  //  result = IAMStreamConfig_in->GetStreamCaps (i,
+  //                                              &media_type_p,
+  //                                              (BYTE*)&capabilities);
+  //  if (FAILED (result))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
+  //                i,
+  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //    return false;
+  //  } // end IF
+  //  ACE_ASSERT (media_type_p);
+  //  if ((media_type_p->formattype != FORMAT_VideoInfo) &&
+  //      (media_type_p->formattype != FORMAT_VideoInfo2))
+  //  {
+  //    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //    continue;
+  //  } // end IF
+
+  //    // *NOTE*: FORMAT_VideoInfo2 types do not work with the Video Renderer
+  //    //         directly --> insert the Overlay Mixer
+  //  GUIDs.insert (media_type_p->subtype);
+
+  //  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //} // end FOR
+  DWORD count = 0;
+  IMFMediaType* media_type_p = NULL;
+  struct _GUID GUID_s = { 0 };
+  while (result == S_OK)
   {
     media_type_p = NULL;
-    result = IAMStreamConfig_in->GetStreamCaps (i,
-                                                &media_type_p,
-                                                (BYTE*)&capabilities);
+    result =
+      IMFSourceReader_in->GetNativeMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+                                              count,
+                                              &media_type_p);
+    if (result != S_OK) break;
+
+    result = media_type_p->GetGUID (MF_MT_SUBTYPE, &GUID_s);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
-                  i,
+                  ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      media_type_p->Release ();
+
       return false;
     } // end IF
-    ACE_ASSERT (media_type_p);
-    if ((media_type_p->formattype != FORMAT_VideoInfo) &&
-        (media_type_p->formattype != FORMAT_VideoInfo2))
-    {
-      //DeleteMediaType (media_type_p);
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-      continue;
-    } // end IF
 
-      // *NOTE*: FORMAT_VideoInfo2 types do not work with the Video Renderer
-      //         directly --> insert the Overlay Mixer
-    GUIDs.insert (media_type_p->subtype);
+    GUIDs.insert (GUID_s);
+    media_type_p->Release ();
 
-    //DeleteMediaType (media_type_p);
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-  } // end FOR
+    ++count;
+  } // end WHILE
+  if (result != MF_E_NO_MORE_TYPES)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
+                count,
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
 
   GtkTreeIter iterator;
   OLECHAR GUID_string[39];
   ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
   for (std::set<GUID, less_guid>::const_iterator iterator_2 = GUIDs.begin ();
-  iterator_2 != GUIDs.end ();
-    ++iterator_2)
+       iterator_2 != GUIDs.end ();
+       ++iterator_2)
   {
     count = StringFromGUID2 (*iterator_2,
                              GUID_string, sizeof (GUID_string));
     ACE_ASSERT (count == 39);
-    ACE_Wide_To_Ascii converter (GUID_string);
-    GUID_stdstring = converter.char_rep ();
+    GUID_stdstring =
+      ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
     gtk_list_store_append (listStore_in, &iterator);
     media_subtype_string =
       Stream_Module_Device_Tools::mediaSubTypeToString (*iterator_2);
@@ -371,88 +487,144 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
 }
 
 bool
-load_resolutions (IAMStreamConfig* IAMStreamConfig_in,
-                  const GUID& mediaSubType_in,
+//load_resolutions (IAMStreamConfig* IAMStreamConfig_in,
+load_resolutions (IMFSourceReader* IMFSourceReader_in,
+                  const struct _GUID& mediaSubType_in,
                   GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_resolutions"));
 
   // sanity check(s)
-  ACE_ASSERT (IAMStreamConfig_in);
+  //ACE_ASSERT (IAMStreamConfig_in);
+  ACE_ASSERT (IMFSourceReader_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  HRESULT result;
-  int count = 0, size = 0;
-  result = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  AM_MEDIA_TYPE* media_type_p = NULL;
-  struct _VIDEO_STREAM_CONFIG_CAPS capabilities;
-  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  HRESULT result = E_FAIL;
+  //int count = 0, size = 0;
+  //result = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return false;
+  //} // end IF
+  //struct _AMMediaType* media_type_p = NULL;
+  //struct _VIDEO_STREAM_CONFIG_CAPS capabilities;
+  //struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  //struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
   std::set<std::pair<unsigned int, unsigned int> > resolutions;
-  for (int i = 0; i < count; ++i)
+  //for (int i = 0; i < count; ++i)
+  //{
+  //  media_type_p = NULL;
+  //  result = IAMStreamConfig_in->GetStreamCaps (i,
+  //                                              &media_type_p,
+  //                                              (BYTE*)&capabilities);
+  //  if (FAILED (result))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
+  //                i,
+  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //    return false;
+  //  } // end IF
+  //  ACE_ASSERT (media_type_p);
+  //  if (media_type_p->subtype != mediaSubType_in)
+  //  {
+  //    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //    continue;
+  //  } // end IF
+  //  if (media_type_p->formattype == FORMAT_VideoInfo)
+  //  {
+  //    video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
+  //    resolutions.insert (std::make_pair (video_info_header_p->bmiHeader.biWidth,
+  //                                        video_info_header_p->bmiHeader.biHeight));
+  //  } // end IF
+  //  else if (media_type_p->formattype == FORMAT_VideoInfo2)
+  //  {
+  //    // *NOTE*: these media subtypes do not work with the Video Renderer
+  //    //         directly --> insert the Overlay Mixer
+  //    video_info_header2_p = (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
+  //    resolutions.insert (std::make_pair (video_info_header_p->bmiHeader.biWidth,
+  //                                        video_info_header_p->bmiHeader.biHeight));
+  //  } // end ELSE IF
+  //  else
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("invalid AM_MEDIA_TYPE, aborting\n")));
+
+  //    // clean up
+  //    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  //    return false;
+  //  } // end ELSE
+  //  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //} // end WHILE
+  DWORD count = 0;
+  IMFMediaType* media_type_p = NULL;
+  struct _GUID GUID_s = { 0 };
+  UINT32 width, height;
+  while (result == S_OK)
   {
     media_type_p = NULL;
-    result = IAMStreamConfig_in->GetStreamCaps (i,
-                                                &media_type_p,
-                                                (BYTE*)&capabilities);
+    result =
+      IMFSourceReader_in->GetNativeMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+                                              count,
+                                              &media_type_p);
+    if (result != S_OK) break;
+
+    result = media_type_p->GetGUID (MF_MT_SUBTYPE, &GUID_s);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
-                  i,
+                  ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      return false;
-    } // end IF
-    ACE_ASSERT (media_type_p);
-    if (media_type_p->subtype != mediaSubType_in)
-    {
-      //DeleteMediaType (media_type_p);
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-      continue;
-    } // end IF
-    if (media_type_p->formattype == FORMAT_VideoInfo)
-    {
-      video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
-      resolutions.insert (std::make_pair (video_info_header_p->bmiHeader.biWidth,
-                                          video_info_header_p->bmiHeader.biHeight));
-    } // end IF
-    else if (media_type_p->formattype == FORMAT_VideoInfo2)
-    {
-      // *NOTE*: these media subtypes do not work with the Video Renderer
-      //         directly --> insert the Overlay Mixer
-      video_info_header2_p = (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
-      resolutions.insert (std::make_pair (video_info_header_p->bmiHeader.biWidth,
-                                          video_info_header_p->bmiHeader.biHeight));
-    } // end ELSE IF
-    else
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid AM_MEDIA_TYPE, aborting\n")));
 
       // clean up
-      //DeleteMediaType (media_type_p);
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      media_type_p->Release ();
 
       return false;
-    } // end ELSE
-      //DeleteMediaType (media_type_p);
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+    } // end IF
+
+    if (GUID_s == mediaSubType_in)
+    {
+      result = MFGetAttributeSize (media_type_p,
+                                   MF_MT_FRAME_SIZE,
+                                   &width, &height);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+        // clean up
+        media_type_p->Release ();
+
+        return false;
+      } // end IF
+      resolutions.insert (std::make_pair (width, height));
+    } // end IF
+    media_type_p->Release ();
+
+    ++count;
   } // end WHILE
+  if (result != MF_E_NO_MORE_TYPES)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
+                count,
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+
   GtkTreeIter iterator;
   std::ostringstream converter;
   for (std::set<std::pair<unsigned int, unsigned int> >::const_iterator iterator_2 = resolutions.begin ();
-  iterator_2 != resolutions.end ();
-    ++iterator_2)
+       iterator_2 != resolutions.end ();
+       ++iterator_2)
   {
     converter.clear ();
     converter.str (ACE_TEXT_ALWAYS_CHAR (""));
@@ -471,103 +643,174 @@ load_resolutions (IAMStreamConfig* IAMStreamConfig_in,
 }
 
 bool
-load_rates (IAMStreamConfig* IAMStreamConfig_in,
-            const GUID& mediaSubType_in,
+//load_rates (IAMStreamConfig* IAMStreamConfig_in,
+load_rates (IMFSourceReader* IMFSourceReader_in,
+            const struct _GUID& mediaSubType_in,
             unsigned int width_in,
             GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_rates"));
 
   // sanity check(s)
-  ACE_ASSERT (IAMStreamConfig_in);
+  //ACE_ASSERT (IAMStreamConfig_in);
+  ACE_ASSERT (IMFSourceReader_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  HRESULT result;
-  int count = 0, size = 0;
-  result = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
-  AM_MEDIA_TYPE* media_type_p = NULL;
-  struct _VIDEO_STREAM_CONFIG_CAPS capabilities;
-  struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
-  struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
-  unsigned int frame_duration;
+  HRESULT result = S_OK;
+  //int count = 0, size = 0;
+  //result = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IAMStreamConfig::GetNumberOfCapabilities(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return false;
+  //} // end IF
+  //struct _AMMediaType* media_type_p = NULL;
+  //struct _VIDEO_STREAM_CONFIG_CAPS capabilities;
+  //struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
+  //struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
+  //unsigned int frame_duration;
   std::set<std::pair<unsigned int, unsigned int> > frame_rates;
-  for (int i = 0; i < count; ++i)
+  //for (int i = 0; i < count; ++i)
+  //{
+  //  media_type_p = NULL;
+  //  result = IAMStreamConfig_in->GetStreamCaps (i,
+  //                                              &media_type_p,
+  //                                              (BYTE*)&capabilities);
+  //  if (FAILED (result))
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
+  //                i,
+  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //    return false;
+  //  } // end IF
+  //  ACE_ASSERT (media_type_p);
+  //  if (media_type_p->subtype != mediaSubType_in)
+  //  {
+  //    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //    continue;
+  //  } // end IF
+  //  if (media_type_p->formattype == FORMAT_VideoInfo)
+  //  {
+  //    video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
+  //    if (video_info_header_p->bmiHeader.biWidth != width_in)
+  //    {
+  //      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //      continue;
+  //    } // end IF
+  //    else
+  //      frame_duration =
+  //        static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
+  //  } // end IF
+  //  else if (media_type_p->formattype == FORMAT_VideoInfo2)
+  //  {
+  //    video_info_header2_p =
+  //      (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
+  //    if (video_info_header2_p->bmiHeader.biWidth != width_in)
+  //    {
+  //      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //      continue;
+  //    } // end IF
+  //    else
+  //      frame_duration =
+  //        static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
+  //  } // end ELSEIF
+  //  else
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("invalid AM_MEDIA_TYPE, aborting\n")));
+
+  //    // clean up
+  //    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  //    return false;
+  //  } // end IF
+  //  frame_rates.insert (std::make_pair (10000000 / static_cast<unsigned int> (capabilities.MinFrameInterval),
+  //                                      frame_duration));
+  //  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //} // end FOR
+  DWORD count = 0;
+  IMFMediaType* media_type_p = NULL;
+  struct _GUID GUID_s = { 0 };
+  UINT32 width, height;
+  UINT32 numerator, denominator;
+  while (result == S_OK)
   {
     media_type_p = NULL;
-    result = IAMStreamConfig_in->GetStreamCaps (i,
-                                                &media_type_p,
-                                                (BYTE*)&capabilities);
+    result =
+      IMFSourceReader_in->GetNativeMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+                                              count,
+                                              &media_type_p);
+    if (result != S_OK) break;
+
+    result = media_type_p->GetGUID (MF_MT_SUBTYPE, &GUID_s);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IAMStreamConfig::GetStreamCaps(%d): \"%s\", aborting\n"),
-                  i,
+                  ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      return false;
-    } // end IF
-    ACE_ASSERT (media_type_p);
-    if (media_type_p->subtype != mediaSubType_in)
-    {
-      //DeleteMediaType (media_type_p);
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-      continue;
-    } // end IF
-    if (media_type_p->formattype == FORMAT_VideoInfo)
-    {
-      video_info_header_p = (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
-      if (video_info_header_p->bmiHeader.biWidth != width_in)
-      {
-        //DeleteMediaType (media_type_p);
-        Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-        continue;
-      } // end IF
-      else
-        frame_duration =
-        static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
-    } // end IF
-    else if (media_type_p->formattype == FORMAT_VideoInfo2)
-    {
-      video_info_header2_p = (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
-      if (video_info_header2_p->bmiHeader.biWidth != width_in)
-      {
-        //DeleteMediaType (media_type_p);
-        Stream_Module_Device_Tools::deleteMediaType (media_type_p);
-        continue;
-      } // end IF
-      else
-        frame_duration =
-        static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
-    } // end ELSEIF
-    else
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid AM_MEDIA_TYPE, aborting\n")));
 
       // clean up
-      //DeleteMediaType (media_type_p);
-      Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+      media_type_p->Release ();
 
       return false;
     } // end IF
-    frame_rates.insert (std::make_pair (10000000 / static_cast<unsigned int> (capabilities.MinFrameInterval),
-                                        frame_duration));
-    //DeleteMediaType (media_type_p);
-    Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+    result = MFGetAttributeSize (media_type_p,
+                                 MF_MT_FRAME_SIZE,
+                                 &width, &height);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      media_type_p->Release ();
+
+      return false;
+    } // end IF
+
+    if ((GUID_s == mediaSubType_in) &&
+        (width == width_in))
+    {
+      result = MFGetAttributeRatio (media_type_p,
+                                    MF_MT_FRAME_RATE,
+                                    &numerator, &denominator);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to MFGetAttributeRatio(MF_MT_FRAME_RATE): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+        // clean up
+        media_type_p->Release ();
+
+        return false;
+      } // end IF
+      frame_rates.insert (std::make_pair (numerator, denominator));
+    } // end IF
+    media_type_p->Release ();
+  
+    ++count;
   } // end WHILE
+  if (result != MF_E_NO_MORE_TYPES)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
+                count,
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+
   GtkTreeIter iterator;
   for (std::set<std::pair<unsigned int, unsigned int> >::const_iterator iterator_2 = frame_rates.begin ();
-  iterator_2 != frame_rates.end ();
-    ++iterator_2)
+       iterator_2 != frame_rates.end ();
+       ++iterator_2)
   {
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
@@ -2700,7 +2943,6 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration);
   ACE_ASSERT (data_p->stream);
   ACE_ASSERT (data_p->UDPStream);
   ACE_ASSERT (iterator != data_p->builders.end ());
@@ -2716,6 +2958,8 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   const char* thread_name_2 = NULL;
   ACE_Thread_Manager* thread_manager_p = NULL;
   int result = -1;
+
+  CMediaType media_type;
 
   Test_I_Source_StreamBase_t* stream_p = NULL;
   switch (data_p->configuration->protocol)
@@ -2822,7 +3066,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  data_p->configuration->streamConfiguration.moduleHandlerConfiguration->fileDescriptor =
+  data_p->configuration->moduleHandlerConfiguration.fileDescriptor =
       data_p->device;
 #endif
 
@@ -2853,6 +3097,24 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (spin_button_p);
   data_p->configuration->streamConfiguration.bufferSize =
     static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
+
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+
+  //if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+                                                     data_p->configuration->moduleHandlerConfiguration.format))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+    goto error;
+  } // end IF
+  //struct _AMMediaType* media_type_p = NULL;
+  //Stream_Module_Device_Tools::getCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+  //                                              media_type_p);
+  //media_type.Set (*media_type_p);
+  //ACE_ASSERT (media_type == *data_p->configuration->moduleHandlerConfiguration.format);
 
   // step3: start processing thread
   ACE_NEW_NORETURN (thread_data_p,
@@ -3741,38 +4003,68 @@ g_value_unset (&value_2);
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // sanity check(s)
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration);
-
   if (data_p->streamConfiguration)
   {
     data_p->streamConfiguration->Release ();
     data_p->streamConfiguration = NULL;
   } // end IF
-  if (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder)
+  //if (data_p->configuration->moduleHandlerConfiguration.builder)
+  //{
+  //  data_p->configuration->moduleHandlerConfiguration.builder->Release ();
+  //  data_p->configuration->moduleHandlerConfiguration.builder =
+  //    NULL;
+  //} // end IF
+  if (data_p->configuration->moduleHandlerConfiguration.sourceReader)
   {
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder->Release ();
-    data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder =
+    data_p->configuration->moduleHandlerConfiguration.sourceReader->Release ();
+    data_p->configuration->moduleHandlerConfiguration.sourceReader =
       NULL;
   } // end IF
-  IAMBufferNegotiation* buffer_negotiation_p = NULL;
-  if (!Stream_Module_Device_Tools::loadDeviceGraph (device_string,
-                                                    data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder,
-                                                    buffer_negotiation_p,
-                                                    data_p->streamConfiguration))
+  //IAMBufferNegotiation* buffer_negotiation_p = NULL;
+  //if (!Stream_Module_Device_Tools::loadDeviceGraph (device_string,
+  //                                                  data_p->configuration->moduleHandlerConfiguration.builder,
+  //                                                  buffer_negotiation_p,
+  //                                                  data_p->streamConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), returning\n"),
+  //              ACE_TEXT (device_string.c_str ())));
+  //  return;
+  //} // end IF
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+  //ACE_ASSERT (buffer_negotiation_p);
+  //ACE_ASSERT (data_p->streamConfiguration);
+  IMFMediaSource* media_source_p = NULL;
+  if (!Stream_Module_Device_Tools::getMediaSource (data_p->configuration->moduleHandlerConfiguration.device,
+                                                   media_source_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), returning\n"),
-                ACE_TEXT (device_string.c_str ())));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), returning\n"),
+                ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.device.c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (data_p->configuration->streamConfiguration.moduleHandlerConfiguration->builder);
-  ACE_ASSERT (buffer_negotiation_p);
-  ACE_ASSERT (data_p->streamConfiguration);
+  ACE_ASSERT (media_source_p);
+  // *NOTE*: the source reader assumes responsibility for media_source_p
+  if (!Stream_Module_Device_Tools::getSourceReader (media_source_p,
+                                                    NULL,
+                                                    NULL,
+                                                    data_p->configuration->moduleHandlerConfiguration.sourceReader))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
+                ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.device.c_str ())));
 
-  buffer_negotiation_p->Release ();
+    // clean up
+    media_source_p->Release ();
 
-  if (!load_formats (data_p->streamConfiguration,
+    return;
+  } // end IF
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+
+  //buffer_negotiation_p->Release ();
+
+  //if (!load_formats (data_p->streamConfiguration,
+  if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
 #else
   int result = -1;
   if (data_p->device != -1)
@@ -3868,13 +4160,11 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   ACE_OS::memset (&GUID_i, 0, sizeof (GUID));
   HRESULT result = E_FAIL;
 #if defined (OLE2ANSI)
-  result =
-    CLSIDFromString (format_string.c_str (),
-                     &GUID_i);
+  result = CLSIDFromString (format_string.c_str (),
+                            &GUID_i);
 #else
-  result =
-    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (format_string.c_str ()),
-                     &GUID_i);
+  result = CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (format_string.c_str ()),
+                            &GUID_i);
 #endif
   if (FAILED (result))
   {
@@ -3896,45 +4186,57 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->streamConfiguration);
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  //ACE_ASSERT (data_p->streamConfiguration);
 
-  AM_MEDIA_TYPE* media_type_p = NULL;
-  result = data_p->streamConfiguration->GetFormat (&media_type_p);
+  //struct _AMMediaType* media_type_p = NULL;
+  //result = data_p->streamConfiguration->GetFormat (&media_type_p);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return;
+  //} // end IF
+  //ACE_ASSERT (media_type_p);
+  //media_type_p->subtype = GUID_i;
+  //data_p->configuration->moduleHandlerConfiguration.format->subtype = GUID_i;
+  result =
+    data_p->configuration->moduleHandlerConfiguration.format->SetGUID (MF_MT_SUBTYPE,
+                                                                       GUID_i);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
+                ACE_TEXT ("failed to IMFMediaType::SetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (media_type_p);
-  media_type_p->subtype = GUID_i;
 
-  // *NOTE*: the graph may (!) be stopped, but in a "connected" state, i.e. with
-  //         associated filter pins. IGraphConfig::Reconnect fails unless the
-  //         graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
-    goto error;
-  } // end IF
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-                                                     *media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
-    goto error;
-  } // end IF
-  //DeleteMediaType (media_type_p);
-  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //// *NOTE*: the graph may (!) be stopped, but in a "connected" state, i.e. with
+  ////         associated filter pins. IGraphConfig::Reconnect fails unless the
+  ////         graph is "disconnected" first
+  //if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
+  //  goto error;
+  //} // end IF
+  //if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+  //                                                   //*media_type_p))
+  //                                                   *data_p->configuration->moduleHandlerConfiguration.format))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
+  //  goto error;
+  //} // end IF
+  ////Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   goto continue_;
 
-error:
-  //DeleteMediaType (media_type_p);
-  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+//error:
+  //Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   return;
 
@@ -3944,7 +4246,8 @@ continue_:
       format_i;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!load_resolutions (data_p->streamConfiguration,
+  //if (!load_resolutions (data_p->streamConfiguration,
+  if (!load_resolutions (data_p->configuration->moduleHandlerConfiguration.sourceReader,
                          GUID_i,
 #else
   if (!load_resolutions (data_p->device,
@@ -4009,17 +4312,17 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  GUID GUID_i;
-  ACE_OS::memset (&GUID_i, 0, sizeof (GUID));
+  struct _GUID GUID_s;
+  ACE_OS::memset (&GUID_s, 0, sizeof (struct _GUID));
   HRESULT result = E_FAIL;
 #if defined (OLE2ANSI)
   result =
     CLSIDFromString (g_value_get_string (&value),
-                     &GUID_i);
+                     &GUID_s);
 #else
   result =
     CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (g_value_get_string (&value)),
-                     &GUID_i);
+                     &GUID_s);
 #endif
   if (FAILED (result))
   {
@@ -4070,60 +4373,103 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->streamConfiguration);
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  //ACE_ASSERT (data_p->streamConfiguration);
 
-  AM_MEDIA_TYPE* media_type_p = NULL;
-  result = data_p->streamConfiguration->GetFormat (&media_type_p);
+  //struct _AMMediaType* media_type_p = NULL;
+  //result = data_p->streamConfiguration->GetFormat (&media_type_p);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return;
+  //} // end IF
+  //ACE_ASSERT (media_type_p);
+  //if (media_type_p->formattype == FORMAT_VideoInfo)
+  //if (data_p->configuration->moduleHandlerConfiguration.format->formattype == FORMAT_VideoInfo)
+  result =
+    data_p->configuration->moduleHandlerConfiguration.format->GetGUID (MF_MT_AM_FORMAT_TYPE,
+                                                                       &GUID_s);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
+                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_AM_FORMAT_TYPE): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (media_type_p);
-  if (media_type_p->formattype == FORMAT_VideoInfo)
+  if ((GUID_s == FORMAT_VideoInfo) ||
+      (GUID_s == FORMAT_VideoInfo2))
   {
-    struct tagVIDEOINFOHEADER* video_info_header_p =
-      (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
-    video_info_header_p->bmiHeader.biWidth = width;
-    video_info_header_p->bmiHeader.biHeight = height;
+    //struct tagVIDEOINFOHEADER* video_info_header_p =
+    //  //reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_p->pbFormat);
+    //  reinterpret_cast<struct tagVIDEOINFOHEADER*> (data_p->configuration->moduleHandlerConfiguration.format->pbFormat);
+    //video_info_header_p->bmiHeader.biWidth = width;
+    //video_info_header_p->bmiHeader.biHeight = height;
+    //video_info_header_p->bmiHeader.biSizeImage =
+    //  GetBitmapSize (&video_info_header_p->bmiHeader);
+    result =
+      data_p->configuration->moduleHandlerConfiguration.format->SetUINT32 (MF_MT_SAMPLE_SIZE,
+                                                                           width * height * 4);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaType::SetUINT32(MF_MT_SAMPLE_SIZE,%d): \"%s\", returning\n"),
+                  width * height * 4,
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return;
+    } // end IF
+    result =
+      MFSetAttributeSize (data_p->configuration->moduleHandlerConfiguration.format,
+                          MF_MT_FRAME_SIZE,
+                          width, height);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFSetAttributeSize(%d,%d): \"%s\", returning\n"),
+                  width, height,
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return;
+    } // end IF
   } // end IF
-  else if (media_type_p->formattype == FORMAT_VideoInfo2)
-  {
-    // *NOTE*: these media subtypes do not work with the Video Renderer
-    //         directly --> insert the Overlay Mixer
-    struct tagVIDEOINFOHEADER2* video_info_header2_p =
-      (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
-    video_info_header2_p->bmiHeader.biWidth = width;
-    video_info_header2_p->bmiHeader.biHeight = height;
-  } // end ELSE IF
+  //else if (data_p->configuration->moduleHandlerConfiguration.format->formattype == FORMAT_VideoInfo2)
+  //{
+  //  // *NOTE*: these media subtypes do not work with the Video Renderer
+  //  //         directly --> insert the Overlay Mixer
+  //  struct tagVIDEOINFOHEADER2* video_info_header2_p =
+  //    //reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_p->pbFormat);
+  //    reinterpret_cast<struct tagVIDEOINFOHEADER2*> (data_p->configuration->moduleHandlerConfiguration.format->pbFormat);
+  //  video_info_header2_p->bmiHeader.biWidth = width;
+  //  video_info_header2_p->bmiHeader.biHeight = height;
+  //  video_info_header2_p->bmiHeader.biSizeImage =
+  //    GetBitmapSize (&video_info_header2_p->bmiHeader);
+  //} // end ELSE IF
 
-  // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
-  //         the filter pins are associated. IGraphConfig::Reconnect fails
-  //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
-    goto error;
-  } // end IF
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-                                                     *media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
-    goto error;
-  } // end IF
-  //DeleteMediaType (media_type_p);
-  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //// *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
+  ////         the filter pins are associated. IGraphConfig::Reconnect fails
+  ////         unless the graph is "disconnected" first
+  //if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
+  //  goto error;
+  //} // end IF
+  //if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+  //                                                   //*media_type_p))
+  //                                                   *data_p->configuration->moduleHandlerConfiguration.format))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
+  //  goto error;
+  //} // end IF
+  ////Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   goto continue_;
 
-error:
-  //DeleteMediaType (media_type_p);
-  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+//error:
+  //Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   return;
 
@@ -4135,8 +4481,9 @@ continue_:
       height;
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!load_rates (data_p->streamConfiguration,
-                   GUID_i,
+  if (!load_rates (//data_p->streamConfiguration,
+                   data_p->configuration->moduleHandlerConfiguration.sourceReader,
+                   GUID_s,
                    width,
 #else
   if (!load_rates (data_p->device,
@@ -4212,58 +4559,98 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   ACE_UNUSED_ARG (frame_interval_denominator);
 
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->streamConfiguration);
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  //ACE_ASSERT (data_p->streamConfiguration);
 
-  AM_MEDIA_TYPE* media_type_p = NULL;
-  HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
+  //struct _AMMediaType* media_type_p = NULL;
+  //HRESULT result = data_p->streamConfiguration->GetFormat (&media_type_p);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return;
+  //} // end IF
+  //ACE_ASSERT (media_type_p);
+  //if (media_type_p->formattype == FORMAT_VideoInfo)
+  //if (data_p->configuration->moduleHandlerConfiguration.format->formattype == FORMAT_VideoInfo)
+  struct _GUID format_type;
+  HRESULT result =
+    data_p->configuration->moduleHandlerConfiguration.format->GetGUID (MF_MT_AM_FORMAT_TYPE,
+                                                                       &format_type);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IAMStreamConfig::GetFormat(): \"%s\", returning\n"),
+                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_AM_FORMAT_TYPE): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (media_type_p);
-  if (media_type_p->formattype == FORMAT_VideoInfo)
+  if ((format_type == FORMAT_VideoInfo) ||
+      (format_type == FORMAT_VideoInfo2))
   {
-    struct tagVIDEOINFOHEADER* video_info_header_p =
-      (struct tagVIDEOINFOHEADER*)media_type_p->pbFormat;
-    video_info_header_p->AvgTimePerFrame = frame_interval;
-  } // end IF
-  else if (media_type_p->formattype == FORMAT_VideoInfo2)
-  {
-    // *NOTE*: these media subtypes do not work with the Video Renderer
-    //         directly --> insert the Overlay Mixer
-    struct tagVIDEOINFOHEADER2* video_info_header2_p =
-      (struct tagVIDEOINFOHEADER2*)media_type_p->pbFormat;
-    video_info_header2_p->AvgTimePerFrame = frame_interval;
-  } // end ELSE IF
+    //struct tagVIDEOINFOHEADER* video_info_header_p =
+    //  //reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_p->pbFormat);
+    //  reinterpret_cast<struct tagVIDEOINFOHEADER*> (data_p->configuration->moduleHandlerConfiguration.format->pbFormat);
+    //video_info_header_p->AvgTimePerFrame = frame_interval;
+    //struct tagPROPVARIANT property_s;
+    //PropVariantInit (&property_s);
+    //result =
+    //  data_p->configuration->moduleHandlerConfiguration.format->SetItem (MF_MT_FRAME_RATE,
+    //                                                                     property_s);
+    result =
+      MFSetAttributeSize (data_p->configuration->moduleHandlerConfiguration.format,
+                          MF_MT_FRAME_RATE,
+                          frame_interval, 1);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  //ACE_TEXT ("failed to IMFMediaType::SetItem(MF_MT_FRAME_RATE): \"%s\", returning\n"),
+                  ACE_TEXT ("failed to MFSetAttributeSize(MF_MT_FRAME_RATE,%u): \"%s\", returning\n"),
+                  frame_interval,
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-  // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
-  //         the filter pins are associated. IGraphConfig::Reconnect fails
-  //         unless the graph is "disconnected" first
-  if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
-    goto error;
+      //// clean up
+      //PropVariantClear (&property_s);
+
+      return;
+    } // end IF
+    //PropVariantClear (&property_s);
   } // end IF
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-                                                     *media_type_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
-    goto error;
-  } // end IF
-    //DeleteMediaType (media_type_p);
-  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+  //else if (data_p->configuration->moduleHandlerConfiguration.format->formattype == FORMAT_VideoInfo2)
+  //{
+  //  // *NOTE*: these media subtypes do not work with the Video Renderer
+  //  //         directly --> insert the Overlay Mixer
+  //  struct tagVIDEOINFOHEADER2* video_info_header2_p =
+  //    //reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_p->pbFormat);
+  //    reinterpret_cast<struct tagVIDEOINFOHEADER2*> (data_p->configuration->moduleHandlerConfiguration.format->pbFormat);
+  //  video_info_header2_p->AvgTimePerFrame = frame_interval;
+  //} // end ELSE IF
+
+  //// *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
+  ////         the filter pins are associated. IGraphConfig::Reconnect fails
+  ////         unless the graph is "disconnected" first
+  //if (!Stream_Module_Device_Tools::disconnect (data_p->configuration->moduleHandlerConfiguration.builder))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::disconnect(), returning\n")));
+  //  goto error;
+  //} // end IF
+  //if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+  //                                                   //*media_type_p))
+  //                                                   *data_p->configuration->moduleHandlerConfiguration.format))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), returning\n")));
+  //  goto error;
+  //} // end IF
+  //Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 
   return;
 
-error:
-  //DeleteMediaType (media_type_p);
-  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+//error:
+  //Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 #else
   data_p->configuration->moduleHandlerConfiguration.frameRate.numerator =
       frame_interval;

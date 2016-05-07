@@ -32,6 +32,8 @@
 
 #include "test_i_common.h"
 
+#include "test_i_target_common.h"
+
 // forward declaration(s)
 class ACE_Allocator;
 class ACE_Data_Block;
@@ -102,7 +104,9 @@ class Test_I_Source_Stream_Message
 
 class Test_I_Target_Stream_Message
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
- : public Stream_DirectShowMessageBase_T<Test_I_Target_AllocatorConfiguration>
+//: public Stream_DirectShowMessageBase_T<Test_I_Target_AllocatorConfiguration>
+ : public Stream_MediaFoundationMessageBase_T<Test_I_Target_AllocatorConfiguration,
+                                              Test_I_Target_MessageData>
 #else
  : public Stream_MessageBase_T<Test_I_Target_AllocatorConfiguration,
                                Test_I_CommandType_t>
@@ -136,7 +140,9 @@ class Test_I_Target_Stream_Message
 
  private:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  typedef Stream_DirectShowMessageBase_T<Test_I_Target_AllocatorConfiguration> inherited;
+  //typedef Stream_DirectShowMessageBase_T<Test_I_Target_AllocatorConfiguration> inherited;
+  typedef Stream_MediaFoundationMessageBase_T<Test_I_Target_AllocatorConfiguration,
+                                              Test_I_Target_MessageData> inherited;
 #else
   typedef Stream_MessageBase_T<Test_I_Target_AllocatorConfiguration,
                                int> inherited;

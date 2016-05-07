@@ -28,6 +28,8 @@
 
 #include "stream_dec_defines.h"
 
+#include "test_u_common.h"
+
 // forward declarations
 class Stream_RIFFDecoder_SessionMessage;
 class Stream_RIFFDecoder_Message;
@@ -46,24 +48,18 @@ struct Test_U_AllocatorConfiguration
 
 struct Stream_RIFFDecoder_StreamConfiguration;
 struct Stream_RIFFDecoder_ModuleHandlerConfiguration
- : Stream_ModuleHandlerConfiguration
+ : Stream_Test_U_ModuleHandlerConfiguration
 {
   inline Stream_RIFFDecoder_ModuleHandlerConfiguration ()
-   : Stream_ModuleHandlerConfiguration ()
-   , active (false)
-   , fileName ()
-   , printProgressDot (true)
+   : Stream_Test_U_ModuleHandlerConfiguration ()
    , streamConfiguration (NULL)
   {};
 
-  bool                                    active;
-  std::string                             fileName;
-  bool                                    printProgressDot;
   Stream_RIFFDecoder_StreamConfiguration* streamConfiguration;
 };
 
 struct Stream_RIFFDecoder_SessionData
-  : Stream_SessionData
+ : Stream_SessionData
 {
   inline Stream_RIFFDecoder_SessionData ()
     : Stream_SessionData ()

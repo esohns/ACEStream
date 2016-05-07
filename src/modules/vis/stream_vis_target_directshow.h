@@ -23,7 +23,8 @@
 
 #include "ace/Global_Macros.h"
 
-#include "dshow.h"
+//#include "dshow.h"
+#include "evr.h"
 
 #include "common_time_common.h"
 
@@ -58,7 +59,7 @@ class Stream_Vis_Target_DirectShow_T
   virtual const ConfigurationType& get () const;
 
  protected:
-  ConfigurationType* configuration_;
+  ConfigurationType*      configuration_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -69,15 +70,21 @@ class Stream_Vis_Target_DirectShow_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_DirectShow_T& operator= (const Stream_Vis_Target_DirectShow_T&))
 
   // helper methods
-  bool initialize_DirectShow (const HWND,            // (target) window handle
-                              const struct tagRECT&, // (target) window area
-                              IGraphBuilder*,        // graph handle
-                              IVideoWindow*&);       // return value: window control handle
+  bool initialize_DirectShow (const HWND,                // (target) window handle
+                              const struct tagRECT&,     // (target) window area
+                              //IGraphBuilder*,            // graph handle
+                              //IVideoWindow*&,            // return value: window control handle
+                              IMFVideoRenderer*&,        // return value: video renderer handle
+                              IMFVideoDisplayControl*&); // return value: video display control handle
 
-  bool               isInitialized_;
+  bool                    isInitialized_;
 
   // DirectShow
-  IVideoWindow*      IVideoWindow_;
+  //IVideoWindow*      IVideoWindow_;
+
+  // Media Foundation
+  IMFVideoRenderer*       IMFVideoRenderer_;
+  IMFVideoDisplayControl* IMFVideoDisplayControl_;
 };
 
 // include template implementation

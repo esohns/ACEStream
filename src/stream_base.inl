@@ -104,13 +104,11 @@ Stream_Base_T<LockType,
 
   if (state_.module)
   {
-    MODULE_T* module_p =
-      inherited::find (state_.module->name ());
+    MODULE_T* module_p = inherited::find (state_.module->name ());
     if (module_p)
     {
-      result =
-        inherited::remove (state_.module->name (),
-                           ACE_Module_Base::M_DELETE_NONE);
+      result = inherited::remove (state_.module->name (),
+                                  ACE_Module_Base::M_DELETE_NONE);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", continuing\n"),
@@ -1869,6 +1867,8 @@ Stream_Base_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
   IMODULE_T* imodule_p = NULL;
+  MODULE_T* module_p = NULL;
+  int result = -1;
 
   if (isInitialized_)
   {
@@ -1879,8 +1879,8 @@ Stream_Base_T<LockType,
       return false;
     } // end IF
 
-    // *NOTE*: finialize() calls close(), resetting the writer/reader tasks
-    //         of all enqueued modules --> reset them !
+    // *NOTE*: finalize() calls close(), resetting the task handles
+    //         of all enqueued modules --> reset them manually
     for (MODULE_CONTAINER_ITERATOR_T iterator = modules_.begin ();
          iterator != modules_.end ();
          iterator++)
@@ -1901,12 +1901,26 @@ Stream_Base_T<LockType,
       catch (...)
       {
         ACE_DEBUG ((LM_ERROR,
-          ACE_TEXT ("caught exception in Stream_IModule::reset(), continuing\n")));
+                    ACE_TEXT ("caught exception in Stream_IModule::reset(), continuing\n")));
       }
     } // end FOR
 
     if (hasFinal_)
     {
+      if (state_.module)
+      {
+        module_p = inherited::find (state_.module->name ());
+        if (module_p)
+        {
+          result = inherited::remove (state_.module->name (),
+                                      ACE_Module_Base::M_DELETE_NONE);
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to ACE_Stream::remove(\"%s\"): \"%m\", continuing\n"),
+                        state_.module->name ()));
+        } // end IF
+      } // end IF
+
       if (state_.deleteModule)
       {
         ACE_ASSERT (state_.module);
@@ -1949,26 +1963,26 @@ Stream_Base_T<LockType,
     // step1: clone final module (if any) ?
     if (configuration_inout.cloneModule)
     {
-      MODULE_T* clone_p = NULL;
+      module_p = NULL;
       try
       {
-        clone_p = imodule_p->clone ();
+        module_p = imodule_p->clone ();
       }
       catch (...)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("\"%s\": caught exception in Stream_IModule_T::clone(), aborting\n"),
                     configuration_inout.module->name ()));
-        clone_p = NULL;
+        module_p = NULL;
       }
-      if (!clone_p)
+      if (!module_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("\"%s\": failed to Stream_IModule_T::clone(), aborting\n"),
                     configuration_inout.module->name ()));
         return false;
       }
-      state_.module = clone_p;
+      state_.module = module_p;
       state_.deleteModule = true;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: cloned final module 0x%@ (handle is: 0x%@)\n"),
@@ -1976,7 +1990,7 @@ Stream_Base_T<LockType,
                   configuration_inout.module,
                   state_.module));
 
-      imodule_p = dynamic_cast<IMODULE_T*> (clone_p);
+      imodule_p = dynamic_cast<IMODULE_T*> (module_p);
       if (!imodule_p)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -1986,7 +2000,7 @@ Stream_Base_T<LockType,
         // clean up
         state_.module = NULL;
         state_.deleteModule = false;
-        delete clone_p;
+        delete module_p;
 
         return false;
       } // end IF
@@ -2435,7 +2449,9 @@ Stream_Base_T<LockType,
   // sanity check(s)
   ACE_ASSERT (module_in);
 
-  // *NOTE*: start with the last module and work backwards
+  // *NOTE*: start with any trailing module(s) and work forwards
+
+  // step1: find chain tail module (if any)
   MODULE_T* module_p = module_in;
   MODULE_T* tail_p = NULL;
   while (module_p->next () != NULL)
@@ -2445,6 +2461,7 @@ Stream_Base_T<LockType,
               (ACE_OS::strcmp (module_p->name (),
                                ACE_TEXT_ALWAYS_CHAR ("ACE_Stream_Tail")) == 0));
 
+  // step2: remove chain (back-to-front)
   std::deque<MODULE_T*> modules;
   module_p = module_in;
   while (module_p != tail_p)
@@ -2456,8 +2473,8 @@ Stream_Base_T<LockType,
   {
     module_p = modules.front ();
 
-    // *NOTE*: removing a module close()s it; don't want that
-    //         --> reset() it manually
+    // *NOTE*: remove()ing a module close()s it, resetting the task handles
+    //         --> call reset() so it can be reused
     IMODULE_T* imodule_p = dynamic_cast<IMODULE_T*> (module_p);
     if (!imodule_p)
     {

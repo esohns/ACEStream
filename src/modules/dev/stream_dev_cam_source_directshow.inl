@@ -441,20 +441,20 @@ error_2:
       } // end IF
       inherited::configuration_->builder = builder_p;
 
-      ACE_ASSERT (!session_data_r.mediaType);
+      ACE_ASSERT (!session_data_r.format);
       if (!Stream_Module_Device_Tools::getOutputFormat (builder_p,
-                                                        session_data_r.mediaType))
+                                                        session_data_r.format))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
         goto error;
       } // end IF
-      ACE_ASSERT (session_data_r.mediaType);
+      ACE_ASSERT (session_data_r.format);
 
       if (_DEBUG)
       {
         std::string media_type_string =
-          Stream_Module_Device_Tools::mediaTypeToString (*session_data_r.mediaType);
+          Stream_Module_Device_Tools::mediaTypeToString (*session_data_r.format);
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("output format: \"%s\"...\n"),
                     ACE_TEXT (media_type_string.c_str ())));
@@ -567,7 +567,7 @@ error:
         if (builder_p)
           builder_p->Release ();
 
-        Stream_Module_Device_Tools::deleteMediaType (session_data_r.mediaType);
+        Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
 
         if (IAMDroppedFrames_)
         {
@@ -704,8 +704,8 @@ continue_2:
       {
         // --> the filter graph is ours
 
-        if (session_data_r.mediaType)
-          Stream_Module_Device_Tools::deleteMediaType (session_data_r.mediaType);
+        if (session_data_r.format)
+          Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
 
         ICaptureGraphBuilder2_->Release ();
         ICaptureGraphBuilder2_ = NULL;
@@ -935,6 +935,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
     data_r.sampleTime = sampleTime_in;
 
     BYTE* buffer_p = NULL;
+    unsigned int size = static_cast<unsigned int> (IMediaSample_in->GetSize ());
     HRESULT result_2 = IMediaSample_in->GetPointer (&buffer_p);
     if (FAILED (result_2))
     {
@@ -945,9 +946,9 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
     } // end IF
     ACE_ASSERT (buffer_p);
     message_p->base (reinterpret_cast<char*> (buffer_p),
-                     IMediaSample_in->GetSize (),
+                     size,
                      ACE_Message_Block::DONT_DELETE);
-    message_p->wr_ptr (IMediaSample_in->GetSize ());
+    message_p->wr_ptr (size);
   } // end IF
 
   result = inherited::putq (message_p, NULL);
