@@ -103,6 +103,10 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : show console [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
 #else
   std::string device_file = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
   device_file += ACE_DIRECTORY_SEPARATOR_CHAR;
@@ -158,6 +162,7 @@ do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      unsigned int& bufferSize_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+                     bool& showConsole_out,
 #else
                      std::string& deviceFilename_out,
 #endif
@@ -192,6 +197,7 @@ do_processArguments (int argc_in,
   // initialize results
   bufferSize_out = TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  showConsole_out = false;
 #else
   deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
   deviceFilename_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -216,7 +222,7 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:f::g::hi:ls:tv"),
+                              ACE_TEXT ("b:cf::g::hi:ls:tv"),
 #else
                               ACE_TEXT ("b:d:f::g::hi:ls:tv"),
 #endif
@@ -240,6 +246,11 @@ do_processArguments (int argc_in,
         break;
       }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      case 'c':
+      {
+        showConsole_out = true;
+        break;
+      }
 #else
       case 'd':
       {
@@ -405,7 +416,8 @@ do_initialize_directshow (const std::string& deviceName_in,
                           const HWND windowHandle_in,
                           //IGraphBuilder*& IGraphBuilder_out,
                           IMFMediaSource*& IMFMediaSource_out,
-                          IMFSourceReader*& IMFSourceReader_out,
+                          //IMFSourceReaderEx*& IMFSourceReaderEx_out,
+                          IMFTopology*& IMFTopology_out,
                           //IAMBufferNegotiation*& IAMBufferNegotiation_out,
                           //IAMStreamConfig*& IAMStreamConfig_out)
                           bool loadDevice_in,
@@ -462,9 +474,14 @@ continue_:
   //ACE_ASSERT (IAMStreamConfig_out);
 
   bool release_media_source = false;
+  WCHAR* symbolic_link_p = NULL;
+  UINT32 symbolic_link_size = 0;
   if (!IMFMediaSource_out)
+  {
     if (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
-                                                     IMFMediaSource_out))
+                                                     IMFMediaSource_out,
+                                                     symbolic_link_p,
+                                                     symbolic_link_size))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
@@ -472,23 +489,41 @@ continue_:
       goto error;
     } // end IF
     else
+    {
       release_media_source = true;
+
+      // clean up
+      CoTaskMemFree (symbolic_link_p);
+      symbolic_link_p = NULL;
+      symbolic_link_size = 0;
+    } // end ELSE
+  } // end IF
   ACE_ASSERT (IMFMediaSource_out);
 
   // sanity check(s)
-  ACE_ASSERT (!IMFSourceReader_out);
-  // *NOTE*: the source reader assumes responsibility for the media source
-  //         handle
-  if (!Stream_Module_Device_Tools::getSourceReader (IMFMediaSource_out,
-                                                    NULL,
-                                                    NULL,
-                                                    IMFSourceReader_out))
+  //ACE_ASSERT (!IMFSourceReaderEx_out);
+  //if (!Stream_Module_Device_Tools::getSourceReader (IMFMediaSource_out,
+  //                                                  symbolic_link_p,
+  //                                                  symbolic_link_size,
+  //                                                  NULL,
+  //                                                  NULL,
+  //                                                  false,
+  //                                                  IMFSourceReaderEx_out))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), aborting\n")));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (IMFSourceReaderEx_out);
+  if (!Stream_Module_Device_Tools::loadDeviceTopology (deviceName_in,
+                                                       IMFMediaSource_out,
+                                                       IMFTopology_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceTopology(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (IMFSourceReader_out);
+  ACE_ASSERT (IMFTopology_out);
 
 continue_2:
   //if (_DEBUG)
@@ -551,10 +586,15 @@ error:
     IMFMediaSource_out->Release ();
     IMFMediaSource_out = NULL;
   } // end IF
-  if (IMFSourceReader_out)
+  //if (IMFSourceReaderEx_out)
+  //{
+  //  IMFSourceReaderEx_out->Release ();
+  //  IMFSourceReaderEx_out = NULL;
+  //} // end IF
+  if (IMFTopology_out)
   {
-    IMFSourceReader_out->Release ();
-    IMFSourceReader_out = NULL;
+    IMFTopology_out->Release ();
+    IMFTopology_out = NULL;
   } // end IF
 
   result = MFShutdown ();
@@ -588,11 +628,11 @@ do_finalize_directshow (Stream_CamSave_GTK_CBData& CBData_in)
   //  CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
   //  CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
   //} // end IF
-  if (CBData_in.configuration->moduleHandlerConfiguration.sourceReader)
-  {
-    CBData_in.configuration->moduleHandlerConfiguration.sourceReader->Release ();
-    CBData_in.configuration->moduleHandlerConfiguration.sourceReader = NULL;
-  } // end IF
+  //if (CBData_in.configuration->moduleHandlerConfiguration.sourceReader)
+  //{
+  //  CBData_in.configuration->moduleHandlerConfiguration.sourceReader->Release ();
+  //  CBData_in.configuration->moduleHandlerConfiguration.sourceReader = NULL;
+  //} // end IF
 
   CoUninitialize ();
 }
@@ -601,6 +641,7 @@ do_finalize_directshow (Stream_CamSave_GTK_CBData& CBData_in)
 void
 do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+         bool showConsole_in,
 #else
          const std::string& deviceFilename_in,
 #endif
@@ -621,11 +662,15 @@ do_work (unsigned int bufferSize_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
+  IMFMediaSource* media_source_p = NULL;
+  //IMFSourceReaderEx* source_reader_p = NULL;
+  IMFTopology* topology_p = NULL;
   if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
                                  configuration.moduleHandlerConfiguration.window,
                                  //configuration.moduleHandlerConfiguration.builder,
-                                 configuration.moduleHandlerConfiguration.mediaSource,
-                                 configuration.moduleHandlerConfiguration.sourceReader,
+                                 media_source_p,
+                                 //source_reader_p,
+                                 topology_p,
                                  //buffer_negotiation_p,
                                  //CBData_in.streamConfiguration))
                                  UIDefinitionFilename_in.empty (),  // load device ?
@@ -636,9 +681,13 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
   //ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
+  ACE_ASSERT (media_source_p);
+  ACE_ASSERT (topology_p);
   //ACE_ASSERT (buffer_negotiation_p);
   //ACE_ASSERT (CBData_in.streamConfiguration);
 
+  media_source_p->Release ();
+  topology_p->Release ();
   //buffer_negotiation_p->Release ();
 #endif
 
@@ -762,7 +811,9 @@ do_work (unsigned int bufferSize_in,
 
       goto clean;
     } // end IF
-    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
+    BOOL was_visible_b = false;
+    if (!showConsole_in)
+      was_visible_b = ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
 #endif
   } // end IF
@@ -917,6 +968,7 @@ ACE_TMAIN (int argc_in,
   // step1a set defaults
   unsigned int buffer_size = TEST_U_STREAM_CAMSAVE_DEFAULT_BUFFER_SIZE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool show_console = false;
 #else
   std::string device_filename =
       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
@@ -945,6 +997,7 @@ ACE_TMAIN (int argc_in,
   if (!do_processArguments (argc_in,
                             argv_in,
                             buffer_size,
+                            show_console,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
                             device_filename,
@@ -1138,6 +1191,7 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (buffer_size,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+           show_console,
 #else
            device_filename,
 #endif

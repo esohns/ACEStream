@@ -35,6 +35,7 @@
 #include "mferror.h"
 #include "mfidl.h"
 #include "mfreadwrite.h"
+#include "mtype.h"
 //#include "streams.h"
 
 #include "gdk/gdkwin32.h"
@@ -365,14 +366,16 @@ struct less_guid
 
 bool
 //load_formats (IAMStreamConfig* IAMStreamConfig_in,
-load_formats (IMFSourceReader* IMFSourceReader_in,
+//load_formats (IMFSourceReader* IMFSourceReader_in,
+load_formats (IMFMediaSource* IMFMediaSource_in,
               GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_formats"));
 
   // sanity check(s)
   //ACE_ASSERT (IAMStreamConfig_in);
-  ACE_ASSERT (IMFSourceReader_in);
+  //ACE_ASSERT (IMFSourceReader_in);
+  ACE_ASSERT (IMFMediaSource_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
@@ -423,6 +426,52 @@ load_formats (IMFSourceReader* IMFSourceReader_in,
 
   //  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
   //} // end FOR
+  IMFPresentationDescriptor* presentation_descriptor_p = NULL;
+  result =
+    IMFMediaSource_in->CreatePresentationDescriptor (&presentation_descriptor_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  IMFStreamDescriptor* stream_descriptor_p = NULL;
+  BOOL is_selected = FALSE;
+  result =
+    presentation_descriptor_p->GetStreamDescriptorByIndex (0,
+                                                           &is_selected,
+                                                           &stream_descriptor_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    presentation_descriptor_p->Release ();
+
+    return false;
+  } // end IF
+  ACE_ASSERT (is_selected);
+  presentation_descriptor_p->Release ();
+  presentation_descriptor_p = NULL;
+  IMFMediaTypeHandler* media_type_handler_p = NULL;
+  result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    stream_descriptor_p->Release ();
+
+    return false;
+  } // end IF
+  stream_descriptor_p->Release ();
+  stream_descriptor_p = NULL;
+
   DWORD count = 0;
   IMFMediaType* media_type_p = NULL;
   struct _GUID GUID_s = { 0 };
@@ -430,9 +479,11 @@ load_formats (IMFSourceReader* IMFSourceReader_in,
   {
     media_type_p = NULL;
     result =
-      IMFSourceReader_in->GetNativeMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-                                              count,
-                                              &media_type_p);
+      //IMFSourceReader_in->GetNativeMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+      //                                        count,
+      //                                        &media_type_p);
+      media_type_handler_p->GetMediaTypeByIndex (count,
+                                                 &media_type_p);
     if (result != S_OK) break;
 
     result = media_type_p->GetGUID (MF_MT_SUBTYPE, &GUID_s);
@@ -443,6 +494,7 @@ load_formats (IMFSourceReader* IMFSourceReader_in,
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
       // clean up
+      media_type_handler_p->Release ();
       media_type_p->Release ();
 
       return false;
@@ -453,10 +505,12 @@ load_formats (IMFSourceReader* IMFSourceReader_in,
 
     ++count;
   } // end WHILE
+  media_type_handler_p->Release ();
   if (result != MF_E_NO_MORE_TYPES)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
+                //ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IMFMediaTypeHandler::GetMediaTypeByIndex(%d): \"%s\", aborting\n"),
                 count,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
@@ -488,7 +542,8 @@ load_formats (IMFSourceReader* IMFSourceReader_in,
 
 bool
 //load_resolutions (IAMStreamConfig* IAMStreamConfig_in,
-load_resolutions (IMFSourceReader* IMFSourceReader_in,
+//load_resolutions (IMFSourceReader* IMFSourceReader_in,
+load_resolutions (IMFMediaSource* IMFMediaSource_in,
                   const struct _GUID& mediaSubType_in,
                   GtkListStore* listStore_in)
 {
@@ -496,7 +551,8 @@ load_resolutions (IMFSourceReader* IMFSourceReader_in,
 
   // sanity check(s)
   //ACE_ASSERT (IAMStreamConfig_in);
-  ACE_ASSERT (IMFSourceReader_in);
+  //ACE_ASSERT (IMFSourceReader_in);
+  ACE_ASSERT (IMFMediaSource_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
@@ -563,6 +619,52 @@ load_resolutions (IMFSourceReader* IMFSourceReader_in,
   //  } // end ELSE
   //  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
   //} // end WHILE
+  IMFPresentationDescriptor* presentation_descriptor_p = NULL;
+  result =
+    IMFMediaSource_in->CreatePresentationDescriptor (&presentation_descriptor_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  IMFStreamDescriptor* stream_descriptor_p = NULL;
+  BOOL is_selected = FALSE;
+  result =
+    presentation_descriptor_p->GetStreamDescriptorByIndex (0,
+                                                           &is_selected,
+                                                           &stream_descriptor_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    presentation_descriptor_p->Release ();
+
+    return false;
+  } // end IF
+  ACE_ASSERT (is_selected);
+  presentation_descriptor_p->Release ();
+  presentation_descriptor_p = NULL;
+  IMFMediaTypeHandler* media_type_handler_p = NULL;
+  result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    stream_descriptor_p->Release ();
+
+    return false;
+  } // end IF
+  stream_descriptor_p->Release ();
+  stream_descriptor_p = NULL;
+
   DWORD count = 0;
   IMFMediaType* media_type_p = NULL;
   struct _GUID GUID_s = { 0 };
@@ -571,9 +673,11 @@ load_resolutions (IMFSourceReader* IMFSourceReader_in,
   {
     media_type_p = NULL;
     result =
-      IMFSourceReader_in->GetNativeMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-                                              count,
-                                              &media_type_p);
+      //IMFSourceReader_in->GetNativeMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+      //                                        count,
+      //                                        &media_type_p);
+      media_type_handler_p->GetMediaTypeByIndex (count,
+                                                 &media_type_p);
     if (result != S_OK) break;
 
     result = media_type_p->GetGUID (MF_MT_SUBTYPE, &GUID_s);
@@ -584,6 +688,7 @@ load_resolutions (IMFSourceReader* IMFSourceReader_in,
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
       // clean up
+      media_type_handler_p->Release ();
       media_type_p->Release ();
 
       return false;
@@ -601,6 +706,7 @@ load_resolutions (IMFSourceReader* IMFSourceReader_in,
                     ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
         // clean up
+        media_type_handler_p->Release ();
         media_type_p->Release ();
 
         return false;
@@ -611,10 +717,12 @@ load_resolutions (IMFSourceReader* IMFSourceReader_in,
 
     ++count;
   } // end WHILE
+  media_type_handler_p->Release ();
   if (result != MF_E_NO_MORE_TYPES)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
+                //ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IMFMediaTypeHandler::GetMediaTypeByIndex(%d): \"%s\", aborting\n"),
                 count,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
@@ -644,7 +752,8 @@ load_resolutions (IMFSourceReader* IMFSourceReader_in,
 
 bool
 //load_rates (IAMStreamConfig* IAMStreamConfig_in,
-load_rates (IMFSourceReader* IMFSourceReader_in,
+//load_rates (IMFSourceReader* IMFSourceReader_in,
+load_rates (IMFMediaSource* IMFMediaSource_in,
             const struct _GUID& mediaSubType_in,
             unsigned int width_in,
             GtkListStore* listStore_in)
@@ -653,7 +762,8 @@ load_rates (IMFSourceReader* IMFSourceReader_in,
 
   // sanity check(s)
   //ACE_ASSERT (IAMStreamConfig_in);
-  ACE_ASSERT (IMFSourceReader_in);
+  //ACE_ASSERT (IMFSourceReader_in);
+  ACE_ASSERT (IMFMediaSource_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
@@ -734,6 +844,52 @@ load_rates (IMFSourceReader* IMFSourceReader_in,
   //                                      frame_duration));
   //  Stream_Module_Device_Tools::deleteMediaType (media_type_p);
   //} // end FOR
+  IMFPresentationDescriptor* presentation_descriptor_p = NULL;
+  result =
+    IMFMediaSource_in->CreatePresentationDescriptor (&presentation_descriptor_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  IMFStreamDescriptor* stream_descriptor_p = NULL;
+  BOOL is_selected = FALSE;
+  result =
+    presentation_descriptor_p->GetStreamDescriptorByIndex (0,
+                                                           &is_selected,
+                                                           &stream_descriptor_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    presentation_descriptor_p->Release ();
+
+    return false;
+  } // end IF
+  ACE_ASSERT (is_selected);
+  presentation_descriptor_p->Release ();
+  presentation_descriptor_p = NULL;
+  IMFMediaTypeHandler* media_type_handler_p = NULL;
+  result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFStreamDescriptor::GetMediaTypeHandler(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    stream_descriptor_p->Release ();
+
+    return false;
+  } // end IF
+  stream_descriptor_p->Release ();
+  stream_descriptor_p = NULL;
+
   DWORD count = 0;
   IMFMediaType* media_type_p = NULL;
   struct _GUID GUID_s = { 0 };
@@ -743,9 +899,11 @@ load_rates (IMFSourceReader* IMFSourceReader_in,
   {
     media_type_p = NULL;
     result =
-      IMFSourceReader_in->GetNativeMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-                                              count,
-                                              &media_type_p);
+      //IMFSourceReader_in->GetNativeMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+      //                                        count,
+      //                                        &media_type_p);
+      media_type_handler_p->GetMediaTypeByIndex (count,
+                                                 &media_type_p);
     if (result != S_OK) break;
 
     result = media_type_p->GetGUID (MF_MT_SUBTYPE, &GUID_s);
@@ -756,6 +914,7 @@ load_rates (IMFSourceReader* IMFSourceReader_in,
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
       // clean up
+      media_type_handler_p->Release ();
       media_type_p->Release ();
 
       return false;
@@ -770,6 +929,7 @@ load_rates (IMFSourceReader* IMFSourceReader_in,
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
       // clean up
+      media_type_handler_p->Release ();
       media_type_p->Release ();
 
       return false;
@@ -788,6 +948,7 @@ load_rates (IMFSourceReader* IMFSourceReader_in,
                     ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
         // clean up
+        media_type_handler_p->Release ();
         media_type_p->Release ();
 
         return false;
@@ -798,10 +959,12 @@ load_rates (IMFSourceReader* IMFSourceReader_in,
   
     ++count;
   } // end WHILE
+  media_type_handler_p->Release ();
   if (result != MF_E_NO_MORE_TYPES)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
+                //ACE_TEXT ("failed to IMFSourceReader::GetNativeMediaType(%d): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to IMFMediaTypeHandler::GetMediaTypeByIndex(%d): \"%s\", aborting\n"),
                 count,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return false;
@@ -3099,11 +3262,12 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.topology);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
 
   //if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.topology,
                                                      data_p->configuration->moduleHandlerConfiguration.format))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -4014,12 +4178,24 @@ g_value_unset (&value_2);
   //  data_p->configuration->moduleHandlerConfiguration.builder =
   //    NULL;
   //} // end IF
-  if (data_p->configuration->moduleHandlerConfiguration.sourceReader)
+  //if (data_p->configuration->moduleHandlerConfiguration.sourceReader)
+  //{
+  //  data_p->configuration->moduleHandlerConfiguration.sourceReader->Release ();
+  //  data_p->configuration->moduleHandlerConfiguration.sourceReader =
+  //    NULL;
+  //} // end IF
+  if (data_p->configuration->moduleHandlerConfiguration.mediaSource)
   {
-    data_p->configuration->moduleHandlerConfiguration.sourceReader->Release ();
-    data_p->configuration->moduleHandlerConfiguration.sourceReader =
+    data_p->configuration->moduleHandlerConfiguration.mediaSource->Release ();
+    data_p->configuration->moduleHandlerConfiguration.mediaSource =
       NULL;
   } // end IF
+  if (data_p->configuration->moduleHandlerConfiguration.topology)
+  {
+    data_p->configuration->moduleHandlerConfiguration.topology->Release ();
+    data_p->configuration->moduleHandlerConfiguration.topology = NULL;
+  } // end IF
+
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   //if (!Stream_Module_Device_Tools::loadDeviceGraph (device_string,
   //                                                  data_p->configuration->moduleHandlerConfiguration.builder,
@@ -4034,37 +4210,47 @@ g_value_unset (&value_2);
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
   //ACE_ASSERT (buffer_negotiation_p);
   //ACE_ASSERT (data_p->streamConfiguration);
-  IMFMediaSource* media_source_p = NULL;
+  WCHAR* symbolic_link_p = NULL;
+  UINT32 symbolic_link_size = 0;
   if (!Stream_Module_Device_Tools::getMediaSource (data_p->configuration->moduleHandlerConfiguration.device,
-                                                   media_source_p))
+                                                   data_p->configuration->moduleHandlerConfiguration.mediaSource,
+                                                   symbolic_link_p,
+                                                   symbolic_link_size))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), returning\n"),
                 ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.device.c_str ())));
     return;
   } // end IF
-  ACE_ASSERT (media_source_p);
-  // *NOTE*: the source reader assumes responsibility for media_source_p
-  if (!Stream_Module_Device_Tools::getSourceReader (media_source_p,
-                                                    NULL,
-                                                    NULL,
-                                                    data_p->configuration->moduleHandlerConfiguration.sourceReader))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
-                ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.device.c_str ())));
+  CoTaskMemFree (symbolic_link_p);
+  symbolic_link_p = NULL;
+  symbolic_link_size = 0;
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.mediaSource);
+  //if (!Stream_Module_Device_Tools::getSourceReader (data_p->configuration->moduleHandlerConfiguration.mediaSource,
+  //                                                  symbolic_link_p,
+  //                                                  symbolic_link_size,
+  //                                                  NULL,
+  //                                                  NULL,
+  //                                                  false,
+  //                                                  data_p->configuration->moduleHandlerConfiguration.sourceReader))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
+  //              ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.device.c_str ())));
 
-    // clean up
-    media_source_p->Release ();
+  //  // clean up
+  //  data_p->configuration->moduleHandlerConfiguration.mediaSource->Release ();
+  //  data_p->configuration->moduleHandlerConfiguration.mediaSource = NULL;
 
-    return;
-  } // end IF
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+  //  return;
+  //} // end IF
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
 
   //buffer_negotiation_p->Release ();
 
   //if (!load_formats (data_p->streamConfiguration,
-  if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  //if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  if (!load_formats (data_p->configuration->moduleHandlerConfiguration.mediaSource,
 #else
   int result = -1;
   if (data_p->device != -1)
@@ -4187,8 +4373,9 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.mediaSource);
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
   //ACE_ASSERT (data_p->streamConfiguration);
 
   //struct _AMMediaType* media_type_p = NULL;
@@ -4247,7 +4434,8 @@ continue_:
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!load_resolutions (data_p->streamConfiguration,
-  if (!load_resolutions (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  //if (!load_resolutions (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  if (!load_resolutions (data_p->configuration->moduleHandlerConfiguration.mediaSource,
                          GUID_i,
 #else
   if (!load_resolutions (data_p->device,
@@ -4374,8 +4562,9 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.mediaSource);
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
   //ACE_ASSERT (data_p->streamConfiguration);
 
   //struct _AMMediaType* media_type_p = NULL;
@@ -4482,7 +4671,8 @@ continue_:
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (!load_rates (//data_p->streamConfiguration,
-                   data_p->configuration->moduleHandlerConfiguration.sourceReader,
+                   //data_p->configuration->moduleHandlerConfiguration.sourceReader,
+                   data_p->configuration->moduleHandlerConfiguration.mediaSource,
                    GUID_s,
                    width,
 #else
@@ -4560,7 +4750,6 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
 
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
   //ACE_ASSERT (data_p->streamConfiguration);
 

@@ -31,16 +31,16 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-typedef void (*STREAM_VIS_TARGET_DIRECT3D_IMAGE_TRANSFORM_T) (BYTE*,       // destination
-                                                              LONG,        // destination stride
-                                                              const BYTE*, // source
-                                                              LONG,        // source stride
-                                                              DWORD,       // width
-                                                              DWORD);      // height
+typedef void (*STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T) (BYTE*,       // destination
+                                                      LONG,        // destination stride
+                                                      const BYTE*, // source
+                                                      LONG,        // source stride
+                                                      DWORD,       // width
+                                                      DWORD);      // height
 struct STREAM_VIS_TARGET_DIRECT3D_CONVERSION_T
 {
-  struct _GUID                                 subType;
-  STREAM_VIS_TARGET_DIRECT3D_IMAGE_TRANSFORM_T transform;
+  struct _GUID                         subType;
+  STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T adapter;
 };
 
 void TransformImage_RGB24 (BYTE*,
@@ -96,8 +96,8 @@ class Stream_Vis_Target_Direct3D_T
   virtual const ConfigurationType& get () const;
 
  protected:
-  ConfigurationType*                             configuration_;
-  SessionDataType*                               sessionData_;
+  ConfigurationType*                   configuration_;
+  SessionDataType*                     sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -117,14 +117,19 @@ class Stream_Vis_Target_Direct3D_T
   static const DWORD                             formats;
 
   // helper methods
+  // *NOTE*: (on success,) this sets the MF_MT_DEFAULT_STRIDE in the media type
   bool initialize_Direct3D (const HWND,                       // (target) window handle
                             const struct tagRECT&,            // (target) window area
-                            const IMFMediaType*,              // media type handle
+                            IMFMediaType*,                    // media type handle
                             IDirect3DDevice9Ex*&,             // return value: Direct3D device handle
-                            struct _D3DPRESENT_PARAMETERS_&); // return value: Direct3D presentation parameters
+                            struct _D3DPRESENT_PARAMETERS_&,  // return value: Direct3D presentation parameters
+                            // *NOTE*: input (capture) format --> RGB-32 transformation
+                            STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T&); // return value: transformation function pointer
 
-  HRESULT set_video_type (const IMFMediaType*); // media type handle
-  HRESULT set_transformation (REFGUID); // sub-type
+  // *NOTE*: (on success,) this sets the MF_MT_DEFAULT_STRIDE in the media type
+  HRESULT initialize_Direct3DDevice (const HWND,     // (target) window handle
+                                     IMFMediaType*); // media type handle
+  HRESULT set_adapter (REFGUID); // (inbound) sub-type
   HRESULT get_format (DWORD,                // index
                       struct _GUID*) const; // return value: sub-type
   bool is_supported (REFGUID); // sub-type
@@ -137,26 +142,38 @@ class Stream_Vis_Target_Direct3D_T
                               LONG*);        // return value: default stride
   HRESULT test_cooperative_level ();
   HRESULT reset_device ();
-  RECT correct_aspect_ratio (const RECT&,     // source rectangle
-                             const MFRatio&); // source pixel aspect ratio
-  RECT letterbox_rectangle (const RECT&,  // source rectangle
-                            const RECT&); // destination rectangle
+  // *NOTE*: transforms a rectangle from its current pixel aspect ratio (PAR) to
+  //         1:1 PAR. For example, a 720 x 486 rectangle with a PAR of 9:10,
+  //         when converted to 1:1 PAR, is stretched to 720 x 540
+  RECT normalize_aspect_ratio (const struct tagRECT&,   // rectangle
+                               const struct _MFRatio&); // pixel aspect ratio
+  // *NOTE*: takes a source rectangle and constructs the largest possible
+  //         centered rectangle within the specified destination rectangle such
+  //         that the image maintains its current aspect ratio. This function
+  //         assumes that pixels are the same shape within both the source and
+  //         destination rectangles
+  RECT letterbox_rectangle (const struct tagRECT&,  // source rectangle
+                            const struct tagRECT&); // destination rectangle
 
-  bool                                           isInitialized_;
+  bool                                 isInitialized_;
 
   // format information
-  LONG                                           defaultStride_;
-  RECT                                           destinationRectangle_;
-  enum _D3DFORMAT                                format_;
-  MFVideoInterlaceMode                           interlace_;
-  MFRatio                                        pixelAspectRatio_;
-  UINT                                           width_;
-  UINT                                           height_;
+  LONG                                 defaultStride_;
+  struct tagRECT                       destinationRectangle_;
+  enum _D3DFORMAT                      format_;
+  MFVideoInterlaceMode                 interlace_;
+  struct _MFRatio                      pixelAspectRatio_;
+  LONG                                 width_;
+  LONG                                 height_;
 
-  struct _D3DPRESENT_PARAMETERS_                 presentationParameters_;
-  STREAM_VIS_TARGET_DIRECT3D_IMAGE_TRANSFORM_T   transformation_; // image --> RGB-32 transformation
-  IDirect3DDevice9Ex*                            IDirect3DDevice9Ex_;
-  IDirect3DSwapChain9*                           IDirect3DSwapChain9_;
+  struct _D3DPRESENT_PARAMETERS_       presentationParameters_;
+  // *NOTE*: this copies (!) the inbound image frame data from sample (virtual)
+  //         memory to a Direct3D surface in (video) memory and converts the
+  //         inbound (i.e. capture) format to RGB-32 for visualization
+  // *TODO*: separate this two-step process (insert a MFT/DMO decoder filter)
+  STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T adapter_;
+  IDirect3DDevice9Ex*                  IDirect3DDevice9Ex_;
+  IDirect3DSwapChain9*                 IDirect3DSwapChain9_;
 };
 
 // include template implementation

@@ -17,14 +17,13 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "stdafx.h"
 
 #include <iostream>
 
 #include "ace/Date_Time.h"
 
-#include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>
+#include "libxml/xpath.h"
+#include "libxml/xpathInternals.h"
 
 #include "stream_macros.h"
 
@@ -115,10 +114,10 @@ Stream_Module_XPathQuery_T<SessionMessageType,
       if (session_data_r.parserContext->parserContext->myDoc)
       {
         result =
-            htmlParseChunk(session_data_r.parserContext->parserContext, // context
-                           ACE_TEXT_ALWAYS_CHAR (""),                   // chunk
-                           0,                                           // size
-                           1);                                          // terminate ?
+            htmlParseChunk (session_data_r.parserContext->parserContext, // context
+                            ACE_TEXT_ALWAYS_CHAR (""),                   // chunk
+                            0,                                           // size
+                            1);                                          // terminate ?
         if (result)
         {
           xmlParserErrors error = static_cast<xmlParserErrors> (result);

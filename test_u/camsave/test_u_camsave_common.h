@@ -128,6 +128,7 @@ struct Stream_CamSave_SessionData
    , direct3DDevice (NULL)
    , format (NULL)
    , resetToken (0)
+   , topology (NULL)
 #else
    , format ()
    , frameRate ()
@@ -157,6 +158,7 @@ struct Stream_CamSave_SessionData
   IDirect3DDevice9Ex*          direct3DDevice;
   IMFMediaType*                format;
   UINT                         resetToken; // direct 3D manager 'id'
+  IMFTopology*                 topology;
 #else
   struct v4l2_format           format;
   struct v4l2_fract            frameRate; // time-per-frame
@@ -187,9 +189,10 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , area ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    //, builder (NULL)
+   , format (NULL)
    , mediaSource (NULL)
    , sourceReader (NULL)
-   , format (NULL)
+   , topology (NULL)
    , windowController (NULL)
 #else
    , bufferMap ()
@@ -233,10 +236,11 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct tagRECT          area;
   //IGraphBuilder*       builder;
-  IMFMediaSource*        mediaSource;
-  IMFSourceReader*       sourceReader;
   //struct _AMMediaType* format;
   IMFMediaType*           format;
+  IMFMediaSource*         mediaSource;
+  IMFSourceReaderEx*      sourceReader;
+  IMFTopology*            topology;
   //IVideoWindow*        windowController;
   IMFVideoDisplayControl* windowController;
 #else

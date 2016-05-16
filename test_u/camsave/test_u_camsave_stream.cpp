@@ -311,23 +311,54 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     // sanity check(s)
     ACE_ASSERT (!configuration_in.moduleHandlerConfiguration->mediaSource);
 
+    WCHAR* symbolic_link_p = NULL;
+    UINT32 symbolic_link_size = 0;
     if (!Stream_Module_Device_Tools::getMediaSource (configuration_in.moduleHandlerConfiguration->device,
-                                                     configuration_in.moduleHandlerConfiguration->mediaSource))
+                                                     configuration_in.moduleHandlerConfiguration->mediaSource,
+                                                     symbolic_link_p,
+                                                     symbolic_link_size))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
                   ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
       goto error;
     } // end IF
+    CoTaskMemFree (symbolic_link_p);
+    symbolic_link_p = NULL;
+    symbolic_link_size = 0;
     ACE_ASSERT (configuration_in.moduleHandlerConfiguration->mediaSource);
-    // *NOTE*: the source reader assumes responsibility for media_source_p
-    if (!Stream_Module_Device_Tools::getSourceReader (configuration_in.moduleHandlerConfiguration->mediaSource,
-                                                      direct3D_manager_p,
-                                                      source_impl_p,
-                                                      configuration_in.moduleHandlerConfiguration->sourceReader))
+    // *TODO*: using the Direct3D device manager (used by the EVR renderer) is
+    //         currently broken
+    //         --> pass NULL and use a different visualization module (e.g. the
+    //             Direct3D module)
+    direct3D_manager_p->Release ();
+    direct3D_manager_p = NULL;
+    //if (!Stream_Module_Device_Tools::getSourceReader (configuration_in.moduleHandlerConfiguration->mediaSource,
+    //                                                  symbolic_link_p,
+    //                                                  symbolic_link_size,
+    //                                                  direct3D_manager_p,
+    //                                                  source_impl_p,
+    //                                                  Stream_Module_Device_Tools::isChromaLuminance (configuration_in.moduleHandlerConfiguration->format),
+    //                                                  configuration_in.moduleHandlerConfiguration->sourceReader))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
+    //              ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
+
+    //  // clean up
+    //  configuration_in.moduleHandlerConfiguration->mediaSource->Release ();
+    //  configuration_in.moduleHandlerConfiguration->mediaSource = NULL;
+
+    //  goto error;
+    //} // end IF
+    if (!Stream_Module_Device_Tools::loadRendererTopology (configuration_in.moduleHandlerConfiguration->device,
+                                                           configuration_in.moduleHandlerConfiguration->format,
+                                                           source_impl_p,
+                                                           configuration_in.moduleHandlerConfiguration->window,
+                                                           configuration_in.moduleHandlerConfiguration->topology))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(\"%s\"), aborting\n"),
                   ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
 
       // clean up
@@ -336,9 +367,9 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
 
       goto error;
     } // end IF
-    direct3D_manager_p->Release ();
-    direct3D_manager_p = NULL;
-    ACE_ASSERT (configuration_in.moduleHandlerConfiguration->sourceReader);
+    //direct3D_manager_p->Release ();
+    //direct3D_manager_p = NULL;
+    ACE_ASSERT (configuration_in.moduleHandlerConfiguration->topology);
     graph_loaded = true;
 
     // clean up

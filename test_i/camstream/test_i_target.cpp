@@ -733,10 +733,20 @@ do_finalize_directshow (Test_I_Target_GTK_CBData& CBData_in)
   //  CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
   //  CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
   //} // end IF
-  if (CBData_in.configuration->moduleHandlerConfiguration.sourceReader)
+  if (CBData_in.configuration->moduleHandlerConfiguration.mediaSource)
   {
-    CBData_in.configuration->moduleHandlerConfiguration.sourceReader->Release ();
-    CBData_in.configuration->moduleHandlerConfiguration.sourceReader = NULL;
+    CBData_in.configuration->moduleHandlerConfiguration.mediaSource->Release ();
+    CBData_in.configuration->moduleHandlerConfiguration.mediaSource = NULL;
+  } // end IF
+  //if (CBData_in.configuration->moduleHandlerConfiguration.sourceReader)
+  //{
+  //  CBData_in.configuration->moduleHandlerConfiguration.sourceReader->Release ();
+  //  CBData_in.configuration->moduleHandlerConfiguration.sourceReader = NULL;
+  //} // end IF
+  if (CBData_in.configuration->moduleHandlerConfiguration.topology)
+  {
+    CBData_in.configuration->moduleHandlerConfiguration.topology->Release ();
+    CBData_in.configuration->moduleHandlerConfiguration.topology = NULL;
   } // end IF
 
   HRESULT result = MFShutdown ();

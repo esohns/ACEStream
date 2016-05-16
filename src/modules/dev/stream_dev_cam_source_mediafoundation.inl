@@ -60,11 +60,14 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
               false, // auto-start ?
               false, // run svc() on start() ?
               true)  // generate session messages
+ , baseTimeStamp_ (0)
  , isFirst_ (true)
  , mediaSource_ (NULL)
  , referenceCount_ (0)
- , sourceReader_ (NULL)
- , baseTimeStamp_ (0)
+ //, sourceReader_ (NULL)
+ , symbolicLink_ (NULL)
+ , symbolicLinkSize_ (0)
+ , topology_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::Stream_Dev_Cam_Source_MediaFoundation_T"));
 
@@ -89,10 +92,14 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::~Stream_Dev_Cam_Source_MediaFoundation_T"));
 
-  if (sourceReader_)
-    sourceReader_->Release ();
+  //if (sourceReader_)
+  //  sourceReader_->Release ();
+  if (topology_)
+    topology_->Release ();
   if (mediaSource_)
     mediaSource_->Release ();
+  if (symbolicLinkSize_)
+    CoTaskMemFree (symbolicLink_);
 }
 
 template <typename LockType,
@@ -148,15 +155,26 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
     referenceCount_ = 0;
 
-    if (sourceReader_)
+    //if (sourceReader_)
+    //{
+    //  sourceReader_->Release ();
+    //  sourceReader_ = NULL;
+    //} // end IF
+    if (topology_)
     {
-      sourceReader_->Release ();
-      sourceReader_ = NULL;
+      topology_->Release ();
+      topology_ = NULL;
     } // end IF
     if (mediaSource_)
     {
       mediaSource_->Release ();
       mediaSource_ = NULL;
+    } // end IF
+    if (symbolicLinkSize_)
+    {
+      CoTaskMemFree (symbolicLink_);
+      symbolicLink_ = NULL;
+      symbolicLinkSize_ = 0;
     } // end IF
 
     baseTimeStamp_ = 0;
@@ -249,7 +267,13 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
       bool COM_initialized = false;
       bool is_running = false;
       bool is_reading = false;
-      IMFPresentationDescriptor* presentation_descriptor_p = NULL;
+      bool release_device = false;
+      IDirect3DDeviceManager9* direct3D_manager_p = NULL;
+      //IMFTopologyNode* source_node_p = NULL;
+      bool release_media_source = false;
+      bool release_topology = false;
+      //IMFPresentationDescriptor* presentation_descriptor_p = NULL;
+      HRESULT result_2 = E_FAIL;
 
       if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       {
@@ -273,10 +297,10 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //                    &inherited::configuration_->statisticCollectionInterval));
       } // end IF
 
-      HRESULT result_2 = CoInitializeEx (NULL,
-                                         (COINIT_MULTITHREADED    |
-                                          COINIT_DISABLE_OLE1DDE  |
-                                          COINIT_SPEED_OVER_MEMORY));
+      result_2 = CoInitializeEx (NULL,
+                                 (COINIT_MULTITHREADED    |
+                                  COINIT_DISABLE_OLE1DDE  |
+                                  COINIT_SPEED_OVER_MEMORY));
 
       if (FAILED (result_2))
       {
@@ -289,10 +313,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
       // sanity check(s)
       ACE_ASSERT (!mediaSource_);
-      ACE_ASSERT (!sourceReader_);
+      //ACE_ASSERT (!sourceReader_);
+      ACE_ASSERT (!topology_);
 
-      bool release_device = false;
-      IDirect3DDeviceManager9* direct3D_manager_p = NULL;
       if (!session_data_r.direct3DDevice)
       {
         // *TODO*: remove type inferences
@@ -310,31 +333,25 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
         } // end IF
         release_device = true;
       } // end IF
-      else
-      {
-        if (!inherited::configuration_->sourceReader)
-          if (!Stream_Module_Device_Tools::initializeDirect3DManager (session_data_r.direct3DDevice,
-                                                                      direct3D_manager_p,
-                                                                      session_data_r.resetToken))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeDirect3DManager(), aborting\n")));
-            goto error;
-          } // end IF
-      } // end ELSE
-      //if (inherited::configuration_->direct3DDevice)
+
+      //if (!inherited::configuration_->sourceReader)
+      //  if (!Stream_Module_Device_Tools::initializeDirect3DManager (session_data_r.direct3DDevice,
+      //                                                              direct3D_manager_p,
+      //                                                              session_data_r.resetToken))
+      //  {
+      //    ACE_DEBUG ((LM_ERROR,
+      //                ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeDirect3DManager(), aborting\n")));
+      //    goto error;
+      //  } // end IF
+
+      //if (inherited::configuration_->sourceReader)
       //{
-      //  inherited::configuration_->direct3DDevice->AddRef ();
-      //  Direct3DDevice_ = inherited::configuration_->direct3DDevice;
-
-      //  // sanity check(s)
-      //  ACE_ASSERT (session_data_r.resetToken);
-      //} // end IF
-
-      if (inherited::configuration_->sourceReader)
+      //  inherited::configuration_->sourceReader->AddRef ();
+      //  sourceReader_ = inherited::configuration_->sourceReader;
+      if (inherited::configuration_->topology)
       {
-        inherited::configuration_->sourceReader->AddRef ();
-        sourceReader_ = inherited::configuration_->sourceReader;
+        inherited::configuration_->topology->AddRef ();
+        topology_ = inherited::configuration_->topology;
 
         // sanity check(s)
         ACE_ASSERT (inherited::configuration_->mediaSource);
@@ -351,142 +368,391 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
         } // end IF
         else
         {
-          // sanity check(s)
-          ACE_ASSERT (direct3D_manager_p);
+          //// sanity check(s)
+          //ACE_ASSERT (direct3D_manager_p);
 
-          // *TODO*: remove type inferences
-          if (!initialize_MediaFoundation (inherited::configuration_->device,
-                                           inherited::configuration_->window,
-                                           direct3D_manager_p,
-                                           mediaSource_,
-                                           this,
-                                           sourceReader_))
+          //// *TODO*: remove type inferences
+          //if (!initialize_MediaFoundation (inherited::configuration_->device,
+          //                                 inherited::configuration_->window,
+          //                                 direct3D_manager_p,
+          //                                 session_data_r.format,
+          //                                 mediaSource_,
+          //                                 symbolicLink_,
+          //                                 symbolicLinkSize_,
+          //                                 this,
+          //                                 sourceReader_))
+          //{
+          //  ACE_DEBUG ((LM_ERROR,
+          //              ACE_TEXT ("failed to initialize_MediaFoundation(), aborting\n")));
+          //  goto error;
+          //} // end IF
+          if (!Stream_Module_Device_Tools::getMediaSource (inherited::configuration_->device,
+                                                           mediaSource_,
+                                                           symbolicLink_,
+                                                           symbolicLinkSize_))
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to initialize_MediaFoundation(), aborting\n")));
+                        ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
             goto error;
           } // end IF
+          release_media_source = true;
         } // end ELSE
+
+        //if (!Stream_Module_Device_Tools::getSourceReader (mediaSource_,
+        //                                                  symbolicLink_,
+        //                                                  symbolicLinkSize_,
+        //                                                  direct3D_manager_p,
+        //                                                  this,
+        //                                                  Stream_Module_Device_Tools::isChromaLuminance (inherited::configuration_->format),
+        //                                                  sourceReader_))
+        //{
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), aborting\n")));
+        //  goto error;
+        //} // end IF
+        if (!Stream_Module_Device_Tools::loadDeviceTopology (inherited::configuration_->device,
+                                                             mediaSource_,
+                                                             topology_))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceTopology(), aborting\n")));
+          goto error;
+        } // end IF
+        release_topology = true;
       } // end ELSE
       if (direct3D_manager_p)
       {
         direct3D_manager_p->Release ();
         direct3D_manager_p = NULL;
       } // end IF
-      ACE_ASSERT (sourceReader_);
-
-      if (!mediaSource_)
-      {
-        ACE_ASSERT (false);
-
-        //result_2 = MFGetService (sourceReader_,
-        //                         MF_MEDIASOURCE_SERVICE,
-        //                         IID_IMFMediaSource,
-        //                         (void**)&media_source_p);
-        //result_2 =
-        //  sourceReader_->GetServiceForStream (MF_SOURCE_READER_MEDIASOURCE,
-        //                                      MF_MEDIASOURCE_SERVICE,
-        //                                      IID_IMFMediaSource,
-        //                                      (void**)&media_source_p);
-        //result_2 =
-        //  sourceReader_->QueryInterface (IID_PPV_ARGS (&media_source_p));
-        //if (FAILED (result_2))
-        //{
-        //  ACE_DEBUG ((LM_ERROR,
-        //              //ACE_TEXT ("failed to MFGetService(MF_MEDIASOURCE_SERVICE): \"%s\", aborting\n"),
-        //              //ACE_TEXT ("failed to IMFSourceReader::GetServiceForStream(MF_MEDIASOURCE_SERVICE): \"%s\", aborting\n"),
-        //              ACE_TEXT ("failed to IMFSourceReader::QueryInterface(IID_IMFMediaSource): \"%s\", aborting\n"),
-        //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        //  goto error;
-        //} // end IF
-      } // end IF
       ACE_ASSERT (mediaSource_);
+      //ACE_ASSERT (sourceReader_);
+      ACE_ASSERT (topology_);
 
-      if (!Stream_Module_Device_Tools::setCaptureFormat (sourceReader_,
+      //if (!Stream_Module_Device_Tools::setCaptureFormat (sourceReader_,
+      //                                                   session_data_r.format))
+      if (!Stream_Module_Device_Tools::setCaptureFormat (topology_,
                                                          session_data_r.format))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
         goto error;
       } // end IF
-      if (!Stream_Module_Device_Tools::getCaptureFormat (sourceReader_,
-                                                         session_data_r.format))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
-        goto error;
-      } // end IF
+
+      //IMFMediaType* media_type_p = NULL;
+      //if (!Stream_Module_Device_Tools::copyMediaType (session_data_r.format,
+      //                                                media_type_p))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
+      //  goto error;
+      //} // end IF
+
+      //if (Stream_Module_Device_Tools::isCompressed (session_data_r.format))
+      //{
+      //  struct _GUID sub_type = { 0 };
+      //  IMFActivate** decoders_p = NULL;
+      //  UINT32 number_of_decoders = 0;
+      //  MFT_REGISTER_TYPE_INFO mft_register_type_info = { 0 };
+      //  mft_register_type_info.guidMajorType = MFMediaType_Video;
+      //  UINT32 flags = (MFT_ENUM_FLAG_SYNCMFT        |
+      //                  MFT_ENUM_FLAG_ASYNCMFT       |
+      //                  MFT_ENUM_FLAG_HARDWARE       |
+      //                  MFT_ENUM_FLAG_FIELDOFUSE     |
+      //                  MFT_ENUM_FLAG_LOCALMFT       |
+      //                  MFT_ENUM_FLAG_TRANSCODE_ONLY |
+      //                  MFT_ENUM_FLAG_SORTANDFILTER);
+      //  IMFTransform* transform_p = NULL;
+      //  while (true)
+      //  {
+      //    result_2 = media_type_p->GetGUID (MF_MT_SUBTYPE, &sub_type);
+      //    ACE_ASSERT (SUCCEEDED (result_2));
+      //    mft_register_type_info.guidSubtype = sub_type;
+
+      //    result_2 = MFTEnumEx (MFT_CATEGORY_VIDEO_DECODER, // category
+      //                          flags,                      // flags
+      //                          &mft_register_type_info,    // input type
+      //                          NULL,                       // output type
+      //                          &decoders_p,                // array of decoders
+      //                          &number_of_decoders);       // size of array
+      //    if (FAILED (result_2))
+      //    {
+      //      ACE_DEBUG ((LM_ERROR,
+      //                  ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
+      //                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ()),
+      //                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
+
+      //      // clean up
+      //      media_type_p->Release ();
+
+      //      goto error;
+      //    } // end IF
+      //    if (number_of_decoders <= 0)
+      //    {
+      //      ACE_DEBUG ((LM_ERROR,
+      //                  ACE_TEXT ("cannot find decoder for: \"%s\", aborting\n"),
+      //                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
+
+      //      // clean up
+      //      media_type_p->Release ();
+
+      //      goto error;
+      //    } // end IF
+
+      //    result_2 =
+      //      decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
+      //    ACE_ASSERT (SUCCEEDED (result_2));
+      //    for (UINT32 i = 0; i < number_of_decoders; i++)
+      //      decoders_p[i]->Release ();
+      //    CoTaskMemFree (decoders_p);
+      //    result_2 = transform_p->SetInputType (0,
+      //                                          media_type_p,
+      //                                          0);
+      //    if (FAILED (result_2))
+      //    {
+      //      ACE_DEBUG ((LM_ERROR,
+      //                  ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
+      //                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+      //      // clean up
+      //      media_type_p->Release ();
+      //      transform_p->Release ();
+
+      //      goto error;
+      //    } // end IF
+      //    if (!Stream_Module_Device_Tools::getOutputFormat (transform_p,
+      //                                                      media_type_p))
+      //    {
+      //      ACE_DEBUG ((LM_ERROR,
+      //                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(): \"%s\", aborting\n"),
+      //                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+      //      // clean up
+      //      media_type_p->Release ();
+      //      transform_p->Release ();
+
+      //      goto error;
+      //    } // end IF
+      //    result_2 = transform_p->SetOutputType (0,
+      //                                           media_type_p,
+      //                                           0);
+      //    if (FAILED (result_2))
+      //    {
+      //      ACE_DEBUG ((LM_ERROR,
+      //                  ACE_TEXT ("failed to IMFTransform::SetOutputType(): \"%s\", aborting\n"),
+      //                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+      //      // clean up
+      //      media_type_p->Release ();
+      //      transform_p->Release ();
+
+      //      goto error;
+      //    } // end IF
+
+      //    // *NOTE*: see instructions at
+      //    //         https://msdn.microsoft.com/en-us/library/windows/desktop/hh448063(v=vs.85).aspx
+      //    // *TODO*: this does not seem to work as documented
+      //    //         --> try using topologies
+      //    result_2 = media_type_p->GetGUID (MF_MT_SUBTYPE, &sub_type);
+      //    ACE_ASSERT (SUCCEEDED (result_2));
+      //    media_type_p->Release ();
+      //    media_type_p = NULL;
+      //    //result_2 = MFCreateMediaType (&media_type_p);
+      //    //ACE_ASSERT (SUCCEEDED (result_2));
+      //    //result_2 = media_type_p->SetGUID (MF_MT_MAJOR_TYPE, MFMediaType_Video);
+      //    //ACE_ASSERT (SUCCEEDED (result_2));
+      //    ////result_2 = media_type_p->SetGUID (MF_MT_SUBTYPE, MFVideoFormat_RGB32);
+      //    //result_2 = media_type_p->SetGUID (MF_MT_SUBTYPE, sub_type);
+      //    //ACE_ASSERT (SUCCEEDED (result_2));
+      //    ////ACE_ASSERT (Stream_Module_Device_Tools::copyAttribute (session_data_r.format,
+      //    ////                                                       media_type_p,
+      //    ////                                                       MF_MT_FRAME_SIZE));
+      //    ////ACE_ASSERT (Stream_Module_Device_Tools::copyAttribute (session_data_r.format,
+      //    ////                                                       media_type_p,
+      //    ////                                                       MF_MT_FRAME_RATE));
+      //    //result_2 =
+      //    //  sourceReader_->SetCurrentMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+      //    //                                      NULL,
+      //    //                                      media_type_p);
+      //    //if (FAILED (result_2)) // MF_E_INVALIDMEDIATYPE: 0xC00D36B4L
+      //    //{
+      //    //  ACE_DEBUG ((LM_ERROR,
+      //    //              ACE_TEXT ("failed to IMFSourceReader::SetCurrentMediaType(): \"%s\", aborting\n"),
+      //    //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+      //    //  // clean up
+      //    //  media_type_p->Release ();
+      //    //  transform_p->Release ();
+
+      //    //  goto error;
+      //    //} // end IF
+      //    // *NOTE*: "... The method fails if the source reader was configured
+      //    //         with the MF_READWRITE_DISABLE_CONVERTERS or
+      //    //         MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING attributes. ..."
+      //    result_2 =
+      //      sourceReader_->AddTransformForStream (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+      //                                            transform_p);
+      //    if (FAILED (result_2)) // MF_E_INVALIDMEDIATYPE: 0xC00D36B4L
+      //    {
+      //      ACE_DEBUG ((LM_ERROR,
+      //                  ACE_TEXT ("failed to IMFSourceReaderEx::AddTransformForStream(): \"%s\", aborting\n"),
+      //                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+      //      // clean up
+      //      media_type_p->Release ();
+      //      transform_p->Release ();
+
+      //      goto error;
+      //    } // end IF
+
+      //    media_type_p->Release ();
+      //    media_type_p = NULL;
+
+      //    result_2 = transform_p->GetOutputCurrentType (0,
+      //                                                  &media_type_p);
+      //    if (FAILED (result_2)) // MF_E_INVALIDMEDIATYPE
+      //    {
+      //      ACE_DEBUG ((LM_ERROR,
+      //                  ACE_TEXT ("failed to IMFTransform::GetOutputCurrentType(): \"%s\", aborting\n"),
+      //                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+      //      // clean up
+      //      media_type_p->Release ();
+      //      transform_p->Release ();
+
+      //      goto error;
+      //    } // end IF
+      //    transform_p->Release ();
+
+      //    if (!Stream_Module_Device_Tools::isCompressed (media_type_p))
+      //      break; // done
+      //  } // end WHILE
+      //  media_type_p->Release ();
+      //  media_type_p = NULL;
+
+      //  session_data_r.format->Release ();
+      //  session_data_r.format = NULL;
+
+      //  result_2 =
+      //    sourceReader_->GetCurrentMediaType (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+      //                                        &session_data_r.format);
+      //  if (FAILED (result_2))
+      //  {
+      //    ACE_DEBUG ((LM_ERROR,
+      //                ACE_TEXT ("failed to IMFSourceReader::GetCurrentMediaType(): \"%s\", aborting\n"),
+      //                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      //    goto error;
+      //  } // end IF
+
+        //IMFTopologyNode* topology_node_p = NULL;
+        //result_2 = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
+        //                                 &topology_node_p);
+        //ACE_ASSERT (SUCCEEDED (result_2));
+        //result_2 = topology_node_p->SetObject (decoders_p[0]);
+        //ACE_ASSERT (SUCCEEDED (result_2));
+        //for (UINT32 i = 0; i < number_of_decoders; i++)
+        //  decoders_p[i]->Release ();
+        //CoTaskMemFree (decoders_p);
+        //result_2 = session_data_r.topology->AddNode (topology_node_p);
+        //ACE_ASSERT (SUCCEEDED (result_2));
+
+        //result_2 = source_node_p->ConnectOutput (0,
+        //                                         topology_node_p,
+        //                                         0);
+        //if (FAILED (result_2))
+        //{
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
+        //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+        //  // clean up
+        //  topology_node_p->Release ();
+
+        //  goto error;
+        //} // end IF
+        //topology_node_p->Release ();
+      //} // end IF
+      //else
+      //{
+      //  if (!Stream_Module_Device_Tools::setCaptureFormat (sourceReader_,
+      //                                                     session_data_r.format))
+      //  {
+      //    ACE_DEBUG ((LM_ERROR,
+      //                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+      //    goto error;
+      //  } // end IF
+      //} // end ELSE
+      //source_node_p->Release ();
+      //source_node_p = NULL;
 
       if (_DEBUG)
-      {
-        std::string media_type_string =
-          Stream_Module_Device_Tools::mediaTypeToString (session_data_r.format);
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("capture format: \"%s\"...\n"),
-                    ACE_TEXT (media_type_string.c_str ())));
-      } // end IF
+                    ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (session_data_r.format).c_str ())));
 
-      result_2 =
-        mediaSource_->CreatePresentationDescriptor (&presentation_descriptor_p);
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        goto error;
-      } // end IF
-      ACE_ASSERT (presentation_descriptor_p);
-      //DWORD stream_descriptor_count = 0;
       //result_2 =
-      //  presentation_descriptor_p->GetStreamDescriptorCount (&stream_descriptor_count);
+      //  mediaSource_->CreatePresentationDescriptor (&presentation_descriptor_p);
       //if (FAILED (result_2))
       //{
       //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptorCount(): \"%s\", continuing\n"),
+      //              ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", continuing\n"),
       //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       //  goto error;
       //} // end IF
-      //ACE_ASSERT (stream_descriptor_count > 0);
-      struct tagPROPVARIANT start_position;
-      PropVariantInit (&start_position);
-      start_position.vt = VT_EMPTY;
-      result_2 = mediaSource_->Start (presentation_descriptor_p, // presentation descriptor handle
-                                      &GUID_NULL,                // time format
-                                      &start_position);          // start position
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFMediaSource::Start(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        goto error;
-      } // end IF
-      presentation_descriptor_p->Release ();
-      presentation_descriptor_p = NULL;
-      is_running = true;
+      //ACE_ASSERT (presentation_descriptor_p);
+      ////DWORD stream_descriptor_count = 0;
+      ////result_2 =
+      ////  presentation_descriptor_p->GetStreamDescriptorCount (&stream_descriptor_count);
+      ////if (FAILED (result_2))
+      ////{
+      ////  ACE_DEBUG ((LM_ERROR,
+      ////              ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptorCount(): \"%s\", continuing\n"),
+      ////              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      ////  goto error;
+      ////} // end IF
+      ////ACE_ASSERT (stream_descriptor_count > 0);
+      //struct tagPROPVARIANT start_position;
+      //PropVariantInit (&start_position);
+      //start_position.vt = VT_EMPTY;
+      //result_2 = mediaSource_->Start (presentation_descriptor_p, // presentation descriptor handle
+      //                                &GUID_NULL,                // time format
+      //                                &start_position);          // start position
+      //if (FAILED (result_2))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFMediaSource::Start(): \"%s\", continuing\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      //  goto error;
+      //} // end IF
+      //presentation_descriptor_p->Release ();
+      //presentation_descriptor_p = NULL;
+      //is_running = true;
 
-      // start displaying video data (asynchronous mode)
-      result_2 = sourceReader_->ReadSample (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-                                            0,
-                                            NULL,
-                                            NULL,
-                                            NULL,
-                                            NULL);
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFSourceReader::ReadSample(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        goto error;
-      } // end IF
-      is_reading = true;
+      //// start displaying video data (asynchronous mode)
+      //result_2 = sourceReader_->ReadSample (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+      //                                      0,
+      //                                      NULL,
+      //                                      NULL,
+      //                                      NULL,
+      //                                      NULL);
+      //if (FAILED (result_2))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFSourceReader::ReadSample(): \"%s\", aborting\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      //  goto error;
+      //} // end IF
+      //is_reading = true;
 
       break;
 
 error:
       if (direct3D_manager_p)
         direct3D_manager_p->Release ();
-      if (presentation_descriptor_p)
-        presentation_descriptor_p->Release ();
+      //if (presentation_descriptor_p)
+      //  presentation_descriptor_p->Release ();
+      //if (source_node_p)
+      //  source_node_p->Release ();
 
       if (is_running)
       {
@@ -512,16 +778,27 @@ error:
         session_data_r.format = NULL;
       } // end IF
 
-      if (sourceReader_)
+      //if (sourceReader_)
+      //{
+      //  sourceReader_->Release ();
+      //  sourceReader_ = NULL;
+      //} // end IF
+      if (release_topology)
       {
-        sourceReader_->Release ();
-        sourceReader_ = NULL;
+        topology_->Release ();
+        topology_ = NULL;
       } // end IF
 
-      if (mediaSource_)
+      if (release_media_source)
       {
         mediaSource_->Release ();
         mediaSource_ = NULL;
+      } // end IF
+      if (symbolicLinkSize_)
+      {
+        CoTaskMemFree (symbolicLink_);
+        symbolicLink_ = NULL;
+        symbolicLinkSize_ = 0;
       } // end IF
 
       if (COM_initialized)
@@ -567,10 +844,15 @@ error:
                     ACE_TEXT ("failed to IMFMediaSource::Stop(): \"%s\", continuing\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
 
-      if (sourceReader_)
+      //if (sourceReader_)
+      //{
+      //  sourceReader_->Release ();
+      //  sourceReader_ = NULL;
+      //} // end IF
+      if (topology_)
       {
-        sourceReader_->Release ();
-        sourceReader_ = NULL;
+        topology_->Release ();
+        topology_ = NULL;
       } // end IF
 
       if (mediaSource_)
@@ -688,12 +970,16 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::QueryInterface"));
 
-  static const QITAB qit[] =
+  static const QITAB query_interface_table[] =
   {
     QITABENT (OWN_TYPE_T, IMFSourceReaderCallback),
     { 0 },
   };
-  return QISearch (this, qit, IID_in, interface_out);
+
+  return QISearch (this,
+                   query_interface_table,
+                   IID_in,
+                   interface_out);
 }
 template <typename LockType,
           typename SessionMessageType,
@@ -737,11 +1023,11 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::Release"));
 
-  ULONG uCount = InterlockedDecrement (&referenceCount_);
-  if (uCount == 0);
+  ULONG count = InterlockedDecrement (&referenceCount_);
+  if (count == 0);
     //delete this;
 
-  return uCount;
+  return count;
 }
 template <typename LockType,
           typename SessionMessageType,
@@ -1190,39 +1476,59 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
                                         StatisticContainerType>::initialize_MediaFoundation (const std::string& deviceName_in,
                                                                                              const HWND windowHandle_in,
                                                                                              const IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
+                                                                                             const IMFMediaType* IMFMediaType_in,
                                                                                              IMFMediaSource*& IMFMediaSource_inout,
-                                                                                             IMFSourceReaderCallback* IMFSourceReaderCallback_in,
-                                                                                             IMFSourceReader*& IMFSourceReader_out)
+                                                                                             WCHAR*& symbolicLink_out,
+                                                                                             UINT32& symbolicLinkSize_out,
+                                                                                             const IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
+                                                                                             IMFTopology*& IMFTopology_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::initialize_MediaFoundation"));
 
   bool release_media_source = false;
 
+  // sanity check(s)
+  ACE_ASSERT (!IMFTopology_out);
+
   if (!IMFMediaSource_inout)
+  {
     if (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
-                                                     IMFMediaSource_inout))
+                                                     IMFMediaSource_inout,
+                                                     symbolicLink_out,
+                                                     symbolicLinkSize_out))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
                   ACE_TEXT (deviceName_in.c_str ())));
       return false;
     } // end IF
-    else
-      release_media_source = true;
+    release_media_source = true;
+  } // end IF
   ACE_ASSERT (IMFMediaSource_inout);
 
-  // *NOTE*: the source reader assumes responsibility for the media source
-  //         handle
-  if (!Stream_Module_Device_Tools::getSourceReader (IMFMediaSource_inout,
-                                                    IDirect3DDeviceManager_in,
-                                                    this,
-                                                    sourceReader_))
+  //if (!Stream_Module_Device_Tools::getSourceReader (IMFMediaSource_inout,
+  //                                                  symbolicLink_out,
+  //                                                  symbolicLinkSize_out,
+  //                                                  IDirect3DDeviceManager_in,
+  //                                                  this,
+  //                                                  Stream_Module_Device_Tools::isChromaLuminance (IMFMediaType_in),
+  //                                                  IMFSourceReaderEx_out))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), aborting\n")));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (IMFSourceReaderEx_out);
+  if (!Stream_Module_Device_Tools::loadRendererTopology (deviceName_in,
+                                                         IMFMediaType_in,
+                                                         IMFSampleGrabberSinkCallback_in,
+                                                         windowHandle_in,
+                                                         IMFTopology_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (sourceReader_);
 
   return true;
 
@@ -1232,10 +1538,19 @@ error:
     IMFMediaSource_inout->Release ();
     IMFMediaSource_inout = NULL;
   } // end IF
-  if (sourceReader_)
+  if (symbolicLinkSize_out)
   {
-    sourceReader_->Release ();
-    sourceReader_ = NULL;
+    // sanity check(s)
+    ACE_ASSERT (symbolicLink_out);
+
+    CoTaskMemFree (symbolicLink_out);
+    symbolicLink_out = NULL;
+    symbolicLinkSize_out = 0;
+  } // end IF
+  if (IMFSourceReaderEx_out)
+  {
+    IMFSourceReaderEx_out->Release ();
+    IMFSourceReaderEx_out = NULL;
   } // end IF
 
   return false;

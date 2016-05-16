@@ -35,8 +35,8 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_misc_directshow_asynch_source_filter.h"
-#include "stream_misc_directshow_source_filter.h"
+//#include "stream_misc_directshow_asynch_source_filter.h"
+//#include "stream_misc_directshow_source_filter.h"
 
 template <typename SessionMessageType,
           typename MessageType,
@@ -51,7 +51,7 @@ class Stream_Misc_MediaFoundation_Source_T
                                  SessionMessageType,
                                  MessageType>
  , public Stream_IModuleHandler_T<ConfigurationType>
- , public IMFSourceReaderCallback
+ , public IMFSampleGrabberSinkCallback
 {
   //typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
   //                                                      SessionMessageType,
@@ -85,7 +85,7 @@ class Stream_Misc_MediaFoundation_Source_T
   virtual bool initialize (const ConfigurationType&);
   virtual const ConfigurationType& get () const;
 
-  // implement IMFSourceReaderCallback
+  // implement IMFSampleGrabberSinkCallback
   virtual HRESULT STDMETHODCALLTYPE QueryInterface (const IID&,
                                                     void**);
   virtual ULONG STDMETHODCALLTYPE AddRef ();
@@ -114,19 +114,21 @@ class Stream_Misc_MediaFoundation_Source_T
 
   // helper methods
   MessageType* allocateMessage (unsigned int); // (requested) size
-  bool initialize_MediaFoundation (const std::string&,             // (source) device name (FriendlyName)
-                                   const HWND,                     // (target) window handle [NULL: NullRenderer]
-                                   IMFMediaSource*&,               // media source handle (in/out)
-                                   const IDirect3DDeviceManager9*, // Direct3D device manager handle
-                                   const IMFSourceReaderCallback*, // source reader callback handle
-                                   IMFSourceReader*&);             // return value: source reader handle
+  bool initialize_MediaFoundation (const HWND,                          // (target) window handle [NULL: NullRenderer]
+                                   const IMFMediaType*,                 // media type handle
+                                   IMFMediaSource*&,                    // media source handle (in/out)
+                                   WCHAR*&,                             // return value: symbolic link
+                                   UINT32&,                             // return value: symbolic link size
+                                   const IDirect3DDeviceManager9*,      // Direct3D device manager handle
+                                   const IMFSampleGrabberSinkCallback*, // grabber sink callback handle [NULL: do not use tee/grabber]
+                                   IMFTopology*&);                      // return value: topology handle
   void finalize_MediaFoundation ();
 
   bool               isInitialized_;
   bool               isFirst_;
   
   IMFMediaSource*    mediaSource_;
-  IMFSourceReader*   sourceReader_;
+  IMFTopology*       topology_;
 };
 
 // include template definition

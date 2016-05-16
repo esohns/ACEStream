@@ -46,7 +46,7 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
  , sessionData_ (NULL)
  , isInitialized_ (false)
  , mediaSource_ (NULL)
- , sourceReader_ (NULL)
+ , topology_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::Stream_Misc_MediaFoundation_Source_T"));
 
@@ -67,8 +67,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
 
   inherited::queue_.waitForIdleState ();
 
-  if (sourceReader_)
-    sourceReader_->Release ();
+  if (topology_)
+    topology_->Release ();
   if (mediaSource_)
     mediaSource_->Release ();
 }
@@ -123,10 +123,10 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
       sessionData_ = NULL;
     } // end IF
 
-    if (sourceReader_)
+    if (topology_)
     {
-      sourceReader_->Release ();
-      sourceReader_ = NULL;
+      topology_->Release ();
+      topology_ = NULL;
     } // end IF
     if (mediaSource_)
     {
@@ -476,7 +476,7 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
       ACE_ASSERT (!session_data_r.direct3DDevice);
       ACE_ASSERT (!session_data_r.resetToken);
       ACE_ASSERT (!mediaSource_);
-      ACE_ASSERT (!sourceReader_);
+      ACE_ASSERT (!topology_);
 
       // *TODO*: remove type inferences
       IDirect3DDeviceManager9* direct3D_manager_p = NULL;
@@ -501,18 +501,23 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
       //  ACE_ASSERT (session_data_r.resetToken);
       //} // end IF
 
-      if (!initialize_MediaFoundation (configuration_->device,
-                                       configuration_->window,
+      WCHAR* symbolic_link_p = NULL;
+      UINT32 symbolic_link_size = 0;
+      if (!initialize_MediaFoundation (configuration_->window,
+                                       session_data_r.format,
                                        configuration_->mediaSource,
+                                       symbolic_link_p,
+                                       symbolic_link_size,
                                        direct3D_manager_p,
                                        this,
-                                       sourceReader_))
+                                       topology_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize_MediaFoundation(), returning\n")));
         goto error;
       } // end IF
-      ACE_ASSERT (sourceReader_);
+      CoTaskMemFree (symbolic_link_p);
+      ACE_ASSERT (topology_);
 
 //do_run:
       // start displaying video data (asynchronous mode)
@@ -520,26 +525,27 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
       //DWORD stream_flags = 0;
       //LONGLONG timestamp = 0;
       //IMFSample* sample_p = NULL;
-      result_2 = sourceReader_->ReadSample (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-                                            0,
-                                            NULL,
-                                            NULL,
-                                            NULL,
-                                            NULL);
-      if (FAILED (result_2))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFSourceReader::ReadSample(): \"%s\", returning\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        goto error;
-      } // end IF
-      is_running = true;
+      //result_2 = sourceReader_->ReadSample (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+      //                                      0,
+      //                                      NULL,
+      //                                      NULL,
+      //                                      NULL,
+      //                                      NULL);
+      //if (FAILED (result_2))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFSourceReader::ReadSample(): \"%s\", returning\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      //  goto error;
+      //} // end IF
+      //is_running = true;
 
       break;
 
 error:
       if (COM_initialized)
         CoUninitialize ();
+
       session_data_r.aborted = true;
 
       break;
@@ -569,11 +575,12 @@ error:
         sessionData_ = NULL;
       } // end IF
 
-      if (sourceReader_)
+      if (topology_)
       {
-        sourceReader_->Release ();
-        sourceReader_ = NULL;
+        topology_->Release ();
+        topology_ = NULL;
       } // end IF
+
       if (mediaSource_)
       {
         mediaSource_->Release ();
@@ -665,52 +672,89 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::initialize_MediaFoundation (const std::string& deviceName_in,
-                                                                             const HWND windowHandle_in,
+                                     MediaType>::initialize_MediaFoundation (const HWND windowHandle_in,
+                                                                             const IMFMediaType* IMFMediaType_in,
                                                                              IMFMediaSource*& IMFMediaSource_inout,
+                                                                             WCHAR*& symbolicLink_out,
+                                                                             UINT32& symbolicLinkSize_out,
                                                                              const IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
-                                                                             const IMFSourceReaderCallback* IMFSourceReaderCallback_in,
-                                                                             IMFSourceReader*& IMFSourceReader_out)
+                                                                             const IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
+                                                                             IMFTopology*& IMFTopology_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::initialize_MediaFoundation"));
 
+  // initialize return value(s)
+  if (symbolicLinkSize_out)
+  {
+    // sanity check(s)
+    ACE_ASSERT (symbolicLink_out);
+
+    CoTaskMemFree (symbolicLink_out);
+    symbolicLink_out = NULL;
+    symbolicLinkSize_out = 0;
+  } // end IF
+  if (IMFTopology_out)
+  {
+    IMFTopology_out->Release ();
+    IMFTopology_out = NULL;
+  } // end IF
+
+  bool release_media_source = false;
+  std::string device_name;
   IMFMediaSource* media_source_p = IMFMediaSource_inout;
   if (!media_source_p)
-    if (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
-                                                     media_source_p))
+  {
+    if (!Stream_Module_Device_Tools::getMediaSource (device_name,
+                                                     IMFMediaSource_inout,
+                                                     symbolicLink_out,
+                                                     symbolicLinkSize_out))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
-                  ACE_TEXT (deviceName_in.c_str ())));
+                  ACE_TEXT (device_name.c_str ())));
       return false;
     } // end IF
+    media_source_p = IMFMediaSource_inout;
+    release_media_source = true;
+  } // end IF
   ACE_ASSERT (media_source_p);
-  IMFMediaSource_inout = NULL;
 
-  // *NOTE*: the source reader assumes responsibility for the media source
-  //         handle
-  if (!Stream_Module_Device_Tools::getSourceReader (media_source_p,
-                                                    IDirect3DDeviceManager_in,
-                                                    IMFSourceReaderCallback_in,
-                                                    IMFSourceReader_out))
+  //if (!Stream_Module_Device_Tools::loadTargetRendererTopology (IMFMediaType_in,
+  //                                                             IMFSourceReaderCallback_in,
+  //                                                             windowHandle_in,
+  //                                                             IMFTopology_out))
+  if (!Stream_Module_Device_Tools::loadRendererTopology (device_name,
+                                                         IMFMediaType_in,
+                                                         IMFSampleGrabberSinkCallback_in,
+                                                         windowHandle_in,
+                                                         IMFTopology_out))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), aborting\n")));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (IMFSourceReader_out);
-  media_source_p = NULL;
 
   return true;
 
 error:
-  if (media_source_p)
-    media_source_p->Release ();
-
-  if (IMFSourceReader_out)
+  if (IMFTopology_out)
   {
-    IMFSourceReader_out->Release ();
-    IMFSourceReader_out = NULL;
+    IMFTopology_out->Release ();
+    IMFTopology_out = NULL;
+  } // end IF
+  if (release_media_source)
+  {
+    IMFMediaSource_inout->Release ();
+    IMFMediaSource_inout = NULL;
+  } // end IF
+  if (symbolicLinkSize_out)
+  {
+    // sanity check(s)
+    ACE_ASSERT (symbolicLink_out);
+
+    CoTaskMemFree (symbolicLink_out);
+    symbolicLink_out = NULL;
+    symbolicLinkSize_out = 0;
   } // end IF
 
   return false;

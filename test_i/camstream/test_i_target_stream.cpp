@@ -242,7 +242,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   //bool release_builder = false;
 
   //if (configuration_r.moduleHandlerConfiguration->builder)
-  if (configuration_r.moduleHandlerConfiguration->sourceReader)
+  if (configuration_r.moduleHandlerConfiguration->topology)
     goto continue_;
 
   HRESULT result_2 = CoInitializeEx (NULL,
@@ -289,23 +289,49 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   // sanity check(s)
   ACE_ASSERT (!configuration_in.moduleHandlerConfiguration->mediaSource);
+
+  WCHAR* symbolic_link_p = NULL;
+  UINT32 symbolic_link_size = 0;
   if (!Stream_Module_Device_Tools::getMediaSource (configuration_in.moduleHandlerConfiguration->device,
-                                                   configuration_in.moduleHandlerConfiguration->mediaSource))
+                                                   configuration_in.moduleHandlerConfiguration->mediaSource,
+                                                   symbolic_link_p,
+                                                   symbolic_link_size))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
                 ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
     goto error;
   } // end IF
+  CoTaskMemFree (symbolic_link_p);
+  symbolic_link_p = NULL;
+  symbolic_link_size = 0;
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration->mediaSource);
-  // *NOTE*: the source reader assumes responsibility for media_source_p
-  if (!Stream_Module_Device_Tools::getSourceReader (configuration_in.moduleHandlerConfiguration->mediaSource,
-                                                    direct3D_manager_p,
-                                                    mediaFoundationSource_impl_p,
-                                                    configuration_in.moduleHandlerConfiguration->sourceReader))
+  //if (!Stream_Module_Device_Tools::getSourceReader (configuration_in.moduleHandlerConfiguration->mediaSource,
+  //                                                  symbolic_link_p,
+  //                                                  symbolic_link_size,
+  //                                                  direct3D_manager_p,
+  //                                                  mediaFoundationSource_impl_p,
+  //                                                  Stream_Module_Device_Tools::isChromaLuminance (configuration_in.moduleHandlerConfiguration->format),
+  //                                                  configuration_in.moduleHandlerConfiguration->sourceReader))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
+  //              ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
+
+  //  // clean up
+  //  configuration_in.moduleHandlerConfiguration->mediaSource->Release ();
+  //  configuration_in.moduleHandlerConfiguration->mediaSource = NULL;
+
+  //  goto error;
+  //} // end IF
+  if (!Stream_Module_Device_Tools::loadRendererTopology (configuration_in.moduleHandlerConfiguration->device,
+                                                         configuration_in.moduleHandlerConfiguration->format,
+                                                         mediaFoundationSource_impl_p,
+                                                         configuration_in.moduleHandlerConfiguration->window,
+                                                         configuration_in.moduleHandlerConfiguration->topology))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(\"%s\"), aborting\n"),
                 ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
 
     // clean up
@@ -316,7 +342,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   } // end IF
   direct3D_manager_p->Release ();
   direct3D_manager_p = NULL;
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->sourceReader);
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration->topology);
 
   //if (_DEBUG)
   //{
@@ -461,8 +487,10 @@ error:
   {
     //configuration_in.moduleHandlerConfiguration->builder->Release ();
     //configuration_in.moduleHandlerConfiguration->builder = NULL;
-    configuration_in.moduleHandlerConfiguration->sourceReader->Release ();
-    configuration_in.moduleHandlerConfiguration->sourceReader = NULL;
+    //configuration_in.moduleHandlerConfiguration->sourceReader->Release ();
+    //configuration_in.moduleHandlerConfiguration->sourceReader = NULL;
+    configuration_in.moduleHandlerConfiguration->topology->Release ();
+    configuration_in.moduleHandlerConfiguration->topology = NULL;
   } // end IF
   if (session_data_r.direct3DDevice)
   {

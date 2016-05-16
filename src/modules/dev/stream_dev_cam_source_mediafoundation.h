@@ -65,7 +65,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       SessionDataContainerType,
                                       ///
                                       StatisticContainerType>
- , public IMFSourceReaderCallback
+ , public IMFSampleGrabberSinkCallback
 {
  public:
   Stream_Dev_Cam_Source_MediaFoundation_T ();
@@ -131,7 +131,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       SessionDataContainerType,
                                       ///
                                       StatisticContainerType> inherited;
-  typedef IMFSourceReaderCallback inherited2;
+  typedef IMFSampleGrabberSinkCallback inherited2;
 
   typedef Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
                                                   
@@ -152,18 +152,23 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
 
   // helper methods
   // *NOTE*: (if any,) fire-and-forget the media source handle (third argument)
-  bool initialize_MediaFoundation (const std::string&,             // (source) device name (FriendlyName)
-                                   const HWND,                     // (target) window handle [NULL: NullRenderer]
-                                   const IDirect3DDeviceManager9*, // direct 3d manager handle
-                                   IMFMediaSource*&,               // media source handle (in/out)
-                                   IMFSourceReaderCallback*,       // source reader callback handle
-                                   IMFSourceReader*&);             // return value: source reader handle
+  bool initialize_MediaFoundation (const std::string&,                  // (source) device name (FriendlyName)
+                                   const HWND,                          // (target) window handle [NULL: NullRenderer]
+                                   const IDirect3DDeviceManager9*,      // direct 3d manager handle
+                                   const IMFMediaType*,                 // media type handle
+                                   IMFMediaSource*&,                    // media source handle (in/out)
+                                   WCHAR*&,                             // return value: symbolic link
+                                   UINT32&,                             // return value: symbolic link size
+                                   const IMFSampleGrabberSinkCallback*, // grabber sink callback handle [NULL: do not use tee/grabber]
+                                   IMFTopology*&);                      // return value: topology handle
 
-  bool             isFirst_;
-  IMFMediaSource*  mediaSource_;
-  long             referenceCount_;
-  IMFSourceReader* sourceReader_;
-  LONGLONG         baseTimeStamp_;
+  LONGLONG           baseTimeStamp_;
+  bool               isFirst_;
+  IMFMediaSource*    mediaSource_;
+  long               referenceCount_;
+  WCHAR*             symbolicLink_;
+  UINT32             symbolicLinkSize_;
+  IMFTopology*       topology_;
 };
 
 #include "stream_dev_cam_source_mediafoundation.inl"

@@ -362,14 +362,16 @@ struct less_guid
 
 bool
 //load_formats (IAMStreamConfig* IAMStreamConfig_in,
-load_formats (IMFSourceReader* IMFSourceReader_in,
+//load_formats (IMFSourceReader* IMFSourceReader_in,
+load_formats (IMFMediaSource* IMFMediaSource_in,
               GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_formats"));
 
   // sanity check(s)
   //ACE_ASSERT (IAMStreamConfig_in);
-  ACE_ASSERT (IMFSourceReader_in);
+  //ACE_ASSERT (IMFSourceReader_in);
+  ACE_ASSERT (IMFMediaSource_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
@@ -485,7 +487,8 @@ load_formats (IMFSourceReader* IMFSourceReader_in,
 
 bool
 //load_resolutions (IAMStreamConfig* IAMStreamConfig_in,
-load_resolutions (IMFSourceReader* IMFSourceReader_in,
+//load_resolutions (IMFSourceReader* IMFSourceReader_in,
+load_resolutions (IMFMediaSource* IMFMediaSource_in,
                   const struct _GUID& mediaSubType_in,
                   GtkListStore* listStore_in)
 {
@@ -493,7 +496,8 @@ load_resolutions (IMFSourceReader* IMFSourceReader_in,
 
   // sanity check(s)
   //ACE_ASSERT (IAMStreamConfig_in);
-  ACE_ASSERT (IMFSourceReader_in);
+  ACE_ASSERT (IMFMediaSource_in);
+  //ACE_ASSERT (IMFSourceReader_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
@@ -644,7 +648,8 @@ load_resolutions (IMFSourceReader* IMFSourceReader_in,
 
 bool
 //load_rates (IAMStreamConfig* IAMStreamConfig_in,
-load_rates (IMFSourceReader* IMFSourceReader_in,
+//load_rates (IMFSourceReader* IMFSourceReader_in,
+load_rates (IMFMediaSource* IMFMediaSource_in,
             const struct _GUID& mediaSubType_in,
             unsigned int width_in,
             GtkListStore* listStore_in)
@@ -653,7 +658,8 @@ load_rates (IMFSourceReader* IMFSourceReader_in,
 
   // sanity check(s)
   //ACE_ASSERT (IAMStreamConfig_in);
-  ACE_ASSERT (IMFSourceReader_in);
+  ACE_ASSERT (IMFMediaSource_in);
+  //ACE_ASSERT (IMFSourceReader_in);
   ACE_ASSERT (listStore_in);
 
   // initialize result
@@ -2353,11 +2359,12 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
                                static_cast<gdouble> (data_p->configuration->streamConfiguration.bufferSize));
 
   // sanity check(s)
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.topology);
 
   //if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.topology,
                                                      data_p->configuration->moduleHandlerConfiguration.format))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2700,44 +2707,56 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   //buffer_negotiation_p->Release ();
 
-  if (data_p->configuration->moduleHandlerConfiguration.sourceReader)
-  {
-    data_p->configuration->moduleHandlerConfiguration.sourceReader->Release ();
-    data_p->configuration->moduleHandlerConfiguration.sourceReader = NULL;
-  } // end IF
+  //if (data_p->configuration->moduleHandlerConfiguration.sourceReader)
+  //{
+  //  data_p->configuration->moduleHandlerConfiguration.sourceReader->Release ();
+  //  data_p->configuration->moduleHandlerConfiguration.sourceReader = NULL;
+  //} // end IF
   if (data_p->configuration->moduleHandlerConfiguration.mediaSource)
   {
     data_p->configuration->moduleHandlerConfiguration.mediaSource->Release ();
     data_p->configuration->moduleHandlerConfiguration.mediaSource = NULL;
   } // end IF
+  if (data_p->configuration->moduleHandlerConfiguration.topology)
+  {
+    data_p->configuration->moduleHandlerConfiguration.topology->Release ();
+    data_p->configuration->moduleHandlerConfiguration.topology = NULL;
+  } // end IF
 
+  WCHAR* symbolic_link_p = NULL;
+  UINT32 symbolic_link_size = 0;
   if (!Stream_Module_Device_Tools::getMediaSource (device_string,
-                                                   data_p->configuration->moduleHandlerConfiguration.mediaSource))
+                                                   data_p->configuration->moduleHandlerConfiguration.mediaSource,
+                                                   symbolic_link_p,
+                                                   symbolic_link_size))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), returning\n"),
                 ACE_TEXT (device_string.c_str ())));
     return;
   } // end IF
+  CoTaskMemFree (symbolic_link_p);
+  symbolic_link_p = NULL;
+  symbolic_link_size = 0;
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.mediaSource);
+  //if (!Stream_Module_Device_Tools::getSourceReader (data_p->configuration->moduleHandlerConfiguration.mediaSource,
+  //                                                  symbolic_link_p,
+  //                                                  symbolic_link_size,
+  //                                                  NULL,
+  //                                                  NULL,
+  //                                                  false,
+  //                                                  data_p->configuration->moduleHandlerConfiguration.sourceReader))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), returning\n")));
 
-  // *NOTE*: the source reader assumes responsibility for the media source
-  //         handle
-  if (!Stream_Module_Device_Tools::getSourceReader (data_p->configuration->moduleHandlerConfiguration.mediaSource,
-                                                    NULL,
-                                                    NULL,
-                                                    data_p->configuration->moduleHandlerConfiguration.sourceReader))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), returning\n")));
+  //  // clean up
+  //  data_p->configuration->moduleHandlerConfiguration.mediaSource->Release ();
+  //  data_p->configuration->moduleHandlerConfiguration.mediaSource = NULL;
 
-    // clean up
-    data_p->configuration->moduleHandlerConfiguration.mediaSource->Release ();
-    data_p->configuration->moduleHandlerConfiguration.mediaSource = NULL;
-
-    return;
-  } // end IF
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+  //  return;
+  //} // end IF
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
 
   if (data_p->configuration->moduleHandlerConfiguration.format)
   {
@@ -2761,6 +2780,26 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   //  return;
   //} // end IF
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  result =
+    data_p->configuration->moduleHandlerConfiguration.format->SetGUID (MF_MT_MAJOR_TYPE,
+                                                                       MFMediaType_Video);
+  ACE_ASSERT (SUCCEEDED (result));
+  result =
+    data_p->configuration->moduleHandlerConfiguration.format->SetUINT32 (MF_MT_INTERLACE_MODE,
+                                                                         MFVideoInterlace_Unknown);
+  ACE_ASSERT (SUCCEEDED (result));
+  struct _MFRatio pixel_aspect_ratio = { 1, 1 };
+  result = MFSetAttributeRatio (data_p->configuration->moduleHandlerConfiguration.format,
+                                MF_MT_PIXEL_ASPECT_RATIO,
+                                pixel_aspect_ratio.Numerator,
+                                pixel_aspect_ratio.Denominator);
+  ACE_ASSERT (SUCCEEDED (result));
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFMediaType::SetGUID(MF_MT_MAJOR_TYPE): \"%s\", continuing\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return;
+  //} // end IF
 
   //if (_DEBUG)
   //{
@@ -2774,7 +2813,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   //} // end IF
 
   //if (!load_formats (data_p->streamConfiguration,
-  if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  //if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  if (!load_formats (data_p->configuration->moduleHandlerConfiguration.mediaSource,
 #else
   int result = -1;
   if (data_p->device != -1)
@@ -2896,8 +2936,9 @@ combobox_format_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.mediaSource);
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
   //ACE_ASSERT (data_p->streamConfiguration);
 
   //struct _AMMediaType* media_type_p = NULL;
@@ -2954,7 +2995,8 @@ continue_:
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!load_resolutions (data_p->streamConfiguration,
-  if (!load_resolutions (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  //if (!load_resolutions (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  if (!load_resolutions (data_p->configuration->moduleHandlerConfiguration.mediaSource,
                          GUID_s,
 #else
   if (!load_resolutions (data_p->device,
@@ -3087,8 +3129,9 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.mediaSource);
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
   //ACE_ASSERT (data_p->streamConfiguration);
 
   //struct _AMMediaType* media_type_p = NULL;
@@ -3175,7 +3218,8 @@ continue_:
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!load_rates (data_p->streamConfiguration,
-  if (!load_rates (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  //if (!load_rates (data_p->configuration->moduleHandlerConfiguration.sourceReader,
+  if (!load_rates (data_p->configuration->moduleHandlerConfiguration.mediaSource,
                    GUID_s,
                    width,
 #else
@@ -3255,7 +3299,6 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   //ACE_ASSERT (data_p->streamConfiguration);
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
 
   //struct _AMMediaType* media_type_p = NULL;

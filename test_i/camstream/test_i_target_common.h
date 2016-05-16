@@ -249,13 +249,13 @@ struct Test_I_Target_Stream_SessionData
   inline Test_I_Target_Stream_SessionData ()
    : Test_I_Stream_SessionData ()
    , connectionState (NULL)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , direct3DDevice (NULL)
-   , format (NULL)
-   , resetToken (0)
-#else
-   , format ()
-#endif
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//   , direct3DDevice (NULL)
+//   , format (NULL)
+//   , resetToken (0)
+//#else
+//   , format ()
+//#endif
    , targetFileName ()
    , userData (NULL)
   {
@@ -269,11 +269,11 @@ struct Test_I_Target_Stream_SessionData
     //} // end IF
     //else
     //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
-    HRESULT result = MFCreateMediaType (&format);
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    //HRESULT result = MFCreateMediaType (&format);
+    //if (FAILED (result))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #endif
   };
   inline Test_I_Target_Stream_SessionData& operator+= (Test_I_Target_Stream_SessionData& rhs_in)
@@ -282,53 +282,53 @@ struct Test_I_Target_Stream_SessionData
     Test_I_Stream_SessionData::operator+= (rhs_in);
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    // sanity check(s)
-    ACE_ASSERT (rhs_in.format);
-
-    if (format)
-    {
-      format->Release ();
-      format = NULL;
-    } // end IF
-
-    //if (!Stream_Module_Device_Tools::copyMediaType (*rhs_in.format,
-    //                                                format))
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), continuing\n")));
-    struct _AMMediaType media_type;
-    ACE_OS::memset (&media_type, 0, sizeof (media_type));
-    HRESULT result = MFInitAMMediaTypeFromMFMediaType (rhs_in.format,
-                                                       GUID_NULL,
-                                                       &media_type);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto continue_;
-    } // end IF
-
-    result = MFInitMediaTypeFromAMMediaType (format,
-                                             &media_type);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      Stream_Module_Device_Tools::freeMediaType (media_type);
-
-      goto continue_;
-    } // end IF
-
-    // clean up
-    Stream_Module_Device_Tools::freeMediaType (media_type);
-continue_:
-#else
-    format = rhs_in.format;
-#endif
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//    // sanity check(s)
+//    ACE_ASSERT (rhs_in.format);
+//
+//    if (format)
+//    {
+//      format->Release ();
+//      format = NULL;
+//    } // end IF
+//
+//    //if (!Stream_Module_Device_Tools::copyMediaType (*rhs_in.format,
+//    //                                                format))
+//    //  ACE_DEBUG ((LM_ERROR,
+//    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), continuing\n")));
+//    struct _AMMediaType media_type;
+//    ACE_OS::memset (&media_type, 0, sizeof (media_type));
+//    HRESULT result = MFInitAMMediaTypeFromMFMediaType (rhs_in.format,
+//                                                       GUID_NULL,
+//                                                       &media_type);
+//    if (FAILED (result))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", continuing\n"),
+//                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//      goto continue_;
+//    } // end IF
+//
+//    result = MFInitMediaTypeFromAMMediaType (format,
+//                                             &media_type);
+//    if (FAILED (result))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", continuing\n"),
+//                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//
+//      // clean up
+//      Stream_Module_Device_Tools::freeMediaType (media_type);
+//
+//      goto continue_;
+//    } // end IF
+//
+//    // clean up
+//    Stream_Module_Device_Tools::freeMediaType (media_type);
+//continue_:
+//#else
+//    format = rhs_in.format;
+//#endif
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);
     userData = (userData ? userData : rhs_in.userData);
@@ -337,14 +337,14 @@ continue_:
   }
 
   Test_I_Target_ConnectionState* connectionState;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //struct _AMMediaType*           format;
-  IDirect3DDevice9Ex*            direct3DDevice;
-  IMFMediaType*                  format;
-  UINT                           resetToken; // direct 3D manager 'id'
-#else
-  struct v4l2_format             format;
-#endif
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  //struct _AMMediaType*           format;
+//  IDirect3DDevice9Ex*            direct3DDevice;
+//  IMFMediaType*                  format;
+//  UINT                           resetToken; // direct 3D manager 'id'
+//#else
+//  struct v4l2_format             format;
+//#endif
   std::string                    targetFileName;
   Test_I_Target_UserData*        userData;
 };

@@ -52,7 +52,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   { MFVideoFormat_NV12,  TransformImage_NV12 }
 };
 
-// *WARNING*: this needs to be set to ARRAYSIZE (formatConversions) !
+// *TODO*: find a way to set this using the ARRAYSIZE (formatConversions) macro
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
@@ -88,7 +88,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
  , defaultStride_ (0)
  , format_ (D3DFMT_UNKNOWN)
  , presentationParameters_ ()
- , transformation_ (NULL)
+ , adapter_ (NULL)
  , IDirect3DDevice9Ex_ (NULL)
  , IDirect3DSwapChain9_ (NULL)
 {
@@ -137,7 +137,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   typename const MessageType::DATA_T& message_data_r = message_inout->get ();
 
   // sanity check(s)
-  ACE_ASSERT (transformation_);
+  ACE_ASSERT (adapter_);
   ACE_ASSERT (IDirect3DDevice9Ex_);
   ACE_ASSERT (IDirect3DSwapChain9_);
   ACE_ASSERT (message_data_r.sample);
@@ -226,17 +226,17 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   // Convert the frame. This also copies it to the Direct3D surface.
   try
   {
-    transformation_ ((BYTE*)d3d_locked_rectangle.pBits,
-                     d3d_locked_rectangle.Pitch,
-                     scanline0_p,
-                     stride,
-                     width_,
-                     height_);
+    adapter_ ((BYTE*)d3d_locked_rectangle.pBits,
+              d3d_locked_rectangle.Pitch,
+              scanline0_p,
+              stride,
+              width_,
+              height_);
   }
   catch (...)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in transformation function, continuing\n")));
+                ACE_TEXT ("caught exception in adapter function, continuing\n")));
     goto error;
   }
 
@@ -289,7 +289,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                                              d3d_backbuffer_p,
                                              &destinationRectangle_,
                                              D3DTEXF_LINEAR);
-  if (FAILED (result))
+  if (FAILED (result)) // D3DERR_INVALIDCALL: 0x8876086c
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IDirect3DDevice9Ex::StretchRect(): \"%s\", returning\n"),
@@ -391,6 +391,16 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
       {
         session_data_r.direct3DDevice->AddRef ();
         IDirect3DDevice9Ex_ = session_data_r.direct3DDevice;
+
+        result_2 = this->initialize_Direct3DDevice (configuration_->window,
+                                                    session_data_r.format);
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to Stream_Vis_Target_Direct3D_T::initialize_Direct3DDevice(): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+          goto error;
+        } // end IF
       } // end IF
       else
       {
@@ -398,7 +408,8 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                                   configuration_->area,
                                   session_data_r.format,
                                   IDirect3DDevice9Ex_,
-                                  presentationParameters_))
+                                  presentationParameters_,
+                                  adapter_))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize_Direct3D(), aborting\n")));
@@ -409,6 +420,11 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
       goto continue_;
 
 error:
+      if (IDirect3DDevice9Ex_)
+      {
+        IDirect3DDevice9Ex_->Release ();
+        IDirect3DDevice9Ex_ = NULL;
+      } // end IF
       session_data_r.aborted = true;
 
 continue_:
@@ -510,9 +526,10 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::initialize_Direct3D (const HWND windowHandle_in,
                                                                              const struct tagRECT& windowArea_in,
-                                                                             const IMFMediaType* mediaType_in,
+                                                                             IMFMediaType* mediaType_in,
                                                                              IDirect3DDevice9Ex*& IDirect3DDevice9Ex_out,
-                                                                             struct _D3DPRESENT_PARAMETERS_& presentationParameters_out)
+                                                                             struct _D3DPRESENT_PARAMETERS_& presentationParameters_out,
+                                                                             STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T& adapter_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize_Direct3D"));
 
@@ -539,7 +556,26 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::getDirect3DDevice(), aborting\n")));
     return false;
   } // end IF
+  ACE_ASSERT (IDirect3DDevice9Ex_out);
   direct3d_manager_p->Release ();
+
+  result = this->initialize_Direct3DDevice (windowHandle_in,
+                                            mediaType_in);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Vis_Target_Direct3D_T::initialize_Direct3DDevice(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    IDirect3DDevice9Ex_out->Release ();
+    IDirect3DDevice9Ex_out = NULL;
+    ACE_OS::memset (&presentationParameters_out,
+                    0,
+                    sizeof (struct _D3DPRESENT_PARAMETERS_));
+
+    return false;
+  } // end IF
 
   return true;
 }
@@ -629,7 +665,8 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                                     configuration_->area,
                                     sessionData_->format,
                                     IDirect3DDevice9Ex_,
-                                    presentationParameters_))
+                                    presentationParameters_,
+                                    adapter_))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Vis_Target_Direct3D_T::initialize_Direct3D(): \"%s\", aborting\n"),
@@ -656,15 +693,6 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   return result;
 }
 
-//-------------------------------------------------------------------
-// Takes a src rectangle and constructs the largest possible 
-// destination rectangle within the specifed destination rectangle 
-// such thatthe video maintains its current shape.
-//
-// This function assumes that pels are the same shape within both the 
-// source and destination rectangles.
-//
-//-------------------------------------------------------------------
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
@@ -675,57 +703,45 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                              MessageType,
                              ConfigurationType,
                              SessionDataType,
-                             SessionDataContainerType>::letterbox_rectangle (const RECT& source_in,
-                                                                             const RECT& destination_in)
+                             SessionDataContainerType>::letterbox_rectangle (const struct tagRECT& source_in,
+                                                                             const struct tagRECT& destination_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::letterbox_rectangle"));
 
-  // figure out src/dest scale ratios
-  int iSrcWidth = (source_in.right - source_in.left);
-  int iSrcHeight = (source_in.bottom - source_in.top);
+  int source_width = (source_in.right - source_in.left);
+  int source_height = (source_in.bottom - source_in.top);
+  int destination_width = (destination_in.right - destination_in.left);
+  int destination_height = (destination_in.bottom - destination_in.top);
 
-  int iDstWidth = (destination_in.right - destination_in.left);
-  int iDstHeight = (destination_in.bottom - destination_in.top);
-
-  int iDstLBWidth;
-  int iDstLBHeight;
-
-  if (MulDiv (iSrcWidth,
-              iDstHeight,
-              iSrcHeight) <= iDstWidth)
+  int letterbox_width, letterbox_height;
+  if (MulDiv (source_width,
+              destination_height,
+              source_height) <= destination_width)
   {
-    // Column letter boxing ("pillar box")
-    iDstLBWidth = MulDiv (iDstHeight,
-                          iSrcWidth,
-                          iSrcHeight);
-    iDstLBHeight = iDstHeight;
+    // column letter boxing ("pillar box")
+    letterbox_width = MulDiv (destination_height,
+                              source_width,
+                              source_height);
+    letterbox_height = destination_height;
   } // end IF
   else
   {
-    // Row letter boxing.
-    iDstLBWidth = iDstWidth;
-    iDstLBHeight = MulDiv (iDstWidth,
-                           iSrcHeight,
-                           iSrcWidth);
+    // row letter boxing
+    letterbox_width = destination_width;
+    letterbox_height = MulDiv (destination_width,
+                               source_height,
+                               source_width);
   } // end ELSE
 
-  // Create a centered rectangle within the current destination rect
-  RECT result;
-  LONG left = destination_in.left + ((iDstWidth - iDstLBWidth) / 2);
-  LONG top = destination_in.top + ((iDstHeight - iDstLBHeight) / 2);
-
-  SetRect (&result, left, top, left + iDstLBWidth, top + iDstLBHeight);
+  // construct a centered rectangle within the current destination rectangle
+  struct tagRECT result;// SetRectEmpty (&result);
+  LONG left = destination_in.left + ((destination_width - letterbox_width) / 2);
+  LONG top = destination_in.top + ((destination_height - letterbox_height) / 2);
+  SetRect (&result, left, top, left + letterbox_width, top + letterbox_height);
 
   return result;
 }
 
-//-----------------------------------------------------------------------------
-// Converts a rectangle from the source's pixel aspect ratio (PAR) to 1:1 PAR.
-// Returns the corrected rectangle.
-//
-// For example, a 720 x 486 rect with a PAR of 9:10, when converted to 1x1 PAR,  
-// is stretched to 720 x 540. 
-//-----------------------------------------------------------------------------
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
@@ -736,35 +752,36 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                              MessageType,
                              ConfigurationType,
                              SessionDataType,
-                             SessionDataContainerType>::correct_aspect_ratio (const RECT& source_in,
-                                                                              const MFRatio& sourcePixelAspectRatio_in)
+                             SessionDataContainerType>::normalize_aspect_ratio (const struct tagRECT& rectangle_in,
+                                                                                const struct _MFRatio& pixelAspectRatio_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::correct_aspect_ratio"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::normalize_aspect_ratio"));
 
-  // Start with a rectangle the same size as src, but offset to the origin (0,0).
-  RECT result =
+  // start with a rectangle the same size as the input, but offset to the origin
+  // (0,0)
+  struct tagRECT result =
     { 0, 0,
-      source_in.right - source_in.left, source_in.bottom - source_in.top };
+      rectangle_in.right - rectangle_in.left, rectangle_in.bottom - rectangle_in.top };
 
-  if ((sourcePixelAspectRatio_in.Numerator != 1)  ||
-      (sourcePixelAspectRatio_in.Denominator != 1))
+  if ((pixelAspectRatio_in.Numerator != 1)  ||
+      (pixelAspectRatio_in.Denominator != 1))
   {
-    // Correct for the source's PAR.
-    if (sourcePixelAspectRatio_in.Numerator > sourcePixelAspectRatio_in.Denominator)
+    // adjust the PAR
+    if (pixelAspectRatio_in.Numerator > pixelAspectRatio_in.Denominator)
     {
-      // The source has "wide" pixels, so stretch the width.
+      // input has "wide" pixels --> stretch the width
       result.right = MulDiv (result.right,
-                             sourcePixelAspectRatio_in.Numerator,
-                             sourcePixelAspectRatio_in.Denominator);
+                             pixelAspectRatio_in.Numerator,
+                             pixelAspectRatio_in.Denominator);
     } // end IF
-    else if (sourcePixelAspectRatio_in.Numerator < sourcePixelAspectRatio_in.Denominator)
+    else if (pixelAspectRatio_in.Numerator < pixelAspectRatio_in.Denominator)
     {
-      // The source has "tall" pixels, so stretch the height.
+      // input has "tall" pixels --> stretch the height
       result.bottom = MulDiv (result.bottom,
-                              sourcePixelAspectRatio_in.Denominator,
-                              sourcePixelAspectRatio_in.Numerator);
+                              pixelAspectRatio_in.Denominator,
+                              pixelAspectRatio_in.Numerator);
     } // end ELSE IF
-    // else: PAR is 1:1, which is a no-op.
+    // else: PAR is 1:1 --> nothing to do
   } // end IF
 
   return result;
@@ -785,17 +802,20 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
-  
-  RECT client_rectangle = { 0, 0, 0, 0 };
-  if (!GetClientRect (configuration_->window, &client_rectangle))
+  //ACE_ASSERT (configuration_->window != ACE_INVALID_HANDLE);
+
+  struct tagRECT client_rectangle = { 0, 0, 0, 0 };
+  if (!::GetClientRect (configuration_->window, &client_rectangle))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to GetClientRect(): \"%s\", returning\n")));
+                ACE_TEXT ("failed to GetClientRect(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
     return;
   } // end IF
 
-  RECT source_rectangle = { 0, 0, width_, height_ };
-  source_rectangle = correct_aspect_ratio (source_rectangle, pixelAspectRatio_);
+  struct tagRECT source_rectangle = { 0, 0, width_, height_ };
+  source_rectangle =
+    normalize_aspect_ratio (source_rectangle, pixelAspectRatio_);
 
   destinationRectangle_ = letterbox_rectangle (source_rectangle,
                                                client_rectangle);
@@ -935,9 +955,10 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                              MessageType,
                              ConfigurationType,
                              SessionDataType,
-                             SessionDataContainerType>::set_video_type (const IMFMediaType* mediaType_in)
+                             SessionDataContainerType>::initialize_Direct3DDevice (const HWND windowHandle_in,
+                                                                                   IMFMediaType* mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::set_video_type"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize_Direct3DDevice"));
 
   HRESULT result = S_OK;
 
@@ -951,11 +972,11 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
     return result;
   } // end IF
 
-  result = this->set_transformation (GUID_s);
+  result = this->set_adapter (GUID_s);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Vis_Target_Direct3D_T::set_transformation(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to Stream_Vis_Target_Direct3D_T::set_adapter(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return result;
   } // end IF
@@ -963,7 +984,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
 
   result = MFGetAttributeSize (mediaType_in,
                                MF_MT_FRAME_SIZE,
-                               &width_, &height_);
+                               reinterpret_cast<UINT32*> (&width_), reinterpret_cast<UINT32*> (&height_));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -999,7 +1020,8 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
     pixelAspectRatio_.Numerator = pixelAspectRatio_.Denominator = 1;
   } // end IF
 
-  result = create_swap_chains ();
+  result = create_swap_chains (windowHandle_in,
+                               width_, height_);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1023,18 +1045,23 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                              MessageType,
                              ConfigurationType,
                              SessionDataType,
-                             SessionDataContainerType>::set_transformation (REFGUID subType_in)
+                             SessionDataContainerType>::set_adapter (REFGUID subType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::set_transformation"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::set_adapter"));
 
-  transformation_ = NULL;
+  adapter_ = NULL;
 
-  for (int i = 0; i < OWN_TYPE_T::formats; ++i)
+  for (DWORD i = 0; i < OWN_TYPE_T::formats; ++i)
     if (subType_in == OWN_TYPE_T::formatConversions[i].subType)
     {
-      transformation_ = OWN_TYPE_T::formatConversions[i].transform;
+      adapter_ = OWN_TYPE_T::formatConversions[i].adapter;
       return S_OK;
     } // end IF
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("%s: subtype \"%s\" is currently not supported, aborting\n"),
+              inherited::mod_->name (),
+              ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (subType_in).c_str ())));
 
   return MF_E_INVALIDMEDIATYPE;
 }

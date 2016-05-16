@@ -83,19 +83,36 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool getOutputFormat (IGraphBuilder*,         // graph handle
                                struct _AMMediaType*&); // return value: media type
 
-  static bool getCaptureFormat (IMFSourceReader*, // source handle
+  //static bool getCaptureFormat (IMFSourceReader*, // source handle
+  //                              IMFMediaType*&);  // return value: media type
+  //static bool setCaptureFormat (IMFSourceReaderEx*,   // source handle
+  //                              const IMFMediaType*); // media type
+  //static bool getOutputFormat (IMFSourceReader*, // source handle
+  //                             IMFMediaType*&);  // return value: media type
+  static bool getCaptureFormat (IMFMediaSource*, // source handle
                                 IMFMediaType*&);  // return value: media type
-  static bool setCaptureFormat (IMFSourceReader*,     // source handle
+  static bool setCaptureFormat (IMFTopology*,         // topology handle
                                 const IMFMediaType*); // media type
-  static bool getOutputFormat (IMFSourceReader*, // source handle
-                               IMFMediaType*&);  // return value: media type
+  // *NOTE*: returns only the first available output type of the first output
+  //         stream
+  static bool getOutputFormat (IMFTransform*,   // MFT handle
+                               IMFMediaType*&); // return value: media type
 
-  static bool getSourceReader (IMFMediaSource*&,               // media device handle (in/out)
-                               const IDirect3DDeviceManager9*, // Direct3D device manager handle
-                               const IMFSourceReaderCallback*, // callback handle
-                               IMFSourceReader*&);             // return value: source reader handle
+  //// *TODO*: using the Direct3D device manager (used by the EVR renderer) is
+  ////         currently broken
+  ////         --> pass NULL and use a different visualization module (e.g. the
+  ////             Direct3D module)
+  //static bool getSourceReader (IMFMediaSource*&,               // media device handle (in/out)
+  //                             WCHAR*&,                        // return value: symbolic link
+  //                             UINT32&,                        // return value: symbolic link size
+  //                             const IDirect3DDeviceManager9*, // Direct3D device manager handle
+  //                             const IMFSourceReaderCallback*, // callback handle
+  //                             bool,                           // capture media type is YUV ?
+  //                             IMFSourceReaderEx*&);           // return value: source reader handle
   static bool getMediaSource (const std::string&, // device ("FriendlyName")
-                              IMFMediaSource*&);  // return value: media device handle
+                              IMFMediaSource*&,   // return value: media device handle
+                              WCHAR*&,            // return value: symbolic link
+                              UINT32&);           // return value: symbolic link size
   static bool getDirect3DDevice (const HWND,                      // target window handle
                                  const IMFMediaType*,             // media format handle
                                  IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
@@ -112,6 +129,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                IGraphBuilder*&,        // return value: (capture) graph handle
                                IAMBufferNegotiation*&, // return value: capture filter output pin buffer allocator configuration handle
                                IAMStreamConfig*&);     // return value: format configuration handle
+  static bool loadDeviceTopology (const std::string&, // device ("FriendlyName")
+                                  IMFMediaSource*&,   // input/return value: (capture) source handle
+                                  IMFTopology*&);     // return value: topology handle
   // *NOTE*: disconnects the (capture) graph and removes all but the capture
   //         filter
   static bool resetDeviceGraph (IGraphBuilder*); // filter graph handle
@@ -124,10 +144,19 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                  const HWND,                 // window handle [NULL: NullRenderer]
                                  IGraphBuilder*,             // graph handle
                                  std::list<std::wstring>&);  // return value: pipeline filter configuration
+  static bool loadRendererTopology (const std::string&,                  // device ("FriendlyName")
+                                    const IMFMediaType*,                 // grabber sink input media type handle
+                                    const IMFSampleGrabberSinkCallback*, // grabber sink callback handle [NULL: do not use tee/grabber]
+                                    const HWND,                          // window handle [NULL: do not use tee/EVR]
+                                    IMFTopology*&);                      // input/return value: topology handle
   // *NOTE*: loads a filter graph (target side)
   static bool loadTargetRendererGraph (const HWND,                // window handle [NULL: NullRenderer]
                                        IGraphBuilder*&,           // return value: graph handle
                                        std::list<std::wstring>&); // return value: pipeline filter configuration
+  //static bool loadTargetRendererTopology (const IMFMediaType*,                 // grabber sink input media type handle
+  //                                        const IMFSampleGrabberSinkCallback*, // grabber sink callback handle [NULL: do not use tee/grabber]
+  //                                        const HWND,                          // window handle [NULL: do not use tee/EVR]
+  //                                        IMFTopology*&);                      // input/return value: topology handle
 
   // -------------------------------------
 
@@ -136,6 +165,12 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                      const std::string&); // log file name
   static void dump (IPin*); // pin handle
   static void dump (IMFSourceReader*); // source reader handle
+  static void dump (IMFTransform*); // transform handle
+
+  static bool isChromaLuminance (const IMFMediaType*); // media format handle
+  static bool isRGB (const IMFMediaType*); // media format handle
+  static bool isCompressed (const IMFMediaType*); // media format handle
+
   // *NOTE*: return value (if any) has an outstanding reference --> Release()
   static IPin* pin (IBaseFilter*,        // filter handle
                     enum _PinDirection); // direction
@@ -148,6 +183,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool copyAttribute (IMFAttributes*,       // source
                              IMFAttributes*,       // destination
                              const struct _GUID&); // key
+  static bool copyMediaType (const IMFMediaType*, // media type
+                             IMFMediaType*&);     // return value: handle
   static bool copyMediaType (const struct _AMMediaType&, // media type
                              struct _AMMediaType*&);     // return value: handle
   static void deleteMediaType (struct _AMMediaType*&); // handle
@@ -221,6 +258,13 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static GUID2STRING_MAP_T Stream_FormatType2StringMap;
 
   static ACE_HANDLE logFileHandle;
+
+  static bool setCaptureFormat (IMFMediaSource*,      // source handle
+                                const IMFMediaType*); // media type
+  //// *NOTE*: (if the media type is not a 'native' format) "... The Source Reader
+  ////         will automatically load the decoder. ..."
+  //static bool setOutputFormat (IMFSourceReader*,     // source handle
+  //                             const IMFMediaType*); // media type
 #endif
 };
 

@@ -263,19 +263,30 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
     // sanity check(s)
     ACE_ASSERT (!configuration_in.moduleHandlerConfiguration->mediaSource);
+
+    WCHAR* symbolic_link_p = NULL;
+    UINT32 symbolic_link_size = 0;
     if (!Stream_Module_Device_Tools::getMediaSource (configuration_in.moduleHandlerConfiguration->device,
-                                                     configuration_in.moduleHandlerConfiguration->mediaSource))
+                                                     configuration_in.moduleHandlerConfiguration->mediaSource,
+                                                     symbolic_link_p,
+                                                     symbolic_link_size))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
                   ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
       goto error;
     } // end IF
+    CoTaskMemFree (symbolic_link_p);
+    symbolic_link_p = NULL;
+    symbolic_link_size = 0;
     ACE_ASSERT (configuration_in.moduleHandlerConfiguration->mediaSource);
     // *NOTE*: the source reader assumes responsibility for media_source_p
     if (!Stream_Module_Device_Tools::getSourceReader (configuration_in.moduleHandlerConfiguration->mediaSource,
+                                                      symbolic_link_p,
+                                                      symbolic_link_size,
                                                       direct3D_manager_p,
                                                       source_impl_p,
+                                                      Stream_Module_Device_Tools::isChromaLuminance (configuration_in.moduleHandlerConfiguration->format),
                                                       configuration_in.moduleHandlerConfiguration->sourceReader))
     {
       ACE_DEBUG ((LM_ERROR,
