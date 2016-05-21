@@ -198,7 +198,7 @@ include (CPack)
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 include (UseBackportedModules)
 cmake_policy (SET CMP0026 OLD)
-cmake_policy (SET CMP0053 OLD)
+#cmake_policy (SET CMP0053 OLD)
 include (CreateLaunchers)
 
 # enable (unit/integration) tests

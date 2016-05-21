@@ -2189,11 +2189,11 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   IMFActivate** decoders_p = NULL;
   UINT32 number_of_decoders = 0;
   mft_register_type_info.guidMajorType = MFMediaType_Video;
-  UINT32 flags = (MFT_ENUM_FLAG_SYNCMFT |
-                  MFT_ENUM_FLAG_ASYNCMFT |
-                  MFT_ENUM_FLAG_HARDWARE |
-                  MFT_ENUM_FLAG_FIELDOFUSE |
-                  MFT_ENUM_FLAG_LOCALMFT |
+  UINT32 flags = (MFT_ENUM_FLAG_SYNCMFT        |
+                  MFT_ENUM_FLAG_ASYNCMFT       |
+                  MFT_ENUM_FLAG_HARDWARE       |
+                  MFT_ENUM_FLAG_FIELDOFUSE     |
+                  MFT_ENUM_FLAG_LOCALMFT       |
                   MFT_ENUM_FLAG_TRANSCODE_ONLY |
                   MFT_ENUM_FLAG_SORTANDFILTER);
   IMFTransform* transform_p = NULL;
@@ -2407,6 +2407,19 @@ continue_2:
   result = activate_p->SetUINT32 (MF_SAMPLEGRABBERSINK_IGNORE_CLOCK,
                                   TRUE);
   ACE_ASSERT (SUCCEEDED (result));
+
+  IMFMediaSink* media_sink_p = NULL;
+  result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
+  ACE_ASSERT (SUCCEEDED (result));
+  activate_p->Release ();
+  activate_p = NULL;
+  IMFStreamSink* stream_sink_p = NULL;
+  result = media_sink_p->GetStreamSinkByIndex (0,
+                                               &stream_sink_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_sink_p->Release ();
+  media_sink_p = NULL;
+
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -2416,10 +2429,10 @@ continue_2:
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-  result = topology_node_p->SetObject (activate_p);
+  result = topology_node_p->SetObject (stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
-  activate_p->Release ();
-  activate_p = NULL;
+  stream_sink_p->Release ();
+  stream_sink_p = NULL;
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
@@ -2470,6 +2483,16 @@ continue_3:
   //  goto error;
   //} // end IF
 
+  result = activate_p->ActivateObject (IID_PPV_ARGS (&media_sink_p));
+  ACE_ASSERT (SUCCEEDED (result));
+  activate_p->Release ();
+  activate_p = NULL;
+  result = media_sink_p->GetStreamSinkByIndex (0,
+                                               &stream_sink_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_sink_p->Release ();
+  media_sink_p = NULL;
+
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -2479,10 +2502,10 @@ continue_3:
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-  result = topology_node_p->SetObject (activate_p);
+  result = topology_node_p->SetObject (stream_sink_p);
   ACE_ASSERT (SUCCEEDED (result));
-  activate_p->Release ();
-  activate_p = NULL;
+  stream_sink_p->Release ();
+  stream_sink_p = NULL;
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
@@ -4451,6 +4474,119 @@ error:
 
   return false;
 }
+bool
+Stream_Module_Device_Tools::getOutputFormat (IMFTopology* IMFTopology_in,
+                                             IMFMediaType*& IMFMediaType_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getOutputFormat"));
+
+  // sanity check(s)
+  ACE_ASSERT (IMFTopology_in);
+  if (IMFMediaType_out)
+  {
+    IMFMediaType_out->Release ();
+    IMFMediaType_out = NULL;
+  } // end IF
+
+  HRESULT result = E_FAIL;
+  IMFTopologyNode* topology_node_p = NULL;
+  IMFCollection* collection_p = NULL;
+  result =
+    IMFTopology_in->GetOutputNodeCollection (&collection_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  DWORD number_of_output_nodes = 0;
+  result = collection_p->GetElementCount (&number_of_output_nodes);
+  ACE_ASSERT (SUCCEEDED (result));
+  if (number_of_output_nodes <= 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("topology contains no output nodes, aborting\n")));
+
+    // clean up
+    collection_p->Release ();
+
+    goto error;
+  } // end IF
+  IUnknown* unknown_p = NULL;
+  result = collection_p->GetElement (0, &unknown_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  collection_p->Release ();
+  ACE_ASSERT (unknown_p);
+  result = unknown_p->QueryInterface (IID_PPV_ARGS (&topology_node_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    unknown_p->Release ();
+
+    goto error;
+  } // end IF
+  unknown_p->Release ();
+  unknown_p = NULL;
+
+  result = topology_node_p->GetObject (&unknown_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  topology_node_p->Release ();
+  IMFStreamSink* stream_sink_p = NULL;
+  result = unknown_p->QueryInterface (IID_PPV_ARGS (&stream_sink_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFStreamSink): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    unknown_p->Release ();
+
+    goto error;
+  } // end IF
+  unknown_p->Release ();
+  IMFMediaTypeHandler* media_type_handler_p = NULL;
+  result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFStreamSink::GetMediaTypeHandler(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    stream_sink_p->Release ();
+
+    goto error;
+  } // end IF
+  stream_sink_p->Release ();
+
+  result =
+    media_type_handler_p->GetCurrentMediaType (&IMFMediaType_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaTypeHandler::GetCurrentMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    media_type_handler_p->Release ();
+
+    goto error;
+  } // end IF
+  media_type_handler_p->Release ();
+  ACE_ASSERT (IMFMediaType_out);
+
+  return true;
+
+error:
+  if (IMFMediaType_out)
+  {
+    IMFMediaType_out->Release ();
+    IMFMediaType_out = NULL;
+  } // end IF
+
+  return false;
+}
+
 //bool
 //Stream_Module_Device_Tools::setOutputFormat (IMFSourceReader* IMFSourceReader_in,
 //                                             const IMFMediaType* IMFMediaType_in)

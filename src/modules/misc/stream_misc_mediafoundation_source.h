@@ -86,27 +86,52 @@ class Stream_Misc_MediaFoundation_Source_T
   virtual const ConfigurationType& get () const;
 
   // implement IMFSampleGrabberSinkCallback
-  virtual HRESULT STDMETHODCALLTYPE QueryInterface (const IID&,
-                                                    void**);
+  STDMETHODIMP QueryInterface (const IID&,
+                               void**);
   virtual ULONG STDMETHODCALLTYPE AddRef ();
   virtual ULONG STDMETHODCALLTYPE Release ();
-  STDMETHODIMP OnEvent (DWORD,           // stream index
-                        IMFMediaEvent*); // event handle
-  STDMETHODIMP OnFlush (DWORD); // stream index
-  STDMETHODIMP OnReadSample (HRESULT,     // result
-                             DWORD,       // stream index
-                             DWORD,       // stream flags
-                             LONGLONG,    // timestamp
-                             IMFSample*); // sample handle
+  //STDMETHODIMP OnEvent (DWORD,           // stream index
+  //                      IMFMediaEvent*); // event handle
+  //STDMETHODIMP OnFlush (DWORD); // stream index
+  //STDMETHODIMP OnReadSample (HRESULT,     // result
+  //                           DWORD,       // stream index
+  //                           DWORD,       // stream flags
+  //                           LONGLONG,    // timestamp
+  //                           IMFSample*); // sample handle
+  STDMETHODIMP OnClockStart (MFTIME,    // (system) clock start time
+                             LONGLONG); // clock start offset
+  STDMETHODIMP OnClockStop (MFTIME); // (system) clock start time
+  STDMETHODIMP OnClockPause (MFTIME); // (system) clock pause time
+  STDMETHODIMP OnClockRestart (MFTIME); // (system) clock restart time
+  STDMETHODIMP OnClockSetRate (MFTIME, // (system) clock rate set time
+                               float); // new playback rate
+  STDMETHODIMP OnProcessSample (const struct _GUID&, // major media type
+                                DWORD,               // flags
+                                LONGLONG,            // timestamp
+                                LONGLONG,            // duration
+                                const BYTE*,         // buffer
+                                DWORD);              // buffer size
+  STDMETHODIMP OnSetPresentationClock (IMFPresentationClock*); // presentation clock handle
+  STDMETHODIMP OnShutdown ();
 
  protected:
-  ConfigurationType* configuration_;
-  SessionDataType*   sessionData_;
+  ConfigurationType*    configuration_;
+  SessionDataType*      sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
                                  SessionMessageType,
                                  MessageType> inherited;
+
+  // convenient types
+  typedef Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+                                               MessageType,
+
+                                               ConfigurationType,
+
+                                               SessionDataType,
+
+                                               MediaType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Source_T (const Stream_Misc_MediaFoundation_Source_T&))
@@ -124,11 +149,14 @@ class Stream_Misc_MediaFoundation_Source_T
                                    IMFTopology*&);                      // return value: topology handle
   void finalize_MediaFoundation ();
 
-  bool               isInitialized_;
-  bool               isFirst_;
-  
-  IMFMediaSource*    mediaSource_;
-  IMFTopology*       topology_;
+  bool                  isFirst_;
+  bool                  isInitialized_;
+
+  LONGLONG              baseTimeStamp_;
+  IMFMediaSource*       mediaSource_;
+  IMFPresentationClock* presentationClock_;
+  long                  referenceCount_;
+  IMFTopology*          topology_;
 };
 
 // include template definition

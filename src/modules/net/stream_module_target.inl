@@ -198,6 +198,11 @@ Stream_Module_Net_Target_T<SessionMessageType,
                                            : NULL);
       ConnectorType connector (iconnection_manager_p,
                                configuration_->streamConfiguration->statisticReportingInterval);
+      Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
+      typename ConnectorType::INTERFACE_T* iconnector_p = NULL;
+      typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
+      ACE_HANDLE handle = ACE_INVALID_HANDLE;
+      typename ConnectorType::STREAM_T* stream_p = NULL;
 
       if (configuration_->connection)
       {
@@ -208,7 +213,6 @@ Stream_Module_Net_Target_T<SessionMessageType,
         goto link;
       } // end IF
 
-      ACE_HANDLE handle = ACE_INVALID_HANDLE;
       // *TODO*: remove type inference
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       handle = reinterpret_cast<ACE_HANDLE> (session_data_r.sessionID);
@@ -270,7 +274,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
       //                                             user_data_p);
 
       // step2: initialize connector
-      typename ConnectorType::INTERFACE_T* iconnector_p = &connector;
+      iconnector_p = &connector;
 
       // *NOTE*: the stream configuration may contain a module handle that is
       //         meant to be the final module of this processing stream. As
@@ -281,8 +285,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
       bool clone_module, delete_module;
       clone_module = configuration_->streamConfiguration->cloneModule;
       delete_module = configuration_->streamConfiguration->deleteModule;
-      typename ConnectorType::STREAM_T::MODULE_T* module_p =
-        configuration_->streamConfiguration->module;
+      module_p = configuration_->streamConfiguration->module;
       configuration_->streamConfiguration->cloneModule = false;
       configuration_->streamConfiguration->deleteModule = false;
       configuration_->streamConfiguration->module = NULL;
@@ -295,7 +298,6 @@ Stream_Module_Net_Target_T<SessionMessageType,
       } // end IF
 
       // step3: connect
-      Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
       // *TODO*: support single-thread operation (e.g. by scheduling a signal
       //         and manually running the dispatch loop for a limited period)
       handle =
@@ -407,7 +409,7 @@ link:
         } // end IF
       } // end IF
 
-      typename ConnectorType::STREAM_T* stream_p =
+      stream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
       ACE_ASSERT (configuration_->stream);
       result = stream_p->link (*configuration_->stream);

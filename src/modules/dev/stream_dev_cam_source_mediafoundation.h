@@ -101,19 +101,34 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement IMFSourceReaderCallback
-  virtual HRESULT STDMETHODCALLTYPE QueryInterface (const IID&,
-                                                    void**);
+  // implement IMFSampleGrabberSinkCallback
+  STDMETHODIMP STDMETHODCALLTYPE QueryInterface (const IID&,
+                                                 void**);
   virtual ULONG STDMETHODCALLTYPE AddRef ();
   virtual ULONG STDMETHODCALLTYPE Release ();
-  STDMETHODIMP OnEvent (DWORD,           // stream index
-                        IMFMediaEvent*); // event handle
-  STDMETHODIMP OnFlush (DWORD); // stream index
-  STDMETHODIMP OnReadSample (HRESULT,     // result
-                             DWORD,       // stream index
-                             DWORD,       // stream flags
-                             LONGLONG,    // timestamp
-                             IMFSample*); // sample handle
+  //STDMETHODIMP OnEvent (DWORD,           // stream index
+  //                      IMFMediaEvent*); // event handle
+  //STDMETHODIMP OnFlush (DWORD); // stream index
+  //STDMETHODIMP OnReadSample (HRESULT,     // result
+  //                           DWORD,       // stream index
+  //                           DWORD,       // stream flags
+  //                           LONGLONG,    // timestamp
+  //                           IMFSample*); // sample handle
+  STDMETHODIMP OnClockStart (MFTIME,    // (system) clock start time
+                             LONGLONG); // clock start offset
+  STDMETHODIMP OnClockStop (MFTIME); // (system) clock start time
+  STDMETHODIMP OnClockPause (MFTIME); // (system) clock pause time
+  STDMETHODIMP OnClockRestart (MFTIME); // (system) clock restart time
+  STDMETHODIMP OnClockSetRate (MFTIME, // (system) clock rate set time
+                               float); // new playback rate
+  STDMETHODIMP OnProcessSample (const struct _GUID&, // major media type
+                                DWORD,               // flags
+                                LONGLONG,            // timestamp
+                                LONGLONG,            // duration
+                                const BYTE*,         // buffer
+                                DWORD);              // buffer size
+  STDMETHODIMP OnSetPresentationClock (IMFPresentationClock*); // presentation clock handle
+  STDMETHODIMP OnShutdown ();
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
@@ -162,13 +177,14 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                    const IMFSampleGrabberSinkCallback*, // grabber sink callback handle [NULL: do not use tee/grabber]
                                    IMFTopology*&);                      // return value: topology handle
 
-  LONGLONG           baseTimeStamp_;
-  bool               isFirst_;
-  IMFMediaSource*    mediaSource_;
-  long               referenceCount_;
-  WCHAR*             symbolicLink_;
-  UINT32             symbolicLinkSize_;
-  IMFTopology*       topology_;
+  LONGLONG              baseTimeStamp_;
+  bool                  isFirst_;
+  IMFMediaSource*       mediaSource_;
+  IMFPresentationClock* presentationClock_;
+  long                  referenceCount_;
+  WCHAR*                symbolicLink_;
+  UINT32                symbolicLinkSize_;
+  IMFTopology*          topology_;
 };
 
 #include "stream_dev_cam_source_mediafoundation.inl"

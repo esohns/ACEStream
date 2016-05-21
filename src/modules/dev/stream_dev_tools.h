@@ -91,11 +91,15 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   //                             IMFMediaType*&);  // return value: media type
   static bool getCaptureFormat (IMFMediaSource*, // source handle
                                 IMFMediaType*&);  // return value: media type
+  static bool setCaptureFormat (IMFMediaSource*,      // source handle
+                                const IMFMediaType*); // media type
   static bool setCaptureFormat (IMFTopology*,         // topology handle
                                 const IMFMediaType*); // media type
   // *NOTE*: returns only the first available output type of the first output
   //         stream
   static bool getOutputFormat (IMFTransform*,   // MFT handle
+                               IMFMediaType*&); // return value: media type
+  static bool getOutputFormat (IMFTopology*,    // topology handle
                                IMFMediaType*&); // return value: media type
 
   //// *TODO*: using the Direct3D device manager (used by the EVR renderer) is
@@ -259,8 +263,6 @@ class Stream_Dev_Export Stream_Module_Device_Tools
 
   static ACE_HANDLE logFileHandle;
 
-  static bool setCaptureFormat (IMFMediaSource*,      // source handle
-                                const IMFMediaType*); // media type
   //// *NOTE*: (if the media type is not a 'native' format) "... The Source Reader
   ////         will automatically load the decoder. ..."
   //static bool setOutputFormat (IMFSourceReader*,     // source handle

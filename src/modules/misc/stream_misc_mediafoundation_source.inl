@@ -44,8 +44,11 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
  : inherited ()
  , configuration_ (NULL)
  , sessionData_ (NULL)
+ , isFirst_ (false)
  , isInitialized_ (false)
+ , baseTimeStamp_ (0)
  , mediaSource_ (NULL)
+ , referenceCount_ (0)
  , topology_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::Stream_Misc_MediaFoundation_Source_T"));
@@ -123,6 +126,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
       sessionData_ = NULL;
     } // end IF
 
+    referenceCount_ = 0;
+
     if (topology_)
     {
       topology_->Release ();
@@ -174,15 +179,22 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::QueryInterface (const IID&,
-                                                                 void**)
+                                     MediaType>::QueryInterface (const IID& IID_in,
+                                                                 void** interface_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::QueryInterface"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
+  static const QITAB query_interface_table[] =
+  {
+    //QITABENT (OWN_TYPE_T, IMFSourceReaderCallback),
+    QITABENT (OWN_TYPE_T, IMFSampleGrabberSinkCallback),
+    { 0 },
+  };
 
-  ACE_NOTREACHED (return E_FAIL;)
+  return QISearch (this,
+                   query_interface_table,
+                   IID_in,
+                   interface_out);
 }
 template <typename SessionMessageType,
           typename MessageType,
@@ -198,7 +210,7 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::AddRef"));
 
-  return 1;
+  return InterlockedIncrement (&referenceCount_);
 }
 template <typename SessionMessageType,
           typename MessageType,
@@ -214,8 +226,173 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::Release"));
 
-  return 0;
+  ULONG count = InterlockedDecrement (&referenceCount_);
+  if (count == 0);
+  //delete this;
+
+  return count;
 }
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataType,
+//          typename MediaType>
+//HRESULT
+//Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+//                                     MessageType,
+//                                     ConfigurationType,
+//                                     SessionDataType,
+//                                     MediaType>::OnEvent (DWORD streamIndex_in,
+//                                                          IMFMediaEvent* mediaEvent_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnEvent"));
+//
+//  ACE_UNUSED_ARG (streamIndex_in);
+//  ACE_UNUSED_ARG (mediaEvent_in);
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (S_OK);
+//  ACE_NOTREACHED (return S_OK;)
+//}
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataType,
+//          typename MediaType>
+//HRESULT
+//Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+//                                     MessageType,
+//                                     ConfigurationType,
+//                                     SessionDataType,
+//                                     MediaType>::OnFlush (DWORD streamIndex_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnFlush"));
+//
+//  ACE_UNUSED_ARG (streamIndex_in);
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (S_OK);
+//  ACE_NOTREACHED (return S_OK;)
+//}
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataType,
+//          typename MediaType>
+//HRESULT
+//Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+//                                     MessageType,
+//                                     ConfigurationType,
+//                                     SessionDataType,
+//                                     MediaType>::OnReadSample (HRESULT result_in,
+//                                                               DWORD streamIndex_in,
+//                                                               DWORD streamFlags_in,
+//                                                               LONGLONG timeStamp_in,
+//                                                               IMFSample* sample_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnReadSample"));
+//
+//  int result = -1;
+//  ACE_Message_Block* message_block_p = NULL;
+//  result = inherited::getq (message_block_p, NULL);
+//  if (result == -1)
+//  {
+//    int error = ACE_OS::last_error ();
+//    if (error != ESHUTDOWN)
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
+//                  inherited::name ()));
+//
+//    // clean up
+//    message_block_p->release ();
+//
+//    return E_FAIL;
+//  } // end IF
+//  ACE_ASSERT (message_block_p);
+//
+//  MessageType* message_p = NULL;
+//  try
+//  {
+//    message_p = dynamic_cast<MessageType*> (message_block_p);
+//  }
+//  catch (...)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("caught exception in dynamic_cast<MessageType*>(0x%@), continuing\n"),
+//                message_block_p));
+//    message_p = NULL;
+//  }
+//  if (!message_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to dynamic_cast<MessageType*>(0x%@), aborting\n"),
+//                message_block_p));
+//
+//    // clean up
+//    message_block_p->release ();
+//
+//    return E_FAIL;
+//  } // end IF
+//  ACE_ASSERT (message_p);
+//
+//  typename MessageType::DATA_T& data_r =
+//    const_cast<typename MessageType::DATA_T&> (message_p->get ());
+//  ACE_ASSERT (!data_r.sample);
+//
+//  //DWORD total_length = 0;
+//  //HRESULT result_2 = sample_in->GetTotalLength (&total_length);
+//  //if (FAILED (result_2))
+//  //{
+//  //  ACE_DEBUG ((LM_ERROR,
+//  //              ACE_TEXT ("failed to IMFSample::GetTotalLength(): \"%m\", aborting\n"),
+//  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//  //  return result_2;
+//  //} // end IF
+//  DWORD buffer_count = 0;
+//  HRESULT result_2 = sample_in->GetBufferCount (&buffer_count);
+//  ACE_ASSERT (buffer_count == 1);
+//  result_2 = sample_in->GetBufferByIndex (0,
+//                                          &data_r.sample);
+//  if (FAILED (result_2))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to IMFSample::GetBufferByIndex(0): \"%m\", aborting\n"),
+//                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//
+//    // clean up
+//    message_p->release ();
+//
+//    return result_2;
+//  } // end IF
+//  ACE_ASSERT (data_r.sample);
+//  data_r.sampleTime = timeStamp_in;
+//
+//  BYTE* buffer_p = NULL;
+//  DWORD maximum_length, current_length;
+//  result_2 = data_r.sample->Lock (&buffer_p,
+//                                  &maximum_length,
+//                                  &current_length);
+//  if (FAILED (result_2))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to IMFSample::Lock(): \"%m\", aborting\n"),
+//                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+//
+//    // clean up
+//    data_r.sample->Release ();
+//    message_p->release ();
+//
+//    return result_2;
+//  } // end IF
+//  ACE_ASSERT (buffer_p);
+//
+//  message_p->base (reinterpret_cast<char*> (buffer_p),
+//                    current_length,
+//                    ACE_Message_Block::DONT_DELETE);
+//  message_p->wr_ptr (current_length);
+//
+//  return S_OK;
+//}
 template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
@@ -226,13 +403,13 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnEvent (DWORD streamIndex_in,
-                                                          IMFMediaEvent* mediaEvent_in)
+                                     MediaType>::OnClockStart (MFTIME systemClockTime_in,
+                                                               LONGLONG clockStartOffset_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnEvent"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnClockStart"));
 
-  ACE_UNUSED_ARG (streamIndex_in);
-  ACE_UNUSED_ARG (mediaEvent_in);
+  ACE_UNUSED_ARG (systemClockTime_in);
+  ACE_UNUSED_ARG (clockStartOffset_in);
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (S_OK);
@@ -248,11 +425,11 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnFlush (DWORD streamIndex_in)
+                                     MediaType>::OnClockStop (MFTIME systemClockTime_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnFlush"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnClockStop"));
 
-  ACE_UNUSED_ARG (streamIndex_in);
+  ACE_UNUSED_ARG (systemClockTime_in);
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (S_OK);
@@ -268,17 +445,117 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnReadSample (HRESULT result_in,
-                                                               DWORD streamIndex_in,
-                                                               DWORD streamFlags_in,
-                                                               LONGLONG timeStamp_in,
-                                                               IMFSample* sample_in)
+                                     MediaType>::OnClockPause (MFTIME systemClockTime_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnReadSample"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnClockPause"));
 
+  ACE_UNUSED_ARG (systemClockTime_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (S_OK);
+  ACE_NOTREACHED (return S_OK;)
+}
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename MediaType>
+HRESULT
+Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+                                     MessageType,
+                                     ConfigurationType,
+                                     SessionDataType,
+                                     MediaType>::OnClockRestart (MFTIME systemClockTime_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnClockRestart"));
+
+  ACE_UNUSED_ARG (systemClockTime_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (S_OK);
+  ACE_NOTREACHED (return S_OK;)
+}
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename MediaType>
+HRESULT
+Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+                                     MessageType,
+                                     ConfigurationType,
+                                     SessionDataType,
+                                     MediaType>::OnClockSetRate (MFTIME systemClockTime_in,
+                                                                 float playbackRate_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnClockSetRate"));
+
+  ACE_UNUSED_ARG (systemClockTime_in);
+  ACE_UNUSED_ARG (playbackRate_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (S_OK);
+  ACE_NOTREACHED (return S_OK;)
+}
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename MediaType>
+HRESULT
+Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+                                     MessageType,
+                                     ConfigurationType,
+                                     SessionDataType,
+                                     MediaType>::OnProcessSample (const struct _GUID& majorMediaType_in,
+                                                                  DWORD flags_in,
+                                                                  LONGLONG timeStamp_in,
+                                                                  LONGLONG duration_in,
+                                                                  const BYTE* buffer_in,
+                                                                  DWORD bufferSize_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnProcessSample"));
+
+  ACE_UNUSED_ARG (majorMediaType_in);
+  ACE_UNUSED_ARG (flags_in);
+  ACE_UNUSED_ARG (duration_in);
+
+  MessageType* message_p = NULL;
   int result = -1;
-  ACE_Message_Block* message_block_p = NULL;
-  result = inherited::getq (message_block_p, NULL);
+  HRESULT result_2 = E_FAIL;
+
+  if (isFirst_)
+  {
+    isFirst_ = false;
+    baseTimeStamp_ = timeStamp_in;
+  } // end IF
+  timeStamp_in -= baseTimeStamp_;
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+  // *TODO*: remove type inference
+  ACE_ASSERT (configuration_->streamConfiguration);
+
+  // *TODO*: remove type inference
+  message_p =
+    allocateMessage (configuration_->streamConfiguration->bufferSize);
+  if (!message_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
+                configuration_->streamConfiguration->bufferSize));
+    goto error;
+  } // end IF
+  ACE_ASSERT (message_p);
+  ACE_ASSERT (message_p->capacity () >= bufferSize_in);
+
+  // *TODO*: copy this data into the message buffer ?
+  message_p->base (reinterpret_cast<char*> (const_cast<BYTE*> (buffer_in)),
+                   bufferSize_in,
+                   ACE_Message_Block::DONT_DELETE);
+  message_p->wr_ptr (bufferSize_in);
+
+  result = inherited::putq (message_p, NULL);
   if (result == -1)
   {
     int error = ACE_OS::last_error ();
@@ -286,96 +563,60 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
                   inherited::name ()));
-
-    // clean up
-    message_block_p->release ();
-
-    return E_FAIL;
+    goto error;
   } // end IF
-  ACE_ASSERT (message_block_p);
-
-  MessageType* message_p = NULL;
-  try
-  {
-    message_p = dynamic_cast<MessageType*> (message_block_p);
-  }
-  catch (...)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in dynamic_cast<MessageType*>(0x%@), continuing\n"),
-                message_block_p));
-    message_p = NULL;
-  }
-  if (!message_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<MessageType*>(0x%@), aborting\n"),
-                message_block_p));
-
-    // clean up
-    message_block_p->release ();
-
-    return E_FAIL;
-  } // end IF
-  ACE_ASSERT (message_p);
-
-  typename MessageType::DATA_T& data_r =
-    const_cast<typename MessageType::DATA_T&> (message_p->get ());
-  ACE_ASSERT (!data_r.sample);
-
-  //DWORD total_length = 0;
-  //HRESULT result_2 = sample_in->GetTotalLength (&total_length);
-  //if (FAILED (result_2))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMFSample::GetTotalLength(): \"%m\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-  //  return result_2;
-  //} // end IF
-  DWORD buffer_count = 0;
-  HRESULT result_2 = sample_in->GetBufferCount (&buffer_count);
-  ACE_ASSERT (buffer_count == 1);
-  result_2 = sample_in->GetBufferByIndex (0,
-                                          &data_r.sample);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFSample::GetBufferByIndex(0): \"%m\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-
-    // clean up
-    message_p->release ();
-
-    return result_2;
-  } // end IF
-  ACE_ASSERT (data_r.sample);
-  data_r.sampleTime = timeStamp_in;
-
-  BYTE* buffer_p = NULL;
-  DWORD maximum_length, current_length;
-  result_2 = data_r.sample->Lock (&buffer_p,
-                                  &maximum_length,
-                                  &current_length);
-  if (FAILED (result_2))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFSample::Lock(): \"%m\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-
-    // clean up
-    data_r.sample->Release ();
-    message_p->release ();
-
-    return result_2;
-  } // end IF
-  ACE_ASSERT (buffer_p);
-
-  message_p->base (reinterpret_cast<char*> (buffer_p),
-                    current_length,
-                    ACE_Message_Block::DONT_DELETE);
-  message_p->wr_ptr (current_length);
 
   return S_OK;
+
+error:
+  if (message_p)
+    message_p->release ();
+
+  return E_FAIL;
+}
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename MediaType>
+HRESULT
+Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+                                     MessageType,
+                                     ConfigurationType,
+                                     SessionDataType,
+                                     MediaType>::OnSetPresentationClock (IMFPresentationClock* presentationClock_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnSetPresentationClock"));
+
+  // sanity check(s)
+  if (presentationClock_)
+  {
+    presentationClock_->Release ();
+    presentationClock_ = NULL;
+  } // end IF
+
+  ULONG reference_count = presentationClock_in->AddRef ();
+  presentationClock_ = presentationClock_in;
+
+  return S_OK;
+}
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename MediaType>
+HRESULT
+Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+                                     MessageType,
+                                     ConfigurationType,
+                                     SessionDataType,
+                                     MediaType>::OnShutdown ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnShutdown"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (E_FAIL);
+  ACE_NOTREACHED (return E_FAIL;)
 }
 
 template <typename SessionMessageType,

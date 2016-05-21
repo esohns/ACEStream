@@ -385,7 +385,16 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
 
       // sanity check(s)
       ACE_ASSERT (!IDirect3DDevice9Ex_);
-      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (session_data_r.topology);
+
+      IMFMediaType* media_type_p = NULL;
+      if (!Stream_Module_Device_Tools::getOutputFormat (session_data_r.topology,
+                                                        media_type_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
+        goto error;
+      } // end IF
 
       if (session_data_r.direct3DDevice)
       {
@@ -393,7 +402,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
         IDirect3DDevice9Ex_ = session_data_r.direct3DDevice;
 
         result_2 = this->initialize_Direct3DDevice (configuration_->window,
-                                                    session_data_r.format);
+                                                    media_type_p);
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -406,7 +415,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
       {
         if (!initialize_Direct3D (configuration_->window,
                                   configuration_->area,
-                                  session_data_r.format,
+                                  media_type_p,
                                   IDirect3DDevice9Ex_,
                                   presentationParameters_,
                                   adapter_))
@@ -416,15 +425,19 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
           goto error;
         } // end IF
       } // end ELSE
+      media_type_p->Release ();
 
       goto continue_;
 
 error:
+      if (media_type_p)
+        media_type_p->Release ();
       if (IDirect3DDevice9Ex_)
       {
         IDirect3DDevice9Ex_->Release ();
         IDirect3DDevice9Ex_ = NULL;
       } // end IF
+
       session_data_r.aborted = true;
 
 continue_:

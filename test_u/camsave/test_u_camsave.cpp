@@ -443,6 +443,7 @@ do_initialize_directshow (const std::string& deviceName_in,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   } // end IF
 
+continue_:
   result = MFStartup (MF_VERSION,
                       MFSTARTUP_LITE);
   if (FAILED (result))
@@ -453,7 +454,6 @@ do_initialize_directshow (const std::string& deviceName_in,
     goto error;
   } // end IF
 
-continue_:
   Stream_Module_Device_Tools::initialize ();
 
   if (!loadDevice_in)
@@ -681,13 +681,13 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
   //ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
-  ACE_ASSERT (media_source_p);
-  ACE_ASSERT (topology_p);
+  //ACE_ASSERT (media_source_p);
+  //ACE_ASSERT (topology_p);
   //ACE_ASSERT (buffer_negotiation_p);
   //ACE_ASSERT (CBData_in.streamConfiguration);
 
-  media_source_p->Release ();
-  topology_p->Release ();
+  //media_source_p->Release ();
+  //topology_p->Release ();
   //buffer_negotiation_p->Release ();
 #endif
 
@@ -997,8 +997,8 @@ ACE_TMAIN (int argc_in,
   if (!do_processArguments (argc_in,
                             argv_in,
                             buffer_size,
-                            show_console,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+                            show_console,
 #else
                             device_filename,
 #endif

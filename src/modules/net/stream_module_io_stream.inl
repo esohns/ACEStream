@@ -246,6 +246,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
 
   // ******************* IO ************************
   IO_.initialize (*configuration_in.moduleConfiguration);
+  READER_T* IOReader_impl_p = NULL;
   WRITER_T* IOWriter_impl_p = dynamic_cast<WRITER_T*> (IO_.writer ());
   if (!IOWriter_impl_p)
   {
@@ -268,7 +269,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
     goto reset;
   } // end IF
 //  IOWriter_impl_p->reset ();
-  READER_T* IOReader_impl_p = dynamic_cast<READER_T*> (IO_.reader ());
+  IOReader_impl_p = dynamic_cast<READER_T*> (IO_.reader ());
   if (!IOReader_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,

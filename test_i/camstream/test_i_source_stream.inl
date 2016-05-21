@@ -200,7 +200,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   IDirect3DDeviceManager9* direct3D_manager_p = NULL;
 
   //if (configuration_in.moduleHandlerConfiguration->builder)
-  if (configuration_in.moduleHandlerConfiguration->sourceReader)
+  if (configuration_in.moduleHandlerConfiguration->topology)
   {
     //if (!Stream_Module_Device_Tools::getBufferNegotiation (configuration_in.moduleHandlerConfiguration->builder,
     //                                                       buffer_negotiation_p))
@@ -280,17 +280,32 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     symbolic_link_p = NULL;
     symbolic_link_size = 0;
     ACE_ASSERT (configuration_in.moduleHandlerConfiguration->mediaSource);
-    // *NOTE*: the source reader assumes responsibility for media_source_p
-    if (!Stream_Module_Device_Tools::getSourceReader (configuration_in.moduleHandlerConfiguration->mediaSource,
-                                                      symbolic_link_p,
-                                                      symbolic_link_size,
-                                                      direct3D_manager_p,
-                                                      source_impl_p,
-                                                      Stream_Module_Device_Tools::isChromaLuminance (configuration_in.moduleHandlerConfiguration->format),
-                                                      configuration_in.moduleHandlerConfiguration->sourceReader))
+    //if (!Stream_Module_Device_Tools::getSourceReader (configuration_in.moduleHandlerConfiguration->mediaSource,
+    //                                                  symbolic_link_p,
+    //                                                  symbolic_link_size,
+    //                                                  direct3D_manager_p,
+    //                                                  source_impl_p,
+    //                                                  Stream_Module_Device_Tools::isChromaLuminance (configuration_in.moduleHandlerConfiguration->format),
+    //                                                  configuration_in.moduleHandlerConfiguration->sourceReader))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
+    //              ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
+
+    //  // clean up
+    //  configuration_in.moduleHandlerConfiguration->mediaSource->Release ();
+    //  configuration_in.moduleHandlerConfiguration->mediaSource = NULL;
+
+    //  goto error;
+    //} // end IF
+    if (!Stream_Module_Device_Tools::loadRendererTopology (configuration_in.moduleHandlerConfiguration->device,
+                                                           configuration_in.moduleHandlerConfiguration->format,
+                                                           source_impl_p,
+                                                           configuration_in.moduleHandlerConfiguration->window,
+                                                           configuration_in.moduleHandlerConfiguration->topology))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(\"%s\"), aborting\n"),
                   ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
 
       // clean up
@@ -301,7 +316,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     } // end IF
     direct3D_manager_p->Release ();
     direct3D_manager_p = NULL;
-    ACE_ASSERT (configuration_in.moduleHandlerConfiguration->sourceReader);
+    ACE_ASSERT (configuration_in.moduleHandlerConfiguration->topology);
     graph_loaded = true;
 
     // clean up
@@ -322,8 +337,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 continue_:
   //IMediaFilter* media_filter_p = NULL;
 
-  //if (!Stream_Module_Device_Tools::getCaptureFormat (configuration_in.moduleHandlerConfiguration->builder,
-  if (!Stream_Module_Device_Tools::getCaptureFormat (configuration_in.moduleHandlerConfiguration->sourceReader,
+  if (!Stream_Module_Device_Tools::getCaptureFormat (configuration_in.moduleHandlerConfiguration->mediaSource,
                                                      session_data_r.format))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -459,17 +473,17 @@ continue_:
   //buffer_negotiation_p = NULL;
 
   //Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
-  session_data_r.format->Release ();
-  session_data_r.format = NULL;
-  //if (!Stream_Module_Device_Tools::getOutputFormat (configuration_in.moduleHandlerConfiguration->builder,
-  if (!Stream_Module_Device_Tools::getOutputFormat (configuration_in.moduleHandlerConfiguration->sourceReader,
-                                                    session_data_r.format))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
-    goto error;
-  } // end IF
-  ACE_ASSERT (session_data_r.format);
+  //session_data_r.format->Release ();
+  //session_data_r.format = NULL;
+  ////if (!Stream_Module_Device_Tools::getOutputFormat (configuration_in.moduleHandlerConfiguration->builder,
+  //if (!Stream_Module_Device_Tools::getOutputFormat (configuration_in.moduleHandlerConfiguration->sourceReader,
+  //                                                  session_data_r.format))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (session_data_r.format);
 
   if (_DEBUG)
   {
@@ -581,10 +595,10 @@ error:
     //  configuration_in.moduleHandlerConfiguration->builder->Release ();
     //  configuration_in.moduleHandlerConfiguration->builder = NULL;
     //} // end IF
-    if (configuration_in.moduleHandlerConfiguration->sourceReader)
+    if (configuration_in.moduleHandlerConfiguration->topology)
     {
-      configuration_in.moduleHandlerConfiguration->sourceReader->Release ();
-      configuration_in.moduleHandlerConfiguration->sourceReader = NULL;
+      configuration_in.moduleHandlerConfiguration->topology->Release ();
+      configuration_in.moduleHandlerConfiguration->topology = NULL;
     } // end IF
 
   if (session_data_r.direct3DDevice)

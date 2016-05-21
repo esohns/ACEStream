@@ -23,8 +23,10 @@
 
 #include "ace/config-macros.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mfidl.h"
 #include "mfreadwrite.h"
+#endif
 
 #include "gtk/gtk.h"
 

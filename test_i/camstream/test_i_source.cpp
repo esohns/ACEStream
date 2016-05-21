@@ -34,7 +34,9 @@
 #include "ace/Synch.h"
 #include "ace/Version.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mfapi.h"
+#endif
 
 #ifdef LIBACESTREAM_ENABLE_VALGRIND_SUPPORT
 #include "valgrind/valgrind.h"

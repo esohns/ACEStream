@@ -35,7 +35,7 @@
 #include "mferror.h"
 #include "mfidl.h"
 #include "mfreadwrite.h"
-#include "mtype.h"
+//#include "mtype.h"
 //#include "streams.h"
 
 #include "gdk/gdkwin32.h"
@@ -3122,7 +3122,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_Thread_Manager* thread_manager_p = NULL;
   int result = -1;
 
-  CMediaType media_type;
+//  CMediaType media_type;
 
   Test_I_Source_StreamBase_t* stream_p = NULL;
   switch (data_p->configuration->protocol)
@@ -3262,12 +3262,18 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
     static_cast<unsigned int> (gtk_spin_button_get_value_as_int (spin_button_p));
 
   // sanity check(s)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.topology);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+#endif
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
   if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.topology,
+#else
+  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
+#endif
                                                      data_p->configuration->moduleHandlerConfiguration.format))
   {
     ACE_DEBUG ((LM_ERROR,

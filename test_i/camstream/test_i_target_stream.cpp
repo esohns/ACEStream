@@ -166,10 +166,13 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   // ---------------------------------------------------------------------------
 
-  bool graph_loaded = false;
-  bool COM_initialized = false;
+  Test_I_Target_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+      NULL;
+  Test_I_Target_Stream_Module_Splitter* splitter_impl_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool graph_loaded = false;
+  bool COM_initialized = false;
 #else
   // ******************* Display ************************
   display_.initialize (*configuration_in.moduleConfiguration);
@@ -192,7 +195,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   // ******************* Runtime Statistic *************************
   runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  Test_I_Target_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  runtimeStatistic_impl_p =
       dynamic_cast<Test_I_Target_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl_p)
   {
@@ -256,6 +259,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
     goto error;
   } // end IF
+  COM_initialized = true;
 
   // sanity check(s)
   //if (!Stream_Module_Device_Tools::loadTargetRendererGraph (configuration_r.moduleHandlerConfiguration->window,
@@ -473,43 +477,6 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   //} // end IF
   //media_filter_p->Release ();
 
-  goto continue_;
-
-error:
-  //if (release_builder)
-  //{
-  //  configuration_r.moduleHandlerConfiguration->builder->Release ();
-  //  configuration_r.moduleHandlerConfiguration->builder = NULL;
-  //} // end IF
-  if (direct3D_manager_p)
-    direct3D_manager_p->Release ();
-  if (graph_loaded)
-  {
-    //configuration_in.moduleHandlerConfiguration->builder->Release ();
-    //configuration_in.moduleHandlerConfiguration->builder = NULL;
-    //configuration_in.moduleHandlerConfiguration->sourceReader->Release ();
-    //configuration_in.moduleHandlerConfiguration->sourceReader = NULL;
-    configuration_in.moduleHandlerConfiguration->topology->Release ();
-    configuration_in.moduleHandlerConfiguration->topology = NULL;
-  } // end IF
-  if (session_data_r.direct3DDevice)
-  {
-    session_data_r.direct3DDevice->Release ();
-    session_data_r.direct3DDevice = NULL;
-  } // end IF
-  if (session_data_r.format)
-  {
-    //Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
-    session_data_r.format->Release ();
-    session_data_r.format = NULL;
-  } // end IF
-  session_data_r.resetToken = 0;
-
-  if (COM_initialized)
-    CoUninitialize ();
-
-  return false;
-
 continue_:
   //directShowSource_.initialize (*configuration_in.moduleConfiguration);
   //if (!directShowSource_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
@@ -531,7 +498,7 @@ continue_:
 
   // ************************ Splitter *****************************
   splitter_.initialize (*configuration_in.moduleConfiguration);
-  Test_I_Target_Stream_Module_Splitter* splitter_impl_p =
+  splitter_impl_p =
     dynamic_cast<Test_I_Target_Stream_Module_Splitter*> (splitter_.writer ());
   if (!splitter_impl_p)
   {
@@ -636,6 +603,43 @@ continue_:
   inherited::allocator_ = configuration_in.messageAllocator;
 
   return true;
+
+error:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //if (release_builder)
+  //{
+  //  configuration_r.moduleHandlerConfiguration->builder->Release ();
+  //  configuration_r.moduleHandlerConfiguration->builder = NULL;
+  //} // end IF
+  if (direct3D_manager_p)
+    direct3D_manager_p->Release ();
+  if (graph_loaded)
+  {
+    //configuration_in.moduleHandlerConfiguration->builder->Release ();
+    //configuration_in.moduleHandlerConfiguration->builder = NULL;
+    //configuration_in.moduleHandlerConfiguration->sourceReader->Release ();
+    //configuration_in.moduleHandlerConfiguration->sourceReader = NULL;
+    configuration_in.moduleHandlerConfiguration->topology->Release ();
+    configuration_in.moduleHandlerConfiguration->topology = NULL;
+  } // end IF
+  if (session_data_r.direct3DDevice)
+  {
+    session_data_r.direct3DDevice->Release ();
+    session_data_r.direct3DDevice = NULL;
+  } // end IF
+  if (session_data_r.format)
+  {
+    //Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
+    session_data_r.format->Release ();
+    session_data_r.format = NULL;
+  } // end IF
+  session_data_r.resetToken = 0;
+
+  if (COM_initialized)
+    CoUninitialize ();
+#endif
+
+  return false;
 }
 
 bool
