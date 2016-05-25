@@ -25,6 +25,10 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "mfidl.h"
+#endif
+
 #include "common_time_common.h"
 
 #include "stream_base.h"
@@ -58,10 +62,29 @@ class Stream_CamSave_Stream
                         Stream_CamSave_SessionData_t, // session data container (reference counted)
                         Stream_CamSave_SessionMessage,
                         Stream_CamSave_Message>
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , public IMFAsyncCallback
+#endif
 {
  public:
   Stream_CamSave_Stream ();
   virtual ~Stream_CamSave_Stream ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // override (part of) Stream_IStreamControl_T
+  virtual void start ();
+  virtual void stop (bool = true,  // wait for completion ?
+                     bool = true); // locked access ?
+
+  // implement IMFAsyncCallback
+  STDMETHODIMP STDMETHODCALLTYPE QueryInterface (const IID&,
+                                                 void**);
+  virtual ULONG STDMETHODCALLTYPE AddRef ();
+  virtual ULONG STDMETHODCALLTYPE Release ();
+  STDMETHODIMP GetParameters (DWORD*,  // return value: flags
+                              DWORD*); // return value: queue handle
+  STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
+#endif
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Stream_CamSave_StreamConfiguration&, // configuration
@@ -103,6 +126,12 @@ class Stream_CamSave_Stream
   Stream_CamSave_Module_Display_Module          display_;
   Stream_CamSave_Module_AVIEncoder_Module       encoder_;
   Stream_CamSave_Module_FileWriter_Module       fileWriter_;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // media session
+  IMFMediaSession*                              mediaSession_;
+  ULONG                                         referenceCount_;
+#endif
 
   static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentSessionID;
 };

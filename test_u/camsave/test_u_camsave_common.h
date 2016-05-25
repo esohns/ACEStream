@@ -127,7 +127,9 @@ struct Stream_CamSave_SessionData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DDevice (NULL)
    , format (NULL)
+   , rendererNodeId (0)
    , resetToken (0)
+   , session (NULL)
    , topology (NULL)
 #else
    , format ()
@@ -157,7 +159,9 @@ struct Stream_CamSave_SessionData
   //struct _AMMediaType*         format;
   IDirect3DDevice9Ex*          direct3DDevice;
   IMFMediaType*                format;
+  TOPOID                       rendererNodeId;
   UINT                         resetToken; // direct 3D manager 'id'
+  IMFMediaSession*             session;
   IMFTopology*                 topology;
 #else
   struct v4l2_format           format;
@@ -191,7 +195,10 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    //, builder (NULL)
    , format (NULL)
    , mediaSource (NULL)
-   , sourceReader (NULL)
+   , rendererNodeId (0)
+   , sampleGrabberNodeId (0)
+   //, sourceReader (NULL)
+   , session (NULL)
    , topology (NULL)
    , windowController (NULL)
 #else
@@ -239,7 +246,10 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   //struct _AMMediaType* format;
   IMFMediaType*           format;
   IMFMediaSource*         mediaSource;
-  IMFSourceReaderEx*      sourceReader;
+  TOPOID                  rendererNodeId;
+  TOPOID                  sampleGrabberNodeId;
+  //IMFSourceReaderEx*      sourceReader;
+  IMFMediaSession*        session;
   IMFTopology*            topology;
   //IVideoWindow*        windowController;
   IMFVideoDisplayControl* windowController;

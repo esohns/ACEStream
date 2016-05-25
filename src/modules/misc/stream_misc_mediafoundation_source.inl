@@ -744,6 +744,7 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
 
       WCHAR* symbolic_link_p = NULL;
       UINT32 symbolic_link_size = 0;
+      TOPOID node_id = 0;
       if (!initialize_MediaFoundation (configuration_->window,
                                        session_data_r.format,
                                        configuration_->mediaSource,
@@ -751,6 +752,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
                                        symbolic_link_size,
                                        direct3D_manager_p,
                                        this,
+                                       node_id,
+                                       session_data_r.rendererNodeId,
                                        topology_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -920,6 +923,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
                                                                              UINT32& symbolicLinkSize_out,
                                                                              const IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
                                                                              const IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
+                                                                             TOPOID& sampleGrabberSinkNodeId_out,
+                                                                             TOPOID& rendererNodeId_out,
                                                                              IMFTopology*& IMFTopology_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::initialize_MediaFoundation"));
@@ -934,6 +939,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
     symbolicLink_out = NULL;
     symbolicLinkSize_out = 0;
   } // end IF
+  sampleGrabberSinkNodeId_out = 0;
+  rendererNodeId_out = 0;
   if (IMFTopology_out)
   {
     IMFTopology_out->Release ();
@@ -968,6 +975,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
                                                          IMFMediaType_in,
                                                          IMFSampleGrabberSinkCallback_in,
                                                          windowHandle_in,
+                                                         sampleGrabberSinkNodeId_out,
+                                                         rendererNodeId_out,
                                                          IMFTopology_out))
   {
     ACE_DEBUG ((LM_ERROR,

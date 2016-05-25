@@ -70,20 +70,23 @@ class Stream_Vis_Target_MediaFoundation_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T& operator= (const Stream_Vis_Target_MediaFoundation_T&))
 
   // helper methods
-  bool initialize_MediaFoundation (const HWND,                 // (target) window handle
-                                   const struct tagRECT&,      // (target) window area
-                                   const IMFMediaType*,        // media type handle
-                                   IMFMediaSink*&,             // return value: media sink handle
-                                   IMFStreamSink*&,            // return value: stream sink handle
-                                   IMFVideoDisplayControl*&);//,   // return value: video display control handle
-                                   //IMFVideoSampleAllocator*&); // return value: video sample allocator handle
+  bool initialize_MediaFoundation (const HWND,                // (target) window handle
+                                   const struct tagRECT&,     // (target) window area
+                                   //const IMFMediaType*,       // media type handle
+                                   TOPOID,                    // renderer node id
+                                   IMFMediaSink*&,            // return value: media sink handle
+                                   IMFVideoDisplayControl*&,  // return value: video display control handle
+                                   //IMFVideoSampleAllocator*&, // return value: video sample allocator handle
+                                   IMFTopology*&,             // input/return value: topology handle
+                                   IMFMediaSession*);         // media session handle
 
   bool                     isInitialized_;
-  IDirect3DDevice9Ex*      IDirect3DDevice9Ex_;
-  IMFMediaSink*            IMFMediaSink_;
-  IMFStreamSink*           IMFStreamSink_;
-  IMFVideoDisplayControl*  IMFVideoDisplayControl_;
-  //IMFVideoSampleAllocator* IMFVideoSampleAllocator_;
+  IDirect3DDevice9Ex*      device_;
+  IMFMediaSink*            mediaSink_;
+  IMFStreamSink*           streamSink_;
+  IMFTopology*             topology_;
+  IMFVideoDisplayControl*  videoDisplayControl_;
+  //IMFVideoSampleAllocator* videoSampleAllocator_;
 };
 
 // include template implementation

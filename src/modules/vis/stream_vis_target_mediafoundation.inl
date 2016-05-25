@@ -43,11 +43,12 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
  : inherited ()
  , configuration_ (NULL)
  , isInitialized_ (false)
- , IDirect3DDevice9Ex_ (NULL)
- , IMFMediaSink_ (NULL)
- , IMFStreamSink_ (NULL)
- //, IMFVideoSampleAllocator_ (NULL)
- , IMFVideoDisplayControl_ (NULL)
+ , device_ (NULL)
+ , mediaSink_ (NULL)
+ , streamSink_ (NULL)
+ , topology_ (NULL)
+ //, videoSampleAllocator_ (NULL)
+ , videoDisplayControl_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::Stream_Vis_Target_MediaFoundation_T"));
 
@@ -66,16 +67,18 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::~Stream_Vis_Target_MediaFoundation_T"));
 
-  if (IDirect3DDevice9Ex_)
-    IDirect3DDevice9Ex_->Release ();
-  //if (IMFVideoSampleAllocator_)
-  //  IMFVideoSampleAllocator_->Release ();
-  if (IMFVideoDisplayControl_)
-    IMFVideoDisplayControl_->Release ();
-  if (IMFStreamSink_)
-    IMFStreamSink_->Release ();
-  if (IMFMediaSink_)
-    IMFMediaSink_->Release ();
+  if (device_)
+    device_->Release ();
+  //if (videoSampleAllocator_)
+  //  videoSampleAllocator_->Release ();
+  if (videoDisplayControl_)
+    videoDisplayControl_->Release ();
+  if (streamSink_)
+    streamSink_->Release ();
+  if (mediaSink_)
+    mediaSink_->Release ();
+  if (topology_)
+    topology_->Release ();
 }
 
 template <typename SessionMessageType,
@@ -93,19 +96,20 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::handleDataMessage"));
 
+  ACE_UNUSED_ARG (message_inout);
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  HRESULT result = E_FAIL;
-  typename const MessageType::DATA_T& message_data_r = message_inout->get ();
+  //HRESULT result = E_FAIL;
+  //typename const MessageType::DATA_T& message_data_r = message_inout->get ();
 
-  // sanity check(s)
-  ACE_ASSERT (IMFMediaSink_);
-  //ACE_ASSERT (IMFVideoSampleAllocator_);
-  ACE_ASSERT (message_data_r.sample);
+  //// sanity check(s)
+  //ACE_ASSERT (streamSink_);
+  ////ACE_ASSERT (videoSampleAllocator_);
+  //ACE_ASSERT (message_data_r.sample);
 
   //// *NOTE*: EVR does not accept plain IMFSamples; only 'video samples'
   //IMFSample* sample_p = NULL;
-  //result = IMFVideoSampleAllocator_->AllocateSample (&sample_p);
+  //result = videoSampleAllocator_->AllocateSample (&sample_p);
   //if (FAILED (result)) // MF_E_SAMPLEALLOCATOR_EMPTY: 0xC00D4A3EL
   //{
   //  ACE_DEBUG ((LM_ERROR,
@@ -161,19 +165,19 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
   //} // end IF
   //media_buffer_p->Release ();
 
-  //result = IMFStreamSink_->ProcessSample (sample_p);
-  result = IMFStreamSink_->ProcessSample (message_data_r.sample);
-  if (FAILED (result)) // E_NOINTERFACE
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFStreamSink::ProcessSample(): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //result = streamSink_->ProcessSample (sample_p);
+  //result = streamSink_->ProcessSample (message_data_r.sample);
+  //if (FAILED (result)) // E_NOINTERFACE
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFStreamSink::ProcessSample(): \"%s\", returning\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-    // clean up
-    //sample_p->Release ();
+  //  // clean up
+  //  //sample_p->Release ();
 
-    return;
-  } // end IF
+  //  return;
+  //} // end IF
   //sample_p->Release ();
 }
 
@@ -222,21 +226,32 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
       COM_initialized = true;
 
       // sanity check(s)
-      ACE_ASSERT (!IDirect3DDevice9Ex_);
+      ACE_ASSERT (!device_);
+      ACE_ASSERT (!mediaSink_);
+      ACE_ASSERT (!streamSink_);
+      ACE_ASSERT (!topology_);
+      ACE_ASSERT (!videoDisplayControl_);
       ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (session_data_r.session);
 
+      ULONG reference_count = 0;
       if (session_data_r.direct3DDevice)
       {
-        session_data_r.direct3DDevice->AddRef ();
-        IDirect3DDevice9Ex_ = session_data_r.direct3DDevice;
+        reference_count = session_data_r.direct3DDevice->AddRef ();
+        device_ = session_data_r.direct3DDevice;
       } // end IF
       else
       {
+        struct _D3DPRESENT_PARAMETERS_ presentation_parameters;
+        ACE_OS::memset (&presentation_parameters,
+                        0,
+                        sizeof (struct _D3DPRESENT_PARAMETERS_));
         IDirect3DDeviceManager9* direct3D_manager_p = NULL;
         UINT reset_token = 0;
         if (!Stream_Module_Device_Tools::getDirect3DDevice (configuration_->window,
                                                             session_data_r.format,
-                                                            IDirect3DDevice9Ex_,
+                                                            device_,
+                                                            presentation_parameters,
                                                             direct3D_manager_p,
                                                             reset_token))
         {
@@ -244,66 +259,190 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
                       ACE_TEXT ("failed to initialize_Direct3D(), aborting\n")));
           goto error;
         } // end IF
+        ACE_ASSERT (direct3D_manager_p);
         direct3D_manager_p->Release ();
       } // end ELSE
 
-      IMFVideoDisplayControl* video_display_control_p =
-        configuration_->windowController;
-      if (!video_display_control_p)
+      if (session_data_r.topology)
       {
-        // sanity check(s)
-        ACE_ASSERT (session_data_r.format);
-        ACE_ASSERT (!IMFVideoDisplayControl_);
-
-        IMFMediaType* media_type_p = NULL;
-        result = MFCreateMediaType (&media_type_p);
-        ACE_ASSERT (SUCCEEDED (result));
-        result = media_type_p->SetGUID (MF_MT_MAJOR_TYPE, MFMediaType_Video);
-        ACE_ASSERT (SUCCEEDED (result));
-        result = media_type_p->SetGUID (MF_MT_SUBTYPE, MFVideoFormat_RGB32);
-        ACE_ASSERT (SUCCEEDED (result));
-        result =
-          media_type_p->SetUINT32 (MF_MT_INTERLACE_MODE,
-                                   MFVideoInterlace_Progressive);
-        ACE_ASSERT (SUCCEEDED (result));
-        result = media_type_p->SetUINT32 (MF_MT_ALL_SAMPLES_INDEPENDENT, true);
-        ACE_ASSERT (SUCCEEDED (result));
-        result =
-          MFSetAttributeRatio (media_type_p, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
-        ACE_ASSERT (SUCCEEDED (result));
-        result =
-          Stream_Module_Device_Tools::copyAttribute (session_data_r.format,
-                                                     media_type_p,
-                                                     MF_MT_FRAME_SIZE);
-        ACE_ASSERT (SUCCEEDED (result));
-        result =
-          Stream_Module_Device_Tools::copyAttribute (session_data_r.format,
-                                                     media_type_p,
-                                                     MF_MT_FRAME_RATE);
-        if (!initialize_MediaFoundation (configuration_->window,
-                                         configuration_->area,
-                                         media_type_p,
-                                         IMFMediaSink_,
-                                         IMFStreamSink_,
-                                         IMFVideoDisplayControl_))//,
-//                                         IMFVideoSampleAllocator_))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to initialize_MediaFoundation(), aborting\n")));
-
-          // clean up
-          media_type_p->Release ();
-
-          goto error;
-        } // end IF
-        media_type_p->Release ();
-        video_display_control_p = IMFVideoDisplayControl_;
+        reference_count = session_data_r.topology->AddRef ();
+        topology_ = session_data_r.topology;
       } // end IF
-      ACE_ASSERT (video_display_control_p);
+
+      if (!initialize_MediaFoundation (configuration_->window,
+                                       configuration_->area,
+                                       //media_type_p,
+                                       configuration_->rendererNodeId,
+                                       mediaSink_,
+                                       videoDisplayControl_,
+                                       //videoSampleAllocator_,
+                                       topology_,
+                                       session_data_r.session))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                   ACE_TEXT ("failed to initialize_MediaFoundation(), aborting\n")));
+        goto error;
+      } // end IF
+      ACE_ASSERT (mediaSink_);
+      ACE_ASSERT (topology_);
+      ACE_ASSERT (videoDisplayControl_);
+
+      DWORD count = 0;
+      result = mediaSink_->GetStreamSinkCount (&count);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaSink::GetStreamSinkCount(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (count > 0);
+      result = mediaSink_->GetStreamSinkByIndex (0, &streamSink_);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaSink::GetStreamSinkByIndex(0): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        goto error;
+      } // end IF
+
+      //IMediaTypeHandler* media_type_handler_p = NULL;
+      //result = streamSink_->GetMediaTypeHandler (&media_type_handler_p);
+      //if (FAILED (result))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFStreamSink::GetMediaTypeHandler(): \"%s\", aborting\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //  goto error;
+      //} // end IF
+      //IMFMediaType* media_type_p = NULL;
+      //result = MFCreateMediaType (&media_type_p);
+      //if (FAILED (result))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      //  // clean up
+      //  media_type_handler_p->Release ();
+
+      //  goto error;
+      //} // end IF
+      //result = media_type_p->SetGUID (MF_MT_MAJOR_TYPE, MFMediaType_Video);
+      //ACE_ASSERT (SUCCEEDED (result));
+      //result = media_type_p->SetGUID (MF_MT_SUBTYPE, MFVideoFormat_RGB24);
+      //ACE_ASSERT (SUCCEEDED (result));
+      //result = media_type_p->SetUINT32 (MF_MT_INTERLACE_MODE,
+      //  MFVideoInterlace_Progressive);
+      //ACE_ASSERT (SUCCEEDED (result));
+      //result = media_type_p->SetUINT32 (MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
+      //ACE_ASSERT (SUCCEEDED (result));
+      //result =
+      //  MFSetAttributeRatio (media_type_p, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
+      //ACE_ASSERT (SUCCEEDED (result));
+      //result =
+      //  Stream_Module_Device_Tools::copyAttribute (session_data_r.format,
+      //                                             media_type_p,
+      //                                             MF_MT_FRAME_SIZE);
+      //ACE_ASSERT (SUCCEEDED (result));
+      //result =
+      //  Stream_Module_Device_Tools::copyAttribute (session_data_r.format,
+      //                                             media_type_p,
+      //                                             MF_MT_FRAME_RATE);
+      //result = media_type_handler_p->SetCurrentMediaType (media_type_p);
+      //if (FAILED (result)) // MF_E_INVALIDMEDIATYPE: 0xC00D36B4L
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFMediaTypeHandler::SetCurrentMediaType(\"%s\"): \"%s\", aborting\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      //  // clean up
+      //  media_type_p->Release ();
+      //  media_type_handler_p->Release ();
+
+      //  goto error;
+      //} // end IF
+      //media_type_p->Release ();
+      //media_type_p = NULL;
+      //media_type_handler_p->Release ();
+      //media_type_handler_p = NULL;
+
+      //result = streamSink_->QueryInterface (IID_PPV_ARGS (&get_service_p));
+      //if (FAILED (result))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFStreamSink::QueryInterface(IID_IMFGetService): \"%s\", aborting\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //  goto error;
+      //} // end IF
+      //result =
+      //  get_service_p->GetService (MR_VIDEO_ACCELERATION_SERVICE,
+      //                             IID_PPV_ARGS (&IMFVideoSampleAllocator_out));
+      //if (FAILED (result))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFGetService::GetService(MR_VIDEO_ACCELERATION_SERVICE): \"%s\", aborting\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      //  goto error;
+      //} // end IF
+      //get_service_p->Release ();
+      //get_service_p = NULL;
+
+      //IMFVideoDisplayControl* video_display_control_p = NULL;
+      if (configuration_->windowController)
+      {
+        if (videoDisplayControl_)
+        {
+          videoDisplayControl_->Release ();
+          videoDisplayControl_ = NULL;
+        } // end IF
+        reference_count = configuration_->windowController->AddRef ();
+        videoDisplayControl_ = configuration_->windowController;
+        //video_display_control_p = videoDisplayControl_;
+      } // end IF
+      //else
+      //  video_display_control_p = videoDisplayControl_;
+      //ACE_ASSERT (video_display_control_p);
 
       goto continue_;
 
 error:
+      if (videoDisplayControl_)
+      {
+        videoDisplayControl_->Release ();
+        videoDisplayControl_ = NULL;
+      } // end IF
+      //if (videoSampleAllocator_)
+      //{
+      //  videoSampleAllocator_->Release ();
+      //  videoSampleAllocator_ = NULL;
+      //} // end IF
+      if (streamSink_)
+      {
+        streamSink_->Release ();
+        streamSink_ = NULL;
+      } // end IF
+      if (mediaSink_)
+      {
+        result = mediaSink_->Shutdown ();
+        if (FAILED (result_2))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IMFMediaSink::Shutdown(): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        mediaSink_->Release ();
+        mediaSink_ = NULL;
+      } // end IF
+      if (topology_)
+      {
+        topology_->Release ();
+        topology_ = NULL;
+      } // end IF
+      if (device_)
+      {
+        device_->Release ();
+        device_ = NULL;
+      } // end IF
+
       session_data_r.aborted = true;
 
 continue_:
@@ -327,44 +466,45 @@ continue_:
       } // end IF
       COM_initialized = true;
 
-      IMFVideoDisplayControl* video_display_control_p =
-        (IMFVideoDisplayControl_ ? IMFVideoDisplayControl_
-                                 : configuration_->windowController);
-
-      if (IDirect3DDevice9Ex_)
-      {
-        IDirect3DDevice9Ex_->Release ();
-        IDirect3DDevice9Ex_ = NULL;
-      } // end IF
-      //if (IMFVideoSampleAllocator_)
+      //if (videoSampleAllocator_)
       //{
-      //  result_2 = IMFVideoSampleAllocator_->UninitializeSampleAllocator ();
+      //  result_2 = videoSampleAllocator_->UninitializeSampleAllocator ();
       //  if (FAILED (result_2))
       //    ACE_DEBUG ((LM_ERROR,
       //                ACE_TEXT ("failed to IMFVideoSampleAllocator::UninitializeSampleAllocator(): \"%s\", continuing\n"),
       //                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-      //  IMFVideoSampleAllocator_->Release ();
-      //  IMFVideoSampleAllocator_ = NULL;
+      //  videoSampleAllocator_->Release ();
+      //  videoSampleAllocator_ = NULL;
       //} // end IF
-      if (IMFVideoDisplayControl_)
+      if (videoDisplayControl_)
       {
-        IMFVideoDisplayControl_->Release ();
-        IMFVideoDisplayControl_ = NULL;
+        videoDisplayControl_->Release ();
+        videoDisplayControl_ = NULL;
       } // end IF
-      if (IMFStreamSink_)
+      if (streamSink_)
       {
-        IMFStreamSink_->Release ();
-        IMFStreamSink_ = NULL;
+        streamSink_->Release ();
+        streamSink_ = NULL;
       } // end IF
-      if (IMFMediaSink_)
+      if (mediaSink_)
       {
-        result_2 = IMFMediaSink_->Shutdown ();
+        result_2 = mediaSink_->Shutdown ();
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSink::Shutdown(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        IMFMediaSink_->Release ();
-        IMFMediaSink_ = NULL;
+        mediaSink_->Release ();
+        mediaSink_ = NULL;
+      } // end IF
+      if (topology_)
+      {
+        topology_->Release ();
+        topology_ = NULL;
+      } // end IF
+      if (device_)
+      {
+        device_->Release ();
+        device_ = NULL;
       } // end IF
 
       if (COM_initialized)
@@ -391,31 +531,39 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::initialize"));
 
-  //HRESULT result = E_FAIL;
-
   if (isInitialized_)
   {
     isInitialized_ = false;
 
-    if (IDirect3DDevice9Ex_)
-    {
-      IDirect3DDevice9Ex_->Release ();
-      IDirect3DDevice9Ex_ = NULL;
-    } // end IF
-    //if (IMFVideoSampleAllocator_)
+    //if (videoSampleAllocator_)
     //{
-    //  IMFVideoSampleAllocator_->Release ();
-    //  IMFVideoSampleAllocator_ = NULL;
+    //  videoSampleAllocator_->Release ();
+    //  videoSampleAllocator_ = NULL;
     //} // end IF
-    if (IMFVideoDisplayControl_)
+    if (videoDisplayControl_)
     {
-      IMFVideoDisplayControl_->Release ();
-      IMFVideoDisplayControl_ = NULL;
+      videoDisplayControl_->Release ();
+      videoDisplayControl_ = NULL;
     } // end IF
-    if (IMFMediaSink_)
+    if (device_)
     {
-      IMFMediaSink_->Release ();
-      IMFMediaSink_ = NULL;
+      device_->Release ();
+      device_ = NULL;
+    } // end IF
+    if (mediaSink_)
+    {
+      mediaSink_->Release ();
+      mediaSink_ = NULL;
+    } // end IF
+    if (streamSink_)
+    {
+      streamSink_->Release ();
+      streamSink_ = NULL;
+    } // end IF
+    if (topology_)
+    {
+      topology_->Release ();
+      topology_ = NULL;
     } // end IF
   } // end IF
 
@@ -456,31 +604,117 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
                                     SessionDataType,
                                     SessionDataContainerType>::initialize_MediaFoundation (const HWND windowHandle_in,
                                                                                            const struct tagRECT& windowArea_in,
-                                                                                           const IMFMediaType* mediaType_in,
+                                                                                           TOPOID rendererNodeId_in,
+                                                                                           //const IMFMediaType* mediaType_in,
                                                                                            IMFMediaSink*& IMFMediaSink_out,
-                                                                                           IMFStreamSink*& IMFStreamSink_out,
-                                                                                           IMFVideoDisplayControl*& IMFVideoDisplayControl_out)//,
-                                                                                           //IMFVideoSampleAllocator*& IMFVideoSampleAllocator_out)
+                                                                                           IMFVideoDisplayControl*& IMFVideoDisplayControl_out,
+                                                                                           //IMFVideoSampleAllocator*& IMFVideoSampleAllocator_out,
+                                                                                           IMFTopology*& IMFTopology_inout,
+                                                                                           IMFMediaSession* IMFMediaSession_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::initialize_MediaFoundation"));
 
   HRESULT result = E_FAIL;
+  bool release_topology = false;
+  //IMFVideoRenderer* video_renderer_p = NULL;
 
   // initialize return value(s)
   ACE_ASSERT (!IMFMediaSink_out);
-  ACE_ASSERT (!IMFStreamSink_out);
   ACE_ASSERT (!IMFVideoDisplayControl_out);
   //ACE_ASSERT (!IMFVideoSampleAllocator_out);
 
-  IMFActivate* activate_p = NULL;
-  IMFMediaTypeHandler* media_type_handler_p = NULL;
-  IMFPresentationClock* presentation_clock_p = NULL;
-  IMFPresentationTimeSource* presentation_time_source_p = NULL;
-  IMFTransform* transform_p = NULL;
-  IMFGetService* get_service_p = NULL;
+  IMFTopologyNode* topology_node_p = NULL;
+  TOPOID node_id = 0;
+  IMFStreamSink* stream_sink_p = NULL;
   IMFVideoPresenter* video_presenter_p = NULL;
-  IMFVideoRenderer* video_renderer_p = NULL;
+  if (IMFTopology_inout)
+  {
+    IUnknown* unknown_p = NULL;
+    if (rendererNodeId_in)
+    {
+      result = IMFTopology_inout->GetNodeByID (rendererNodeId_in,
+                                               &topology_node_p);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFTopology::GetNodeByID(%q): \"%s\", aborting\n"),
+                    rendererNodeId_in,
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        goto error;
+      } // end IF
+    } // end IF
+    else
+    {
+      if (!Stream_Module_Device_Tools::addRenderer (windowHandle_in,
+                                                    IMFTopology_inout,
+                                                    node_id))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Module_Device_Tools::addRenderer(), aborting\n")));
+        goto error;
+      } // end IF
+      result = IMFTopology_inout->GetNodeByID (node_id,
+                                               &topology_node_p);
+      ACE_ASSERT (SUCCEEDED (result));
 
+      // debug info
+      Stream_Module_Device_Tools::dump (IMFTopology_inout);
+
+      DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);//    |
+                              //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+                              //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
+      result = IMFMediaSession_in->SetTopology (topology_flags,
+                                                IMFTopology_inout);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        goto error;
+      } // end IF
+    } // end ELSE
+    ACE_ASSERT (topology_node_p);
+    unknown_p = NULL;
+    result = topology_node_p->GetObject (&unknown_p);
+    ACE_ASSERT (SUCCEEDED (result));
+    topology_node_p->Release ();
+    result = unknown_p->QueryInterface (IID_PPV_ARGS (&stream_sink_p));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFStreamSink): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      unknown_p->Release ();
+
+      goto error;
+    } // end IF
+    unknown_p->Release ();
+    result = stream_sink_p->GetMediaSink (&IMFMediaSink_out);
+    ACE_ASSERT (SUCCEEDED (result));
+    stream_sink_p->Release ();
+  
+    goto continue_;
+  } // end IF
+
+  result = MFCreateTopology (&IMFTopology_inout);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopology() \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  release_topology = true;
+  TOPOID topology_id = 0;
+  result = IMFTopology_inout->GetTopologyID (&topology_id);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("created topology (id was: %q)...\n"),
+              topology_id));
+
+  IMFActivate* activate_p = NULL;
   result = MFCreateVideoRendererActivate (windowHandle_in,
                                           &activate_p);
   if (FAILED (result))
@@ -501,21 +735,21 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
   //  goto error;
   //} // end IF
-
-  result = activate_p->ActivateObject (IID_IMFMediaSink,
-                                       (void**)&IMFMediaSink_out);
+  result = activate_p->ActivateObject (IID_PPV_ARGS (&IMFMediaSink_out));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFActivate::ActivateObject(IID_IMFMediaSink) \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    activate_p->Release ();
+
     goto error;
   } // end IF
   activate_p->Release ();
-  activate_p = NULL;
 
-  //result = MFCreateVideoRenderer (IID_IMFMediaSink,
-  //                                (void**)&IMFMediaSink_out);
+  //result = MFCreateVideoRenderer (IID_PPV_ARGS (&IMFMediaSink_out));
   //if (FAILED (result))
   //{
   //  ACE_DEBUG ((LM_ERROR,
@@ -524,6 +758,7 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
   //  goto error;
   //} // end IF
 
+  IMFPresentationClock* presentation_clock_p = NULL;
   result = MFCreatePresentationClock (&presentation_clock_p);
   if (FAILED (result))
   {
@@ -532,12 +767,17 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
+  IMFPresentationTimeSource* presentation_time_source_p = NULL;
   result = MFCreateSystemTimeSource (&presentation_time_source_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateSystemTimeSource(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    presentation_clock_p->Release ();
+
     goto error;
   } // end IF
   result = presentation_clock_p->SetTimeSource (presentation_time_source_p);
@@ -546,21 +786,45 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFPresentationClock::SetTimeSource(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    presentation_time_source_p->Release ();
+    presentation_clock_p->Release ();
+
     goto error;
   } // end IF
+  presentation_time_source_p->Release ();
   result = IMFMediaSink_out->SetPresentationClock (presentation_clock_p);
   if (FAILED (result)) // MF_E_NOT_INITIALIZED: 0xC00D36B6L
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaSink::SetPresentationClock(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    presentation_clock_p->Release ();
+
     goto error;
   } // end IF
+  result = presentation_clock_p->Start (0);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFPresentationClock::Start(0): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-  //result = MFCreateVideoMixer (NULL,                  // owner
-  //                             IID_IDirect3DDevice9,  // device
-  //                             IID_IMFTransform,      // interface id
-  //                             (void**)&transform_p); // return value: interface handle
+    // clean up
+    presentation_clock_p->Release ();
+
+    goto error;
+  } // end IF
+  presentation_clock_p->Release ();
+
+  //IMFTransform* transform_p = NULL;
+  //result =
+  //  MFCreateVideoMixer (NULL,                         // owner
+  //                      IID_IDirect3DDevice9,         // device
+  //                      IID_PPV_ARGS (&transform_p)); // return value: interface handle
   //if (FAILED (result))
   //{
   //  ACE_DEBUG ((LM_ERROR,
@@ -569,10 +833,53 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
   //  goto error;
   //} // end IF
 
-  result = MFCreateVideoPresenter (NULL,                        // owner
-                                   IID_IDirect3DDevice9,        // device
-                                   IID_IMFVideoPresenter,       // interface id
-                                   (void**)&video_presenter_p); // return value: interface handle
+  result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
+                                  &topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  stream_sink_p = NULL;
+  result = IMFMediaSink_out->GetStreamSinkByIndex (0,
+                                                    &stream_sink_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetObject (stream_sink_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  stream_sink_p->Release ();
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = IMFTopology_inout->AddNode (topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    topology_node_p->Release ();
+
+    goto error;
+  } // end IF
+  node_id = 0;
+  result = topology_node_p->GetTopoNodeID (&node_id);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added renderer node (id: %q)...\n"),
+              node_id));
+  topology_node_p->Release ();
+  ACE_ASSERT (IMFMediaSink_out);
+  ACE_ASSERT (IMFTopology_inout);
+
+continue_:
+  result =
+    MFCreateVideoPresenter (NULL,                               // owner
+                            IID_IDirect3DDevice9,               // device
+                            IID_PPV_ARGS (&video_presenter_p)); // return value: interface handle
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -580,28 +887,37 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-  result = video_presenter_p->QueryInterface (IID_IMFGetService,
-                                              (void**)&get_service_p);
+  IMFGetService* get_service_p = NULL;
+  result = video_presenter_p->QueryInterface (IID_PPV_ARGS (&get_service_p));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFVideoPresenter::QueryInterface(IID_IMFGetService): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    video_presenter_p->Release ();
+
     goto error;
   } // end IF
   video_presenter_p->Release ();
-  result = get_service_p->GetService (MR_VIDEO_RENDER_SERVICE,
-                                      IID_IMFVideoDisplayControl,
-                                      (void**)&IMFVideoDisplayControl_out);
+  result =
+    get_service_p->GetService (MR_VIDEO_RENDER_SERVICE,
+                               IID_PPV_ARGS (&IMFVideoDisplayControl_out));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFGetService::GetService(MR_VIDEO_RENDER_SERVICE): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    get_service_p->Release ();
+
     goto error;
   } // end IF
   get_service_p->Release ();
-  get_service_p = NULL;
+  ACE_ASSERT (IMFVideoDisplayControl_out);
+
   //result = IMFVideoDisplayControl_out->SetVideoWindow (windowHandle_in);
   //if (FAILED (result))
   //{
@@ -644,65 +960,6 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
   //} // end IF
   //video_renderer_p->Release ();
 
-  DWORD count = 0;
-  result = IMFMediaSink_out->GetStreamSinkCount (&count);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaSink::GetStreamSinkCount(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  ACE_ASSERT (count > 0);
-  result = IMFMediaSink_out->GetStreamSinkByIndex (0, &IMFStreamSink_out);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaSink::GetStreamSinkByIndex(0): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  result = IMFStreamSink_out->GetMediaTypeHandler (&media_type_handler_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFStreamSink::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  result =
-    media_type_handler_p->SetCurrentMediaType (const_cast<IMFMediaType*> (mediaType_in));
-  if (FAILED (result)) // MF_E_INVALIDMEDIATYPE: 0xC00D36B4L
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaTypeHandler::SetCurrentMediaType(\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  media_type_handler_p->Release ();
-  media_type_handler_p = NULL;
-
-  //result = IMFStreamSink_out->QueryInterface (IID_PPV_ARGS (&get_service_p));
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMFStreamSink::QueryInterface(IID_IMFGetService): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //result =
-  //  get_service_p->GetService (MR_VIDEO_ACCELERATION_SERVICE,
-  //                             IID_PPV_ARGS (&IMFVideoSampleAllocator_out));
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMFGetService::GetService(MR_VIDEO_ACCELERATION_SERVICE): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //get_service_p->Release ();
-  //get_service_p = NULL;
-
   //result =
   //  IMFVideoSampleAllocator_out->InitializeSampleAllocator (MODULE_VIS_DEFAULT_VIDEO_SAMPLES,
   //                                                          const_cast<IMFMediaType*> (mediaType_in));
@@ -714,34 +971,11 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
   //  goto error;
   //} // end IF
 
-  result = presentation_clock_p->Start (0);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFPresentationClock::Start(0): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-
-  goto continue_;
+  goto continue_2;
 
 error:
-  if (activate_p)
-    activate_p->Release ();
-  if (media_type_handler_p)
-    media_type_handler_p->Release ();
-  if (presentation_clock_p)
-    presentation_clock_p->Release ();
-  if (presentation_time_source_p)
-    presentation_time_source_p->Release ();
-  if (transform_p)
-    transform_p->Release ();
-  if (get_service_p)
-    get_service_p->Release ();
-  if (video_presenter_p)
-    video_presenter_p->Release ();
-  if (video_renderer_p)
-    video_renderer_p->Release ();
+  //if (video_renderer_p)
+  //  video_renderer_p->Release ();
   //if (IMFVideoSampleAllocator_out)
   //{
   //  IMFVideoSampleAllocator_out->Release ();
@@ -752,26 +986,26 @@ error:
     IMFVideoDisplayControl_out->Release ();
     IMFVideoDisplayControl_out = NULL;
   } // end IF
-  if (IMFStreamSink_out)
-  {
-    IMFStreamSink_out->Release ();
-    IMFStreamSink_out = NULL;
-  } // end IF
   if (IMFMediaSink_out)
   {
     IMFMediaSink_out->Release ();
     IMFMediaSink_out = NULL;
   } // end IF
+  if (release_topology)
+  {
+    IMFTopology_inout->Release ();
+    IMFTopology_inout = NULL;
+  } // end IF
 
   return false;
 
-continue_:
+continue_2:
 
-  goto continue_2;
+  goto continue_3;
 
 //error_2:
   return false;
 
-continue_2:
+continue_3:
   return true;
 }

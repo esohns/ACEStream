@@ -23,8 +23,9 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <list>
-#endif
 #include <map>
+#include <vector>
+#endif
 #include <string>
 
 #include "ace/Global_Macros.h"
@@ -57,6 +58,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   // *TODO*: move the generic (i.e. non-device-specific) DirectShow
   //         functionality somewhere else
   static bool clear (IGraphBuilder*); // graph handle
+  // *NOTE*: removes all 'transform' type MFTs (and any connected downstream
+  //         nodes)
+  static bool clear (IMFTopology*); // topology handle
   // *NOTE*: see stream_dev_defines.h for supported filter names
   // *NOTE*: the current implementation uses 'direct' pin connection (i.e.
   //         IPin::Connect()) where possible, and 'intelligent' pin connection
@@ -69,6 +73,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool graphConnect (IGraphBuilder*,                  // graph handle
                             const std::list<std::wstring>&); // graph
   static bool disconnect (IGraphBuilder*); // graph handle
+  // *NOTE*: disconnects all downstream nodes as well
+  static bool disconnect (IMFTopologyNode*); // topology node handle
 
   // -------------------------------------
 
@@ -100,6 +106,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool getOutputFormat (IMFTransform*,   // MFT handle
                                IMFMediaType*&); // return value: media type
   static bool getOutputFormat (IMFTopology*,    // topology handle
+                               TOPOID,          // node identifier
                                IMFMediaType*&); // return value: media type
 
   //// *TODO*: using the Direct3D device manager (used by the EVR renderer) is
@@ -148,10 +155,15 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                  const HWND,                 // window handle [NULL: NullRenderer]
                                  IGraphBuilder*,             // graph handle
                                  std::list<std::wstring>&);  // return value: pipeline filter configuration
+  static bool addRenderer (const HWND,   // window handle
+                           IMFTopology*, // topology handle
+                           TOPOID&);     // return value: renderer node id
   static bool loadRendererTopology (const std::string&,                  // device ("FriendlyName")
-                                    const IMFMediaType*,                 // grabber sink input media type handle
-                                    const IMFSampleGrabberSinkCallback*, // grabber sink callback handle [NULL: do not use tee/grabber]
+                                    const IMFMediaType*,                 // sample grabber sink input media type handle
+                                    const IMFSampleGrabberSinkCallback*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
                                     const HWND,                          // window handle [NULL: do not use tee/EVR]
+                                    TOPOID&,                             // return value: sample grabber sink node id
+                                    TOPOID&,                             // return value: EVR sink node id
                                     IMFTopology*&);                      // input/return value: topology handle
   // *NOTE*: loads a filter graph (target side)
   static bool loadTargetRendererGraph (const HWND,                // window handle [NULL: NullRenderer]
@@ -168,7 +180,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void debug (IGraphBuilder*,      // graph handle
                      const std::string&); // log file name
   static void dump (IPin*); // pin handle
-  static void dump (IMFSourceReader*); // source reader handle
+  //static void dump (IMFSourceReader*); // source reader handle
+  static void dump (IMFTopology*); // topology handle
   static void dump (IMFTransform*); // transform handle
 
   static bool isChromaLuminance (const IMFMediaType*); // media format handle
@@ -184,7 +197,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   //         graph..."
   static std::string name (IBaseFilter*); // filter handle
 
-  static bool copyAttribute (IMFAttributes*,       // source
+  static bool copyAttribute (const IMFAttributes*, // source
                              IMFAttributes*,       // destination
                              const struct _GUID&); // key
   static bool copyMediaType (const IMFMediaType*, // media type
@@ -267,6 +280,13 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   ////         will automatically load the decoder. ..."
   //static bool setOutputFormat (IMFSourceReader*,     // source handle
   //                             const IMFMediaType*); // media type
+  typedef std::list<IMFTopologyNode*> TOPOLOGY_PATH_T;
+  typedef TOPOLOGY_PATH_T::iterator TOPOLOGY_PATH_ITERATOR_T;
+  typedef std::list<TOPOLOGY_PATH_T> TOPOLOGY_PATHS_T;
+  typedef TOPOLOGY_PATHS_T::iterator TOPOLOGY_PATHS_ITERATOR_T;
+  static bool expand (TOPOLOGY_PATH_T&,   // input/return value: topology path
+                      TOPOLOGY_PATHS_T&); // input/return value: topology paths
+  static std::string nodeTypeToString (MF_TOPOLOGY_TYPE); // node type
 #endif
 };
 

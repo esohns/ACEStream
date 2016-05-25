@@ -1,6 +1,8 @@
 #ifndef STREAM_MODULE_DEV_DEFINES_H
 #define STREAM_MODULE_DEV_DEFINES_H
 
+#include "ace/config-lite.h"
+
 #define MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL        STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL // ms
 
 /////////////////////////////////////////

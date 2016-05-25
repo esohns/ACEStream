@@ -332,6 +332,8 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
                                                          configuration_in.moduleHandlerConfiguration->format,
                                                          mediaFoundationSource_impl_p,
                                                          configuration_in.moduleHandlerConfiguration->window,
+                                                         configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                         session_data_r.rendererNodeId,
                                                          configuration_in.moduleHandlerConfiguration->topology))
   {
     ACE_DEBUG ((LM_ERROR,

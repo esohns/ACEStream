@@ -65,7 +65,9 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       SessionDataContainerType,
                                       ///
                                       StatisticContainerType>
- , public IMFSampleGrabberSinkCallback
+ //, public IMFSampleGrabberSinkCallback
+ , public IMFSampleGrabberSinkCallback2
+ //, public IMFAsyncCallback
 {
  public:
   Stream_Dev_Cam_Source_MediaFoundation_T ();
@@ -86,6 +88,9 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&);
+  //virtual void start ();
+  //virtual void stop (bool = true,  // wait for completion ?
+  //                   bool = true); // locked access ?
 
   // implement Common_IStatistic
   // *NOTE*: implements regular (timer-based) statistic collection
@@ -101,7 +106,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement IMFSampleGrabberSinkCallback
+  // implement IMFSampleGrabberSinkCallback2
   STDMETHODIMP STDMETHODCALLTYPE QueryInterface (const IID&,
                                                  void**);
   virtual ULONG STDMETHODCALLTYPE AddRef ();
@@ -127,8 +132,19 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                 LONGLONG,            // duration
                                 const BYTE*,         // buffer
                                 DWORD);              // buffer size
+  STDMETHODIMP OnProcessSampleEx (const struct _GUID&, // major media type
+                                  DWORD,               // flags
+                                  LONGLONG,            // timestamp
+                                  LONGLONG,            // duration
+                                  const BYTE*,         // buffer
+                                  DWORD,               // buffer size
+                                  IMFAttributes*);     // media sample attributes
   STDMETHODIMP OnSetPresentationClock (IMFPresentationClock*); // presentation clock handle
   STDMETHODIMP OnShutdown ();
+  //// implement IMFAsyncCallback
+  //STDMETHODIMP GetParameters (DWORD*,  // return value: flags
+  //                            DWORD*); // return value: queue handle
+  //STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
@@ -146,7 +162,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                       SessionDataContainerType,
                                       ///
                                       StatisticContainerType> inherited;
-  typedef IMFSampleGrabberSinkCallback inherited2;
+  typedef IMFSampleGrabberSinkCallback2 inherited2;
 
   typedef Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
                                                   
@@ -178,12 +194,18 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                    IMFTopology*&);                      // return value: topology handle
 
   LONGLONG              baseTimeStamp_;
+
   bool                  isFirst_;
+
   IMFMediaSource*       mediaSource_;
-  IMFPresentationClock* presentationClock_;
-  long                  referenceCount_;
   WCHAR*                symbolicLink_;
   UINT32                symbolicLinkSize_;
+
+  IMFPresentationClock* presentationClock_;
+  long                  referenceCount_;
+  TOPOID                sampleGrabberSinkNodeId_;
+
+  IMFMediaSession*      mediaSession_;
   IMFTopology*          topology_;
 };
 

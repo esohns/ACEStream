@@ -146,6 +146,8 @@ class Stream_Misc_MediaFoundation_Source_T
                                    UINT32&,                             // return value: symbolic link size
                                    const IDirect3DDeviceManager9*,      // Direct3D device manager handle
                                    const IMFSampleGrabberSinkCallback*, // grabber sink callback handle [NULL: do not use tee/grabber]
+                                   TOPOID&,                             // return value: sample grabber sink node id
+                                   TOPOID&,                             // return value: EVR sink node id
                                    IMFTopology*&);                      // return value: topology handle
   void finalize_MediaFoundation ();
 

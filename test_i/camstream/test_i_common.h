@@ -158,7 +158,9 @@ struct Test_I_Stream_SessionData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DDevice (NULL)
    , format (NULL)
+   , rendererNodeId (0)
    , resetToken (0)
+   , session (NULL)
    , topology (NULL)
 #else
    , format ()
@@ -244,7 +246,9 @@ struct Test_I_Stream_SessionData
   //struct _AMMediaType*           format;
   IDirect3DDevice9Ex*     direct3DDevice;
   IMFMediaType*           format;
+  TOPOID                  rendererNodeId;
   UINT                    resetToken; // direct 3D manager 'id'
+  IMFMediaSession*        session;
   IMFTopology*            topology;
 #else
   struct v4l2_format      format;
@@ -276,7 +280,9 @@ struct Test_I_Stream_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    //, builder (NULL)
    , mediaSource (NULL)
+   , sampleGrabberNodeId (0)
    //, sourceReader (NULL)
+   , session (NULL)
    , topology (NULL)
 #endif
    , configuration (NULL)
@@ -291,8 +297,10 @@ struct Test_I_Stream_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IGraphBuilder*                            builder;
   IMFMediaSource*                           mediaSource;
+  TOPOID                                    sampleGrabberNodeId;
   //IMFSourceReaderEx*                        sourceReader;
   IMFTopology*                              topology;
+  IMFMediaSession*                          session;
 #else
 #endif
   Test_I_Configuration*                     configuration;

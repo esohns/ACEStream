@@ -302,6 +302,8 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
                                                            configuration_in.moduleHandlerConfiguration->format,
                                                            source_impl_p,
                                                            configuration_in.moduleHandlerConfiguration->window,
+                                                           configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                           session_data_r.rendererNodeId,
                                                            configuration_in.moduleHandlerConfiguration->topology))
     {
       ACE_DEBUG ((LM_ERROR,

@@ -388,7 +388,9 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
       ACE_ASSERT (session_data_r.topology);
 
       IMFMediaType* media_type_p = NULL;
+      TOPOID node_id = 0;
       if (!Stream_Module_Device_Tools::getOutputFormat (session_data_r.topology,
+                                                        node_id,
                                                         media_type_p))
       {
         ACE_DEBUG ((LM_ERROR,
