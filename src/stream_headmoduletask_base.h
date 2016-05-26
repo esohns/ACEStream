@@ -100,8 +100,11 @@ class Stream_HeadModuleTaskBase_T
                                                  // thread(s) ?
                                   bool = false); // N/A
 
+
+  // *NOTE*: just a stub
+  virtual Stream_Module_t* find (const std::string&) const; // module name
   virtual std::string name () const;
-  // *NOTE*: this is just a stub
+  // *NOTE*: just a stub
   virtual const StreamStateType& state () const;
 
   // implement Common_IInitialize_T

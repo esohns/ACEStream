@@ -31,6 +31,8 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
+#include "stream_misc_mediafoundation_target.h"
+
 template <typename SessionMessageType,
           typename MessageType,
           ///////////////////////////////
@@ -77,16 +79,64 @@ class Stream_Vis_Target_MediaFoundation_T
                                    IMFMediaSink*&,            // return value: media sink handle
                                    IMFVideoDisplayControl*&,  // return value: video display control handle
                                    //IMFVideoSampleAllocator*&, // return value: video sample allocator handle
-                                   IMFTopology*&,             // input/return value: topology handle
                                    IMFMediaSession*);         // media session handle
 
   bool                     isInitialized_;
   IDirect3DDevice9Ex*      device_;
-  IMFMediaSink*            mediaSink_;
+  IMFMediaSession*         mediaSession_;
   IMFStreamSink*           streamSink_;
-  IMFTopology*             topology_;
   IMFVideoDisplayControl*  videoDisplayControl_;
   //IMFVideoSampleAllocator* videoSampleAllocator_;
+};
+
+//////////////////////////////////////////
+
+template <typename SessionMessageType,
+          typename MessageType,
+          ///////////////////////////////
+          typename ConfigurationType,
+          ///////////////////////////////
+          typename SessionDataType,
+          typename SessionDataContainerType>
+class Stream_Vis_Target_MediaFoundation_2
+ : public Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
+                                               MessageType,
+                                               ConfigurationType,
+                                               SessionDataType,
+                                               SessionDataContainerType>
+{
+ public:
+  Stream_Vis_Target_MediaFoundation_2 ();
+  virtual ~Stream_Vis_Target_MediaFoundation_2 ();
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (MessageType*&, // data message handle
+                                  bool&);        // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+  // implement Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&);
+  virtual const ConfigurationType& get () const;
+
+  //// override (part of) IMFSampleGrabberSinkCallback2
+  //STDMETHODIMP OnProcessSampleEx (const struct _GUID&, // major media type
+  //                                DWORD,               // flags
+  //                                LONGLONG,            // timestamp
+  //                                LONGLONG,            // duration
+  //                                const BYTE*,         // buffer
+  //                                DWORD,               // buffer size
+  //                                IMFAttributes*);     // media sample attributes
+
+ private:
+  typedef Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
+                                               MessageType,
+                                               ConfigurationType,
+                                               SessionDataType,
+                                               SessionDataContainerType> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2 (const Stream_Vis_Target_MediaFoundation_2&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_2& operator= (const Stream_Vis_Target_MediaFoundation_2&))
 };
 
 // include template implementation

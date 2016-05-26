@@ -55,6 +55,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void initialize ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *NOTE*: 'tees' the upstream node of the first output node
+  static bool append (IMFTopology*, // topology handle
+                      TOPOID);      // topology node id
   // *TODO*: move the generic (i.e. non-device-specific) DirectShow
   //         functionality somewhere else
   static bool clear (IGraphBuilder*); // graph handle
@@ -93,14 +96,12 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   //                              IMFMediaType*&);  // return value: media type
   //static bool setCaptureFormat (IMFSourceReaderEx*,   // source handle
   //                              const IMFMediaType*); // media type
-  //static bool getOutputFormat (IMFSourceReader*, // source handle
-  //                             IMFMediaType*&);  // return value: media type
   static bool getCaptureFormat (IMFMediaSource*, // source handle
                                 IMFMediaType*&);  // return value: media type
-  static bool setCaptureFormat (IMFMediaSource*,      // source handle
-                                const IMFMediaType*); // media type
   static bool setCaptureFormat (IMFTopology*,         // topology handle
                                 const IMFMediaType*); // media type
+  //static bool getOutputFormat (IMFSourceReader*, // source handle
+  //                             IMFMediaType*&);  // return value: media type
   // *NOTE*: returns only the first available output type of the first output
   //         stream
   static bool getOutputFormat (IMFTransform*,   // MFT handle
@@ -124,6 +125,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                               IMFMediaSource*&,   // return value: media device handle
                               WCHAR*&,            // return value: symbolic link
                               UINT32&);           // return value: symbolic link size
+  static bool getMediaSource (const IMFMediaSession*, // media session handle
+                              IMFMediaSource*&);      // return value: media device handle
   static bool getDirect3DDevice (const HWND,                      // target window handle
                                  const IMFMediaType*,             // media format handle
                                  IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
@@ -140,9 +143,10 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                IGraphBuilder*&,        // return value: (capture) graph handle
                                IAMBufferNegotiation*&, // return value: capture filter output pin buffer allocator configuration handle
                                IAMStreamConfig*&);     // return value: format configuration handle
-  static bool loadDeviceTopology (const std::string&, // device ("FriendlyName")
-                                  IMFMediaSource*&,   // input/return value: (capture) source handle
-                                  IMFTopology*&);     // return value: topology handle
+  static bool loadDeviceTopology (const std::string&,                   // device ("FriendlyName")
+                                  IMFMediaSource*&,                     // input/return value: (capture) source handle
+                                  const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
+                                  IMFTopology*&);                       // return value: topology handle
   // *NOTE*: disconnects the (capture) graph and removes all but the capture
   //         filter
   static bool resetDeviceGraph (IGraphBuilder*); // filter graph handle
@@ -155,16 +159,20 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                  const HWND,                 // window handle [NULL: NullRenderer]
                                  IGraphBuilder*,             // graph handle
                                  std::list<std::wstring>&);  // return value: pipeline filter configuration
+  static bool addGrabber (const IMFMediaType*,                  // sample grabber sink input media type handle
+                          const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
+                          IMFTopology*,                         // topology handle
+                          TOPOID&);                             // return value: grabber node id
   static bool addRenderer (const HWND,   // window handle
                            IMFTopology*, // topology handle
                            TOPOID&);     // return value: renderer node id
-  static bool loadRendererTopology (const std::string&,                  // device ("FriendlyName")
-                                    const IMFMediaType*,                 // sample grabber sink input media type handle
-                                    const IMFSampleGrabberSinkCallback*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
-                                    const HWND,                          // window handle [NULL: do not use tee/EVR]
-                                    TOPOID&,                             // return value: sample grabber sink node id
-                                    TOPOID&,                             // return value: EVR sink node id
-                                    IMFTopology*&);                      // input/return value: topology handle
+  static bool loadRendererTopology (const std::string&,                   // device ("FriendlyName")
+                                    const IMFMediaType*,                  // sample grabber sink input media type handle
+                                    const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
+                                    const HWND,                           // window handle [NULL: do not use tee/EVR]
+                                    TOPOID&,                              // return value: sample grabber sink node id
+                                    TOPOID&,                              // return value: EVR sink node id
+                                    IMFTopology*&);                       // input/return value: topology handle
   // *NOTE*: loads a filter graph (target side)
   static bool loadTargetRendererGraph (const HWND,                // window handle [NULL: NullRenderer]
                                        IGraphBuilder*&,           // return value: graph handle
@@ -276,6 +284,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
 
   static ACE_HANDLE logFileHandle;
 
+  static bool enableDirectXAcceleration (IMFTopology*); // topology handle
+  static bool setCaptureFormat (IMFMediaSource*,      // source handle
+                                const IMFMediaType*); // media type
   //// *NOTE*: (if the media type is not a 'native' format) "... The Source Reader
   ////         will automatically load the decoder. ..."
   //static bool setOutputFormat (IMFSourceReader*,     // source handle

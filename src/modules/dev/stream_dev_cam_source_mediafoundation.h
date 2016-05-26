@@ -197,7 +197,6 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
 
   bool                  isFirst_;
 
-  IMFMediaSource*       mediaSource_;
   WCHAR*                symbolicLink_;
   UINT32                symbolicLinkSize_;
 
@@ -206,7 +205,6 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   TOPOID                sampleGrabberSinkNodeId_;
 
   IMFMediaSession*      mediaSession_;
-  IMFTopology*          topology_;
 };
 
 #include "stream_dev_cam_source_mediafoundation.inl"

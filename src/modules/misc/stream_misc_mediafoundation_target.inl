@@ -26,8 +26,8 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-#include "stream_dev_defines.h"
-#include "stream_dev_tools.h"
+//#include "stream_dev_defines.h"
+//#include "stream_dev_tools.h"
 
 #include "stream_misc_defines.h"
 
@@ -35,12 +35,12 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+          typename SessionDataContainerType>
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::Stream_Misc_MediaFoundation_Source_T ()
+                                     SessionDataContainerType>::Stream_Misc_MediaFoundation_Target_T ()
  : inherited ()
  , configuration_ (NULL)
  , sessionData_ (NULL)
@@ -48,9 +48,11 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
  , isInitialized_ (false)
  , baseTimeStamp_ (0)
  , mediaSession_ (NULL)
+ , presentationClock_ (NULL)
  , referenceCount_ (0)
+ , sampleGrabberSinkNodeId_ (0)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::Stream_Misc_MediaFoundation_Source_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::Stream_Misc_MediaFoundation_Target_T"));
 
 }
 
@@ -58,17 +60,19 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+          typename SessionDataContainerType>
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::~Stream_Misc_MediaFoundation_Source_T ()
+                                     SessionDataContainerType>::~Stream_Misc_MediaFoundation_Target_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::~Stream_Misc_MediaFoundation_Source_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::~Stream_Misc_MediaFoundation_Target_T"));
 
   inherited::queue_.waitForIdleState ();
 
+  if (presentationClock_)
+    presentationClock_->Release ();
   if (mediaSession_)
   {
     HRESULT result = mediaSession_->Shutdown ();
@@ -77,6 +81,7 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     mediaSession_->Release ();
+    mediaSession_ = NULL;
   } // end IF
 }
 
@@ -84,15 +89,15 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 bool
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::initialize (const ConfigurationType& configuration_in)
+                                     SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::initialize"));
 
   // initialize COM ?
   HRESULT result = E_FAIL;
@@ -132,9 +137,14 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
 
     referenceCount_ = 0;
 
+    if (presentationClock_)
+    {
+      presentationClock_->Release ();
+      presentationClock_ = NULL;
+    } // end IF
     if (mediaSession_)
     {
-      result = mediaSession_->Shutdown ();
+      HRESULT result = mediaSession_->Shutdown ();
       if (FAILED (result))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
@@ -142,6 +152,7 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
       mediaSession_->Release ();
       mediaSession_ = NULL;
     } // end IF
+    sampleGrabberSinkNodeId_ = 0;
 
     isInitialized_ = false;
   } // end IF
@@ -157,15 +168,15 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 const ConfigurationType&
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::get () const
+                                     SessionDataContainerType>::get () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::get"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::get"));
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
@@ -177,16 +188,16 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::QueryInterface (const IID& IID_in,
-                                                                 void** interface_out)
+                                     SessionDataContainerType>::QueryInterface (const IID& IID_in,
+                                                                                void** interface_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::QueryInterface"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::QueryInterface"));
 
   static const QITAB query_interface_table[] =
   {
@@ -204,15 +215,15 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 ULONG
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::AddRef ()
+                                     SessionDataContainerType>::AddRef ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::AddRef"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::AddRef"));
 
   return InterlockedIncrement (&referenceCount_);
 }
@@ -220,15 +231,15 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 ULONG
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::Release ()
+                                     SessionDataContainerType>::Release ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::Release"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::Release"));
 
   ULONG count = InterlockedDecrement (&referenceCount_);
   if (count == 0);
@@ -239,17 +250,15 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
 //template <typename SessionMessageType,
 //          typename MessageType,
 //          typename ConfigurationType,
-//          typename SessionDataType,
-//          typename MediaType>
+//          typename SessionDataType>
 //HRESULT
-//Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+//Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
 //                                     MessageType,
 //                                     ConfigurationType,
-//                                     SessionDataType,
-//                                     MediaType>::OnEvent (DWORD streamIndex_in,
-//                                                          IMFMediaEvent* mediaEvent_in)
+//                                     SessionDataType>::OnEvent (DWORD streamIndex_in,
+//                                                                IMFMediaEvent* mediaEvent_in)
 //{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnEvent"));
+//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnEvent"));
 //
 //  ACE_UNUSED_ARG (streamIndex_in);
 //  ACE_UNUSED_ARG (mediaEvent_in);
@@ -261,16 +270,14 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
 //template <typename SessionMessageType,
 //          typename MessageType,
 //          typename ConfigurationType,
-//          typename SessionDataType,
-//          typename MediaType>
+//          typename SessionDataType>
 //HRESULT
-//Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+//Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
 //                                     MessageType,
 //                                     ConfigurationType,
-//                                     SessionDataType,
-//                                     MediaType>::OnFlush (DWORD streamIndex_in)
+//                                     SessionDataType>::OnFlush (DWORD streamIndex_in)
 //{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnFlush"));
+//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnFlush"));
 //
 //  ACE_UNUSED_ARG (streamIndex_in);
 //
@@ -281,20 +288,18 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
 //template <typename SessionMessageType,
 //          typename MessageType,
 //          typename ConfigurationType,
-//          typename SessionDataType,
-//          typename MediaType>
+//          typename SessionDataType>
 //HRESULT
-//Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+//Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
 //                                     MessageType,
 //                                     ConfigurationType,
-//                                     SessionDataType,
-//                                     MediaType>::OnReadSample (HRESULT result_in,
+//                                     SessionDataType>::OnReadSample (HRESULT result_in,
 //                                                               DWORD streamIndex_in,
 //                                                               DWORD streamFlags_in,
 //                                                               LONGLONG timeStamp_in,
 //                                                               IMFSample* sample_in)
 //{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnReadSample"));
+//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnReadSample"));
 //
 //  int result = -1;
 //  ACE_Message_Block* message_block_p = NULL;
@@ -401,16 +406,16 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnClockStart (MFTIME systemClockTime_in,
-                                                               LONGLONG clockStartOffset_in)
+                                     SessionDataContainerType>::OnClockStart (MFTIME systemClockTime_in,
+                                                                              LONGLONG clockStartOffset_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnClockStart"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnClockStart"));
 
   ACE_UNUSED_ARG (systemClockTime_in);
   ACE_UNUSED_ARG (clockStartOffset_in);
@@ -423,15 +428,15 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnClockStop (MFTIME systemClockTime_in)
+                                     SessionDataContainerType>::OnClockStop (MFTIME systemClockTime_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnClockStop"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnClockStop"));
 
   ACE_UNUSED_ARG (systemClockTime_in);
 
@@ -443,15 +448,15 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnClockPause (MFTIME systemClockTime_in)
+                                     SessionDataContainerType>::OnClockPause (MFTIME systemClockTime_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnClockPause"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnClockPause"));
 
   ACE_UNUSED_ARG (systemClockTime_in);
 
@@ -463,15 +468,15 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnClockRestart (MFTIME systemClockTime_in)
+                                     SessionDataContainerType>::OnClockRestart (MFTIME systemClockTime_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnClockRestart"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnClockRestart"));
 
   ACE_UNUSED_ARG (systemClockTime_in);
 
@@ -483,16 +488,16 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnClockSetRate (MFTIME systemClockTime_in,
-                                                                 float playbackRate_in)
+                                     SessionDataContainerType>::OnClockSetRate (MFTIME systemClockTime_in,
+                                                                                float playbackRate_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnClockSetRate"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnClockSetRate"));
 
   ACE_UNUSED_ARG (systemClockTime_in);
   ACE_UNUSED_ARG (playbackRate_in);
@@ -505,20 +510,20 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnProcessSample (const struct _GUID& majorMediaType_in,
-                                                                  DWORD flags_in,
-                                                                  LONGLONG timeStamp_in,
-                                                                  LONGLONG duration_in,
-                                                                  const BYTE* buffer_in,
-                                                                  DWORD bufferSize_in)
+                                     SessionDataContainerType>::OnProcessSample (const struct _GUID& majorMediaType_in,
+                                                                                 DWORD flags_in,
+                                                                                 LONGLONG timeStamp_in,
+                                                                                 LONGLONG duration_in,
+                                                                                 const BYTE* buffer_in,
+                                                                                 DWORD bufferSize_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnProcessSample"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnProcessSample"));
 
   IMFAttributes* attributes_p = NULL;
   return OnProcessSampleEx (majorMediaType_in,
@@ -533,25 +538,28 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
-                                                                    DWORD flags_in,
-                                                                    LONGLONG timeStamp_in,
-                                                                    LONGLONG duration_in,
-                                                                    const BYTE* buffer_in,
-                                                                    DWORD bufferSize_in,
-                                                                    IMFAttributes* attributes_in)
+                                     SessionDataContainerType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
+                                                                                   DWORD flags_in,
+                                                                                   LONGLONG timeStamp_in,
+                                                                                   LONGLONG duration_in,
+                                                                                   const BYTE* buffer_in,
+                                                                                   DWORD bufferSize_in,
+                                                                                   IMFAttributes* attributes_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnProcessSampleEx"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnProcessSampleEx"));
 
   ACE_UNUSED_ARG (majorMediaType_in);
   ACE_UNUSED_ARG (flags_in);
+  ACE_UNUSED_ARG (timeStamp_in);
   ACE_UNUSED_ARG (duration_in);
+  ACE_UNUSED_ARG (buffer_in);
+  ACE_UNUSED_ARG (bufferSize_in);
   ACE_UNUSED_ARG (attributes_in);
 
   MessageType* message_p = NULL;
@@ -576,8 +584,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
-      ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
-      configuration_->streamConfiguration->bufferSize));
+                ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
+                configuration_->streamConfiguration->bufferSize));
     goto error;
   } // end IF
   ACE_ASSERT (message_p);
@@ -585,8 +593,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
 
   // *TODO*: copy this data into the message buffer ?
   message_p->base (reinterpret_cast<char*> (const_cast<BYTE*> (buffer_in)),
-    bufferSize_in,
-    ACE_Message_Block::DONT_DELETE);
+                                            bufferSize_in,
+                                            ACE_Message_Block::DONT_DELETE);
   message_p->wr_ptr (bufferSize_in);
 
   result = inherited::putq (message_p, NULL);
@@ -595,8 +603,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
     int error = ACE_OS::last_error ();
     if (error != ESHUTDOWN)
       ACE_DEBUG ((LM_ERROR,
-        ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-        inherited::name ()));
+                  ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
+                  inherited::name ()));
     goto error;
   } // end IF
 
@@ -612,15 +620,15 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnSetPresentationClock (IMFPresentationClock* presentationClock_in)
+                                     SessionDataContainerType>::OnSetPresentationClock (IMFPresentationClock* presentationClock_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnSetPresentationClock"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnSetPresentationClock"));
 
   // sanity check(s)
   if (presentationClock_)
@@ -638,15 +646,15 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::OnShutdown ()
+                                     SessionDataContainerType>::OnShutdown ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::OnShutdown"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnShutdown"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (E_FAIL);
@@ -657,16 +665,16 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 void
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::handleDataMessage (MessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+                                     SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
+                                                                                   bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::handleDataMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -695,19 +703,18 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 void
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                       bool& passMessageDownstream_out)
+                                     SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                      bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::handleSessionMessage"));
 
   int result = -1;
-  IRunningObjectTable* ROT_p = NULL;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -726,13 +733,12 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
       ACE_ASSERT (configuration_->streamConfiguration);
 
       sessionData_ =
-        &const_cast<SessionDataType&> (message_inout->get ());
+        &const_cast<SessionDataContainerType&> (message_inout->get ());
       sessionData_->increase ();
-      typename SessionDataType::DATA_T& session_data_r =
-        const_cast<typename SessionDataType::DATA_T&> (sessionData_->get ());
+      typename SessionDataContainerType::DATA_T& session_data_r =
+        const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->get ());
 
       bool COM_initialized = false;
-      bool is_running = false;
 
       HRESULT result_2 = CoInitializeEx (NULL,
                                          (COINIT_MULTITHREADED    |
@@ -748,36 +754,10 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
       COM_initialized = true;
 
       // sanity check(s)
-      ACE_ASSERT (!session_data_r.direct3DDevice);
-      ACE_ASSERT (!session_data_r.resetToken);
-
-      //if (inherited::configuration_->direct3DDevice)
-      //{
-      //  inherited::configuration_->direct3DDevice->AddRef ();
-      //  Direct3DDevice_ = inherited::configuration_->direct3DDevice;
-
-      //  // sanity check(s)
-      //  ACE_ASSERT (session_data_r.resetToken);
-      //} // end IF
-      // *TODO*: remove type inferences
-      IDirect3DDeviceManager9* direct3D_manager_p = NULL;
-      struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
-      if (!Stream_Module_Device_Tools::getDirect3DDevice (configuration_->window,
-                                                          session_data_r.format,
-                                                          session_data_r.direct3DDevice,
-                                                          d3d_presentation_parameters,
-                                                          direct3D_manager_p,
-                                                          session_data_r.resetToken))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_Tools::getDirect3DDevice(), aborting\n")));
-        goto error;
-      } // end IF
-      ACE_ASSERT (session_data_r.direct3DDevice);
-      ACE_ASSERT (session_data_r.resetToken);
-
-      // sanity check(s)
       ACE_ASSERT (!mediaSession_);
+      ACE_ASSERT (session_data_r.format);
+      ACE_ASSERT (!(configuration_->session &&
+                    session_data_r.session));
 
       ULONG reference_count = 0;
       if (configuration_->session)
@@ -791,59 +771,32 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
       {
         reference_count = session_data_r.session->AddRef ();
         mediaSession_ = session_data_r.session;
-      } // end ELSE IF
+      } // end IF
+
       WCHAR* symbolic_link_p = NULL;
       UINT32 symbolic_link_size = 0;
-      TOPOID node_id = 0;
-      if (!initialize_MediaFoundation (configuration_->window,
-                                       session_data_r.format,
-                                       configuration_->mediaSource,
-                                       symbolic_link_p,
-                                       symbolic_link_size,
-                                       direct3D_manager_p,
+      if (!initialize_MediaFoundation (session_data_r.format,
                                        this,
-                                       node_id,
-                                       session_data_r.rendererNodeId,
+                                       sampleGrabberSinkNodeId_,
                                        mediaSession_))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize_MediaFoundation(), returning\n")));
         goto error;
       } // end IF
-      CoTaskMemFree (symbolic_link_p);
       ACE_ASSERT (mediaSession_);
-
-//do_run:
-      // start displaying video data (asynchronous mode)
-      //DWORD actual_stream_index = 0;
-      //DWORD stream_flags = 0;
-      //LONGLONG timestamp = 0;
-      //IMFSample* sample_p = NULL;
-      //result_2 = sourceReader_->ReadSample (MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-      //                                      0,
-      //                                      NULL,
-      //                                      NULL,
-      //                                      NULL,
-      //                                      NULL);
-      //if (FAILED (result_2))
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to IMFSourceReader::ReadSample(): \"%s\", returning\n"),
-      //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-      //  goto error;
-      //} // end IF
-      //is_running = true;
+      ACE_ASSERT (sampleGrabberSinkNodeId_);
 
       break;
 
 error:
       if (mediaSession_)
       {
-        result = mediaSession_->Shutdown ();
-        if (FAILED (result))
+        result_2 = mediaSession_->Shutdown ();
+        if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         mediaSession_->Release ();
         mediaSession_ = NULL;
       } // end IF
@@ -882,17 +835,19 @@ error:
 
       if (mediaSession_)
       {
-        result = mediaSession_->Shutdown ();
-        if (FAILED (result))
+        result_2 = mediaSession_->Shutdown ();
+        if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         mediaSession_->Release ();
         mediaSession_ = NULL;
       } // end IF
 
       if (COM_initialized)
         CoUninitialize ();
+
+      sampleGrabberSinkNodeId_ = 0;
 
       break;
     }
@@ -905,15 +860,15 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 MessageType*
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::allocateMessage (unsigned int requestedSize_in)
+                                     SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::allocateMessage"));
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
@@ -970,117 +925,69 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 bool
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::initialize_MediaFoundation (const HWND windowHandle_in,
-                                                                             const IMFMediaType* IMFMediaType_in,
-                                                                             IMFMediaSource*& IMFMediaSource_inout,
-                                                                             WCHAR*& symbolicLink_out,
-                                                                             UINT32& symbolicLinkSize_out,
-                                                                             const IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
-                                                                             const IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback2_in,
-                                                                             TOPOID& sampleGrabberSinkNodeId_out,
-                                                                             TOPOID& rendererNodeId_out,
-                                                                             IMFMediaSession*& IMFMediaSession_inout)
+                                     SessionDataContainerType>::initialize_MediaFoundation (const IMFMediaType* IMFMediaType_in,
+                                                                                            const IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback2_in,
+                                                                                            TOPOID& sampleGrabberSinkNodeId_out,
+                                                                                            IMFMediaSession*& IMFMediaSession_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::initialize_MediaFoundation"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::initialize_MediaFoundation"));
 
   // initialize return value(s)
-  if (symbolicLinkSize_out)
-  {
-    // sanity check(s)
-    ACE_ASSERT (symbolicLink_out);
-
-    CoTaskMemFree (symbolicLink_out);
-    symbolicLink_out = NULL;
-    symbolicLinkSize_out = 0;
-  } // end IF
   sampleGrabberSinkNodeId_out = 0;
-  rendererNodeId_out = 0;
 
-  HRESULT result = E_FAIL;
-  bool release_media_session = false;
-  bool release_media_source = false;
-  std::string device_name;
-  IMFMediaSource* media_source_p = IMFMediaSource_inout;
-  if (!media_source_p)
-  {
-    if (!Stream_Module_Device_Tools::getMediaSource (device_name,
-                                                     IMFMediaSource_inout,
-                                                     symbolicLink_out,
-                                                     symbolicLinkSize_out))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
-                  ACE_TEXT (device_name.c_str ())));
-      return false;
-    } // end IF
-    media_source_p = IMFMediaSource_inout;
-    release_media_source = true;
-  } // end IF
-  ACE_ASSERT (media_source_p);
+  // sanity check(s)
+  ACE_ASSERT (IMFMediaSession_inout);
+
+  //IMFMediaSource* media_source_p = NULL;
+  //if (!Stream_Module_Device_Tools::getMediaSource (IMFMediaSession_inout,
+  //                                                 media_source_p))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
+  //  goto error;
+  //} // end IF
+  //ACE_ASSERT (media_source_p);
 
   IMFTopology* topology_p = NULL;
-  //if (!Stream_Module_Device_Tools::loadTargetRendererTopology (IMFMediaType_in,
-  //                                                             IMFSourceReaderCallback2_in,
-  //                                                             windowHandle_in,
-  //                                                             IMFTopology_out))
-  if (!Stream_Module_Device_Tools::loadRendererTopology (device_name,
-                                                         IMFMediaType_in,
-                                                         IMFSampleGrabberSinkCallback2_in,
-                                                         windowHandle_in,
-                                                         sampleGrabberSinkNodeId_out,
-                                                         rendererNodeId_out,
-                                                         topology_p))
+  enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
+    MFSESSION_GETFULLTOPOLOGY_CURRENT;
+  HRESULT result =
+    const_cast<IMFMediaSession*> (IMFMediaSession_inout)->GetFullTopology (flags,
+                                                                           0,
+                                                                           &topology_p);
+  if (FAILED (result)) // MF_E_INVALIDREQUEST: 0xC00D36B2L
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(), aborting\n")));
+                ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (topology_p);
 
-  if (!IMFMediaSession_inout)
+  TOPOID node_id = 0;
+  if (!Stream_Module_Device_Tools::addGrabber (IMFMediaType_in,
+                                               IMFSampleGrabberSinkCallback2_in,
+                                               topology_p,
+                                               node_id))
   {
-    IMFAttributes* attributes_p = NULL;
-    result = MFCreateAttributes (&attributes_p, 4);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error;
-    } // end IF
-    result = attributes_p->SetUINT32 (MF_SESSION_GLOBAL_TIME, FALSE);
-    ACE_ASSERT (SUCCEEDED (result));
-    result = attributes_p->SetGUID (MF_SESSION_QUALITY_MANAGER, GUID_NULL);
-    ACE_ASSERT (SUCCEEDED (result));
-    //result = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
-    //ACE_ASSERT (SUCCEEDED (result));
-    result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
-    ACE_ASSERT (SUCCEEDED (result));
-    result = MFCreateMediaSession (attributes_p,
-                                   &IMFMediaSession_inout);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-
-      // clean up
-      attributes_p->Release ();
-
-      goto error;
-    } // end IF
-    attributes_p->Release ();
-    release_media_session = true;
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::addGrabber(), aborting\n")));
+    goto error;
   } // end IF
-  ACE_ASSERT (IMFMediaSession_inout);
+  IMFTopologyNode* topology_node_p = NULL;
+  result = topology_p->GetNodeByID (node_id,
+                                    &topology_node_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_ASSERT (topology_node_p);
+  topology_node_p->Release ();
 
-  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
+  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);//    |
                           //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
                           //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
   result = IMFMediaSession_inout->SetTopology (topology_flags,
@@ -1092,6 +999,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
+  // debug info
+  Stream_Module_Device_Tools::dump (topology_p);
   topology_p->Release ();
 
   return true;
@@ -1099,25 +1008,6 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
 error:
   if (topology_p)
     topology_p->Release ();
-  if (release_media_session)
-  {
-    IMFMediaSession_inout->Release ();
-    IMFMediaSession_inout = NULL;
-  } // end IF
-  if (release_media_source)
-  {
-    IMFMediaSource_inout->Release ();
-    IMFMediaSource_inout = NULL;
-  } // end IF
-  if (symbolicLinkSize_out)
-  {
-    // sanity check(s)
-    ACE_ASSERT (symbolicLink_out);
-
-    CoTaskMemFree (symbolicLink_out);
-    symbolicLink_out = NULL;
-    symbolicLinkSize_out = 0;
-  } // end IF
 
   return false;
 }
@@ -1125,15 +1015,14 @@ template <typename SessionMessageType,
           typename MessageType,
           typename ConfigurationType,
           typename SessionDataType,
-          typename MediaType>
+          typename SessionDataContainerType>
 void
-Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                      MessageType,
                                      ConfigurationType,
                                      SessionDataType,
-                                     MediaType>::finalize_MediaFoundation ()
+                                     SessionDataContainerType>::finalize_MediaFoundation ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::finalize_MediaFoundation"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::finalize_MediaFoundation"));
 
-  inherited::shutdown ();
 }

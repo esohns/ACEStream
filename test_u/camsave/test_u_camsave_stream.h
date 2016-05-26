@@ -72,6 +72,7 @@ class Stream_CamSave_Stream
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // override (part of) Stream_IStreamControl_T
+  virtual Stream_Module_t* find (const std::string&) const; // module name
   virtual void start ();
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true); // locked access ?
@@ -124,6 +125,7 @@ class Stream_CamSave_Stream
   Stream_CamSave_Module_Source_Module           source_;
   Stream_CamSave_Module_RuntimeStatistic_Module runtimeStatistic_;
   Stream_CamSave_Module_Display_Module          display_;
+  Stream_CamSave_Module_DisplayNull_Module      displayNull_;
   Stream_CamSave_Module_AVIEncoder_Module       encoder_;
   Stream_CamSave_Module_FileWriter_Module       fileWriter_;
 

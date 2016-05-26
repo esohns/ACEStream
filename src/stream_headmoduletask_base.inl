@@ -1328,6 +1328,36 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
+Stream_Module_t*
+Stream_HeadModuleTaskBase_T<LockType,
+                            TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType,
+                            ConfigurationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::find (const std::string& name_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::find"));
+
+  ACE_UNUSED_ARG (name_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (NULL);
+  ACE_NOTREACHED (return NULL;)
+}
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename SessionMessageType,
+          typename ProtocolMessageType,
+          typename ConfigurationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
 std::string
 Stream_HeadModuleTaskBase_T<LockType,
                             TaskSynchType,
@@ -1345,7 +1375,6 @@ Stream_HeadModuleTaskBase_T<LockType,
   std::string result = ACE_TEXT_ALWAYS_CHAR (inherited2::name ());
   return result;
 }
-
 template <typename LockType,
           typename TaskSynchType,
           typename TimePolicyType,

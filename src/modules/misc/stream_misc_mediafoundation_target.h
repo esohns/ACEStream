@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MISC_MEDIAFOUNDATION_SOURCE_H
-#define STREAM_MISC_MEDIAFOUNDATION_SOURCE_H
+#ifndef STREAM_MISC_MEDIAFOUNDATION_TARGET_H
+#define STREAM_MISC_MEDIAFOUNDATION_TARGET_H
 
 #include "d3d9.h"
 #include "dxva2api.h"
@@ -35,45 +35,26 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
-//#include "stream_misc_directshow_asynch_source_filter.h"
-//#include "stream_misc_directshow_source_filter.h"
-
 template <typename SessionMessageType,
           typename MessageType,
           ///////////////////////////////
           typename ConfigurationType,
           ///////////////////////////////
           typename SessionDataType,
-          ///////////////////////////////
-          typename MediaType>
-class Stream_Misc_MediaFoundation_Source_T
+          typename SessionDataContainerType>
+class Stream_Misc_MediaFoundation_Target_T
  : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
                                  SessionMessageType,
                                  MessageType>
  , public Stream_IModuleHandler_T<ConfigurationType>
  , public IMFSampleGrabberSinkCallback2
 {
-  //typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-  //                                                      SessionMessageType,
-  //                                                      MessageType,
-
-  //                                                      PinConfigurationType,
-  //                                                      MediaType> ASYNCH_FILTER_T;
-  //typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
-  //                                               SessionMessageType,
-  //                                               MessageType,
-
-  //                                               PinConfigurationType,
-  //                                               MediaType> FILTER_T;
-  //friend class ASYNCH_FILTER_T;
-  //friend class FILTER_T;
-
  public:
   //// convenience types
   //typedef Common_IInitialize_T<ConfigurationType> IINITIALIZE_T;
 
-  Stream_Misc_MediaFoundation_Source_T ();
-  virtual ~Stream_Misc_MediaFoundation_Source_T ();
+  Stream_Misc_MediaFoundation_Target_T ();
+  virtual ~Stream_Misc_MediaFoundation_Target_T ();
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (MessageType*&, // data message handle
@@ -85,7 +66,7 @@ class Stream_Misc_MediaFoundation_Source_T
   virtual bool initialize (const ConfigurationType&);
   virtual const ConfigurationType& get () const;
 
-  // implement IMFSampleGrabberSinkCallback
+  // implement IMFSampleGrabberSinkCallback2
   STDMETHODIMP QueryInterface (const IID&,
                                void**);
   virtual ULONG STDMETHODCALLTYPE AddRef ();
@@ -117,13 +98,13 @@ class Stream_Misc_MediaFoundation_Source_T
                                   LONGLONG,            // duration
                                   const BYTE*,         // buffer
                                   DWORD,               // buffer size
-                                  IMFAttributes*);     // attributes handle
+                                  IMFAttributes*);     // media sample attributes
   STDMETHODIMP OnSetPresentationClock (IMFPresentationClock*); // presentation clock handle
   STDMETHODIMP OnShutdown ();
 
  protected:
-  ConfigurationType*    configuration_;
-  SessionDataType*      sessionData_;
+  ConfigurationType*        configuration_;
+  SessionDataContainerType* sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -131,43 +112,37 @@ class Stream_Misc_MediaFoundation_Source_T
                                  MessageType> inherited;
 
   // convenient types
-  typedef Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
+  typedef Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                                MessageType,
 
                                                ConfigurationType,
 
                                                SessionDataType,
+                                               SessionDataContainerType> OWN_TYPE_T;
 
-                                               MediaType> OWN_TYPE_T;
-
-  //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Source_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Source_T (const Stream_Misc_MediaFoundation_Source_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Source_T& operator= (const Stream_Misc_MediaFoundation_Source_T&))
+  //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Target_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Target_T (const Stream_Misc_MediaFoundation_Target_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Target_T& operator= (const Stream_Misc_MediaFoundation_Target_T&))
 
   // helper methods
   MessageType* allocateMessage (unsigned int); // (requested) size
-  bool initialize_MediaFoundation (const HWND,                           // (target) window handle [NULL: NullRenderer]
-                                   const IMFMediaType*,                  // media type handle
-                                   IMFMediaSource*&,                     // media source handle (in/out)
-                                   WCHAR*&,                              // return value: symbolic link
-                                   UINT32&,                              // return value: symbolic link size
-                                   const IDirect3DDeviceManager9*,       // Direct3D device manager handle
-                                   const IMFSampleGrabberSinkCallback2*, // grabber sink callback handle [NULL: do not use tee/grabber]
-                                   TOPOID&,                              // return value: sample grabber sink node id
-                                   TOPOID&,                              // return value: EVR sink node id
-                                   IMFMediaSession*&);                   // input/return value: media session handle
+  bool initialize_MediaFoundation (const IMFMediaType*,                  // sample grabber sink input media type handle
+                                   const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
+                                   TOPOID&,                              // return value: node id
+                                   IMFMediaSession*&);                   // intput/return value: media session handle
   void finalize_MediaFoundation ();
 
-  bool                  isFirst_;
-  bool                  isInitialized_;
+  bool                      isFirst_;
+  bool                      isInitialized_;
 
-  LONGLONG              baseTimeStamp_;
-  IMFMediaSession*      mediaSession_;
-  IMFPresentationClock* presentationClock_;
-  long                  referenceCount_;
+  LONGLONG                  baseTimeStamp_;
+  IMFMediaSession*          mediaSession_;
+  IMFPresentationClock*     presentationClock_;
+  long                      referenceCount_;
+  TOPOID                    sampleGrabberSinkNodeId_;
 };
 
 // include template definition
-#include "stream_misc_mediafoundation_source.inl"
+#include "stream_misc_mediafoundation_target.inl"
 
 #endif

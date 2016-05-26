@@ -44,9 +44,8 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
  , configuration_ (NULL)
  , isInitialized_ (false)
  , device_ (NULL)
- , mediaSink_ (NULL)
+ , mediaSession_ (NULL)
  , streamSink_ (NULL)
- , topology_ (NULL)
  //, videoSampleAllocator_ (NULL)
  , videoDisplayControl_ (NULL)
 {
@@ -67,18 +66,23 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::~Stream_Vis_Target_MediaFoundation_T"));
 
-  if (device_)
-    device_->Release ();
   //if (videoSampleAllocator_)
   //  videoSampleAllocator_->Release ();
   if (videoDisplayControl_)
     videoDisplayControl_->Release ();
   if (streamSink_)
     streamSink_->Release ();
-  if (mediaSink_)
-    mediaSink_->Release ();
-  if (topology_)
-    topology_->Release ();
+  if (mediaSession_)
+  {
+    HRESULT result = mediaSession_->Shutdown ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    mediaSession_->Release ();
+  } // end IF
+  if (device_)
+    device_->Release ();
 }
 
 template <typename SessionMessageType,
@@ -227,9 +231,8 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
 
       // sanity check(s)
       ACE_ASSERT (!device_);
-      ACE_ASSERT (!mediaSink_);
       ACE_ASSERT (!streamSink_);
-      ACE_ASSERT (!topology_);
+      ACE_ASSERT (!mediaSession_);
       ACE_ASSERT (!videoDisplayControl_);
       ACE_ASSERT (session_data_r.format);
       ACE_ASSERT (session_data_r.session);
@@ -263,32 +266,32 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
         direct3D_manager_p->Release ();
       } // end ELSE
 
-      if (session_data_r.topology)
+      if (session_data_r.session)
       {
-        reference_count = session_data_r.topology->AddRef ();
-        topology_ = session_data_r.topology;
+        reference_count = session_data_r.session->AddRef ();
+        mediaSession_ = session_data_r.session;
       } // end IF
 
+      IMFMediaSink* media_sink_p = NULL;
       if (!initialize_MediaFoundation (configuration_->window,
                                        configuration_->area,
                                        //media_type_p,
                                        configuration_->rendererNodeId,
-                                       mediaSink_,
+                                       media_sink_p,
                                        videoDisplayControl_,
                                        //videoSampleAllocator_,
-                                       topology_,
-                                       session_data_r.session))
+                                       mediaSession_))
       {
         ACE_DEBUG ((LM_ERROR,
                    ACE_TEXT ("failed to initialize_MediaFoundation(), aborting\n")));
         goto error;
       } // end IF
-      ACE_ASSERT (mediaSink_);
-      ACE_ASSERT (topology_);
+      ACE_ASSERT (media_sink_p);
       ACE_ASSERT (videoDisplayControl_);
+      ACE_ASSERT (mediaSession_);
 
       DWORD count = 0;
-      result = mediaSink_->GetStreamSinkCount (&count);
+      result = media_sink_p->GetStreamSinkCount (&count);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -297,7 +300,7 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
         goto error;
       } // end IF
       ACE_ASSERT (count > 0);
-      result = mediaSink_->GetStreamSinkByIndex (0, &streamSink_);
+      result = media_sink_p->GetStreamSinkByIndex (0, &streamSink_);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -305,6 +308,9 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
                     ACE_TEXT (Common_Tools::error2String (result).c_str ())));
         goto error;
       } // end IF
+      ACE_ASSERT (streamSink_);
+      media_sink_p->Release ();
+      media_sink_p = NULL;
 
       //IMediaTypeHandler* media_type_handler_p = NULL;
       //result = streamSink_->GetMediaTypeHandler (&media_type_handler_p);
@@ -407,6 +413,8 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
       goto continue_;
 
 error:
+      if (media_sink_p)
+        media_sink_p->Release ();
       if (videoDisplayControl_)
       {
         videoDisplayControl_->Release ();
@@ -422,20 +430,15 @@ error:
         streamSink_->Release ();
         streamSink_ = NULL;
       } // end IF
-      if (mediaSink_)
+      if (mediaSession_)
       {
-        result = mediaSink_->Shutdown ();
+        result_2 = mediaSession_->Shutdown ();
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFMediaSink::Shutdown(): \"%s\", continuing\n"),
+                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        mediaSink_->Release ();
-        mediaSink_ = NULL;
-      } // end IF
-      if (topology_)
-      {
-        topology_->Release ();
-        topology_ = NULL;
+        mediaSession_->Release ();
+        mediaSession_ = NULL;
       } // end IF
       if (device_)
       {
@@ -486,20 +489,15 @@ continue_:
         streamSink_->Release ();
         streamSink_ = NULL;
       } // end IF
-      if (mediaSink_)
+      if (mediaSession_)
       {
-        result_2 = mediaSink_->Shutdown ();
+        result_2 = mediaSession_->Shutdown ();
         if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFMediaSink::Shutdown(): \"%s\", continuing\n"),
+                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-        mediaSink_->Release ();
-        mediaSink_ = NULL;
-      } // end IF
-      if (topology_)
-      {
-        topology_->Release ();
-        topology_ = NULL;
+        mediaSession_->Release ();
+        mediaSession_ = NULL;
       } // end IF
       if (device_)
       {
@@ -545,25 +543,25 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
       videoDisplayControl_->Release ();
       videoDisplayControl_ = NULL;
     } // end IF
-    if (device_)
-    {
-      device_->Release ();
-      device_ = NULL;
-    } // end IF
-    if (mediaSink_)
-    {
-      mediaSink_->Release ();
-      mediaSink_ = NULL;
-    } // end IF
     if (streamSink_)
     {
       streamSink_->Release ();
       streamSink_ = NULL;
     } // end IF
-    if (topology_)
+    if (mediaSession_)
     {
-      topology_->Release ();
-      topology_ = NULL;
+      HRESULT result = mediaSession_->Shutdown ();
+      if (FAILED (result))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      mediaSession_->Release ();
+      mediaSession_ = NULL;
+    } // end IF
+    if (device_)
+    {
+      device_->Release ();
+      device_ = NULL;
     } // end IF
   } // end IF
 
@@ -609,31 +607,47 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
                                                                                            IMFMediaSink*& IMFMediaSink_out,
                                                                                            IMFVideoDisplayControl*& IMFVideoDisplayControl_out,
                                                                                            //IMFVideoSampleAllocator*& IMFVideoSampleAllocator_out,
-                                                                                           IMFTopology*& IMFTopology_inout,
                                                                                            IMFMediaSession* IMFMediaSession_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::initialize_MediaFoundation"));
 
   HRESULT result = E_FAIL;
-  bool release_topology = false;
   //IMFVideoRenderer* video_renderer_p = NULL;
 
   // initialize return value(s)
   ACE_ASSERT (!IMFMediaSink_out);
   ACE_ASSERT (!IMFVideoDisplayControl_out);
   //ACE_ASSERT (!IMFVideoSampleAllocator_out);
+  ACE_ASSERT (IMFMediaSession_in);
+
+  bool set_topology = false;
+  IMFTopology* topology_p = NULL;
+  enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
+    MFSESSION_GETFULLTOPOLOGY_CURRENT;
+  result =
+    const_cast<IMFMediaSession*> (IMFMediaSession_in)->GetFullTopology (flags,
+                                                                        0,
+                                                                        &topology_p);
+  if (FAILED (result)) // MF_E_INVALIDREQUEST: 0xC00D36B2L
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  ACE_ASSERT (topology_p);
 
   IMFTopologyNode* topology_node_p = NULL;
   TOPOID node_id = 0;
   IMFStreamSink* stream_sink_p = NULL;
   IMFVideoPresenter* video_presenter_p = NULL;
-  if (IMFTopology_inout)
+  if (topology_p)
   {
     IUnknown* unknown_p = NULL;
     if (rendererNodeId_in)
     {
-      result = IMFTopology_inout->GetNodeByID (rendererNodeId_in,
-                                               &topology_node_p);
+      result = topology_p->GetNodeByID (rendererNodeId_in,
+                                        &topology_node_p);
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -646,32 +660,17 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
     else
     {
       if (!Stream_Module_Device_Tools::addRenderer (windowHandle_in,
-                                                    IMFTopology_inout,
+                                                    topology_p,
                                                     node_id))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Stream_Module_Device_Tools::addRenderer(), aborting\n")));
         goto error;
       } // end IF
-      result = IMFTopology_inout->GetNodeByID (node_id,
-                                               &topology_node_p);
+      set_topology = true;
+      result = topology_p->GetNodeByID (node_id,
+                                        &topology_node_p);
       ACE_ASSERT (SUCCEEDED (result));
-
-      // debug info
-      Stream_Module_Device_Tools::dump (IMFTopology_inout);
-
-      DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);//    |
-                              //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
-                              //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
-      result = IMFMediaSession_in->SetTopology (topology_flags,
-                                                IMFTopology_inout);
-      if (FAILED (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-        goto error;
-      } // end IF
     } // end ELSE
     ACE_ASSERT (topology_node_p);
     unknown_p = NULL;
@@ -698,7 +697,7 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
     goto continue_;
   } // end IF
 
-  result = MFCreateTopology (&IMFTopology_inout);
+  result = MFCreateTopology (&topology_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -706,9 +705,8 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-  release_topology = true;
   TOPOID topology_id = 0;
-  result = IMFTopology_inout->GetTopologyID (&topology_id);
+  result = topology_p->GetTopologyID (&topology_id);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("created topology (id was: %q)...\n"),
@@ -853,7 +851,7 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
   ACE_ASSERT (SUCCEEDED (result));
-  result = IMFTopology_inout->AddNode (topology_node_p);
+  result = topology_p->AddNode (topology_node_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -872,10 +870,32 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
               ACE_TEXT ("added renderer node (id: %q)...\n"),
               node_id));
   topology_node_p->Release ();
-  ACE_ASSERT (IMFMediaSink_out);
-  ACE_ASSERT (IMFTopology_inout);
+  // *TODO*: connect renderer node to a stream source
+  set_topology = true;
 
 continue_:
+  ACE_ASSERT (IMFMediaSink_out);
+  ACE_ASSERT (topology_p);
+
+  if (set_topology)
+  {
+    DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);//    |
+                            //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+                            //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
+    result = IMFMediaSession_in->SetTopology (topology_flags,
+                                              topology_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+
+    // debug info
+    Stream_Module_Device_Tools::dump (topology_p);
+  } // end IF
+
   result =
     MFCreateVideoPresenter (NULL,                               // owner
                             IID_IDirect3DDevice9,               // device
@@ -971,9 +991,14 @@ continue_:
   //  goto error;
   //} // end IF
 
+  topology_p->Release ();
+  topology_p = NULL;
+
   goto continue_2;
 
 error:
+  if (topology_p)
+    topology_p->Release ();
   //if (video_renderer_p)
   //  video_renderer_p->Release ();
   //if (IMFVideoSampleAllocator_out)
@@ -991,11 +1016,6 @@ error:
     IMFMediaSink_out->Release ();
     IMFMediaSink_out = NULL;
   } // end IF
-  if (release_topology)
-  {
-    IMFTopology_inout->Release ();
-    IMFTopology_inout = NULL;
-  } // end IF
 
   return false;
 
@@ -1009,3 +1029,335 @@ continue_2:
 continue_3:
   return true;
 }
+
+//////////////////////////////////////////
+
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::Stream_Vis_Target_MediaFoundation_2 ()
+ : inherited ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::Stream_Vis_Target_MediaFoundation_2"));
+
+}
+
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::~Stream_Vis_Target_MediaFoundation_2 ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::~Stream_Vis_Target_MediaFoundation_2"));
+
+}
+
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+void
+Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
+                                                                                  bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::handleDataMessage"));
+
+  ACE_UNUSED_ARG (message_inout);
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  //HRESULT result = E_FAIL;
+  //typename const MessageType::DATA_T& message_data_r = message_inout->get ();
+
+  //// sanity check(s)
+  //ACE_ASSERT (streamSink_);
+  ////ACE_ASSERT (videoSampleAllocator_);
+  //ACE_ASSERT (message_data_r.sample);
+
+  //// *NOTE*: EVR does not accept plain IMFSamples; only 'video samples'
+  //IMFSample* sample_p = NULL;
+  //result = videoSampleAllocator_->AllocateSample (&sample_p);
+  //if (FAILED (result)) // MF_E_SAMPLEALLOCATOR_EMPTY: 0xC00D4A3EL
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFVideoSampleAllocator::AllocateSample(): \"%s\", returning\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  return;
+  //} // end IF
+  //ACE_ASSERT (sample_p);
+
+  //result = sample_p->SetSampleTime (message_data_r.sampleTime);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFSample::SetSampleTime(): \"%s\", returning\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  //  // clean up
+  //  sample_p->Release ();
+
+  //  return;
+  //} // end IF
+
+  //DWORD count = 0;
+  //result = message_data_r.sample->GetBufferCount (&count);
+  //ACE_ASSERT (SUCCEEDED (result));
+  //ACE_ASSERT (count == 1);
+  //IMFMediaBuffer* media_buffer_p = NULL;
+  //result = message_data_r.sample->GetBufferByIndex (0, &media_buffer_p);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFSample::GetBufferByIndex(): \"%s\", returning\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  //  // clean up
+  //  sample_p->Release ();
+
+  //  return;
+  //} // end IF
+  //ACE_ASSERT (media_buffer_p);
+  //result = sample_p->AddBuffer (media_buffer_p);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFSample::AddBuffer(): \"%s\", returning\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  //  // clean up
+  //  media_buffer_p->Release ();
+  //  sample_p->Release ();
+
+  //  return;
+  //} // end IF
+  //media_buffer_p->Release ();
+
+  //result = streamSink_->ProcessSample (sample_p);
+  //result = streamSink_->ProcessSample (message_data_r.sample);
+  //if (FAILED (result)) // E_NOINTERFACE
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFStreamSink::ProcessSample(): \"%s\", returning\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+  //  // clean up
+  //  //sample_p->Release ();
+
+  //  return;
+  //} // end IF
+  //sample_p->Release ();
+}
+
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+void
+Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                     bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::handleSessionMessage"));
+
+  int result = -1;
+  HRESULT result_2 = E_FAIL;
+  bool COM_initialized = false;
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  switch (message_inout->type ())
+  {
+  case STREAM_SESSION_BEGIN:
+  {
+    const SessionDataContainerType& session_data_container_r =
+      message_inout->get ();
+    SessionDataType& session_data_r =
+      const_cast<SessionDataType&> (session_data_container_r.get ());
+
+    result_2 = CoInitializeEx (NULL,
+                               (COINIT_MULTITHREADED     |
+                                COINIT_DISABLE_OLE1DDE   |
+                                COINIT_SPEED_OVER_MEMORY));
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
+    } // end IF
+    COM_initialized = true;
+
+    goto continue_;
+
+  error:
+    session_data_r.aborted = true;
+
+  continue_:
+    if (COM_initialized)
+      CoUninitialize ();
+
+    break;
+  }
+  case STREAM_SESSION_END:
+  {
+    result_2 = CoInitializeEx (NULL,
+                               (COINIT_MULTITHREADED     |
+                                COINIT_DISABLE_OLE1DDE   |
+                                COINIT_SPEED_OVER_MEMORY));
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      break;
+    } // end IF
+    COM_initialized = true;
+
+    if (COM_initialized)
+      CoUninitialize ();
+
+    break;
+  }
+  default:
+    break;
+  } // end SWITCH
+}
+
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+bool
+Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::initialize"));
+
+  return inherited::initialize (configuration_in);
+}
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+const ConfigurationType&
+Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
+                                    MessageType,
+                                    ConfigurationType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::get () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::get"));
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  return *configuration_;
+}
+
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//HRESULT
+//Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
+//                                    MessageType,
+//                                    ConfigurationType,
+//                                    SessionDataType,
+//                                    SessionDataContainerType>::OnProcessSampleEx (const struct _GUID& majorMediaType_in,
+//                                                                                  DWORD flags_in,
+//                                                                                  LONGLONG timeStamp_in,
+//                                                                                  LONGLONG duration_in,
+//                                                                                  const BYTE* buffer_in,
+//                                                                                  DWORD bufferSize_in,
+//                                                                                  IMFAttributes* attributes_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::OnProcessSampleEx"));
+//
+//  ACE_UNUSED_ARG (majorMediaType_in);
+//  ACE_UNUSED_ARG (flags_in);
+//  ACE_UNUSED_ARG (timeStamp_in);
+//  ACE_UNUSED_ARG (duration_in);
+//  ACE_UNUSED_ARG (buffer_in);
+//  ACE_UNUSED_ARG (bufferSize_in);
+//  ACE_UNUSED_ARG (attributes_in);
+//
+//  ProtocolMessageType* message_p = NULL;
+//  int result = -1;
+//  HRESULT result_2 = E_FAIL;
+//
+//  if (isFirst_)
+//  {
+//    isFirst_ = false;
+//    baseTimeStamp_ = timeStamp_in;
+//  } // end IF
+//  timeStamp_in -= baseTimeStamp_;
+//
+//  // sanity check(s)
+//  ACE_ASSERT (inherited::configuration_);
+//  // *TODO*: remove type inference
+//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
+//
+//  // *TODO*: remove type inference
+//  message_p =
+//    inherited::allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
+//  if (!message_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
+//                inherited::configuration_->streamConfiguration->bufferSize));
+//    goto error;
+//  } // end IF
+//  ACE_ASSERT (message_p);
+//  ACE_ASSERT (message_p->capacity () >= bufferSize_in);
+//
+//  // *TODO*: copy this data into the message buffer ?
+//  message_p->base (reinterpret_cast<char*> (const_cast<BYTE*> (buffer_in)),
+//                   bufferSize_in,
+//                   ACE_Message_Block::DONT_DELETE);
+//  message_p->wr_ptr (bufferSize_in);
+//
+//  result = inherited::putq (message_p, NULL);
+//  if (result == -1)
+//  {
+//    int error = ACE_OS::last_error ();
+//    if (error != ESHUTDOWN)
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
+//                  inherited::name ()));
+//    goto error;
+//  } // end IF
+//
+//  return S_OK;
+//
+//error:
+//  if (message_p)
+//    message_p->release ();
+//
+//  return E_FAIL;
+//}

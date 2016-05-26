@@ -1590,6 +1590,49 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType>
+Stream_Module_t*
+Stream_Base_T<LockType,
+              TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+              ProtocolMessageType>::find (const std::string& name_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
+
+  Stream_Module_t* result = NULL;
+  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
+
+  const ACE_TCHAR* name_p = ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ());
+  result = this_p->find (const_cast<ACE_TCHAR*> (name_p));
+  if (!result)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("module (name was: \"%s\") not found, aborting\n"),
+                ACE_TEXT (name_in.c_str ())));
+
+  return result;
+}
+
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
 std::string
 Stream_Base_T<LockType,
               TaskSynchType,

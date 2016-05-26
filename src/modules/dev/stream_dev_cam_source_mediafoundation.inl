@@ -63,14 +63,12 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
               true)  // generate session messages
  , baseTimeStamp_ (0)
  , isFirst_ (true)
- , mediaSource_ (NULL)
  , symbolicLink_ (NULL)
  , symbolicLinkSize_ (0)
  , presentationClock_ (NULL)
  , referenceCount_ (0)
  , sampleGrabberSinkNodeId_ (0)
  , mediaSession_ (NULL)
- , topology_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::Stream_Dev_Cam_Source_MediaFoundation_T"));
 
@@ -97,8 +95,6 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
   HRESULT result = E_FAIL;
 
-  if (mediaSource_)
-    mediaSource_->Release ();
   if (symbolicLinkSize_)
     CoTaskMemFree (symbolicLink_);
 
@@ -114,8 +110,6 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
-  if (topology_)
-    topology_->Release ();
 }
 
 template <typename LockType,
@@ -171,11 +165,6 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
     isFirst_ = true;
 
-    if (mediaSource_)
-    {
-      mediaSource_->Release ();
-      mediaSource_ = NULL;
-    } // end IF
     if (symbolicLinkSize_)
     {
       CoTaskMemFree (symbolicLink_);
@@ -199,11 +188,6 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
                     ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                     ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       mediaSession_->Release ();
-    } // end IF
-    if (topology_)
-    {
-      topology_->Release ();
-      topology_ = NULL;
     } // end IF
 
     if (inherited::sessionData_)
@@ -354,8 +338,6 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
       ACE_ASSERT (session_data_r.format);
 
       bool COM_initialized = false;
-      bool is_running = false;
-      bool is_reading = false;
       bool release_device = false;
       IDirect3DDeviceManager9* direct3D_manager_p = NULL;
       //IMFTopologyNode* source_node_p = NULL;
@@ -399,9 +381,6 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
       COM_initialized = true;
 
       // sanity check(s)
-      ACE_ASSERT (!mediaSource_);
-      ACE_ASSERT (!topology_);
-      ACE_ASSERT (!session_data_r.topology);
       ACE_ASSERT (!mediaSession_);
       ACE_ASSERT (!session_data_r.session);
 
@@ -434,104 +413,79 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
       //  } // end IF
 
       ULONG reference_count = 0;
-      if (inherited::configuration_->topology)
+      if (inherited::configuration_->session)
       {
-        reference_count = inherited::configuration_->topology->AddRef ();
-        topology_ = inherited::configuration_->topology;
-        reference_count = topology_->AddRef ();
-        session_data_r.topology = topology_;
-
-        // sanity check(s)
-        ACE_ASSERT (inherited::configuration_->mediaSource);
-
-        reference_count = inherited::configuration_->mediaSource->AddRef ();
-        mediaSource_ = inherited::configuration_->mediaSource;
+        reference_count = inherited::configuration_->session->AddRef ();
+        mediaSession_ = inherited::configuration_->session;
+        reference_count = mediaSession_->AddRef ();
+        session_data_r.session = mediaSession_;
       } // end IF
       else
       {
-        if (inherited::configuration_->mediaSource)
-        {
-          reference_count = inherited::configuration_->mediaSource->AddRef ();
-          mediaSource_ = inherited::configuration_->mediaSource;
-        } // end IF
-        else
-        {
-          //// sanity check(s)
-          //ACE_ASSERT (direct3D_manager_p);
+        //// sanity check(s)
+        //ACE_ASSERT (direct3D_manager_p);
 
-          //// *TODO*: remove type inferences
-          //if (!initialize_MediaFoundation (inherited::configuration_->device,
-          //                                 inherited::configuration_->window,
-          //                                 direct3D_manager_p,
-          //                                 session_data_r.format,
-          //                                 mediaSource_,
-          //                                 symbolicLink_,
-          //                                 symbolicLinkSize_,
-          //                                 this,
-          //                                 sourceReader_))
-          //{
-          //  ACE_DEBUG ((LM_ERROR,
-          //              ACE_TEXT ("failed to initialize_MediaFoundation(), aborting\n")));
-          //  goto error;
-          //} // end IF
-          if (!Stream_Module_Device_Tools::getMediaSource (inherited::configuration_->device,
-                                                           mediaSource_,
-                                                           symbolicLink_,
-                                                           symbolicLinkSize_))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
-            goto error;
-          } // end IF
-        } // end ELSE
+        //// *TODO*: remove type inferences
+        //if (!initialize_MediaFoundation (inherited::configuration_->device,
+        //                                 inherited::configuration_->window,
+        //                                 direct3D_manager_p,
+        //                                 session_data_r.format,
+        //                                 mediaSource_,
+        //                                 symbolicLink_,
+        //                                 symbolicLinkSize_,
+        //                                 this,
+        //                                 sourceReader_))
+        //{
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to initialize_MediaFoundation(), aborting\n")));
+        //  goto error;
+        //} // end IF
+        //IMFMediaSource* media_source_p = NULL;
+        //if (!Stream_Module_Device_Tools::getMediaSource (inherited::configuration_->device,
+        //                                                  media_source_p,
+        //                                                  symbolicLink_,
+        //                                                  symbolicLinkSize_))
+        //{
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
+        //  goto error;
+        //} // end IF
+        //ACE_ASSERT (media_source_p);
 
         // sanity check(s)
         ACE_ASSERT (!session_data_r.rendererNodeId);
 
+        IMFTopology* topology_p = NULL;
         if (!Stream_Module_Device_Tools::loadRendererTopology (inherited::configuration_->device,
                                                                session_data_r.format,
                                                                this,
                                                                inherited::configuration_->window,
                                                                sampleGrabberSinkNodeId_,
                                                                session_data_r.rendererNodeId,
-                                                               topology_))
+                                                               topology_p))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(), aborting\n")));
           goto error;
         } // end IF
-        reference_count = topology_->AddRef ();
-        session_data_r.topology = topology_;
+        ACE_ASSERT (topology_p);
 
-        if (!Stream_Module_Device_Tools::setCaptureFormat (topology_,
+        if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
                                                            session_data_r.format))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+
+          // clean up
+          topology_p->Release ();
+
           goto error;
         } // end IF
         if (_DEBUG)
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("capture format: \"%s\"...\n"),
                       ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (session_data_r.format).c_str ())));
-      } // end ELSE
-      if (direct3D_manager_p)
-      {
-        direct3D_manager_p->Release ();
-        direct3D_manager_p = NULL;
-      } // end IF
-      ACE_ASSERT (mediaSource_);
-      //ACE_ASSERT (sourceReader_);
-      ACE_ASSERT (topology_);
-      ACE_ASSERT (session_data_r.topology);
 
-      if (inherited::configuration_->session)
-      {
-        reference_count = inherited::configuration_->session->AddRef ();
-        mediaSession_ = inherited::configuration_->session;
-      } // end IF
-      else
-      {
         IMFAttributes* attributes_p = NULL;
         result_2 = MFCreateAttributes (&attributes_p, 4);
         if (FAILED (result_2))
@@ -539,6 +493,10 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+          // clean up
+          topology_p->Release ();
+
           goto error;
         } // end IF
         result_2 = attributes_p->SetUINT32 (MF_SESSION_GLOBAL_TIME, FALSE);
@@ -559,24 +517,34 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
           // clean up
           attributes_p->Release ();
+          topology_p->Release ();
 
           goto error;
         } // end IF
         attributes_p->Release ();
 
-        DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE |
-                                MFSESSION_SETTOPOLOGY_NORESOLUTION |
-                                MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
+        DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
+                                //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+                                //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
         result_2 = mediaSession_->SetTopology (topology_flags,
-                                               topology_);
+                                               topology_p);
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+
+          // clean up
+          topology_p->Release ();
+
           goto error;
         } // end IF
       } // end ELSE
+      if (direct3D_manager_p)
+      {
+        direct3D_manager_p->Release ();
+        direct3D_manager_p = NULL;
+      } // end IF
       ACE_ASSERT (mediaSession_);
       reference_count = mediaSession_->AddRef ();
       session_data_r.session = mediaSession_;
@@ -591,18 +559,6 @@ error:
       //if (source_node_p)
       //  source_node_p->Release ();
 
-      if (is_running)
-      {
-        // sanity check(s)
-        ACE_ASSERT (mediaSource_);
-
-        result_2 = mediaSource_->Stop ();
-        if (FAILED (result_2))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFMediaSource::Stop(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-      } // end IF
-
       if (release_device)
       {
         session_data_r.direct3DDevice->Release ();
@@ -613,16 +569,6 @@ error:
       {
         session_data_r.format->Release ();
         session_data_r.format = NULL;
-      } // end IF
-      if (session_data_r.topology)
-      {
-        session_data_r.topology->Release ();
-        session_data_r.topology = NULL;
-      } // end IF
-      if (topology_)
-      {
-        topology_->Release ();
-        topology_ = NULL;
       } // end IF
       if (session_data_r.session)
       {
@@ -645,11 +591,6 @@ error:
         mediaSession_ = NULL;
       } // end IF
 
-      if (mediaSource_)
-      {
-        mediaSource_->Release ();
-        mediaSource_ = NULL;
-      } // end IF
       if (symbolicLinkSize_)
       {
         CoTaskMemFree (symbolicLink_);
@@ -694,27 +635,28 @@ error:
       } // end IF
       COM_initialized = true;
 
-      result_2 = mediaSource_->Stop ();
+      if (!mediaSession_)
+        goto continue_;
+
+      IMFMediaSource* media_source_p = NULL;
+      if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
+                                                       media_source_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), continuing\n")));
+        goto continue_;
+      } // end IF
+      result_2 = media_source_p->Stop ();
       if (FAILED (result_2))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaSource::Stop(): \"%s\", continuing\n"),
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-
+      media_source_p->Release ();
+continue_:
       if (presentationClock_)
       {
         presentationClock_->Release ();
         presentationClock_ = NULL;
-      } // end IF
-      if (topology_)
-      {
-        topology_->Release ();
-        topology_ = NULL;
-      } // end IF
-
-      if (mediaSource_)
-      {
-        mediaSource_->Release ();
-        mediaSource_ = NULL;
       } // end IF
 
       if (session_data_r.format)
@@ -722,10 +664,25 @@ error:
         session_data_r.format->Release ();
         session_data_r.format = NULL;
       } // end IF
-      if (session_data_r.topology)
+      if (session_data_r.session)
       {
-        session_data_r.topology->Release ();
-        session_data_r.topology = NULL;
+        result = session_data_r.session->Shutdown ();
+        if (FAILED (result))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        session_data_r.session->Release ();
+        session_data_r.session = NULL;
+      } // end IF
+      if (mediaSession_)
+      {
+        result = mediaSession_->Shutdown ();
+        if (FAILED (result))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        mediaSession_->Release ();
+        mediaSession_ = NULL;
       } // end IF
 
       if (COM_initialized)
@@ -736,8 +693,6 @@ error:
         inherited::sessionData_->decrease ();
         inherited::sessionData_ = NULL;
       } // end IF
-
-      //inherited::shutdown ();
 
       break;
     }

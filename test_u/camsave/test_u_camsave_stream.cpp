@@ -40,6 +40,9 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
  , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
              NULL,
              false)
+ , displayNull_ (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+                 NULL,
+                 false)
  , encoder_ (ACE_TEXT_ALWAYS_CHAR ("AVIEncoder"),
              NULL,
              false)
@@ -61,6 +64,7 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
   inherited::modules_.push_front (&source_);
   inherited::modules_.push_front (&runtimeStatistic_);
   inherited::modules_.push_front (&display_);
+  //inherited::modules_.push_front (&displayNull_);
   inherited::modules_.push_front (&encoder_);
   inherited::modules_.push_front (&fileWriter_);
 
@@ -96,6 +100,17 @@ Stream_CamSave_Stream::~Stream_CamSave_Stream ()
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+Stream_Module_t*
+Stream_CamSave_Stream::find (const std::string& name_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::find"));
+
+  if (ACE_OS::strcmp (name_in.c_str (),
+                      ACE_TEXT_ALWAYS_CHAR ("DisplayNull")) == 0)
+    return const_cast<Stream_CamSave_Module_DisplayNull_Module*> (&displayNull_);
+
+  return inherited::find (name_in);
+}
 void
 Stream_CamSave_Stream::start ()
 {
@@ -216,6 +231,10 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   // sanity check(s)
   ACE_ASSERT (result_in);
   ACE_ASSERT (mediaSession_);
+  ACE_ASSERT (inherited::sessionData_);
+
+  Stream_CamSave_SessionData& session_data_r =
+    const_cast<Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
 
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
   if (FAILED (result))
@@ -249,13 +268,39 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   case MESessionClosed:
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionClosed...\n")));
+                ACE_TEXT ("received MESessionClosed, shutting down...\n")));
+    IMFMediaSource* media_source_p = NULL;
+    if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
+                                                     media_source_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), continuing\n")));
+      goto continue_;
+    } // end IF
+    ACE_ASSERT (media_source_p);
+    result = media_source_p->Shutdown ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSource::Shutdown(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    media_source_p->Release ();
+continue_:
+    result = mediaSession_->Shutdown ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     break;
   }
   case MESessionEnded:
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionEnded...\n")));
+                ACE_TEXT ("received MESessionEnded, closing sesion...\n")));
+    result = mediaSession_->Close ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     break;
   }
   case MESessionCapabilitiesChanged:
@@ -288,7 +333,8 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   case MESessionTopologySet:
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionTopologySet...\n")));
+                ACE_TEXT ("received MESessionTopologySet (status was: \"%s\")...\n"),
+                ACE_TEXT (Common_Tools::error2String (status).c_str ())));
     break;
   }
   case MESessionTopologyStatus:
@@ -474,17 +520,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   //struct _AllocatorProperties allocator_properties;
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   HRESULT result_2 = E_FAIL;
-
-  if (configuration_in.moduleHandlerConfiguration->mediaSource)
-  {
-    configuration_in.moduleHandlerConfiguration->mediaSource->Release ();
-    configuration_in.moduleHandlerConfiguration->mediaSource = NULL;
-  } // end IF
-  if (configuration_in.moduleHandlerConfiguration->topology)
-  {
-    configuration_in.moduleHandlerConfiguration->topology->Release ();
-    configuration_in.moduleHandlerConfiguration->topology = NULL;
-  } // end IF
+  IMFTopology* topology_p = NULL;
 
   //if (configuration_in.moduleHandlerConfiguration->builder)
   //{
@@ -556,31 +592,29 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     } // end IF
     ACE_ASSERT (direct3D_manager_p);
 
-    // sanity check(s)
-    ACE_ASSERT (!configuration_in.moduleHandlerConfiguration->mediaSource);
-
-    WCHAR* symbolic_link_p = NULL;
-    UINT32 symbolic_link_size = 0;
-    if (!Stream_Module_Device_Tools::getMediaSource (configuration_in.moduleHandlerConfiguration->device,
-                                                     configuration_in.moduleHandlerConfiguration->mediaSource,
-                                                     symbolic_link_p,
-                                                     symbolic_link_size))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
-                  ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
-      goto error;
-    } // end IF
-    CoTaskMemFree (symbolic_link_p);
-    symbolic_link_p = NULL;
-    symbolic_link_size = 0;
-    ACE_ASSERT (configuration_in.moduleHandlerConfiguration->mediaSource);
+    //WCHAR* symbolic_link_p = NULL;
+    //UINT32 symbolic_link_size = 0;
+    //IMFMediaSource* media_source_p = NULL;
+    //if (!Stream_Module_Device_Tools::getMediaSource (configuration_in.moduleHandlerConfiguration->device,
+    //                                                 media_source_p,
+    //                                                 symbolic_link_p,
+    //                                                 symbolic_link_size))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
+    //              ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
+    //  goto error;
+    //} // end IF
+    //CoTaskMemFree (symbolic_link_p);
+    //symbolic_link_p = NULL;
+    //symbolic_link_size = 0;
+    //ACE_ASSERT (media_source_p);
     // *TODO*: using the Direct3D device manager (used by the EVR renderer) is
     //         currently broken
     //         --> pass NULL and use a different visualization module (e.g. the
     //             Direct3D module)
-    direct3D_manager_p->Release ();
-    direct3D_manager_p = NULL;
+    //direct3D_manager_p->Release ();
+    //direct3D_manager_p = NULL;
     //if (!Stream_Module_Device_Tools::getSourceReader (configuration_in.moduleHandlerConfiguration->mediaSource,
     //                                                  symbolic_link_p,
     //                                                  symbolic_link_size,
@@ -606,33 +640,23 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
                                                            //configuration_in.moduleHandlerConfiguration->window,
                                                            configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
                                                            configuration_in.moduleHandlerConfiguration->rendererNodeId,
-                                                           configuration_in.moduleHandlerConfiguration->topology))
+                                                           topology_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(\"%s\"), aborting\n"),
                   ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
-
-      // clean up
-      configuration_in.moduleHandlerConfiguration->mediaSource->Release ();
-      configuration_in.moduleHandlerConfiguration->mediaSource = NULL;
-
       goto error;
     } // end IF
     //direct3D_manager_p->Release ();
     //direct3D_manager_p = NULL;
-    ACE_ASSERT (configuration_in.moduleHandlerConfiguration->topology);
+    ACE_ASSERT (topology_p);
     graph_loaded = true;
 
-    if (!Stream_Module_Device_Tools::setCaptureFormat (configuration_in.moduleHandlerConfiguration->topology,
+    if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
                                                        configuration_in.moduleHandlerConfiguration->format))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
-
-      // clean up
-      configuration_in.moduleHandlerConfiguration->mediaSource->Release ();
-      configuration_in.moduleHandlerConfiguration->mediaSource = NULL;
-
       goto error;
     } // end IF
     if (_DEBUG)
@@ -654,7 +678,6 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     //                                     log_file_name);
     //} // end IF
   //} // end ELSE
-  Stream_Module_Device_Tools::dump (configuration_in.moduleHandlerConfiguration->topology);
 
 //continue_:
   if (session_data_r.format)
@@ -801,7 +824,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
 
   ACE_ASSERT (!session_data_r.format);
   //if (!Stream_Module_Device_Tools::getOutputFormat (configuration_in.moduleHandlerConfiguration->builder,
-  if (!Stream_Module_Device_Tools::getOutputFormat (configuration_in.moduleHandlerConfiguration->topology,
+  if (!Stream_Module_Device_Tools::getOutputFormat (topology_p,
                                                     configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
                                                     session_data_r.format))
   {
@@ -827,6 +850,15 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   {
     reference_count = configuration_in.moduleHandlerConfiguration->session->AddRef ();
     mediaSession_ = configuration_in.moduleHandlerConfiguration->session;
+
+    result = mediaSession_->ClearTopologies ();
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::ClearTopologies(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
 
     goto continue_;
   } // end IF
@@ -867,12 +899,37 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   configuration_in.moduleHandlerConfiguration->session = mediaSession_;
 
 continue_:
+  IMFTopoLoader* topology_loader_p = NULL;
+  result = MFCreateTopoLoader (&topology_loader_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopoLoader(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  IMFTopology* topology_2 = NULL;
+  result = topology_loader_p->Load (topology_p,
+                                    &topology_2,
+                                    NULL);
+  if (FAILED (result)) // MF_E_INVALIDMEDIATYPE    : 0xC00D36B4L
+  {                    // MF_E_NO_MORE_TYPES       : 0xC00D36B9L
+                       // MF_E_TOPO_CODEC_NOT_FOUND: 0xC00D5212L
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopoLoader::Load(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    Stream_Module_Device_Tools::dump (topology_p);
+    goto error;
+  } // end IF
+  topology_loader_p->Release ();
+  topology_p->Release ();
+  topology_p = topology_2;
+
   DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);//    |
                           //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
                           //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
-  result =
-    mediaSession_->SetTopology (topology_flags,
-                                configuration_in.moduleHandlerConfiguration->topology);
+  result = mediaSession_->SetTopology (topology_flags,
+                                       topology_p);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -880,6 +937,32 @@ continue_:
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
+    // *NOTE*: IMFMediaSession::SetTopology() is asynchronous, so subsequent calls
+    //         to retrieve the topology handle will fail (MF_E_INVALIDREQUEST)
+    //         --> wait a little
+  IMFMediaEvent* media_event_p = NULL;
+  bool received_topology_set_event = false;
+  MediaEventType event_type = MEUnknown;
+  do
+  {
+    media_event_p = NULL;
+    result = mediaSession_->GetEvent (0,
+                                      &media_event_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (media_event_p);
+    result = media_event_p->GetType (&event_type);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (event_type == MESessionTopologySet)
+      received_topology_set_event = true;
+    media_event_p->Release ();
+  } while (!received_topology_set_event);
+  topology_p->Release ();
 
   //result_2 =
   //  configuration_in.moduleHandlerConfiguration->builder->QueryInterface (IID_IMediaFilter,
@@ -959,13 +1042,8 @@ error:
   //  media_filter_p->Release ();
   if (direct3D_manager_p)
     direct3D_manager_p->Release ();
-  if (graph_loaded)
-  {
-    //configuration_in.moduleHandlerConfiguration->builder->Release ();
-    //configuration_in.moduleHandlerConfiguration->builder = NULL;
-    configuration_in.moduleHandlerConfiguration->topology->Release ();
-    configuration_in.moduleHandlerConfiguration->topology = NULL;
-  } // end IF
+  if (topology_p)
+    topology_p->Release ();
   if (session_data_r.direct3DDevice)
   {
     session_data_r.direct3DDevice->Release ();
@@ -978,6 +1056,16 @@ error:
     session_data_r.format = NULL;
   } // end IF
   session_data_r.resetToken = 0;
+  if (session_data_r.session)
+  {
+    session_data_r.session->Release ();
+    session_data_r.session = NULL;
+  } // end IF
+  if (mediaSession_)
+  {
+    mediaSession_->Release ();
+    mediaSession_ = NULL;
+  } // end IF
 
   if (COM_initialized)
     CoUninitialize ();

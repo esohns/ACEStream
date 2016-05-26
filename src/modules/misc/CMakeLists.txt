@@ -37,6 +37,9 @@ if (WIN32)
       stream_misc_mediafoundation_source_stream.cpp
       stream_misc_mediafoundation_source_stream.h
       stream_misc_mediafoundation_source_stream.inl
+      stream_misc_mediafoundation_target.cpp
+      stream_misc_mediafoundation_target.h
+      stream_misc_mediafoundation_target.inl
       stream_misc_messagehandler.cpp
       stream_misc_messagehandler.h
       stream_misc_messagehandler.inl

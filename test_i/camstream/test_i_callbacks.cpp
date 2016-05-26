@@ -3264,13 +3264,26 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.topology);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
-#endif
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HRESULT result_2 = E_FAIL;
+  enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
+    MFSESSION_GETFULLTOPOLOGY_CURRENT;
+  IMFTopology* topology_p = NULL;
+  result_2 =
+    data_p->configuration->moduleHandlerConfiguration.session->GetFullTopology (flags,
+                                                                                0,
+                                                                                &topology_p);
+  if (FAILED (result_2))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+    goto error;
+  } // end IF
   //if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.topology,
+  if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
 #else
   if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
 #endif
@@ -3280,6 +3293,9 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  topology_p->Release ();
+#endif
   //struct _AMMediaType* media_type_p = NULL;
   //Stream_Module_Device_Tools::getCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
   //                                              media_type_p);

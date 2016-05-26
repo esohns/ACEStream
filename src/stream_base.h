@@ -119,6 +119,7 @@ class Stream_Base_T
                                   bool = false); // wait for upstream (if any) ?
   //virtual void waitForIdleState (bool = false) const; // wait for upstream (if any) ?
 
+  virtual Stream_Module_t* find (const std::string&) const; // module name
   virtual std::string name () const;
   virtual const StateType& state () const;
 

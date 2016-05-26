@@ -32,9 +32,9 @@
 
 #include "stream_common.h"
 
-// forward declarations
-typedef ACE_Stream<ACE_MT_SYNCH,
-                   Common_TimePolicy_t> Stream_Base_t;
+//// forward declarations
+//typedef ACE_Stream<ACE_MT_SYNCH,
+//                   Common_TimePolicy_t> Stream_Base_t;
 
 template <typename StatusType,
           typename StateType>
@@ -62,6 +62,7 @@ class Stream_IStreamControl_T
   //// *NOTE*: wait for all worker threads to join
   //virtual void waitForIdleState (bool = false) const = 0; // wait for upstream (if any) ?
 
+  virtual Stream_Module_t* find (const std::string&) const = 0; // module name
   virtual std::string name () const = 0;
   virtual const StateType& state () const = 0;
 

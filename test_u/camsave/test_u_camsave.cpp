@@ -412,20 +412,23 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 bool
-do_initialize_directshow (const std::string& deviceName_in,
-                          const HWND windowHandle_in,
-                          //IGraphBuilder*& IGraphBuilder_out,
-                          IMFMediaSource*& IMFMediaSource_out,
-                          //IMFSourceReaderEx*& IMFSourceReaderEx_out,
-                          IMFTopology*& IMFTopology_out,
-                          //IAMBufferNegotiation*& IAMBufferNegotiation_out,
-                          //IAMStreamConfig*& IAMStreamConfig_out)
-                          bool loadDevice_in,
-                          bool coInitialize_in)
+do_initialize_mediafoundation (const std::string& deviceName_in,
+                               const HWND windowHandle_in,
+                               //IGraphBuilder*& IGraphBuilder_out,
+                               IMFMediaSession*& IMFMediaSession_out,
+                               //IAMBufferNegotiation*& IAMBufferNegotiation_out,
+                               //IAMStreamConfig*& IAMStreamConfig_out)
+                               bool loadDevice_in,
+                               bool coInitialize_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
 
   HRESULT result = E_FAIL;
+  IMFMediaSource* media_source_p = NULL;
+  IMFTopology* topology_p = NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (!IMFMediaSession_out);
 
   if (!coInitialize_in)
     goto continue_;
@@ -473,59 +476,87 @@ continue_:
   //ACE_ASSERT (IAMBufferNegotiation_out);
   //ACE_ASSERT (IAMStreamConfig_out);
 
-  bool release_media_source = false;
   WCHAR* symbolic_link_p = NULL;
   UINT32 symbolic_link_size = 0;
-  if (!IMFMediaSource_out)
+  if (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
+                                                   media_source_p,
+                                                   symbolic_link_p,
+                                                   symbolic_link_size))
   {
-    if (!Stream_Module_Device_Tools::getMediaSource (deviceName_in,
-                                                     IMFMediaSource_out,
-                                                     symbolic_link_p,
-                                                     symbolic_link_size))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
-                  ACE_TEXT (deviceName_in.c_str ())));
-      goto error;
-    } // end IF
-    else
-    {
-      release_media_source = true;
-
-      // clean up
-      CoTaskMemFree (symbolic_link_p);
-      symbolic_link_p = NULL;
-      symbolic_link_size = 0;
-    } // end ELSE
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
+                ACE_TEXT (deviceName_in.c_str ())));
+    goto error;
   } // end IF
-  ACE_ASSERT (IMFMediaSource_out);
+  ACE_ASSERT (media_source_p);
+  ACE_ASSERT (symbolic_link_p);
+  ACE_ASSERT (symbolic_link_size);
+  CoTaskMemFree (symbolic_link_p);
 
-  // sanity check(s)
-  //ACE_ASSERT (!IMFSourceReaderEx_out);
-  //if (!Stream_Module_Device_Tools::getSourceReader (IMFMediaSource_out,
-  //                                                  symbolic_link_p,
-  //                                                  symbolic_link_size,
-  //                                                  NULL,
-  //                                                  NULL,
-  //                                                  false,
-  //                                                  IMFSourceReaderEx_out))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), aborting\n")));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (IMFSourceReaderEx_out);
   if (!Stream_Module_Device_Tools::loadDeviceTopology (deviceName_in,
-                                                       IMFMediaSource_out,
-                                                       IMFTopology_out))
+                                                       media_source_p,
+                                                       NULL,
+                                                       topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceTopology(), aborting\n")));
     goto error;
   } // end IF
-  ACE_ASSERT (IMFTopology_out);
+  ACE_ASSERT (topology_p);
+  media_source_p->Release ();
+  media_source_p = NULL;
 
 continue_2:
+  IMFAttributes* attributes_p = NULL;
+  result = MFCreateAttributes (&attributes_p, 4);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = attributes_p->SetUINT32 (MF_SESSION_GLOBAL_TIME, FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = attributes_p->SetGUID (MF_SESSION_QUALITY_MANAGER, GUID_NULL);
+  ACE_ASSERT (SUCCEEDED (result));
+  //result = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
+  //ACE_ASSERT (SUCCEEDED (result));
+  result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = MFCreateMediaSession (attributes_p,
+                                 &IMFMediaSession_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    attributes_p->Release ();
+
+    goto error;
+  } // end IF
+  attributes_p->Release ();
+
+  if (topology_p)
+  {
+    DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
+                            //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+                            //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
+    result = IMFMediaSession_out->SetTopology (topology_flags,
+                                               topology_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    topology_p->Release ();
+    topology_p = NULL;
+  } // end IF
+
   //if (_DEBUG)
   //{
   //  std::string log_file_name =
@@ -571,6 +602,10 @@ continue_2:
   return true;
 
 error:
+  if (media_source_p)
+    media_source_p->Release ();
+  if (topology_p)
+    topology_p->Release ();
 //  if (IAMStreamConfig_out)
 //  {
 //    IAMStreamConfig_out->Release ();
@@ -581,20 +616,10 @@ error:
 //    IGraphBuilder_out->Release ();
 //    IGraphBuilder_out = NULL;
 //  } // end IF
-  if (release_media_source)
+  if (IMFMediaSession_out)
   {
-    IMFMediaSource_out->Release ();
-    IMFMediaSource_out = NULL;
-  } // end IF
-  //if (IMFSourceReaderEx_out)
-  //{
-  //  IMFSourceReaderEx_out->Release ();
-  //  IMFSourceReaderEx_out = NULL;
-  //} // end IF
-  if (IMFTopology_out)
-  {
-    IMFTopology_out->Release ();
-    IMFTopology_out = NULL;
+    IMFMediaSession_out->Release ();
+    IMFMediaSession_out = NULL;
   } // end IF
 
   result = MFShutdown ();
@@ -610,9 +635,9 @@ error:
 }
 
 void
-do_finalize_directshow (Stream_CamSave_GTK_CBData& CBData_in)
+do_finalize_mediafoundation (Stream_CamSave_GTK_CBData& CBData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
+  STREAM_TRACE (ACE_TEXT ("::do_finalize_mediafoundation"));
 
   // sanity check(s)
   ACE_ASSERT (CBData_in.configuration);
@@ -628,11 +653,23 @@ do_finalize_directshow (Stream_CamSave_GTK_CBData& CBData_in)
   //  CBData_in.configuration->moduleHandlerConfiguration.builder->Release ();
   //  CBData_in.configuration->moduleHandlerConfiguration.builder = NULL;
   //} // end IF
-  //if (CBData_in.configuration->moduleHandlerConfiguration.sourceReader)
-  //{
-  //  CBData_in.configuration->moduleHandlerConfiguration.sourceReader->Release ();
-  //  CBData_in.configuration->moduleHandlerConfiguration.sourceReader = NULL;
-  //} // end IF
+  if (CBData_in.configuration->moduleHandlerConfiguration.session)
+  {
+    result =
+      CBData_in.configuration->moduleHandlerConfiguration.session->Shutdown ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    CBData_in.configuration->moduleHandlerConfiguration.session->Release ();
+    CBData_in.configuration->moduleHandlerConfiguration.session = NULL;
+  } // end IF
+
+  result = MFShutdown ();
+  if (FAILED (result))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFShutdown(): \"%s\", continuing\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
   CoUninitialize ();
 }
@@ -662,32 +699,26 @@ do_work (unsigned int bufferSize_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;
-  IMFMediaSource* media_source_p = NULL;
-  //IMFSourceReaderEx* source_reader_p = NULL;
-  IMFTopology* topology_p = NULL;
-  if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
-                                 configuration.moduleHandlerConfiguration.window,
-                                 //configuration.moduleHandlerConfiguration.builder,
-                                 media_source_p,
-                                 //source_reader_p,
-                                 topology_p,
-                                 //buffer_negotiation_p,
-                                 //CBData_in.streamConfiguration))
-                                 UIDefinitionFilename_in.empty (),  // load device ?
-                                 UIDefinitionFilename_in.empty ())) // initialize COM ?
+  IMFMediaSession* media_session_p = NULL;
+  bool load_device = UIDefinitionFilename_in.empty ();
+  bool initialize_COM = UIDefinitionFilename_in.empty ();
+  if (!do_initialize_mediafoundation (configuration.moduleHandlerConfiguration.device,
+                                      configuration.moduleHandlerConfiguration.window,
+                                      //configuration.moduleHandlerConfiguration.builder,
+                                      media_session_p,
+                                      //buffer_negotiation_p,
+                                      //CBData_in.streamConfiguration))
+                                      load_device,     // load device ?
+                                      initialize_COM)) // initialize COM ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
     return;
   } // end IF
   //ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
-  //ACE_ASSERT (media_source_p);
-  //ACE_ASSERT (topology_p);
+  ACE_ASSERT (media_session_p);
   //ACE_ASSERT (buffer_negotiation_p);
   //ACE_ASSERT (CBData_in.streamConfiguration);
-
-  //media_source_p->Release ();
-  //topology_p->Release ();
   //buffer_negotiation_p->Release ();
 #endif
 
@@ -720,6 +751,7 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.hasHeader = true; // write AVI files
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  configuration.moduleHandlerConfiguration.session = media_session_p;
 #else
   configuration.moduleHandlerConfiguration.device = deviceFilename_in;
   // *TODO*: turn these into an option
@@ -867,7 +899,7 @@ clean:
   COMMON_TIMERMANAGER_SINGLETON::instance ()->stop ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  do_finalize_directshow (CBData_in);
+  do_finalize_mediafoundation (CBData_in);
 #endif
 
   ACE_DEBUG ((LM_DEBUG,

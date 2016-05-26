@@ -385,11 +385,24 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
 
       // sanity check(s)
       ACE_ASSERT (!IDirect3DDevice9Ex_);
-      ACE_ASSERT (session_data_r.topology);
+      ACE_ASSERT (session_data_r.session);
 
+      enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
+        MFSESSION_GETFULLTOPOLOGY_CURRENT;
+      IMFTopology* topology_p = NULL;
+      result = session_data_r.session->GetFullTopology (flags,
+                                                        0,
+                                                        &topology_p);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        goto error;
+      } // end IF
       IMFMediaType* media_type_p = NULL;
       TOPOID node_id = 0;
-      if (!Stream_Module_Device_Tools::getOutputFormat (session_data_r.topology,
+      if (!Stream_Module_Device_Tools::getOutputFormat (topology_p,
                                                         node_id,
                                                         media_type_p))
       {
@@ -427,13 +440,18 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
           goto error;
         } // end IF
       } // end ELSE
+
+      topology_p->Release ();
       media_type_p->Release ();
 
       goto continue_;
 
 error:
+      if (topology_p)
+        topology_p->Release ();
       if (media_type_p)
-        media_type_p->Release ();
+      media_type_p->Release ();
+
       if (IDirect3DDevice9Ex_)
       {
         IDirect3DDevice9Ex_->Release ();

@@ -26,6 +26,7 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../misc)
 
 ############## next target ################
 if (WIN32)

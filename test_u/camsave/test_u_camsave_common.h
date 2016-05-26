@@ -130,7 +130,6 @@ struct Stream_CamSave_SessionData
    , rendererNodeId (0)
    , resetToken (0)
    , session (NULL)
-   , topology (NULL)
 #else
    , format ()
    , frameRate ()
@@ -162,7 +161,6 @@ struct Stream_CamSave_SessionData
   TOPOID                       rendererNodeId;
   UINT                         resetToken; // direct 3D manager 'id'
   IMFMediaSession*             session;
-  IMFTopology*                 topology;
 #else
   struct v4l2_format           format;
   struct v4l2_fract            frameRate; // time-per-frame
@@ -194,12 +192,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    //, builder (NULL)
    , format (NULL)
-   , mediaSource (NULL)
    , rendererNodeId (0)
    , sampleGrabberNodeId (0)
-   //, sourceReader (NULL)
    , session (NULL)
-   , topology (NULL)
    , windowController (NULL)
 #else
    , bufferMap ()
@@ -245,12 +240,9 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   //IGraphBuilder*       builder;
   //struct _AMMediaType* format;
   IMFMediaType*           format;
-  IMFMediaSource*         mediaSource;
   TOPOID                  rendererNodeId;
   TOPOID                  sampleGrabberNodeId;
-  //IMFSourceReaderEx*      sourceReader;
   IMFMediaSession*        session;
-  IMFTopology*            topology;
   //IVideoWindow*        windowController;
   IMFVideoDisplayControl* windowController;
 #else

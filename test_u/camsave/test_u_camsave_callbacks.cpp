@@ -2518,22 +2518,39 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
 
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.mediaSource);
-#endif
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.mediaSource,
+  //HRESULT result_2 = E_FAIL;
+  //enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
+  //  MFSESSION_GETFULLTOPOLOGY_CURRENT;
+  //IMFTopology* topology_p = NULL;
+  //result_2 =
+  //  data_p->configuration->moduleHandlerConfiguration.session->GetFullTopology (flags,
+  //                                                                              0,
+  //                                                                              &topology_p);
+  //if (FAILED (result_2))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+  //  goto error;
+  //} // end IF
+
+  ////if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+  //if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
 #else
   if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
-#endif
                                                      data_p->configuration->moduleHandlerConfiguration.format))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
+#endif
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  topology_p->Release ();
+//#endif
   //struct _AMMediaType* media_type_p = NULL;
   //Stream_Module_Device_Tools::getCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
   //                                              media_type_p);
@@ -2870,26 +2887,11 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   //buffer_negotiation_p->Release ();
 
-  //if (data_p->configuration->moduleHandlerConfiguration.sourceReader)
-  //{
-  //  data_p->configuration->moduleHandlerConfiguration.sourceReader->Release ();
-  //  data_p->configuration->moduleHandlerConfiguration.sourceReader = NULL;
-  //} // end IF
-  if (data_p->configuration->moduleHandlerConfiguration.mediaSource)
-  {
-    data_p->configuration->moduleHandlerConfiguration.mediaSource->Release ();
-    data_p->configuration->moduleHandlerConfiguration.mediaSource = NULL;
-  } // end IF
-  if (data_p->configuration->moduleHandlerConfiguration.topology)
-  {
-    data_p->configuration->moduleHandlerConfiguration.topology->Release ();
-    data_p->configuration->moduleHandlerConfiguration.topology = NULL;
-  } // end IF
-
   WCHAR* symbolic_link_p = NULL;
   UINT32 symbolic_link_size = 0;
+  IMFMediaSource* media_source_p = NULL;
   if (!Stream_Module_Device_Tools::getMediaSource (device_string,
-                                                   data_p->configuration->moduleHandlerConfiguration.mediaSource,
+                                                   media_source_p,
                                                    symbolic_link_p,
                                                    symbolic_link_size))
   {
@@ -2898,50 +2900,123 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (device_string.c_str ())));
     return;
   } // end IF
+  ACE_ASSERT (media_source_p);
+  ACE_ASSERT (symbolic_link_p);
+  ACE_ASSERT (symbolic_link_size);
   CoTaskMemFree (symbolic_link_p);
-  symbolic_link_p = NULL;
-  symbolic_link_size = 0;
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.mediaSource);
-  //if (!Stream_Module_Device_Tools::getSourceReader (data_p->configuration->moduleHandlerConfiguration.mediaSource,
-  //                                                  symbolic_link_p,
-  //                                                  symbolic_link_size,
-  //                                                  NULL,
-  //                                                  NULL,
-  //                                                  false,
-  //                                                  data_p->configuration->moduleHandlerConfiguration.sourceReader))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(), returning\n")));
 
-  //  // clean up
-  //  data_p->configuration->moduleHandlerConfiguration.mediaSource->Release ();
-  //  data_p->configuration->moduleHandlerConfiguration.mediaSource = NULL;
+  std::string module_name =
+    ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_NULL_RENDERER_MODULE_NAME);
+  Stream_Module_t* module_p = data_p->stream->find (module_name);
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Base_T::find(\"%s\"), returning\n"),
+                ACE_TEXT (module_name.c_str ())));
+    return;
+  } // end IF
+  Stream_CamSave_Module_DisplayNull* display_impl_p =
+    dynamic_cast<Stream_CamSave_Module_DisplayNull*> (module_p->writer ());
+  ACE_ASSERT (display_impl_p);
 
-  //  return;
-  //} // end IF
-  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+  IMFTopology* topology_p = NULL;
+  struct _MFRatio pixel_aspect_ratio = { 1, 1 };
+  if (!Stream_Module_Device_Tools::loadDeviceTopology (device_string,
+                                                       media_source_p,
+                                                       display_impl_p,
+                                                       topology_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceTopology(), aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (topology_p);
+
+  IMFTopoLoader* topology_loader_p = NULL;
+  HRESULT result = MFCreateTopoLoader (&topology_loader_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopoLoader(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  IMFTopology* topology_2 = NULL;
+  result = topology_loader_p->Load (topology_p,
+                                    &topology_2,
+                                    NULL);
+  if (FAILED (result)) // MF_E_TOPO_CODEC_NOT_FOUND: 0xC00D5212L
+  {                    // MF_E_TOPO_UNSUPPORTED    : 0xC00D5214L
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopoLoader::Load(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    Stream_Module_Device_Tools::dump (topology_p);
+    goto error;
+  } // end IF
+  topology_loader_p->Release ();
+  topology_p->Release ();
+  topology_p = topology_2;
+
+  // sanity check(s)
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
+
+  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
+                          //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+                          //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
+  result =
+    data_p->configuration->moduleHandlerConfiguration.session->SetTopology (topology_flags,
+                                                                            topology_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  // *NOTE*: IMFMediaSession::SetTopology() is asynchronous, so subsequent calls
+  //         to retrieve the topology handle will fail (MF_E_INVALIDREQUEST)
+  //         --> wait a little
+  IMFMediaEvent* media_event_p = NULL;
+  bool received_topology_set_event = false;
+  MediaEventType event_type = MEUnknown;
+  do
+  {
+    media_event_p = NULL;
+    result =
+      data_p->configuration->moduleHandlerConfiguration.session->GetEvent (0,
+                                                                           &media_event_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (media_event_p);
+    result = media_event_p->GetType (&event_type);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (event_type == MESessionTopologySet)
+      received_topology_set_event = true;
+    media_event_p->Release ();
+  } while (!received_topology_set_event);
+
+  topology_p->Release ();
+  topology_p = NULL;
 
   if (data_p->configuration->moduleHandlerConfiguration.format)
   {
     data_p->configuration->moduleHandlerConfiguration.format->Release ();
     data_p->configuration->moduleHandlerConfiguration.format = NULL;
   } // end IF
-  HRESULT result =
+  result =
     MFCreateMediaType (&data_p->configuration->moduleHandlerConfiguration.format);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
+                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return;
+    goto error;
   } // end IF
-  //if (!Stream_Module_Device_Tools::getCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-  //                                                   data_p->configuration->moduleHandlerConfiguration.format))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), returning\n")));
-  //  return;
-  //} // end IF
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
   result =
     data_p->configuration->moduleHandlerConfiguration.format->SetGUID (MF_MT_MAJOR_TYPE,
@@ -2951,7 +3026,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     data_p->configuration->moduleHandlerConfiguration.format->SetUINT32 (MF_MT_INTERLACE_MODE,
                                                                          MFVideoInterlace_Unknown);
   ACE_ASSERT (SUCCEEDED (result));
-  struct _MFRatio pixel_aspect_ratio = { 1, 1 };
   result = MFSetAttributeRatio (data_p->configuration->moduleHandlerConfiguration.format,
                                 MF_MT_PIXEL_ASPECT_RATIO,
                                 pixel_aspect_ratio.Numerator,
@@ -2977,7 +3051,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   //if (!load_formats (data_p->streamConfiguration,
   //if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
-  if (!load_formats (data_p->configuration->moduleHandlerConfiguration.mediaSource,
+  if (!load_formats (media_source_p,
 #else
   int result = -1;
   if (data_p->device != -1)
@@ -3009,7 +3083,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_formats(), returning\n")));
-    return;
+    goto error;
   } // end IF
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
@@ -3028,6 +3102,16 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                                                  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
   ACE_ASSERT (toggle_action_p);
   gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  media_source_p->Release ();
+
+error:
+  if (media_source_p)
+    media_source_p->Release ();
+  if (topology_p)
+    topology_p->Release ();
+#endif
 } // combobox_source_changed_cb
 
 void
@@ -3100,8 +3184,7 @@ combobox_format_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.mediaSource);
-  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
   //ACE_ASSERT (data_p->streamConfiguration);
 
   //struct _AMMediaType* media_type_p = NULL;
@@ -3123,6 +3206,15 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::SetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+
+  IMFMediaSource* media_source_p = NULL;
+  if (!Stream_Module_Device_Tools::getMediaSource (data_p->configuration->moduleHandlerConfiguration.session,
+                                                   media_source_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), returning\n")));
     return;
   } // end IF
 
@@ -3159,7 +3251,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!load_resolutions (data_p->streamConfiguration,
   //if (!load_resolutions (data_p->configuration->moduleHandlerConfiguration.sourceReader,
-  if (!load_resolutions (data_p->configuration->moduleHandlerConfiguration.mediaSource,
+  if (!load_resolutions (media_source_p,
                          GUID_s,
 #else
   if (!load_resolutions (data_p->device,
@@ -3169,14 +3261,15 @@ continue_:
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::load_resolutions(\"%s\"), returning\n"),
+                ACE_TEXT ("failed to ::load_resolutions(\"%s\"), aborting\n"),
                 Stream_Module_Device_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+    goto error_2;
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::load_resolutions(%d), returning\n"),
                 data_p->device));
-#endif
     return;
+#endif
   } // end IF
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
@@ -3189,6 +3282,14 @@ continue_:
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  media_source_p->Release ();
+
+error_2:
+  if (media_source_p)
+    media_source_p->Release ();
+#endif
 } // combobox_format_changed_cb
 
 void
@@ -3293,8 +3394,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   // sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.mediaSource);
-  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.sourceReader);
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
   //ACE_ASSERT (data_p->streamConfiguration);
 
   //struct _AMMediaType* media_type_p = NULL;
@@ -3347,6 +3447,15 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
   //  video_info_header2_p->bmiHeader.biHeight = height;
   //} // end ELSE IF
 
+  IMFMediaSource* media_source_p = NULL;
+  if (!Stream_Module_Device_Tools::getMediaSource (data_p->configuration->moduleHandlerConfiguration.session,
+                                                   media_source_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), returning\n")));
+    return;
+  } // end IF
+
   // *NOTE*: the graph may (!) be stopped, but is in a "connected" state, i.e.
   //         the filter pins are associated. IGraphConfig::Reconnect fails
   //         unless the graph is "disconnected" first
@@ -3382,7 +3491,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //if (!load_rates (data_p->streamConfiguration,
   //if (!load_rates (data_p->configuration->moduleHandlerConfiguration.sourceReader,
-  if (!load_rates (data_p->configuration->moduleHandlerConfiguration.mediaSource,
+  if (!load_rates (media_source_p,
                    GUID_s,
                    width,
 #else
@@ -3392,9 +3501,17 @@ continue_:
 #endif
                    list_store_p))
   {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::load_rates(), returning\n")));
+                ACE_TEXT ("failed to ::load_rates(\"%s\"), aborting\n"),
+                Stream_Module_Device_Tools::mediaSubTypeToString (GUID_s).c_str ()));
+    goto error_2;
+#else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_rates(%d), returning\n"),
+                data_p->device));
     return;
+#endif
   } // end IF
 
   gint n_rows =
@@ -3408,6 +3525,14 @@ continue_:
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), true);
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  media_source_p->Release ();
+
+error_2:
+  if (media_source_p)
+    media_source_p->Release ();
+#endif
 } // combobox_resolution_changed_cb
 
 void
