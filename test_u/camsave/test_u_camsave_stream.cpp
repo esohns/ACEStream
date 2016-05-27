@@ -285,11 +285,12 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     media_source_p->Release ();
 continue_:
-    result = mediaSession_->Shutdown ();
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
+    //result = mediaSession_->Shutdown ();
+    //if (FAILED (result))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     break;
   }
   case MESessionEnded:
@@ -837,26 +838,26 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   HRESULT result = E_FAIL;
   if (mediaSession_)
   {
-    result = mediaSession_->Shutdown ();
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
+    //result = mediaSession_->Shutdown ();
+    //if (FAILED (result))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     mediaSession_->Release ();
     mediaSession_ = NULL;
   } // end IF
   ULONG reference_count = 0;
   if (configuration_in.moduleHandlerConfiguration->session)
   {
-    reference_count = configuration_in.moduleHandlerConfiguration->session->AddRef ();
+    reference_count =
+      configuration_in.moduleHandlerConfiguration->session->AddRef ();
     mediaSession_ = configuration_in.moduleHandlerConfiguration->session;
 
-    result = mediaSession_->ClearTopologies ();
-    if (FAILED (result))
+    if (!Stream_Module_Device_Tools::clear (mediaSession_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::ClearTopologies(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
       goto error;
     } // end IF
 
@@ -937,9 +938,11 @@ continue_:
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-    // *NOTE*: IMFMediaSession::SetTopology() is asynchronous, so subsequent calls
-    //         to retrieve the topology handle will fail (MF_E_INVALIDREQUEST)
-    //         --> wait a little
+  // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls
+  //         to retrieve the topology handle may fail (MF_E_INVALIDREQUEST)
+  //         --> (try to) wait for the next MESessionTopologySet event
+  // *TODO*: this procedure doesn't always work as expected (GetFullTopology()
+  //         still fails with MF_E_INVALIDREQUEST)
   IMFMediaEvent* media_event_p = NULL;
   bool received_topology_set_event = false;
   MediaEventType event_type = MEUnknown;

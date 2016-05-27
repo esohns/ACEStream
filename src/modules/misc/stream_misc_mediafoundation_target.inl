@@ -579,8 +579,7 @@ Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
   ACE_ASSERT (configuration_->streamConfiguration);
 
   // *TODO*: remove type inference
-  message_p =
-    allocateMessage (configuration_->streamConfiguration->bufferSize);
+  message_p = allocateMessage (configuration_->streamConfiguration->bufferSize);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -656,9 +655,7 @@ Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::OnShutdown"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (E_FAIL);
-  ACE_NOTREACHED (return E_FAIL;)
+  return S_OK;
 }
 
 template <typename SessionMessageType,

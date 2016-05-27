@@ -432,11 +432,12 @@ error:
       } // end IF
       if (mediaSession_)
       {
-        result_2 = mediaSession_->Shutdown ();
-        if (FAILED (result_2))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
+        //result_2 = mediaSession_->Shutdown ();
+        //if (FAILED (result_2))
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+        //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         mediaSession_->Release ();
         mediaSession_ = NULL;
       } // end IF
@@ -491,11 +492,12 @@ continue_:
       } // end IF
       if (mediaSession_)
       {
-        result_2 = mediaSession_->Shutdown ();
-        if (FAILED (result_2))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
+        //result_2 = mediaSession_->Shutdown ();
+        //if (FAILED (result_2))
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+        //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         mediaSession_->Release ();
         mediaSession_ = NULL;
       } // end IF
@@ -641,6 +643,7 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
   TOPOID node_id = 0;
   IMFStreamSink* stream_sink_p = NULL;
   IMFVideoPresenter* video_presenter_p = NULL;
+  HWND window_handle = NULL;
   if (topology_p)
   {
     IUnknown* unknown_p = NULL;
@@ -659,7 +662,28 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
     } // end IF
     else
     {
-      if (!Stream_Module_Device_Tools::addRenderer (windowHandle_in,
+      window_handle = CreateWindow (ACE_TEXT ("EDIT"),
+                                    0,
+                                    //WS_OVERLAPPEDWINDOW,
+                                    WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE | WS_VSCROLL | WS_HSCROLL,
+                                    CW_USEDEFAULT,
+                                    CW_USEDEFAULT,
+                                    640,
+                                    480,
+                                    0,
+                                    0,
+                                    GetModuleHandle (NULL),
+                                    0);
+      if (!window_handle)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to CreateWindow(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
+        goto error;
+      } // end IF
+      ShowWindow (window_handle, TRUE);
+      //if (!Stream_Module_Device_Tools::addRenderer (windowHandle_in,
+      if (!Stream_Module_Device_Tools::addRenderer (window_handle,
                                                     topology_p,
                                                     node_id))
       {
@@ -939,27 +963,45 @@ continue_:
   ACE_ASSERT (IMFVideoDisplayControl_out);
 
   //result = IMFVideoDisplayControl_out->SetVideoWindow (windowHandle_in);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMFVideoDisplayControl::SetVideoWindow(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //struct tagRECT destination_rectangle;
-  //ACE_OS::memset (&destination_rectangle, 0, sizeof (struct tagRECT));
-  //destination_rectangle.right = windowArea_in.right - windowArea_in.left;
-  //destination_rectangle.bottom = windowArea_in.bottom - windowArea_in.top;
-  //result =
-  //  IMFVideoDisplayControl_out->SetVideoPosition (NULL,
-  //                                                &destination_rectangle);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMFVideoDisplayControl::SetVideoPosition(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
+  result = IMFVideoDisplayControl_out->SetVideoWindow (window_handle);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFVideoDisplayControl::SetVideoWindow(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  //struct MFVideoNormalizedRect source_rectangle = {0, 0, 1, 1};
+  struct tagRECT destination_rectangle;
+  ACE_OS::memset (&destination_rectangle, 0, sizeof (struct tagRECT));
+  destination_rectangle.right = windowArea_in.right - windowArea_in.left;
+  destination_rectangle.bottom = windowArea_in.bottom - windowArea_in.top;
+  result =
+    IMFVideoDisplayControl_out->SetVideoPosition (NULL,//&source_rectangle,
+                                                  &destination_rectangle);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFVideoDisplayControl::SetVideoPosition(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  DWORD rendering_preferences =
+    (MFVideoRenderPrefs_DoNotRenderBorder     |
+     MFVideoRenderPrefs_DoNotClipToDevice     |
+     MFVideoRenderPrefs_AllowOutputThrottling |
+     MFVideoRenderPrefs_AllowBatching         |
+     MFVideoRenderPrefs_AllowScaling          |
+     MFVideoRenderPrefs_DoNotRepaintOnStop);
+  result =
+    IMFVideoDisplayControl_out->SetRenderingPrefs (rendering_preferences);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFVideoDisplayControl::SetRenderingPrefs(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
 
   //result = IMFMediaSink_out->QueryInterface (IID_PPV_ARGS (&video_renderer_p));
   //if (FAILED (result))

@@ -638,20 +638,20 @@ error:
       if (!mediaSession_)
         goto continue_;
 
-      IMFMediaSource* media_source_p = NULL;
-      if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
-                                                       media_source_p))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), continuing\n")));
-        goto continue_;
-      } // end IF
-      result_2 = media_source_p->Stop ();
-      if (FAILED (result_2))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to IMFMediaSource::Stop(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-      media_source_p->Release ();
+      //IMFMediaSource* media_source_p = NULL;
+      //if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
+      //                                                 media_source_p))
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), continuing\n")));
+      //  goto continue_;
+      //} // end IF
+      //result_2 = media_source_p->Stop ();
+      //if (FAILED (result_2))
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("failed to IMFMediaSource::Stop(): \"%s\", continuing\n"),
+      //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      //media_source_p->Release ();
 continue_:
       if (presentationClock_)
       {
@@ -666,21 +666,53 @@ continue_:
       } // end IF
       if (session_data_r.session)
       {
-        result = session_data_r.session->Shutdown ();
-        if (FAILED (result))
+        result_2 = session_data_r.session->Close ();
+        if (FAILED (result_2))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                      ACE_TEXT ("failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        // *NOTE*: IMFMediaSession::Close() is asynchronous
+        //         --> (try to) wait for the next MESessionClosed event
+        IMFMediaEvent* media_event_p = NULL;
+        bool received_topology_set_event = false;
+        MediaEventType event_type = MEUnknown;
+        do
+        {
+          media_event_p = NULL;
+          result = session_data_r.session->GetEvent (0,
+                                                     &media_event_p);
+          if (FAILED (result))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
+                        ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+            break;
+          } // end IF
+          ACE_ASSERT (media_event_p);
+          result = media_event_p->GetType (&event_type);
+          ACE_ASSERT (SUCCEEDED (result));
+          if (event_type == MESessionClosed)
+            received_topology_set_event = true;
+          media_event_p->Release ();
+        } while (!received_topology_set_event);
+
+        // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
+        //result_2 = session_data_r.session->Shutdown ();
+        //if (FAILED (result_2))
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+        //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         session_data_r.session->Release ();
         session_data_r.session = NULL;
       } // end IF
       if (mediaSession_)
       {
-        result = mediaSession_->Shutdown ();
-        if (FAILED (result))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
+        //result = mediaSession_->Shutdown ();
+        //if (FAILED (result))
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+        //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
         mediaSession_->Release ();
         mediaSession_ = NULL;
       } // end IF
@@ -1170,9 +1202,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
   ACE_UNUSED_ARG (systemClockTime_in);
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (S_OK);
-  ACE_NOTREACHED (return S_OK;)
+  return S_OK;
 }
 template <typename LockType,
           typename SessionMessageType,
@@ -1349,11 +1379,17 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   ACE_ASSERT (message_p);
   ACE_ASSERT (message_p->capacity () >= bufferSize_in);
 
-  // *TODO*: copy this data into the message buffer ?
-  message_p->base (reinterpret_cast<char*> (const_cast<BYTE*> (buffer_in)),
-                   bufferSize_in,
-                   ACE_Message_Block::DONT_DELETE);
-  message_p->wr_ptr (bufferSize_in);
+  // *TODO*: apparently, there is no way to retrieve the media sample, so a
+  //         memcpy is unavoidable...
+  result = message_p->copy (reinterpret_cast<const char*> (buffer_in),
+                            bufferSize_in);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
+                inherited::name ()));
+    goto error;
+  } // end IF
 
   result = inherited::putq (message_p, NULL);
   if (result == -1)
@@ -1401,8 +1437,11 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
     presentationClock_ = NULL;
   } // end IF
 
-  ULONG reference_count = presentationClock_in->AddRef ();
-  presentationClock_ = presentationClock_in;
+  if (presentationClock_in)
+  {
+    ULONG reference_count = presentationClock_in->AddRef ();
+    presentationClock_ = presentationClock_in;
+  } // end IF
 
   return S_OK;
 }

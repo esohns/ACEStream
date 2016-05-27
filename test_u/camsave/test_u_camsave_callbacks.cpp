@@ -2521,21 +2521,21 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
 
-  //HRESULT result_2 = E_FAIL;
-  //enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
-  //  MFSESSION_GETFULLTOPOLOGY_CURRENT;
-  //IMFTopology* topology_p = NULL;
-  //result_2 =
-  //  data_p->configuration->moduleHandlerConfiguration.session->GetFullTopology (flags,
-  //                                                                              0,
-  //                                                                              &topology_p);
-  //if (FAILED (result_2))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-  //  goto error;
-  //} // end IF
+  // *NOTE*: reusing a media session doesn't work reliably at the moment
+  //         --> recreate a new session every time
+  if (data_p->configuration->moduleHandlerConfiguration.session)
+  {
+    HRESULT result = E_FAIL;
+    // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
+    //result =
+    //  data_p->configuration->moduleHandlerConfiguration.session->Shutdown ();
+    //if (FAILED (result))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    data_p->configuration->moduleHandlerConfiguration.session->Release ();
+    data_p->configuration->moduleHandlerConfiguration.session = NULL;
+  } // end IF
 
   ////if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
   //if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,

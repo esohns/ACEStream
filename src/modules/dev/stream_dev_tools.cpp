@@ -1422,6 +1422,11 @@ Stream_Module_Device_Tools::getMediaSource (const IMFMediaSession* IMFMediaSessi
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
   IMFTopology* topology_p = NULL;
+  // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls
+  //         to retrieve the topology handle may fail (MF_E_INVALIDREQUEST)
+  //         --> (try to) wait for the next MESessionTopologySet event
+  // *TODO*: this procedure doesn't always work as expected (GetFullTopology()
+  //         still fails with MF_E_INVALIDREQUEST)
   HRESULT result =
     const_cast<IMFMediaSession*> (IMFMediaSession_in)->GetFullTopology (flags,
                                                                         0,
@@ -2260,8 +2265,8 @@ Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_2->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  result = topology_node_2->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  ACE_ASSERT (SUCCEEDED (result));
+  //result = topology_node_2->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  //ACE_ASSERT (SUCCEEDED (result));
   result = IMFTopology_out->AddNode (topology_node_2);
   if (FAILED (result))
   {
@@ -2748,8 +2753,8 @@ Stream_Module_Device_Tools::addGrabber (const IMFMediaType* IMFMediaType_in,
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  ACE_ASSERT (SUCCEEDED (result));
+  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  //ACE_ASSERT (SUCCEEDED (result));
   result = IMFTopology_in->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -2966,8 +2971,8 @@ Stream_Module_Device_Tools::addRenderer (const HWND windowHandle_in,
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  ACE_ASSERT (SUCCEEDED (result));
+  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  //ACE_ASSERT (SUCCEEDED (result));
   result = IMFTopology_in->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -3564,8 +3569,8 @@ continue_2:
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  ACE_ASSERT (SUCCEEDED (result));
+  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  //ACE_ASSERT (SUCCEEDED (result));
   result = IMFTopology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -3651,8 +3656,8 @@ continue_3:
   ACE_ASSERT (SUCCEEDED (result));
   result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
   ACE_ASSERT (SUCCEEDED (result));
-  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-  ACE_ASSERT (SUCCEEDED (result));
+  //result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  //ACE_ASSERT (SUCCEEDED (result));
   result = IMFTopology_inout->AddNode (topology_node_p);
   if (FAILED (result))
   {
@@ -5309,6 +5314,66 @@ Stream_Module_Device_Tools::clear (IGraphBuilder* builder_in)
     filter_p = NULL;
   } // end WHILE
   enumerator_p->Release ();
+
+  return true;
+}
+
+bool
+Stream_Module_Device_Tools::clear (IMFMediaSession* IMFMediaSession_in,
+                                   bool waitForCompletion_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::clear"));
+
+  // *NOTE*: this method is asynchronous (wait for MESessionTopologiesCleared)
+  HRESULT result = IMFMediaSession_in->ClearTopologies ();
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::ClearTopologies(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+
+  DWORD topology_flags = MFSESSION_SETTOPOLOGY_CLEAR_CURRENT;
+  result = IMFMediaSession_in->SetTopology (topology_flags,
+                                            NULL);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::SetTopology(MFSESSION_SETTOPOLOGY_CLEAR_CURRENT): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+
+  // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls
+  //         to retrieve the topology handle may fail (MF_E_INVALIDREQUEST)
+  //         --> (try to) wait for the next MESessionTopologySet event
+  // *TODO*: this procedure doesn't always work as expected
+  if (!waitForCompletion_in)
+    return true;
+
+  IMFMediaEvent* media_event_p = NULL;
+  bool received_topology_set_event = false;
+  MediaEventType event_type = MEUnknown;
+  do
+  {
+    media_event_p = NULL;
+    result = IMFMediaSession_in->GetEvent (0,
+                                           &media_event_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return false;
+    } // end IF
+    ACE_ASSERT (media_event_p);
+    result = media_event_p->GetType (&event_type);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (event_type == MESessionTopologySet)
+      received_topology_set_event = true;
+    media_event_p->Release ();
+  } while (!received_topology_set_event);
 
   return true;
 }

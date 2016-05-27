@@ -61,6 +61,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   // *TODO*: move the generic (i.e. non-device-specific) DirectShow
   //         functionality somewhere else
   static bool clear (IGraphBuilder*); // graph handle
+  static bool clear (IMFMediaSession*, // media session handle
+                     bool = true);     // wait for completion ?
   // *NOTE*: removes all 'transform' type MFTs (and any connected downstream
   //         nodes)
   static bool clear (IMFTopology*); // topology handle
