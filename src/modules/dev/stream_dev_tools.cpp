@@ -1425,12 +1425,16 @@ Stream_Module_Device_Tools::getMediaSource (const IMFMediaSession* IMFMediaSessi
   // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls
   //         to retrieve the topology handle may fail (MF_E_INVALIDREQUEST)
   //         --> (try to) wait for the next MESessionTopologySet event
-  // *TODO*: this procedure doesn't always work as expected (GetFullTopology()
+  // *NOTE*: this procedure doesn't always work as expected (GetFullTopology()
   //         still fails with MF_E_INVALIDREQUEST)
-  HRESULT result =
-    const_cast<IMFMediaSession*> (IMFMediaSession_in)->GetFullTopology (flags,
-                                                                        0,
-                                                                        &topology_p);
+  HRESULT result = E_FAIL;
+  do
+  {
+    result =
+      const_cast<IMFMediaSession*> (IMFMediaSession_in)->GetFullTopology (flags,
+                                                                          0,
+                                                                          &topology_p);
+  } while (result == MF_E_INVALIDREQUEST);
   if (FAILED (result)) // MF_E_INVALIDREQUEST: 0xC00D36B2L
   {
     ACE_DEBUG ((LM_ERROR,
@@ -5075,6 +5079,7 @@ Stream_Module_Device_Tools::append (IMFTopology* IMFTopology_in,
   ACE_ASSERT (nodeId_in);
 
   // step0: retrieve node handle
+  bool add_tee_node = true;
   HRESULT result = E_FAIL;
   IMFTopologyNode* topology_node_p = NULL;
   result = IMFTopology_in->GetNodeByID (nodeId_in,
@@ -5090,56 +5095,223 @@ Stream_Module_Device_Tools::append (IMFTopology* IMFTopology_in,
   ACE_ASSERT (topology_node_p);
 
   // step1: find a suitable upstream node
-  IMFTopologyNode* topology_node_2 = NULL;
+  IMFTopologyNode* topology_node_2 = NULL; // source/output node
+  IMFTopologyNode* topology_node_3 = NULL; // upstream node
+  IMFMediaType* media_type_p = NULL;
   IMFCollection* collection_p = NULL;
   result = IMFTopology_in->GetOutputNodeCollection (&collection_p);
   ACE_ASSERT (SUCCEEDED (result));
-  DWORD number_of_output_nodes = 0;
-  result = collection_p->GetElementCount (&number_of_output_nodes);
+  DWORD number_of_nodes = 0;
+  result = collection_p->GetElementCount (&number_of_nodes);
   ACE_ASSERT (SUCCEEDED (result));
   IUnknown* unknown_p = NULL;
-  if (number_of_output_nodes <= 0)
+  if (number_of_nodes <= 0)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("topology contains no output nodes, aborting\n")));
-
-    // clean up
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("topology contains no output nodes, continuing\n")));
+use_source_node:
+    add_tee_node = false;
     collection_p->Release ();
+    collection_p = NULL;
+    result = IMFTopology_in->GetSourceNodeCollection (&collection_p);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = collection_p->GetElementCount (&number_of_nodes);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (number_of_nodes <= 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("topology contains no source nodes, aborting\n")));
 
-    goto error;
-  } // end IF
-  result = collection_p->GetElement (0, &unknown_p);
-  ACE_ASSERT (SUCCEEDED (result));
-  collection_p->Release ();
-  ACE_ASSERT (unknown_p);
-  result = unknown_p->QueryInterface (IID_PPV_ARGS (&topology_node_2));
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      // clean up
+      collection_p->Release ();
 
-    // clean up
+      goto error;
+    } // end IF
+    result = collection_p->GetElement (0, &unknown_p);
+    ACE_ASSERT (SUCCEEDED (result));
+    collection_p->Release ();
+    ACE_ASSERT (unknown_p);
+    result = unknown_p->QueryInterface (IID_PPV_ARGS (&topology_node_2));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      unknown_p->Release ();
+
+      goto error;
+    } // end IF
     unknown_p->Release ();
+    ACE_ASSERT (topology_node_2);
 
-    goto error;
+    DWORD input_index = 0;
+    do
+    {
+      result = topology_node_2->GetOutputCount (&number_of_nodes);
+      ACE_ASSERT (SUCCEEDED (result));
+      if (number_of_nodes <= 0) break;
+
+      topology_node_3 = NULL;
+      result = topology_node_2->GetOutput (0,
+                                           &topology_node_3,
+                                           &input_index);
+      ACE_ASSERT (SUCCEEDED (result));
+      topology_node_2->Release ();
+      topology_node_2 = topology_node_3;
+    } while (true);
+
+    goto continue_;
   } // end IF
-  unknown_p->Release ();
-  ACE_ASSERT (topology_node_2);
+
+  TOPOID node_id = 0;
+  for (DWORD i = 0;
+       i < number_of_nodes;
+       ++i)
+  {
+    result = collection_p->GetElement (i, &unknown_p);
+    ACE_ASSERT (SUCCEEDED (result));
+    ACE_ASSERT (unknown_p);
+    result = unknown_p->QueryInterface (IID_PPV_ARGS (&topology_node_2));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      unknown_p->Release ();
+
+      goto error;
+    } // end IF
+    unknown_p->Release ();
+    ACE_ASSERT (topology_node_2);
+
+    result = topology_node_2->GetTopoNodeID (&node_id);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (node_id == nodeId_in)
+    {
+      topology_node_2->Release ();
+      topology_node_2 = NULL;
+      continue;
+    } // end IF
+
+    break;
+  } // end FOR
+  if (!topology_node_2)
+    goto use_source_node;
+  collection_p->Release ();
 
   DWORD number_of_inputs = 0;
   result = topology_node_2->GetInputCount (&number_of_inputs);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_ASSERT (number_of_inputs > 0);
-  IMFTopologyNode* topology_node_3 = NULL;
   DWORD output_index = 0;
+  enum MF_TOPOLOGY_TYPE node_type = MF_TOPOLOGY_MAX;
   result = topology_node_2->GetInput (0,
                                       &topology_node_3,
                                       &output_index);
   ACE_ASSERT (SUCCEEDED (result));
 
-  // step2: add a tee node
+continue_:
+  ACE_ASSERT (topology_node_p);
+  ACE_ASSERT (topology_node_2);
+  ACE_ASSERT (topology_node_3);
+
+  result = topology_node_3->GetNodeType (&node_type);
+  ACE_ASSERT (SUCCEEDED (result));
+  switch (node_type)
+  {
+    case MF_TOPOLOGY_SOURCESTREAM_NODE:
+    {
+      // source node --> unknown contains a stream dscriptor handle
+      IMFStreamDescriptor* stream_descriptor_p = NULL;
+      result =
+        topology_node_3->GetUnknown (MF_TOPONODE_STREAM_DESCRIPTOR,
+                                     IID_PPV_ARGS (&stream_descriptor_p));
+      ACE_ASSERT (SUCCEEDED (result));
+      IMFMediaTypeHandler* media_type_handler_p = NULL;
+      result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      stream_descriptor_p->Release ();
+      result = media_type_handler_p->GetCurrentMediaType (&media_type_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      media_type_handler_p->Release ();
+
+      break;
+    }
+    case MF_TOPOLOGY_TRANSFORM_NODE:
+    {
+      unknown_p = NULL;
+      result = topology_node_3->GetObject (&unknown_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      IMFTransform* transform_p = NULL;
+      result = unknown_p->QueryInterface (IID_PPV_ARGS (&transform_p));
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTransform): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+        // clean up
+        unknown_p->Release ();
+        topology_node_2->Release ();
+        topology_node_3->Release ();
+
+        goto error;
+      } // end IF
+      unknown_p->Release ();
+      result = transform_p->GetOutputCurrentType (0,
+                                                  &media_type_p);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFTransform::GetOutputCurrentType(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+        // clean up
+        transform_p->Release ();
+        topology_node_2->Release ();
+        topology_node_3->Release ();
+
+        goto error;
+      } // end IF
+      transform_p->Release ();
+
+      break;
+    }
+    case MF_TOPOLOGY_TEE_NODE:
+    {
+      result = topology_node_3->GetOutputPrefType (0,
+                                                   &media_type_p);
+      ACE_ASSERT (SUCCEEDED (result));
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown node type (was: %d), aborting\n"),
+                  node_type));
+
+      // clean up
+      topology_node_2->Release ();
+      topology_node_3->Release ();
+
+      goto error;
+    }
+  } // end SWITCH
+
+  // step2: add a tee node ?
   IMFTopologyNode* topology_node_4 = NULL;
+  if (!add_tee_node)
+  {
+    topology_node_4 = topology_node_3;
+    topology_node_3 = NULL;
+    goto continue_2;
+  } // end IF
+
   result = MFCreateTopologyNode (MF_TOPOLOGY_TEE_NODE,
                                  &topology_node_4);
   if (FAILED (result))
@@ -5168,7 +5340,7 @@ Stream_Module_Device_Tools::append (IMFTopology* IMFTopology_in,
 
     goto error;
   } // end IF
-  TOPOID node_id = 0;
+  node_id = 0;
   result = topology_node_4->GetTopoNodeID (&node_id);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_DEBUG ((LM_DEBUG,
@@ -5193,8 +5365,17 @@ Stream_Module_Device_Tools::append (IMFTopology* IMFTopology_in,
     goto error;
   } // end IF
   topology_node_3->Release ();
+  result = topology_node_4->SetInputPrefType (0,
+                                              media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_4->SetOutputPrefType (0,
+                                               media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_4->SetOutputPrefType (1,
+                                               media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
 
-  // step4: connect the two outputs
+  // step4: connect the (two) outputs
   result = topology_node_4->ConnectOutput (0,
                                            topology_node_2,
                                            0);
@@ -5210,9 +5391,13 @@ Stream_Module_Device_Tools::append (IMFTopology* IMFTopology_in,
 
     goto error;
   } // end IF
+  result = topology_node_2->SetInputPrefType (0,
+                                              media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
   topology_node_2->Release ();
 
-  result = topology_node_4->ConnectOutput (1,
+continue_2:
+  result = topology_node_4->ConnectOutput ((add_tee_node ? 1 : 0),
                                            topology_node_p,
                                            0);
   if (FAILED (result))
@@ -5226,12 +5411,18 @@ Stream_Module_Device_Tools::append (IMFTopology* IMFTopology_in,
 
     goto error;
   } // end IF
+  result = topology_node_p->SetInputPrefType (0,
+                                              media_type_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  media_type_p->Release ();
   topology_node_p->Release ();
   topology_node_4->Release ();
 
   return true;
 
 error:
+  if (media_type_p)
+    media_type_p->Release ();
   if (topology_node_p)
     topology_node_p->Release ();
 
@@ -6002,9 +6193,8 @@ Stream_Module_Device_Tools::getOutputFormat (IMFTransform* IMFTransform_in,
   HRESULT result = S_OK;
   DWORD number_of_input_streams = 0;
   DWORD number_of_output_streams = 0;
-  result =
-    IMFTransform_in->GetStreamCount (&number_of_input_streams,
-                                     &number_of_output_streams);
+  result = IMFTransform_in->GetStreamCount (&number_of_input_streams,
+                                            &number_of_output_streams);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -6024,11 +6214,10 @@ Stream_Module_Device_Tools::getOutputFormat (IMFTransform* IMFTransform_in,
                 ACE_TEXT ("failed to allocate memory, aborting\n")));
     goto error;
   } // end IF
-  result =
-    IMFTransform_in->GetStreamIDs (number_of_input_streams,
-                                   input_stream_ids_p,
-                                   number_of_output_streams,
-                                   output_stream_ids_p);
+  result = IMFTransform_in->GetStreamIDs (number_of_input_streams,
+                                          input_stream_ids_p,
+                                          number_of_output_streams,
+                                          output_stream_ids_p);
   if (FAILED (result))
   {
     if (result != E_NOTIMPL)
@@ -6052,10 +6241,9 @@ Stream_Module_Device_Tools::getOutputFormat (IMFTransform* IMFTransform_in,
   delete[] input_stream_ids_p;
   input_stream_ids_p = NULL;
 
-  result =
-    IMFTransform_in->GetOutputAvailableType (output_stream_ids_p[0],
-                                             0,
-                                             &IMFMediaType_out);
+  result = IMFTransform_in->GetOutputAvailableType (output_stream_ids_p[0],
+                                                    0,
+                                                    &IMFMediaType_out);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -6115,20 +6303,68 @@ Stream_Module_Device_Tools::getOutputFormat (IMFTopology* IMFTopology_in,
   IMFCollection* collection_p = NULL;
   result = IMFTopology_in->GetOutputNodeCollection (&collection_p);
   ACE_ASSERT (SUCCEEDED (result));
-  DWORD number_of_output_nodes = 0;
-  result = collection_p->GetElementCount (&number_of_output_nodes);
+  DWORD number_of_nodes = 0;
+  result = collection_p->GetElementCount (&number_of_nodes);
   ACE_ASSERT (SUCCEEDED (result));
-  if (number_of_output_nodes <= 0)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("topology contains no output nodes, aborting\n")));
-
-    // clean up
-    collection_p->Release ();
-
-    goto error;
-  } // end IF
   IUnknown* unknown_p = NULL;
+  if (number_of_nodes <= 0)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("topology contains no output nodes, continuing\n")));
+    collection_p->Release ();
+    collection_p = NULL;
+    result = IMFTopology_in->GetSourceNodeCollection (&collection_p);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = collection_p->GetElementCount (&number_of_nodes);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (number_of_nodes <= 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("topology contains no source nodes, aborting\n")));
+
+      // clean up
+      collection_p->Release ();
+
+      goto error;
+    } // end IF
+    result = collection_p->GetElement (0, &unknown_p);
+    ACE_ASSERT (SUCCEEDED (result));
+    collection_p->Release ();
+    ACE_ASSERT (unknown_p);
+    result = unknown_p->QueryInterface (IID_PPV_ARGS (&topology_node_p));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      unknown_p->Release ();
+
+      goto error;
+    } // end IF
+    unknown_p->Release ();
+
+    IMFTopologyNode* topology_node_2 = NULL;
+    DWORD input_index = 0;
+    do
+    {
+      result = topology_node_p->GetOutputCount (&number_of_nodes);
+      ACE_ASSERT (SUCCEEDED (result));
+      if (number_of_nodes <= 0) break;
+
+      topology_node_2 = NULL;
+      result = topology_node_p->GetOutput (0,
+                                           &topology_node_2,
+                                           &input_index);
+      ACE_ASSERT (SUCCEEDED (result));
+      topology_node_p->Release ();
+      topology_node_p = topology_node_2;
+    } while (true);
+
+    goto continue_;
+  } // end IF
+
   result = collection_p->GetElement (0, &unknown_p);
   ACE_ASSERT (SUCCEEDED (result));
   collection_p->Release ();
@@ -6146,6 +6382,7 @@ Stream_Module_Device_Tools::getOutputFormat (IMFTopology* IMFTopology_in,
     goto error;
   } // end IF
   unknown_p->Release ();
+
 continue_:
   if (!topology_node_p)
   {
@@ -6155,138 +6392,138 @@ continue_:
     goto error;
   } // end IF
 
-  result = topology_node_p->GetObject (&unknown_p);
+  enum MF_TOPOLOGY_TYPE node_type = MF_TOPOLOGY_MAX;
+  result = topology_node_p->GetNodeType (&node_type);
   ACE_ASSERT (SUCCEEDED (result));
-  topology_node_p->Release ();
-  IMFStreamSink* stream_sink_p = NULL;
-  result = unknown_p->QueryInterface (IID_PPV_ARGS (&stream_sink_p));
-  if (FAILED (result))
+  switch (node_type)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFStreamSink): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    case MF_TOPOLOGY_OUTPUT_NODE:
+    {
+      unknown_p = NULL;
+      result = topology_node_p->GetObject (&unknown_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      ACE_ASSERT (unknown_p);
 
-    // clean up
-    unknown_p->Release ();
+      IMFStreamSink* stream_sink_p = NULL;
+      result = unknown_p->QueryInterface (IID_PPV_ARGS (&stream_sink_p));
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFStreamSink): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-    goto error;
-  } // end IF
-  unknown_p->Release ();
-  IMFMediaTypeHandler* media_type_handler_p = NULL;
-  result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFStreamSink::GetMediaTypeHandler(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        // clean up
+        unknown_p->Release ();
 
-    // clean up
-    stream_sink_p->Release ();
+        goto error;
+      } // end IF
+      unknown_p->Release ();
+      IMFMediaTypeHandler* media_type_handler_p = NULL;
+      result = stream_sink_p->GetMediaTypeHandler (&media_type_handler_p);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFStreamSink::GetMediaTypeHandler(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-    goto error;
-  } // end IF
-  stream_sink_p->Release ();
-  result = media_type_handler_p->GetCurrentMediaType (&IMFMediaType_out);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaTypeHandler::GetCurrentMediaType(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        // clean up
+        stream_sink_p->Release ();
 
-    // clean up
-    media_type_handler_p->Release ();
+        goto error;
+      } // end IF
+      stream_sink_p->Release ();
+      result = media_type_handler_p->GetCurrentMediaType (&IMFMediaType_out);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFMediaTypeHandler::GetCurrentMediaType(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-    goto error;
-  } // end IF
-  media_type_handler_p->Release ();
+        // clean up
+        media_type_handler_p->Release ();
 
-  //// *NOTE*: IMFMediaTypeHandler::GetCurrentMediaType() returns the input media
-  ////         type of the stream source. Return the output media type of the
-  ////         upstream (MFT/source) node instead
-  //DWORD number_of_inputs = 0;
-  //result = topology_node_p->GetInputCount (&number_of_inputs);
-  //ACE_ASSERT (SUCCEEDED (result));
-  //ACE_ASSERT (number_of_inputs > 0);
-  //IMFTopologyNode* topology_node_2 = NULL;
-  //DWORD output_index = 0;
-  //enum MF_TOPOLOGY_TYPE node_type = MF_TOPOLOGY_MAX;
-  //IMFTopologyNode* topology_node_3 = topology_node_p;
-  //topology_node_3->AddRef ();
-  //while (true)
-  //{
-  //  result = topology_node_3->GetInput (0,
-  //                                      &topology_node_2,
-  //                                      &output_index);
-  //  ACE_ASSERT (SUCCEEDED (result));
-  //  topology_node_3->Release ();
-  //  result = topology_node_2->GetNodeType (&node_type);
-  //  ACE_ASSERT (SUCCEEDED (result));
-  //  if ((node_type == MF_TOPOLOGY_SOURCESTREAM_NODE) ||
-  //      (node_type == MF_TOPOLOGY_TRANSFORM_NODE)) break;
+        goto error;
+      } // end IF
+      media_type_handler_p->Release ();
+      break;
+    }
+    case MF_TOPOLOGY_SOURCESTREAM_NODE:
+    {
+      // source node --> unknown contains a stream dscriptor handle
+      IMFStreamDescriptor* stream_descriptor_p = NULL;
+      result =
+        topology_node_p->GetUnknown (MF_TOPONODE_STREAM_DESCRIPTOR,
+                                     IID_PPV_ARGS (&stream_descriptor_p));
+      ACE_ASSERT (SUCCEEDED (result));
+      IMFMediaTypeHandler* media_type_handler_p = NULL;
+      result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      stream_descriptor_p->Release ();
+      result = media_type_handler_p->GetCurrentMediaType (&IMFMediaType_out);
+      ACE_ASSERT (SUCCEEDED (result));
+      media_type_handler_p->Release ();
+      break;
+    }
+    case MF_TOPOLOGY_TRANSFORM_NODE:
+    {
+      unknown_p = NULL;
+      result = topology_node_p->GetObject (&unknown_p);
+      ACE_ASSERT (SUCCEEDED (result));
+      ACE_ASSERT (unknown_p);
 
-  //  topology_node_3 = topology_node_2;
-  //  result = topology_node_3->GetInputCount (&number_of_inputs);
-  //  ACE_ASSERT (SUCCEEDED (result));
-  //  ACE_ASSERT (number_of_inputs > 0);
-  //} // end WHILE
-  //topology_node_p->Release ();
-  //if (node_type == MF_TOPOLOGY_TRANSFORM_NODE)
-  //{
-  //  result = topology_node_2->GetObject (&unknown_p);
-  //  ACE_ASSERT (SUCCEEDED (result));
-  //  topology_node_2->Release ();
+      IMFTransform* transform_p = NULL;
+      result = unknown_p->QueryInterface (IID_PPV_ARGS (&transform_p));
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTransform): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-  //  IMFTransform* transform_p = NULL;
-  //  result = unknown_p->QueryInterface (IID_PPV_ARGS (&transform_p));
-  //  if (FAILED (result))
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTransform): \"%s\", aborting\n"),
-  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        // clean up
+        unknown_p->Release ();
 
-  //    // clean up
-  //    unknown_p->Release ();
+        goto error;
+      } // end IF
+      unknown_p->Release ();
+      result = transform_p->GetOutputCurrentType (0,
+                                                  &IMFMediaType_out);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFTransform::GetOutputCurrentType(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-  //    goto error;
-  //  } // end IF
-  //  unknown_p->Release ();
-  //  result = transform_p->GetOutputCurrentType (0,
-  //                                              &IMFMediaType_out);
-  //  if (FAILED (result))
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to IMFTransform::GetOutputCurrentType(): \"%s\", aborting\n"),
-  //                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        // clean up
+        transform_p->Release ();
 
-  //    // clean up
-  //    transform_p->Release ();
-
-  //    goto error;
-  //  } // end IF
-  //  transform_p->Release ();
-  //} // end IF
-  //else
-  //{
-  //  // source node --> unknown contains a stream dscriptor handle
-  //  IMFStreamDescriptor* stream_descriptor_p = NULL;
-  //  result = topology_node_2->GetUnknown (MF_TOPONODE_STREAM_DESCRIPTOR,
-  //                                        IID_PPV_ARGS (&stream_descriptor_p));
-  //  ACE_ASSERT (SUCCEEDED (result));
-  //  topology_node_2->Release ();
-
-  //  IMFMediaTypeHandler* media_type_handler_p = NULL;
-  //  result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
-  //  ACE_ASSERT (SUCCEEDED (result));
-  //  stream_descriptor_p->Release ();
-  //  result = media_type_handler_p->GetCurrentMediaType (&IMFMediaType_out);
-  //  ACE_ASSERT (SUCCEEDED (result));
-  //  media_type_handler_p->Release ();
-  //} // end ELSE
+        goto error;
+      } // end IF
+      transform_p->Release ();
+      break;
+    }
+    case MF_TOPOLOGY_TEE_NODE:
+    {
+      result = topology_node_p->GetOutputPrefType (0,
+                                                   &IMFMediaType_out);
+      ACE_ASSERT (SUCCEEDED (result));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown node type (was: %d), aborting\n"),
+                  node_type));
+      goto error;
+    }
+  } // end SWITCH
   ACE_ASSERT (IMFMediaType_out);
+  topology_node_p->Release ();
 
   return true;
 
 error:
+  if (topology_node_p)
+    topology_node_p->Release ();
   if (IMFMediaType_out)
   {
     IMFMediaType_out->Release ();
@@ -6321,7 +6558,7 @@ error:
 //  return true;
 //}
 std::string
-Stream_Module_Device_Tools::nodeTypeToString (MF_TOPOLOGY_TYPE nodeType_in)
+Stream_Module_Device_Tools::nodeTypeToString (enum MF_TOPOLOGY_TYPE nodeType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::nodeTypeToString"));
 
@@ -6342,6 +6579,40 @@ Stream_Module_Device_Tools::nodeTypeToString (MF_TOPOLOGY_TYPE nodeType_in)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown node type (was: %u), aborting\n"),
                   nodeType_in));
+      break;
+    }
+  } // end SWITCH
+
+  return result;
+}
+std::string
+Stream_Module_Device_Tools::topologyStatusToString (enum MF_TOPOSTATUS topologyStatus_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::topologyStatusToString"));
+
+  std::string result;
+
+  switch (topologyStatus_in)
+  {
+    case MF_TOPOSTATUS_INVALID:
+      result = ACE_TEXT_ALWAYS_CHAR ("invalid"); break;
+    case MF_TOPOSTATUS_READY:
+      result = ACE_TEXT_ALWAYS_CHAR ("ready"); break;
+    case MF_TOPOSTATUS_STARTED_SOURCE:
+      result = ACE_TEXT_ALWAYS_CHAR ("started"); break;
+#if (WINVER >= _WIN32_WINNT_WIN7)
+    case MF_TOPOSTATUS_DYNAMIC_CHANGED:
+      result = ACE_TEXT_ALWAYS_CHAR ("changed"); break;
+#endif
+    case MF_TOPOSTATUS_SINK_SWITCHED:
+      result = ACE_TEXT_ALWAYS_CHAR ("switched"); break;
+    case MF_TOPOSTATUS_ENDED:
+      result = ACE_TEXT_ALWAYS_CHAR ("ended"); break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown topology status (was: %u), aborting\n"),
+                  topologyStatus_in));
       break;
     }
   } // end SWITCH

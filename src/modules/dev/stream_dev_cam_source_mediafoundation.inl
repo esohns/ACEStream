@@ -673,28 +673,30 @@ continue_:
                       ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         // *NOTE*: IMFMediaSession::Close() is asynchronous
         //         --> (try to) wait for the next MESessionClosed event
-        IMFMediaEvent* media_event_p = NULL;
-        bool received_topology_set_event = false;
-        MediaEventType event_type = MEUnknown;
-        do
-        {
-          media_event_p = NULL;
-          result = session_data_r.session->GetEvent (0,
-                                                     &media_event_p);
-          if (FAILED (result))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
-                        ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-            break;
-          } // end IF
-          ACE_ASSERT (media_event_p);
-          result = media_event_p->GetType (&event_type);
-          ACE_ASSERT (SUCCEEDED (result));
-          if (event_type == MESessionClosed)
-            received_topology_set_event = true;
-          media_event_p->Release ();
-        } while (!received_topology_set_event);
+        // *TODO*: this will not work, as the stream is already dispatching
+        //         session events (MF_E_MULTIPLE_SUBSCRIBERS)
+        //IMFMediaEvent* media_event_p = NULL;
+        //bool received_topology_set_event = false;
+        //MediaEventType event_type = MEUnknown;
+        //do
+        //{
+        //  media_event_p = NULL;
+        //  result_2 = session_data_r.session->GetEvent (0,
+        //                                               &media_event_p);
+        //  if (FAILED (result_2)) // MF_E_MULTIPLE_SUBSCRIBERS: 0xC00D36DAL
+        //  {
+        //    ACE_DEBUG ((LM_ERROR,
+        //                ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
+        //                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+        //    break;
+        //  } // end IF
+        //  ACE_ASSERT (media_event_p);
+        //  result_2 = media_event_p->GetType (&event_type);
+        //  ACE_ASSERT (SUCCEEDED (result_2));
+        //  if (event_type == MESessionClosed)
+        //    received_topology_set_event = true;
+        //  media_event_p->Release ();
+        //} while (!received_topology_set_event);
 
         // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
         //result_2 = session_data_r.session->Shutdown ();
@@ -725,6 +727,8 @@ continue_:
         inherited::sessionData_->decrease ();
         inherited::sessionData_ = NULL;
       } // end IF
+
+      inherited::shutdown ();
 
       break;
     }

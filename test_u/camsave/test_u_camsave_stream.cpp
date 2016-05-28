@@ -340,8 +340,15 @@ continue_:
   }
   case MESessionTopologyStatus:
   {
+    UINT32 attribute_value = 0;
+    result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
+                                       &attribute_value);
+    ACE_ASSERT (SUCCEEDED (result));
+    enum MF_TOPOSTATUS topology_status =
+      static_cast<enum MF_TOPOSTATUS> (attribute_value);
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionTopologyStatus...\n")));
+                ACE_TEXT ("received MESessionTopologyStatus: \"%s\"...\n"),
+                ACE_TEXT (Stream_Module_Device_Tools::topologyStatusToString (topology_status).c_str ())));
     break;
   }
   default:
@@ -636,7 +643,8 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     //} // end IF
     if (!Stream_Module_Device_Tools::loadRendererTopology (configuration_in.moduleHandlerConfiguration->device,
                                                            configuration_in.moduleHandlerConfiguration->format,
-                                                           source_impl_p,
+                                                           (configuration_in.moduleHandlerConfiguration->targetFileName.empty () ? NULL
+                                                                                                                                 : source_impl_p),
                                                            NULL,
                                                            //configuration_in.moduleHandlerConfiguration->window,
                                                            configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
@@ -916,18 +924,19 @@ continue_:
   if (FAILED (result)) // MF_E_INVALIDMEDIATYPE    : 0xC00D36B4L
   {                    // MF_E_NO_MORE_TYPES       : 0xC00D36B9L
                        // MF_E_TOPO_CODEC_NOT_FOUND: 0xC00D5212L
+                       // MF_E_TOPO_UNSUPPORTED:     0xC00D5214L
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFTopoLoader::Load(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    Stream_Module_Device_Tools::dump (topology_p);
     goto error;
   } // end IF
   topology_loader_p->Release ();
   topology_p->Release ();
   topology_p = topology_2;
+  Stream_Module_Device_Tools::dump (topology_p);
 
-  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);//    |
-                          //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE   |
+                          MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
                           //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
   result = mediaSession_->SetTopology (topology_flags,
                                        topology_p);
@@ -1046,7 +1055,10 @@ error:
   if (direct3D_manager_p)
     direct3D_manager_p->Release ();
   if (topology_p)
+  {
+    Stream_Module_Device_Tools::dump (topology_p);
     topology_p->Release ();
+  } // end IF
   if (session_data_r.direct3DDevice)
   {
     session_data_r.direct3DDevice->Release ();

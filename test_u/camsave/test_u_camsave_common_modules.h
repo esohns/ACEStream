@@ -33,7 +33,7 @@
 #include "stream_dev_cam_source_mediafoundation.h"
 //#include "stream_vis_target_directshow.h"
 #include "stream_vis_target_mediafoundation.h"
-//#include "stream_vis_target_direct3d.h"
+#include "stream_vis_target_direct3d.h"
 #else
 #include "stream_dev_cam_source_v4l.h"
 #include "stream_vis_gtk_drawingarea.h"
@@ -147,13 +147,13 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                  // task
 //                                       ///
 //                                       Stream_CamSave_SessionData,
 //                                       Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
-typedef Stream_Vis_Target_MediaFoundation_T<Stream_CamSave_SessionMessage,
-                                            Stream_CamSave_Message,
-                                            
-                                            Stream_CamSave_ModuleHandlerConfiguration,
-                                            
-                                            Stream_CamSave_SessionData,
-                                            Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
+//typedef Stream_Vis_Target_MediaFoundation_T<Stream_CamSave_SessionMessage,
+//                                            Stream_CamSave_Message,
+//                                            
+//                                            Stream_CamSave_ModuleHandlerConfiguration,
+//                                            
+//                                            Stream_CamSave_SessionData,
+//                                            Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
 typedef Stream_Vis_Target_MediaFoundation_2<Stream_CamSave_SessionMessage,
                                             Stream_CamSave_Message,
 
@@ -161,13 +161,13 @@ typedef Stream_Vis_Target_MediaFoundation_2<Stream_CamSave_SessionMessage,
 
                                             Stream_CamSave_SessionData,
                                             Stream_CamSave_SessionData_t> Stream_CamSave_Module_DisplayNull;
-//typedef Stream_Vis_Target_Direct3D_T<Stream_CamSave_SessionMessage,
-//                                     Stream_CamSave_Message,
-//                                     /////
-//                                     Stream_CamSave_ModuleHandlerConfiguration,
-//                                     /////
-//                                     Stream_CamSave_SessionData,
-//                                     Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
+typedef Stream_Vis_Target_Direct3D_T<Stream_CamSave_SessionMessage,
+                                     Stream_CamSave_Message,
+                                     /////
+                                     Stream_CamSave_ModuleHandlerConfiguration,
+                                     /////
+                                     Stream_CamSave_SessionData,
+                                     Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
 #else
 typedef Stream_Module_Vis_GTK_DrawingArea_T<Stream_CamSave_SessionMessage,
                                             Stream_CamSave_Message,

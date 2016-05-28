@@ -1869,8 +1869,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   // step10: retrieve window handle (and canvas coordinates)
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
   data_p->configuration->moduleHandlerConfiguration.window =
-    gdk_win32_window_get_impl_hwnd (window_p);
+    //gdk_win32_window_get_impl_hwnd (window_p);
+    static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
 #else
   data_p->configuration->moduleHandlerConfiguration.window =
     window_p;

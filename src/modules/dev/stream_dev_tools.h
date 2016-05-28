@@ -35,6 +35,7 @@
 #include "dshow.h"
 #include "d3d9.h"
 #include "dxva2api.h"
+#include "mfapi.h"
 #include "mfidl.h"
 #include "mfreadwrite.h"
 #else
@@ -55,7 +56,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void initialize ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *NOTE*: 'tees' the upstream node of the first output node
+  // *NOTE*: 'tees' the upstream node of the first output node (if any); else,
+  //         starting from the first source node, 'tee' the last connected node
+  //         from the first stream
   static bool append (IMFTopology*, // topology handle
                       TOPOID);      // topology node id
   // *TODO*: move the generic (i.e. non-device-specific) DirectShow
@@ -104,10 +107,13 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                 const IMFMediaType*); // media type
   //static bool getOutputFormat (IMFSourceReader*, // source handle
   //                             IMFMediaType*&);  // return value: media type
-  // *NOTE*: returns only the first available output type of the first output
-  //         stream
+  // *NOTE*: 
   static bool getOutputFormat (IMFTransform*,   // MFT handle
                                IMFMediaType*&); // return value: media type
+  // *NOTE*: returns the first available output type of the first output node
+  //         (if any), else, starting from the first source node, the first
+  //         available output type (of the first stream) of the last connected
+  //         node
   static bool getOutputFormat (IMFTopology*,    // topology handle
                                TOPOID,          // node identifier
                                IMFMediaType*&); // return value: media type
@@ -219,6 +225,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static std::string mediaSubTypeToString (const struct _GUID&); // GUID
   static std::string mediaTypeToString (const struct _AMMediaType&); // media type
   static std::string mediaTypeToString (const IMFMediaType*); // media type
+  static std::string topologyStatusToString (enum MF_TOPOSTATUS); // topology status
 #else
   static bool canOverlay (int); // file descriptor
   static bool canStream (int); // file descriptor
@@ -299,7 +306,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   typedef TOPOLOGY_PATHS_T::iterator TOPOLOGY_PATHS_ITERATOR_T;
   static bool expand (TOPOLOGY_PATH_T&,   // input/return value: topology path
                       TOPOLOGY_PATHS_T&); // input/return value: topology paths
-  static std::string nodeTypeToString (MF_TOPOLOGY_TYPE); // node type
+  static std::string nodeTypeToString (enum MF_TOPOLOGY_TYPE); // node type
 #endif
 };
 

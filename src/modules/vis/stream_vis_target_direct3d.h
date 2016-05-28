@@ -119,7 +119,6 @@ class Stream_Vis_Target_Direct3D_T
   // helper methods
   // *NOTE*: (on success,) this sets the MF_MT_DEFAULT_STRIDE in the media type
   bool initialize_Direct3D (const HWND,                       // (target) window handle
-                            const struct tagRECT&,            // (target) window area
                             IMFMediaType*,                    // media type handle
                             IDirect3DDevice9Ex*&,             // return value: Direct3D device handle
                             struct _D3DPRESENT_PARAMETERS_&,  // return value: Direct3D presentation parameters
@@ -155,6 +154,7 @@ class Stream_Vis_Target_Direct3D_T
   RECT letterbox_rectangle (const struct tagRECT&,  // source rectangle
                             const struct tagRECT&); // destination rectangle
 
+  bool                                 closeWindow_;
   bool                                 isInitialized_;
 
   // format information

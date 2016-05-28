@@ -623,13 +623,21 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
   ACE_ASSERT (IMFMediaSession_in);
 
   bool set_topology = false;
-  IMFTopology* topology_p = NULL;
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
-  result =
-    const_cast<IMFMediaSession*> (IMFMediaSession_in)->GetFullTopology (flags,
-                                                                        0,
-                                                                        &topology_p);
+  IMFTopology* topology_p = NULL;
+  // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls
+  //         to retrieve the topology handle may fail (MF_E_INVALIDREQUEST)
+  //         --> (try to) wait for the next MESessionTopologySet event
+  // *NOTE*: this procedure doesn't always work as expected (GetFullTopology()
+  //         still fails with MF_E_INVALIDREQUEST)
+  do
+  {
+    result =
+      const_cast<IMFMediaSession*> (IMFMediaSession_in)->GetFullTopology (flags,
+                                                                          0,
+                                                                          &topology_p);
+  } while (result == MF_E_INVALIDREQUEST);
   if (FAILED (result)) // MF_E_INVALIDREQUEST: 0xC00D36B2L
   {
     ACE_DEBUG ((LM_ERROR,
@@ -664,8 +672,8 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
     {
       window_handle = CreateWindow (ACE_TEXT ("EDIT"),
                                     0,
-                                    //WS_OVERLAPPEDWINDOW,
-                                    WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE | WS_VSCROLL | WS_HSCROLL,
+                                    WS_OVERLAPPEDWINDOW,
+                                    //WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE | WS_VSCROLL | WS_HSCROLL,
                                     CW_USEDEFAULT,
                                     CW_USEDEFAULT,
                                     640,
@@ -903,8 +911,8 @@ continue_:
 
   if (set_topology)
   {
-    DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);//    |
-                            //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+    DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE    |
+                            MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
                             //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
     result = IMFMediaSession_in->SetTopology (topology_flags,
                                               topology_p);

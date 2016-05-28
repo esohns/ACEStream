@@ -116,9 +116,14 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #endif
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : filename")
+  std::string path = Common_File_Tools::getTempDirectory ();
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_OUTPUT_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f[[STRING]]: target filename [")
+            << path
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::string path = configuration_path;
+  path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
   std::string UI_file = path;
@@ -132,9 +137,9 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT ("-s [VALUE]              : statistic reporting interval (second(s)) [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL
-            << ACE_TEXT ("] [0: off])")
+            << ACE_TEXT_ALWAYS_CHAR ("] [0: off])")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-t          : trace information [")
             << false
@@ -142,13 +147,6 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-v          : print version information and exit [")
             << false
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
-  path = Common_File_Tools::getTempDirectory ();
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_OUTPUT_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x[[STRING]]: target filename [")
-            << path
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   //std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : run stress-test [")
@@ -166,13 +164,12 @@ do_processArguments (int argc_in,
 #else
                      std::string& deviceFilename_out,
 #endif
-                     std::string& fileName_out,
+                     std::string& targetFileName_out,
                      std::string& UIFile_out,
                      bool& logToFile_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& printVersionAndExit_out)
-                     //bool& runStressTest_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -206,7 +203,7 @@ do_processArguments (int argc_in,
   std::string path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_DEFAULT_OUTPUT_FILE);
-  fileName_out = path;
+  targetFileName_out = path;
   path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CONFIGURATION_DIRECTORY);
@@ -217,7 +214,6 @@ do_processArguments (int argc_in,
   statisticReportingInterval_out = STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL;
   traceInformation_out = false;
   printVersionAndExit_out = false;
-  //runStressTest_out = false;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
@@ -262,9 +258,9 @@ do_processArguments (int argc_in,
       {
         ACE_TCHAR* opt_arg = argumentParser.opt_arg ();
         if (opt_arg)
-          fileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
+          targetFileName_out = ACE_TEXT_ALWAYS_CHAR (opt_arg);
         else
-          fileName_out.clear ();
+          targetFileName_out.clear ();
         break;
       }
       case 'g':
@@ -764,9 +760,7 @@ do_work (unsigned int bufferSize_in,
   //if (statisticReportingInterval_in != 0)
     configuration.moduleHandlerConfiguration.statisticCollectionInterval.set (0,
                                                                               MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
-  configuration.moduleHandlerConfiguration.targetFileName =
-      (targetFilename_in.empty () ? Common_File_Tools::getTempDirectory ()
-                                  : targetFilename_in);
+  configuration.moduleHandlerConfiguration.targetFileName = targetFilename_in;
 
   // ********************** stream configuration data **************************
   if (bufferSize_in)
@@ -1039,8 +1033,7 @@ ACE_TMAIN (int argc_in,
                             log_to_file,
                             statistic_reporting_interval,
                             trace_information,
-                            print_version_and_exit))//,
-                            //run_stress_test))
+                            print_version_and_exit))
   {
     // make 'em learn...
     do_printUsage (ACE::basename (argv_in[0]));
