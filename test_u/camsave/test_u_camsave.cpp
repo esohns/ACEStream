@@ -757,7 +757,7 @@ do_work (unsigned int bufferSize_in,
 #endif
   configuration.moduleHandlerConfiguration.streamConfiguration =
       &configuration.streamConfiguration;
-  //if (statisticReportingInterval_in != 0)
+  if (statisticReportingInterval_in != 0)
     configuration.moduleHandlerConfiguration.statisticCollectionInterval.set (0,
                                                                               MODULE_DEV_CAM_STATISTIC_COLLECTION_INTERVAL * 1000);
   configuration.moduleHandlerConfiguration.targetFileName = targetFilename_in;
