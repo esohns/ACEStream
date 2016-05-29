@@ -297,6 +297,87 @@ Stream_Module_Device_Tools::initialize ()
   Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVCS, ACE_TEXT_ALWAYS_CHAR("DVCS")));
   Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MEDIASUBTYPE_DVSD, ACE_TEXT_ALWAYS_CHAR("DVSD")));
 
+  // Media Foundation
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB32, ACE_TEXT_ALWAYS_CHAR ("RGB32")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_ARGB32, ACE_TEXT_ALWAYS_CHAR ("ARGB32")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB24, ACE_TEXT_ALWAYS_CHAR ("RGB24")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB555, ACE_TEXT_ALWAYS_CHAR ("RGB555")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB565, ACE_TEXT_ALWAYS_CHAR ("RGB565")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_RGB8, ACE_TEXT_ALWAYS_CHAR ("RGB8")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_AI44, ACE_TEXT_ALWAYS_CHAR ("AI44")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_AYUV, ACE_TEXT_ALWAYS_CHAR ("AYUV")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YUY2, ACE_TEXT_ALWAYS_CHAR ("YUY2")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YVYU, ACE_TEXT_ALWAYS_CHAR ("YVYU")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YVU9, ACE_TEXT_ALWAYS_CHAR ("YVU9")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_UYVY, ACE_TEXT_ALWAYS_CHAR ("UYVY")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_NV11, ACE_TEXT_ALWAYS_CHAR ("NV11")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_NV12, ACE_TEXT_ALWAYS_CHAR ("NV12")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_YV12, ACE_TEXT_ALWAYS_CHAR ("YV12")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_I420, ACE_TEXT_ALWAYS_CHAR ("I420")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_IYUV, ACE_TEXT_ALWAYS_CHAR ("IYUV")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y210, ACE_TEXT_ALWAYS_CHAR ("Y210")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y216, ACE_TEXT_ALWAYS_CHAR ("Y216")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y410, ACE_TEXT_ALWAYS_CHAR ("Y410")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y416, ACE_TEXT_ALWAYS_CHAR ("Y416")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y41P, ACE_TEXT_ALWAYS_CHAR ("Y41P")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y41T, ACE_TEXT_ALWAYS_CHAR ("Y41T")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_Y42T, ACE_TEXT_ALWAYS_CHAR ("Y42T")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P210, ACE_TEXT_ALWAYS_CHAR ("P210")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P216, ACE_TEXT_ALWAYS_CHAR ("P216")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P010, ACE_TEXT_ALWAYS_CHAR ("P010")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_P016, ACE_TEXT_ALWAYS_CHAR ("P016")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_v210, ACE_TEXT_ALWAYS_CHAR ("V210")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_v216, ACE_TEXT_ALWAYS_CHAR ("V216")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_v410, ACE_TEXT_ALWAYS_CHAR ("V410")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MP43, ACE_TEXT_ALWAYS_CHAR ("MP43")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MP4S, ACE_TEXT_ALWAYS_CHAR ("MP4S")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_M4S2, ACE_TEXT_ALWAYS_CHAR ("M4S2")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MP4V, ACE_TEXT_ALWAYS_CHAR ("MP4V")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WMV1, ACE_TEXT_ALWAYS_CHAR ("WMV1")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WMV2, ACE_TEXT_ALWAYS_CHAR ("WMV2")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WMV3, ACE_TEXT_ALWAYS_CHAR ("WMV3")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_WVC1, ACE_TEXT_ALWAYS_CHAR ("WVC1")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MSS1, ACE_TEXT_ALWAYS_CHAR ("MSS1")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MSS2, ACE_TEXT_ALWAYS_CHAR ("MSS2")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MPG1, ACE_TEXT_ALWAYS_CHAR ("MPG1")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVSL, ACE_TEXT_ALWAYS_CHAR ("DVSL")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVSD, ACE_TEXT_ALWAYS_CHAR ("DVSD")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVHD, ACE_TEXT_ALWAYS_CHAR ("DVHD")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DV25, ACE_TEXT_ALWAYS_CHAR ("DV25")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DV50, ACE_TEXT_ALWAYS_CHAR ("DV50")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVH1, ACE_TEXT_ALWAYS_CHAR ("DVH1")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_DVC,  ACE_TEXT_ALWAYS_CHAR ("DVC")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_H264, ACE_TEXT_ALWAYS_CHAR ("H264")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MJPG, ACE_TEXT_ALWAYS_CHAR ("MJPG")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_420O, ACE_TEXT_ALWAYS_CHAR ("420O")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_HEVC, ACE_TEXT_ALWAYS_CHAR ("HEVC")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_HEVC_ES, ACE_TEXT_ALWAYS_CHAR ("HEVC_ES")));
+#if (WINVER >= _WIN32_WINNT_WIN8)
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_H263, ACE_TEXT_ALWAYS_CHAR ("H263")));
+#endif
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_H264_ES, ACE_TEXT_ALWAYS_CHAR ("H264_ES")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFVideoFormat_MPEG2, ACE_TEXT_ALWAYS_CHAR ("MPEG2")));
+
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_PCM, ACE_TEXT_ALWAYS_CHAR ("PCM")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Float, ACE_TEXT_ALWAYS_CHAR ("IEEE_FLOAT")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_DTS, ACE_TEXT_ALWAYS_CHAR ("DTS")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3_SPDIF, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3_SPDIF")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_DRM, ACE_TEXT_ALWAYS_CHAR ("DRM")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMAudioV8, ACE_TEXT_ALWAYS_CHAR ("WMAudioV8")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMAudioV9, ACE_TEXT_ALWAYS_CHAR ("WMAudioV9")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMAudio_Lossless, ACE_TEXT_ALWAYS_CHAR ("WMAudio_Lossless")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_WMASPDIF, ACE_TEXT_ALWAYS_CHAR ("WMASPDIF")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_MSP1, ACE_TEXT_ALWAYS_CHAR ("MSP1")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_MP3, ACE_TEXT_ALWAYS_CHAR ("MP3")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_MPEG, ACE_TEXT_ALWAYS_CHAR ("MPEG")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AAC, ACE_TEXT_ALWAYS_CHAR ("AAC")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_ADTS, ACE_TEXT_ALWAYS_CHAR ("ADTS")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AMR_NB, ACE_TEXT_ALWAYS_CHAR ("AMR_NB")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AMR_WB, ACE_TEXT_ALWAYS_CHAR ("AMR_WB")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_AMR_WP, ACE_TEXT_ALWAYS_CHAR ("AMR_WP")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Dolby_AC3, ACE_TEXT_ALWAYS_CHAR ("Dolby_AC3")));
+  Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.insert (std::make_pair (MFAudioFormat_Dolby_DDPlus, ACE_TEXT_ALWAYS_CHAR ("Dolby_DDPlus")));
+
   // ---------------------------------------------------------------------------
 
   Stream_Module_Device_Tools::Stream_FormatType2StringMap.insert (std::make_pair (FORMAT_None, ACE_TEXT_ALWAYS_CHAR ("None")));
@@ -775,86 +856,56 @@ Stream_Module_Device_Tools::dump (IMFTransform* IMFTransform_in)
 }
 
 bool
-Stream_Module_Device_Tools::isCompressed (const IMFMediaType* IMFMediaType_in)
+Stream_Module_Device_Tools::isCompressed (const struct _GUID& subType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isCompressed"));
 
   // *TODO*: this is probably incomplete
-  return (!Stream_Module_Device_Tools::isChromaLuminance (IMFMediaType_in) &&
-          !Stream_Module_Device_Tools::isRGB (IMFMediaType_in));
+  return (!Stream_Module_Device_Tools::isChromaLuminance (subType_in) &&
+          !Stream_Module_Device_Tools::isRGB (subType_in));
 
 }
 bool
-Stream_Module_Device_Tools::isRGB (const IMFMediaType* IMFMediaType_in)
+Stream_Module_Device_Tools::isRGB (const struct _GUID& subType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isRGB"));
 
-  // sanity check(s)
-  ACE_ASSERT (IMFMediaType_in);
-
-  struct _GUID GUID_s = { 0 };
-  HRESULT result = 
-    const_cast<IMFMediaType*> (IMFMediaType_in)->GetGUID (MF_MT_SUBTYPE,
-                                                          &GUID_s);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false; // *TODO*: remove false negative
-  } // end IF
-
-  return ((GUID_s == MFVideoFormat_RGB32)  ||
-          (GUID_s == MFVideoFormat_ARGB32) ||
-          (GUID_s == MFVideoFormat_RGB24)  ||
-          (GUID_s == MFVideoFormat_RGB555) ||
-          (GUID_s == MFVideoFormat_RGB565) ||
-          (GUID_s == MFVideoFormat_RGB8));
+  return ((subType_in == MFVideoFormat_RGB32)  ||
+          (subType_in == MFVideoFormat_ARGB32) ||
+          (subType_in == MFVideoFormat_RGB24)  ||
+          (subType_in == MFVideoFormat_RGB555) ||
+          (subType_in == MFVideoFormat_RGB565) ||
+          (subType_in == MFVideoFormat_RGB8));
 }
 bool
-Stream_Module_Device_Tools::isChromaLuminance (const IMFMediaType* IMFMediaType_in)
+Stream_Module_Device_Tools::isChromaLuminance (const struct _GUID& subType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isChromaLuminance"));
 
-  // sanity check(s)
-  ACE_ASSERT (IMFMediaType_in);
-
-  struct _GUID GUID_s = { 0 };
-  HRESULT result =
-    const_cast<IMFMediaType*> (IMFMediaType_in)->GetGUID (MF_MT_SUBTYPE,
-                                                          &GUID_s);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false; // *TODO*: remove false negative
-  } // end IF
-
-  return ((GUID_s == MFVideoFormat_AYUV) ||
-          (GUID_s == MFVideoFormat_YUY2) ||
-          (GUID_s == MFVideoFormat_YVYU) ||
-          (GUID_s == MFVideoFormat_YVU9) ||
-          (GUID_s == MFVideoFormat_UYVY) ||
-          (GUID_s == MFVideoFormat_NV11) ||
-          (GUID_s == MFVideoFormat_NV12) ||
-          (GUID_s == MFVideoFormat_YV12) ||
-          (GUID_s == MFVideoFormat_I420) ||
-          (GUID_s == MFVideoFormat_IYUV) ||
-          (GUID_s == MFVideoFormat_Y210) ||
-          (GUID_s == MFVideoFormat_Y216) ||
-          (GUID_s == MFVideoFormat_Y410) ||
-          (GUID_s == MFVideoFormat_Y416) ||
-          (GUID_s == MFVideoFormat_Y41P) ||
-          (GUID_s == MFVideoFormat_Y41T) ||
-          (GUID_s == MFVideoFormat_Y42T) ||
-          (GUID_s == MFVideoFormat_P210) ||
-          (GUID_s == MFVideoFormat_P216) ||
-          (GUID_s == MFVideoFormat_P010) ||
-          (GUID_s == MFVideoFormat_P016) ||
-          (GUID_s == MFVideoFormat_v210) ||
-          (GUID_s == MFVideoFormat_v216) ||
-          (GUID_s == MFVideoFormat_v410));
+  return ((subType_in == MFVideoFormat_AYUV) ||
+          (subType_in == MFVideoFormat_YUY2) ||
+          (subType_in == MFVideoFormat_YVYU) ||
+          (subType_in == MFVideoFormat_YVU9) ||
+          (subType_in == MFVideoFormat_UYVY) ||
+          (subType_in == MFVideoFormat_NV11) ||
+          (subType_in == MFVideoFormat_NV12) ||
+          (subType_in == MFVideoFormat_YV12) ||
+          (subType_in == MFVideoFormat_I420) ||
+          (subType_in == MFVideoFormat_IYUV) ||
+          (subType_in == MFVideoFormat_Y210) ||
+          (subType_in == MFVideoFormat_Y216) ||
+          (subType_in == MFVideoFormat_Y410) ||
+          (subType_in == MFVideoFormat_Y416) ||
+          (subType_in == MFVideoFormat_Y41P) ||
+          (subType_in == MFVideoFormat_Y41T) ||
+          (subType_in == MFVideoFormat_Y42T) ||
+          (subType_in == MFVideoFormat_P210) ||
+          (subType_in == MFVideoFormat_P216) ||
+          (subType_in == MFVideoFormat_P010) ||
+          (subType_in == MFVideoFormat_P016) ||
+          (subType_in == MFVideoFormat_v210) ||
+          (subType_in == MFVideoFormat_v216) ||
+          (subType_in == MFVideoFormat_v410));
 }
 
 IPin*
@@ -3115,9 +3166,18 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
     goto error;
   } // end IF
+  result = media_type_p->GetGUID (MF_MT_SUBTYPE,
+                                  &sub_type);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
 
   // step2: add decoder nodes ?
-  if (!Stream_Module_Device_Tools::isCompressed (media_type_p))
+  if (!Stream_Module_Device_Tools::isCompressed (sub_type))
     goto continue_;
 
   IMFActivate** decoders_p = NULL;
@@ -3152,9 +3212,6 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   IMFAttributes* attributes_p = NULL;
   while (true)
   {
-    result = media_type_p->GetGUID (MF_MT_SUBTYPE,
-                                    &sub_type);
-    ACE_ASSERT (SUCCEEDED (result));
     mft_register_type_info.guidSubtype = sub_type;
 
     result = MFTEnumEx (MFT_CATEGORY_VIDEO_DECODER, // category
@@ -3297,16 +3354,16 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
                 node_id,
                 ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
 
-    if (!Stream_Module_Device_Tools::isCompressed (media_type_p))
+    result = media_type_p->GetGUID (MF_MT_SUBTYPE,
+                                    &sub_type);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (!Stream_Module_Device_Tools::isCompressed (sub_type))
       break; // done
   } // end WHILE
 
   // transform to RGB ?
-  if (!Stream_Module_Device_Tools::isRGB (media_type_p))
+  if (!Stream_Module_Device_Tools::isRGB (sub_type))
   {
-    result = media_type_p->GetGUID (MF_MT_SUBTYPE,
-                                    &sub_type);
-    ACE_ASSERT (SUCCEEDED (result));
     mft_register_type_info.guidSubtype = sub_type;
 
     decoders_p = NULL;
@@ -3407,7 +3464,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
     topology_node_p = NULL;
 
     int i = 0;
-    while (!Stream_Module_Device_Tools::isRGB (media_type_p))
+    while (!Stream_Module_Device_Tools::isRGB (sub_type))
     {
       media_type_p->Release ();
       media_type_p = NULL;
@@ -3415,6 +3472,9 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
                                                     i,
                                                     &media_type_p);
 
+      ACE_ASSERT (SUCCEEDED (result));
+      result = media_type_p->GetGUID (MF_MT_SUBTYPE,
+                                      &sub_type);
       ACE_ASSERT (SUCCEEDED (result));
       ++i;
     } // end WHILE
@@ -3468,7 +3528,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%q: added processor for \"%s\"...\n"),
                 node_id,
-                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
+                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (mft_register_type_info.guidSubtype).c_str ())));
   } // end IF
 
 continue_:
@@ -4374,6 +4434,143 @@ error:
 //
 //  return false;
 //}
+bool
+Stream_Module_Device_Tools::setTopology (IMFTopology* IMFTopology_in,
+                                         IMFMediaSession*& IMFMediaSession_inout,
+                                         bool waitForCompletion_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setTopology"));
+
+  // sanity check(s)
+  ACE_ASSERT (IMFTopology_in);
+
+  HRESULT result = E_FAIL;
+  bool release_media_session = false;
+  IMFTopoLoader* topology_loader_p = NULL;
+  IMFTopology* topology_p = NULL;
+
+  // initialize return value(s)
+  if (!IMFMediaSession_inout)
+  {
+    IMFAttributes* attributes_p = NULL;
+    result = MFCreateAttributes (&attributes_p, 4);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    result = attributes_p->SetUINT32 (MF_SESSION_GLOBAL_TIME, FALSE);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = attributes_p->SetGUID (MF_SESSION_QUALITY_MANAGER, GUID_NULL);
+    ACE_ASSERT (SUCCEEDED (result));
+    //result = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
+    //ACE_ASSERT (SUCCEEDED (result));
+    result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = MFCreateMediaSession (attributes_p,
+                                   &IMFMediaSession_inout);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateMediaSession(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      attributes_p->Release ();
+
+      goto error;
+    } // end IF
+    attributes_p->Release ();
+    release_media_session = true;
+  } // end IF
+  ACE_ASSERT (IMFMediaSession_inout);
+
+  result = MFCreateTopoLoader (&topology_loader_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopoLoader(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = topology_loader_p->Load (IMFTopology_in,
+                                    &topology_p,
+                                    NULL);
+  if (FAILED (result)) // MF_E_INVALIDMEDIATYPE    : 0xC00D36B4L
+  {                    // MF_E_NO_MORE_TYPES       : 0xC00D36B9L
+                       // MF_E_TOPO_CODEC_NOT_FOUND: 0xC00D5212L
+                       // MF_E_TOPO_UNSUPPORTED:     0xC00D5214L
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopoLoader::Load(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    Stream_Module_Device_Tools::dump (topology_p);
+    goto error;
+  } // end IF
+  topology_loader_p->Release ();
+  topology_loader_p = NULL;
+
+  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
+                          //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+                          //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
+  result = IMFMediaSession_inout->SetTopology (topology_flags,
+                                               topology_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  topology_p->Release ();
+  topology_p = NULL;
+
+  // *NOTE*: IMFMediaSession::SetTopology() is asynchronous, so subsequent calls
+  //         to retrieve the topology handle will fail (MF_E_INVALIDREQUEST)
+  //         --> wait a little ?
+  if (!waitForCompletion_in)
+    goto continue_;
+
+  IMFMediaEvent* media_event_p = NULL;
+  bool received_topology_set_event = false;
+  MediaEventType event_type = MEUnknown;
+  do
+  {
+    media_event_p = NULL;
+    result = IMFMediaSession_inout->GetEvent (0,
+                                              &media_event_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_ASSERT (media_event_p);
+    result = media_event_p->GetType (&event_type);
+    ACE_ASSERT (SUCCEEDED (result));
+    if (event_type == MESessionTopologySet)
+      received_topology_set_event = true;
+    media_event_p->Release ();
+  } while (!received_topology_set_event);
+
+continue_:
+  return true;
+
+error:
+  if (topology_loader_p)
+    topology_loader_p->Release ();
+  if (topology_p)
+    topology_p->Release ();
+  if (release_media_session)
+  { 
+    IMFMediaSession_inout->Release ();
+    IMFMediaSession_inout = NULL;
+  } // end IF
+
+  return false;
+}
 
 bool
 Stream_Module_Device_Tools::connect (IGraphBuilder* builder_in,
@@ -7552,20 +7749,7 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
   result = ACE_TEXT_ALWAYS_CHAR ("majortype: \"");
   result += (*iterator).second;
   result += ACE_TEXT_ALWAYS_CHAR ("\"\nsubtype: \"");
-  iterator =
-    Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.find (mediaType_in.subtype);
-  if (iterator == Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.end ())
-  {
-    ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
-    count = StringFromGUID2 (mediaType_in.subtype,
-                             GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (count == 39);
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
-                ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
-    return std::string ();
-  } // end IF
-  result += (*iterator).second;
+  result += Stream_Module_Device_Tools::mediaSubTypeToString (mediaType_in.subtype);
 
   result += ACE_TEXT_ALWAYS_CHAR ("\"\nbFixedSizeSamples: ");
   std::ostringstream converter;

@@ -174,8 +174,12 @@ Stream_Module_FileWriter_T<SessionMessageType,
       const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
           message_inout->get ();
       const SessionDataType& session_data_r = session_data_container_r.get ();
-
       std::string directory, file_name;
+
+      if (configuration_.targetFileName.empty () &&
+          session_data_r.targetFileName.empty ())
+        goto continue_; // nothing to do
+
       // *TODO*: remove type inferences
       directory =
         (session_data_r.targetFileName.empty () ? (configuration_.targetFileName.empty () ? Common_File_Tools::getTempDirectory ()
@@ -237,10 +241,11 @@ Stream_Module_FileWriter_T<SessionMessageType,
                     ACE_TEXT ("overwriting existing target file \"%s\"\n"),
                     ACE_TEXT (file_name.c_str ())));
 
+      int open_flags = (O_CREAT |
+                        O_TRUNC |
+                        O_WRONLY);
       if (!Common_File_Tools::open (file_name,  // FQ file name
-                                    (O_CREAT |
-                                     O_TRUNC |
-                                     O_WRONLY), // flags
+                                    open_flags, // flags
                                     stream_))   // stream
       {
         ACE_DEBUG ((LM_ERROR,
@@ -252,7 +257,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("opened file stream \"%s\"...\n"),
                   ACE_TEXT (file_name.c_str ())));
-
+continue_:
       break;
     }
     case STREAM_SESSION_STEP:
@@ -271,9 +276,8 @@ Stream_Module_FileWriter_T<SessionMessageType,
 
       if (isOpen_)
       {
-        ACE_FILE_Info file_info;
-        ACE_OS::memset (&file_info, 0, sizeof (file_info));
-        result = stream_.get_info (file_info);
+        ACE_FILE_Info file_information;
+        result = stream_.get_info (file_information);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_FILE_IO::get_info(): \"%m\", continuing\n")));
@@ -287,9 +291,9 @@ Stream_Module_FileWriter_T<SessionMessageType,
         } // end IF
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("closed file stream \"%s\" (wrote: %u byte(s))...\n"),
+                    ACE_TEXT ("closed file stream \"%s\" (wrote: %q byte(s))...\n"),
                     ACE_TEXT (buffer),
-                    static_cast<unsigned int> (file_info.size_)));
+                    file_information.size_));
       } // end IF
 
       unsigned int file_index = 0;
@@ -332,10 +336,11 @@ Stream_Module_FileWriter_T<SessionMessageType,
                     ACE_TEXT ("overwriting existing target file \"%s\"\n"),
                     ACE_TEXT (file_name.c_str ())));
 
+      int open_flags = (O_CREAT |
+                        O_TRUNC |
+                        O_WRONLY);
       if (!Common_File_Tools::open (file_name,  // FQ file name
-                                    (O_CREAT |
-                                     O_TRUNC |
-                                     O_WRONLY), // flags
+                                    open_flags, // flags
                                     stream_))   // stream
       {
         ACE_DEBUG ((LM_ERROR,
@@ -365,9 +370,8 @@ Stream_Module_FileWriter_T<SessionMessageType,
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n")));
-        ACE_FILE_Info file_info;
-        ACE_OS::memset (&file_info, 0, sizeof (file_info));
-        result = stream_.get_info (file_info);
+        ACE_FILE_Info file_information;
+        result = stream_.get_info (file_information);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_FILE_IO::get_info(): \"%m\", continuing\n")));
@@ -381,9 +385,9 @@ Stream_Module_FileWriter_T<SessionMessageType,
         } // end IF
         isOpen_ = false;
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("closed file stream \"%s\" (wrote: %u byte(s))...\n"),
+                    ACE_TEXT ("closed file stream \"%s\" (wrote: %q byte(s))...\n"),
                     ACE_TEXT (buffer),
-                    static_cast<unsigned int> (file_info.size_)));
+                    file_information.size_));
       } // end IF
 
       break;

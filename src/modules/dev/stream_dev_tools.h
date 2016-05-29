@@ -189,6 +189,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   //                                        const IMFSampleGrabberSinkCallback*, // grabber sink callback handle [NULL: do not use tee/grabber]
   //                                        const HWND,                          // window handle [NULL: do not use tee/EVR]
   //                                        IMFTopology*&);                      // input/return value: topology handle
+  static bool setTopology (IMFTopology*,      // topology handle
+                           IMFMediaSession*&, // input/return value: media session handle
+                           bool = true);      // wait for completion ?
 
   // -------------------------------------
 
@@ -200,9 +203,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void dump (IMFTopology*); // topology handle
   static void dump (IMFTransform*); // transform handle
 
-  static bool isChromaLuminance (const IMFMediaType*); // media format handle
-  static bool isRGB (const IMFMediaType*); // media format handle
-  static bool isCompressed (const IMFMediaType*); // media format handle
+  static bool isChromaLuminance (const struct _GUID&); // media subtype
+  static bool isRGB (const struct _GUID&); // media subtype
+  static bool isCompressed (const struct _GUID&); // media subtype
 
   // *NOTE*: return value (if any) has an outstanding reference --> Release()
   static IPin* pin (IBaseFilter*,        // filter handle

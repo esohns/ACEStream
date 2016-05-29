@@ -770,7 +770,7 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
   // initialize result
   gtk_list_store_clear (listStore_in);
 
-  HRESULT result = S_OK;
+  HRESULT result = E_FAIL;
   //int count = 0, size = 0;
   //result = IAMStreamConfig_in->GetNumberOfCapabilities (&count, &size);
   //if (FAILED (result))
@@ -1196,6 +1196,107 @@ load_rates (int fd_in,
   return true;
 }
 #endif
+void
+update_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::update_buffer_size"));
+
+  // sanity check(s)
+  ACE_ASSERT (GTKCBData_in.configuration);
+
+  Common_UI_GTKBuildersIterator_t iterator =
+    GTKCBData_in.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != GTKCBData_in.builders.end ());
+
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME)));
+  ACE_ASSERT (combo_box_p);
+  GtkTreeIter iterator_2;
+  if (!gtk_combo_box_get_active_iter (combo_box_p,
+                                      &iterator_2))
+    return; // <-- nothing selected
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
+  ACE_ASSERT (list_store_p);
+  GValue value = { 0, };
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            1, &value);
+  //ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string format_string = g_value_get_string (&value);
+  g_value_unset (&value);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _GUID GUID_s = GUID_NULL;
+  HRESULT result = E_FAIL;
+#if defined (OLE2ANSI)
+  result = CLSIDFromString (format_string.c_str (), &GUID_i);
+#else
+  result =
+    CLSIDFromString (ACE_TEXT_ALWAYS_WCHAR (format_string.c_str ()), &GUID_s);
+#endif
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+#endif
+
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME)));
+  ACE_ASSERT (combo_box_p);
+  if (!gtk_combo_box_get_active_iter (combo_box_p,
+                                      &iterator_2))
+    return; // <-- nothing selected
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
+  ACE_ASSERT (list_store_p);
+  GValue value_2 = { 0, };
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_2,
+                            2, &value_2);
+  ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
+  unsigned int width = g_value_get_uint (&value);
+  g_value_unset (&value);
+  unsigned int height = g_value_get_uint (&value_2);
+  g_value_unset (&value_2);
+
+  unsigned int buffer_size = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (Stream_Module_Device_Tools::isCompressed (GUID_s))
+    GUID_s = MFVideoFormat_RGB32;
+
+  result = MFCalculateImageSize (GUID_s,
+                                 width, height,
+                                 &buffer_size);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCalculateImageSize(\"%s\", %u,%u): \"%s\", returning\n"),
+                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (GUID_s).c_str ()),
+                width, height,
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+#endif
+
+  GtkSpinButton* spin_button_p =
+    GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
+  ACE_ASSERT (spin_button_p);
+  gtk_spin_button_set_value (spin_button_p,
+                             static_cast<gdouble> (buffer_size));
+}
 
 /////////////////////////////////////////
 
@@ -1515,13 +1616,31 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
+  //GtkFileChooserDialog* file_chooser_dialog_p =
+  //  GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
+  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
+  //ACE_ASSERT (file_chooser_dialog_p);
+  GtkFileFilter* file_filter_p =
+    GTK_FILE_FILTER (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILEFILTER_AVI_NAME)));
+  ACE_ASSERT (file_filter_p);
+  gtk_file_filter_add_mime_type (file_filter_p,
+                                 ACE_TEXT ("application/x-troff-msvideo"));
+  gtk_file_filter_add_mime_type (file_filter_p,
+                                 ACE_TEXT ("video/avi"));
+  gtk_file_filter_add_mime_type (file_filter_p,
+                                 ACE_TEXT ("video/msvideo"));
+  gtk_file_filter_add_mime_type (file_filter_p,
+                                 ACE_TEXT ("video/x-msvideo"));
+  gtk_file_filter_add_pattern (file_filter_p,
+                               ACE_TEXT ("*.avi"));
+  gtk_file_filter_set_name (file_filter_p,
+                            ACE_TEXT ("AVI files"));
+  //GError* error_p = NULL;
+  //GFile* file_p = NULL;
+  gchar* filename_p = NULL;
   if (!data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ())
   {
-    GError* error_p = NULL;
-    GFile* file_p =
-      g_file_new_for_path (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ());
-    ACE_ASSERT (file_p);
-
     // *NOTE*: gtk does not complain if the file doesn't exist, but the button
     //         will display "(None)" --> create empty file
     if (!Common_File_Tools::isReadable (data_p->configuration->moduleHandlerConfiguration.targetFileName))
@@ -1530,55 +1649,81 @@ idle_initialize_UI_cb (gpointer userData_in)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to Common_File_Tools::create(\"%s\"): \"%m\", aborting\n"),
                     ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ())));
-
-        // clean up
-        g_object_unref (file_p);
-
         return G_SOURCE_REMOVE;
       } // end IF
+    //file_p =
+    //  g_file_new_for_path (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ());
+    //ACE_ASSERT (file_p);
+    //ACE_ASSERT (g_file_query_exists (file_p, NULL));
 
     //std::string file_uri =
     //  ACE_TEXT_ALWAYS_CHAR ("file://") +
     //  data_p->configuration->moduleHandlerConfiguration.targetFileName;
     //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
     //                                              file_uri.c_str ()))
-    if (!gtk_file_chooser_set_current_folder_file (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                                   file_p,
-                                                   &error_p))
+    filename_p =
+      Common_UI_Tools::Locale2UTF8 (data_p->configuration->moduleHandlerConfiguration.targetFileName);
+    if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                        filename_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
-                  ACE_TEXT (error_p->message)));
+                  ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ())));
 
       // clean up
-      g_error_free (error_p);
-      g_object_unref (file_p);
+      g_free (filename_p);
 
       return G_SOURCE_REMOVE;
     } // end IF
+    g_free (filename_p);
 
-    GtkFileChooserDialog* file_chooser_dialog_p =
-      GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
-                                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
-    ACE_ASSERT (file_chooser_dialog_p);
-    if (!gtk_file_chooser_select_file (GTK_FILE_CHOOSER (file_chooser_dialog_p),
-                                       file_p,
-                                       &error_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to gtk_file_chooser_select_file(\"%s\"): \"%s\", aborting\n"),
-                  ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
-                  ACE_TEXT (error_p->message)));
+    //if (!gtk_file_chooser_select_file (GTK_FILE_CHOOSER (file_chooser_dialog_p),
+    //                                   file_p,
+    //                                   &error_p))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to gtk_file_chooser_select_file(\"%s\"): \"%s\", aborting\n"),
+    //              ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
+    //              ACE_TEXT (error_p->message)));
 
-      // clean up
-      g_error_free (error_p);
-      g_object_unref (file_p);
+    //  // clean up
+    //  g_error_free (error_p);
+    //  g_object_unref (file_p);
 
-      return G_SOURCE_REMOVE;
-    } // end IF
-    g_object_unref (file_p);
+    //  return G_SOURCE_REMOVE;
+    //} // end IF
+    //g_object_unref (file_p);
   } // end IF
+  else
+  {
+    //file_p =
+    //  g_file_new_for_path (Common_File_Tools::getTempDirectory ().c_str ());
+    //ACE_ASSERT (file_p);
+
+    filename_p =
+      Common_UI_Tools::Locale2UTF8 (Common_File_Tools::getTempDirectory ());
+    if (!gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                        filename_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gtk_file_chooser_set_filename(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_File_Tools::getTempDirectory ().c_str ())));
+
+      // clean up
+      g_free (filename_p);
+
+      return G_SOURCE_REMOVE;
+    } // end IF
+    g_free (filename_p);
+    //g_object_unref (file_p);
+  } // end ELSE
+
+  GtkCheckButton* check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME)));
+  ACE_ASSERT (check_button_p);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
+                                !data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ());
 
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1587,6 +1732,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
                              std::numeric_limits<double>::max ());
+  gtk_spin_button_set_value (spin_button_p,
+                             static_cast<gdouble> (data_p->configuration->streamConfiguration.bufferSize));
 
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
@@ -1705,26 +1852,18 @@ idle_initialize_UI_cb (gpointer userData_in)
                         NULL);
   ACE_ASSERT (result_2);
 
-  file_chooser_button_p =
-    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
   result_2 =
     g_signal_connect (file_chooser_button_p,
                       ACE_TEXT_ALWAYS_CHAR ("file-set"),
                       G_CALLBACK (filechooserbutton_cb),
                       userData_in);
   ACE_ASSERT (result_2);
-  GtkFileChooserDialog* file_chooser_dialog_p =
-    GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_dialog_p);
-  result_2 =
-    g_signal_connect (file_chooser_dialog_p,
-                      ACE_TEXT_ALWAYS_CHAR ("file-activated"),
-                      G_CALLBACK (filechooserdialog_cb),
-                      NULL);
-  ACE_ASSERT (result_2);
+  //result_2 =
+  //  g_signal_connect (file_chooser_dialog_p,
+  //                    ACE_TEXT_ALWAYS_CHAR ("file-activated"),
+  //                    G_CALLBACK (filechooserdialog_cb),
+  //                    NULL);
+  //ACE_ASSERT (result_2);
 
   // step6b: connect custom signals
   GObject* object_p =
@@ -1732,8 +1871,8 @@ idle_initialize_UI_cb (gpointer userData_in)
                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME));
   ACE_ASSERT (object_p);
   result_2 = g_signal_connect (object_p,
-                               ACE_TEXT_ALWAYS_CHAR ("activate"),
-                               G_CALLBACK (toggle_action_record_activate_cb),
+                               ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                               G_CALLBACK (toggleaction_record_toggled_cb),
                                userData_in);
   ACE_ASSERT (result_2);
   object_p =
@@ -1795,6 +1934,16 @@ idle_initialize_UI_cb (gpointer userData_in)
     g_signal_connect (object_p,
                       ACE_TEXT_ALWAYS_CHAR ("changed"),
                       G_CALLBACK (combobox_rate_changed_cb),
+                      userData_in);
+  ACE_ASSERT (result_2);
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_SAVE_NAME));
+  ACE_ASSERT (object_p);
+  result_2 =
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("toggled"),
+                      G_CALLBACK (toggleaction_save_toggled_cb),
                       userData_in);
   ACE_ASSERT (result_2);
 
@@ -2337,10 +2486,10 @@ extern "C"
 #endif /* __cplusplus */
 
 void
-toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
-                                  gpointer userData_in)
+toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
+                                gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::action_start_activate_cb"));
+  STREAM_TRACE (ACE_TEXT ("::toggleaction_record_toggled_cb"));
 
   Stream_CamSave_GTK_CBData* data_p =
       static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
@@ -2482,30 +2631,30 @@ toggle_action_record_activate_cb (GtkToggleAction* toggleAction_in,
       data_p->device;
 #endif
 
-  GtkFileChooserButton* file_chooser_button_p =
-    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
-  GFile* file_p =
-    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
-  if (file_p)
-  {
-    char* string_p = g_file_get_path (file_p);
-    if (!string_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_file_get_path(): \"%m\", returning\n")));
+  //GtkFileChooserButton* file_chooser_button_p =
+  //  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+  //ACE_ASSERT (file_chooser_button_p);
+  //GFile* file_p =
+  //  gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
+  //if (file_p)
+  //{
+  //  char* filename_p = g_file_get_path (file_p);
+  //  if (!filename_p)
+  //  {
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to g_file_get_path(): \"%m\", returning\n")));
 
-      // clean up
-      g_object_unref (file_p);
+  //    // clean up
+  //    g_object_unref (file_p);
 
-      goto error;
-    } // end IF
-    g_object_unref (file_p);
-    data_p->configuration->moduleHandlerConfiguration.targetFileName =
-      string_p;
-    g_free (string_p);
-  } // end IF
+  //    goto error;
+  //  } // end IF
+  //  g_object_unref (file_p);
+  //  data_p->configuration->moduleHandlerConfiguration.targetFileName =
+  //    Common_UI_Tools::UTF82Locale (filename_p, -1);
+  //  g_free (filename_p);
+  //} // end IF
   spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
@@ -2665,7 +2814,70 @@ error:
   gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_RECORD);
   gtk_action_set_sensitive (action_p, false);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
-} // toggle_action_record_activate_cb
+} // toggleaction_record_toggled_cb
+void
+toggleaction_save_toggled_cb (GtkToggleAction* toggleAction_in,
+                              gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::toggleaction_save_toggled_cb"));
+
+  Stream_CamSave_GTK_CBData* data_p =
+    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  ACE_ASSERT (data_p->configuration);
+
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  GtkFileChooserButton* file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  GError* error_p = NULL;
+  GFile* file_p = NULL;
+  if (gtk_toggle_action_get_active (toggleAction_in))
+  {
+    file_p =
+      gtk_file_chooser_get_current_folder_file (GTK_FILE_CHOOSER (file_chooser_button_p));
+    ACE_ASSERT (file_p);
+    char* filename_p = g_file_get_path (file_p);
+    ACE_ASSERT (filename_p);
+
+    data_p->configuration->moduleHandlerConfiguration.targetFileName =
+      filename_p;
+
+    g_free (filename_p);
+    g_object_unref (G_OBJECT (file_p));
+  } // end IF
+  else
+  {
+    data_p->configuration->moduleHandlerConfiguration.targetFileName.clear ();
+
+    file_p =
+      g_file_new_for_path (Common_File_Tools::getTempDirectory ().c_str ());
+    ACE_ASSERT (file_p);
+    if (!gtk_file_chooser_set_current_folder_file (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                                   file_p,
+                                                   &error_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT (data_p->configuration->moduleHandlerConfiguration.targetFileName.c_str ()),
+                  ACE_TEXT (error_p->message)));
+
+      // clean up
+      g_error_free (error_p);
+      g_object_unref (file_p);
+
+      return;
+    } // end IF
+    g_object_unref (file_p);
+  } // end ELSE
+} // toggleaction_save_toggled_cb
+
 void
 action_cut_activate_cb (GtkAction* action_in,
                         gpointer userData_in)
@@ -2694,6 +2906,8 @@ action_report_activate_cb (GtkAction* action_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->stream);
+
+
 } // action_report_activate_cb
 
 // -----------------------------------------------------------------------------
@@ -2934,74 +3148,17 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   } // end IF
   ACE_ASSERT (topology_p);
 
-  IMFTopoLoader* topology_loader_p = NULL;
-  HRESULT result = MFCreateTopoLoader (&topology_loader_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCreateTopoLoader(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  IMFTopology* topology_2 = NULL;
-  result = topology_loader_p->Load (topology_p,
-                                    &topology_2,
-                                    NULL);
-  if (FAILED (result)) // MF_E_TOPO_CODEC_NOT_FOUND: 0xC00D5212L
-  {                    // MF_E_TOPO_UNSUPPORTED    : 0xC00D5214L
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFTopoLoader::Load(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    Stream_Module_Device_Tools::dump (topology_p);
-    goto error;
-  } // end IF
-  topology_loader_p->Release ();
-  topology_p->Release ();
-  topology_p = topology_2;
-
   // sanity check(s)
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
 
-  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
-                          //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
-                          //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
-  result =
-    data_p->configuration->moduleHandlerConfiguration.session->SetTopology (topology_flags,
-                                                                            topology_p);
-  if (FAILED (result))
+  if (!Stream_Module_Device_Tools::setTopology (topology_p,
+                                                data_p->configuration->moduleHandlerConfiguration.session,
+                                                true))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaSession::SetTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setTopology(), aborting\n")));
     goto error;
   } // end IF
-  // *NOTE*: IMFMediaSession::SetTopology() is asynchronous, so subsequent calls
-  //         to retrieve the topology handle will fail (MF_E_INVALIDREQUEST)
-  //         --> wait a little
-  IMFMediaEvent* media_event_p = NULL;
-  bool received_topology_set_event = false;
-  MediaEventType event_type = MEUnknown;
-  do
-  {
-    media_event_p = NULL;
-    result =
-      data_p->configuration->moduleHandlerConfiguration.session->GetEvent (0,
-                                                                           &media_event_p);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::GetEvent(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto error;
-    } // end IF
-    ACE_ASSERT (media_event_p);
-    result = media_event_p->GetType (&event_type);
-    ACE_ASSERT (SUCCEEDED (result));
-    if (event_type == MESessionTopologySet)
-      received_topology_set_event = true;
-    media_event_p->Release ();
-  } while (!received_topology_set_event);
-
   topology_p->Release ();
   topology_p = NULL;
 
@@ -3010,7 +3167,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     data_p->configuration->moduleHandlerConfiguration.format->Release ();
     data_p->configuration->moduleHandlerConfiguration.format = NULL;
   } // end IF
-  result =
+  HRESULT result =
     MFCreateMediaType (&data_p->configuration->moduleHandlerConfiguration.format);
   if (FAILED (result))
   {
@@ -3683,6 +3840,8 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
   //  goto error;
   //} // end IF
   //Stream_Module_Device_Tools::deleteMediaType (media_type_p);
+
+  update_buffer_size (*data_p);
 
   return;
 

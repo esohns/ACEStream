@@ -53,6 +53,7 @@ bool load_rates (IMFMediaSource*,     // source handle
                  const struct _GUID&, // media subtype
                  unsigned int,        // resolution (width)
                  GtkListStore*);      // return value: supported rates
+void update_buffer_size ();
 #else
 int dirent_selector (const dirent*);
 int dirent_comparator (const dirent**,
@@ -104,7 +105,8 @@ G_MODULE_EXPORT void combobox_rate_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void drawingarea_configure_event_cb (GtkWindow*, GdkEvent*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
-G_MODULE_EXPORT void toggle_action_record_activate_cb (GtkToggleAction*, gpointer);
+G_MODULE_EXPORT void toggleaction_record_toggled_cb (GtkToggleAction*, gpointer);
+G_MODULE_EXPORT void toggleaction_save_toggled_cb (GtkToggleAction*, gpointer);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

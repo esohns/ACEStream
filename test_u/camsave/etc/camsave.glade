@@ -51,6 +51,16 @@
       </object>
       <accelerator key="s"/>
     </child>
+    <child>
+      <object class="GtkToggleAction" id="toggleaction_save">
+        <property name="label" translatable="yes">Save</property>
+        <property name="short_label" translatable="yes">Save</property>
+        <property name="tooltip" translatable="yes">save to a file</property>
+        <property name="stock_id">gtk-floppy</property>
+        <signal name="toggled" handler="toggleaction_save_toggled_cb" swapped="no"/>
+      </object>
+      <accelerator key="f"/>
+    </child>
   </object>
   <object class="GtkAdjustment" id="adjustment_buffersize">
     <property name="upper">100</property>
@@ -93,16 +103,6 @@
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">1</property>
-  </object>
-  <object class="GtkListStore" id="liststore_rate">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name numerator -->
-      <column type="guint"/>
-      <!-- column-name denominator -->
-      <column type="guint"/>
-    </columns>
   </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
@@ -574,12 +574,10 @@
                                         <property name="receives_default">True</property>
                                         <property name="tooltip_markup" translatable="yes">destination file/folder</property>
                                         <property name="tooltip_text" translatable="yes">destination file/folder</property>
-                                        <property name="action">save</property>
                                         <property name="do_overwrite_confirmation">True</property>
+                                        <property name="filter">filefilter_avi</property>
                                         <property name="local_only">False</property>
-                                        <property name="preview_widget_active">False</property>
                                         <property name="show_hidden">True</property>
-                                        <property name="dialog">filechooserdialog_destination</property>
                                         <property name="focus_on_click">False</property>
                                         <property name="title" translatable="yes">choose a file</property>
                                         <signal name="file-activated" handler="filechooserbutton_cb" swapped="no"/>
@@ -721,6 +719,7 @@
                                                   <object class="GtkTable" id="table_advanced">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">False</property>
+                                                    <property name="n_columns">2</property>
                                                     <property name="homogeneous">True</property>
                                                     <child>
                                                       <placeholder/>
@@ -748,6 +747,43 @@
                                                     </child>
                                                     <child>
                                                       <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkHBox" id="hbox_advanced">
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">False</property>
+                                                        <child>
+                                                          <object class="GtkCheckButton" id="checkbutton_save">
+                                                            <property name="related_action">toggleaction_save</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">False</property>
+                                                            <property name="tooltip_markup" translatable="yes">save to a file</property>
+                                                            <property name="tooltip_text" translatable="yes">save to a file</property>
+                                                            <property name="relief">half</property>
+                                                            <property name="focus_on_click">False</property>
+                                                            <property name="xalign">0</property>
+                                                            <property name="draw_indicator">True</property>
+                                                          </object>
+                                                          <packing>
+                                                            <property name="expand">False</property>
+                                                            <property name="fill">True</property>
+                                                            <property name="position">0</property>
+                                                          </packing>
+                                                        </child>
+                                                      </object>
                                                     </child>
                                                   </object>
                                                 </child>
@@ -1167,35 +1203,7 @@
       <action-widget response="0">quit</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkFileChooserDialog" id="filechooserdialog_destination">
-    <property name="can_focus">False</property>
-    <property name="border_width">5</property>
-    <property name="title" translatable="yes">choose a file</property>
-    <property name="role">GtkFileChooserDialog</property>
-    <property name="modal">True</property>
-    <property name="destroy_with_parent">True</property>
-    <property name="type_hint">dialog</property>
-    <property name="action">save</property>
-    <property name="do_overwrite_confirmation">True</property>
-    <property name="local_only">False</property>
-    <property name="show_hidden">True</property>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="filechooserdialog-vbox1">
-        <property name="can_focus">False</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="filechooserdialog-action_area1">
-            <property name="can_focus">False</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-      </object>
-    </child>
-  </object>
+  <object class="GtkFileFilter" id="filefilter_avi"/>
   <object class="GtkImage" id="image_record">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -1217,6 +1225,16 @@
       <column type="gchararray"/>
       <!-- column-name GUID -->
       <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_rate">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name numerator -->
+      <column type="guint"/>
+      <!-- column-name denominator -->
+      <column type="guint"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore_resolution">

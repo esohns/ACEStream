@@ -39,6 +39,7 @@
 #define TEST_U_STREAM_UI_GTK_BUTTON_CLEAR_NAME               "clear"
 #define TEST_U_STREAM_UI_GTK_BUTTON_REPORT_NAME              "report"
 #define TEST_U_STREAM_UI_GTK_BUTTON_QUIT_NAME                "quit"
+#define TEST_U_STREAM_UI_GTK_CHECKBUTTON_SAVE_NAME           "checkbutton_save"
 #define TEST_U_STREAM_UI_GTK_COMBOBOX_FORMAT_NAME            "combobox_format"
 #define TEST_U_STREAM_UI_GTK_COMBOBOX_RATE_NAME              "combobox_rate"
 #define TEST_U_STREAM_UI_GTK_COMBOBOX_RESOLUTION_NAME        "combobox_resolution"
@@ -48,6 +49,7 @@
 #define TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME                "drawingarea"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME     "filechooserbutton_destination"
 #define TEST_U_STREAM_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME     "filechooserdialog_destination"
+#define TEST_U_STREAM_UI_GTK_FILEFILTER_AVI_NAME             "filefilter_avi"
 #define TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME        "frame_configuration"
 #define TEST_U_STREAM_UI_GTK_HBOX_OPTIONS_NAME               "hbox_options"
 #define TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME           "liststore_format"
@@ -67,6 +69,7 @@
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME "spinbutton_session_messages"
 #define TEST_U_STREAM_UI_GTK_STATUSBAR_NAME                  "statusbar"
 #define TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME        "toggleaction_record"
+#define TEST_U_STREAM_UI_GTK_TOGGLEACTION_SAVE_NAME          "toggleaction_save"
 #define TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME                   "textview"
 
 // GTK progress/status-bar

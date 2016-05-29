@@ -118,7 +118,7 @@ class Stream_Vis_Target_Direct3D_T
 
   // helper methods
   // *NOTE*: (on success,) this sets the MF_MT_DEFAULT_STRIDE in the media type
-  bool initialize_Direct3D (const HWND,                       // (target) window handle
+  bool initialize_Direct3D (HWND,                             // (target) window handle
                             IMFMediaType*,                    // media type handle
                             IDirect3DDevice9Ex*&,             // return value: Direct3D device handle
                             struct _D3DPRESENT_PARAMETERS_&,  // return value: Direct3D presentation parameters
@@ -126,19 +126,20 @@ class Stream_Vis_Target_Direct3D_T
                             STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T&); // return value: transformation function pointer
 
   // *NOTE*: (on success,) this sets the MF_MT_DEFAULT_STRIDE in the media type
-  HRESULT initialize_Direct3DDevice (const HWND,     // (target) window handle
+  HRESULT initialize_Direct3DDevice (HWND,           // (target) window handle
                                      IMFMediaType*); // media type handle
   HRESULT set_adapter (REFGUID); // (inbound) sub-type
   HRESULT get_format (DWORD,                // index
-                      struct _GUID*) const; // return value: sub-type
+                      struct _GUID&) const; // return value: sub-type
   bool is_supported (REFGUID); // sub-type
-  HRESULT create_swap_chains (const HWND, // (target) window handle
-                              UINT32,     // width
-                              UINT32);    // height
+  HRESULT create_swap_chains (HWND,                 // (target) window handle
+                              UINT32,               // width
+                              UINT32,               // height
+                              const struct _GUID&); // input subtype
   void update_destination_rectangle ();
   // *NOTE*: (on success,) this sets the MF_MT_DEFAULT_STRIDE in the media type
   HRESULT get_default_stride (IMFMediaType*, // media type handle
-                              LONG*);        // return value: default stride
+                              LONG&);        // return value: default stride
   HRESULT test_cooperative_level ();
   HRESULT reset_device ();
   // *NOTE*: transforms a rectangle from its current pixel aspect ratio (PAR) to
@@ -161,7 +162,7 @@ class Stream_Vis_Target_Direct3D_T
   LONG                                 defaultStride_;
   struct tagRECT                       destinationRectangle_;
   enum _D3DFORMAT                      format_;
-  MFVideoInterlaceMode                 interlace_;
+  enum _MFVideoInterlaceMode           interlaceMode_;
   struct _MFRatio                      pixelAspectRatio_;
   LONG                                 width_;
   LONG                                 height_;

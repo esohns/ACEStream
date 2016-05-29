@@ -84,11 +84,13 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
  , configuration_ (NULL)
  , closeWindow_ (false)
  , isInitialized_ (false)
- , width_ (0)
- , height_ (0)
  , defaultStride_ (0)
  , destinationRectangle_ ()
  , format_ (D3DFMT_UNKNOWN)
+ , interlaceMode_ (MFVideoInterlace_Unknown)
+ , pixelAspectRatio_ ()
+ , width_ (0)
+ , height_ (0)
  , presentationParameters_ ()
  , adapter_ (NULL)
  , IDirect3DDevice9Ex_ (NULL)
@@ -446,34 +448,44 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
         goto error;
       } // end IF
 
+      //HWND parent_window_handle = configuration_->window;
       if (!configuration_->window)
       {
+        DWORD window_style = (WS_BORDER      |
+                              WS_CAPTION     |
+                              WS_CHILD       |
+                              WS_MINIMIZEBOX |
+                              WS_SYSMENU     |
+                              WS_VISIBLE);
         configuration_->window =
-          CreateWindow (ACE_TEXT ("EDIT"),
-                        0,
-                        WS_OVERLAPPEDWINDOW,
-                        //WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE | WS_VSCROLL | WS_HSCROLL,
-                        CW_USEDEFAULT,
-                        CW_USEDEFAULT,
-                        640,
-                        480,
-                        0,
-                        0,
-                        GetModuleHandle (NULL),
-                        0);
+          CreateWindowEx (0,                             // dwExStyle
+                          NULL,                          // lpClassName
+                          ACE_TEXT_ALWAYS_CHAR ("EDIT"), // lpWindowName
+                          window_style,                  // dwStyle
+                          CW_USEDEFAULT,                 // x
+                          SW_SHOWNA,                     // y
+                          640,                           // nWidth
+                          480,                           // nHeight
+                          //parent_window_handle,          // hWndParent
+                          NULL,
+                          NULL,                          // hMenu
+                          GetModuleHandle (NULL),        // hInstance
+                          NULL);                         // lpParam
         if (!configuration_->window)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to CreateWindow(): \"%s\", aborting\n"),
+                      ACE_TEXT ("failed to CreateWindowEx(): \"%s\", aborting\n"),
                       ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
           goto error;
         } // end IF
-        ShowWindow (configuration_->window, TRUE);
+        //BOOL result_3 = ShowWindow (configuration_->window, SW_SHOWNA);
+        //ACE_UNUSED_ARG (result_3);
         closeWindow_ = true;
       } // end IF
       ACE_ASSERT (configuration_->window);
 
-      destinationRectangle_ = configuration_->area;
+      //destinationRectangle_ = configuration_->area;
+      SetRectEmpty (&destinationRectangle_);
       if (session_data_r.direct3DDevice)
       {
         session_data_r.direct3DDevice->AddRef ();
@@ -647,7 +659,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                              MessageType,
                              ConfigurationType,
                              SessionDataType,
-                             SessionDataContainerType>::initialize_Direct3D (const HWND windowHandle_in,
+                             SessionDataContainerType>::initialize_Direct3D (HWND windowHandle_in,
                                                                              IMFMediaType* mediaType_in,
                                                                              IDirect3DDevice9Ex*& IDirect3DDevice9Ex_out,
                                                                              struct _D3DPRESENT_PARAMETERS_& presentationParameters_out,
@@ -801,8 +813,19 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
 
   if (!IDirect3DSwapChain9_ && (format_ != D3DFMT_UNKNOWN))
   {
-    result = this->create_swap_chains (configuration_->window,
-                                       width_, height_);
+    struct _GUID sub_type = GUID_NULL;
+    result = sessionData_->format->GetGUID (MF_MT_SUBTYPE, &sub_type);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return E_FAIL;
+    } // end IF
+
+    result = create_swap_chains (configuration_->window,
+                                 width_, height_,
+                                 sub_type);
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -931,6 +954,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   struct tagRECT source_rectangle = { 0, 0, width_, height_ };
   source_rectangle =
     normalize_aspect_ratio (source_rectangle, pixelAspectRatio_);
+
   struct tagRECT destination_rectangle = destinationRectangle_;
   if (IsRectEmpty (&destination_rectangle))
   {
@@ -945,7 +969,6 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
       return;
     } // end IF
   } // end IF
-
   destinationRectangle_ = letterbox_rectangle (source_rectangle,
                                                destination_rectangle);
 }
@@ -960,9 +983,10 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                              MessageType,
                              ConfigurationType,
                              SessionDataType,
-                             SessionDataContainerType>::create_swap_chains (const HWND windowHandle_in,
+                             SessionDataContainerType>::create_swap_chains (HWND windowHandle_in,
                                                                             UINT32 width_in,
-                                                                            UINT32 height_in)
+                                                                            UINT32 height_in,
+                                                                            const GUID& subType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::create_swap_chains"));
 
@@ -984,7 +1008,18 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   d3d_presentation_parameters.Windowed = TRUE;
   d3d_presentation_parameters.SwapEffect = D3DSWAPEFFECT_FLIP;
   d3d_presentation_parameters.hDeviceWindow = windowHandle_in;
-  d3d_presentation_parameters.BackBufferFormat = D3DFMT_X8R8G8B8;
+  //if (subType_in == MFVideoFormat_RGB24)
+  //  d3d_presentation_parameters.BackBufferFormat = D3DFMT_R8G8B8;
+  //else if (subType_in == MFVideoFormat_RGB32)
+    d3d_presentation_parameters.BackBufferFormat = D3DFMT_X8R8G8B8;
+  //else
+  //{
+  //  d3d_presentation_parameters.BackBufferFormat = D3DFMT_UNKNOWN;
+  //  //ACE_DEBUG ((LM_ERROR,
+  //  //            ACE_TEXT ("invalid/unknown subtype (was: \"%s\"), aborting\n"),
+  //  //            ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (subType_in).c_str ())));
+  //  //return E_FAIL;
+  //} // end ELSE
   d3d_presentation_parameters.Flags =
     (D3DPRESENTFLAG_VIDEO              |
      D3DPRESENTFLAG_DEVICECLIP         |
@@ -1012,26 +1047,22 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                              ConfigurationType,
                              SessionDataType,
                              SessionDataContainerType>::get_default_stride (IMFMediaType* mediaType_in,
-                                                                            LONG* stride_out)
+                                                                            LONG& stride_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::get_default_stride"));
 
   // sanity check(s)
   ACE_ASSERT (mediaType_in);
-  ACE_ASSERT (stride_out);
 
   // initialize return value(s)
-  *stride_out = 0;
+  stride_out = 0;
 
   HRESULT result = mediaType_in->GetUINT32 (MF_MT_DEFAULT_STRIDE,
-                                            (UINT32*)stride_out);
+                                            (UINT32*)&stride_out);
   if (SUCCEEDED (result))
     return result;
 
   struct _GUID sub_type = GUID_NULL;
-  UINT32 width = 0;
-  UINT32 height = 0;
-
   result = mediaType_in->GetGUID (MF_MT_SUBTYPE, &sub_type);
   if (FAILED (result))
   {
@@ -1041,9 +1072,11 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
     return result;
   } // end IF
 
+  UINT32 width = 0;
+  UINT32 height = 0;
   result = MFGetAttributeSize (mediaType_in,
-                                MF_MT_FRAME_SIZE,
-                                &width, &height);
+                               MF_MT_FRAME_SIZE,
+                               &width, &height);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1052,7 +1085,9 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
     return result;
   } // end IF
 
-  result = MFGetStrideForBitmapInfoHeader (sub_type.Data1, width, stride_out);
+  result = MFGetStrideForBitmapInfoHeader (sub_type.Data1,
+                                           width,
+                                           &stride_out);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1062,7 +1097,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   } // end IF
 
   result = mediaType_in->SetUINT32 (MF_MT_DEFAULT_STRIDE,
-                                    *(UINT32*)stride_out);
+                                    (UINT32)stride_out);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1084,7 +1119,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                              MessageType,
                              ConfigurationType,
                              SessionDataType,
-                             SessionDataContainerType>::initialize_Direct3DDevice (const HWND windowHandle_in,
+                             SessionDataContainerType>::initialize_Direct3DDevice (HWND windowHandle_in,
                                                                                    IMFMediaType* mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize_Direct3DDevice"));
@@ -1122,12 +1157,12 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
     return result;
   } // end IF
 
-  interlace_ =
+  interlaceMode_ =
     (MFVideoInterlaceMode)MFGetAttributeUINT32 (mediaType_in,
                                                 MF_MT_INTERLACE_MODE,
                                                 MFVideoInterlace_Unknown);
 
-  result = get_default_stride (mediaType_in, &defaultStride_);
+  result = get_default_stride (mediaType_in, defaultStride_);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1150,7 +1185,8 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   } // end IF
 
   result = create_swap_chains (windowHandle_in,
-                               width_, height_);
+                               width_, height_,
+                               GUID_s);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1227,16 +1263,13 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                              ConfigurationType,
                              SessionDataType,
                              SessionDataContainerType>::get_format (DWORD index_in,
-                                                                    struct _GUID* subType_out) const
+                                                                    struct _GUID& subType_out) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::get_format"));
 
-  // sanity check(s)
-  ACE_ASSERT (subType_out);
-
   if (index < OWN_TYPE_T::formats)
   {
-    *subType_out = OWN_TYPE_T::formatConversions[i].subtype;
+    subType_out = OWN_TYPE_T::formatConversions[i].subtype;
     return S_OK;
   } // end IF
 

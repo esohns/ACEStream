@@ -348,6 +348,14 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::handleDataMessage"));
 
+  // sanity check(s)
+  ACE_ASSERT (sessionData_);
+
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (sessionData_->get ());
+  if (session_data_r.targetFileName.empty ())
+    return; // nothing to do
+
   // initialize return value(s)
   // *NOTE*: the default behavior is to pass all messages along
   //         --> in this case, the individual frames are extracted and passed
@@ -363,60 +371,27 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
   // sanity check(s)
   ACE_ASSERT (configuration_);
   ACE_ASSERT (configuration_->streamConfiguration);
-  ACE_ASSERT (isInitialized_);
 
-  // initialize driver ?
+  // *TODO*: remove type inference
+  message_block_p =
+    allocateMessage (configuration_->streamConfiguration->bufferSize);
+  if (!message_block_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("allocateMessage(%d) failed: \"%m\", returning\n"),
+                configuration_->streamConfiguration->bufferSize));
+    goto error;
+  } // end IF
+
   if (isFirst_)
   {
     isFirst_ = false;
-
-    // *TODO*: remove type inference
-    message_block_p =
-      allocateMessage (configuration_->streamConfiguration->bufferSize);
-    if (!message_block_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("allocateMessage(%d) failed: \"%m\", returning\n"),
-                  configuration_->streamConfiguration->bufferSize));
-      return;
-    } // end IF
-    ACE_ASSERT (message_block_p);
 
     if (!generateHeader (message_block_p))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Decoder_AVIEncoder_WriterTask_T::generateHeader(), returning\n")));
-
-      // clean up
-      message_block_p->release ();
-
-      return;
-    } // end IF
-
-//    result = inherited::put_next (message_block_p, NULL);
-//    if (result == -1)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", returning\n")));
-
-//      // clean up
-//      message_block_p->release ();
-
-//      return;
-//    } // end IF
-//    message_block_p = NULL;
-  } // end IF
-  else
-  {
-    // *TODO*: remove type inference
-    message_block_p =
-        allocateMessage (configuration_->streamConfiguration->bufferSize);
-    if (!message_block_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("allocateMessage(%d) failed: \"%m\", returning\n"),
-                  configuration_->streamConfiguration->bufferSize));
-      return;
+      goto error;
     } // end IF
   } // end IF
   ACE_ASSERT (message_block_p);
@@ -694,13 +669,22 @@ continue_:
     case STREAM_SESSION_END:
     {
       // sanity check(s)
+      ACE_ASSERT (sessionData_);
+
+      int result = -1;
+      ACE_Message_Block* message_block_p = NULL;
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (sessionData_->get ());
+
+      if (session_data_r.targetFileName.empty ())
+        goto continue_2; // nothing to do
+
+      // sanity check(s)
       ACE_ASSERT (configuration_);
       ACE_ASSERT (configuration_->streamConfiguration);
 
-      int result = -1;
-
       // *TODO*: remove type inference
-      ACE_Message_Block* message_block_p =
+      message_block_p =
         allocateMessage (configuration_->streamConfiguration->bufferSize);
       if (!message_block_p)
       {

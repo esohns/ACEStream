@@ -384,23 +384,23 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
       ACE_ASSERT (!mediaSession_);
       ACE_ASSERT (!session_data_r.session);
 
-      if (!session_data_r.direct3DDevice)
-      {
-        // *TODO*: remove type inferences
-        struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
-        if (!Stream_Module_Device_Tools::getDirect3DDevice (inherited::configuration_->window,
-                                                            session_data_r.format,
-                                                            session_data_r.direct3DDevice,
-                                                            d3d_presentation_parameters,
-                                                            direct3D_manager_p,
-                                                            session_data_r.resetToken))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Stream_Module_Device_Tools::getDirect3DDevice(), aborting\n")));
-          goto error;
-        } // end IF
-        release_device = true;
-      } // end IF
+      //if (!session_data_r.direct3DDevice)
+      //{
+      //  // *TODO*: remove type inferences
+      //  struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
+      //  if (!Stream_Module_Device_Tools::getDirect3DDevice (inherited::configuration_->window,
+      //                                                      session_data_r.format,
+      //                                                      session_data_r.direct3DDevice,
+      //                                                      d3d_presentation_parameters,
+      //                                                      direct3D_manager_p,
+      //                                                      session_data_r.resetToken))
+      //  {
+      //    ACE_DEBUG ((LM_ERROR,
+      //                ACE_TEXT ("failed to Stream_Module_Device_Tools::getDirect3DDevice(), aborting\n")));
+      //    goto error;
+      //  } // end IF
+      //  release_device = true;
+      //} // end IF
 
       //if (!inherited::configuration_->sourceReader)
       //  if (!Stream_Module_Device_Tools::initializeDirect3DManager (session_data_r.direct3DDevice,
@@ -459,7 +459,8 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
         if (!Stream_Module_Device_Tools::loadRendererTopology (inherited::configuration_->device,
                                                                session_data_r.format,
                                                                this,
-                                                               inherited::configuration_->window,
+                                                               //inherited::configuration_->window,
+                                                               NULL,
                                                                sampleGrabberSinkNodeId_,
                                                                session_data_r.rendererNodeId,
                                                                topology_p))
