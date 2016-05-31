@@ -24,6 +24,7 @@
 #include <sstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "dshow.h"
 #include "dvdmedia.h"
 #include "evr.h"
 //#include "ksuuids.h"
@@ -31,7 +32,7 @@
 #include "mferror.h"
 //#include "mftransform.h"
 #include "mtype.h"
-#include "strmif.h"
+#include "oleauto.h"
 #include "qedit.h"
 #include "wmcodecdsp.h"
 #endif

@@ -26,6 +26,10 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "mfidl.h"
+#endif
+
 #include "common_time_common.h"
 
 #include "stream_base.h"
@@ -63,10 +67,30 @@ class Test_I_Source_Stream_T
                         Test_I_Source_Stream_SessionData_t, // session data container (reference counted)
                         Test_I_Source_Stream_SessionMessage,
                         Test_I_Source_Stream_Message>
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , public IMFAsyncCallback
+#endif
 {
  public:
   Test_I_Source_Stream_T (const std::string&); // name
   virtual ~Test_I_Source_Stream_T ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // override (part of) Stream_IStreamControl_T
+  virtual Stream_Module_t* find (const std::string&) const; // module name
+  virtual void start ();
+  virtual void stop (bool = true,  // wait for completion ?
+                     bool = true); // locked access ?
+
+  // implement IMFAsyncCallback
+  STDMETHODIMP STDMETHODCALLTYPE QueryInterface (const IID&,
+                                                 void**);
+  virtual ULONG STDMETHODCALLTYPE AddRef ();
+  virtual ULONG STDMETHODCALLTYPE Release ();
+  STDMETHODIMP GetParameters (DWORD*,  // return value: flags
+                              DWORD*); // return value: queue handle
+  STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
+#endif
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Source_StreamConfiguration&, // configuration
@@ -101,6 +125,8 @@ class Test_I_Source_Stream_T
                         Test_I_Source_Stream_SessionData_t, // session data container (reference counted)
                         Test_I_Source_Stream_SessionMessage,
                         Test_I_Source_Stream_Message> inherited;
+
+  typedef Test_I_Source_Stream_T<ConnectorType> OWN_TYPE_T;
   typedef Stream_Module_Net_Target_T<Test_I_Source_Stream_SessionMessage,
                                      Test_I_Source_Stream_Message,
                                      ////
@@ -126,6 +152,13 @@ class Test_I_Source_Stream_T
   Test_I_Source_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
   TARGET_MODULE_T                                     netTarget_;
   Test_I_Source_Stream_Module_Display_Module          display_;
+  Test_I_Source_Stream_Module_DisplayNull_Module      displayNull_;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // media session
+  IMFMediaSession*                                    mediaSession_;
+  ULONG                                               referenceCount_;
+#endif
 };
 
 // include template implementation

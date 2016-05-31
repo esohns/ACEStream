@@ -41,7 +41,9 @@
 //#include "stream_misc_directshow_source.h"
 #include "stream_misc_mediafoundation_source.h"
 
-#include "stream_vis_target_directshow.h"
+#include "stream_vis_target_direct3d.h"
+//#include "stream_vis_target_directshow.h"
+#include "stream_vis_target_mediafoundation.h"
 #else
 #include "stream_dev_cam_source_v4l.h"
 
@@ -294,20 +296,55 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                       //
                           Test_I_Target_Stream_Module_RuntimeStatistic);      // name
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_Vis_Target_DirectShow_T<Test_I_Source_Stream_SessionMessage,
-                                       Test_I_Source_Stream_Message,
-                                       ///
-                                       Test_I_Source_Stream_ModuleHandlerConfiguration,
-                                       ///
-                                       Test_I_Source_Stream_SessionData,
-                                       Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
-typedef Stream_Vis_Target_DirectShow_T<Test_I_Target_Stream_SessionMessage,
-                                       Test_I_Target_Stream_Message,
-                                       ///
-                                       Test_I_Target_Stream_ModuleHandlerConfiguration,
-                                       ///
-                                       Test_I_Target_Stream_SessionData,
-                                       Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
+//typedef Stream_Vis_Target_DirectShow_T<Test_I_Source_Stream_SessionMessage,
+//                                       Test_I_Source_Stream_Message,
+//                                       ///
+//                                       Test_I_Source_Stream_ModuleHandlerConfiguration,
+//                                       ///
+//                                       Test_I_Source_Stream_SessionData,
+//                                       Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
+//typedef Stream_Vis_Target_DirectShow_T<Test_I_Target_Stream_SessionMessage,
+//                                       Test_I_Target_Stream_Message,
+//                                       ///
+//                                       Test_I_Target_Stream_ModuleHandlerConfiguration,
+//                                       ///
+//                                       Test_I_Target_Stream_SessionData,
+//                                       Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
+//typedef Stream_Vis_Target_MediaFoundation_T<Test_I_Source_Stream_SessionMessage,
+//                                            Test_I_Source_Stream_Message,
+//                                            
+//                                            Test_I_Source_Stream_ModuleHandlerConfiguration,
+//                                            
+//                                            Test_I_Source_Stream_SessionData,
+//                                            Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
+typedef Stream_Vis_Target_MediaFoundation_2<Test_I_Source_Stream_SessionMessage,
+                                            Test_I_Source_Stream_Message,
+
+                                            Test_I_Source_Stream_ModuleHandlerConfiguration,
+
+                                            Test_I_Source_Stream_SessionData,
+                                            Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_DisplayNull;
+typedef Stream_Vis_Target_MediaFoundation_2<Test_I_Target_Stream_SessionMessage,
+                                            Test_I_Target_Stream_Message,
+
+                                            Test_I_Target_Stream_ModuleHandlerConfiguration,
+
+                                            Test_I_Target_Stream_SessionData,
+                                            Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_DisplayNull;
+typedef Stream_Vis_Target_Direct3D_T<Test_I_Source_Stream_SessionMessage,
+                                     Test_I_Source_Stream_Message,
+                                     /////
+                                     Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                     /////
+                                     Test_I_Source_Stream_SessionData,
+                                     Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
+typedef Stream_Vis_Target_Direct3D_T<Test_I_Target_Stream_SessionMessage,
+                                     Test_I_Target_Stream_Message,
+                                     /////
+                                     Test_I_Target_Stream_ModuleHandlerConfiguration,
+                                     /////
+                                     Test_I_Target_Stream_SessionData,
+                                     Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
 #else
 typedef Stream_Module_Vis_GTK_DrawingArea_T<Test_I_Source_Stream_SessionMessage,
                                             Test_I_Source_Stream_Message,
@@ -332,7 +369,17 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    /
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
                               Common_TimePolicy_t,                             // time policy
                               Stream_ModuleConfiguration,                      // module configuration type
+                              Test_I_Source_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Source_Stream_Module_DisplayNull);        // writer type
+DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
+                              Common_TimePolicy_t,                             // time policy
+                              Stream_ModuleConfiguration,                      // module configuration type
                               Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Target_Stream_Module_Display);            // writer type
+DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
+                              Common_TimePolicy_t,                             // time policy
+                              Stream_ModuleConfiguration,                      // module configuration type
+                              Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Target_Stream_Module_DisplayNull);        // writer type
 
 #endif

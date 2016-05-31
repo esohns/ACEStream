@@ -30,7 +30,7 @@
 #include "common_time_common.h"
 #include "common_tools.h"
 
-#include "class_factory.h"
+//#include "class_factory.h"
 
 #include "stream_macros.h"
 

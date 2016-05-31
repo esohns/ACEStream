@@ -48,7 +48,7 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
  , isInitialized_ (false)
  , baseTimeStamp_ (0)
  , mediaSession_ (NULL)
- , referenceCount_ (0)
+ , referenceCount_ (1)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::Stream_Misc_MediaFoundation_Source_T"));
 
@@ -191,7 +191,7 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
   static const QITAB query_interface_table[] =
   {
     //QITABENT (OWN_TYPE_T, IMFSourceReaderCallback),
-    QITABENT (OWN_TYPE_T, IMFSampleGrabberSinkCallback),
+    QITABENT (OWN_TYPE_T, IMFSampleGrabberSinkCallback2),
     { 0 },
   };
 
@@ -576,8 +576,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
-      ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
-      configuration_->streamConfiguration->bufferSize));
+                ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::allocateMessage(%d) failed: \"%m\", aborting\n"),
+                configuration_->streamConfiguration->bufferSize));
     goto error;
   } // end IF
   ACE_ASSERT (message_p);
@@ -585,8 +585,8 @@ Stream_Misc_MediaFoundation_Source_T<SessionMessageType,
 
   // *TODO*: copy this data into the message buffer ?
   message_p->base (reinterpret_cast<char*> (const_cast<BYTE*> (buffer_in)),
-    bufferSize_in,
-    ACE_Message_Block::DONT_DELETE);
+                   bufferSize_in,
+                   ACE_Message_Block::DONT_DELETE);
   message_p->wr_ptr (bufferSize_in);
 
   result = inherited::putq (message_p, NULL);

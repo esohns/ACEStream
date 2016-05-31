@@ -37,6 +37,13 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
  , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
              NULL,
              false)
+ , displayNull_ (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+                 NULL,
+                 false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , mediaSession_ (NULL)
+ , referenceCount_ (1)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Test_I_Source_Stream_T"));
 
@@ -49,6 +56,7 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
   inherited::modules_.push_front (&runtimeStatistic_);
   inherited::modules_.push_front (&netTarget_);
   inherited::modules_.push_front (&display_);
+  //inherited::modules_.push_front (&displayNull_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -67,6 +75,17 @@ Test_I_Source_Stream_T<ConnectorType>::~Test_I_Source_Stream_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::~Test_I_Source_Stream_T"));
 
+  HRESULT result = E_FAIL;
+  if (mediaSession_)
+  {
+    result = mediaSession_->Shutdown ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    mediaSession_->Release ();
+  } // end IF
+
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
 }
@@ -81,6 +100,297 @@ Test_I_Source_Stream_T<ConnectorType>::ping ()
   ACE_NOTSUP;
   ACE_NOTREACHED (return;)
 }
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+template <typename ConnectorType>
+Stream_Module_t*
+Test_I_Source_Stream_T<ConnectorType>::find (const std::string& name_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::find"));
+
+  if (ACE_OS::strcmp (name_in.c_str (),
+                      ACE_TEXT_ALWAYS_CHAR ("DisplayNull")) == 0)
+    return const_cast<Test_I_Source_Stream_Module_DisplayNull_Module*> (&displayNull_);
+
+  return inherited::find (name_in);
+}
+template <typename ConnectorType>
+void
+Test_I_Source_Stream_T<ConnectorType>::start ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::start"));
+
+  inherited::start ();
+
+  // sanity check(s)
+  ACE_ASSERT (mediaSession_);
+
+  struct _GUID GUID_s = GUID_NULL;
+  struct tagPROPVARIANT property_s;
+  PropVariantInit (&property_s);
+  //property_s.vt = VT_EMPTY;
+  HRESULT result = mediaSession_->Start (&GUID_s,      // time format
+    &property_s); // start position
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::Start(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    PropVariantClear (&property_s);
+
+    return;
+  } // end IF
+  PropVariantClear (&property_s);
+
+  result = mediaSession_->BeginGetEvent (this, NULL);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::BeginGetEvent(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+}
+template <typename ConnectorType>
+void
+Test_I_Source_Stream_T<ConnectorType>::stop (bool waitForCompletion_in,
+                                             bool lockedAccess_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::stop"));
+
+  if (mediaSession_)
+  {
+    HRESULT result = mediaSession_->Stop ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::Stop(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  } // end IF
+
+  inherited::stop (waitForCompletion_in,
+    lockedAccess_in);
+}
+
+template <typename ConnectorType>
+HRESULT
+Test_I_Source_Stream_T<ConnectorType>::QueryInterface (const IID& IID_in,
+                                                       void** interface_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::QueryInterface"));
+
+  static const QITAB query_interface_table[] =
+  {
+    QITABENT (OWN_TYPE_T, IMFAsyncCallback),
+    { 0 },
+  };
+
+  return QISearch (this,
+                   query_interface_table,
+                   IID_in,
+                   interface_out);
+}
+template <typename ConnectorType>
+ULONG
+Test_I_Source_Stream_T<ConnectorType>::AddRef ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::AddRef"));
+
+  return InterlockedIncrement (&referenceCount_);
+}
+template <typename ConnectorType>
+ULONG
+Test_I_Source_Stream_T<ConnectorType>::Release ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Release"));
+
+  ULONG count = InterlockedDecrement (&referenceCount_);
+  if (count == 0);
+  //delete this;
+
+  return count;
+}
+template <typename ConnectorType>
+HRESULT
+Test_I_Source_Stream_T<ConnectorType>::GetParameters (DWORD* flags_out,
+                                                      DWORD* queue_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::GetParameters"));
+
+  ACE_UNUSED_ARG (flags_out);
+  ACE_UNUSED_ARG (queue_out);
+
+  // *NOTE*: "...If you want default values for both parameters, return
+  //         E_NOTIMPL. ..."
+  return E_NOTIMPL;
+}
+template <typename ConnectorType>
+HRESULT
+Test_I_Source_Stream_T<ConnectorType>::Invoke (IMFAsyncResult* result_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Invoke"));
+
+  HRESULT result = E_FAIL;
+  IMFMediaEvent* media_event_p = NULL;
+  MediaEventType event_type = MEUnknown;
+  HRESULT status = E_FAIL;
+  struct tagPROPVARIANT value;
+  PropVariantInit (&value);
+
+  // sanity check(s)
+  ACE_ASSERT (result_in);
+  ACE_ASSERT (mediaSession_);
+  ACE_ASSERT (inherited::sessionData_);
+
+  Test_I_Source_Stream_SessionData& session_data_r =
+    const_cast<Test_I_Source_Stream_SessionData&> (inherited::sessionData_->get ());
+
+  result = mediaSession_->EndGetEvent (result_in, &media_event_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::EndGetEvent(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = media_event_p->GetType (&event_type);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = media_event_p->GetStatus (&status);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = media_event_p->GetValue (&value);
+  ACE_ASSERT (SUCCEEDED (result));
+  switch (event_type)
+  {
+  case MEEndOfPresentation:
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("received MEEndOfPresentation...\n")));
+    break;
+  }
+  case MEError:
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("received MEError: \"%s\"\n"),
+                ACE_TEXT (Common_Tools::error2String (status).c_str ())));
+    break;
+  }
+  case MESessionClosed:
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("received MESessionClosed, shutting down...\n")));
+    //IMFMediaSource* media_source_p = NULL;
+    //if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
+    //                                                 media_source_p))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), continuing\n")));
+    //  goto continue_;
+    //} // end IF
+    //ACE_ASSERT (media_source_p);
+    //result = media_source_p->Shutdown ();
+    //if (FAILED (result))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IMFMediaSource::Shutdown(): \"%s\", continuing\n"),
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    //media_source_p->Release ();
+continue_:
+    // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
+    //result = mediaSession_->Shutdown ();
+    //if (FAILED (result))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    break;
+  }
+  case MESessionEnded:
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("received MESessionEnded, closing sesion...\n")));
+    result = mediaSession_->Close ();
+    if (FAILED (result))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    break;
+  }
+  case MESessionCapabilitiesChanged:
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("received MESessionCapabilitiesChanged...\n")));
+    break;
+  }
+  case MESessionNotifyPresentationTime:
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("received MESessionNotifyPresentationTime...\n")));
+    break;
+  }
+  case MESessionStarted:
+  { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("received MESessionStarted...\n")));
+    break;
+  }
+  case MESessionStopped:
+  { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("received MESessionStopped, stopping...\n")));
+    if (isRunning ())
+      stop (false,
+            true);
+    break;
+  }
+  case MESessionTopologySet:
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("received MESessionTopologySet (status was: \"%s\")...\n"),
+                ACE_TEXT (Common_Tools::error2String (status).c_str ())));
+    break;
+  }
+  case MESessionTopologyStatus:
+  {
+    UINT32 attribute_value = 0;
+    result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
+                                       &attribute_value);
+    ACE_ASSERT (SUCCEEDED (result));
+    enum MF_TOPOSTATUS topology_status =
+      static_cast<enum MF_TOPOSTATUS> (attribute_value);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("received MESessionTopologyStatus: \"%s\"...\n"),
+                ACE_TEXT (Stream_Module_Device_Tools::topologyStatusToString (topology_status).c_str ())));
+    break;
+  }
+  default:
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("received unknown/invalid media session event (type was: %d), continuing\n"),
+                event_type));
+    break;
+  }
+  } // end SWITCH
+  PropVariantClear (&value);
+  media_event_p->Release ();
+
+  result = mediaSession_->BeginGetEvent (this, NULL);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
+  return S_OK;
+
+error:
+  if (media_event_p)
+    media_event_p->Release ();
+  PropVariantClear (&value);
+
+  return E_FAIL;
+}
+#endif
 
 template <typename ConnectorType>
 bool
@@ -191,340 +501,110 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  std::list<std::wstring> filter_pipeline;
   bool graph_loaded = false;
   bool COM_initialized = false;
-  //struct _AllocatorProperties allocator_properties;
-  //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   HRESULT result = E_FAIL;
-  IDirect3DDeviceManager9* direct3D_manager_p = NULL;
+  IMFTopology* topology_p = NULL;
 
-  //if (configuration_in.moduleHandlerConfiguration->builder)
-  if (configuration_in.moduleHandlerConfiguration->topology)
-  {
-    //if (!Stream_Module_Device_Tools::getBufferNegotiation (configuration_in.moduleHandlerConfiguration->builder,
-    //                                                       buffer_negotiation_p))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getBufferNegotiation(): \"%s\", aborting\n")));
-    //  return false;
-    //} // end IF
-    //ACE_ASSERT (buffer_negotiation_p);
-
-    goto continue_;
-  } // end IF
-  else
-  {
-    result = CoInitializeEx (NULL,
-                             (COINIT_MULTITHREADED    |
-                              COINIT_DISABLE_OLE1DDE  |
-                              COINIT_SPEED_OVER_MEMORY));
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      return false;
-    } // end IF
-    COM_initialized = true;
-
-    // sanity check(s)
-    //IAMStreamConfig* stream_config_p = NULL;
-    //if (!Stream_Module_Device_Tools::loadDeviceGraph (configuration_in.moduleHandlerConfiguration->device,
-    //                                                  configuration_in.moduleHandlerConfiguration->builder,
-    //                                                  buffer_negotiation_p,
-    //                                                  stream_config_p))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceGraph(\"%s\"), aborting\n"),
-    //              ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
-    //  goto error;
-    //} // end IF
-    //ACE_ASSERT (configuration_in.moduleHandlerConfiguration->builder);
-    //ACE_ASSERT (buffer_negotiation_p);
-    //ACE_ASSERT (stream_config_p);
-
-    // sanity check(s)
-    ACE_ASSERT (!session_data_r.direct3DDevice);
-
-    struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
-    if (!Stream_Module_Device_Tools::getDirect3DDevice (configuration_in.moduleHandlerConfiguration->window,
-                                                        configuration_in.moduleHandlerConfiguration->format,
-                                                        session_data_r.direct3DDevice,
-                                                        d3d_presentation_parameters,
-                                                        direct3D_manager_p,
-                                                        session_data_r.resetToken))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getDirect3DDevice(), aborting\n")));
-      goto error;
-    } // end IF
-    ACE_ASSERT (direct3D_manager_p);
-
-    // sanity check(s)
-    ACE_ASSERT (!configuration_in.moduleHandlerConfiguration->mediaSource);
-
-    WCHAR* symbolic_link_p = NULL;
-    UINT32 symbolic_link_size = 0;
-    if (!Stream_Module_Device_Tools::getMediaSource (configuration_in.moduleHandlerConfiguration->device,
-                                                     configuration_in.moduleHandlerConfiguration->mediaSource,
-                                                     symbolic_link_p,
-                                                     symbolic_link_size))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(\"%s\"), aborting\n"),
-                  ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
-      goto error;
-    } // end IF
-    CoTaskMemFree (symbolic_link_p);
-    symbolic_link_p = NULL;
-    symbolic_link_size = 0;
-    ACE_ASSERT (configuration_in.moduleHandlerConfiguration->mediaSource);
-    //if (!Stream_Module_Device_Tools::getSourceReader (configuration_in.moduleHandlerConfiguration->mediaSource,
-    //                                                  symbolic_link_p,
-    //                                                  symbolic_link_size,
-    //                                                  direct3D_manager_p,
-    //                                                  source_impl_p,
-    //                                                  Stream_Module_Device_Tools::isChromaLuminance (configuration_in.moduleHandlerConfiguration->format),
-    //                                                  configuration_in.moduleHandlerConfiguration->sourceReader))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getSourceReader(\"%s\"), aborting\n"),
-    //              ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
-
-    //  // clean up
-    //  configuration_in.moduleHandlerConfiguration->mediaSource->Release ();
-    //  configuration_in.moduleHandlerConfiguration->mediaSource = NULL;
-
-    //  goto error;
-    //} // end IF
-    if (!Stream_Module_Device_Tools::loadRendererTopology (configuration_in.moduleHandlerConfiguration->device,
-                                                           configuration_in.moduleHandlerConfiguration->format,
-                                                           source_impl_p,
-                                                           configuration_in.moduleHandlerConfiguration->window,
-                                                           configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-                                                           session_data_r.rendererNodeId,
-                                                           configuration_in.moduleHandlerConfiguration->topology))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(\"%s\"), aborting\n"),
-                  ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
-
-      // clean up
-      configuration_in.moduleHandlerConfiguration->mediaSource->Release ();
-      configuration_in.moduleHandlerConfiguration->mediaSource = NULL;
-
-      goto error;
-    } // end IF
-    direct3D_manager_p->Release ();
-    direct3D_manager_p = NULL;
-    ACE_ASSERT (configuration_in.moduleHandlerConfiguration->topology);
-    graph_loaded = true;
-
-    // clean up
-    //stream_config_p->Release ();
-
-    //if (_DEBUG)
-    //{
-    //  std::string log_file_name =
-    //    Common_File_Tools::getLogDirectory (std::string (),
-    //                                        0);
-    //  log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-    //  log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
-    //  Stream_Module_Device_Tools::debug (configuration_in.moduleHandlerConfiguration->builder,
-    //                                     log_file_name);
-    //} // end IF
-  } // end ELSE
-
-continue_:
-  //IMediaFilter* media_filter_p = NULL;
-
-  if (!Stream_Module_Device_Tools::getCaptureFormat (configuration_in.moduleHandlerConfiguration->mediaSource,
-                                                     session_data_r.format))
+  result = CoInitializeEx (NULL,
+                            (COINIT_MULTITHREADED    |
+                            COINIT_DISABLE_OLE1DDE  |
+                            COINIT_SPEED_OVER_MEMORY));
+  if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return false;
+  } // end IF
+  COM_initialized = true;
+
+  if (!Stream_Module_Device_Tools::loadRendererTopology (configuration_in.moduleHandlerConfiguration->device,
+                                                          configuration_in.moduleHandlerConfiguration->format,
+                                                          source_impl_p,
+                                                          NULL,
+                                                          //configuration_in.moduleHandlerConfiguration->window,
+                                                          configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                          session_data_r.rendererNodeId,
+                                                          topology_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(\"%s\"), aborting\n"),
+                ACE_TEXT (configuration_in.moduleHandlerConfiguration->device.c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (topology_p);
+  graph_loaded = true;
+
+  if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
+                                                      configuration_in.moduleHandlerConfiguration->format))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+    goto error;
+  } // end IF
+  if (_DEBUG)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("capture format: \"%s\"...\n"),
+                ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (configuration_in.moduleHandlerConfiguration->format).c_str ())));
+
+  if (session_data_r.format)
+  {
+    session_data_r.format->Release ();
+    session_data_r.format = NULL;
+  } // end IF
+  ACE_ASSERT (!session_data_r.format);
+  if (!Stream_Module_Device_Tools::getOutputFormat (topology_p,
+                                                    configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                    session_data_r.format))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
     goto error;
   } // end IF
   ACE_ASSERT (session_data_r.format);
-  //struct tagVIDEOINFO* video_info_p =
-  //  reinterpret_cast<struct tagVIDEOINFO*> (session_data_r.format->pbFormat);
-  //if (!Stream_Module_Device_Tools::loadRendererGraph (*session_data_r.format,
-  //                                                    configuration_in.moduleHandlerConfiguration->window,
-  //                                                    configuration_in.moduleHandlerConfiguration->builder,
-  //                                                    filter_pipeline))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererGraph(), aborting\n")));
-  //  goto error;
-  //} // end IF
-  //filter_pipeline.push_front (MODULE_DEV_CAM_WIN32_FILTER_NAME_CAPTURE_VIDEO);
 
-  //IBaseFilter* filter_p = NULL;
-  //result =
-  //  configuration_in.moduleHandlerConfiguration->builder->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
-  //                                                                          &filter_p);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IGraphBuilder::FindFilterByName(\"%s\"): \"%s\", aborting\n"),
-  //              ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (filter_p);
-  //ISampleGrabber* isample_grabber_p = NULL;
-  //result = filter_p->QueryInterface (IID_ISampleGrabber,
-  //                                   (void**)&isample_grabber_p);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IBaseFilter::QueryInterface(IID_ISampleGrabber): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (isample_grabber_p);
-  //filter_p->Release ();
-  //filter_p = NULL;
-
-  //result = isample_grabber_p->SetBufferSamples (false);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ISampleGrabber::SetBufferSamples(false): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-
-  //result = isample_grabber_p->SetCallback (source_impl_p, 0);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ISampleGrabber::SetCallback(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //isample_grabber_p->Release ();
-  //isample_grabber_p = NULL;
-
-  //ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-  //// *NOTE*: "A negative value for any member indicates that the pin should use
-  ////         its default setting for that property. ...An application typically
-  ////         should not specify the alignment or prefix. ..."
-  //allocator_properties.cbAlign = -1;
-  //allocator_properties.cbBuffer = video_info_p->bmiHeader.biSizeImage;
-  //allocator_properties.cbPrefix = -1;
-  //allocator_properties.cBuffers =
-  //  MODULE_DEV_CAM_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
-  //ACE_ASSERT (buffer_negotiation_p);
-  //result =
-  //  buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-
-  //if (!Stream_Module_Device_Tools::connect (configuration_in.moduleHandlerConfiguration->builder,
-  //                                          filter_pipeline))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::connect(), aborting\n")));
-  //  goto error;
-  //} // end IF
-  //// *NOTE*: for some (unknown) reason, connect()ing the sample grabber to the
-  ////         null renderer 'breaks' the connection between the AVI decompressor
-  ////         and the sample grabber (go ahead, try it in with graphedit.exe)
-  ////         --> reconnect the AVI decompressor to the (connected) sample
-  ////             grabber; this seems to work
-  //if (!Stream_Module_Device_Tools::connected (configuration_in.moduleHandlerConfiguration->builder))
-  //{
-  //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("reconnecting...\n")));
-
-  //  if (!Stream_Module_Device_Tools::connectFirst (configuration_in.moduleHandlerConfiguration->builder))
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("failed to Stream_Module_Device_Tools::connectFirst(), aborting\n")));
-  //    goto error;
-  //  } // end IF
-  //} // end IF
-  //ACE_ASSERT (Stream_Module_Device_Tools::connected (configuration_in.moduleHandlerConfiguration->builder));
-
-  //// debug info
-  //// *TODO*: this E_FAILs for unknown reasons
-  //ACE_OS::memset (&allocator_properties, 0, sizeof (allocator_properties));
-  //result = buffer_negotiation_p->GetAllocatorProperties (&allocator_properties);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", continuing\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  //goto error;
-  //} // end IF
-  //else
-  //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("allocator properties (buffers/size/alignment/prefix): %d/%d/%d/%d\n"),
-  //              allocator_properties.cBuffers,
-  //              allocator_properties.cbBuffer,
-  //              allocator_properties.cbAlign,
-  //              allocator_properties.cbPrefix));
-  //buffer_negotiation_p->Release ();
-  //buffer_negotiation_p = NULL;
-
-  //Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
-  //session_data_r.format->Release ();
-  //session_data_r.format = NULL;
-  ////if (!Stream_Module_Device_Tools::getOutputFormat (configuration_in.moduleHandlerConfiguration->builder,
-  //if (!Stream_Module_Device_Tools::getOutputFormat (configuration_in.moduleHandlerConfiguration->sourceReader,
-  //                                                  session_data_r.format))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(), aborting\n")));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (session_data_r.format);
-
-  if (_DEBUG)
+  if (mediaSession_)
   {
-    std::string media_type_string =
-      Stream_Module_Device_Tools::mediaTypeToString (session_data_r.format);
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("output format: \"%s\"...\n"),
-                ACE_TEXT (media_type_string.c_str ())));
+    // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
+    //result = mediaSession_->Shutdown ();
+    //if (FAILED (result))
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
+    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    mediaSession_->Release ();
+    mediaSession_ = NULL;
+  } // end IF
+  ULONG reference_count = 0;
+  if (configuration_in.moduleHandlerConfiguration->session)
+  {
+    reference_count =
+      configuration_in.moduleHandlerConfiguration->session->AddRef ();
+    mediaSession_ = configuration_in.moduleHandlerConfiguration->session;
 
-    //std::string log_file_name =
-      // Common_File_Tools::getLogDirectory (std::string (),
-      //  0);
-    //log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-    //log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
-    //Stream_Module_Device_Tools::debug (builder_p,
-      // log_file_name);
+    if (!Stream_Module_Device_Tools::clear (mediaSession_))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::clear(), aborting\n")));
+      goto error;
+    } // end IF
   } // end IF
 
-  //result =
-  //  configuration_in.moduleHandlerConfiguration->builder->QueryInterface (IID_IMediaFilter,
-  //                                                                        (void**)&media_filter_p);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IGraphBuilder::QueryInterface(IID_IMediaFilter): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (media_filter_p);
-  //result = media_filter_p->SetSyncSource (NULL);
-  //if (FAILED (result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to IMediaFilter::SetSyncSource(): \"%s\", aborting\n"),
-  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-  //  goto error;
-  //} // end IF
-  //media_filter_p->Release ();
-  //media_filter_p = NULL;
+  if (!Stream_Module_Device_Tools::setTopology (topology_p,
+                                                mediaSession_,
+                                                true))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setTopology(), aborting\n")));
+    goto error;
+  } // end IF
+  topology_p->Release ();
+
+  if (!configuration_in.moduleHandlerConfiguration->session)
+  {
+    reference_count = mediaSession_->AddRef ();
+    configuration_in.moduleHandlerConfiguration->session = mediaSession_;
+  } // end IF
 #endif
 
   source_.initialize (*configuration_in.moduleConfiguration);
@@ -581,28 +661,11 @@ continue_:
 
 error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //if (buffer_negotiation_p)
-  //  buffer_negotiation_p->Release ();
-  //if (isample_grabber_p)
-  //  isample_grabber_p->Release ();
-  //if (filter_p)
-  //  filter_p->Release ();
-  //if (media_filter_p)
-  //  media_filter_p->Release ();
-  if (direct3D_manager_p)
-    direct3D_manager_p->Release ();
-  if (graph_loaded)
-    //if (configuration_in.moduleHandlerConfiguration->builder)
-    //{
-    //  configuration_in.moduleHandlerConfiguration->builder->Release ();
-    //  configuration_in.moduleHandlerConfiguration->builder = NULL;
-    //} // end IF
-    if (configuration_in.moduleHandlerConfiguration->topology)
-    {
-      configuration_in.moduleHandlerConfiguration->topology->Release ();
-      configuration_in.moduleHandlerConfiguration->topology = NULL;
-    } // end IF
-
+  if (topology_p)
+  {
+    Stream_Module_Device_Tools::dump (topology_p);
+    topology_p->Release ();
+  } // end IF
   if (session_data_r.direct3DDevice)
   {
     session_data_r.direct3DDevice->Release ();
@@ -613,6 +676,17 @@ error:
     //Stream_Module_Device_Tools::deleteMediaType (session_data_r.format);
     session_data_r.format->Release ();
     session_data_r.format = NULL;
+  } // end IF
+  session_data_r.resetToken = 0;
+  if (session_data_r.session)
+  {
+    session_data_r.session->Release ();
+    session_data_r.session = NULL;
+  } // end IF
+  if (mediaSession_)
+  {
+    mediaSession_->Release ();
+    mediaSession_ = NULL;
   } // end IF
 
   if (COM_initialized)

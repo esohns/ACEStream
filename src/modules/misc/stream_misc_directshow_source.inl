@@ -440,7 +440,8 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
       bool COM_initialized = false;
       bool is_running = false;
 
-      HRESULT result_2 = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+      HRESULT result_2 = CoInitializeEx (NULL,
+                                         COINIT_MULTITHREADED);
       if (FAILED (result_2))
       {
         ACE_DEBUG ((LM_ERROR,

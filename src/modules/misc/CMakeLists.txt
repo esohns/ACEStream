@@ -31,12 +31,15 @@ if (WIN32)
       stream_misc_dump.h
       stream_misc_dump.inl
       stream_misc_exports.h
+      stream_misc_mediafoundation_mediasource.cpp
+      stream_misc_mediafoundation_mediasource.h
+      stream_misc_mediafoundation_mediasource.inl
       stream_misc_mediafoundation_source.cpp
       stream_misc_mediafoundation_source.h
       stream_misc_mediafoundation_source.inl
-      stream_misc_mediafoundation_source_stream.cpp
-      stream_misc_mediafoundation_source_stream.h
-      stream_misc_mediafoundation_source_stream.inl
+#      stream_misc_mediafoundation_source_stream.cpp
+#      stream_misc_mediafoundation_source_stream.h
+#      stream_misc_mediafoundation_source_stream.inl
       stream_misc_mediafoundation_target.cpp
       stream_misc_mediafoundation_target.h
       stream_misc_mediafoundation_target.inl

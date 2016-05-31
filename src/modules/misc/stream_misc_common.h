@@ -39,6 +39,14 @@ DEFINE_GUID (CLSID_ACEStream_Asynch_Source_Filter,
              0x11d0,
              0xb4, 0xd1,
              0x00, 0x80, 0x5f, 0x6c, 0xbb, 0xea);
+
+// {EFE6208A-0A2C-49fa-8A01-3768B559B6DA}
+DEFINE_GUID (CLSID_ACEStream_MF_MediaSource,
+             0xefe6208a,
+             0xa2c,
+             0x49fa,
+             0x8a, 0x1,
+             0x37, 0x68, 0xb5, 0x59, 0xb6, 0xda);
 #endif
 
 #endif

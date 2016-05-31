@@ -304,6 +304,45 @@ if (WIN32)
 #          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
           LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
           RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
+
+ set (camtarget_source_mf_LIB_SRCS
+      camtarget_source_mf.cpp
+      stdafx.cpp
+      stdafx.h)
+
+ set (LIBRARY camtarget_source_mf)
+ add_library (${LIBRARY} MODULE ${camtarget_source_mf_LIB_SRCS} scripts/camstream_source_mf.def)
+
+ add_dependencies (${LIBRARY} Common)
+ add_dependencies (${LIBRARY} ${PROJECT_NAME})
+
+ target_link_libraries (${LIBRARY} ${ACE_LIBRARY})
+# target_link_libraries (${LIBRARY} strmiids.lib)
+# target_link_libraries (${LIBRARY} winmm.lib)
+# if (CMAKE_BUILD_TYPE STREQUAL Debug)
+#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
+#  target_link_libraries (${LIBRARY} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
+# else ()
+#  link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
+#  target_link_libraries (${LIBRARY} strmbase.lib)
+# endif ()
+ target_link_libraries (${LIBRARY} Common)
+ target_link_libraries (${LIBRARY} ${PROJECT_NAME})
+ target_link_libraries (${LIBRARY} ${PROJECT_NAME}_Device)
+ target_link_libraries (${LIBRARY} ${PROJECT_NAME}_Miscellaneous)
+
+ set_target_properties (${LIBRARY} PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
+ set_target_properties (${LIBRARY} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+
+# add all targets to the build-tree export set
+ export (TARGETS ${LIBRARY}
+         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
+
+ install (TARGETS ${LIBRARY}
+          EXPORT ${PROJECT_NAME}Targets
+#          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT lib
+          LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
+          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
 endif ()
 
 ############## next target ################

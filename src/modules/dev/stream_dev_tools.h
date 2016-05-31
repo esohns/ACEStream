@@ -32,12 +32,12 @@
 #include "ace/Time_Value.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "dshow.h"
 #include "d3d9.h"
 #include "dxva2api.h"
 #include "mfapi.h"
 #include "mfidl.h"
 #include "mfreadwrite.h"
+#include "strmif.h"
 #else
 #include "linux/videodev2.h"
 #endif

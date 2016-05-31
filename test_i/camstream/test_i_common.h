@@ -31,6 +31,7 @@
 #include "ace/Synch_Traits.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "cguid.h"
 #include "evr.h"
 #include "mfapi.h"
 #include "mfidl.h"

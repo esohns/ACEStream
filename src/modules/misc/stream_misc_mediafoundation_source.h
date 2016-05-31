@@ -85,7 +85,7 @@ class Stream_Misc_MediaFoundation_Source_T
   virtual bool initialize (const ConfigurationType&);
   virtual const ConfigurationType& get () const;
 
-  // implement IMFSampleGrabberSinkCallback
+  // implement IMFSampleGrabberSinkCallback2
   STDMETHODIMP QueryInterface (const IID&,
                                void**);
   virtual ULONG STDMETHODCALLTYPE AddRef ();
@@ -164,7 +164,7 @@ class Stream_Misc_MediaFoundation_Source_T
   LONGLONG              baseTimeStamp_;
   IMFMediaSession*      mediaSession_;
   IMFPresentationClock* presentationClock_;
-  long                  referenceCount_;
+  volatile long         referenceCount_;
 };
 
 // include template definition
