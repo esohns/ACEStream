@@ -67,7 +67,7 @@ class Stream_Module_XPathQuery_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_XPathQuery_T (const Stream_Module_XPathQuery_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_XPathQuery_T& operator= (const Stream_Module_XPathQuery_T&))
 
-  ModuleHandlerConfigurationType configuration_;
+  ModuleHandlerConfigurationType* configuration_;
 };
 
 #include "stream_module_xpathquery.inl"

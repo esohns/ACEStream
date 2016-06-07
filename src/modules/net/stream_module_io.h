@@ -177,7 +177,7 @@ class Stream_Module_Net_IOReader_T // --> input
    virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
-  ModuleHandlerConfigurationType                configuration_;
+  ModuleHandlerConfigurationType*               configuration_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -188,7 +188,7 @@ class Stream_Module_Net_IOReader_T // --> input
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T& operator= (const Stream_Module_Net_IOReader_T&))
 
   typename ConnectionManagerType::CONNECTION_T* connection_;
-  bool                                          isInitialized_;
+  bool                                          initialized_;
 };
 
 #include "stream_module_io.inl"

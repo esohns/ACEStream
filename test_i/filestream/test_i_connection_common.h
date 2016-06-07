@@ -127,7 +127,8 @@ typedef Net_IConnection_T<ACE_INET_Addr,
 /////////////////////////////////////////
 
 // outbound
-typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration>,
+typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration,
+                                                         ACE_SOCK_STREAM>,
                                   ///////
                                   ACE_INET_Addr,
                                   Test_I_Configuration,

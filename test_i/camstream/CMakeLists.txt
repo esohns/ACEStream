@@ -32,12 +32,11 @@ endif ()
 if (NOT ACE_LIBRARY)
  message (FATAL_ERROR "could not find ${ACE_LIB_FILE} (was: \"${ACE_LIBRARY}\"), aborting")
 else ()
- message (STATUS "Found ACE library \"${ACE_LIBRARY}\"")
+ message (STATUS "found ACE library \"${ACE_LIBRARY}\"")
 endif ()
 
 if (WIN32)
- set (DIRECTSHOW_BASECLASSES_DIRECTORY
-      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+ set (DIRECTSHOW_BASECLASSES_DIRECTORY "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 endif ()
 
 include (FindPkgConfig)
@@ -263,6 +262,7 @@ create_target_launcher (${EXECUTABLE}
                         ENVIRONMENT foo=bar)
 
 ############## next target ################
+
 if (WIN32)
  include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
 

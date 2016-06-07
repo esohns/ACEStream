@@ -18,7 +18,9 @@ set (${PROJECT_NAME}_File_LIB_SRCS
 add_library (${PROJECT_NAME}_File SHARED ${ACEStream_File_LIB_SRCS})
 
 add_dependencies (${PROJECT_NAME}_File Common)
-add_dependencies (${PROJECT_NAME}_File CommonERR)
+if (WIN32)
+ add_dependencies (${PROJECT_NAME}_File CommonERR)
+endif ()
 add_dependencies (${PROJECT_NAME}_File ${PROJECT_NAME})
 
 if (WIN32)

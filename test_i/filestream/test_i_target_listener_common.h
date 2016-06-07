@@ -21,6 +21,7 @@
 #ifndef TEST_I_TARGET_LISTENER_COMMON_H
 #define TEST_I_TARGET_LISTENER_COMMON_H
 
+#include "ace/Global_Macros.h"
 #include "ace/INET_Addr.h"
 #include "ace/Singleton.h"
 #include "ace/SOCK_Connector.h"
@@ -41,7 +42,8 @@
 #include "test_i_target_common.h"
 #include "test_i_target_stream.h"
 
-typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration>,
+typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration,
+                                                         ACE_SOCK_STREAM>,
                                   ///////
                                   ACE_INET_Addr,
                                   Test_I_Configuration,

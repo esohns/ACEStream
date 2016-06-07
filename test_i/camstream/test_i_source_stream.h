@@ -152,7 +152,9 @@ class Test_I_Source_Stream_T
   Test_I_Source_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
   TARGET_MODULE_T                                     netTarget_;
   Test_I_Source_Stream_Module_Display_Module          display_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Source_Stream_Module_DisplayNull_Module      displayNull_;
+#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // media session

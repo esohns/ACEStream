@@ -381,8 +381,8 @@ do_processArguments (int argc_in,
 
         if (!match_results_3[2].matched)
           URI_out += ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_NET_SOURCE_HTTP_GET_DEFAULT_URL);
-        else if (!match_results_3[3].matched)
-          URI_out += ACE_TEXT_ALWAYS_CHAR (HTML_DEFAULT_SUFFIX);
+        //else if (!match_results_3[3].matched)
+        //  URI_out += ACE_TEXT_ALWAYS_CHAR (HTML_DEFAULT_SUFFIX);
 
         break;
       }

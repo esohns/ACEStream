@@ -59,14 +59,7 @@ class Stream_Module_Net_Source_HTTP_Get_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
- private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 ProtocolMessageType> inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T (const Stream_Module_Net_Source_HTTP_Get_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T& operator= (const Stream_Module_Net_Source_HTTP_Get_T&))
-
+ protected:
   // helper methods
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   ProtocolMessageType* makeRequest (const std::string&); // URI
@@ -75,10 +68,20 @@ class Stream_Module_Net_Source_HTTP_Get_T
   //         entity head
   HTTP_Record* parseResponse (ProtocolMessageType&);
 
-  ConfigurationType configuration_;
-  bool              initialized_;
-  bool              responseParsed_;
-  bool              responseReceived_;
+  ConfigurationType*                   configuration_;
+  bool                                 responseParsed_;
+  bool                                 responseReceived_;
+  typename SessionMessageType::DATA_T* sessionData_;
+
+ private:
+  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
+                                 SessionMessageType,
+                                 ProtocolMessageType> inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T (const Stream_Module_Net_Source_HTTP_Get_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T& operator= (const Stream_Module_Net_Source_HTTP_Get_T&))
+
+  bool                                 initialized_;
 };
 
 #include "stream_module_source_http_get.inl"

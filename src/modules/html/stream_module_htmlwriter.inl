@@ -31,7 +31,7 @@ Stream_Module_HTMLWriter_T<SessionMessageType,
                            ModuleHandlerConfigurationType,
                            SessionDataType>::Stream_Module_HTMLWriter_T ()
  : inherited ()
- , configuration_ ()
+ , configuration_ (NULL)
  , document_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLWriter_T::Stream_Module_HTMLWriter_T"));
@@ -73,10 +73,11 @@ Stream_Module_HTMLWriter_T<SessionMessageType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
+  ACE_ASSERT (inherited::mod_);
+  ACE_ASSERT (configuration_);
 
   // *TODO*: remove type inferences
-  const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
+  const typename SessionMessageType::DATA_T& session_data_container_r =
     message_inout->get ();
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (session_data_container_r.get ());
@@ -107,14 +108,14 @@ Stream_Module_HTMLWriter_T<SessionMessageType,
       // sanity check(s)
       if (!document_) break; // nothing to do
 
-      result = htmlSaveFile (configuration_.targetFileName.c_str (),
+      result = htmlSaveFile (configuration_->targetFileName.c_str (),
                              document_);
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to htmlSaveFile(\"%s\"), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (configuration_.targetFileName.c_str ())));
+                    ACE_TEXT (configuration_->targetFileName.c_str ())));
 
         // *TODO*: remove type inference
         session_data_r.aborted = true;
@@ -124,7 +125,7 @@ Stream_Module_HTMLWriter_T<SessionMessageType,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: wrote \"%s\" (%d byte(s))\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (configuration_.targetFileName.c_str ()),
+                  ACE_TEXT (configuration_->targetFileName.c_str ()),
                   result));
 
       break;
@@ -146,7 +147,10 @@ Stream_Module_HTMLWriter_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLWriter_T::get"));
 
-  return configuration_;
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  return *configuration_;
 }
 template <typename SessionMessageType,
           typename MessageType,
@@ -174,7 +178,8 @@ Stream_Module_HTMLWriter_T<SessionMessageType,
     document_ = NULL;
   } // end IF
 
-  configuration_ = configuration_in;
+  configuration_ =
+    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
 
   return true;
 }

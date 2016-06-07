@@ -20,10 +20,10 @@
 #include "stdafx.h"
 
 #include "ace/Log_Msg.h"
-#include "ace/OS_Memory.h"
 
 #include "dshow.h"
-#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs (see test_i_target_common.h)
+#include "initguid.h" // *NOTE*: this exports DEFINE_GUIDs (see:
+                      //         test_i_target_common.h)
 #include "streams.h"
 #include "strmif.h"
 
@@ -44,8 +44,6 @@
 #include "test_i_defines.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
-
-//#include "test_i_target_common.h"
 
 //// initialize static variables
 //static const WCHAR g_wszName[] =
@@ -76,7 +74,6 @@ const AMOVIESETUP_MEDIATYPE sudMediaTypes[] =
   //, { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB32 }
   , { &MEDIATYPE_Video, &MEDIASUBTYPE_MJPG  }
   , { &MEDIATYPE_Video, &MEDIASUBTYPE_YUY2  } */
-  ,
 };
 
 const struct REGPINTYPES sudPinTypes[] =
@@ -87,7 +84,6 @@ const struct REGPINTYPES sudPinTypes[] =
   //, { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB32 }
   , { &MEDIATYPE_Video, &MEDIASUBTYPE_MJPG  }
   , { &MEDIATYPE_Video, &MEDIASUBTYPE_YUY2  } */
-  ,
 };
 
 const struct REGFILTERPINS sudOutputPin =
@@ -175,12 +171,12 @@ typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
                                                Test_I_Target_DirectShow_PinConfiguration,
                                                struct _AMMediaType> Stream_Misc_DirectShow_Source_Filter_t;
 typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-                                                       Test_I_Target_Stream_SessionMessage,
-                                                       Test_I_Target_Stream_Message,
+                                                      Test_I_Target_Stream_SessionMessage,
+                                                      Test_I_Target_Stream_Message,
 
-                                                       Test_I_Target_DirectShow_FilterConfiguration,
-                                                       Test_I_Target_DirectShow_PinConfiguration,
-                                                       struct _AMMediaType> Stream_Misc_DirectShow_Asynch_Source_Filter_t;
+                                                      Test_I_Target_DirectShow_FilterConfiguration,
+                                                      Test_I_Target_DirectShow_PinConfiguration,
+                                                      struct _AMMediaType> Stream_Misc_DirectShow_Asynch_Source_Filter_t;
 
 void WINAPI InitRoutine (BOOL, const CLSID*);
 
@@ -189,9 +185,9 @@ CFactoryTemplate g_Templates[] = {
   , &CLSID_ACEStream_Source_Filter                         // CLSID.
   , Stream_Misc_DirectShow_Source_Filter_t::CreateInstance // Creation function.
   , InitRoutine                                            // Initialization function.
-  , &sudFilterRegAM }                                      // Pointer to filter information.
+  , &sudFilterRegAM },                                     // Pointer to filter information.
 
-  , { TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME   // Name.
+  { TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME   // Name.
   , &CLSID_ACEStream_Asynch_Source_Filter                         // CLSID.
   , Stream_Misc_DirectShow_Asynch_Source_Filter_t::CreateInstance // Creation function.
   , InitRoutine                                                   // Initialization function.
@@ -379,10 +375,10 @@ DllUnregisterServer ()
   } // end IF
   ACE_ASSERT (ifilter_mapper_p);
 
- result =
-  ifilter_mapper_p->UnregisterFilter (&CLSID_VideoInputDeviceCategory,
-                                      TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME,
-                                      CLSID_ACEStream_Source_Filter);
+  result =
+    ifilter_mapper_p->UnregisterFilter (&CLSID_VideoInputDeviceCategory,
+                                        TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME,
+                                        CLSID_ACEStream_Source_Filter);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,

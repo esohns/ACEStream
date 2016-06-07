@@ -189,7 +189,8 @@ typedef Net_IConnection_T<ACE_INET_Addr,
 /////////////////////////////////////////
 
 // outbound
-typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Source_SocketHandlerConfiguration>,
+typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Source_SocketHandlerConfiguration,
+                                                         ACE_SOCK_STREAM>,
                                   ///////
                                   ACE_INET_Addr,
                                   Test_I_Source_Configuration,
@@ -343,7 +344,8 @@ typedef Net_Client_Connector_T<Test_I_Source_UDPConnection_t,
 /////////////////////////////////////////
 
 // inbound
-typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Target_SocketHandlerConfiguration>,
+typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Target_SocketHandlerConfiguration,
+                                                         ACE_SOCK_STREAM>,
                                   ///////
                                   ACE_INET_Addr,
                                   Test_I_Target_Configuration,

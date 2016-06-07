@@ -61,7 +61,7 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
+  ACE_ASSERT (inherited::configuration_);
 
   // *TODO*: remove type inferences
   const Test_I_Stream_SessionData_t& session_data_container_r =
@@ -132,7 +132,7 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
       xmlNodePtr list_node_p = NULL;
       xmlAttrPtr attribute_p = NULL;
       std::string URL_base =
-          Net_Common_Tools::URL2HostName (inherited::configuration_.URL,
+          Net_Common_Tools::URL2HostName (inherited::configuration_->URL,
                                           true,
                                           true);
       std::string URL;
@@ -184,14 +184,14 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
         } // end FOR
       } // end FOR
 
-      result = htmlSaveFile (inherited::configuration_.targetFileName.c_str (),
+      result = htmlSaveFile (inherited::configuration_->targetFileName.c_str (),
                              inherited::document_);
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to htmlSaveFile(\"%s\"), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_.targetFileName.c_str ())));
+                    ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
 
         // *TODO*: remove type inference
         session_data_r.aborted = true;
@@ -202,7 +202,7 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: wrote \"%s\" (%d byte(s))\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (inherited::configuration_.targetFileName.c_str ()),
+                    ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
                     result));
       fileWritten_ = true;
 

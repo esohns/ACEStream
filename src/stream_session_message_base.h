@@ -58,7 +58,7 @@ class Stream_SessionMessageBase_T
 
  public:
   // convenience types
-  typedef SessionDataType SESSION_DATA_T;
+  typedef SessionDataType DATA_T;
   typedef UserDataType USER_DATA_T;
 
   // *IMPORTANT NOTE*: fire-and-forget API (second argument)

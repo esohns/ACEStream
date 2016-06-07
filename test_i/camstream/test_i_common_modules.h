@@ -366,20 +366,24 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    /
                               Stream_ModuleConfiguration,                      // module configuration type
                               Test_I_Source_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Source_Stream_Module_Display);            // writer type
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
                               Common_TimePolicy_t,                             // time policy
                               Stream_ModuleConfiguration,                      // module configuration type
                               Test_I_Source_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Source_Stream_Module_DisplayNull);        // writer type
+#endif
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
                               Common_TimePolicy_t,                             // time policy
                               Stream_ModuleConfiguration,                      // module configuration type
                               Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Target_Stream_Module_Display);            // writer type
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
                               Common_TimePolicy_t,                             // time policy
                               Stream_ModuleConfiguration,                      // module configuration type
                               Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Target_Stream_Module_DisplayNull);        // writer type
+#endif
 
 #endif

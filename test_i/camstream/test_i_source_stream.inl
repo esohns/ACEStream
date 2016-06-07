@@ -37,9 +37,11 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
  , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
              NULL,
              false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
  , displayNull_ (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
                  NULL,
                  false)
+#endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaSession_ (NULL)
  , referenceCount_ (1)
@@ -75,6 +77,7 @@ Test_I_Source_Stream_T<ConnectorType>::~Test_I_Source_Stream_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::~Test_I_Source_Stream_T"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result = E_FAIL;
   if (mediaSession_)
   {
@@ -85,6 +88,7 @@ Test_I_Source_Stream_T<ConnectorType>::~Test_I_Source_Stream_T ()
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
+#endif
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
@@ -294,7 +298,7 @@ Test_I_Source_Stream_T<ConnectorType>::Invoke (IMFAsyncResult* result_in)
     //              ACE_TEXT ("failed to IMFMediaSource::Shutdown(): \"%s\", continuing\n"),
     //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     //media_source_p->Release ();
-continue_:
+//continue_:
     // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
     //result = mediaSession_->Shutdown ();
     //if (FAILED (result))

@@ -79,7 +79,9 @@ endif ()
 add_library (${PROJECT_NAME}_Visualization SHARED ${ACEStream_Visualization_LIB_SRCS})
 
 add_dependencies (${PROJECT_NAME}_Visualization Common)
-add_dependencies (${PROJECT_NAME}_Visualization CommonERR)
+if (WIN32)
+ add_dependencies (${PROJECT_NAME}_Visualization CommonERR)
+endif ()
 add_dependencies (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
 if (WIN32)

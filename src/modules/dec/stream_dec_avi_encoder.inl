@@ -367,6 +367,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _riffchunk RIFF_chunk;
 #endif
+  unsigned int riff_chunk_size = 0;
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
@@ -406,7 +407,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
   result = message_block_p->copy (reinterpret_cast<char*> (&RIFF_chunk),
                                   sizeof (struct _riffchunk));
 #else
-  unsigned int riff_chunk_size = 0;
   result = message_block_p->copy (ACE_TEXT_ALWAYS_CHAR ("00db"),
                                   4);
   if (result == -1)
@@ -1099,6 +1099,8 @@ error:
   Stream_Module_Device_Tools::freeMediaType (media_type);
 
   return false;
+
+continue_:
 #else
   ACE_ASSERT (!formatContext_->pb);
   formatContext_->pb =
@@ -1127,7 +1129,7 @@ error:
   } // end IF
   avio_flush (formatContext_->pb);
 #endif
-continue_:
+
   return true;
 }
 template <typename SessionMessageType,

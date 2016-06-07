@@ -23,7 +23,7 @@
 
 #include "ace/Global_Macros.h"
 
-#include <libxml/HTMLtree.h>
+#include "libxml/HTMLtree.h"
 
 #include "common_time_common.h"
 
@@ -55,8 +55,8 @@ class Stream_Module_HTMLWriter_T
   virtual bool initialize (const ModuleHandlerConfigurationType&);
 
  protected:
-  ModuleHandlerConfigurationType configuration_;
-  htmlDocPtr                     document_;
+  ModuleHandlerConfigurationType* configuration_;
+  struct _xmlDoc*                 document_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,

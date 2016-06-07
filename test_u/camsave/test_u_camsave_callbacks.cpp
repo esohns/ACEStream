@@ -3236,6 +3236,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     return;
   } // end IF
 
+  gint n_rows = 0;
+  GtkToggleAction* toggle_action_p = NULL;
+
   if (!load_formats (data_p->device,
 #endif
                      list_store_p))
@@ -3244,7 +3247,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to ::load_formats(), returning\n")));
     goto error;
   } // end IF
-  gint n_rows =
+  n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
   {
@@ -3256,7 +3259,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     gtk_combo_box_set_active (combo_box_p, 0);
   } // end IF
 
-  GtkToggleAction* toggle_action_p =
+  toggle_action_p =
       GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                  ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
   ACE_ASSERT (toggle_action_p);
@@ -3264,13 +3267,19 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   media_source_p->Release ();
+#endif
+
+  return;
 
 error:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (media_source_p)
     media_source_p->Release ();
   if (topology_p)
     topology_p->Release ();
 #endif
+
+  return;
 } // combobox_source_changed_cb
 
 void

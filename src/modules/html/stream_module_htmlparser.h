@@ -23,8 +23,8 @@
 
 #include "ace/Global_Macros.h"
 
-#include <libxml/HTMLparser.h>
-#include <libxml/tree.h>
+#include "libxml/HTMLparser.h"
+#include "libxml/tree.h"
 
 #include "common_time_common.h"
 
@@ -113,9 +113,9 @@ class Stream_Module_HTMLParser_T
  protected:
   virtual bool initializeSAXParser ();
 
-  ModuleHandlerConfigurationType configuration_;
-  ParserContextType              parserContext_;
-  htmlSAXHandler                 SAXHandler_;
+  ModuleHandlerConfigurationType* configuration_;
+  ParserContextType               parserContext_;
+  htmlSAXHandler                  SAXHandler_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -125,8 +125,8 @@ class Stream_Module_HTMLParser_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T (const Stream_Module_HTMLParser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T& operator= (const Stream_Module_HTMLParser_T&))
 
-  bool                           isInitialized_;
-  Stream_Module_HTMLParser_Mode  mode_;
+  bool                            initialized_;
+  Stream_Module_HTMLParser_Mode   mode_;
 };
 
 #include "stream_module_htmlparser.inl"

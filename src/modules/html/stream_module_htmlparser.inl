@@ -33,10 +33,10 @@ Stream_Module_HTMLParser_T<SessionMessageType,
                            SessionDataType,
                            ParserContextType>::Stream_Module_HTMLParser_T ()
  : inherited ()
- , configuration_ ()
+ , configuration_ (NULL)
  , parserContext_ ()
  , SAXHandler_ ()
- , isInitialized_ (false)
+ , initialized_ (false)
  , mode_ (STREAM_MODULE_HTMLPARSER_DEFAULT_MODE)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::Stream_Module_HTMLParser_T"));
@@ -57,7 +57,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::~Stream_Module_HTMLParser_T"));
 
   // clean up
-  if (isInitialized_)
+  if (initialized_)
   {
     if (parserContext_.parserContext)
     {
@@ -203,7 +203,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
   ACE_ASSERT (message_inout);
 
   // *TODO*: remove type inferences
-  const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
+  const typename SessionMessageType::DATA_T& session_data_container_r =
     message_inout->get ();
   const SessionDataType& session_data_r =
     session_data_container_r.get ();
@@ -261,7 +261,10 @@ Stream_Module_HTMLParser_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::get"));
 
-  return configuration_;
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  return *configuration_;
 }
 template <typename SessionMessageType,
           typename MessageType,
@@ -285,7 +288,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
     is_first_run = false;
   } // end IF
 
-  if (isInitialized_)
+  if (initialized_)
   {
     if (parserContext_.parserContext)
     {
@@ -301,10 +304,11 @@ Stream_Module_HTMLParser_T<SessionMessageType,
 
     xmlCleanupParser ();
 
-    isInitialized_ = false;
+    initialized_ = false;
   } // end IF
 
-  configuration_ = configuration_in;
+  configuration_ =
+    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
 
   xmlInitParser ();
 //  xmlKeepBlanksDefault (1);
@@ -313,8 +317,11 @@ Stream_Module_HTMLParser_T<SessionMessageType,
   if (configuration_in.traceParsing)
     xmlPedanticParserDefault (1);
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::mod_);
+
   // *TODO*: remove type inferences
-  mode_ = configuration_.mode;
+  mode_ = configuration_->mode;
   if (mode_ == STREAM_MODULE_HTMLPARSER_SAX)
   {
     htmlDefaultSAXHandlerInit ();
@@ -370,7 +377,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
   xmlSetStructuredErrorFunc (parserContext_.parserContext,
                              &::SAXDefaultStructuredErrorCallback);
 
-  isInitialized_ = true;
+  initialized_ = true;
 
   return true;
 }

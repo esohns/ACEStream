@@ -96,8 +96,8 @@ configure_file (${PROJECT_NAME}ConfigVersion.cmake.in
 install (FILES
          "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
          "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-         "${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
-         "${PROJECT_NAME}ConfigVersion.cmake"
+#         "${CMAKE_FILES_DIRECTORY}/${PROJECT_NAME}Config.cmake"
+#         "${PROJECT_NAME}ConfigVersion.cmake"
          DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
 # Install the export set for use with the install-tree
 install (EXPORT ${PROJECT_NAME}Targets

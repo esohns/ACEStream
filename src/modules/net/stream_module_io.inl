@@ -838,9 +838,9 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
                              AddressType,
                              ConnectionManagerType>::Stream_Module_Net_IOReader_T ()
  : inherited ()
- , configuration_ ()
+ , configuration_ (NULL)
  , connection_ (NULL)
- , isInitialized_ (false)
+ , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::Stream_Module_Net_IOReader_T"));
 
@@ -1019,7 +1019,8 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::initialize"));
 
-  configuration_ = configuration_in;
+  configuration_ =
+    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
 
   return true;
 }
@@ -1043,5 +1044,8 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::get"));
 
-  return configuration_;
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  return *configuration_;
 }

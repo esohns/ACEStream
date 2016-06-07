@@ -314,7 +314,7 @@ Stream_Decoder_AVIDecoder_T<SessionMessageType,
   ACE_ASSERT (message_inout);
   ACE_ASSERT (isInitialized_);
 
-  const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
+  const typename SessionMessageType::DATA_T& session_data_container_r =
     message_inout->get ();
   SessionDataType& session_data_r =
     const_cast<SessionDataType&> (session_data_container_r.get ());

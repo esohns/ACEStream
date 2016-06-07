@@ -59,7 +59,9 @@ endif ()
 add_library (${PROJECT_NAME}_Device SHARED ${ACEStream_Device_LIB_SRCS})
 
 add_dependencies (${PROJECT_NAME}_Device Common)
-add_dependencies (${PROJECT_NAME}_Device CommonERR)
+if (WIN32)
+ add_dependencies (${PROJECT_NAME}_Device CommonERR)
+endif ()
 add_dependencies (${PROJECT_NAME}_Device ${PROJECT_NAME})
 
 if (WIN32)

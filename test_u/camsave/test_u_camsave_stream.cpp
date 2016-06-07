@@ -40,9 +40,11 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
  , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
              NULL,
              false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
  , displayNull_ (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
                  NULL,
                  false)
+#endif
  , encoder_ (ACE_TEXT_ALWAYS_CHAR ("AVIEncoder"),
              NULL,
              false)
@@ -84,6 +86,7 @@ Stream_CamSave_Stream::~Stream_CamSave_Stream ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::~Stream_CamSave_Stream"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result = E_FAIL;
   if (mediaSession_)
   {
@@ -94,6 +97,7 @@ Stream_CamSave_Stream::~Stream_CamSave_Stream ()
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
+#endif
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();

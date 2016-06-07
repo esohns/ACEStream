@@ -125,7 +125,9 @@ class Stream_CamSave_Stream
   Stream_CamSave_Module_Source_Module           source_;
   Stream_CamSave_Module_RuntimeStatistic_Module runtimeStatistic_;
   Stream_CamSave_Module_Display_Module          display_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_CamSave_Module_DisplayNull_Module      displayNull_;
+#endif
   Stream_CamSave_Module_AVIEncoder_Module       encoder_;
   Stream_CamSave_Module_FileWriter_Module       fileWriter_;
 

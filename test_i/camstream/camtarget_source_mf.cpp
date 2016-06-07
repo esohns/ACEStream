@@ -68,18 +68,23 @@ DWORD g_numClassFactories = ARRAYSIZE (g_ClassFactories);
 // Text strings
 
 // Description string for the bytestream handler.
-const TCHAR* sByteStreamHandlerDescription = TEXT ("ACEStream Source ByteStreamHandler");
+const TCHAR* sByteStreamHandlerDescription =
+  TEXT ("ACEStream Source ByteStreamHandler");
 
 // File extension for WAVE files.
 //const TCHAR* sFileExtension = TEXT(".mpg");
 
 // Registry location for bytestream handlers.
-const TCHAR* REGKEY_MF_BYTESTREAM_HANDLERS = TEXT ("Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers");
+const TCHAR* REGKEY_MF_BYTESTREAM_HANDLERS =
+  TEXT ("Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers");
 
 // Forward declarations
 // Functions to register and unregister the byte stream handler.
-HRESULT RegisterByteStreamHandler (const GUID& guid, const TCHAR *sFileExtension, const TCHAR *sDescription);
-HRESULT UnregisterByteStreamHandler (const GUID& guid, const TCHAR *sFileExtension);
+HRESULT RegisterByteStreamHandler (const GUID& guid,
+                                   const TCHAR* sFileExtension,
+                                   const TCHAR* sDescription);
+HRESULT UnregisterByteStreamHandler (const GUID& guid,
+                                     const TCHAR* sFileExtension);
 
 // Misc Registry helpers
 HRESULT SetKeyValue (HKEY hKey, const TCHAR *sName, const TCHAR *sValue);
@@ -211,15 +216,16 @@ CreateRegistryKey (HKEY hKey,
   // sanity check(s)
   ACE_ASSERT (phKey);
 
-  LONG result = RegCreateKeyEx (hKey,                 // parent key
-                                subkey,               // name of subkey
-                                0,                    // reserved
-                                NULL,                 // class string (can be NULL)
-                                REG_OPTION_NON_VOLATILE,
-                                KEY_ALL_ACCESS,
-                                NULL,                 // security attributes
-                                phKey,
-                                NULL);                // receives the "disposition" (is it a new or existing key)
+  LONG result =
+    RegCreateKeyEx (hKey,                 // parent key
+                    subkey,               // name of subkey
+                    0,                    // reserved
+                    NULL,                 // class string (can be NULL)
+                    REG_OPTION_NON_VOLATILE,
+                    KEY_ALL_ACCESS,
+                    NULL,                 // security attributes
+                    phKey,
+                    NULL);                // receives the "disposition" (is it a new or existing key)
 
   return HRESULT_FROM_WIN32 (result);
 }
@@ -266,12 +272,13 @@ RegisterByteStreamHandler (const GUID& guid,
                                 sFileExtension,
                                 &hSubKey);
   if (SUCCEEDED (result))
-    result = RegSetValueEx (hSubKey,
-                            ACE_TEXT_WCHAR_TO_TCHAR (szCLSID),
-                            0,
-                            REG_SZ,
-                            (BYTE*)sDescription,
-                            static_cast<DWORD> ((cchDescription + 1) * sizeof (TCHAR)));
+    result =
+      RegSetValueEx (hSubKey,
+                     ACE_TEXT_WCHAR_TO_TCHAR (szCLSID),
+                     0,
+                     REG_SZ,
+                     (BYTE*)sDescription,
+                     static_cast<DWORD> ((cchDescription + 1) * sizeof (TCHAR)));
   if (hSubKey)
     RegCloseKey (hSubKey);
   if (hKey)
@@ -308,7 +315,9 @@ UnregisterByteStreamHandler (const GUID& guid,
   // Delete the CLSID entry under the subkey. 
   // Note: There might be multiple entries for this file extension, so we should not delete 
   // the entire subkey, just the entry for this CLSID.
-  result = RegDeleteKeyValue (HKEY_LOCAL_MACHINE, szKey, ACE_TEXT_WCHAR_TO_TCHAR (szCLSID));
+  result = RegDeleteKeyValue (HKEY_LOCAL_MACHINE,
+                              szKey,
+                              ACE_TEXT_WCHAR_TO_TCHAR (szCLSID));
   if (result != ERROR_SUCCESS)
   {
     result_2 = HRESULT_FROM_WIN32 (result);

@@ -13,6 +13,7 @@ set (${PROJECT_NAME}_Network_Protocol_HTTPGet_LIB_SRCS
      stream_module_source_http_get.cpp
      stream_module_source_http_get.h
      stream_module_source_http_get.inl
+     stream_net_http_defines.h
      stream_net_http_exports.h
      stdafx.cpp
      stdafx.h)
@@ -38,6 +39,7 @@ export (TARGETS ${PROJECT_NAME}_Network_Protocol_HTTPGet
 install (FILES
          stream_module_source_http_get.h
          stream_module_source_http_get.inl
+         stream_net_http_defines.h
          stream_net_http_exports.h
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)

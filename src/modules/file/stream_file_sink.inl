@@ -171,10 +171,13 @@ Stream_Module_FileWriter_T<SessionMessageType,
   {
     case STREAM_SESSION_BEGIN:
     {
-      const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
+      const typename SessionMessageType::DATA_T& session_data_container_r =
           message_inout->get ();
       const SessionDataType& session_data_r = session_data_container_r.get ();
       std::string directory, file_name;
+      int open_flags = (O_CREAT |
+                        O_TRUNC |
+                        O_WRONLY);
 
       if (configuration_.targetFileName.empty () &&
           session_data_r.targetFileName.empty ())
@@ -241,9 +244,6 @@ Stream_Module_FileWriter_T<SessionMessageType,
                     ACE_TEXT ("overwriting existing target file \"%s\"\n"),
                     ACE_TEXT (file_name.c_str ())));
 
-      int open_flags = (O_CREAT |
-                        O_TRUNC |
-                        O_WRONLY);
       if (!Common_File_Tools::open (file_name,  // FQ file name
                                     open_flags, // flags
                                     stream_))   // stream
@@ -629,7 +629,7 @@ Stream_Module_FileWriterH_T<LockType,
   {
     case STREAM_SESSION_BEGIN:
     {
-      const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
+      const typename SessionMessageType::DATA_T& session_data_container_r =
           message_inout->get ();
       const SessionDataType& session_data_r = session_data_container_r.get ();
       ACE_ASSERT (inherited::streamState_);

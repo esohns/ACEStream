@@ -413,8 +413,8 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     if (!sessionData_)
       goto continue_;
 
-    typename SessionMessageType::SESSION_DATA_T::DATA_T& session_data_r =
-        const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
+    typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
     ACE_ASSERT (session_data_r.lock);
     {
       ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (*session_data_r.lock);
@@ -499,13 +499,12 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::report"));
 
   int result = -1;
-  typename SessionMessageType::SESSION_DATA_T::DATA_T* session_data_p = NULL;
+  SessionDataType* session_data_p = NULL;
 
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
   if (sessionData_)
-    session_data_p =
-      &const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
+    session_data_p = &const_cast<SessionDataType&> (sessionData_->get ());
 
   if (session_data_p)
     if (session_data_p->lock)
@@ -565,10 +564,9 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::finalReport"));
 
   int result = -1;
-  typename SessionMessageType::SESSION_DATA_T::DATA_T* session_data_p = NULL;
+  SessionDataType* session_data_p = NULL;
   if (sessionData_)
-    session_data_p =
-        &const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (sessionData_->get ());
+    session_data_p = &const_cast<SessionDataType&> (sessionData_->get ());
 
   if (session_data_p)
     if (session_data_p->lock)
@@ -688,7 +686,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::putStatisticMessage"));
 
-  typename SessionMessageType::SESSION_DATA_T* session_data_container_p = NULL;
+  SessionDataContainerType* session_data_container_p = NULL;
   if (sessionData_)
   {
     sessionData_->increase ();
@@ -696,29 +694,30 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   } // end IF
   else
   {
-    typename SessionMessageType::SESSION_DATA_T::DATA_T* session_data_p = NULL;
+    SessionDataType* session_data_p = NULL;
     ACE_NEW_NORETURN (session_data_p,
-                      typename SessionMessageType::SESSION_DATA_T::DATA_T ());
+                      SessionDataType ());
     if (!session_data_p)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate SessionMessageType::SESSION_DATA_T::DATA_T: \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to allocate SessionDataType: \"%m\", aborting\n")));
       return false;
     } // end IF
 
     // *IMPORTANT NOTE*: fire-and-forget session_data_p
     ACE_NEW_NORETURN (session_data_container_p,
-                      typename SessionMessageType::SESSION_DATA_T (session_data_p));
+                      SessionDataContainerType (session_data_p));
     if (!session_data_container_p)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate SessionMessageType::SESSION_DATA_T: \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
       return false;
     } // end IF
   } // end ELSE
   ACE_ASSERT (session_data_container_p);
-  typename SessionMessageType::SESSION_DATA_T::DATA_T* session_data_p =
-    &const_cast<typename SessionMessageType::SESSION_DATA_T::DATA_T&> (session_data_container_p->get ());
+
+  SessionDataType* session_data_p =
+    &const_cast<SessionDataType&> (session_data_container_p->get ());
 
   // create session message
   SessionMessageType* session_message_p = NULL;

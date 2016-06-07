@@ -40,10 +40,11 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
                                     SessionMessageType,
                                     ProtocolMessageType>::Stream_Module_Net_Source_HTTP_Get_T ()
  : inherited ()
- , configuration_ ()
- , initialized_ (false)
+ , configuration_ (NULL)
  , responseParsed_ (false)
  , responseReceived_ (false)
+ , sessionData_ (NULL)
+ , initialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::Stream_Module_Net_Source_HTTP_Get_T"));
 
@@ -58,6 +59,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::~Stream_Module_Net_Source_HTTP_Get_T"));
 
+  if (sessionData_)
+    sessionData_->decrease ();
 }
 
 template <typename ConfigurationType,
@@ -70,7 +73,18 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::initialize"));
 
-  configuration_ = configuration_in;
+  if (initialized_)
+  {
+    initialized_ = false;
+
+    if (sessionData_)
+    {
+      sessionData_->decrease ();
+      sessionData_ = NULL;
+    } // end IF
+  } // end IF
+
+  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
   // *TODO*: validate URI
   initialized_ = true;
   responseParsed_ = false;
@@ -90,8 +104,13 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::handleDataMessage"));
 
+  bool delete_record = false;
+
   // sanity check(s)
-  ACE_ASSERT (message_inout);
+  ACE_ASSERT (inherited::mod_);
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (sessionData_);
+
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
@@ -110,12 +129,15 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
     record_p = data_r.HTTPRecord;
   } // end IF
   else
+  {
     record_p = parseResponse (*message_inout);
+    delete_record = true;
+  } // end IF
   if (!record_p)
   {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: HTTP record missing --> check implementation !, returning\n"),
-//                inherited::mod_->name ()));
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to retrieve HTTP record, returning\n"),
+                inherited::mod_->name ()));
     return;
   } // end IF
 
@@ -146,7 +168,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
       // *TODO*: remove type inference
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("\"%s\" has been redirected to \"%s\" (status was: %d)\n"),
-                  ACE_TEXT (configuration_.URL.c_str ()), ACE_TEXT ((*iterator).second.c_str ()),
+                  ACE_TEXT (configuration_->URL.c_str ()), ACE_TEXT ((*iterator).second.c_str ()),
                   record_p->status));
 
       // step2: send request
@@ -165,14 +187,26 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid HTTP response (status was: %d), continuing\n"),
-                  record_p->status));
+                  ACE_TEXT ("invalid HTTP response (status was: %d): \"%s\", aborting\n"),
+                  record_p->status,
+                  ACE_TEXT (record_p->reason.c_str ())));
+
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
+      session_data_r.aborted = true;
+      // *TODO*: close the connection as well
+
       break;
     }
   } // end SWITCH
 
-  if (responseParsed_)
+  if (delete_record)
+  {
+    // sanity check(s)
+    ACE_ASSERT (record_p);
+
     delete record_p;
+  } // end IF
 }
 
 template <typename ConfigurationType,
@@ -190,23 +224,40 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
-  ACE_ASSERT (initialized_);
+  ACE_ASSERT (configuration_);
   ACE_ASSERT (inherited::mod_);
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_BEGIN:
     {
+      // sanity check(s)
+      ACE_ASSERT (!sessionData_);
+
+      // *TODO*: remove type inferences
+      sessionData_ =
+        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
+      sessionData_->increase ();
+
       // send HTTP Get request
-      if (!sendRequest (configuration_.URL))
+      if (!sendRequest (configuration_->URL))
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to send HTTP request \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (configuration_.URL.c_str ())));
+                    ACE_TEXT (configuration_->URL.c_str ())));
         return;
+      } // end IF
+
+      break;
+    }
+    case STREAM_SESSION_END:
+    {
+      if (sessionData_)
+      {
+        sessionData_->decrease ();
+        sessionData_ = NULL;
       } // end IF
 
       break;
@@ -230,15 +281,16 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   ProtocolMessageType* message_out = NULL;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_.streamConfiguration);
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->streamConfiguration);
 
-  if (configuration_.streamConfiguration->messageAllocator)
+  if (configuration_->streamConfiguration->messageAllocator)
   {
     try
     {
       // *TODO*: remove type inference
       message_out =
-        static_cast<ProtocolMessageType*> (configuration_.streamConfiguration->messageAllocator->malloc (requestedSize_in));
+        static_cast<ProtocolMessageType*> (configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
     }
     catch (...)
     {
@@ -274,7 +326,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::makeRequest"));
 
   // sanity check(s)
-  ACE_ASSERT (configuration_.socketHandlerConfiguration);
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->socketHandlerConfiguration);
 
   // step1: allocate message
   typename ProtocolMessageType::DATA_T::DATA_T* message_data_p = NULL;
@@ -311,12 +364,12 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   } // end IF
   // *TODO*: remove type inference
   ProtocolMessageType* message_out =
-    allocateMessage (configuration_.socketHandlerConfiguration->PDUSize);
+    allocateMessage (configuration_->socketHandlerConfiguration->PDUSize);
   if (!message_out)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Net_Source_HTTP_Get_T::allocateMessage(%u), aborting\n"),
-                configuration_.socketHandlerConfiguration->PDUSize));
+                configuration_->socketHandlerConfiguration->PDUSize));
     return NULL;
   } // end IF
   // *IMPORTANT NOTE*: fire-and-forget API (message_data_container_p)
@@ -394,6 +447,10 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
 
   // initialize return value(s)
   HTTP_Record* result_p = NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::mod_);
+  ACE_ASSERT (configuration_);
 
   // (try to) retrieve status code
   std::stringstream converter;
@@ -523,7 +580,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
       // *TODO*: remove type inference
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("\"%s\" has been redirected to \"%s\" (status was: %d)\n"),
-                  ACE_TEXT (configuration_.URL.c_str ()), ACE_TEXT (location.c_str ()),
+                  ACE_TEXT (configuration_->URL.c_str ()), ACE_TEXT (location.c_str ()),
                   result_p->status));
 
       // step2: send request
