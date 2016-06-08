@@ -38,9 +38,10 @@ endif ()
 
 include (FindPkgConfig)
 if (UNIX)
- #pkg_check_modules (PKG_ACE REQUIRED ACE)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
+ pkg_check_modules (PKG_SSL REQUIRED libssl)
+#pkg_check_modules (PKG_ACE REQUIRED ACE)
 endif ()
 pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
 
@@ -116,26 +117,36 @@ add_definitions (-DHAVE_CONFIG_H)
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
+
  include_directories (${PKG_CAP_INCLUDE_DIRS})
+ include_directories (${PKG_SSL_INCLUDE_DIRS})
  include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
  include_directories (${PKG_MYSQL_INCLUDE_DIRS})
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/protocol/http)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src/client_server)
 else ()
  include_directories ($ENV{ACE_ROOT})
+
 # include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 # *TODO*: repair pkgconfig support
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.1/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1/include)
- # *TODO*: repair pkgconfig support
+
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
+
+# *TODO*: repair pkgconfig support
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/cmake/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libmysql_2/include)
+
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/glib-2.0)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gtk-2.0)
+
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/protocol/http)

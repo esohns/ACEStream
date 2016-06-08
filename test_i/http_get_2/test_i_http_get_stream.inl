@@ -99,8 +99,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::initialize"));
 
-  int result = -1;
-
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 

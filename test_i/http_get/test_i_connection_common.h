@@ -26,8 +26,8 @@
 #else
 #include "ace/Netlink_Addr.h"
 #endif
-#include "ace/SOCK_Connector.h"
 #include "ace/Synch_Traits.h"
+#include "ace/SSL/SSL_SOCK_Stream.h"
 
 #include "stream_common.h"
 #include "stream_module_io_stream.h"
@@ -44,6 +44,7 @@
 
 #include "net_client_asynchconnector.h"
 #include "net_client_connector.h"
+#include "net_client_ssl_connector.h"
 
 // forward declarations
 class Test_I_Stream_Message;
@@ -123,17 +124,30 @@ typedef Net_IConnection_T<ACE_INET_Addr,
 // outbound
 typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration,
                                                          ACE_SOCK_STREAM>,
-                                  ///////
+                                  ////////
                                   ACE_INET_Addr,
                                   Test_I_Configuration,
                                   Test_I_ConnectionState,
                                   Test_I_RuntimeStatistic_t,
                                   Test_I_NetStream_t,
-                                  ///////
+                                  ////////
                                   Test_I_UserData,
-                                  ///////
+                                  ////////
                                   Stream_ModuleConfiguration,
                                   Test_I_Stream_ModuleHandlerConfiguration> Test_I_TCPHandler_t;
+typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration,
+                                                         ACE_SSL_SOCK_Stream>,
+                                  ////////
+                                  ACE_INET_Addr,
+                                  Test_I_Configuration,
+                                  Test_I_ConnectionState,
+                                  Test_I_RuntimeStatistic_t,
+                                  Test_I_NetStream_t,
+                                  ////////
+                                  Test_I_UserData,
+                                  ////////
+                                  Stream_ModuleConfiguration,
+                                  Test_I_Stream_ModuleHandlerConfiguration> Test_I_SSLTCPHandler_t;
 typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration>,
 
                                         ACE_INET_Addr,
@@ -157,6 +171,16 @@ typedef Net_TCPConnectionBase_T<Test_I_TCPHandler_t,
                                 Test_I_Stream_SocketHandlerConfiguration,
                                 /////////
                                 Test_I_UserData> Test_I_TCPConnection_t;
+typedef Net_TCPConnectionBase_T<Test_I_SSLTCPHandler_t,
+                                /////////
+                                Test_I_Configuration,
+                                Test_I_ConnectionState,
+                                Test_I_RuntimeStatistic_t,
+                                Test_I_NetStream_t,
+                                /////////
+                                Test_I_Stream_SocketHandlerConfiguration,
+                                /////////
+                                Test_I_UserData> Test_I_SSLTCPConnection_t;
 typedef Net_AsynchTCPConnectionBase_T<Test_I_AsynchTCPHandler_t,
                                       ///
                                       Test_I_Configuration,
@@ -199,5 +223,17 @@ typedef Net_Client_Connector_T<Test_I_TCPConnection_t,
                                Test_I_Stream_SocketHandlerConfiguration,
                                //////////
                                Test_I_UserData> Test_I_Stream_TCPConnector_t;
+typedef Net_Client_SSL_Connector_T<Test_I_SSLTCPConnection_t,
+                                   Net_SOCK_Connector,
+                                   //////////
+                                   ACE_INET_Addr,
+                                   Test_I_Configuration,
+                                   Test_I_ConnectionState,
+                                   Test_I_RuntimeStatistic_t,
+                                   Test_I_NetStream_t,
+                                   //////////
+                                   Test_I_Stream_SocketHandlerConfiguration,
+                                   //////////
+                                   Test_I_UserData> Test_I_Stream_SSLTCPConnector_t;
 
 #endif

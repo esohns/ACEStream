@@ -9,10 +9,10 @@ if (UNIX)
  include_directories (${PKG_LIBAVFORMAT_INCLUDE_DIRS})
 elseif (WIN32)
  include_directories ("$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
-#include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################
 set (${PROJECT_NAME}_Decoder_LIB_SRCS

@@ -159,12 +159,12 @@ do_processArguments (int argc_in,
                      std::string& URI_out,
                      bool& printVersionAndExit_out,
                      unsigned int& numberOfDispatchThreads_out,
-                     ACE_INET_Addr& remoteHost_out)
+                     ACE_INET_Addr& remoteHost_out,
+                     bool& useSSL_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
-  std::string path =
-    Common_File_Tools::getWorkingDirectory ();
+  std::string path = Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR ("..");
@@ -210,6 +210,7 @@ do_processArguments (int argc_in,
                 ACE_TEXT ("failed to ACE_INET_Addr::set (): \"%m\", aborting\n")));
     return false;
   } // end IF
+  useSSL_out = false;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
@@ -268,7 +269,7 @@ do_processArguments (int argc_in,
         // step1: parse URL
         URI_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         std::string regex_string =
-          ACE_TEXT_ALWAYS_CHAR ("^(?:http(?:s)?://)?([[:alnum:]-.]+)(?:\\:([[:digit:]]{1,5}))?(.+)?$");
+          ACE_TEXT_ALWAYS_CHAR ("^(?:http(s)?://)?([[:alnum:]-.]+)(?:\\:([[:digit:]]{1,5}))?(.+)?$");
         std::regex regex (regex_string);
         std::smatch match_results;
         if (!std::regex_match (URI_out,
@@ -283,18 +284,20 @@ do_processArguments (int argc_in,
         } // end IF
         ACE_ASSERT (match_results.ready () && !match_results.empty ());
 
-        ACE_ASSERT (match_results[1].matched);
-        std::string hostname = match_results[1];
+        if (match_results[1].matched)
+          useSSL_out = true;
+        ACE_ASSERT (match_results[2].matched);
+        std::string hostname = match_results[2];
         unsigned short port = STREAM_NET_HTTP_DEFAULT_PORT;
-        if (match_results[2].matched)
+        if (match_results[3].matched)
         {
           converter.clear ();
           converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-          converter.str (match_results[2].str ());
+          converter.str (match_results[3].str ());
           converter >> port;
         } // end IF
-        ACE_ASSERT (match_results[3].matched);
-        URI_out = match_results[3];
+        ACE_ASSERT (match_results[4].matched);
+        URI_out = match_results[4];
 
         // step2: validate address/verify host name exists
         //        --> resolve
@@ -576,6 +579,7 @@ do_work (const std::string& configurationFileName_in,
          unsigned short port_in,
          bool useReactor_in,
          const ACE_INET_Addr& remoteHost_in,
+         bool useSSL_in,
          const std::string& URL_in,
          unsigned int numberOfDispatchThreads_in,
          const ACE_Sig_Set& signalSet_in,
@@ -589,8 +593,14 @@ do_work (const std::string& configurationFileName_in,
   Test_I_Configuration configuration;
   Test_I_StreamBase_t* stream_p = NULL;
   if (useReactor_in)
-    ACE_NEW_NORETURN (stream_p,
-                      Test_I_HTTPGet_Stream_t ());
+  {
+    if (useSSL_in)
+      ACE_NEW_NORETURN (stream_p,
+                        Test_I_HTTPGet_SSL_Stream_t ());
+    else
+      ACE_NEW_NORETURN (stream_p,
+                        Test_I_HTTPGet_Stream_t ());
+  } // end IF
   else
     ACE_NEW_NORETURN (stream_p,
                       Test_I_HTTPGet_AsynchStream_t ());
@@ -981,6 +991,7 @@ ACE_TMAIN (int argc_in,
     TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
   ACE_INET_Addr remote_host (static_cast<u_short> (STREAM_NET_HTTP_DEFAULT_PORT),
                              static_cast<ACE_UINT32> (INADDR_LOOPBACK));
+  bool use_SSL = false;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -995,7 +1006,8 @@ ACE_TMAIN (int argc_in,
                             URL,
                             print_version_and_exit,
                             number_of_dispatch_threads,
-                            remote_host))
+                            remote_host,
+                            use_SSL))
   {
     // make 'em learn...
     do_printUsage (ACE::basename (argv_in[0]));
@@ -1179,6 +1191,7 @@ ACE_TMAIN (int argc_in,
            port,
            use_reactor,
            remote_host,
+           use_SSL,
            URL,
            number_of_dispatch_threads,
            signal_set,

@@ -3076,6 +3076,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   g_value_unset (&value_2);
 #endif
 
+  gint n_rows = 0;
+  GtkToggleAction* toggle_action_p = NULL;
+
   list_store_p =
       GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
@@ -3235,9 +3238,6 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (device_path.c_str ()), open_mode));
     return;
   } // end IF
-
-  gint n_rows = 0;
-  GtkToggleAction* toggle_action_p = NULL;
 
   if (!load_formats (data_p->device,
 #endif
