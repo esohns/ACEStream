@@ -111,7 +111,8 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
                 record_p->status));
 
     // step2: send request
-    if (!inherited::sendRequest ((*iterator).second))
+    if (!inherited::sendRequest ((*iterator).second,
+                                 inherited::configuration_->HTTPHeaders))
     {
       ACE_ASSERT (inherited::mod_);
       ACE_DEBUG ((LM_ERROR,
@@ -187,7 +188,8 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
                           (*iterator_).ISIN.c_str ());
 
     // send first HTTP Get request
-    if (!inherited::sendRequest (url_string))
+    if (!inherited::sendRequest (url_string,
+                                 inherited::configuration_->HTTPHeaders))
     {
       ACE_ASSERT (inherited::mod_);
       ACE_DEBUG ((LM_ERROR,

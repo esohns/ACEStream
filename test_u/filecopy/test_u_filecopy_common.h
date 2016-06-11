@@ -51,7 +51,7 @@ struct Stream_Filecopy_ModuleHandlerConfiguration
    , targetFileName ()
   {};
 
-  std::string             targetFileName;
+  std::string targetFileName;
 };
 
 struct Stream_Filecopy_SessionData

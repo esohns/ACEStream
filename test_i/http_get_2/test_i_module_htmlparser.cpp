@@ -87,92 +87,6 @@ Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser ()
 
 }
 
-//void
-//Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_inout,
-//                                             bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::handleDataMessage"));
-
-//  int result = -1;
-//  MessageType* message_p = message_inout;
-//  xmlParserErrors error;
-//  bool complete = false;
-
-//  // don't care (implies yes per default, if part of a stream)
-//  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-//  // sanity check(s)
-//  ACE_ASSERT (message_inout);
-//  ACE_ASSERT (parserContext_.parserContext);
-
-//  do
-//  {
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("parsing HTML (message ID: %d, %d byte(s))...\n"),
-//                message_p->getID (),
-//                message_p->length ()));
-
-//    result = htmlParseChunk (parserContext_.parserContext, // context
-//                             message_p->rd_ptr (),         // chunk
-//                             message_p->length (),         // size
-//                             0);                           // terminate ?
-//    if (result)
-//    {
-//      error = static_cast<xmlParserErrors> (result);
-//      ACE_DEBUG ((LM_WARNING,
-//                  ACE_TEXT ("failed to htmlParseChunk() (status was: %d), continuing\n"),
-//                  error));
-//    } // end IF
-//    message_p = message_p->cont ();
-
-//    // *TODO*: this depends on (upstream) HTTP parser behavior --> remove
-//    if ((message_p->length () == 0) && (message_p->cont () == NULL))
-//    {
-//      complete = true;
-//      break; // done
-//    } // end IF
-//  } while (true);
-
-//  if (complete)
-//  {
-//    result = htmlParseChunk (parserContext_.parserContext,
-//                             ACE_TEXT_ALWAYS_CHAR (""),
-//                             0,
-//                             1);
-//    if (result)
-//    {
-//      error = static_cast<xmlParserErrors> (result);
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to htmlParseChunk() (status was: %d), continuing\n"),
-//                  error));
-//    } // end IF
-
-//    if (!parserContext_.parserContext->wellFormed)
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("HTML document not well formed, continuing\n")));
-//    if (parserContext_.parserContext->errNo)
-//      ACE_DEBUG ((LM_WARNING,
-//                  ACE_TEXT ("HTML document had errors: \"%s\", continuing\n"),
-//                  ACE_TEXT (ACE_OS::strerror (parserContext_.parserContext->errNo))));
-
-//    ACE_DEBUG ((LM_DEBUG,
-//                ACE_TEXT ("parsing HTML...DONE\n")));
-
-//    const typename MessageType::DATA_T& data_container_r =
-//        message_inout->get ();
-//    typename MessageType::DATA_T::DATA_T& data_r =
-//        const_cast<typename MessageType::DATA_T::DATA_T&> (data_container_r.get ());
-//    ACE_ASSERT (!data_r.HTMLDocument);
-//    data_r.HTMLDocument = parserContext_.parserContext->myDoc;
-////    data_r.HTMLDocument = xmlCopyDoc (parserContext_.parserContext->myDoc);
-////    if (!data_r.HTMLDocument)
-////      ACE_DEBUG ((LM_ERROR,
-////                  ACE_TEXT ("failed to xmlCopyDoc(): \"%m\", continuing\n")));
-//    parserContext_.parserContext->myDoc = NULL;
-//    xmlClearParserCtxt (parserContext_.parserContext);
-//  } // end IF
-//}
-
 void
 Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
                                                 bool& passMessageDownstream_out)
@@ -198,19 +112,19 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 //      if (parserContext_)
 //        htmlCtxtReset (parserContext_);
 
-      // *TODO*: the upstream session data may not be the same as the downstream
-      //         one...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (session_data_r.sessionID != reinterpret_cast<size_t> (ACE_INVALID_HANDLE))
-#else
-      if (session_data_r.sessionID != static_cast<size_t> (ACE_INVALID_HANDLE))
-#endif
-      {
-        const_cast<Test_I_Stream_SessionData&> (session_data_r).parserContext =
-            &(inherited::parserContext_);
-        inherited::parserContext_.sessionData =
-            &const_cast<Test_I_Stream_SessionData&> (session_data_r);
-      } // end IF
+//      // *TODO*: the upstream session data may not be the same as the downstream
+//      //         one...
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//      if (session_data_r.sessionID != reinterpret_cast<size_t> (ACE_INVALID_HANDLE))
+//#else
+//      if (session_data_r.sessionID != static_cast<size_t> (ACE_INVALID_HANDLE))
+//#endif
+//      {
+//        const_cast<Test_I_Stream_SessionData&> (session_data_r).parserContext =
+//            &(inherited::parserContext_);
+//        inherited::parserContext_.sessionData =
+//            &const_cast<Test_I_Stream_SessionData&> (session_data_r);
+//      } // end IF
 
       break;
     }
@@ -243,6 +157,7 @@ Test_I_Stream_HTMLParser::initialize (const Test_I_Stream_ModuleHandlerConfigura
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::initialize"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (configuration_in.mode == STREAM_MODULE_HTMLPARSER_SAX);
 
   if (!inherited::initialize (configuration_in))
@@ -320,36 +235,97 @@ characters (void* userData_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
 
+  std::string data_string = reinterpret_cast<const char*> (string_in);
+  std::string regex_string;
+  std::smatch match_results;
+
   switch (data_p->state)
   {
+    case SAXPARSER_STATE_READ_SYMBOL_WKN_ISIN:
+    {
+      regex_string =
+        ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{3})\\s(?:[^|]*)\\|\\s[[:digit:]]{6})\\s\\|\\s([[:alpha:]]{2}[[:digit:]]{10})\\s\\|\\s(?:.*)$");
+      std::regex regex (regex_string);
+      if (!std::regex_match (data_string,
+                             match_results,
+                             regex,
+                             std::regex_constants::match_default))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid title string (was: \"%s\"), returning\n"),
+                    ACE_TEXT (data_string.c_str ())));
+        return;
+      } // end IF
+      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      ACE_ASSERT (match_results[1].matched);
+      ACE_ASSERT (match_results[2].matched);
+      ACE_ASSERT (match_results[3].matched);
+
+      data_p->stockItem.symbol = match_results[1].str ();
+      data_p->stockItem.ISIN = match_results[2].str ();
+      data_p->stockItem.WKN = match_results[3].str ();
+
+      data_p->state = SAXPARSER_STATE_IN_HEAD;
+
+      break;
+    }
+    case SAXPARSER_STATE_READ_VALUE:
+    {
+      regex_string =
+        ACE_TEXT_ALWAYS_CHAR ("^\\s*([[:digit:]]+),([[:digit:]]+)\\s€$");
+      std::regex regex (regex_string);
+      if (!std::regex_match (data_string,
+                             match_results,
+                             regex,
+                             std::regex_constants::match_default))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid value string (was: \"%s\"), returning\n"),
+                    ACE_TEXT (data_string.c_str ())));
+        return;
+      } // end IF
+      ACE_ASSERT (match_results.ready () && !match_results.empty ());
+      ACE_ASSERT (match_results[1].matched);
+      ACE_ASSERT (match_results[2].matched);
+
+      std::string value_string = match_results[1].str ();
+      value_string += '.';
+      value_string += match_results[2].str ();
+      std::istringstream converter;
+      converter.str (value_string);
+      converter >> data_p->stockItem.value;
+
+      data_p->state = SAXPARSER_STATE_IN_BODY;
+
+      break;
+    }
     case SAXPARSER_STATE_READ_DATE:
     {
-      // parse date string
-      std::string date_string = reinterpret_cast<const char*> (string_in);
-      std::string regex_string =
-        ACE_TEXT_ALWAYS_CHAR ("^([[:digit:]]{1,2})\\.([[:digit:]]{1,2})\\.([[:digit:]]{2,4})$");
+      regex_string =
+        ACE_TEXT_ALWAYS_CHAR ("^([[:digit:]]{2})\\.([[:digit:]]{2})\\.([[:digit:]]{4})\\s([[:digit:]]{2}):([[:digit:]]{2})$");
       std::regex regex (regex_string);
-      std::smatch match_results;
-      if (!std::regex_match (date_string,
+      if (!std::regex_match (data_string,
                              match_results,
                              regex,
                              std::regex_constants::match_default))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid date string (was: \"%s\"), returning\n"),
-                    ACE_TEXT (date_string.c_str ())));
+                    ACE_TEXT (data_string.c_str ())));
         return;
       } // end IF
       ACE_ASSERT (match_results.ready () && !match_results.empty ());
-
       ACE_ASSERT (match_results[1].matched);
       ACE_ASSERT (match_results[2].matched);
       ACE_ASSERT (match_results[3].matched);
+      ACE_ASSERT (match_results[4].matched);
+      ACE_ASSERT (match_results[5].matched);
 
       std::stringstream converter;
       long value;
       struct tm tm_time;
       ACE_OS::memset (&tm_time, 0, sizeof (struct tm));
+
       converter << match_results[1].str ();
       converter >> value;
       tm_time.tm_mday = value;
@@ -364,25 +340,21 @@ characters (void* userData_in,
       converter >> value;
       tm_time.tm_year = value - 1900; // years are since 1900
 
+      converter.clear ();
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      converter << match_results[4].str ();
+      converter >> value;
+      tm_time.tm_hour = value;
+      converter.clear ();
+      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+      converter << match_results[4].str ();
+      converter >> value;
+      tm_time.tm_min = value;
+
       time_t time_seconds = ACE_OS::mktime (&tm_time);
-      data_p->timeStamp.set (time_seconds, 0);
+      data_p->stockItem.timeStamp.set (time_seconds, 0);
 
-      //data_p->state = SAXPARSER_STATE_READ_ITEMS;
-
-      break;
-    }
-    case SAXPARSER_STATE_READ_DESCRIPTION:
-    {
-      data_p->stockItem.description +=
-        reinterpret_cast<const char*> (string_in);
-
-      break;
-    }
-    case SAXPARSER_STATE_READ_VALUE:
-    {
-      std::istringstream converter;
-      converter.str (reinterpret_cast<const char*> (string_in));
-      converter >> data_p->stockItem.value;
+      data_p->state = SAXPARSER_STATE_IN_BODY;
 
       break;
     }
@@ -405,6 +377,7 @@ startElement (void* userData_in,
 
   const xmlChar** attributes_p = attributes_in;
 
+  // ------------------------------- html --------------------------------------
   if (xmlStrEqual (name_in,
                    BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("html"))))
   {
@@ -416,7 +389,7 @@ startElement (void* userData_in,
     return;
   } // end IF
 
-  // ------------------------------- header ------------------------------------
+  // ------------------------------- head/body ---------------------------------
   if (xmlStrEqual (name_in,
                    BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("head"))))
   {
@@ -427,19 +400,6 @@ startElement (void* userData_in,
 
     return;
   } // end IF
-
-  if (xmlStrEqual (name_in,
-                   BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("title"))))
-  {
-    // sanity check(s)
-    ACE_ASSERT (data_p->state == SAXPARSER_STATE_IN_HEAD);
-
-    //data_p->state = SAXPARSER_STATE_READ_TITLE;
-
-    return;
-  } // end IF
-
-  // -------------------------------- body -------------------------------------
   if (xmlStrEqual (name_in,
                    BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("body"))))
   {
@@ -451,21 +411,106 @@ startElement (void* userData_in,
     return;
   } // end IF
 
-  // <h4 class="published">DATE</h4>
+  switch (data_p->state)
+  {
+    case SAXPARSER_STATE_IN_HEAD:
+      goto head;
+    case SAXPARSER_STATE_IN_BODY:
+      goto body;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown parser state (was: %d), returning\n"),
+                  data_p->state));
+      return;
+    }
+  } // end SWITCH
+
+  // -------------------------------- head -------------------------------------
+  if (!(data_p->state == SAXPARSER_STATE_IN_HEAD))
+    return;
+
+head:
   if (xmlStrEqual (name_in,
-                   BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("h4"))))
+                   BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("title"))))
   {
     // sanity check(s)
-    //if (data_p->state != SAXPARSER_STATE_READ_ITEMS)
-    //  return; // done
+    data_p->state = SAXPARSER_STATE_READ_SYMBOL_WKN_ISIN;
 
+    return;
+  } // end IF
+
+  // -------------------------------- body -------------------------------------
+  if (!(data_p->state == SAXPARSER_STATE_IN_BODY))
+    return;
+
+body:
+  if (xmlStrEqual (name_in,
+                   BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("div"))))
+  {
+    //while (NULL != attributes_p && NULL != attributes_p[0])
+    //{
+    //  if (xmlStrEqual (attributes_p[0],
+    //                   BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("id"))))
+    //  {
+    //    ACE_ASSERT (attributes_p[1]);
+
+    //    //if (xmlStrEqual (attributes_p[1],
+    //    //                 BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("vwd_content"))))
+    //    //{
+    //    //  data_p->state = SAXPARSER_STATE_IN_BODY_DIV_CONTENT;
+    //    //  break;
+    //    //} // end IF
+    //  } // end IF
+    //  if (xmlStrEqual (attributes_p[0],
+    //                   BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("class"))))
+    //  {
+    //    ACE_ASSERT (attributes_p[1]);
+
+    //    //if (data_p->state != SAXPARSER_STATE_IN_BODY_DIV_CONTENT)
+    //    //  break;
+
+    //    //if (xmlStrEqual (attributes_p[1],
+    //    //                  BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("einzelkurs_header"))))
+    //    //{
+    //    //  data_p->state = SAXPARSER_STATE_READ_DESCRIPTION;
+    //    //  break;
+    //    //} // end IF
+    //    //else if (xmlStrEqual (attributes_p[1],
+    //    //                      BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("vwd_infobox_vertical_gap_2"))))
+    //    //{
+    //    //  data_p->state = SAXPARSER_STATE_READ_ISIN_WKN;
+    //    //  break;
+    //    //} // end IF
+    //  } // end IF
+
+    //  attributes_p = &attributes_p[2];
+    //} // end WHILE
+  } // end IF
+  else if (xmlStrEqual (name_in,
+                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("span"))))
+  {
     while (NULL != attributes_p && NULL != attributes_p[0])
     {
       if (xmlStrEqual (attributes_p[0],
-                       BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("class"))))
+                       BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("title"))))
       {
+        ACE_ASSERT (attributes_p[1]);
+
         if (xmlStrEqual (attributes_p[1],
-                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("published"))))
+                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("aktueller_wert"))))
+        {
+          data_p->state = SAXPARSER_STATE_READ_VALUE;
+          break;
+        } // end IF
+      } // end IF
+      else if (xmlStrEqual (attributes_p[0],
+                            BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("class"))))
+      {
+        ACE_ASSERT (attributes_p[1]);
+
+        if (xmlStrEqual (attributes_p[1],
+                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("leftfloat bottom_aligned"))))
         {
           data_p->state = SAXPARSER_STATE_READ_DATE;
           break;
@@ -474,58 +519,6 @@ startElement (void* userData_in,
 
       attributes_p = &attributes_p[2];
     } // end WHILE
-  } // end IF
-  else if (xmlStrEqual (name_in,
-                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("a"))))
-  {
-    //if (data_p->state == SAXPARSER_STATE_READ_ITEM)
-    //{
-    //  // save link URL
-    //  while (NULL != attributes_p && NULL != attributes_p[0])
-    //  {
-    //    if (xmlStrEqual (attributes_p[0],
-    //                     BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("href"))))
-    //    {
-    //      data_p->dataItem.URI = (char*)attributes_p[1];
-    //      break;
-    //    } // end IF
-
-    //    attributes_p = &attributes_p[2];
-    //  } // end WHILE
-
-    //  data_p->state = SAXPARSER_STATE_READ_DESCRIPTION;
-    //} // end IF
-  } // end IF
-  ///////////////////////////////////////
-  else if (xmlStrEqual (name_in,
-                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("div"))))
-  {
-    // sanity check(s)
-    ACE_ASSERT (data_p->state == SAXPARSER_STATE_IN_BODY);
-
-    const xmlChar** attributes_p = attributes_in;
-    while (NULL != attributes_p && NULL != attributes_p[0])
-    {
-      if (xmlStrEqual (attributes_p[0],
-                       BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("id"))))
-      {
-        ACE_ASSERT (attributes_p[1]);
-        //if (xmlStrEqual (attributes_p[1],
-        //                 BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("archiv_woche"))))
-        //{
-        //  data_p->state = SAXPARSER_STATE_READ_ITEMS;
-        //  break;
-        //} // end IF
-      } // end IF
-
-      attributes_p = &attributes_p[2];
-    } // end WHILE
-  } // end ELSE IF
-  else if (xmlStrEqual (name_in,
-                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("li"))))
-  {
-    //if (data_p->state == SAXPARSER_STATE_READ_ITEMS)
-    //  data_p->state = SAXPARSER_STATE_READ_ITEM;
   } // end ELSE IF
 }
 void
@@ -551,7 +544,7 @@ endElement (void* userData_in,
     return;
   } // end IF
 
-  // ------------------------------- header ------------------------------------
+  // ------------------------------- head --------------------------------------
   if (xmlStrEqual (name_in,
                    BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("head"))))
   {
@@ -565,9 +558,6 @@ endElement (void* userData_in,
   else if (xmlStrEqual (name_in,
                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("title"))))
   {
-    //// sanity check(s)
-    //ACE_ASSERT (data_p->state == SAXPARSER_STATE_READ_TITLE);
-
     data_p->state = SAXPARSER_STATE_IN_HEAD;
 
     return;
@@ -577,42 +567,9 @@ endElement (void* userData_in,
   if (xmlStrEqual (name_in,
                    BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("body"))))
   {
-    // sanity check(s)
-    ACE_ASSERT (data_p->state == SAXPARSER_STATE_IN_BODY);
-
     data_p->state = SAXPARSER_STATE_IN_HTML;
 
     return;
-  } // end IF
-  else if (xmlStrEqual (name_in,
-                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("div"))))
-  {
-    //if (data_p->state == SAXPARSER_STATE_READ_ITEMS)
-    //  data_p->state = SAXPARSER_STATE_IN_BODY;
-  } // end ELSE IF
-  else if (xmlStrEqual (name_in,
-                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("a"))))
-  {
-    if (data_p->state != SAXPARSER_STATE_READ_DESCRIPTION)
-      return; // nothing to do
-
-    // sanity check(s)
-    ACE_ASSERT (data_p->sessionData);
-
-    Test_I_PortfolioIterator_t iterator =
-        data_p->sessionData->data.find (data_p->timeStamp);
-    if (iterator == data_p->sessionData->data.end ())
-    {
-      Test_I_StockItems_t stock_items;
-      stock_items.push_back (data_p->stockItem);
-      data_p->sessionData->data[data_p->timeStamp] = stock_items;
-    } // end IF
-    else
-      (*iterator).second.push_back (data_p->stockItem);
-
-    data_p->stockItem.description.clear ();
-
-    //data_p->state = SAXPARSER_STATE_READ_ITEMS;
   } // end IF
 }
 //xmlEntityPtr

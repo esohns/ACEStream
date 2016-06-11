@@ -172,7 +172,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
                   record_p->status));
 
       // step2: send request
-      if (!sendRequest ((*iterator).second))
+      if (!sendRequest ((*iterator).second,
+                        configuration_->HTTPHeaders))
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
@@ -223,15 +224,13 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-  ACE_ASSERT (inherited::mod_);
-
   switch (message_inout->type ())
   {
     case STREAM_SESSION_BEGIN:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::mod_);
+      ACE_ASSERT (configuration_);
       ACE_ASSERT (!sessionData_);
 
       // *TODO*: remove type inferences
@@ -240,7 +239,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
       sessionData_->increase ();
 
       // send HTTP Get request
-      if (!sendRequest (configuration_->URL))
+      if (!sendRequest (configuration_->URL,
+                        configuration_->HTTPHeaders))
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
@@ -321,7 +321,8 @@ template <typename ConfigurationType,
 ProtocolMessageType*
 Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
                                     SessionMessageType,
-                                    ProtocolMessageType>::makeRequest (const std::string& URI_in)
+                                    ProtocolMessageType>::makeRequest (const std::string& URI_in,
+                                                                       const HTTP_Headers_t& headers_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::makeRequest"));
 
@@ -381,6 +382,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
       message_out->get ();
   typename ProtocolMessageType::DATA_T::DATA_T& message_data_r =
       const_cast<typename ProtocolMessageType::DATA_T::DATA_T&> (message_data_container_r.get ());
+  message_data_r.HTTPRecord->headers = headers_in;
   message_data_r.HTTPRecord->method = HTTP_Codes::HTTP_METHOD_GET;
   message_data_r.HTTPRecord->URI = URI_in;
   message_data_r.HTTPRecord->version = HTTP_Codes::HTTP_VERSION_1_1;
@@ -394,15 +396,19 @@ template <typename ConfigurationType,
 bool
 Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
                                     SessionMessageType,
-                                    ProtocolMessageType>::sendRequest (const std::string& URI_in)
+                                    ProtocolMessageType>::sendRequest (const std::string& URI_in,
+                                                                       const HTTP_Headers_t& headers_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::sendRequest"));
 
   int result = -1;
 
-  // initialize return value(s)
+  // sanity check(s)
+  ACE_ASSERT (inherited::mod_);
+
   // *TODO*: estimate a reasonable buffer size
-  ProtocolMessageType* message_p = makeRequest (URI_in);
+  ProtocolMessageType* message_p = makeRequest (URI_in,
+                                                headers_in);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -411,9 +417,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
     return false;
   } // end IF
 
-  // send data
+  // send data (fire-and-forget message_p)
   result = inherited::reply (message_p);
-  ACE_ASSERT (inherited::mod_);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -425,8 +430,6 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
 
     return false;
   } // end IF
-  message_p = NULL;
-
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: dispatched HTTP GET (URI was: \"%s\")\n"),
               inherited::mod_->name (),
@@ -584,7 +587,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
                   result_p->status));
 
       // step2: send request
-      if (!sendRequest (location))
+      if (!sendRequest (location,
+                        configuration_->HTTPHeaders))
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,

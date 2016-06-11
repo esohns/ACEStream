@@ -56,6 +56,8 @@
 
 #include "net_common_tools.h"
 
+#include "http_defines.h"
+
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
@@ -92,6 +94,10 @@ do_printUsage (const std::string& programName_in)
             << std::endl
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d          : debug HTTP parser [")
+            << HTTP_DEFAULT_YACC_TRACE
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::string configuration_file = path;
 #if defined (DEBUG_DEBUGGER)
@@ -149,6 +155,7 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
+                     bool& debug_out,
                      std::string& configurationFileName_out,
                      std::string& hostName_out,
                      bool& logToFile_out,
@@ -177,6 +184,7 @@ do_processArguments (int argc_in,
 #endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
+  debug_out = HTTP_DEFAULT_YACC_TRACE;
   configurationFileName_out = path;
 #if defined (DEBUG_DEBUGGER)
   configurationFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -200,7 +208,7 @@ do_processArguments (int argc_in,
   numberOfDispatchThreads_out =
     TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
   int result =
-    remoteHost_out.set (static_cast<u_short> (STREAM_NET_HTTP_DEFAULT_PORT),
+    remoteHost_out.set (static_cast<u_short> (HTTP_DEFAULT_SERVER_PORT),
                         static_cast<ACE_UINT32> (INADDR_LOOPBACK),
                         1,
                         0);
@@ -214,7 +222,7 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("f:h:lo:p:rtu:vx:"),
+                              ACE_TEXT ("df:h:lo:p:rtu:vx:"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -226,6 +234,11 @@ do_processArguments (int argc_in,
   {
     switch (option)
     {
+      case 'd':
+      {
+        debug_out = true;
+        break;
+      }
       case 'f':
       {
         configurationFileName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
@@ -288,7 +301,7 @@ do_processArguments (int argc_in,
           useSSL_out = true;
         ACE_ASSERT (match_results[2].matched);
         std::string hostname = match_results[2];
-        unsigned short port = STREAM_NET_HTTP_DEFAULT_PORT;
+        unsigned short port = HTTP_DEFAULT_SERVER_PORT;
         if (match_results[3].matched)
         {
           converter.clear ();
@@ -572,7 +585,8 @@ do_parseConfigurationFile (const std::string& fileName_in,
 }
 
 void
-do_work (const std::string& configurationFileName_in,
+do_work (bool debug_in,
+         const std::string& configurationFileName_in,
          const std::string& hostName_in,
          bool useThreadPool_in,
          const std::string& fileName_in,
@@ -679,8 +693,23 @@ do_work (const std::string& configurationFileName_in,
   configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;
+  configuration.moduleHandlerConfiguration.traceParsing = debug_in;
+  if (debug_in)
+    configuration.moduleHandlerConfiguration.traceScanning = true;
   configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
-  configuration.moduleHandlerConfiguration.hostName = hostName_in;
+  //configuration.moduleHandlerConfiguration.hostName = hostName_in;
+  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ACCEPT_HEADER_STRING),
+  //                                                                             ACE_TEXT_ALWAYS_CHAR ("text/html, application/xhtml+xml, */*")));
+  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ACCEPT_REFERER_STRING),
+  //                                                                             ACE_TEXT_ALWAYS_CHAR ("http://kurse.boerse.ard.de/ard/kurse_einzelkurs_uebersicht.htn?i=118700&suchbegriff=US0079031078&exitPoint=")));
+  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_LANGUAGE_HEADER_STRING),
+  //                                                                             ACE_TEXT_ALWAYS_CHAR ("de-DE,de;q=0.8,en-US;q=0.5,en;q=0.3")));
+  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ENCODING_HEADER_STRING),
+  //                                                                             ACE_TEXT_ALWAYS_CHAR ("gzip, deflate")));
+  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_COOKIE_HEADER_STRING),
+  //                                                                             ACE_TEXT_ALWAYS_CHAR ("xtvrn=$452061$; backlink=http://boerse.ard.de/index.html; usf_mobil=1; USF-C-usf_mobil=1")));
+  configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HOST_HEADER_STRING),
+                                                                               ACE_TEXT_ALWAYS_CHAR ("kurse.boerse.ard.de")));
   configuration.moduleHandlerConfiguration.URL = URL_in;
   configuration.moduleHandlerConfiguration.socketConfiguration =
     &configuration.socketConfiguration;
@@ -966,6 +995,7 @@ ACE_TMAIN (int argc_in,
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
+  bool debug = HTTP_DEFAULT_YACC_TRACE;
   std::string configuration_file = path;
 #if defined (DEBUG_DEBUGGER)
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -989,13 +1019,14 @@ ACE_TMAIN (int argc_in,
   bool print_version_and_exit = false;
   unsigned int number_of_dispatch_threads =
     TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
-  ACE_INET_Addr remote_host (static_cast<u_short> (STREAM_NET_HTTP_DEFAULT_PORT),
+  ACE_INET_Addr remote_host (static_cast<u_short> (HTTP_DEFAULT_SERVER_PORT),
                              static_cast<ACE_UINT32> (INADDR_LOOPBACK));
   bool use_SSL = false;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
+                            debug,
                             configuration_file,
                             host_name,
                             log_to_file,
@@ -1184,7 +1215,8 @@ ACE_TMAIN (int argc_in,
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (configuration_file,
+  do_work (debug,
+           configuration_file,
            host_name,
            use_thread_pool,
            output_file,

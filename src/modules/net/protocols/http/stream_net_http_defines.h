@@ -21,6 +21,7 @@
 #ifndef STREAM_NET_HTTP_DEFINES_H
 #define STREAM_NET_HTTP_DEFINES_H
 
-#define STREAM_NET_HTTP_DEFAULT_PORT 80
+#define HTML_DEFAULT_SUFFIX                           ".html"
+#define STREAM_MODULE_NET_SOURCE_HTTP_GET_DEFAULT_URL "index.html"
 
 #endif

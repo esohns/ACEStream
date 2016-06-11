@@ -59,7 +59,7 @@ class Stream_Module_FileWriter_T
   virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
-  ModuleHandlerConfigurationType configuration_;
+  ModuleHandlerConfigurationType* configuration_;
 
  private:
   typedef Stream_TaskBaseAsynch_T<Common_TimePolicy_t,
@@ -69,9 +69,10 @@ class Stream_Module_FileWriter_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T (const Stream_Module_FileWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T& operator= (const Stream_Module_FileWriter_T&))
 
-  bool        isOpen_;
-  int         previousError_; // print (significant) errors message once only
-  ACE_FILE_IO stream_;
+  ACE_FILE_Addr                   fileName_;
+  bool                            isOpen_;
+  int                             previousError_; // print (significant) errors message once only
+  ACE_FILE_IO                     stream_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -167,9 +168,10 @@ class Stream_Module_FileWriterH_T
   // helper methods
   bool putStatisticMessage (const StatisticContainerType&) const;
 
-  bool        isOpen_;
-  int         previousError_; // print (significant) errors message once only
-  ACE_FILE_IO stream_;
+  ACE_FILE_Addr fileName_;
+  bool          isOpen_;
+  int           previousError_; // print (significant) errors message once only
+  ACE_FILE_IO   stream_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

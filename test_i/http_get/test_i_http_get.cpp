@@ -50,6 +50,8 @@
 #include "libACEStream_config.h"
 #endif
 
+#include "stream_net_http_defines.h"
+
 #include "stream_file_sink.h"
 
 #include "net_common_tools.h"

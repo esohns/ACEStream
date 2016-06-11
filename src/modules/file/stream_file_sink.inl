@@ -40,6 +40,8 @@ Stream_Module_FileWriter_T<SessionMessageType,
                            ModuleHandlerConfigurationType,
                            SessionDataType>::Stream_Module_FileWriter_T ()
  : inherited ()
+ , configuration_ (NULL)
+ , fileName_ ()
  , isOpen_ (false)
  , previousError_ (0)
  , stream_ ()
@@ -89,6 +91,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
+  ACE_ASSERT (configuration_);
   if (!isOpen_)
   {
 //    ACE_DEBUG ((LM_ERROR,
@@ -138,7 +141,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
 
       // print progress dots ?
       // *TODO*: remove type inferences
-      if (configuration_.printProgressDot)
+      if (configuration_->printProgressDot)
         std::cout << '.';
 
       break;
@@ -165,7 +168,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
+  ACE_ASSERT (configuration_);
 
   switch (message_inout->type ())
   {
@@ -179,18 +182,19 @@ Stream_Module_FileWriter_T<SessionMessageType,
                         O_TRUNC |
                         O_WRONLY);
 
-      if (configuration_.targetFileName.empty () &&
+      const ACE_TCHAR* path_name_p = fileName_.get_path_name ();
+      if ((!path_name_p) &&
           session_data_r.targetFileName.empty ())
         goto continue_; // nothing to do
 
       // *TODO*: remove type inferences
       directory =
-        (session_data_r.targetFileName.empty () ? (configuration_.targetFileName.empty () ? Common_File_Tools::getTempDirectory ()
-                                                                                          : configuration_.targetFileName)
+        (session_data_r.targetFileName.empty () ? (!path_name_p ? Common_File_Tools::getTempDirectory ()
+                                                                : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       file_name =
-        (session_data_r.targetFileName.empty () ? (configuration_.targetFileName.empty () ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
-                                                                                          : configuration_.targetFileName)
+        (session_data_r.targetFileName.empty () ? (!path_name_p ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
+                                                                : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       // sanity check(s)
       if (!Common_File_Tools::isDirectory (directory))
@@ -262,14 +266,13 @@ continue_:
     }
     case STREAM_SESSION_STEP:
     {
-      ACE_FILE_Addr file_address;
-      result = stream_.get_local_addr (file_address);
+      result = stream_.get_local_addr (fileName_);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n")));
       ACE_TCHAR buffer[PATH_MAX];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result = file_address.addr_to_string (buffer, sizeof (buffer));
+      result = fileName_.addr_to_string (buffer, sizeof (buffer));
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n")));
@@ -359,14 +362,13 @@ continue_:
     {
       if (isOpen_)
       {
-        ACE_FILE_Addr file_address;
-        result = stream_.get_local_addr (file_address);
+        result = stream_.get_local_addr (fileName_);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n")));
         ACE_TCHAR buffer[PATH_MAX];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
-        result = file_address.addr_to_string (buffer, sizeof (buffer));
+        result = fileName_.addr_to_string (buffer, sizeof (buffer));
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n")));
@@ -409,14 +411,25 @@ Stream_Module_FileWriter_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::initialize"));
 
-  configuration_ = configuration_in;
+  configuration_ =
+    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
 
-  //// sanity check(s)
-  //// *TODO*: remove type inferences
-  //if (Common_File_Tools::isReadable (configuration_.fileName))
-  //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("target file \"%s\" exists, continuing\n"),
-  //              ACE_TEXT (configuration_.fileName.c_str ())));
+  int result =
+    fileName_.set (ACE_TEXT (configuration_->targetFileName.c_str ()));
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (configuration_->targetFileName.c_str ())));
+    return false;
+  } // end IF
+
+  // sanity check(s)
+  // *TODO*: remove type inferences
+  if (Common_File_Tools::isReadable (configuration_->targetFileName))
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("target file \"%s\" exists, continuing\n"),
+                ACE_TEXT (configuration_->targetFileName.c_str ())));
 
   return true;
 }
@@ -432,7 +445,10 @@ Stream_Module_FileWriter_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::get"));
 
-  return configuration_;
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  return *configuration_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -462,6 +478,7 @@ Stream_Module_FileWriterH_T<LockType,
               false, // DON'T auto-start !
               false, // do not run the svc() routine on start
               true)  // push session messages
+ , fileName_ ()
  , isOpen_ (false)
  , previousError_ (0)
  , stream_ ()
@@ -639,14 +656,19 @@ Stream_Module_FileWriterH_T<LockType,
           session_data_r.sessionID;
 
       std::string directory, file_name;
+      const ACE_TCHAR* path_name_p = fileName_.get_path_name ();
+      if ((!path_name_p) &&
+          session_data_r.targetFileName.empty ())
+        goto continue_; // nothing to do
+
       // *TODO*: remove type inferences
       directory =
-        (session_data_r.targetFileName.empty () ? (inherited::configuration_->targetFileName.empty () ? Common_File_Tools::getTempDirectory ()
-                                                : inherited::configuration_->targetFileName)
+        (session_data_r.targetFileName.empty () ? (!path_name_p ? Common_File_Tools::getTempDirectory ()
+                                                                : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       file_name =
-        (session_data_r.targetFileName.empty () ? (inherited::configuration_->targetFileName.empty () ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
-                                                                                                      : inherited::configuration_->targetFileName)
+        (session_data_r.targetFileName.empty () ? (!path_name_p ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
+                                                                : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       // sanity check(s)
       if (!Common_File_Tools::isDirectory (directory))
@@ -700,8 +722,7 @@ Stream_Module_FileWriterH_T<LockType,
                     ACE_TEXT ("overwriting existing target file \"%s\"\n"),
                     ACE_TEXT (file_name.c_str ())));
 
-      ACE_FILE_Addr file_address;
-      result = file_address.set (file_name.c_str ());
+      result = fileName_.set (file_name.c_str ());
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -712,7 +733,7 @@ Stream_Module_FileWriterH_T<LockType,
       ACE_FILE_Connector file_connector;
       result =
           file_connector.connect (stream_,                 // stream
-                                  file_address,            // filename
+                                  fileName_,               // filename
                                   NULL,                    // timeout (block)
                                   ACE_Addr::sap_any,       // (local) filename: N/A
                                   0,                       // reuse_addr: N/A
@@ -732,20 +753,20 @@ Stream_Module_FileWriterH_T<LockType,
                   ACE_TEXT ("opened file stream \"%s\"...\n"),
                   ACE_TEXT (file_name.c_str ())));
 
+continue_:
       break;
     }
     case STREAM_SESSION_END:
     {
       if (isOpen_)
       {
-        ACE_FILE_Addr file_address;
-        result = stream_.get_local_addr (file_address);
+        result = stream_.get_local_addr (fileName_);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_FILE_IO::get_local_addr(): \"%m\", continuing\n")));
         ACE_TCHAR buffer[PATH_MAX];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
-        result = file_address.addr_to_string (buffer, sizeof (buffer));
+        result = fileName_.addr_to_string (buffer, sizeof (buffer));
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_FILE_Addr::addr_to_string(): \"%m\", continuing\n")));
@@ -818,12 +839,22 @@ Stream_Module_FileWriterH_T<LockType,
     isOpen_ = false;
   } // end IF
 
-  //// sanity check(s)
-  //// *TODO*: remove type inferences
-  //if (Common_File_Tools::isReadable (configuration_.fileName))
-  //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("target file \"%s\" exists, continuing\n"),
-  //              ACE_TEXT (configuration_.fileName.c_str ())));
+  result_2 =
+    fileName_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
+  if (result_2 == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (configuration_in.targetFileName.c_str ())));
+    return false;
+  } // end IF
+
+  // sanity check(s)
+  // *TODO*: remove type inferences
+  if (Common_File_Tools::isReadable (configuration_in.targetFileName))
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("target file \"%s\" exists, continuing\n"),
+                ACE_TEXT (configuration_in.targetFileName.c_str ())));
 
   // OK: all's well...
   result = inherited::initialize (configuration_in);

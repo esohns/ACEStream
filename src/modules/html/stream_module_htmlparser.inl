@@ -87,8 +87,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::handleDataMessage"));
 
   int result = -1;
-  ACE_Message_Block* message_block_p = NULL;
-  MessageType* message_p = message_inout;
+  ACE_Message_Block* message_block_p = message_inout;
   xmlParserErrors error;
   bool complete = false;
 
@@ -107,8 +106,8 @@ Stream_Module_HTMLParser_T<SessionMessageType,
 //                message_p->length ()));
 
     result = htmlParseChunk (parserContext_.parserContext, // context
-                             message_p->rd_ptr (),         // chunk
-                             message_p->length (),         // size
+                             message_block_p->rd_ptr (),   // chunk
+                             message_block_p->length (),   // size
                              0);                           // terminate ?
     if (result)
     {
@@ -118,26 +117,26 @@ Stream_Module_HTMLParser_T<SessionMessageType,
 //                  error));
       xmlCtxtResetLastError (parserContext_.parserContext);
     } // end IF
-    message_block_p = message_p->cont ();
+    message_block_p = message_block_p->cont ();
     if (!message_block_p)
       break; // done --> more fragments to arrive
 
-    message_p = dynamic_cast<MessageType*> (message_block_p);
-    if (!message_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to dynamic_cast<MessageType*>(%@), returning\n"),
-                  message_block_p));
-      return;
-    } // end IF
+    //message_p = dynamic_cast<MessageType*> (message_block_p);
+    //if (!message_p)
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("failed to dynamic_cast<MessageType*>(%@), returning\n"),
+    //              message_block_p));
+    //  return;
+    //} // end IF
 
     // *TODO*: this depends on current (upstream) HTTP parser behavior
     //         --> remove ASAP
-    if ((message_p->length () == 0) &&
-        (message_p->cont () == NULL))
+    if ((message_block_p->length () == 0) &&
+        (message_block_p->cont () == NULL))
     {
       complete = true;
-      break; // done
+      break; // --> parsed all bytes: done
     } // end IF
   } while (true);
 
@@ -396,9 +395,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::initializeSAXParser"));
 
-  // *TODO*
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (false);
-
   ACE_NOTREACHED (return false;)
 }

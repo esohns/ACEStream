@@ -93,20 +93,24 @@ struct Test_I_AllocatorConfiguration
 struct Test_I_StockItem
 {
   inline Test_I_StockItem ()
-   : symbol ()
-   , description ()
-   , ISIN ()
+   : /*description ()
+   ,*/ ISIN ()
+   , symbol ()
+   , timeStamp (ACE_Time_Value::zero)
    , value (0.0F)
+   , WKN ()
   {};
   inline bool operator== (Test_I_StockItem rhs_in)
   {
-    return symbol == rhs_in.symbol;
+    return (ISIN == rhs_in.ISIN);
   };
 
-  std::string symbol;
-  std::string description;
-  std::string ISIN;
-  float value;
+  //std::string    description;
+  std::string    ISIN;
+  std::string    symbol;
+  ACE_Time_Value timeStamp;
+  float          value;
+  std::string    WKN;
 };
 
 struct Test_I_MessageData
@@ -139,16 +143,19 @@ enum Test_I_SAXParserState
 {
   SAXPARSER_STATE_INVALID = -1,
   /////////////////////////////////////
-  SAXPARSER_STATE_IN_HEAD = 0,
-  SAXPARSER_STATE_IN_HTML,
+  SAXPARSER_STATE_IN_HTML = 0,
+  /////////////////////////////////////
+  SAXPARSER_STATE_IN_HEAD,
   SAXPARSER_STATE_IN_BODY,
   /////////////////////////////////////
-  SAXPARSER_STATE_READ_DATE,
-  SAXPARSER_STATE_READ_DESCRIPTION,
+  //SAXPARSER_STATE_IN_HEAD_TITLE,
+  /////////////////////////////////////
+  //SAXPARSER_STATE_IN_BODY_DIV_CONTENT,
+  /////////////////////////////////////
+  SAXPARSER_STATE_READ_SYMBOL_WKN_ISIN,
+  //SAXPARSER_STATE_READ_ISIN_WKN,
   SAXPARSER_STATE_READ_VALUE,
-  ///////////////////////////////////////
-  //SAXPARSER_STATE_READ_ITEM,
-  //SAXPARSER_STATE_READ_ITEMS
+  SAXPARSER_STATE_READ_DATE
 };
 struct Test_I_SAXParserContext
  : Stream_Module_HTMLParser_SAXParserContextBase
@@ -158,13 +165,11 @@ struct Test_I_SAXParserContext
    , sessionData (NULL)
    , state (SAXPARSER_STATE_INVALID)
    , stockItem ()
-   , timeStamp (ACE_Time_Value::zero)
   {};
 
   Test_I_Stream_SessionData* sessionData;
   Test_I_SAXParserState      state;
   Test_I_StockItem           stockItem;
-  ACE_Time_Value             timeStamp;
 };
 
 struct Test_I_Configuration;
@@ -256,7 +261,8 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , configuration (NULL)
    , connection (NULL)
    , connectionManager (NULL)
-   , hostName ()
+   , HTTPHeaders ()
+   //, hostName ()
    , inbound (true)
    , libreOfficeHost (TEST_I_DEFAULT_PORT,
                       ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
@@ -278,11 +284,12 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   };
 
   Test_I_Configuration*                     configuration;
-  Test_I_IConnection_t*                     connection; // TCP target/IO module
-  Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
+  Test_I_IConnection_t*                     connection; // net source/IO module
+  Test_I_Stream_InetConnectionManager_t*    connectionManager; // net source/IO module
   bool                                      crunchMessages; // HTTP parser module
-  std::string                               hostName; // net source module
-  bool                                      inbound; // net io module
+  //std::string                               hostName; // net source module
+  HTTP_Headers_t                            HTTPHeaders; // HTTP get module
+  bool                                      inbound; // IO module
   ACE_INET_Addr                             libreOfficeHost; // spreadsheet writer module
   Stream_Module_HTMLParser_Mode             mode; // html parser module
   bool                                      passive; // net source module
@@ -290,7 +297,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   Net_SocketConfiguration*                  socketConfiguration;
   Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
   Test_I_StockItems_t                       stockItems; // HTTP get module
-  Test_I_StreamBase_t*                      stream;
+  Test_I_StreamBase_t*                      stream; // net source module
   std::string                               targetFileName; // file writer module
   std::string                               URL; // HTTP get module
 };

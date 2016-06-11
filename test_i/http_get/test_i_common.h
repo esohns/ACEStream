@@ -292,6 +292,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , dataBaseOptionsFileName ()
    , dataBaseTable ()
    , hostName ()
+   , HTTPHeaders ()
    , inbound (true)
    , loginOptions ()
    , mode (STREAM_MODULE_HTMLPARSER_SAX)
@@ -316,6 +317,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   std::string                               dataBaseOptionsFileName; // db writer module
   std::string                               dataBaseTable; // db writer module
   std::string                               hostName; // net source module
+  HTTP_Headers_t                            HTTPHeaders; // HTTP get module
   bool                                      inbound; // net io module
   Stream_Module_DataBase_LoginOptions       loginOptions; // db writer module
   Stream_Module_HTMLParser_Mode             mode; // html parser module

@@ -29,13 +29,11 @@
 
 #include "stream_task_base_synch.h"
 
+#include "http_common.h"
+
 // forward declarations
 struct HTTP_Record;
 class Stream_IAllocator;
-
-// definitions
-#define HTML_DEFAULT_SUFFIX                           ".html"
-#define STREAM_MODULE_NET_SOURCE_HTTP_GET_DEFAULT_URL "index.html"
 
 template <typename ConfigurationType,
           ///////////////////////////////
@@ -62,8 +60,10 @@ class Stream_Module_Net_Source_HTTP_Get_T
  protected:
   // helper methods
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
-  ProtocolMessageType* makeRequest (const std::string&); // URI
-  bool sendRequest (const std::string&); // URI
+  ProtocolMessageType* makeRequest (const std::string&,     // URI
+                                    const HTTP_Headers_t&); // headers
+  bool sendRequest (const std::string&,     // URI
+                    const HTTP_Headers_t&); // headers
   // *NOTE*: (if possible,) this advances the read pointer to skip over the HTTP
   //         entity head
   HTTP_Record* parseResponse (ProtocolMessageType&);

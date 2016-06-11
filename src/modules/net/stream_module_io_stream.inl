@@ -252,21 +252,21 @@ Stream_Module_Net_IO_Stream_T<LockType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n")));
-    goto reset;
+    goto error;
   } // end IF
   if (!IOWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOWriter_T, aborting\n"),
                 IO_.name ()));
-    goto reset;
+    goto error;
   } // end IF
   if (!IOWriter_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOWriter_T, aborting\n"),
                 IO_.name ()));
-    goto reset;
+    goto error;
   } // end IF
 //  IOWriter_impl_p->reset ();
   IOReader_impl_p = dynamic_cast<READER_T*> (IO_.reader ());
@@ -274,14 +274,14 @@ Stream_Module_Net_IO_Stream_T<LockType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOReader_T> failed, aborting\n")));
-    goto reset;
+    goto error;
   } // end IF
   if (!IOReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOReader_T, aborting\n"),
                 IO_.name ()));
-    goto reset;
+    goto error;
   } // end IF
   //if (!IOReader_impl_p->initialize (inherited::state_))
   //{
@@ -300,7 +300,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to setup pipeline, aborting\n")));
-      goto reset;
+      goto error;
     } // end IF
 
   // -------------------------------------------------------------
@@ -313,7 +313,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
 
   result = true;
 
-reset:
+error:
   if (reset_configuration)
   {
     configuration_in.moduleHandlerConfiguration->active = is_active;
