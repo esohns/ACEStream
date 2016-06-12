@@ -49,45 +49,31 @@
 /* %define parse.trace               {true} */
 
 %code requires {
+// *NOTE*: add double include protection, required for GNU Bison 2.4.2
+// *TODO*: remove this ASAP
 #ifndef STREAM_DEC_AVI_PARSER_H
 #define STREAM_DEC_AVI_PARSER_H
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include "ace/config-lite.h"
+#include "stream_dec_common.h"
+#include "stream_dec_exports.h"
 
-#include "dshow.h"
-#else
-#include <cstdint>
-
-#define MAKEFOURCC(a, b, c, d) ((uint32_t)(a << 24)|(uint32_t)(b << 16)|(uint32_t)(c << 8)|(uint32_t)(d))
-#endif
-
-struct RIFF_chunk_header
-{
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  FOURCC       fourcc;
-#else
-  uint32_t     fourcc; // *NOTE*: libavformat type
-#endif
-  unsigned int size;
-
-  unsigned int offset;
-};
+// forward declarations
 
 class Stream_Decoder_AVIParserDriver;
 //class RIFF_Scanner;
-struct YYLTYPE;
-union YYSTYPE;
+#undef YYTOKENTYPE
 //enum yytokentype;
+//struct YYLTYPE;
+#undef YYSTYPE
+//union YYSTYPE;
 
 typedef void* yyscan_t;
 
-#define YYERROR_VERBOSE 1
+#define YYDEBUG 1
+extern int Stream_Dec_Export yydebug;
+//#define YYERROR_VERBOSE
 //#define YYPRINT 1
-#define YYTOKEN_TABLE 1
-extern void yyerror (YYLTYPE*, Stream_Decoder_AVIParserDriver*, yyscan_t, const char*);
-extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
-//extern void yyprint (FILE*, yytokentype, YYSTYPE);
+//#define YYTOKEN_TABLE 1
 }
 
 // calling conventions / parameter passing
@@ -154,10 +140,6 @@ using namespace std;
 //#define YYPRINT(file, type, value) yyprint (file, type, value)
 }
 
-%code provides {
-#endif // STREAM_DEC_AVI_PARSER_H
-}
-
 %token <chunk_header> RIFF        "RIFF"
 %token <chunk_header> LIST        "LIST"
 %token <chunk_header> CHUNK       "chunk"
@@ -166,6 +148,16 @@ using namespace std;
 /* %type  <chunk_header> RIFF LIST chunk data */
 
 %type <size>         buffer chunks rest
+
+%code provides {
+extern void yyerror (YYLTYPE*, Stream_Decoder_AVIParserDriver*, yyscan_t, const char*);
+extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
+//extern void yyprint (FILE*, yytokentype, YYSTYPE);
+
+// *NOTE*: add double include protection, required for GNU Bison 2.4.2
+// *TODO*: remove this ASAP
+#endif // STREAM_DEC_AVI_PARSER_H
+}
 
 /* %printer                  { yyoutput << $$; } <*>; */
 /* %printer                  { yyoutput << $$; } <chunk_header>

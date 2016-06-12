@@ -37,10 +37,13 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
  , HTTPGet_ (ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
              NULL,
              false)
+ , decompressor_ (ACE_TEXT_ALWAYS_CHAR ("Decompressor"),
+                  NULL,
+                  false)
  , HTMLParser_ (ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
                 NULL,
                 false)
- , SpreadsheetWriter_ (ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter"),
+ , spreadsheetWriter_ (ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter"),
                        NULL,
                        false)
 {
@@ -55,8 +58,9 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
   inherited::modules_.push_front (&HTTPMarshal_);
   inherited::modules_.push_front (&runtimeStatistic_);
   inherited::modules_.push_front (&HTTPGet_);
+  inherited::modules_.push_front (&decompressor_);
   inherited::modules_.push_front (&HTMLParser_);
-  inherited::modules_.push_front (&SpreadsheetWriter_);
+  inherited::modules_.push_front (&spreadsheetWriter_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -144,28 +148,29 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Stream_SpreadsheetWriter* SpreadsheetWriter_impl_p = NULL;
+  Test_I_Stream_SpreadsheetWriter* spreadsheetWriter_impl_p = NULL;
   Test_I_Stream_HTMLParser* HTMLParser_impl_p = NULL;
+  Test_I_Stream_Decompressor* decompressor_impl_p = NULL;
   Test_I_Stream_HTTPGet* HTTPGet_impl_p = NULL;
   Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Stream_HTTP_Parser* HTTPParser_impl_p = NULL;
   SOURCE_WRITER_T* netSource_impl_p = NULL;
 
   // ******************* Spreadsheet Writer ************************
-  SpreadsheetWriter_.initialize (*configuration_in.moduleConfiguration);
-  SpreadsheetWriter_impl_p =
-    dynamic_cast<Test_I_Stream_SpreadsheetWriter*> (SpreadsheetWriter_.writer ());
-  if (!SpreadsheetWriter_impl_p)
+  spreadsheetWriter_.initialize (*configuration_in.moduleConfiguration);
+  spreadsheetWriter_impl_p =
+    dynamic_cast<Test_I_Stream_SpreadsheetWriter*> (spreadsheetWriter_.writer ());
+  if (!spreadsheetWriter_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Stream_SpreadsheetWriter*> failed, aborting\n")));
     goto failed;
   } // end IF
-  if (!SpreadsheetWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  if (!spreadsheetWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                SpreadsheetWriter_.name ()));
+                spreadsheetWriter_.name ()));
     goto failed;
   } // end IF
 
@@ -184,6 +189,25 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
                 HTMLParser_.name ()));
+    goto failed;
+  } // end IF
+
+  // ******************* Decompressor ************************
+  decompressor_.initialize (*configuration_in.moduleConfiguration);
+  decompressor_impl_p =
+    dynamic_cast<Test_I_Stream_Decompressor*> (decompressor_.writer ());
+  if (!decompressor_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Test_I_Stream_Decompressor*> failed, aborting\n")));
+    goto failed;
+  } // end IF
+  // *TODO*: remove type inferences
+  if (!decompressor_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+                decompressor_.name ()));
     goto failed;
   } // end IF
 

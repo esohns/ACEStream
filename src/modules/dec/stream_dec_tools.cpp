@@ -42,6 +42,33 @@ Stream_Module_Decoder_Tools::initialize ()
 
 }
 
+std::string
+Stream_Module_Decoder_Tools::compressionFormatToString (enum Stream_Decoder_CompressionFormatType format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::compressionFormatToString"));
+
+  std::string result = ACE_TEXT_ALWAYS_CHAR ("Invalid");
+
+  switch (format_in)
+  {
+    case STREAM_COMPRESSION_FORMAT_NONE:
+      result = ACE_TEXT_ALWAYS_CHAR ("None"); break;
+    case STREAM_COMPRESSION_FORMAT_GZIP:
+      result = ACE_TEXT_ALWAYS_CHAR ("GZIP"); break;
+    case STREAM_COMPRESSION_FORMAT_ZLIB:
+      result = ACE_TEXT_ALWAYS_CHAR ("ZLIB"); break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown format (was: %d), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return result;
+}
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 std::string

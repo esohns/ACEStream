@@ -21,17 +21,19 @@
 #ifndef STREAM_DECODER_DEFINES_H
 #define STREAM_DECODER_DEFINES_H
 
-//#include "ace/Default_Constants.h"
+// zlib
+#define STREAM_DECODER_DEFAULT_ZLIB_WINDOWBITS     15 // 0,(-)[8-15], see zlib.h
+#define STREAM_DECODER_ZLIB_WINDOWBITS_GZIP_OFFSET 16
 
 // parser
 // "\0\0"
-#define YY_END_OF_BUFFER_CHAR                     0
-#define STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE  2
+#define YY_END_OF_BUFFER_CHAR                      0
+#define STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE   2
 
 // stream
-#define STREAM_DECODER_BUFFER_SIZE                16384 // bytes
+#define STREAM_DECODER_BUFFER_SIZE                 16384 // bytes
 
-// "crunch" messages for easier parsing ?
+// "crunch" messages (for easier decoding/parsing/processing) ?
 // *NOTE*: this comes at the cost of alloc/free, memcopy and locking per
 //         (fragmented) message, i.e. should probably be avoided ...
 //         OTOH, setting up the buffer correctly allows using the
@@ -44,21 +46,32 @@
 // *TODO*: write a (robust) flex-scanner/bison parser that can handle
 //         switching of buffers/"backing-up" reliably and stress-test the
 //         application to see which option proves to be more efficient...
-#define STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES    true
+#define STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES     true
 // *IMPORTANT NOTE*: scans buffers in-place (avoids a copy,
 //         see: http://flex.sourceforge.net/manual/Multiple-Input-Buffers.html)
 //         --> in order to use yy_scan_buffer(), the buffer needs to have been
 //             prepared for usage by flex: buffers need two trailing '\0's
 //             BEYOND their datas' tail byte (i.e. at positions length() + 1 and
 //             length() + 2)
-#define STREAM_DECODER_DEFAULT_USE_YY_SCAN_BUFFER true
+#define STREAM_DECODER_DEFAULT_USE_YY_SCAN_BUFFER  true
 
 // output more debugging information
-#define STREAM_DECODER_DEFAULT_LEX_TRACE          false
-#define STREAM_DECODER_DEFAULT_YACC_TRACE         false
+#define STREAM_DECODER_DEFAULT_LEX_TRACE           false
+#define STREAM_DECODER_DEFAULT_YACC_TRACE          false
 
 // ---------------------------------------
 
-#define STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN       2048 // bytes
+#define STREAM_DECODER_AVI_JUNK_CHUNK_ALIGN        2048 // bytes
+
+// ---------------------------------------
+
+// useful macros
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "mmsyscom.h"
+#else
+#include <cstdint>
+
+#define MAKEFOURCC(a, b, c, d) ((uint32_t)(a << 24)|(uint32_t)(b << 16)|(uint32_t)(c << 8)|(uint32_t)(d))
+#endif
 
 #endif

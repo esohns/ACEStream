@@ -21,19 +21,19 @@
 #ifndef STREAM_MODULE_DEC_TOOLS_H
 #define STREAM_MODULE_DEC_TOOLS_H
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 #include <string>
-#endif
 
 #include "ace/Global_Macros.h"
 
+#include "stream_dec_common.h"
 #include "stream_dec_exports.h"
 
 class Stream_Dec_Export Stream_Module_Decoder_Tools
 {
  public:
   static void initialize ();
+
+  static std::string compressionFormatToString (enum Stream_Decoder_CompressionFormatType);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else

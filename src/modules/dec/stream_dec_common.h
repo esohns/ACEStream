@@ -3,8 +3,33 @@
 
 #include <set>
 
-#include "stream_dec_avi_parser.h"
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#include "mmiscapi.h"
+//#endif
 
+enum Stream_Decoder_CompressionFormatType : int
+{
+  STREAM_COMPRESSION_FORMAT_NONE = -1,
+  ///////////////////////////////////////
+  STREAM_COMPRESSION_FORMAT_GZIP,
+  STREAM_COMPRESSION_FORMAT_ZLIB,
+  ///////////////////////////////////////
+  STREAM_COMPRESSION_FORMAT_MAX,
+  STREAM_COMPRESSION_FORMAT_INVALID
+};
+
+struct RIFF_chunk_header
+{
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //FOURCC      fourcc;
+  DWORD       fourcc;
+#else
+  uint32_t     fourcc; // *NOTE*: libavformat type
+#endif
+  unsigned int size;
+
+  unsigned int offset;
+};
 struct less_RIFF_chunk_header
 {
   bool operator () (const RIFF_chunk_header& lhs_in, const RIFF_chunk_header& rhs_in) const

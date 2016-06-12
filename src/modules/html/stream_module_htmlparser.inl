@@ -323,12 +323,12 @@ Stream_Module_HTMLParser_T<SessionMessageType,
   mode_ = configuration_->mode;
   if (mode_ == STREAM_MODULE_HTMLPARSER_SAX)
   {
-    htmlDefaultSAXHandlerInit ();
+    //htmlDefaultSAXHandlerInit ();
     xmlSAX2InitHtmlDefaultSAXHandler (&SAXHandler_);
     if (!initializeSAXParser ())
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initializeSAXParser(): \"%m\", aborting\n"),
+                  ACE_TEXT ("%s: failed to initialize SAX parser: \"%m\", aborting\n"),
                   inherited::mod_->name ()));
       return false;
     } // end IF

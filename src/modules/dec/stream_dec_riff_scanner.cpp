@@ -1,4 +1,5 @@
 #line 2 "./../scripts/scanner.l"
+#undef YYTOKENTYPE
 #include "stream_dec_avi_parser.h"
 
 #define YY_DECL                                           \
@@ -10,11 +11,13 @@ RIFF_Scanner_lex (YYSTYPE* yylval_param,                  \
 // ... and declare it for the parser's sake
 YY_DECL;
 
-void RIFF_Scanner_set_column (int column, yyscan_t yyscanner);
+void RIFF_Scanner_set_column (int, yyscan_t);
+
+//#define FLEXINT_H
 
 
 
-#line 18 "stream_dec_riff_scanner.cpp"
+#line 21 "stream_dec_riff_scanner.cpp"
 
 #define  YY_INT_ALIGNED long int
 
@@ -2149,7 +2152,7 @@ static yyconst yy_state_type yy_NUL_trans[52] =
 
 static yyconst flex_int32_t yy_rule_linenum[11] =
     {   0,
-       89,  108,  118,  126,  136,  144,  161,  169,  180,  267
+       92,  111,  121,  129,  139,  147,  164,  172,  183,  270
     } ;
 
 /* The intent behind this definition is that it'll catch

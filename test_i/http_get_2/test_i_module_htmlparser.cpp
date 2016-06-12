@@ -90,24 +90,21 @@ Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser ()
 
 }
 
-void
-Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_inout,
-                                             bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::handleDataMessage"));
-
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // sanity check(s)
-  ACE_ASSERT (message_inout);
-
-  std::string filename = Common_File_Tools::getTempDirectory ();
-  filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  filename += ACE_TEXT_ALWAYS_CHAR ("output.html");
-  Stream_Tools::dump (message_inout,
-                      filename);
-}
+//void
+//Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_inout,
+//                                             bool& passMessageDownstream_out)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::handleDataMessage"));
+//
+//  std::string filename = Common_File_Tools::getTempDirectory ();
+//  filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+//  filename += ACE_TEXT_ALWAYS_CHAR ("output.html");
+//  Stream_Tools::dump (message_inout,
+//                      filename);
+//
+//  inherited::handleDataMessage (message_inout,
+//                                passMessageDownstream_out);
+//}
 
 void
 Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
@@ -204,13 +201,18 @@ Test_I_Stream_HTMLParser::initializeSAXParser ()
 
   // set necessary SAX parser callbacks
   // *IMPORTANT NOTE*: the default SAX callbacks expect xmlParserCtxtPtr as user
-  //                   data. This implementation uses Test_I_SAXParserContext*.
-  //                   --> the default callbacks will crash on invocation, so
-  //                       disable them here...
+  //                   data, this implementation uses Test_I_SAXParserContext*
+  //                   --> all default callbacks will crash on invocation, so
+  //                       disable them here
   inherited::SAXHandler_.cdataBlock = NULL;
   inherited::SAXHandler_.comment = NULL;
+  inherited::SAXHandler_.getEntity = NULL;
+  inherited::SAXHandler_.ignorableWhitespace = NULL;
   inherited::SAXHandler_.internalSubset = NULL;
+  inherited::SAXHandler_.processingInstruction = NULL;
+  inherited::SAXHandler_.setDocumentLocator = NULL;
   inherited::SAXHandler_.startDocument = NULL;
+  inherited::SAXHandler_.endDocument = NULL;
 
 //  inherited::SAXHandler_.getEntity = getEntity;
 //  inherited::SAXHandler_.startDocument = startDocument;
@@ -230,20 +232,20 @@ Test_I_Stream_HTMLParser::initializeSAXParser ()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void
-startDocument (void* userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::startDocument"));
-
-  ACE_UNUSED_ARG (userData_in);
-}
-void
-endDocument (void* userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::endDocument"));
-
-  ACE_UNUSED_ARG (userData_in);
-}
+//void
+//startDocument (void* userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::startDocument"));
+//
+//  ACE_UNUSED_ARG (userData_in);
+//}
+//void
+//endDocument (void* userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::endDocument"));
+//
+//  ACE_UNUSED_ARG (userData_in);
+//}
 void
 characters (void* userData_in,
             const xmlChar* string_in,
@@ -257,6 +259,8 @@ characters (void* userData_in,
   // sanity check(s)
   ACE_ASSERT (data_p);
 
+  // *TODO*: for some reason, libxml2 serves this data in chunks...
+  static std::string value_string;
   std::string data_string = reinterpret_cast<const char*> (string_in);
   std::string regex_string;
   std::regex::flag_type flags = std::regex_constants::ECMAScript;
@@ -297,8 +301,8 @@ characters (void* userData_in,
       ACE_ASSERT (match_results[3].matched);
 
       data_p->stockItem.symbol = match_results[1].str ();
-      data_p->stockItem.ISIN = match_results[2].str ();
-      data_p->stockItem.WKN = match_results[3].str ();
+      data_p->stockItem.WKN = match_results[2].str ();
+      data_p->stockItem.ISIN = match_results[3].str ();
 
       data_p->state = SAXPARSER_STATE_IN_HEAD;
 
@@ -306,49 +310,61 @@ characters (void* userData_in,
     }
     case SAXPARSER_STATE_READ_VALUE:
     {
+      bool continue_ = !value_string.empty ();
+      value_string += data_string;
+      if (!continue_)
+        break;
+
       regex_string =
-        ACE_TEXT_ALWAYS_CHAR ("^\\s*([[:digit:]]+),([[:digit:]]+)\\s€$");
+        ACE_TEXT_ALWAYS_CHAR ("^.{2}([[:digit:]]+),([[:digit:]]+)$");
       regex.assign (regex_string,
                     flags);
-      if (!std::regex_match (data_string,
+      if (!std::regex_match (value_string,
                              match_results,
                              regex,
                              std::regex_constants::match_default))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid value string (was: \"%s\"), returning\n"),
-                    ACE_TEXT (data_string.c_str ())));
+                    ACE_TEXT (value_string.c_str ())));
         return;
       } // end IF
       ACE_ASSERT (match_results.ready () && !match_results.empty ());
       ACE_ASSERT (match_results[1].matched);
       ACE_ASSERT (match_results[2].matched);
 
-      std::string value_string = match_results[1].str ();
-      value_string += '.';
-      value_string += match_results[2].str ();
+      std::string value_string_2 = match_results[1].str ();
+      value_string_2 += '.';
+      value_string_2 += match_results[2].str ();
       std::istringstream converter;
-      converter.str (value_string);
+      converter.str (value_string_2);
       converter >> data_p->stockItem.value;
 
       data_p->state = SAXPARSER_STATE_IN_BODY;
+
+      // clean up
+      value_string.clear ();
 
       break;
     }
     case SAXPARSER_STATE_READ_DATE:
     {
+      value_string += data_string;
+      if (value_string.size () != (2 + 1 + 2 + 1 + 4 + (2 + 2) + 2 + 1 + 2))
+        break;
+
       regex_string =
-        ACE_TEXT_ALWAYS_CHAR ("^([[:digit:]]{2})\\.([[:digit:]]{2})\\.([[:digit:]]{4})\\s([[:digit:]]{2}):([[:digit:]]{2})$");
+        ACE_TEXT_ALWAYS_CHAR ("^([[:digit:]]{2})\\.([[:digit:]]{2})\\.([[:digit:]]{4}).{4}([[:digit:]]{2}):([[:digit:]]{2})$");
       regex.assign (regex_string,
                     flags);
-      if (!std::regex_match (data_string,
+      if (!std::regex_match (value_string,
                              match_results,
                              regex,
                              std::regex_constants::match_default))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid date string (was: \"%s\"), returning\n"),
-                    ACE_TEXT (data_string.c_str ())));
+                    ACE_TEXT (value_string.c_str ())));
         return;
       } // end IF
       ACE_ASSERT (match_results.ready () && !match_results.empty ());
@@ -384,7 +400,7 @@ characters (void* userData_in,
       tm_time.tm_hour = value;
       converter.clear ();
       converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-      converter << match_results[4].str ();
+      converter << match_results[5].str ();
       converter >> value;
       tm_time.tm_min = value;
 
@@ -392,6 +408,9 @@ characters (void* userData_in,
       data_p->stockItem.timeStamp.set (time_seconds, 0);
 
       data_p->state = SAXPARSER_STATE_IN_BODY;
+
+      // clean up
+      value_string.clear ();
 
       break;
     }
@@ -454,6 +473,8 @@ startElement (void* userData_in,
       goto head;
     case SAXPARSER_STATE_IN_BODY:
       goto body;
+    case SAXPARSER_STATE_READ_DATE:
+      return;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -535,7 +556,7 @@ body:
         ACE_ASSERT (attributes_p[1]);
 
         if (xmlStrEqual (attributes_p[1],
-                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("aktueller_wert"))))
+                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("aktueller Wert"))))
         {
           data_p->state = SAXPARSER_STATE_READ_VALUE;
           break;

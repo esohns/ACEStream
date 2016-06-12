@@ -194,6 +194,12 @@ error:
     }
     case STREAM_SESSION_END:
     {
+      for (Test_I_PortfolioIterator_t iterator = session_data_r.data.begin ();
+           iterator != session_data_r.data.end ();
+           ++iterator)
+      {
+
+      } // end FOR
 
       break;
     }

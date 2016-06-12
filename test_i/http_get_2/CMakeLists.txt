@@ -92,7 +92,9 @@ if (UNIX)
 
  add_definitions (-DSAL_UNX)
 elseif (WIN32)
- # *NOTE*: workaround
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../zlib-1.2.8)
+
+# *NOTE*: workaround
  set(_PF86 "ProgramFiles(x86)")
  set (LIBREOFFICE_SDK_DIRECTORY
 #      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
@@ -153,8 +155,8 @@ else ()
 
 # include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 # *TODO*: repair pkgconfig support
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.1/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libiconv-1.9.2/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/win32/include/libxml2)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
@@ -165,19 +167,25 @@ else ()
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/gtk-2.0)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
 
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/protocol/http)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libACENetwork/src/client_server)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
+
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/doc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/html)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net/protocols/http)
+
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
@@ -228,9 +236,11 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_cppuhelpergcc3.so)
  target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_sal.so)
 elseif (WIN32)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../zlib-1.2.8/libz.dll.a)
+
 # *TODO*: repair pkgconfig support
  #target_link_libraries (http_get ${LIBXML2_LIBRARY})
- target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.1/.libs/libxml2.dll.a)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/win32/lib/libxml2.lib)
 
  target_link_libraries (${EXECUTABLE} ${LIBREOFFICE_SDK_DIRECTORY}/lib/icppu.lib)
  target_link_libraries (${EXECUTABLE} ${LIBREOFFICE_SDK_DIRECTORY}/lib/icppuhelper.lib)
@@ -239,6 +249,7 @@ endif ()
 #target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} ACEStream)
+target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
 target_link_libraries (${EXECUTABLE} ACEStream_Document)
 target_link_libraries (${EXECUTABLE} ACEStream_HTML)
 target_link_libraries (${EXECUTABLE} ACENetwork)

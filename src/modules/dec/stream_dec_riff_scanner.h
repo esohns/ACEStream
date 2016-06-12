@@ -3,6 +3,7 @@
 #define RIFF_Scanner_IN_HEADER 1
 
 #line 2 "./../scripts/scanner.l"
+#undef YYTOKENTYPE
 #include "stream_dec_avi_parser.h"
 
 #define YY_DECL                                           \
@@ -14,11 +15,13 @@ RIFF_Scanner_lex (YYSTYPE* yylval_param,                  \
 // ... and declare it for the parser's sake
 YY_DECL;
 
-void RIFF_Scanner_set_column (int column, yyscan_t yyscanner);
+void RIFF_Scanner_set_column (int, yyscan_t);
+
+//#define FLEXINT_H
 
 
 
-#line 22 "stream_dec_riff_scanner.h"
+#line 25 "stream_dec_riff_scanner.h"
 
 #define  YY_INT_ALIGNED long int
 
@@ -2132,6 +2135,6 @@ extern int RIFF_Scanner_lex \
 #undef YY_DECL
 #endif
 
-#line 2136 "stream_dec_riff_scanner.h"
+#line 2139 "stream_dec_riff_scanner.h"
 #undef RIFF_Scanner_IN_HEADER
 #endif /* RIFF_Scanner_HEADER_H */

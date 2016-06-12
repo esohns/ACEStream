@@ -75,7 +75,7 @@ Stream_Tools::dump (const ACE_Message_Block* messageBlock_in,
     goto error;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("wrote %d bytes to \"%s\"\n"),
+              ACE_TEXT ("wrote %d byte(s) to \"%s\"\n"),
               bytes_transferred,
               ACE_TEXT (filename_in.c_str ())));
 

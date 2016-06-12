@@ -47,6 +47,8 @@
 #include "stream_session_data.h"
 #include "stream_statemachine_control.h"
 
+#include "stream_dec_common.h"
+
 //#include "stream_module_document_common.h"
 
 #include "stream_module_htmlparser.h"
@@ -97,7 +99,7 @@ struct Test_I_StockItem
    ,*/ ISIN ()
    , symbol ()
    , timeStamp (ACE_Time_Value::zero)
-   , value (0.0F)
+   , value (0.0)
    , WKN ()
   {};
   inline bool operator== (Test_I_StockItem rhs_in)
@@ -109,7 +111,7 @@ struct Test_I_StockItem
   std::string    ISIN;
   std::string    symbol;
   ACE_Time_Value timeStamp;
-  float          value;
+  double         value;
   std::string    WKN;
 };
 
@@ -194,6 +196,7 @@ struct Test_I_Stream_SessionData
    : Stream_SessionData ()
    , connectionState (NULL)
    , data ()
+   , format (STREAM_COMPRESSION_FORMAT_NONE)
    , parserContext (NULL)
    , targetFileName ()
    , userData (NULL)
@@ -212,11 +215,12 @@ struct Test_I_Stream_SessionData
     return *this;
   }
 
-  Test_I_ConnectionState*  connectionState;
-  Test_I_Portfolio_t       data; // html handler module
-  Test_I_SAXParserContext* parserContext; // html parser/handler module
-  std::string              targetFileName; // file writer module
-  Test_I_UserData*         userData;
+  Test_I_ConnectionState*                   connectionState;
+  Test_I_Portfolio_t                        data; // html parser/spreadsheet writer module
+  enum Stream_Decoder_CompressionFormatType format; // decompressor module
+  Test_I_SAXParserContext*                  parserContext; // html parser/handler module
+  std::string                               targetFileName; // file writer module
+  Test_I_UserData*                          userData;
 };
 typedef Stream_SessionData_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 

@@ -29,6 +29,7 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#include "stream_dec_zip_decoder.h"
 #include "stream_misc_runtimestatistic.h"
 #include "stream_module_htmlparser.h"
 #include "stream_module_io.h"
@@ -113,5 +114,15 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task sync
                           Test_I_Stream_Statistic_ReaderTask_t,     // reader type
                           Test_I_Stream_Statistic_WriterTask_t,     // writer type
                           Test_I_Stream_RuntimeStatistic);          // name
+
+typedef Stream_Decoder_ZIPDecoder_T<Test_I_Stream_SessionMessage,
+                                    Test_I_Stream_Message,
+                                    Test_I_Stream_ModuleHandlerConfiguration,
+                                    Test_I_Stream_SessionData> Test_I_Stream_Decompressor;
+DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
+                              Common_TimePolicy_t,                      // time policy
+                              Stream_ModuleConfiguration,               // module configuration type
+                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Stream_Decompressor);              // writer type
 
 #endif

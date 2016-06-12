@@ -1,4 +1,5 @@
 %top{
+#undef YYTOKENTYPE
 #include "stream_dec_avi_parser.h"
 
 #define YY_DECL                                           \
@@ -10,7 +11,9 @@ RIFF_Scanner_lex (YYSTYPE* yylval_param,                  \
 // ... and declare it for the parser's sake
 YY_DECL;
 
-void RIFF_Scanner_set_column (int column, yyscan_t yyscanner);
+void RIFF_Scanner_set_column (int, yyscan_t);
+
+//#define FLEXINT_H
 }
 
 %{

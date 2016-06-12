@@ -61,8 +61,6 @@ class Test_I_Stream_SpreadsheetWriter
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter (const Test_I_Stream_SpreadsheetWriter&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter& operator= (const Test_I_Stream_SpreadsheetWriter&))
-
-  //bool commit_;
 };
 
 // declare module

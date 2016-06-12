@@ -698,6 +698,7 @@ do_work (bool debug_in,
     configuration.moduleHandlerConfiguration.traceScanning = true;
   configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
   //configuration.moduleHandlerConfiguration.hostName = hostName_in;
+
   //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ACCEPT_HEADER_STRING),
   //                                                                             ACE_TEXT_ALWAYS_CHAR ("text/html, application/xhtml+xml, */*")));
   //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_ACCEPT_REFERER_STRING),
@@ -710,6 +711,13 @@ do_work (bool debug_in,
   //                                                                             ACE_TEXT_ALWAYS_CHAR ("xtvrn=$452061$; backlink=http://boerse.ard.de/index.html; usf_mobil=1; USF-C-usf_mobil=1")));
   configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HOST_HEADER_STRING),
                                                                                ACE_TEXT_ALWAYS_CHAR ("kurse.boerse.ard.de")));
+  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_AGENT_HEADER_STRING),
+  //                                                                             ACE_TEXT_ALWAYS_CHAR ("Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko")));
+  //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_TRACKING_HEADER_STRING),
+  //                                                                             ACE_TEXT_ALWAYS_CHAR ("1")));
+  configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_CONNECTION_HEADER_STRING),
+                                                                               ACE_TEXT_ALWAYS_CHAR ("Keep-Alive")));
+
   configuration.moduleHandlerConfiguration.URL = URL_in;
   configuration.moduleHandlerConfiguration.socketConfiguration =
     &configuration.socketConfiguration;

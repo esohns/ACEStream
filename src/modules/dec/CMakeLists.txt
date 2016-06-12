@@ -10,6 +10,8 @@ if (UNIX)
 elseif (WIN32)
  include_directories ("$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../zlib-1.2.8)
+
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../3rd_party)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
@@ -26,6 +28,9 @@ set (${PROJECT_NAME}_Decoder_LIB_SRCS
      stream_dec_avi_parser.h
      stream_dec_avi_parser_driver.cpp
      stream_dec_avi_parser_driver.h
+     stream_dec_zip_decoder.cpp
+     stream_dec_zip_decoder.h
+     stream_dec_zip_decoder.inl
      stream_dec_common.h
      stream_dec_defines.h
      stream_dec_exports.h
@@ -35,8 +40,19 @@ set (${PROJECT_NAME}_Decoder_LIB_SRCS
      stream_dec_tools.h
      stdafx.cpp
      stdafx.h)
+set (${PROJECT_NAME}_Decoder_LIB_SCRIPTS
+     scripts/scanner.l
+     scripts/parser.y)
 
-add_library (${PROJECT_NAME}_Decoder SHARED ${ACEStream_Decoder_LIB_SRCS})
+# *NOTE*: generate .def file and export all symbols on Windows
+if (WIN32)
+ set (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+ source_group (scripts FILES ${PROJECT_NAME}_Decoder_LIB_SCRIPTS)
+endif ()
+
+add_library (${PROJECT_NAME}_Decoder SHARED
+             ${ACEStream_Decoder_LIB_SRCS}
+             ${ACEStream_Decoder_LIB_SCRIPTS})
 
 add_dependencies (${PROJECT_NAME}_Decoder Common)
 add_dependencies (${PROJECT_NAME}_Decoder ${PROJECT_NAME})
@@ -68,6 +84,8 @@ install (FILES
          stream_dec_avi_encoder.inl
          stream_dec_avi_parser.h
          stream_dec_avi_parser_driver.h
+         stream_dec_zip_decoder.h
+         stream_dec_zip_decoder.inl
          stream_dec_common.h
          stream_dec_defines.h
          stream_dec_exports.h

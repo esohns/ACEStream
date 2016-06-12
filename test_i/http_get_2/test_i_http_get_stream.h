@@ -133,8 +133,9 @@ class Test_I_HTTPGet_Stream_T
   Test_I_Stream_HTTP_Marshal_Module      HTTPMarshal_;
   Test_I_Stream_RuntimeStatistic_Module  runtimeStatistic_;
   Test_I_Stream_HTTPGet_Module           HTTPGet_;
+  Test_I_Stream_Decompressor_Module      decompressor_;
   Test_I_Stream_HTMLParser_Module        HTMLParser_;
-  Test_I_Stream_SpreadsheetWriter_Module SpreadsheetWriter_;
+  Test_I_Stream_SpreadsheetWriter_Module spreadsheetWriter_;
 };
 
 // include template implementation

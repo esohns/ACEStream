@@ -256,71 +256,6 @@ error:
     }
     case STREAM_SESSION_END:
     {
-      // sanity check(s)
-//      if (!state_)
-//        return; // nothing to do
-//
-//      std::string query_string = ACE_TEXT_ALWAYS_CHAR ("INSERT INTO ");
-//      query_string += configuration_.dataBaseTable
-//                   += ACE_TEXT_ALWAYS_CHAR ("VALUES (");
-////      for (Test_I_PageDataIterator_t iterator = session_data_r.data.pageData.begin ();
-////           iterator != session_data_r.data.pageData.end ();
-////           ++iterator)
-////      {
-////        query_string += ACE_TEXT_ALWAYS_CHAR (",");
-//
-////        query_string += ACE_TEXT_ALWAYS_CHAR ("),(");
-////      } // end FOR
-//      query_string += ACE_TEXT_ALWAYS_CHAR (")");
-//      my_ulonglong result_2 = 0;
-//
-//      result = mysql_real_query (state_,
-//                                 query_string.c_str (),
-//                                 query_string.size ());
-//      if (result)
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to mysql_real_query(\"%s\"): \"%s\", aborting\n"),
-//                    ACE_TEXT (query_string.c_str ()),
-//                    ACE_TEXT (mysql_error (state_))));
-//
-//        session_data_r.aborted = true;
-//
-//        goto close;
-//      } // end IF
-//      result_2 = mysql_affected_rows (state_);
-//      if (result_2 != session_data_r.data.pageData.size ())
-//      {
-//        ACE_DEBUG ((LM_WARNING,
-//                    ACE_TEXT ("failed to store %u data record(s) (result was: %u), continuing\n"),
-//                    session_data_r.data.pageData.size (), result_2));
-//        goto commit;
-//      } // end IF
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("stored %u data record(s)...\n"),
-//                  session_data_r.data.pageData.size (), result_2));
-//
-//commit:
-//    //my_bool result_3 = mysql_commit (state_);
-//    //if (result_3)
-//    //{
-//    //  ACE_DEBUG ((LM_ERROR,
-//    //              ACE_TEXT ("failed to mysql_commit(): \"%s\", aborting\n"),
-//    //              ACE_TEXT (mysql_error (state_))));
-//
-//    //  session_data_r.aborted = true;
-//
-//    //  goto close;
-//    //} // end IF
-//    //ACE_DEBUG ((LM_DEBUG,
-//    //            ACE_TEXT ("committed %u data record(s)...\n"),
-//    //            session_data_r.data.pageData.size (), result_2));
-//
-//close:
-//      mysql_close (state_);
-//      state_ = NULL;
-//      ACE_DEBUG ((LM_DEBUG,
-//                  ACE_TEXT ("closed db connection...\n")));
 
       break;
     }
@@ -341,13 +276,13 @@ Stream_Module_LibreOffice_Spreadsheet_Writer_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Spreadsheet_Writer_T::initialize"));
 
-  configuration_ =
-    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
-
   if (isInitialized_)
   {
     isInitialized_ = false;
   } // end IF
+
+  configuration_ =
+    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
 
   isInitialized_ = true;
 
@@ -367,8 +302,6 @@ Stream_Module_LibreOffice_Spreadsheet_Writer_T<SessionMessageType,
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
-  ACE_ASSERT (isInitialized_);
-
 
   return *configuration_;
 }
