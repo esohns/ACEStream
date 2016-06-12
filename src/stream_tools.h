@@ -26,10 +26,10 @@
 #include "ace/Global_Macros.h"
 #include "ace/Time_Value.h"
 
-//#include "stream_common.h"
 #include "stream_exports.h"
 
 // forward declarations
+class ACE_Message_Block;
 enum Stream_MessageType : int;
 
 // definitions
@@ -40,6 +40,9 @@ enum Stream_MessageType : int;
 class Stream_Export Stream_Tools
 {
  public:
+  static void dump (const ACE_Message_Block*, // data buffer(s)
+                    const std::string&);      // filename
+
   static std::string messageType2String (Stream_MessageType); // as returned by msg_type()
 
   // *WARNING*: this uses localtime_r internally --> pass in a local time

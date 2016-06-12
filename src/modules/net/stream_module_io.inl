@@ -552,6 +552,8 @@ Stream_Module_Net_IOWriter_T<LockType,
       } // end IF
       queue_p->notification_strategy (NULL);
 
+      inherited::shutdown ();
+
       break;
     }
     default:

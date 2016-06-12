@@ -74,8 +74,8 @@ class Test_I_Stream_HTMLParser
   virtual ~Test_I_Stream_HTMLParser ();
 
   // implement (part of) Stream_ITaskBase_T
-//  virtual void handleDataMessage (Test_I_Stream_Message*&, // data message handle
-//                                  bool&);                  // return value: pass message downstream ?
+  virtual void handleDataMessage (Test_I_Stream_Message*&, // data message handle
+                                  bool&);                  // return value: pass message downstream ?
   virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle
                                      bool&);                         // return value: pass message downstream ?
 

@@ -77,7 +77,8 @@ typedef HTTP_Module_Streamer_T<ACE_MT_SYNCH,
 typedef HTTP_Module_Parser_T<Common_TimePolicy_t,
                              Test_I_Stream_SessionMessage,
                              Test_I_Stream_Message,
-                             Test_I_Stream_ModuleHandlerConfiguration> Test_I_Stream_HTTP_Parser;
+                             Test_I_Stream_ModuleHandlerConfiguration,
+                             HTTP_Record> Test_I_Stream_HTTP_Parser;
 //DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
 //                              Common_TimePolicy_t,                      // time policy
 //                              Stream_ModuleConfiguration,               // module configuration type

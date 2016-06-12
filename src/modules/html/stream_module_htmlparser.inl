@@ -22,6 +22,8 @@
 
 #include "stream_macros.h"
 
+#include "stream_html_tools.h"
+
 template <typename SessionMessageType,
           typename MessageType,
           typename ModuleHandlerConfigurationType,
@@ -88,7 +90,8 @@ Stream_Module_HTMLParser_T<SessionMessageType,
 
   int result = -1;
   ACE_Message_Block* message_block_p = message_inout;
-  xmlParserErrors error;
+  xmlParserErrors parse_errors = XML_ERR_OK;
+  xmlErrorPtr error_p = NULL;
   bool complete = false;
 
   // don't care (implies yes per default, if part of a stream)
@@ -111,24 +114,17 @@ Stream_Module_HTMLParser_T<SessionMessageType,
                              0);                           // terminate ?
     if (result)
     {
-      error = static_cast<xmlParserErrors> (result);
-//      ACE_DEBUG ((LM_WARNING,
-//                  ACE_TEXT ("failed to htmlParseChunk() ((last) error was: %d), continuing\n"),
-//                  error));
-      xmlCtxtResetLastError (parserContext_.parserContext);
+      parse_errors = static_cast<xmlParserErrors> (result);
+      error_p = xmlGetLastError ();
+      ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p->level),
+                  ACE_TEXT ("failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
+                  parse_errors,
+                  ACE_TEXT (error_p->message)));
+      //xmlCtxtResetLastError (parserContext_.parserContext);
     } // end IF
     message_block_p = message_block_p->cont ();
     if (!message_block_p)
       break; // done --> more fragments to arrive
-
-    //message_p = dynamic_cast<MessageType*> (message_block_p);
-    //if (!message_p)
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to dynamic_cast<MessageType*>(%@), returning\n"),
-    //              message_block_p));
-    //  return;
-    //} // end IF
 
     // *TODO*: this depends on current (upstream) HTTP parser behavior
     //         --> remove ASAP
@@ -148,19 +144,23 @@ Stream_Module_HTMLParser_T<SessionMessageType,
                              1);
     if (result)
     {
-      error = static_cast<xmlParserErrors> (result);
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to htmlParseChunk() (status was: %d), continuing\n"),
-                  error));
+      parse_errors = static_cast<xmlParserErrors> (result);
+      error_p = xmlGetLastError ();
+      ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p->level),
+                  ACE_TEXT ("failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
+                  parse_errors,
+                  ACE_TEXT (error_p->message)));
+      //xmlCtxtResetLastError (parserContext_.parserContext);
     } // end IF
 
     if (!parserContext_.parserContext->wellFormed)
       ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("HTML document not well-formed, continuing\n")));
-//    if (parserContext_.parserContext->errNo)
-//      ACE_DEBUG ((LM_WARNING,
-//                  ACE_TEXT ("HTML document had errors (last error was: \"%s\"), continuing\n"),
-//                  ACE_TEXT (ACE_OS::strerror (parserContext_.parserContext->errNo))));
+    error_p = xmlGetLastError ();
+    if (error_p->code)
+      ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p->level),
+                  ACE_TEXT ("HTML document had errors (last error was: \"%s\"), continuing\n"),
+                  ACE_TEXT (error_p->message)));
 
 //    ACE_DEBUG ((LM_DEBUG,
 //                ACE_TEXT ("parsing HTML...DONE\n")));
@@ -351,20 +351,19 @@ Stream_Module_HTMLParser_T<SessionMessageType,
     return false;
   } // end IF
   int parser_options =
-      (HTML_PARSE_RECOVER   |     // Relaxed parsing
-       HTML_PARSE_NODEFDTD  |     // do not default a doctype if not found
+      (HTML_PARSE_RECOVER    |     // relaxed parsing
+       HTML_PARSE_NODEFDTD   |     // do not default a doctype if not found
 //           HTML_PARSE_NOERROR   |   // suppress error reports
 //           HTML_PARSE_NOWARNING |   // suppress warning reports
-       HTML_PARSE_PEDANTIC  |     // pedantic error reporting
-//           HTML_PARSE_NOBLANKS  |   // remove blank nodes
-       HTML_PARSE_NONET     |     // Forbid network access
-       HTML_PARSE_NOIMPLIED); //| // Do not add implied html/body... elements
-//           HTML_PARSE_COMPACT   |   // compact small text nodes
+       HTML_PARSE_PEDANTIC   |     // pedantic error reporting
+       HTML_PARSE_NOBLANKS   |     // remove blank nodes
+//       HTML_PARSE_NONET      |     // forbid network access
+       HTML_PARSE_NOIMPLIED  |     // do not add implied html/body... elements
+       HTML_PARSE_COMPACT);        // compact small text nodes
 //           HTML_PARSE_IGNORE_ENC);  // ignore internal document encoding hint
   int result = htmlCtxtUseOptions (parserContext_.parserContext,
                                    parser_options);
-//  if (result)
-  if (result != parser_options)
+  if (result)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("%s: failed to htmlCtxtUseOptions(%d) (result was: %d), continuing\n"),
                 inherited::mod_->name (),

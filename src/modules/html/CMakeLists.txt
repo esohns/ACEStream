@@ -25,6 +25,8 @@ set (${PROJECT_NAME}_HTML_LIB_SRCS
      stream_module_xpathquery.h
      stream_module_xpathquery.inl
      stream_html_exports.h
+     stream_html_tools.cpp
+     stream_html_tools.h
      stdafx.cpp
      stdafx.h)
 
@@ -53,6 +55,7 @@ install (FILES
          stream_module_xpathquery.h
          stream_module_xpathquery.inl
          stream_html_exports.h
+         stream_html_tools.h
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_HTML

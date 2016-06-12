@@ -23,11 +23,68 @@
 
 #include <sstream>
 
-#include "ace/OS.h"
+#include "ace/FILE_IO.h"
 #include "ace/Log_Msg.h"
+#include "ace/OS.h"
+
+#include "common_file_tools.h"
 
 #include "stream_common.h"
 #include "stream_macros.h"
+
+void
+Stream_Tools::dump (const ACE_Message_Block* messageBlock_in,
+                    const std::string& filename_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::dump"));
+
+  // sanity check(s)
+  ACE_ASSERT (messageBlock_in);
+  ACE_ASSERT (Common_File_Tools::isValidFilename (filename_in));
+
+  int open_flags = (O_CREAT |
+                    O_TRUNC |
+                    O_WRONLY);
+  ACE_FILE_IO file_stream;
+  if (!Common_File_Tools::open (filename_in,
+                                open_flags,
+                                file_stream))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_File_Tools::open(\"%s\"), returning\n"),
+                ACE_TEXT (filename_in.c_str ())));
+    return;
+  } // end IF
+
+  int result = -1;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  size_t bytes_transferred = std::numeric_limits<unsigned int>::max ();
+#else
+  size_t bytes_transferred = -1;
+#endif
+  ssize_t bytes_written =
+    file_stream.send_n (messageBlock_in,
+                        NULL,                // timeout
+                        &bytes_transferred); // bytes transferred
+  if (bytes_written != static_cast<ssize_t> (messageBlock_in->total_length ()))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_File_IO::send_n(): \"%m\" [wrote %d/%d bytes], aborting\n"),
+                bytes_transferred,
+                messageBlock_in->total_length ()));
+    goto error;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("wrote %d bytes to \"%s\"\n"),
+              bytes_transferred,
+              ACE_TEXT (filename_in.c_str ())));
+
+error:
+  result = file_stream.close ();
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_File_IO::close(): \"%m\", continuing\n")));
+}
 
 std::string
 Stream_Tools::timeStamp2LocalString (const ACE_Time_Value& timeStamp_in)

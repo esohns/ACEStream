@@ -134,10 +134,10 @@ Stream_Module_FileWriter_T<SessionMessageType,
                     ACE_TEXT ("failed to ACE_File_IO::send_n(): \"%m\" [wrote %d/%d bytes], continuing\n"),
                     bytes_transferred,
                     message_inout->total_length ()));
-//      else
-//        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("wrote %d bytes...\n"),
-//                    bytes_transferred));
+      //else
+      //  ACE_DEBUG ((LM_DEBUG,
+      //              ACE_TEXT ("wrote %d bytes...\n"),
+      //              bytes_transferred));
 
       // print progress dots ?
       // *TODO*: remove type inferences

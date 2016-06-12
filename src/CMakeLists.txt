@@ -187,6 +187,7 @@ if (WIN32)
 #  endif ()
 # endif ()
  target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
+ target_link_libraries (${PROJECT_NAME} Common)
 endif ()
 
 # add all targets to the build-tree export set

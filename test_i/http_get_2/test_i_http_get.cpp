@@ -96,7 +96,7 @@ do_printUsage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d          : debug HTTP parser [")
-            << HTTP_DEFAULT_YACC_TRACE
+            << NET_PROTOCOL_DEFAULT_YACC_TRACE
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::string configuration_file = path;
@@ -184,7 +184,7 @@ do_processArguments (int argc_in,
 #endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
-  debug_out = HTTP_DEFAULT_YACC_TRACE;
+  debug_out = NET_PROTOCOL_DEFAULT_YACC_TRACE;
   configurationFileName_out = path;
 #if defined (DEBUG_DEBUGGER)
   configurationFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -995,7 +995,7 @@ ACE_TMAIN (int argc_in,
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
-  bool debug = HTTP_DEFAULT_YACC_TRACE;
+  bool debug = NET_PROTOCOL_DEFAULT_YACC_TRACE;
   std::string configuration_file = path;
 #if defined (DEBUG_DEBUGGER)
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;

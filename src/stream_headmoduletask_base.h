@@ -124,7 +124,13 @@ class Stream_HeadModuleTaskBase_T
                                bool = true); // generate session messages ?
 
   // convenient types
+  typedef Stream_TaskBase_T<TaskSynchType,
+                            TimePolicyType,
+                            SessionMessageType,
+                            ProtocolMessageType> TASK_BASE_T;
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
+
+  using TASK_BASE_T::shutdown;
 
   // helper methods
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size

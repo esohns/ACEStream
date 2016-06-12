@@ -28,7 +28,10 @@
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#include "common_file_tools.h"
+
 #include "stream_macros.h"
+#include "stream_tools.h"
 
 void
 errorCallback (void* userData_in,
@@ -85,6 +88,25 @@ Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser"));
 
+}
+
+void
+Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_inout,
+                                             bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::handleDataMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (message_inout);
+
+  std::string filename = Common_File_Tools::getTempDirectory ();
+  filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  filename += ACE_TEXT_ALWAYS_CHAR ("output.html");
+  Stream_Tools::dump (message_inout,
+                      filename);
 }
 
 void
@@ -237,6 +259,8 @@ characters (void* userData_in,
 
   std::string data_string = reinterpret_cast<const char*> (string_in);
   std::string regex_string;
+  std::regex::flag_type flags = std::regex_constants::ECMAScript;
+  std::regex regex;
   std::smatch match_results;
 
   switch (data_p->state)
@@ -244,8 +268,19 @@ characters (void* userData_in,
     case SAXPARSER_STATE_READ_SYMBOL_WKN_ISIN:
     {
       regex_string =
-        ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{3})\\s(?:[^|]*)\\|\\s[[:digit:]]{6})\\s\\|\\s([[:alpha:]]{2}[[:digit:]]{10})\\s\\|\\s(?:.*)$");
-      std::regex regex (regex_string);
+        ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{3})\\s(?:[^\\|]*)\\|\\s([[:digit:]]{6})\\s\\|\\s([[:alpha:]]{2}[[:digit:]]{10})\\s\\|\\s(?:.*)$");
+      //try
+      //{
+      regex.assign (regex_string,
+                    flags);
+      //}
+      //catch (std::regex_error exception_in)
+      //{
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("caught regex exception (was: \"%s\"), returning\n"),
+      //              ACE_TEXT (exception_in.what ())));
+      //  return;
+      //}
       if (!std::regex_match (data_string,
                              match_results,
                              regex,
@@ -273,7 +308,8 @@ characters (void* userData_in,
     {
       regex_string =
         ACE_TEXT_ALWAYS_CHAR ("^\\s*([[:digit:]]+),([[:digit:]]+)\\s€$");
-      std::regex regex (regex_string);
+      regex.assign (regex_string,
+                    flags);
       if (!std::regex_match (data_string,
                              match_results,
                              regex,
@@ -303,7 +339,8 @@ characters (void* userData_in,
     {
       regex_string =
         ACE_TEXT_ALWAYS_CHAR ("^([[:digit:]]{2})\\.([[:digit:]]{2})\\.([[:digit:]]{4})\\s([[:digit:]]{2}):([[:digit:]]{2})$");
-      std::regex regex (regex_string);
+      regex.assign (regex_string,
+                    flags);
       if (!std::regex_match (data_string,
                              match_results,
                              regex,

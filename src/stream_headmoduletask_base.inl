@@ -630,6 +630,7 @@ Stream_HeadModuleTaskBase_T<LockType,
       } // end IF
 
       inherited2::shutdown ();
+
       break;
     }
     default:

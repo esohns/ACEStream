@@ -86,7 +86,7 @@ struct Test_I_AllocatorConfiguration
   {
     // *NOTE*: this facilitates (message block) data buffers to be scanned with
     //         'flex's yy_scan_buffer() method
-    buffer = HTTP_FLEX_BUFFER_BOUNDARY_SIZE;
+    buffer = NET_PROTOCOL_FLEX_BUFFER_BOUNDARY_SIZE;
   };
 };
 
@@ -279,8 +279,8 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   {
     crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES; // HTTP parser module
 
-    traceParsing = HTTP_DEFAULT_YACC_TRACE; // HTTP parser module
-    traceScanning = HTTP_DEFAULT_LEX_TRACE; // HTTP parser module
+    traceParsing = NET_PROTOCOL_DEFAULT_YACC_TRACE; // HTTP parser module
+    traceScanning = NET_PROTOCOL_DEFAULT_LEX_TRACE; // HTTP parser module
   };
 
   Test_I_Configuration*                     configuration;
