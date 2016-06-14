@@ -1,6 +1,11 @@
 #ifndef STREAM_DECODER_COMMON_H
 #define STREAM_DECODER_COMMON_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include <cstdint>
+#endif
+
 #include <set>
 
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -22,7 +27,7 @@ struct RIFF_chunk_header
 {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //FOURCC      fourcc;
-  DWORD       fourcc;
+  DWORD        fourcc;
 #else
   uint32_t     fourcc; // *NOTE*: libavformat type
 #endif

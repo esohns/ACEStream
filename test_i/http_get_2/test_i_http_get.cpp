@@ -95,10 +95,6 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d          : debug HTTP parser [")
-            << NET_PROTOCOL_DEFAULT_YACC_TRACE
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
   std::string configuration_file = path;
 #if defined (DEBUG_DEBUGGER)
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -108,8 +104,28 @@ do_printUsage (const std::string& programName_in)
   configuration_file +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_CONFIGURATION_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : configuration file name [")
+  configuration_file +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [FILE]   : LibreOffice bootstrap .ini [")
+            << configuration_file
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d          : debug HTTP parser [")
+            << NET_PROTOCOL_DEFAULT_YACC_TRACE
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  configuration_file = path;
+#if defined (DEBUG_DEBUGGER)
+  configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
+#endif
+  configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_file +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_file +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [FILE]   : stock index portfolio .ini [")
             << configuration_file
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
@@ -124,11 +140,11 @@ do_printUsage (const std::string& programName_in)
   std::string output_file = path;
   output_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   output_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o [STRING] : (output) spreadsheet file name [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-o [FILE]   : (output) LibreOffice spreadsheet .ods [")
             << output_file
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [VALUE]  : port number [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-p [VALUE]  : LibreOffice application port number [")
             << TEST_I_DEFAULT_PORT
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
@@ -155,6 +171,7 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
+                     std::string& bootstrapFileName_out,
                      bool& debug_out,
                      std::string& configurationFileName_out,
                      std::string& hostName_out,
@@ -184,6 +201,17 @@ do_processArguments (int argc_in,
 #endif // #ifdef DEBUG_DEBUGGER
 
   // initialize results
+  bootstrapFileName_out = path;
+#if defined (DEBUG_DEBUGGER)
+  bootstrapFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  bootstrapFileName_out += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
+#endif
+  bootstrapFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  bootstrapFileName_out +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  bootstrapFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  bootstrapFileName_out +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
   debug_out = NET_PROTOCOL_DEFAULT_YACC_TRACE;
   configurationFileName_out = path;
 #if defined (DEBUG_DEBUGGER)
@@ -194,7 +222,8 @@ do_processArguments (int argc_in,
   configurationFileName_out +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   configurationFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configurationFileName_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_CONFIGURATION_FILE);
+  configurationFileName_out +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE);
   hostName_out = ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST);
   logToFile_out = false;
   outputFileName_out = path;
@@ -222,7 +251,7 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("df:h:lo:p:rtu:vx:"),
+                              ACE_TEXT ("c:df:h:lo:p:rtu:vx:"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -234,6 +263,12 @@ do_processArguments (int argc_in,
   {
     switch (option)
     {
+      case 'c':
+      {
+        bootstrapFileName_out =
+            ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        break;
+      }
       case 'd':
       {
         debug_out = true;
@@ -241,7 +276,8 @@ do_processArguments (int argc_in,
       }
       case 'f':
       {
-        configurationFileName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        configurationFileName_out =
+            ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
       case 'h':
@@ -543,8 +579,6 @@ do_parseConfigurationFile (const std::string& fileName_in,
   int index = 0;
   ACE_TString item_name, item_value;
   ACE_Configuration::VALUETYPE item_type;
-  std::istringstream converter;
-  int value = -1;
   Test_I_StockItem stock_item;
   while (configuration_heap.enumerate_values (section_key,
                                               index,
@@ -553,39 +587,37 @@ do_parseConfigurationFile (const std::string& fileName_in,
   {
     result =
       configuration_heap.get_string_value (section_key,
-                                           ACE_TEXT (item_name.c_str ()),
+                                           item_name.c_str (),
                                            item_value);
     if (result == -1)
     {
       ACE_ERROR ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Configuration_Heap::get_string_value(\"%s\"), aborting\n"),
-                  ACE_TEXT (item_name.c_str ())));
+                  item_name.c_str ()));
       return false;
     } // end IF
 
-    value = -1;
-    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-    converter.clear ();
-    converter.str (item_value.c_str ());
-    converter >> value;
-    if (value)
-    {
-      stock_item.symbol = item_name.c_str ();
-      stock_item.ISIN = item_value.c_str ();
-      stockItems_out.push_back (stock_item);
-    } // end IF
+    stock_item.symbol = ACE_TEXT_ALWAYS_CHAR (item_name.c_str ());
+    stock_item.ISIN =
+        ((item_value.length () == TEST_I_ISIN_LENGTH) ? ACE_TEXT_ALWAYS_CHAR (item_value.c_str ())
+                                                      : ACE_TEXT_ALWAYS_CHAR (""));
+    stockItems_out.push_back (stock_item);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("added symbol: \"%s\"...\n"),
+                ACE_TEXT (stock_item.symbol.c_str ())));
 
     ++index;
   } // end WHILE
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("loaded %u symbols...\n"),
+              ACE_TEXT ("loaded %u symbol(s)...\n"),
               stockItems_out.size ()));
 
   return true;
 }
 
 void
-do_work (bool debug_in,
+do_work (const std::string& bootstrapFileName_in,
+         bool debug_in,
          const std::string& configurationFileName_in,
          const std::string& hostName_in,
          bool useThreadPool_in,
@@ -603,9 +635,34 @@ do_work (bool debug_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-  // step0a: initialize configuration and stream
-  Test_I_Configuration configuration;
+  bool finalize_event_dispatch = false;
+  bool stop_timers = false;
+  int group_id = -1;
+  int result = -1;
   Test_I_StreamBase_t* stream_p = NULL;
+
+  Stream_AllocatorHeap_T<Test_I_AllocatorConfiguration> heap_allocator;
+  Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                               &heap_allocator,     // heap allocator handle
+                                               true);               // block ?
+
+  Common_Timer_Manager_t* timer_manager_p = NULL;
+  Common_TimerConfiguration timer_configuration;
+
+  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
+    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
+  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+  Test_I_Configuration configuration;
+  connection_manager_p->set (configuration,
+                             &configuration.userData);
+  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
+                                                       connection_manager_p,
+                                                       false);
+
+  struct Common_DispatchThreadData thread_data;
+
+  // step0a: initialize configuration and stream
   if (useReactor_in)
   {
     if (useSSL_in)
@@ -622,7 +679,7 @@ do_work (bool debug_in,
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory, returning\n")));
-    return;
+    goto error;
   } // end IF
   configuration.userData.configuration = &configuration;
   configuration.userData.streamConfiguration =
@@ -635,41 +692,11 @@ do_work (bool debug_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to do_parseConfigurationFile(\"%s\"), returning\n"),
                 ACE_TEXT (configurationFileName_in.c_str ())));
-
-    // clean up
-    delete stream_p;
-
-    return;
+    goto error;
   } // end IF
-
-  Stream_AllocatorHeap_T<Test_I_AllocatorConfiguration> heap_allocator;
-  Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                               &heap_allocator,     // heap allocator handle
-                                               true);               // block ?
-
-  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
-    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (connection_manager_p);
 
   // *********************** socket configuration data ************************
   configuration.socketConfiguration.address = remoteHost_in;
-  int result =
-    configuration.moduleHandlerConfiguration.libreOfficeHost.set (port_in,
-                                                                  hostName_in.c_str (),
-                                                                  1,
-                                                                  ACE_ADDRESS_FAMILY_INET);
-  if (result == -1)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s:%u\"): \"%m\", returning\n"),
-                ACE_TEXT (hostName_in.c_str ()),
-                port_in));
-
-    // clean up
-    delete stream_p;
-
-    return;
-  } // end IF
   configuration.socketConfiguration.useLoopBackDevice =
     configuration.socketConfiguration.address.is_loopback ();
   //configuration.socketConfiguration.writeOnly = true;
@@ -693,6 +720,20 @@ do_work (bool debug_in,
   configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;
+  result =
+    configuration.moduleHandlerConfiguration.libreOfficeHost.set (port_in,
+                                                                  hostName_in.c_str (),
+                                                                  1,
+                                                                  ACE_ADDRESS_FAMILY_INET);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_INET_Addr::set(\"%s:%u\"): \"%m\", returning\n"),
+                ACE_TEXT (hostName_in.c_str ()),
+                port_in));
+    goto error;
+  } // end IF
+  configuration.moduleHandlerConfiguration.libreOfficeRc = bootstrapFileName_in;
   configuration.moduleHandlerConfiguration.traceParsing = debug_in;
   if (debug_in)
     configuration.moduleHandlerConfiguration.traceScanning = true;
@@ -736,7 +777,6 @@ do_work (bool debug_in,
   //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 
   // step0b: initialize event dispatch
-  struct Common_DispatchThreadData thread_data;
   thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
   thread_data.useReactor = useReactor_in;
   if (!Common_Tools::initializeEventDispatch (useReactor_in,
@@ -748,28 +788,20 @@ do_work (bool debug_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
-
-    // clean up
-    delete stream_p;
-
-    return;
+    goto error;
   } // end IF
 
-  // step0c: initialize connection manager
-  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+  // step0c: (re-)configure connection manager
   connection_manager_p->set (configuration,
                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting
-  Common_Timer_Manager_t* timer_manager_p =
+  timer_manager_p =
     COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
-  Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
-  Stream_StatisticHandler_Reactor_t statistics_handler (ACTION_REPORT,
-                                                        connection_manager_p,
-                                                        false);
+  stop_timers = true;
   //Stream_StatisticHandler_Proactor_t statistics_handler_proactor (ACTION_REPORT,
   //                                                                connection_manager_p,
   //                                                                false);
@@ -808,12 +840,7 @@ do_work (bool debug_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
-
-    // clean up
-    timer_manager_p->stop ();
-    delete stream_p;
-
-    return;
+    goto error;
   } // end IF
 
   // step1: handle events (signals, incoming connections/data, timers, ...)
@@ -824,7 +851,6 @@ do_work (bool debug_in,
   // - perform statistics collecting/reporting
 
   // step1a: initialize worker(s)
-  int group_id = -1;
   if (!Common_Tools::startEventDispatch (thread_data,
                                          group_id))
   {
@@ -840,25 +866,16 @@ do_work (bool debug_in,
     //					 iterator++)
     //				g_source_remove(*iterator);
     //		} // end lock scope
-    timer_manager_p->stop ();
-    delete stream_p;
 
-    return;
+    goto error;
   } // end IF
+  finalize_event_dispatch = true;
 
   if (!stream_p->initialize (configuration.streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize stream, aborting\n")));
-
-    // clean up
-    Common_Tools::finalizeEventDispatch (useReactor_in,
-                                         !useReactor_in,
-                                         group_id);
-    timer_manager_p->stop ();
-    delete stream_p;
-
-    return;
+    goto error;
   } // end IF
 
   // *NOTE*: this call blocks until the file has been sent (or an error
@@ -876,14 +893,13 @@ do_work (bool debug_in,
   //    } // end IF
   stream_p->waitForCompletion ();
 
-  // clean up
+  // step3: clean up
   connection_manager_p->stop ();
   Common_Tools::finalizeEventDispatch (useReactor_in,
                                        !useReactor_in,
                                        group_id);
   connection_manager_p->wait ();
 
-  // step3: clean up
   timer_manager_p->stop ();
 
   //		{ // synch access
@@ -914,6 +930,18 @@ do_work (bool debug_in,
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
+
+  return;
+
+error:
+  if (finalize_event_dispatch)
+    Common_Tools::finalizeEventDispatch (useReactor_in,
+                                         !useReactor_in,
+                                         group_id);
+  if (stop_timers)
+    timer_manager_p->stop ();
+  if (stream_p)
+    delete stream_p;
 }
 
 void
@@ -1003,6 +1031,17 @@ ACE_TMAIN (int argc_in,
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
+  std::string bootstrap_file = path;
+#if defined (DEBUG_DEBUGGER)
+  bootstrap_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  bootstrap_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
+#endif
+  bootstrap_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  bootstrap_file +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  bootstrap_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  bootstrap_file +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
   bool debug = NET_PROTOCOL_DEFAULT_YACC_TRACE;
   std::string configuration_file = path;
 #if defined (DEBUG_DEBUGGER)
@@ -1013,7 +1052,8 @@ ACE_TMAIN (int argc_in,
   configuration_file +=
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_CONFIGURATION_FILE);
+  configuration_file +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE);
   std::string host_name;
   bool log_to_file = false;
   std::string output_file = path;
@@ -1034,6 +1074,7 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
+                            bootstrap_file,
                             debug,
                             configuration_file,
                             host_name,
@@ -1079,7 +1120,9 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("the select()-based reactor is not reentrant, using the thread-pool reactor instead...\n")));
     use_thread_pool = true;
   } // end IF
-  if ((configuration_file.empty () ||
+  if ((bootstrap_file.empty () ||
+       !Common_File_Tools::isReadable (bootstrap_file))                     ||
+      (configuration_file.empty () ||
        !Common_File_Tools::isReadable (configuration_file))                 ||
       output_file.empty ()                                                  ||
       host_name.empty ()                                                    ||
@@ -1223,7 +1266,8 @@ ACE_TMAIN (int argc_in,
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (debug,
+  do_work (bootstrap_file,
+           debug,
            configuration_file,
            host_name,
            use_thread_pool,

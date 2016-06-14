@@ -1288,6 +1288,12 @@ update_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
+#else
+  ACE_UNUSED_ARG (width);
+  ACE_UNUSED_ARG (height);
+
+  buffer_size =
+      GTKCBData_in.configuration->moduleHandlerConfiguration.format.fmt.pix.sizeimage;
 #endif
 
   GtkSpinButton* spin_button_p =

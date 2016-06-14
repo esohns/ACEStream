@@ -168,7 +168,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
       // *TODO*: remove type inference
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("\"%s\" has been redirected to \"%s\" (status was: %d)\n"),
-                  ACE_TEXT (configuration_->URL.c_str ()), ACE_TEXT ((*iterator).second.c_str ()),
+                  ACE_TEXT (configuration_->URL.c_str ()),
+                  ACE_TEXT ((*iterator).second.c_str ()),
                   record_p->status));
 
       // step2: send request

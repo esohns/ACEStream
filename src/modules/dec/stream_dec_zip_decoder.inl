@@ -23,6 +23,7 @@
 
 #include "stream_macros.h"
 
+#include "stream_dec_common.h"
 #include "stream_dec_defines.h"
 
 template <typename SessionMessageType,
@@ -184,6 +185,9 @@ Stream_Decoder_ZIPDecoder_T<SessionMessageType,
   ACE_Message_Block* message_block_2 = NULL;
   bool finalize_stream = false;
   bool complete = false;
+  ACE_Message_Block* buffer_p = buffer_;
+  //unsigned int read_bytes = 0;
+  unsigned int written_bytes = 0;
 
   //// "crunch" messages for easier decompression ?
   //if (crunchMessages_ &&
@@ -282,9 +286,6 @@ Stream_Decoder_ZIPDecoder_T<SessionMessageType,
 
   // step2: decompress the buffer (chain)
   ACE_ASSERT (message_block_p);
-  ACE_Message_Block* buffer_p = buffer_;
-  //unsigned int read_bytes = 0;
-  unsigned int written_bytes = 0;
   stream_.next_out =
     reinterpret_cast<unsigned char*> (message_block_p->wr_ptr ());
   stream_.avail_out = (uInt)message_block_p->size ();

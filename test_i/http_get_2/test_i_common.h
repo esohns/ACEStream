@@ -271,6 +271,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , libreOfficeHost (TEST_I_DEFAULT_PORT,
                       ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
                       ACE_ADDRESS_FAMILY_INET)
+   , libreOfficeRc ()
    , mode (STREAM_MODULE_HTMLPARSER_SAX)
    , passive (false)
    , printProgressDot (false)
@@ -295,6 +296,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   HTTP_Headers_t                            HTTPHeaders; // HTTP get module
   bool                                      inbound; // IO module
   ACE_INET_Addr                             libreOfficeHost; // spreadsheet writer module
+  std::string                               libreOfficeRc; // spreadsheet writer module
   Stream_Module_HTMLParser_Mode             mode; // html parser module
   bool                                      passive; // net source module
   bool                                      printProgressDot; // file writer module

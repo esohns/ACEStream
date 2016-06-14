@@ -68,12 +68,13 @@ endif ()
 
 include (FindPkgConfig)
 if (UNIX)
+ pkg_check_modules (PKG_Z REQUIRED zlib)
 # *NOTE*: libCommon requires libcap
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_SSL REQUIRED libssl)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
 endif ()
-pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
+pkg_check_modules (PKG_XML2 REQUIRED libxml-2.0)
 
 #if (WIN32)
 # *TODO*: repair pkgconfig support
@@ -144,7 +145,7 @@ if (UNIX)
 
 # include_directories (${PKG_CAP_INCLUDE_DIRS})
  include_directories (${PKG_SSL_INCLUDE_DIRS})
- include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
+ include_directories (${PKG_XML2_INCLUDE_DIRS})
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/modules/libACENetwork/src)
@@ -227,13 +228,20 @@ endif ()
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 target_link_libraries (${EXECUTABLE} ${ACE_SSL_LIBRARY})
 if (UNIX)
+ target_link_libraries (${EXECUTABLE} ${PKG_Z_LIBRARIES})
+# *NOTE*: libCommon requires libcap
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
- target_link_libraries (${EXECUTABLE} ${PKG_LIBXML2_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_SSL_LIBRARIES})
+ target_link_libraries (${EXECUTABLE} ${PKG_XML2_LIBRARIES})
 
+ target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libstorelo.so)
  target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libreglo.so)
 
- target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_cppu.so)
+ target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libxmlreaderlo.so)
+ target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libunoidllo.so)
  target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_cppuhelpergcc3.so)
+
+ target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_cppu.so)
  target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_sal.so)
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../zlib-1.2.8/libz.dll.a)

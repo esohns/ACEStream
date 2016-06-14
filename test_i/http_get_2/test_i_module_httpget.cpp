@@ -45,108 +45,60 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTTPGet::handleDataMessage"));
 
-  bool delete_record = false;
-
   // sanity check(s)
   ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::sessionData_);
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  if (inherited::responseReceived_)
-    return; // done
-
-  // *NOTE*: if the HTTP header is parsed upstream, there is no need to do it
-  //         here...
-  HTTP_Record* record_p = NULL;
-  if (message_inout->isInitialized ())
+  // handle redirects
+  inherited::responseReceived_ = false;
+  inherited::handleDataMessage (message_inout,
+                                passMessageDownstream_out);
+  if (!inherited::responseReceived_)
   {
-    const Test_I_MessageData_t& data_container_r = message_inout->get ();
-    const Test_I_MessageData& data_r = data_container_r.get ();
-    record_p = data_r.HTTPRecord;
-  } // end IF
-  else
-  {
-    record_p = inherited::parseResponse (*message_inout);
-    delete_record = true;
-  } // end IF
-  if (!record_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve HTTP record, returning\n"),
-                inherited::mod_->name ()));
+    // probable reason: re-sent request
+    // --> wait for response
     return;
   } // end IF
 
-  switch (record_p->status)
+  // send next request ?
+  do
   {
-  case HTTP_Codes::HTTP_STATUS_OK:
-  {
-    inherited::responseReceived_ = true;
-    break; // done
-  }
-  case HTTP_Codes::HTTP_STATUS_MULTIPLECHOICES:
-  case HTTP_Codes::HTTP_STATUS_MOVEDPERMANENTLY:
-  case HTTP_Codes::HTTP_STATUS_MOVEDTEMPORARILY:
-  case HTTP_Codes::HTTP_STATUS_NOTMODIFIED:
-  {
-    // step1: redirected --> extract location
-    HTTP_HeadersIterator_t iterator =
-      record_p->headers.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_LOCATION_HEADER_STRING));
-    if (iterator == record_p->headers.end ())
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: missing \"%s\" HTTP header, returning\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (HTTP_PRT_LOCATION_HEADER_STRING)));
+    if (++iterator_ ==  inherited::configuration_->stockItems.end ())
+      return; // done
+
+    if (!(*iterator_).ISIN.empty ())
       break;
-    } // end IF
+  } while (true);
 
-      // *TODO*: remove type inference
-    ACE_DEBUG ((LM_INFO,
-                ACE_TEXT ("\"%s\" has been redirected to \"%s\" (status was: %d)\n"),
-                ACE_TEXT (inherited::configuration_->URL.c_str ()), ACE_TEXT ((*iterator).second.c_str ()),
-                record_p->status));
+  std::string url_string = inherited::configuration_->URL;
+  std::string::size_type position =
+    url_string.find (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER),
+                     0,
+                     ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)));
+  ACE_ASSERT (position != std::string::npos);
+  url_string =
+    url_string.replace (position,
+                        ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)),
+                        (*iterator_).ISIN.c_str ());
 
-    // step2: send request
-    if (!inherited::sendRequest ((*iterator).second,
-                                 inherited::configuration_->HTTPHeaders))
-    {
-      ACE_ASSERT (inherited::mod_);
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to send HTTP request \"%s\", continuing\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT ((*iterator).second.c_str ())));
-      break;
-    } // end IF
-
-    break;
-  }
-  default:
+  // send HTTP Get request
+  if (!inherited::sendRequest (url_string,
+                               inherited::configuration_->HTTPHeaders))
   {
+    ACE_ASSERT (inherited::mod_);
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid HTTP response (status was: %d): \"%s\", aborting\n"),
-                record_p->status,
-                ACE_TEXT (record_p->reason.c_str ())));
-
-    Test_I_Stream_SessionData& session_data_r =
-      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
-    session_data_r.aborted = true;
-    // *TODO*: close the connection as well
-
-    break;
-  }
-  } // end SWITCH
-
-  if (delete_record)
-  {
-    // sanity check(s)
-    ACE_ASSERT (record_p);
-
-    delete record_p;
+                ACE_TEXT ("%s: failed to send HTTP request \"%s\", returning\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (url_string.c_str ())));
+    return;
   } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: fetching \"%s\"...\n"),
+              inherited::mod_->name (),
+              ACE_TEXT ((*iterator_).symbol.c_str ())));
 }
 
 void
@@ -175,12 +127,22 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
     inherited::sessionData_->increase ();
 
     iterator_ = inherited::configuration_->stockItems.begin ();
-    if (iterator_ == inherited::configuration_->stockItems.end ())
-      break; // nothing to do
+    do
+    {
+      if (iterator_ ==  inherited::configuration_->stockItems.end ())
+        return; // done
 
-    std::string url_string = configuration_->URL;
+      if (!(*iterator_).ISIN.empty ())
+        break;
+
+      ++iterator_;
+    } while (true);
+
+    std::string url_string = inherited::configuration_->URL;
     std::string::size_type position =
-      url_string.find (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER), 0);
+      url_string.find (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER),
+                       0,
+                       ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)));
     ACE_ASSERT (position != std::string::npos);
     url_string =
       url_string.replace (position,
@@ -198,6 +160,10 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
                   ACE_TEXT (url_string.c_str ())));
       return;
     } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: fetching \"%s\"...\n"),
+                inherited::mod_->name (),
+                ACE_TEXT ((*iterator_).symbol.c_str ())));
 
     break;
   }

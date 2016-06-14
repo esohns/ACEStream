@@ -104,7 +104,7 @@ install (EXPORT ${PROJECT_NAME}Targets
          DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
 
 set (PACKAGE ${PROJECT_NAME})
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.in.cmake
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake.in
                 ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_config.h @ONLY)
 #add_custom_target (${PROJECT_NAME}_config)
 #set_target_properties (${PROJECT_NAME}_config PROPERTIES

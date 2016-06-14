@@ -350,6 +350,10 @@ Stream_Module_Net_Source_T<LockType,
       // *TODO*: remove type inferences
       ConnectorType connector (iconnection_manager_p,
                                inherited::configuration_->streamConfiguration->statisticReportingInterval);
+      typename ConnectorType::STREAM_T* stream_p = NULL;
+      typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
+      typename ConnectorType::INTERFACE_T* iconnector_p = NULL;
+      typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
 
       if (isPassive_)
       {
@@ -415,14 +419,14 @@ Stream_Module_Net_Source_T<LockType,
       //                                             user_data_p);
 
       // step2: initialize connector
-      typename ConnectorType::INTERFACE_T* iconnector_p = &connector;
+      iconnector_p = &connector;
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
       bool clone_module, delete_module;
       clone_module =
           inherited::configuration_->streamConfiguration->cloneModule;
       delete_module =
           inherited::configuration_->streamConfiguration->deleteModule;
-      typename ConnectorType::STREAM_T::MODULE_T* module_p =
+      module_p =
           inherited::configuration_->streamConfiguration->module;
       inherited::configuration_->streamConfiguration->cloneModule = false;
       inherited::configuration_->streamConfiguration->deleteModule = false;
@@ -511,8 +515,7 @@ reset:
         goto error;
 
       // link processing streams
-      typename ConnectorType::STREAM_T* stream_p = NULL;
-      typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p =
+      isocket_connection_p =
           dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
       if (!isocket_connection_p)
       {
@@ -541,7 +544,7 @@ reset:
       goto continue_;
 
 error:
-      if (connection_);
+      if (connection_)
       {
         connection_->close ();
         ACE_DEBUG ((LM_DEBUG,
