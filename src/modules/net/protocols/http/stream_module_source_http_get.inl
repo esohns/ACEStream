@@ -111,8 +111,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   ACE_ASSERT (configuration_);
   ACE_ASSERT (sessionData_);
 
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
+  // initialize return value(s)
+  passMessageDownstream_out = false;
 
   if (responseReceived_)
     return; // done
@@ -146,6 +146,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
     case HTTP_Codes::HTTP_STATUS_OK:
     {
       responseReceived_ = true;
+
+      passMessageDownstream_out = true;
+
       break; // done
     }
     case HTTP_Codes::HTTP_STATUS_MULTIPLECHOICES:
@@ -155,13 +158,13 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
     {
       // step1: redirected --> extract location
       HTTP_HeadersIterator_t iterator =
-          record_p->headers.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_LOCATION_HEADER_STRING));
+          record_p->headers.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_LOCATION_STRING));
       if (iterator == record_p->headers.end ())
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: missing \"%s\" HTTP header, returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (HTTP_PRT_LOCATION_HEADER_STRING)));
+                    ACE_TEXT (HTTP_PRT_HEADER_LOCATION_STRING)));
         break;
       } // end IF
 
@@ -172,9 +175,22 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
                   ACE_TEXT ((*iterator).second.c_str ()),
                   record_p->status));
 
+      ACE_INET_Addr host_address;
+      std::string uri_string;
+      if (!HTTP_Tools::parseURL ((*iterator).second,
+                                 host_address,
+                                 uri_string))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), returning\n"),
+                    ACE_TEXT ((*iterator).second.c_str ())));
+        break;
+      } // end IF
+
       // step2: send request
-      if (!sendRequest ((*iterator).second,
-                        configuration_->HTTPHeaders))
+      if (!sendRequest (uri_string,
+                        configuration_->HTTPHeaders,
+                        configuration_->HTTPForm))
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
@@ -239,9 +255,10 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
         &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
       sessionData_->increase ();
 
-      // send HTTP Get request
+      // send HTTP request
       if (!sendRequest (configuration_->URL,
-                        configuration_->HTTPHeaders))
+                        configuration_->HTTPHeaders,
+                        configuration_->HTTPForm))
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
@@ -323,7 +340,8 @@ ProtocolMessageType*
 Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
                                     SessionMessageType,
                                     ProtocolMessageType>::makeRequest (const std::string& URI_in,
-                                                                       const HTTP_Headers_t& headers_in)
+                                                                       const HTTP_Headers_t& headers_in,
+                                                                       const HTTP_Form_t& form_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::makeRequest"));
 
@@ -383,8 +401,11 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
       message_out->get ();
   typename ProtocolMessageType::DATA_T::DATA_T& message_data_r =
       const_cast<typename ProtocolMessageType::DATA_T::DATA_T&> (message_data_container_r.get ());
+  message_data_r.HTTPRecord->form = form_in;
   message_data_r.HTTPRecord->headers = headers_in;
-  message_data_r.HTTPRecord->method = HTTP_Codes::HTTP_METHOD_GET;
+  message_data_r.HTTPRecord->method =
+    (form_in.empty () ? HTTP_Codes::HTTP_METHOD_GET
+                      : HTTP_Codes::HTTP_METHOD_POST);
   message_data_r.HTTPRecord->URI = URI_in;
   message_data_r.HTTPRecord->version = HTTP_Codes::HTTP_VERSION_1_1;
 
@@ -398,7 +419,8 @@ bool
 Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
                                     SessionMessageType,
                                     ProtocolMessageType>::sendRequest (const std::string& URI_in,
-                                                                       const HTTP_Headers_t& headers_in)
+                                                                       const HTTP_Headers_t& headers_in,
+                                                                       const HTTP_Form_t& form_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::sendRequest"));
 
@@ -409,7 +431,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
 
   // *TODO*: estimate a reasonable buffer size
   ProtocolMessageType* message_p = makeRequest (URI_in,
-                                                headers_in);
+                                                headers_in,
+                                                form_in);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -432,7 +455,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
     return false;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: dispatched HTTP GET (URI was: \"%s\")\n"),
+              ACE_TEXT ("%s: dispatched HTTP request (URI was: \"%s\")\n"),
               inherited::mod_->name (),
               ACE_TEXT (URI_in.c_str ())));
 
@@ -589,7 +612,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
 
       // step2: send request
       if (!sendRequest (location,
-                        configuration_->HTTPHeaders))
+                        configuration_->HTTPHeaders,
+                        configuration_->HTTPForm))
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,

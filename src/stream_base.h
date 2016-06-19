@@ -143,7 +143,7 @@ class Stream_Base_T
   // override ACE_Stream method(s)
   virtual int get (ACE_Message_Block*&, // return value: message block handle
                    ACE_Time_Value*);    // timeout (NULL: block)
-  // *NOTE*: the default ACE_Stream impementation of link() joins writer A to
+  // *NOTE*: the default ACE impementation of link() joins writer A to
   //         reader B and writer B to reader A. Prefer 'concat' method: writer
   //         A to writer B(, reader A to reader B; see explanation)
   // *TODO*: the 'outbound' pipe of readers is not currently implemented, as it
@@ -159,10 +159,13 @@ class Stream_Base_T
   //         However, doing so requires consideration of the fact that the
   //         connection will still look for data on the connections' (!)
   //         ACE_Stream_Head, which is 'hidden' by the default linking
-  //         procedure.
+  //         procedure
   //         --> avoid linking the outbound side of the stream for now
   // *WARNING*: this method is NOT (!) threadsafe in places
   //            --> handle with care !
+  // *TODO*: note that for linked streams, the session data passed downstream
+  //         is always the upstream instances'. Inconsistencies arise when
+  //         modules cache and update session data passed at session start
   virtual int link (Stream_Base_t&);
   virtual int unlink (void);
 

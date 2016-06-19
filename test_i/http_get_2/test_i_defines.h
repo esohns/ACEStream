@@ -25,11 +25,14 @@
 
 #include "stream_document_defines.h"
 
+#define TEST_I_ISIN_DAX                              "DE0008469008"
+
 #define TEST_I_ISIN_LENGTH                           12 // 2 + 10
 
 #define TEST_I_CNF_SYMBOLS_SECTION_HEADER            "symbols"
 
 #define TEST_I_DEFAULT_BUFFER_SIZE                   4096 // bytes
+#define TEST_I_DEFAULT_LIBREOFFICE_START_ROW         5
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE    "soffice.ini"
 #else
@@ -48,7 +51,8 @@
 #define TEST_I_DEFAULT_OUTPUT_FILE                   "output.ods"
 #define TEST_I_DEFAULT_PORT                          STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_PORT
 
-#define TEST_I_URL_SYMBOL_PLACEHOLDER                "%s"
+//#define TEST_I_URL_SYMBOL_PLACEHOLDER                "%s"
+#define TEST_I_FORM_KEY_SEARCH_STRING                "suchbegriff"
 
 #define TEST_I_MAX_MESSAGES                          0 // 0 --> no limits
 #define TEST_I_THREAD_NAME                           "stream processor"

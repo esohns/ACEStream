@@ -60,10 +60,9 @@ class Stream_Module_Net_Source_HTTP_Get_T
  protected:
   // helper methods
   ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
-  ProtocolMessageType* makeRequest (const std::string&,     // URI
-                                    const HTTP_Headers_t&); // headers
-  bool sendRequest (const std::string&,     // URI
-                    const HTTP_Headers_t&); // headers
+  bool sendRequest (const std::string&,    // URI
+                    const HTTP_Headers_t&, // headers
+                    const HTTP_Form_t&);   // form
   // *NOTE*: (if possible,) this advances the read pointer to skip over the HTTP
   //         entity head
   HTTP_Record* parseResponse (ProtocolMessageType&);
@@ -80,6 +79,11 @@ class Stream_Module_Net_Source_HTTP_Get_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T (const Stream_Module_Net_Source_HTTP_Get_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T& operator= (const Stream_Module_Net_Source_HTTP_Get_T&))
+
+  // helper methods
+  ProtocolMessageType* makeRequest (const std::string&,    // URI
+                                    const HTTP_Headers_t&, // headers
+                                    const HTTP_Form_t&);   // form
 
   bool                                 initialized_;
 };

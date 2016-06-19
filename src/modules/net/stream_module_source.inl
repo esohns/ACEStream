@@ -57,6 +57,7 @@ Stream_Module_Net_Source_T<LockType,
               false, // active object ?
               false, // auto-start ?
               false) // run svc() routine on start ? (passive only)
+ , connector_ ()
  , connection_ (NULL)
  , isLinked_ (false)
  , isPassive_ (isPassive_in)
@@ -305,14 +306,17 @@ Stream_Module_Net_Source_T<LockType,
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
   ACE_ASSERT (inherited::initialized_);
 
+  SessionDataContainerType& session_data_container_r =
+    const_cast<SessionDataContainerType&> (message_inout->get ());
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_BEGIN:
     {
-      const SessionDataContainerType& session_data_container_r =
-          message_inout->get ();
+      session_data_container_r.increase ();
+      sessionData_ = &session_data_container_r;
       SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (session_data_container_r.get ());
+        const_cast<SessionDataType&> (session_data_container_r.get ());
 
       // schedule regular statistic collection ?
       if (inherited::configuration_->streamConfiguration->statisticReportingInterval !=
@@ -554,6 +558,8 @@ error:
         connection_ = NULL;
       } // end IF
 
+      session_data_r.aborted = true;
+
       break;
 
 continue_:
@@ -686,6 +692,27 @@ error_2:
         connection_ = NULL;
       } // end IF
 
+      if (!sessionData_)
+        goto continue_2;
+
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (session_data_container_r.get ());
+      SessionDataType& session_data_2 =
+        const_cast<SessionDataType&> (sessionData_->get ());
+      // *NOTE*: most probable reason: stream has been link()ed after the
+      //         session had started, and session data is now that of upstream
+      // *TODO*: data could be merged to improve consistency
+      if (&session_data_r != &session_data_2)
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("re-setting session data...\n")));
+        session_data_container_r.set (session_data_2);
+      } // end IF
+
+      sessionData_->decrease ();
+      sessionData_ = NULL;
+
+continue_2:
       break;
     }
     default:

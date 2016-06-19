@@ -579,12 +579,19 @@ Stream_HeadModuleTaskBase_T<LockType,
   // sanity check(s)
   ACE_ASSERT (configuration_);
 
+  SessionDataContainerType& session_data_container_r =
+    const_cast<SessionDataContainerType&> (message_inout->get ());
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_BEGIN:
     {
       // *TODO*: remove type inference
       ACE_ASSERT (configuration_->streamConfiguration);
+
+      session_data_container_r.increase ();
+      sessionData_ =
+        &const_cast<SessionDataContainerType&> (session_data_container_r);
 
       // schedule regular statistic collection ?
       // *NOTE*: the runtime-statistic module is responsible for regular
@@ -629,6 +636,27 @@ Stream_HeadModuleTaskBase_T<LockType,
         timerID_ = -1;
       } // end IF
 
+      if (!sessionData_)
+        goto continue_;
+
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (session_data_container_r.get ());
+      SessionDataType& session_data_2 =
+        const_cast<SessionDataType&> (sessionData_->get ());
+      // *NOTE*: most probable reason: stream has been link()ed after the
+      //         session had started, and session data is now that of upstream
+      // *TODO*: data could be merged to improve consistency
+      if (&session_data_r != &session_data_2)
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("session data is inconsistent, continuing\n")));
+        session_data_container_r.set (session_data_2);
+      } // end IF
+
+      sessionData_->decrease ();
+      sessionData_ = NULL;
+
+continue_:
       inherited2::shutdown ();
 
       break;

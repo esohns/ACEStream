@@ -317,55 +317,31 @@ do_processArguments (int argc_in,
       {
         // step1: parse URL
         URI_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
-        std::string regex_string =
-          ACE_TEXT_ALWAYS_CHAR ("^(?:http(s)?://)?([[:alnum:]-.]+)(?:\\:([[:digit:]]{1,5}))?(.+)?$");
-        std::regex regex (regex_string);
-        std::smatch match_results;
-        if (!std::regex_match (URI_out,
-                               match_results,
-                               regex,
-                               std::regex_constants::match_default))
+
+        if (!HTTP_Tools::parseURL (URI_out,
+                                   remoteHost_out,
+                                   URI_out))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid URL string (was: \"%s\"), aborting\n"),
+                      ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
                       ACE_TEXT (URI_out.c_str ())));
           return false;
         } // end IF
-        ACE_ASSERT (match_results.ready () && !match_results.empty ());
-
-        if (match_results[1].matched)
-          useSSL_out = true;
-        ACE_ASSERT (match_results[2].matched);
-        std::string hostname = match_results[2];
-        unsigned short port = HTTP_DEFAULT_SERVER_PORT;
-        if (match_results[3].matched)
-        {
-          converter.clear ();
-          converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-          converter.str (match_results[3].str ());
-          converter >> port;
-        } // end IF
-        ACE_ASSERT (match_results[4].matched);
-        URI_out = match_results[4];
 
         // step2: validate address/verify host name exists
         //        --> resolve
-        std::string dotted_decimal_string;
-        // *TODO*: support IPv6 as well
-        regex_string =
-          ACE_TEXT_ALWAYS_CHAR ("^([[:digit:]]{1,3}\\.){4}$");
-        regex = regex_string;
-        std::smatch match_results_2;
-        if (std::regex_match (hostname,
-                              match_results_2,
-                              regex,
-                              std::regex_constants::match_default))
+        ACE_TCHAR buffer[HOST_NAME_MAX];
+        ACE_OS::memset (buffer, 0, sizeof (buffer));
+        result = remoteHost_out.get_host_name (buffer,
+                                               sizeof (buffer));
+        if (result == -1)
         {
-          ACE_ASSERT (match_results_2.ready ()  &&
-                      !match_results_2.empty () &&
-                      match_results_2[1].matched);
-          dotted_decimal_string = hostname;
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ACE_INET_Addr::get_host_name(): \"%m\", aborting\n")));
+          return false;
         } // end IF
+        std::string hostname = ACE_TEXT_ALWAYS_CHAR (buffer);
+        std::string dotted_decimal_string;
         if (!Net_Common_Tools::getAddress (hostname,
                                            dotted_decimal_string))
         {
@@ -373,42 +349,33 @@ do_processArguments (int argc_in,
                       ACE_TEXT ("failed to Net_Common_Tools::getAddress(), aborting\n")));
           return false;
         } // end IF
-        result = remoteHost_out.set (port,
-                                     dotted_decimal_string.c_str (),
-                                     1,
-                                     ACE_ADDRESS_FAMILY_INET);
-        if (result == -1)
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_INET_Addr::set (): \"%m\", aborting\n")));
-          return false;
-        } // end IF
 
-        // step3: validate URI
-        regex_string =
-            ACE_TEXT_ALWAYS_CHAR ("^(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
-        //regex_string =
-        //    ACE_TEXT_ALWAYS_CHAR ("^(?:http(?:s)?://)?((.+\\.)+([^\\/]+))(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
-        regex.assign (regex_string,
-                      (std::regex_constants::ECMAScript |
-                       std::regex_constants::icase));
-        std::smatch match_results_3;
-        if (!std::regex_match (URI_out,
-                               match_results_3,
-                               regex,
-                               std::regex_constants::match_default))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("invalid URI (was: \"%s\"), aborting\n"),
-                      ACE_TEXT (URI_out.c_str ())));
-          return false;
-        } // end IF
-        ACE_ASSERT (match_results_3.ready () && !match_results_3.empty ());
+        //// step3: validate URI
+        //std::string regex_string =
+        //    ACE_TEXT_ALWAYS_CHAR ("^(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
+        ////regex_string =
+        ////    ACE_TEXT_ALWAYS_CHAR ("^(?:http(?:s)?://)?((.+\\.)+([^\\/]+))(\\/.+(?=\\/))*\\/(.+?)(\\.(html|htm))?$");
+        //std::regex regex;
+        //regex.assign (regex_string,
+        //              (std::regex_constants::ECMAScript |
+        //               std::regex_constants::icase));
+        //std::smatch match_results_3;
+        //if (!std::regex_match (URI_out,
+        //                       match_results_3,
+        //                       regex,
+        //                       std::regex_constants::match_default))
+        //{
+        //  ACE_DEBUG ((LM_ERROR,
+        //              ACE_TEXT ("invalid URI (was: \"%s\"), aborting\n"),
+        //              ACE_TEXT (URI_out.c_str ())));
+        //  return false;
+        //} // end IF
+        //ACE_ASSERT (match_results_3.ready () && !match_results_3.empty ());
 
-        if (!match_results_3[2].matched)
-          URI_out += ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_NET_SOURCE_HTTP_GET_DEFAULT_URL);
-        //else if (!match_results_3[3].matched)
-        //  URI_out += ACE_TEXT_ALWAYS_CHAR (HTML_DEFAULT_SUFFIX);
+        //if (!match_results_3[2].matched)
+        //  URI_out += ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_NET_SOURCE_HTTP_GET_DEFAULT_URL);
+        ////else if (!match_results_3[3].matched)
+        ////  URI_out += ACE_TEXT_ALWAYS_CHAR (HTML_DEFAULT_SUFFIX);
 
         break;
       }
@@ -601,7 +568,7 @@ do_parseConfigurationFile (const std::string& fileName_in,
     stock_item.ISIN =
         ((item_value.length () == TEST_I_ISIN_LENGTH) ? ACE_TEXT_ALWAYS_CHAR (item_value.c_str ())
                                                       : ACE_TEXT_ALWAYS_CHAR (""));
-    stockItems_out.push_back (stock_item);
+    stockItems_out.insert (stock_item);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("added symbol: \"%s\"...\n"),
                 ACE_TEXT (stock_item.symbol.c_str ())));
@@ -640,6 +607,7 @@ do_work (const std::string& bootstrapFileName_in,
   int group_id = -1;
   int result = -1;
   Test_I_StreamBase_t* stream_p = NULL;
+  Test_I_StockItem stock_item;
 
   Stream_AllocatorHeap_T<Test_I_AllocatorConfiguration> heap_allocator;
   Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
@@ -694,6 +662,8 @@ do_work (const std::string& bootstrapFileName_in,
                 ACE_TEXT (configurationFileName_in.c_str ())));
     goto error;
   } // end IF
+  stock_item.ISIN = ACE_TEXT_ALWAYS_CHAR (TEST_I_ISIN_DAX);
+  configuration.moduleHandlerConfiguration.stockItems.insert (stock_item);
 
   // *********************** socket configuration data ************************
   configuration.socketConfiguration.address = remoteHost_in;
@@ -750,13 +720,13 @@ do_work (const std::string& bootstrapFileName_in,
   //                                                                             ACE_TEXT_ALWAYS_CHAR ("gzip, deflate")));
   //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_COOKIE_HEADER_STRING),
   //                                                                             ACE_TEXT_ALWAYS_CHAR ("xtvrn=$452061$; backlink=http://boerse.ard.de/index.html; usf_mobil=1; USF-C-usf_mobil=1")));
-  configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HOST_HEADER_STRING),
+  configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_HOST_STRING),
                                                                                ACE_TEXT_ALWAYS_CHAR ("kurse.boerse.ard.de")));
   //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_AGENT_HEADER_STRING),
   //                                                                             ACE_TEXT_ALWAYS_CHAR ("Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko")));
   //configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_TRACKING_HEADER_STRING),
   //                                                                             ACE_TEXT_ALWAYS_CHAR ("1")));
-  configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_CONNECTION_HEADER_STRING),
+  configuration.moduleHandlerConfiguration.HTTPHeaders.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_CONNECTION_STRING),
                                                                                ACE_TEXT_ALWAYS_CHAR ("Keep-Alive")));
 
   configuration.moduleHandlerConfiguration.URL = URL_in;

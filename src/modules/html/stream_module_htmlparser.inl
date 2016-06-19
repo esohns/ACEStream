@@ -37,6 +37,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
  : inherited ()
  , configuration_ (NULL)
  , parserContext_ ()
+ , sessionData_ (NULL)
  , SAXHandler_ ()
  , initialized_ (false)
  , mode_ (STREAM_MODULE_HTMLPARSER_DEFAULT_MODE)
@@ -204,8 +205,6 @@ Stream_Module_HTMLParser_T<SessionMessageType,
   // *TODO*: remove type inferences
   const typename SessionMessageType::DATA_T& session_data_container_r =
     message_inout->get ();
-  const SessionDataType& session_data_r =
-    session_data_container_r.get ();
 
   switch (message_inout->type ())
   {
@@ -214,12 +213,8 @@ Stream_Module_HTMLParser_T<SessionMessageType,
 //      if (parserContext_)
 //        htmlCtxtReset (parserContext_);
 
-      // *TODO*: the upstream session data may not be the same as the downstream
-      //         one...
-      const_cast<SessionDataType&> (session_data_r).parserContext =
-          &parserContext_;
-      parserContext_.sessionData =
-          &const_cast<SessionDataType&> (session_data_r);
+      sessionData_ =
+        &const_cast<SessionDataType&> (session_data_container_r.get ());
 
       break;
     }
@@ -232,12 +227,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
     }
     case STREAM_SESSION_END:
     {
-      // *TODO*: the upstream session data may not be the same as the downstream
-      //         one...
-      const_cast<SessionDataType&> (session_data_r).parserContext =
-          &parserContext_;
-      parserContext_.sessionData =
-          &const_cast<SessionDataType&> (session_data_r);
+      sessionData_ = NULL;
 
       break;
     }

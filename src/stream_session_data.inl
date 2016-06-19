@@ -92,6 +92,4 @@ Stream_SessionData_T<DataType>::set (const DataType& data_in)
     delete data_;
 
   data_ = &const_cast<DataType&> (data_in);
-
-  inherited::refcount_.exchange (1);
 }

@@ -288,7 +288,7 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
     //              ACE_TEXT ("failed to IMFMediaSource::Shutdown(): \"%s\", continuing\n"),
     //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     //media_source_p->Release ();
-continue_:
+//continue_:
     // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
     //result = mediaSession_->Shutdown ();
     //if (FAILED (result))

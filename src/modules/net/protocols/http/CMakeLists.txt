@@ -2,12 +2,11 @@ cmake_minimum_required (VERSION 2.8)
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libACENetwork/src/protocol/http)
-
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../dec)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../libACENetwork/src/protocol/http)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../dec)
 #include_directories (${CMAKE_CURRENT_BINARY_DIR}/../../../)
 
 ############## next target ################

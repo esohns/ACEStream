@@ -150,6 +150,7 @@ using namespace std;
 %type <size>         buffer chunks rest
 
 %code provides {
+extern void yydebug (int);
 extern void yyerror (YYLTYPE*, Stream_Decoder_AVIParserDriver*, yyscan_t, const char*);
 extern int yyparse (Stream_Decoder_AVIParserDriver*, yyscan_t);
 //extern void yyprint (FILE*, yytokentype, YYSTYPE);
@@ -222,6 +223,14 @@ yy::AVI_Parser::set (yyscan_t context_in)
 
   yyscanner = context_in;
 } */
+
+void
+yydebug (int debug_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::yydebug"));
+
+  yydebug = debug_in;
+}
 
 void
 yyerror (YYLTYPE* location_in,

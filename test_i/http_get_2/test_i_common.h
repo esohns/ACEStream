@@ -95,24 +95,35 @@ struct Test_I_AllocatorConfiguration
 struct Test_I_StockItem
 {
   inline Test_I_StockItem ()
-   : /*description ()
-   ,*/ ISIN ()
-   , symbol ()
-   , timeStamp (ACE_Time_Value::zero)
-   , value (0.0)
-   , WKN ()
+    : /*description ()
+      ,*/ ISIN ()
+    , symbol ()
+    , WKN ()
   {};
   inline bool operator== (Test_I_StockItem rhs_in)
   {
     return (ISIN == rhs_in.ISIN);
   };
 
-  //std::string    description;
-  std::string    ISIN;
-  std::string    symbol;
-  ACE_Time_Value timeStamp;
-  double         value;
-  std::string    WKN;
+  //std::string description;
+  std::string ISIN;
+  std::string symbol;
+  std::string WKN;
+};
+
+struct Test_I_StockRecord
+{
+  inline Test_I_StockRecord ()
+   : change (0.0)
+   , item (NULL)
+   , timeStamp (ACE_Time_Value::zero)
+   , value (0.0)
+  {};
+
+  double            change;
+  Test_I_StockItem* item;
+  ACE_Time_Value    timeStamp;
+  double            value;
 };
 
 struct Test_I_MessageData
@@ -136,10 +147,19 @@ struct Test_I_MessageData
 };
 typedef Stream_DataBase_T<Test_I_MessageData> Test_I_MessageData_t;
 
-typedef std::list<Test_I_StockItem> Test_I_StockItems_t;
-typedef Test_I_StockItems_t::const_iterator Test_I_StockItemsIterator_t;
-typedef std::map<ACE_Time_Value, Test_I_StockItems_t> Test_I_Portfolio_t;
-typedef Test_I_Portfolio_t::iterator Test_I_PortfolioIterator_t;
+struct less_stock_item
+{
+  bool operator () (const struct Test_I_StockItem& lhs_in,
+                    const struct Test_I_StockItem& rhs_in) const
+  {
+    return (lhs_in.ISIN < rhs_in.ISIN);
+  }
+};
+typedef std::set<Test_I_StockItem, less_stock_item> Test_I_StockItems_t;
+typedef Test_I_StockItems_t::iterator Test_I_StockItemsIterator_t;
+
+typedef std::list<Test_I_StockRecord> Test_I_StockRecords_t;
+typedef Test_I_StockRecords_t::const_iterator Test_I_StockRecordsIterator_t;
 
 enum Test_I_SAXParserState
 {
@@ -152,26 +172,25 @@ enum Test_I_SAXParserState
   /////////////////////////////////////
   //SAXPARSER_STATE_IN_HEAD_TITLE,
   /////////////////////////////////////
-  //SAXPARSER_STATE_IN_BODY_DIV_CONTENT,
+  SAXPARSER_STATE_IN_BODY_DIV_CONTENT,
   /////////////////////////////////////
-  SAXPARSER_STATE_READ_SYMBOL_WKN_ISIN,
-  //SAXPARSER_STATE_READ_ISIN_WKN,
-  SAXPARSER_STATE_READ_VALUE,
-  SAXPARSER_STATE_READ_DATE
+  SAXPARSER_STATE_READ_CHANGE,
+  SAXPARSER_STATE_READ_DATE,
+  SAXPARSER_STATE_READ_ISIN_WKN,
+  SAXPARSER_STATE_READ_SYMBOL,
+  SAXPARSER_STATE_READ_VALUE
 };
 struct Test_I_SAXParserContext
  : Stream_Module_HTMLParser_SAXParserContextBase
 {
   inline Test_I_SAXParserContext ()
    : Stream_Module_HTMLParser_SAXParserContextBase ()
-   , sessionData (NULL)
+   , data (NULL)
    , state (SAXPARSER_STATE_INVALID)
-   , stockItem ()
   {};
 
-  Test_I_Stream_SessionData* sessionData;
-  Test_I_SAXParserState      state;
-  Test_I_StockItem           stockItem;
+  Test_I_StockRecord*   data;
+  Test_I_SAXParserState state;
 };
 
 struct Test_I_Configuration;
@@ -197,7 +216,7 @@ struct Test_I_Stream_SessionData
    , connectionState (NULL)
    , data ()
    , format (STREAM_COMPRESSION_FORMAT_NONE)
-   , parserContext (NULL)
+   //, parserContext (NULL)
    , targetFileName ()
    , userData (NULL)
   {};
@@ -207,7 +226,7 @@ struct Test_I_Stream_SessionData
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
     data = rhs_in.data;
-    parserContext = (parserContext ? parserContext : rhs_in.parserContext);
+    //parserContext = (parserContext ? parserContext : rhs_in.parserContext);
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);
     userData = (userData ? userData : rhs_in.userData);
@@ -216,9 +235,9 @@ struct Test_I_Stream_SessionData
   }
 
   Test_I_ConnectionState*                   connectionState;
-  Test_I_Portfolio_t                        data; // html parser/spreadsheet writer module
+  Test_I_StockRecords_t                     data; // html parser/spreadsheet writer module
   enum Stream_Decoder_CompressionFormatType format; // decompressor module
-  Test_I_SAXParserContext*                  parserContext; // html parser/handler module
+  //Test_I_SAXParserContext*                  parserContext; // html parser/handler module
   std::string                               targetFileName; // file writer module
   Test_I_UserData*                          userData;
 };
@@ -265,6 +284,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , configuration (NULL)
    , connection (NULL)
    , connectionManager (NULL)
+   , HTTPForm ()
    , HTTPHeaders ()
    //, hostName ()
    , inbound (true)
@@ -272,6 +292,8 @@ struct Test_I_Stream_ModuleHandlerConfiguration
                       ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
                       ACE_ADDRESS_FAMILY_INET)
    , libreOfficeRc ()
+   , libreOfficeSheetStartColumn (0)
+   , libreOfficeSheetStartRow (TEST_I_DEFAULT_LIBREOFFICE_START_ROW - 1)
    , mode (STREAM_MODULE_HTMLPARSER_SAX)
    , passive (false)
    , printProgressDot (false)
@@ -292,11 +314,13 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   Test_I_IConnection_t*                     connection; // net source/IO module
   Test_I_Stream_InetConnectionManager_t*    connectionManager; // net source/IO module
   bool                                      crunchMessages; // HTTP parser module
-  //std::string                               hostName; // net source module
+  HTTP_Form_t                               HTTPForm; // HTTP get module
   HTTP_Headers_t                            HTTPHeaders; // HTTP get module
   bool                                      inbound; // IO module
   ACE_INET_Addr                             libreOfficeHost; // spreadsheet writer module
   std::string                               libreOfficeRc; // spreadsheet writer module
+  unsigned int                              libreOfficeSheetStartColumn; // spreadsheet writer module
+  unsigned int                              libreOfficeSheetStartRow; // spreadsheet writer module
   Stream_Module_HTMLParser_Mode             mode; // html parser module
   bool                                      passive; // net source module
   bool                                      printProgressDot; // file writer module

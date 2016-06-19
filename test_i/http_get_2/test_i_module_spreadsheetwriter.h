@@ -24,24 +24,32 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_timer_common.h"
+#include "com/sun/star/sheet/XSpreadsheet.hpp"
+#include "com/sun/star/sheet/XSpreadsheetDocument.hpp"
+#include "com/sun/star/uno/Reference.h"
+
+#include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
-#include "stream_module_libreoffice_spreadsheet_writer.h"
+#include "stream_module_libreoffice_document_writer.h"
 
 #include "test_i_common.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
+using namespace ::com::sun::star;
+
 class Test_I_Stream_SpreadsheetWriter
- : public Stream_Module_LibreOffice_Spreadsheet_Writer_T<Test_I_Stream_SessionMessage,
-                                                         Test_I_Stream_Message,
+ : public Stream_Module_LibreOffice_Document_Writer_T<Test_I_Stream_SessionMessage,
+                                                      Test_I_Stream_Message,
 
-                                                         Test_I_Stream_ModuleHandlerConfiguration,
+                                                      Test_I_Stream_ModuleHandlerConfiguration,
 
-                                                         Test_I_Stream_SessionData>
+                                                      Test_I_Stream_SessionData,
+
+                                                      sheet::XSpreadsheetDocument>
 {
  public:
   Test_I_Stream_SpreadsheetWriter ();
@@ -52,15 +60,19 @@ class Test_I_Stream_SpreadsheetWriter
                                      bool&);                         // return value: pass message downstream ?
 
  private:
-  typedef Stream_Module_LibreOffice_Spreadsheet_Writer_T<Test_I_Stream_SessionMessage,
-                                                         Test_I_Stream_Message,
+  typedef Stream_Module_LibreOffice_Document_Writer_T<Test_I_Stream_SessionMessage,
+                                                      Test_I_Stream_Message,
 
-                                                         Test_I_Stream_ModuleHandlerConfiguration,
+                                                      Test_I_Stream_ModuleHandlerConfiguration,
 
-                                                         Test_I_Stream_SessionData> inherited;
+                                                      Test_I_Stream_SessionData,
+
+                                                      sheet::XSpreadsheetDocument> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter (const Test_I_Stream_SpreadsheetWriter&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter& operator= (const Test_I_Stream_SpreadsheetWriter&))
+
+  uno::Reference<sheet::XSpreadsheetDocument> document_;
 };
 
 // declare module

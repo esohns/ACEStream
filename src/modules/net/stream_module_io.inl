@@ -289,9 +289,11 @@ Stream_Module_Net_IOWriter_T<LockType,
           ACE_Time_Value::zero)
       {
         // schedule regular statistic collection
-        ACE_Time_Value interval (STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL, 0);
+        ACE_Time_Value interval (STREAM_DEFAULT_STATISTIC_COLLECTION_INTERVAL,
+                                 0);
         ACE_ASSERT (inherited::timerID_ == -1);
-        ACE_Event_Handler* handler_p = &(inherited::statisticCollectionHandler_);
+        ACE_Event_Handler* handler_p =
+          &(inherited::statisticCollectionHandler_);
         inherited::timerID_ =
           COMMON_TIMERMANAGER_SINGLETON::instance ()->schedule_timer (handler_p,                  // event handler
                                                                       NULL,                       // argument

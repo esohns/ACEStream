@@ -162,6 +162,7 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
  include_directories (${LIBREOFFICE_SDK_DIRECTORY}/include)
+# include_directories (${LIBREOFFICE_SDK_DIRECTORY}/cli)
 
 # *TODO*: repair pkgconfig support
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/glib-2.0)
@@ -234,6 +235,11 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} ${PKG_SSL_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_XML2_LIBRARIES})
 
+ target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_sal.so)
+
+ target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libgcc3_uno.so)
+ target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_cppu.so)
+
  target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libstorelo.so)
  target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libreglo.so)
 
@@ -241,8 +247,7 @@ if (UNIX)
  target_link_libraries (${EXECUTABLE} /usr/lib/ure/lib/libunoidllo.so)
  target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_cppuhelpergcc3.so)
 
- target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_cppu.so)
- target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_sal.so)
+ #target_link_libraries (${EXECUTABLE} /usr/lib/libreoffice/sdk/lib/libuno_salhelpergcc3.so)
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../zlib-1.2.8/libz.dll.a)
 

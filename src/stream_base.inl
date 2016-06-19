@@ -2243,7 +2243,7 @@ Stream_Base_T<LockType,
       const_cast<SessionDataType&> (session_data_container_p->get ());
     SessionDataType& session_data_2 =
       const_cast<SessionDataType&> (sessionData_->get ());
-    // *NOTE*: the idea is to 'merge' the data...
+    // *NOTE*: the idea here is to 'merge' the two datasets
     session_data_r += session_data_2;
 
     // clean up
@@ -2829,18 +2829,9 @@ Stream_Base_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::deactivateModules"));
 
   // *TODO*: remove type inferences
-
-//  // allocate session data container
-//  SessionDataContainerType* session_data_container_p = NULL;
-//  ACE_NEW_NORETURN (session_data_container_p,
-//                    SessionDataContainerType (sessionData_,
-//                                              false));
-//  if (!session_data_container_p)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", returning\n")));
-//    return;
-//  } // end IF
+  // *NOTE*: session message assumes responsibility for session data
+  //         --> add a reference
+  sessionData_->increase ();
 
   // allocate SESSION_END session message
   SessionMessageType* message_p = NULL;
@@ -2855,17 +2846,14 @@ Stream_Base_T<LockType,
       ACE_DEBUG ((LM_CRITICAL,
                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), returning\n")));
 
-//      // clean up
-//      session_data_container_p->decrease ();
+      // clean up
+      sessionData_->decrease ();
 
       return;
     }
   } // end IF
   else
   {
-    // *NOTE*: session message assumes responsibility for session data
-    //         --> add a reference
-    sessionData_->increase ();
     // *TODO*: remove type inference
     ACE_NEW_NORETURN (message_p,
                       SessionMessageType (STREAM_SESSION_END,
@@ -2879,24 +2867,19 @@ Stream_Base_T<LockType,
                 ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", returning\n")));
 
     // clean up
-//    session_data_container_p->decrease ();
     sessionData_->decrease ();
 
     return;
   } // end IF
   if (allocator_)
   {
-    // *NOTE*: session message assumes responsibility for session data
-    //         --> add a reference
-    sessionData_->increase ();
     // *TODO*: remove type inference
     message_p->initialize (STREAM_SESSION_END,
-//                           session_data_container_p,
                            sessionData_,
                            state_.userData);
   } // end IF
 
-  // send message downstream...
+  // send message downstream
   int result = inherited::put (message_p, NULL);
   if (result == -1)
   {

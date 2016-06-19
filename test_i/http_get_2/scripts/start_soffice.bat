@@ -17,7 +17,7 @@ echo invalid file ^(was: "%SOfficeEXE%"^)^, exiting
 goto Failed
 
 :Next
-%SOfficeEXE% --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --headless
+%SOfficeEXE% --accept="socket,host=localhost,port=2083;urp;StarOffice.ServiceManager" --nofirststartwizard --nologo --headless --norestore --invisible >>%TEMP%\libreoffice.log 2>&1
 if %ERRORLEVEL% NEQ 0 (
  echo failed to start office server %SOfficeEXE%^, exiting
  set RC=%ERRORLEVEL%

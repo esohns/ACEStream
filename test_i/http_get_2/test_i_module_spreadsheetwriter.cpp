@@ -21,16 +21,25 @@
 
 #include "test_i_module_spreadsheetwriter.h"
 
+#include "com/sun/star/lang/XComponent.hpp"
 #include "com/sun/star/frame/FrameSearchFlag.hpp"
+#include "com/sun/star/frame/XStorable.hpp"
 //#include "com/sun/star/registry/XSimpleRegistry.hpp"
 //#include "cppuhelper/bootstrap.hxx"
 //#include "rtl/bootstrap.hxx"
 #include "rtl/bootstrap.h"
 
+#include "com/sun/star/sheet/XSpreadsheet.hdl"
+#include "com/sun/star/table/XCell.hpp"
+#include "com/sun/star/table/XCellRange.hpp"
+
+#include "common_file_tools.h"
+
 #include "stream_macros.h"
 
 Test_I_Stream_SpreadsheetWriter::Test_I_Stream_SpreadsheetWriter ()
  : inherited ()
+ , document_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_SpreadsheetWriter::Test_I_Stream_SpreadsheetWriter"));
 
@@ -49,6 +58,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_SpreadsheetWriter::handleSessionMessage"));
 
   int result = -1;
+  bool result_4 = false;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -74,6 +84,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       uno::Reference<uno::XComponentContext> component_context_2; // remote context
       uno::Reference<lang::XMultiComponentFactory> multi_component_factory_p; // local
       uno::Reference<lang::XMultiComponentFactory> multi_component_factory_2; // remote
+      uno::Reference<lang::XComponent> component_p;
       std::string connection_string = ACE_TEXT_ALWAYS_CHAR ("uno:socket,host=");
       std::ostringstream converter;
       ::rtl::OUString connection_string_2;
@@ -85,10 +96,12 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       ::rtl::OUString target_frame_name (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_FRAME_BLANK));
       oslProcessError result_2 = osl_Process_E_InvalidError;
       ::osl::FileBase::RC result_3 = ::osl::FileBase::RC::E_invalidError;
-      bool result_4 = false;
       const char* result_p = NULL;
       sal_Int32 search_flags = frame::FrameSearchFlag::AUTO;
-      uno::Sequence<beans::PropertyValue> properties;
+      uno::Sequence<beans::PropertyValue> document_properties (1);
+      document_properties[0].Name =
+          ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_HIDDEN));
+      document_properties[0].Value <<= true;
 
       result_2 = osl_getProcessWorkingDir (&working_directory.pData);
       ACE_ASSERT (result_2 == osl_Process_E_None);
@@ -96,38 +109,46 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       // *TODO*: ::cppu::defaultBootstrap_InitialComponentContext () appears to
       //         work but segfaults in XComponentLoader::loadComponentFromURL()
       //         later on (why ?)
-      //      result_4 = component_context_p.set (::cppu::bootstrap (),
-      //                                          uno::UNO_QUERY);
+            result_4 = component_context_p.set (::cppu::bootstrap (),
+                                                uno::UNO_QUERY);
 
       // *NOTE*: strip suffix from .ini/.rc file (see
       //         also: http://api.libreoffice.org/docs/cpp/ref/a00365.html#a296238ca64cb9898a6b8303f12877faa)
-      std::string::size_type position =
-          inherited::configuration_->libreOfficeRc.find_last_of (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX),
-                                                                 std::string::npos,
-                                                                 ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX)));
-      ACE_ASSERT (position != std::string::npos);
-      std::string filename_string =
-          inherited::configuration_->libreOfficeRc.substr (0, position);
-      filename =
-          ::rtl::OUString::createFromAscii (filename_string.c_str ());
-                 //        ::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR ("/usr/lib/ure/share/misc/types.rdb"));
-      result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
-                                                            filename_url);
-      ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
-      result_3 = ::osl::FileBase::getAbsoluteFileURL (working_directory,
-                                                      filename_url,
-                                                      absolute_filename_url);
-      ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
+      //std::string::size_type position =
+      //    inherited::configuration_->libreOfficeRc.find_last_of (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX),
+      //                                                           std::string::npos,
+      //                                                           ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_BOOTSTRAP_FILE_SUFFIX)));
+      //ACE_ASSERT (position != std::string::npos);
+      //std::string filename_string =
+      //    inherited::configuration_->libreOfficeRc.substr (0, ++position);
+      //filename = ::rtl::OUString::createFromAscii (filename_string.c_str ());
+      //result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
+      //                                                      filename_url);
+      //ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
+      //result_3 = ::osl::FileBase::getAbsoluteFileURL (working_directory,
+      //                                                filename_url,
+      //                                                absolute_filename_url);
+      //ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
 //      registry_p->open (absolute_filename_url,
 //                        sal_True,
 //                        sal_False);
 //      ::rtl::Bootstrap::set (::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR ("URE_MORE_TYPES")),
 //                             ::rtl::Bootstrap::encode (absolute_filename_url));
-      rtl_bootstrap_setIniFileName (absolute_filename_url.pData);
-      result_4 =
-        component_context_p.set (::cppu::defaultBootstrap_InitialComponentContext (),
-//          component_context_p.set (::cppu::bootstrap_InitialComponentContext (registry_p),
-                                 uno::UNO_QUERY);
+      //rtl_bootstrap_setIniFileName (absolute_filename_url.pData);
+  //    try {
+  //      result_4 =
+  //        component_context_p.set (::cppu::defaultBootstrap_InitialComponentContext (absolute_filename_url.pData),
+  ////          component_context_p.set (::cppu::bootstrap_InitialComponentContext (registry_p),
+  //                                 uno::UNO_QUERY);
+  //    } catch (::uno::Exception& exception_in) {
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("%s: caught exception in ::cppu::defaultBootstrap_InitialComponentContext (): \"%s\", aborting\n"),
+  //                  inherited::mod_->name (),
+  //                  ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
+  //                                                      RTL_TEXTENCODING_ASCII_US,
+  //                                                      OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+  //      goto error;
+  //    }
       ACE_ASSERT (result_4);
       result_4 =
         multi_component_factory_p.set (component_context_p->getServiceManager (),
@@ -197,7 +218,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                   ACE_TEXT (::rtl::OUStringToOString (connection_string_2,
                                                       RTL_TEXTENCODING_ASCII_US,
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-      property_set_p->getPropertyValue ("DefaultContext") >>=
+      property_set_p->getPropertyValue (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_DEFAULT_CONTEXT))) >>=
         component_context_2;
       result_4 =
         multi_component_factory_2.set (component_context_2->getServiceManager ());
@@ -212,22 +233,28 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       ACE_ASSERT (result_4);
 
       // generate document filename URL
-      filename =
-        ::rtl::OUString::createFromAscii (inherited::configuration_->targetFileName.c_str ());
-      result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
-                                                            filename_url);
-      ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
-      result_3 = ::osl::FileBase::getAbsoluteFileURL (working_directory,
-                                                      filename_url,
-                                                      absolute_filename_url);
-      ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
+      if (Common_File_Tools::isReadable (inherited::configuration_->targetFileName))
+      {
+        filename =
+          ::rtl::OUString::createFromAscii (inherited::configuration_->targetFileName.c_str ());
+        result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
+                                                              filename_url);
+        ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
+        result_3 = ::osl::FileBase::getAbsoluteFileURL (working_directory,
+                                                        filename_url,
+                                                        absolute_filename_url);
+        ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
+      }
+      else
+        absolute_filename_url =
+          ::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR ("private:factory/scalc")); // <-- new file
       try {
         result_4 =
-            inherited::document_.set (desktop_p->loadComponentFromURL (absolute_filename_url, // URL
-                                                                       target_frame_name,     // target frame name
-                                                                       search_flags,          // search flags
-                                                                       properties),           // properties
-                                      uno::UNO_QUERY);
+            inherited::documentComponent_.set (desktop_p->loadComponentFromURL (absolute_filename_url, // URL
+                                                                                target_frame_name,     // target frame name
+                                                                                search_flags,          // search flags
+                                                                                document_properties),  // properties
+                                               uno::UNO_QUERY);
       } catch (uno::Exception& exception_in) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in XComponentLoader::loadComponentFromURL(\"%s\"): \"%s\", aborting\n"),
@@ -247,6 +274,10 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                                                         OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
         goto error;
       }
+      ACE_ASSERT (inherited::documentComponent_.is ());
+      ACE_ASSERT (result_4);
+      result_4 = document_.set (inherited::documentComponent_,
+                                uno::UNO_QUERY);
       ACE_ASSERT (result_4);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: loaded LibreOffice spreadsheet document (was: \"%s\")...\n"),
@@ -256,7 +287,13 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
 
       // clean up
-      uno::Reference<lang::XComponent>::query (multi_component_factory_p)->dispose ();
+      // *TODO*: ::lang::XComponent::dispose crashes the application
+      //result_4 = component_p.set (multi_component_factory_p,
+      //                            uno::UNO_QUERY);
+      //ACE_ASSERT (component_p.is ());
+      //ACE_ASSERT (result_4);
+      //component_p->dispose ();
+      //::uno::Reference<::lang::XComponent>::query (multi_component_factory_p)->dispose ();
 
       break;
 
@@ -267,12 +304,112 @@ error:
     }
     case STREAM_SESSION_END:
     {
-      for (Test_I_PortfolioIterator_t iterator = session_data_r.data.begin ();
+      uno::Reference<sheet::XSpreadsheets> spreadsheets_p;
+      uno::Reference<container::XIndexAccess> index_p;
+      uno::Any any_p;
+      uno::Reference<sheet::XSpreadsheet> sheet_p;
+      uno::Reference<frame::XStorable> storable_p;
+      uno::Reference<table::XCell> cell_p;
+      ::rtl::OUString cell_value_string;
+      unsigned int column;
+      unsigned int row;
+      uno::Reference<table::XCellRange> cell_range_p;
+      Test_I_StockItemsIterator_t iterator_2;
+
+      // sanity check(s)
+      if (!document_.is ())
+        goto continue_;
+
+      // load worksheet collection
+      spreadsheets_p = document_->getSheets ();
+      ACE_ASSERT (spreadsheets_p.is ());
+      result_4 = index_p.set (spreadsheets_p,
+                              uno::UNO_QUERY);
+      ACE_ASSERT (result_4);
+      ACE_ASSERT (index_p.is ());
+
+      // load first worksheet
+      any_p = index_p->getByIndex (0);
+      ACE_ASSERT (any_p.hasValue ());
+      any_p >>= sheet_p;
+      ACE_ASSERT (sheet_p.is ());
+
+      // retrieve a cell range interface handle
+      result_4 = cell_range_p.set (sheet_p,
+                                   uno::UNO_QUERY);
+      ACE_ASSERT (result_4);
+      ACE_ASSERT (cell_range_p.is ());
+
+      column = 0;
+      row = inherited::configuration_->libreOfficeSheetStartRow;
+      for (Test_I_StockRecordsIterator_t iterator = session_data_r.data.begin ();
            iterator != session_data_r.data.end ();
            ++iterator)
       {
+        // sanity check(s)
+        ACE_ASSERT ((*iterator).item);
 
+        iterator_2 =
+          inherited::configuration_->stockItems.find (*(*iterator).item);
+        ACE_ASSERT (iterator_2 != inherited::configuration_->stockItems.end ());
+
+        column = inherited::configuration_->libreOfficeSheetStartColumn;
+        cell_p = cell_range_p->getCellByPosition (column, row);
+        ACE_ASSERT (cell_p.is ());
+        cell_value_string =
+            ::rtl::OUString::createFromAscii ((*iterator_2).symbol.c_str ());
+        cell_p->setFormula (cell_value_string);
+
+        ++column;
+        cell_p = cell_range_p->getCellByPosition (column, row);
+        ACE_ASSERT (cell_p.is ());
+        cell_value_string =
+          ::rtl::OUString::createFromAscii ((*iterator_2).ISIN.c_str ());
+        cell_p->setFormula (cell_value_string);
+
+        ++column;
+        cell_p = cell_range_p->getCellByPosition (column, row);
+        ACE_ASSERT (cell_p.is ());
+        cell_p->setFormula (::rtl::OUString::createFromAscii ((*iterator_2).WKN.c_str ()));
+
+        ++column;
+        cell_p = cell_range_p->getCellByPosition (column, row);
+        ACE_ASSERT (cell_p.is ());
+        cell_p->setValue ((*iterator).value);
+
+        ++column;
+        cell_p = cell_range_p->getCellByPosition (column, row);
+        ACE_ASSERT (cell_p.is ());
+        cell_p->setValue ((*iterator).change);
       } // end FOR
+      if (!session_data_r.data.empty ())
+      {
+        result_4 = storable_p.set (document_,
+                                   uno::UNO_QUERY);
+        ACE_ASSERT (result_4);
+        ACE_ASSERT (storable_p.is ());
+
+        try {
+          storable_p->store ();
+        }
+        catch (io::IOException exception_in) {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught exception in XStorable::store(): \"%s\", continuing\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
+                                                          RTL_TEXTENCODING_ASCII_US,
+                                                          OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
+          goto continue_;
+        }
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: wrote %u record(s)...\n"),
+                    inherited::mod_->name (),
+                    session_data_r.data.size ()));
+      } // end IF
+
+continue_:
+      if (inherited::documentComponent_.is ())
+        inherited::documentComponent_->dispose ();
 
       break;
     }

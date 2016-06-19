@@ -63,6 +63,11 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
     return;
   } // end IF
 
+  const Test_I_MessageData_t& message_data_container_r = message_inout->get ();
+  Test_I_MessageData& message_data_r =
+    const_cast<Test_I_MessageData&> (message_data_container_r.get ());
+  message_data_r.stockItem = *iterator_;
+
   // send next request ?
   do
   {
@@ -73,26 +78,30 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
       break;
   } while (true);
 
-  std::string url_string = inherited::configuration_->URL;
-  std::string::size_type position =
-    url_string.find (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER),
-                     0,
-                     ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)));
-  ACE_ASSERT (position != std::string::npos);
-  url_string =
-    url_string.replace (position,
-                        ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)),
-                        (*iterator_).ISIN.c_str ());
+  //std::string url_string = inherited::configuration_->URL;
+  //std::string::size_type position =
+  //  url_string.find (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER),
+  //                   0,
+  //                   ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)));
+  //ACE_ASSERT (position != std::string::npos);
+  //url_string =
+  //  url_string.replace (position,
+  //                      ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)),
+  //                      (*iterator_).ISIN.c_str ());
+  HTTP_Form_t form_data;
+  form_data.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (TEST_I_FORM_KEY_SEARCH_STRING),
+                                    (*iterator_).ISIN));
 
-  // send HTTP Get request
-  if (!inherited::sendRequest (url_string,
-                               inherited::configuration_->HTTPHeaders))
+  // send HTTP POST request
+  if (!inherited::sendRequest (inherited::configuration_->URL,
+                               inherited::configuration_->HTTPHeaders,
+                               form_data))
   {
     ACE_ASSERT (inherited::mod_);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to send HTTP request \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (url_string.c_str ())));
+                ACE_TEXT (inherited::configuration_->URL.c_str ())));
     return;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
@@ -125,6 +134,8 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
     inherited::sessionData_ =
       &const_cast<Test_I_Stream_SessionData_t&> (message_inout->get ());
     inherited::sessionData_->increase ();
+    Test_I_Stream_SessionData& session_data_r =
+      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
     iterator_ = inherited::configuration_->stockItems.begin ();
     do
@@ -138,26 +149,30 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
       ++iterator_;
     } while (true);
 
-    std::string url_string = inherited::configuration_->URL;
-    std::string::size_type position =
-      url_string.find (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER),
-                       0,
-                       ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)));
-    ACE_ASSERT (position != std::string::npos);
-    url_string =
-      url_string.replace (position,
-                          ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)),
-                          (*iterator_).ISIN.c_str ());
+    //std::string url_string = inherited::configuration_->URL;
+    //std::string::size_type position =
+    //  url_string.find (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER),
+    //                   0,
+    //                   ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)));
+    //ACE_ASSERT (position != std::string::npos);
+    //url_string =
+    //  url_string.replace (position,
+    //                      ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)),
+    //                      (*iterator_).ISIN.c_str ());
+    HTTP_Form_t form_data;
+    form_data.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (TEST_I_FORM_KEY_SEARCH_STRING),
+                                      (*iterator_).ISIN));
 
-    // send first HTTP Get request
-    if (!inherited::sendRequest (url_string,
-                                 inherited::configuration_->HTTPHeaders))
+    // send first HTTP POST request
+    if (!inherited::sendRequest (inherited::configuration_->URL,
+                                 inherited::configuration_->HTTPHeaders,
+                                 form_data))
     {
       ACE_ASSERT (inherited::mod_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to send HTTP request \"%s\", returning\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (url_string.c_str ())));
+                  ACE_TEXT (inherited::configuration_->URL.c_str ())));
       return;
     } // end IF
     ACE_DEBUG ((LM_DEBUG,

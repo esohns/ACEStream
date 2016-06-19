@@ -115,6 +115,7 @@ class Stream_Module_HTMLParser_T
 
   ModuleHandlerConfigurationType* configuration_;
   ParserContextType               parserContext_;
+  SessionDataType*                sessionData_;
   htmlSAXHandler                  SAXHandler_;
 
  private:

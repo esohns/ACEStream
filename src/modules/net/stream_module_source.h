@@ -127,6 +127,7 @@ class Stream_Module_Net_Source_T
   //ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
   //bool putStatisticMessage (const StatisticContainerType&) const; // statistic info
 
+  ConnectorType                                 connector_;
   typename ConnectionManagerType::CONNECTION_T* connection_;
   bool                                          isLinked_;
   bool                                          isPassive_;

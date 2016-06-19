@@ -20,9 +20,9 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set (${PROJECT_NAME}_Document_LIB_SRCS
      stream_document_defines.h
      stream_document_exports.h
-     stream_module_libreoffice_spreadsheet_writer.cpp
-     stream_module_libreoffice_spreadsheet_writer.h
-     stream_module_libreoffice_spreadsheet_writer.inl
+     stream_module_libreoffice_document_writer.cpp
+     stream_module_libreoffice_document_writer.h
+     stream_module_libreoffice_document_writer.inl
      stdafx.cpp
      stdafx.h)
 
@@ -47,8 +47,8 @@ export (TARGETS ${PROJECT_NAME}_Document
 install (FILES
          stream_document_defines.h
          stream_document_exports.h
-         stream_module_libreoffice_spreadsheet_writer.h
-         stream_module_libreoffice_spreadsheet_writer.inl
+         stream_module_libreoffice_document_writer.h
+         stream_module_libreoffice_document_writer.inl
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
 install (TARGETS ${PROJECT_NAME}_Document
