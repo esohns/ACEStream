@@ -215,21 +215,24 @@ struct Test_I_Stream_SessionData
    : Stream_SessionData ()
    , connectionState (NULL)
    , data ()
-   , format (STREAM_COMPRESSION_FORMAT_NONE)
+   , format (STREAM_COMPRESSION_FORMAT_INVALID)
    //, parserContext (NULL)
    , targetFileName ()
    , userData (NULL)
   {};
-  inline Test_I_Stream_SessionData& operator= (Test_I_Stream_SessionData& rhs_in)
-  {
-    Stream_SessionData::operator= (rhs_in);
 
-    connectionState = (connectionState ? connectionState : rhs_in.connectionState);
-    data = rhs_in.data;
+  inline Test_I_Stream_SessionData& operator+= (const Test_I_Stream_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionData::operator+= (rhs_in);
+
+    connectionState =
+      (connectionState ? connectionState : rhs_in.connectionState);
+    data.insert (data.end (), rhs_in.data.begin (), rhs_in.data.end ());
     //parserContext = (parserContext ? parserContext : rhs_in.parserContext);
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);
-    userData = (userData ? userData : rhs_in.userData);
+    //userData = (userData ? userData : rhs_in.userData);
 
     return *this;
   }

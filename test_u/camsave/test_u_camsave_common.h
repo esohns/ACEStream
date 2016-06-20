@@ -134,7 +134,6 @@ struct Stream_CamSave_SessionData
    , format ()
    , frameRate ()
 #endif
-//   , size (0)
    , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -153,6 +152,28 @@ struct Stream_CamSave_SessionData
 #endif
   };
 
+  inline Stream_CamSave_SessionData operator+= (const Stream_CamSave_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionData::operator+= (rhs_in);
+
+    currentStatistic += rhs_in.currentStatistic;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    direct3DDevice = (direct3DDevice ? direct3DDevice : rhs_in.direct3DDevice);
+    //format = (format ? format : rhs_in.format);
+    //rendererNodeId = (rendererNodeId ? rendererNodeId : rhs_in.rendererNodeId);
+    //resetToken = (resetToken ? resetToken : rhs_in.resetToken);
+    //session = (session ? session : rhs_in.session);
+#else
+    //format = 
+    //frameRate = 
+#endif
+    targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
+                                              : targetFileName);
+
+    return *this;
+  };
+
   Stream_CamSave_StatisticData currentStatistic;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //struct _AMMediaType*         format;
@@ -165,7 +186,6 @@ struct Stream_CamSave_SessionData
   struct v4l2_format           format;
   struct v4l2_fract            frameRate; // time-per-frame
 #endif
-  //  unsigned int size;
   std::string                  targetFileName;
 };
 typedef Stream_SessionData_T<Stream_CamSave_SessionData> Stream_CamSave_SessionData_t;

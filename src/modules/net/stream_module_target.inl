@@ -199,7 +199,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
       ConnectorType connector (iconnection_manager_p,
                                configuration_->streamConfiguration->statisticReportingInterval);
       Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
-      typename ConnectorType::INTERFACE_T* iconnector_p = NULL;
+      typename ConnectorType::ICONNECTOR_T* iconnector_p = NULL;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       typename ConnectorType::STREAM_T* stream_p = NULL;

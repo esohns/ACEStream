@@ -486,7 +486,7 @@ characters (void* userData_in,
       value_string += data_string;
 
       regex_string =
-        ACE_TEXT_ALWAYS_CHAR ("^(?:\\s*)([[:digit:]]+\\.)?([[:digit:]]+)(,[[:digit:]]+)$");
+        ACE_TEXT_ALWAYS_CHAR ("^(?:[^[:digit:]]*)([[:digit:]]+\\.)?([[:digit:]]+)(,[[:digit:]]+)$");
       regex.assign (regex_string, flags);
       if (!std::regex_match (value_string,
                              match_results,
@@ -503,13 +503,16 @@ characters (void* userData_in,
       ACE_ASSERT (match_results[2].matched);
       ACE_ASSERT (match_results[3].matched);
 
+      // *TODO*: this isn't quite right yet, i.e. make sure to set a locale that
+      //         allows thousands separators
+      std::locale locale (ACE_TEXT_ALWAYS_CHAR (""));
       std::string value_string_2;
       if (match_results[1].matched)
         value_string_2 = match_results[1].str ();
       value_string_2 += match_results[2].str ();
       value_string_2 += match_results[3].str ();
-      std::istringstream converter;
-      converter.str (value_string_2);
+      std::istringstream converter (value_string_2);
+      converter.imbue (locale);
       converter >> data_p->data->value;
 
       // *TODO*: move this to endElement ()

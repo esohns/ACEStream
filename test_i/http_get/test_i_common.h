@@ -137,6 +137,15 @@ struct Test_I_DataSet
    , title ()
   {};
 
+  inline Test_I_DataSet& operator+= (const Test_I_DataSet& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    pageData.insert (rhs_in.pageData.begin (), rhs_in.pageData.end ());
+    title = (title.empty () ? rhs_in.title : title);
+
+    return *this;
+  }
+
   Test_I_PageData_t pageData;
   std::string       title;
 };
@@ -197,44 +206,21 @@ struct Test_I_Stream_SessionData
    : Stream_SessionData ()
    , connectionState (NULL)
    , data ()
-   , format (STREAM_COMPRESSION_FORMAT_NONE)
+   , format (STREAM_COMPRESSION_FORMAT_INVALID)
    , parserContext (NULL)
    , targetFileName ()
    , userData (NULL)
   {};
-  inline Test_I_Stream_SessionData& operator= (Test_I_Stream_SessionData& rhs_in)
+
+  inline Test_I_Stream_SessionData& operator+= (const Test_I_Stream_SessionData& rhs_in)
   {
-    Stream_SessionData::operator= (rhs_in);
+    // *NOTE*: the idea is to 'merge' the data
+    Stream_SessionData::operator+= (rhs_in);
 
-    connectionState = (connectionState ? connectionState : rhs_in.connectionState);
-    if (data.pageData.empty ()) data = rhs_in.data;
-    else
-    {
-      Test_I_PageDataIterator_t iterator;
-      Test_I_DataItemsIterator_t iterator_2;
-      for (Test_I_PageDataIterator_t iterator_3 = rhs_in.data.pageData.begin ();
-           iterator_3 != rhs_in.data.pageData.end ();
-           ++iterator_3)
-      {
-        iterator = data.pageData.find ((*iterator_3).first);
-        if (iterator == data.pageData.end ())
-        {
-          data.pageData.insert (*iterator_3);
-          continue;
-        } // end IF
-
-        for (Test_I_DataItemsIterator_t iterator_4 = (*iterator_3).second.begin ();
-             iterator_4 != (*iterator_3).second.end ();
-             ++iterator_4)
-        {
-          iterator_2 = std::find ((*iterator).second.begin (),
-                                  (*iterator).second.end (),
-                                  *iterator_4);
-          if (iterator_2 == (*iterator_3).second.end ())
-            (*iterator).second.push_back (*iterator_4);
-        } // end FOR
-      } // end FOR
-    } // end ELSE
+    connectionState =
+      (connectionState ? connectionState : rhs_in.connectionState);
+    data += rhs_in.data;
+    //format = 
     parserContext = (parserContext ? parserContext : rhs_in.parserContext);
     targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
                                               : targetFileName);

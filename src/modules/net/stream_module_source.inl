@@ -57,7 +57,8 @@ Stream_Module_Net_Source_T<LockType,
               false, // active object ?
               false, // auto-start ?
               false) // run svc() routine on start ? (passive only)
- , connector_ ()
+ , connector_ (NULL,
+               ACE_Time_Value::zero)
  , connection_ (NULL)
  , isLinked_ (false)
  , isPassive_ (isPassive_in)
@@ -305,19 +306,19 @@ Stream_Module_Net_Source_T<LockType,
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
   ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::sessionData_);
 
+  SessionDataType& session_data_r =
+      const_cast<SessionDataType&> (inherited::sessionData_->get ());
   SessionDataContainerType& session_data_container_r =
-    const_cast<SessionDataContainerType&> (message_inout->get ());
+      const_cast<SessionDataContainerType&> (message_inout->get ());
+  SessionDataType& session_data_2 =
+      const_cast<SessionDataType&> (session_data_container_r.get ());
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_BEGIN:
     {
-      session_data_container_r.increase ();
-      sessionData_ = &session_data_container_r;
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (session_data_container_r.get ());
-
       // schedule regular statistic collection ?
       if (inherited::configuration_->streamConfiguration->statisticReportingInterval !=
           ACE_Time_Value::zero)
@@ -352,11 +353,11 @@ Stream_Module_Net_Source_T<LockType,
         (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
                                                       : NULL);
       // *TODO*: remove type inferences
-      ConnectorType connector (iconnection_manager_p,
-                               inherited::configuration_->streamConfiguration->statisticReportingInterval);
+      //ConnectorType connector (iconnection_manager_p,
+      //                         inherited::configuration_->streamConfiguration->statisticReportingInterval);
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
-      typename ConnectorType::INTERFACE_T* iconnector_p = NULL;
+      typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
 
       if (isPassive_)
@@ -368,7 +369,7 @@ Stream_Module_Net_Source_T<LockType,
         // --> using session connection
 
         // sanity check(s)
-        ACE_ASSERT (inherited::configuration_->connectionManager);
+        ACE_ASSERT (iconnection_manager_p);
 
         // *TODO*: remove type inference
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -377,8 +378,7 @@ Stream_Module_Net_Source_T<LockType,
         handle = static_cast<ACE_HANDLE> (session_data_r.sessionID);
 #endif
         ACE_ASSERT (handle != ACE_INVALID_HANDLE);
-        connection_ =
-          inherited::configuration_->connectionManager->get (handle);
+        connection_ = iconnection_manager_p->get (handle);
         if (!connection_)
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -419,11 +419,10 @@ Stream_Module_Net_Source_T<LockType,
       //    configuration.streamConfiguration.cloneModule = false;
       //    configuration.streamConfiguration.deleteModule = false;
       //    configuration.streamConfiguration.module = NULL;
-      //    configuration_in.connectionManager->set (configuration,
-      //                                             user_data_p);
+      //    iconnection_manager_p->set (configuration,
+      //                                user_data_p);
 
       // step2: initialize connector
-      iconnector_p = &connector;
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
       bool clone_module, delete_module;
       clone_module =
@@ -463,7 +462,7 @@ Stream_Module_Net_Source_T<LockType,
         do
         {
           connection_ =
-            inherited::configuration_->connectionManager->get (inherited::configuration_->socketConfiguration->address);
+            iconnection_manager_p->get (inherited::configuration_->socketConfiguration->address);
           if (connection_)
           {
             // step2: wait for the connection to finish initializing
@@ -692,13 +691,9 @@ error_2:
         connection_ = NULL;
       } // end IF
 
-      if (!sessionData_)
+      if (!inherited::sessionData_)
         goto continue_2;
 
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (session_data_container_r.get ());
-      SessionDataType& session_data_2 =
-        const_cast<SessionDataType&> (sessionData_->get ());
       // *NOTE*: most probable reason: stream has been link()ed after the
       //         session had started, and session data is now that of upstream
       // *TODO*: data could be merged to improve consistency
@@ -706,13 +701,15 @@ error_2:
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("re-setting session data...\n")));
-        session_data_container_r.set (session_data_2);
+        session_data_container_r.set (session_data_r);
       } // end IF
 
-      sessionData_->decrease ();
-      sessionData_ = NULL;
+      inherited::sessionData_->decrease ();
+      inherited::sessionData_ = NULL;
 
 continue_2:
+      inherited::shutdown ();
+
       break;
     }
     default:

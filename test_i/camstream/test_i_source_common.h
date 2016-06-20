@@ -218,7 +218,8 @@ struct Test_I_Source_Stream_SessionData
    , connectionState (NULL)
    , userData (NULL)
   {};
-  inline Test_I_Source_Stream_SessionData& operator+= (Test_I_Source_Stream_SessionData& rhs_in)
+
+  inline Test_I_Source_Stream_SessionData& operator+= (const Test_I_Source_Stream_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data...
     Test_I_Stream_SessionData::operator+= (rhs_in);

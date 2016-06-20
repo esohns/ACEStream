@@ -104,22 +104,26 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::handleDataMessage"));
 
-  bool delete_record = false;
-
   // sanity check(s)
   ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (configuration_);
   ACE_ASSERT (sessionData_);
 
-  // initialize return value(s)
-  passMessageDownstream_out = false;
+  HTTP_Record* record_p = NULL;
+  bool delete_record = false;
+  HTTP_HeadersIterator_t iterator;
+  ACE_INET_Addr host_address;
+  std::string uri_string;
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
 
   if (responseReceived_)
     return; // done
 
-  // *NOTE*: if the HTTP header is parsed upstream, there is no need to do it
-  //         here...
-  HTTP_Record* record_p = NULL;
+  passMessageDownstream_out = false;
+
+  // *NOTE*: if the HTTP header was parsed upstream, there is no need to do it
+  //         here
   if (message_inout->isInitialized ())
   {
     const typename ProtocolMessageType::DATA_T& data_container_r =
@@ -136,9 +140,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   if (!record_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to retrieve HTTP record, returning\n"),
+                ACE_TEXT ("%s: failed to retrieve HTTP record, aborting\n"),
                 inherited::mod_->name ()));
-    return;
+    goto error;
   } // end IF
 
   switch (record_p->status)
@@ -157,15 +161,15 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
     case HTTP_Codes::HTTP_STATUS_NOTMODIFIED:
     {
       // step1: redirected --> extract location
-      HTTP_HeadersIterator_t iterator =
+      iterator =
           record_p->headers.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_LOCATION_STRING));
       if (iterator == record_p->headers.end ())
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: missing \"%s\" HTTP header, returning\n"),
+                    ACE_TEXT ("%s: missing \"%s\" HTTP header, aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (HTTP_PRT_HEADER_LOCATION_STRING)));
-        break;
+        goto error;
       } // end IF
 
       // *TODO*: remove type inference
@@ -175,16 +179,14 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
                   ACE_TEXT ((*iterator).second.c_str ()),
                   record_p->status));
 
-      ACE_INET_Addr host_address;
-      std::string uri_string;
       if (!HTTP_Tools::parseURL ((*iterator).second,
                                  host_address,
                                  uri_string))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), returning\n"),
+                    ACE_TEXT ("failed to HTTP_Tools::parseURL(\"%s\"), aborting\n"),
                     ACE_TEXT ((*iterator).second.c_str ())));
-        break;
+        goto error;
       } // end IF
 
       // step2: send request
@@ -194,10 +196,10 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to send HTTP request \"%s\", continuing\n"),
+                    ACE_TEXT ("%s: failed to send HTTP request \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT ((*iterator).second.c_str ())));
-        break;
+        goto error;
       } // end IF
 
       break;
@@ -208,22 +210,29 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
                   ACE_TEXT ("invalid HTTP response (status was: %d): \"%s\", aborting\n"),
                   record_p->status,
                   ACE_TEXT (record_p->reason.c_str ())));
-
-      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
-      session_data_r.aborted = true;
-      // *TODO*: close the connection as well
-
-      break;
+      goto error;
     }
   } // end SWITCH
 
+  goto continue_;
+
+error:
+  session_data_r.aborted = true;
+  // *TODO*: close the connection as well
+
+continue_:
   if (delete_record)
   {
     // sanity check(s)
     ACE_ASSERT (record_p);
 
     delete record_p;
+  } // end IF
+
+  if (!passMessageDownstream_out)
+  {
+    message_inout->release ();
+    message_inout = NULL;
   } // end IF
 }
 

@@ -26,7 +26,7 @@
 template <typename DataType>
 Stream_SessionData_T<DataType>::Stream_SessionData_T ()
  : inherited (1,    // initial count
-              true) // delete on zero ?
+              true) // delete 'this' on zero ?
  , data_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::Stream_SessionData_T"));
@@ -35,7 +35,7 @@ Stream_SessionData_T<DataType>::Stream_SessionData_T ()
 template <typename DataType>
 Stream_SessionData_T<DataType>::Stream_SessionData_T (DataType*& data_inout)
  : inherited (1,    // initial count
-              true) // delete on zero ?
+              true) // delete 'this' on zero ?
  , data_ (data_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::Stream_SessionData_T"));
@@ -87,9 +87,22 @@ Stream_SessionData_T<DataType>::set (const DataType& data_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::set"));
 
-  // clean up
-  if (data_)
-    delete data_;
+  // sanity check(s)
+  ACE_ASSERT (data_);
 
-  data_ = &const_cast<DataType&> (data_in);
+  *data_ += data_in;
 }
+
+//template <typename DataType>
+//void
+//Stream_SessionData_T<DataType>::set (DataType*& data_inout)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_SessionData_T::set"));
+//
+//  // clean up
+//  if (data_)
+//    delete data_;
+//
+//  data_ = data_inout;
+//  data_inout = NULL;
+//}

@@ -587,6 +587,7 @@ Stream_HeadModuleTaskBase_T<LockType,
     case STREAM_SESSION_BEGIN:
     {
       // *TODO*: remove type inference
+      // sanity check(s)
       ACE_ASSERT (configuration_->streamConfiguration);
 
       session_data_container_r.increase ();
@@ -623,6 +624,9 @@ Stream_HeadModuleTaskBase_T<LockType,
     }
     case STREAM_SESSION_END:
     {
+      // sanity check(s)
+      ACE_ASSERT (sessionData_);
+
       if (timerID_ != -1)
       {
         const void* act_p = NULL;
@@ -636,27 +640,24 @@ Stream_HeadModuleTaskBase_T<LockType,
         timerID_ = -1;
       } // end IF
 
-      if (!sessionData_)
-        goto continue_;
-
       SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (session_data_container_r.get ());
-      SessionDataType& session_data_2 =
         const_cast<SessionDataType&> (sessionData_->get ());
+      SessionDataType& session_data_2 =
+        const_cast<SessionDataType&> (session_data_container_r.get ());
+
       // *NOTE*: most probable reason: stream has been link()ed after the
       //         session had started, and session data is now that of upstream
       // *TODO*: data could be merged to improve consistency
       if (&session_data_r != &session_data_2)
       {
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("session data is inconsistent, continuing\n")));
-        session_data_container_r.set (session_data_2);
+                    ACE_TEXT ("re-setting session data...\n")));
+        session_data_container_r.set (session_data_r);
       } // end IF
 
       sessionData_->decrease ();
       sessionData_ = NULL;
 
-continue_:
       inherited2::shutdown ();
 
       break;

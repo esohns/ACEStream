@@ -184,9 +184,9 @@ struct Test_I_Stream_SessionData
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #endif
   };
-  inline Test_I_Stream_SessionData& operator+= (Test_I_Stream_SessionData& rhs_in)
+  inline Test_I_Stream_SessionData& operator+= (const Test_I_Stream_SessionData& rhs_in)
   {
-    // *NOTE*: the idea is to 'merge' the data...
+    // *NOTE*: the idea is to 'merge' the data
     Stream_SessionData::operator+= (rhs_in);
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);

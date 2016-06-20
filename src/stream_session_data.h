@@ -46,13 +46,11 @@ class Stream_SessionData_T
 //                                          UserDataType>;
 
  public:
-  // convenience types
   typedef DataType DATA_T;
 
   Stream_SessionData_T ();
   // *IMPORTANT NOTE*: fire-and-forget API
   Stream_SessionData_T (DataType*&); // session data handle
-  // *TODO*: make this private ASAP !
   virtual ~Stream_SessionData_T ();
 
   // implement Common_IDumpState
@@ -60,17 +58,20 @@ class Stream_SessionData_T
 
   // implement Common_IGetSet_T
   virtual const DataType& get () const;
-  // *IMPORTANT NOTE*: fire-and-forget API
-  // *WARNING*: reference count is (re)set to 1 !
-  virtual void set (const DataType&); // session data handle
+  // *NOTE*: merge-sets the session data (operator+=)
+  virtual void set (const DataType&);
+
+  //// *IMPORTANT NOTE*: fire-and-forget API
+  //void set (DataType*&); // session data handle
+
+ protected:
+  DataType* data_;
 
  private:
   typedef Common_ReferenceCounterBase inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T (const Stream_SessionData_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionData_T& operator= (const Stream_SessionData_T&))
-
-  DataType* data_;
 };
 
 // include template implementation

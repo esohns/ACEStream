@@ -49,10 +49,10 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::Test_I_HTTPGet_Stream_T"));
 
-  // remember the "owned" ones...
+  // remember the 'owned' modules
   // *TODO*: clean this up
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
-  //         stream (e.g. because initialize() failed...) need to be explicitly
+  //         stream (e.g. because initialize() failed,...) need to be explicitly
   //         close()d
   inherited::modules_.push_front (&netSource_);
   inherited::modules_.push_front (&HTTPMarshal_);
@@ -79,7 +79,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::~Test_I_HTTPGet_Stream_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::~Test_I_HTTPGet_Stream_T"));
 
-  // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
 }
 
