@@ -128,19 +128,17 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
   case STREAM_SESSION_BEGIN:
   {
     // sanity check(s)
-    ACE_ASSERT (!sessionData_);
+    ACE_ASSERT (!inherited::sessionData_);
 
     // *TODO*: remove type inferences
     inherited::sessionData_ =
       &const_cast<Test_I_Stream_SessionData_t&> (message_inout->get ());
     inherited::sessionData_->increase ();
-    Test_I_Stream_SessionData& session_data_r =
-      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
     iterator_ = inherited::configuration_->stockItems.begin ();
     do
     {
-      if (iterator_ ==  inherited::configuration_->stockItems.end ())
+      if (iterator_ == inherited::configuration_->stockItems.end ())
         return; // done
 
       if (!(*iterator_).ISIN.empty ())
@@ -148,6 +146,25 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
 
       ++iterator_;
     } while (true);
+
+    // sanity check(s)
+    if (iterator_ == inherited::configuration_->stockItems.end ())
+      return;
+
+    const Test_I_Stream_SessionData_t& sesion_data_container_r =
+      message_inout->get ();
+    const Test_I_Stream_SessionData& session_data_r =
+      sesion_data_container_r.get ();
+
+    // sanity check(s)
+    ACE_ASSERT (session_data_r.connectionState);
+    if (session_data_r.connectionState->status != NET_CONNECTION_STATUS_OK)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: no connection, returning\n"),
+                  inherited::mod_->name ()));
+      return;
+    } // end IF
 
     //std::string url_string = inherited::configuration_->URL;
     //std::string::size_type position =
@@ -168,7 +185,6 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
                                  inherited::configuration_->HTTPHeaders,
                                  form_data))
     {
-      ACE_ASSERT (inherited::mod_);
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to send HTTP request \"%s\", returning\n"),
                   inherited::mod_->name (),

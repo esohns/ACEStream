@@ -155,7 +155,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   type_ = STREAM_SESSION_INVALID;
   userData_ = NULL;
 
-//  // *WARNING*: cannot do that anymore (data block has already gone away)...
+//  // *WARNING*: cannot do that anymore (data block has already gone away)
 //  inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
 
   // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
@@ -206,7 +206,6 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   if (userData_)
     return *userData_;
 
-  ACE_ASSERT (false);
   return UserDataType ();
 }
 
@@ -224,16 +223,16 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 
   // create a new <Stream_SessionMessageBase_T> that contains unique copies of
   // the message block fields, but a reference counted duplicate of
-  // the <ACE_sessionData_Block>.
+  // the <ACE_sessionData_Block>
 
-  // if there is no allocator, use the standard new and delete calls.
+  // if there is no allocator, use the standard new and delete calls
   if (!inherited::message_block_allocator_)
     ACE_NEW_NORETURN (message_p,
                       OWN_TYPE_T (*this));
   else
   {
     // *NOTE*: instruct the allocator to return a session message by passing 0
-    //         as argument to malloc()...
+    //         as argument to malloc()
     ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->malloc (0)),
                              OWN_TYPE_T (*this));
@@ -249,7 +248,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
     return NULL;
   } // end IF
 
-  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)
 
   return message_p;
 }
@@ -266,19 +265,30 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::initialize"));
 
-  ACE_ASSERT (!data_);
-  ACE_ASSERT (!initialized_);
-  ACE_ASSERT (!userData_);
+  if (initialized_)
+  {
+    if (data_)
+    {
+      data_->decrease ();
+      data_ = NULL;
+    } // end IF
 
-  data_ = data_inout;
+    initialized_ = false;
+  } // end IF
+
+  if (data_inout)
+  {
+    data_inout->increase ();
+    data_ = data_inout;
+
+    // *NOTE*: instance assumes responsibility for the handle !
+    data_inout = NULL;
+  } // end IF
   initialized_ = true;
   type_ = messageType_in;
   userData_ = userData_in;
 
   inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
-
-  // *NOTE*: instance assumes responsibility for the handle !
-  data_inout = NULL;
 }
 
 template <typename AllocatorConfigurationType,
@@ -300,12 +310,9 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 
   if (data_)
   {
-    try
-    {
+    try {
       data_->dump_state ();
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in SessionDataType::dump_state(), continuing")));
     }
@@ -332,6 +339,11 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
     case STREAM_SESSION_BEGIN:
     {
       string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_BEGIN");
+      break;
+    }
+    case STREAM_SESSION_LINK:
+    {
+      string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_LINK");
       break;
     }
     case STREAM_SESSION_STEP:

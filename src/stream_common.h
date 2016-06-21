@@ -63,6 +63,7 @@ enum Stream_SessionMessageType
   STREAM_SESSION_MESSAGE_MAP = ACE_Message_Block::MB_USER + 1,
   // *** control ***
   STREAM_SESSION_BEGIN,
+  STREAM_SESSION_LINK,
   STREAM_SESSION_STEP,
   STREAM_SESSION_END,
   // *** control - END ***
@@ -76,7 +77,9 @@ enum Stream_SessionMessageType
 
 enum Stream_ControlType
 {
-  STREAM_CONTROL_STEP = 0,
+  STREAM_CONTROL_LINK = 0,
+  STREAM_CONTROL_STEP,
+  STREAM_CONTROL_UNLINK,
   ///////////////////////////////////////
   STREAM_CONTROL_MAX,
   STREAM_CONTROL_INVALID

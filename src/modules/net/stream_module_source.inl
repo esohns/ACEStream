@@ -306,14 +306,13 @@ Stream_Module_Net_Source_T<LockType,
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
   ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (inherited::sessionData_);
 
   SessionDataType& session_data_r =
       const_cast<SessionDataType&> (inherited::sessionData_->get ());
-  SessionDataContainerType& session_data_container_r =
-      const_cast<SessionDataContainerType&> (message_inout->get ());
-  SessionDataType& session_data_2 =
-      const_cast<SessionDataType&> (session_data_container_r.get ());
+  ACE_TCHAR buffer[BUFSIZ];
+  ACE_OS::memset (buffer, 0, sizeof (buffer));
 
   switch (message_inout->type ())
   {
@@ -336,25 +335,22 @@ Stream_Module_Net_Source_T<LockType,
         if (inherited::timerID_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", returning\n")));
+                      ACE_TEXT ("%s: failed to Common_Timer_Manager::schedule_timer(): \"%m\", returning\n"),
+                      inherited::mod_->name ()));
           return;
         } // end IF
 //        ACE_DEBUG ((LM_DEBUG,
-//                    ACE_TEXT ("scheduled statistic collecting timer (ID: %d) for interval %#T...\n"),
+//                    ACE_TEXT ("%s: scheduled statistic collecting timer (ID: %d) for interval %#T...\n"),
+//                    inherited::mod_->name (),
 //                    inherited::timerID_,
 //                    &interval));
       } // end IF
 
-      ACE_TCHAR buffer[BUFSIZ];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
         (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
                                                       : NULL);
-      // *TODO*: remove type inferences
-      //ConnectorType connector (iconnection_manager_p,
-      //                         inherited::configuration_->streamConfiguration->statisticReportingInterval);
       typename ConnectorType::STREAM_T* stream_p = NULL;
       typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
@@ -383,11 +379,13 @@ Stream_Module_Net_Source_T<LockType,
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to retrieve connection (handle was: 0x%@), returning\n"),
+                      ACE_TEXT ("%s: failed to retrieve connection (handle was: 0x%@), returning\n"),
+                      inherited::mod_->name (),
                       handle));
 #else
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to retrieve connection (handle was: %d), returning\n"),
+                      ACE_TEXT ("%s: failed to retrieve connection (handle was: %d), returning\n"),
+                      inherited::mod_->name (),
                       handle));
 #endif
           return;
@@ -401,13 +399,15 @@ Stream_Module_Net_Source_T<LockType,
       ACE_ASSERT (inherited::configuration_->socketConfiguration);
       ACE_ASSERT (inherited::configuration_->socketHandlerConfiguration);
 
+      // debug information
       result =
         inherited::configuration_->socketConfiguration->address.addr_to_string (buffer,
                                                                                 sizeof (buffer),
                                                                                 1);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
+                    ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
 
       //// step1: initialize connection manager
       //    typename ConnectionManagerType::CONFIGURATION_T original_configuration;
@@ -437,7 +437,8 @@ Stream_Module_Net_Source_T<LockType,
       if (!iconnector_p->initialize (*inherited::configuration_->socketHandlerConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ConnectorType::INTERFACE_T::initialize(): \"%m\", returning\n")));
+                    ACE_TEXT ("%s: failed to ConnectorType::INTERFACE_T::initialize(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
         goto reset;
       } // end IF
 
@@ -482,7 +483,8 @@ Stream_Module_Net_Source_T<LockType,
               if (!isocket_connection_p)
               {
                 ACE_DEBUG ((LM_ERROR,
-                            ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T>(0x%@), returning\n"),
+                            ACE_TEXT ("%s: failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T>(0x%@), returning\n"),
+                            inherited::mod_->name (),
                             connection_));
                 goto reset;
               } // end IF
@@ -496,7 +498,8 @@ Stream_Module_Net_Source_T<LockType,
       if (!connection_)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to connect to \"%s\", returning\n"),
+                    ACE_TEXT ("%s: failed to connect to \"%s\", returning\n"),
+                    inherited::mod_->name (),
                     buffer));
 
         // clean up
@@ -505,7 +508,8 @@ Stream_Module_Net_Source_T<LockType,
         goto reset;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("connected to %s...\n"),
+                  ACE_TEXT ("%s: connected to %s...\n"),
+                  inherited::mod_->name (),
                   buffer));
 
 reset:
@@ -523,7 +527,8 @@ reset:
       if (!isocket_connection_p)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T> (0x%@): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to dynamic_cast<Net_ISocketConnection_T> (0x%@): \"%m\", returning\n"),
+                    inherited::mod_->name (),
                     connection_));
         goto error;
       } // end IF
@@ -534,15 +539,27 @@ reset:
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Stream::link(): \"%m\", returning\n")));
+                    ACE_TEXT ("%s: failed to ACE_Stream::link(): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
-      ACE_ASSERT (inherited::mod_);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: linked i/o streams\n"),
                   inherited::mod_->name ()));
       isLinked_ = true;
       //stream_p->dump_state ();
+
+      // update session data in the session message
+      // *WARNING*: this works only if the STREAM_SESSION_LINK message has been
+      //            received by now (see below; OK if upstream is completely
+      //            synchronous)
+      Test_I_Stream_SessionData_t* session_data_container_p =
+        inherited::sessionData_;
+      Test_I_UserData& user_data_r =
+        const_cast<Test_I_UserData&> (message_inout->data ());
+      message_inout->initialize (STREAM_SESSION_BEGIN,
+                                 session_data_container_p,
+                                 &user_data_r);
 
       goto continue_;
 
@@ -551,7 +568,8 @@ error:
       {
         connection_->close ();
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("closed connection to %s...\n"),
+                    ACE_TEXT ("%s: closed connection to %s...\n"),
+                    inherited::mod_->name (),
                     buffer));
         connection_->decrease ();
         connection_ = NULL;
@@ -570,6 +588,25 @@ continue_:
       ACE_ASSERT (session_data_r.lock);
       ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_r.lock);
       session_data_r.sessionID = connection_->id ();
+
+      break;
+    }
+    // *NOTE*: the stream has been link()ed (see above), the message contains
+    //         the (merged) upstream session data --> retain a reference
+    case STREAM_SESSION_LINK:
+    {
+      SessionDataContainerType& session_data_container_r =
+        const_cast<SessionDataContainerType&> (message_inout->get ());
+      session_data_container_r.increase ();
+      // *IMPORTANT NOTE*: although reuse of the upstream session data is
+      //                   warranted, it may not be safe, as the connection
+      //                   might go away, destroying the session data lock
+      //                   --> use 'this' streams' session data lock instead
+      SessionDataType& session_data_2 =
+        const_cast<SessionDataType&> (session_data_container_r.get ());
+      session_data_2.lock = session_data_r.lock;
+      inherited::sessionData_->decrease ();
+      inherited::sessionData_ = &session_data_container_r;
 
       break;
     }
@@ -605,7 +642,8 @@ continue_:
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", returning\n"),
+                      ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", returning\n"),
+                      inherited::mod_->name (),
                       inherited::timerID_));
           goto error_2;
         } // end IF
@@ -653,12 +691,12 @@ error_2:
         {
           // sanity check(s)
           ACE_ASSERT (inherited::configuration_->stream);
-          ACE_ASSERT (inherited::mod_);
 
           result = inherited::configuration_->stream->unlink ();
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_Stream::unlink(): \"%m\", continuing\n")));
+                        ACE_TEXT ("%s: failed to ACE_Stream::unlink(): \"%m\", continuing\n"),
+                        inherited::mod_->name ()));
           else
             ACE_DEBUG ((LM_DEBUG,
                         ACE_TEXT ("%s: unlinked i/o streams\n"),
@@ -679,35 +717,23 @@ error_2:
                                                 sizeof (buffer));
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
+                        ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
+                        inherited::mod_->name ()));
 
           connection_->close ();
           ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("closed connection to %s...\n"),
-                      ACE_TEXT (buffer)));
+                      ACE_TEXT ("%s: closed connection to %s...\n"),
+                      inherited::mod_->name (),
+                      buffer));
         } // end IF
 
         connection_->decrease ();
         connection_ = NULL;
       } // end IF
 
-      if (!inherited::sessionData_)
-        goto continue_2;
-
-      // *NOTE*: most probable reason: stream has been link()ed after the
-      //         session had started, and session data is now that of upstream
-      // *TODO*: data could be merged to improve consistency
-      if (&session_data_r != &session_data_2)
-      {
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("re-setting session data...\n")));
-        session_data_container_r.set (session_data_r);
-      } // end IF
-
       inherited::sessionData_->decrease ();
       inherited::sessionData_ = NULL;
 
-continue_2:
       inherited::shutdown ();
 
       break;

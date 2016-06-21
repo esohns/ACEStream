@@ -201,14 +201,11 @@ Stream_Base_T<LockType,
   int result = -1;
 
   // step1: reset pipeline
-  try
-  {
+  try {
     result = inherited::open (NULL,  // argument to push()
                               NULL,  // head --> allocate
                               NULL); // tail --> allocate
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in ACE_Stream::open(), aborting\n")));
     result = -1;
@@ -269,6 +266,68 @@ Stream_Base_T<LockType,
 
   return true;
 }
+
+//template <typename LockType,
+//          typename TaskSynchType,
+//          typename TimePolicyType,
+//          typename StatusType,
+//          typename StateType,
+//          typename ConfigurationType,
+//          typename StatisticContainerType,
+//          typename ModuleConfigurationType,
+//          typename HandlerConfigurationType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename SessionMessageType,
+//          typename ProtocolMessageType>
+//bool
+//Stream_Base_T<LockType,
+//              TaskSynchType,
+//              TimePolicyType,
+//              StatusType,
+//              StateType,
+//              ConfigurationType,
+//              StatisticContainerType,
+//              ModuleConfigurationType,
+//              HandlerConfigurationType,
+//              SessionDataType,
+//              SessionDataContainerType,
+//              SessionMessageType,
+//              ProtocolMessageType>::putSessionMessage (Stream_SessionMessageType sessionMessageType_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::putSessionMessage"));
+//
+//  int result = -1;
+//
+//  // delegate to the head module
+//  MODULE_T* module_p = NULL;
+//  result = inherited::top (module_p);
+//  if ((result == -1) || !module_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("no head module found: \"%m\", aborting\n")));
+//    return false;
+//  } // end IF
+//
+//  ISTREAM_CONTROL_T* control_impl_p =
+//    dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
+//  if (!control_impl_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl*> failed, aborting\n"),
+//                module_p->name ()));
+//    return;
+//  } // end IF
+//
+//  try {
+//    control_impl_p->control ();
+//  } catch (...) {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: caught exception in Stream_IStreamControl::control(), aborting\n"),
+//                module_p->name ()));
+//    return;
+//  }
+//}
 
 template <typename LockType,
           typename TaskSynchType,
@@ -365,12 +424,9 @@ Stream_Base_T<LockType,
   //  return;
   //} // end IF
 
-  //try
-  //{
+  //try {
   //  statemachine_icontrol_p->initialize ();
-  //}
-  //catch (...)
-  //{
+  //} catch (...) {
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("%s: caught exception in Stream_StateMachine_IControl_T::initialize(), returning\n"),
   //              module_p->name ()));
@@ -413,8 +469,7 @@ Stream_Base_T<LockType,
   int result = -1;
 
   // delegate this to base class close(ACE_Module_Base::M_DELETE_NONE)
-  try
-  {
+  try {
     // *NOTE*: unwinds the stream, pop()ing all push()ed modules
     //         --> pop()ing a module will close() it
     //         --> close()ing a module will module_closed() and flush() its
@@ -422,9 +477,7 @@ Stream_Base_T<LockType,
     //         --> flush()ing a task will close() its queue
     //         --> close()ing a queue will deactivate() and flush() it
     result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in ACE_Stream::close(M_DELETE_NONE), continuing\n")));
     result = -1;
@@ -498,12 +551,9 @@ Stream_Base_T<LockType,
     return;
   } // end IF
 
-  try
-  {
+  try {
     control_impl_p->start ();
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::start(), returning\n"),
                 module_p->name ()));
@@ -576,13 +626,10 @@ Stream_Base_T<LockType,
       return;
     } // end IF
 
-    try
-    {
+    try {
       control_impl_p->stop (waitForCompletion_in,
                             lockedAccess_in);
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_IStreamControl::stop(), returning\n"),
                   module_p->name ()));
@@ -620,13 +667,10 @@ Stream_Base_T<LockType,
     return;
   } // end IF
 
-  try
-  {
+  try {
     control_impl_p->stop (waitForCompletion_in,
                           lockedAccess_in);
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::stop(), returning\n"),
                 module_p->name ()));
@@ -697,12 +741,9 @@ Stream_Base_T<LockType,
     return false;
   } // end IF
 
-  try
-  {
+  try {
     return control_impl_p->isRunning ();
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::isRunning(), aborting\n"),
                 module_p->name ()));
@@ -743,13 +784,13 @@ Stream_Base_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::control"));
 
   int result = -1;
+  ISTREAM_CONTROL_T* istream_control_p = NULL;
 
   // *IMPORTANT NOTE*: if this stream has been linked (e.g. connection is part
   //                   of another stream), forward upstream ?
   if (upStream_ && forwardUpstream_in)
   {
-    ISTREAM_CONTROL_T* istream_control_p =
-      dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
+    istream_control_p = dynamic_cast<ISTREAM_CONTROL_T*> (upStream_);
     if (!istream_control_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -774,11 +815,13 @@ Stream_Base_T<LockType,
 
   switch (control_in)
   {
+    case STREAM_CONTROL_LINK:
     case STREAM_CONTROL_STEP:
+    case STREAM_CONTROL_UNLINK:
     {
-      ISTREAM_CONTROL_T* control_impl_p = NULL;
-      control_impl_p = dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
-      if (!control_impl_p)
+      istream_control_p =
+        dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
+      if (!istream_control_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
@@ -786,13 +829,10 @@ Stream_Base_T<LockType,
         return;
       } // end IF
 
-      try
-      {
-        control_impl_p->control (control_in,
-                                 false);
-      }
-      catch (...)
-      {
+      try {
+        istream_control_p->control (control_in,
+                                    false);
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Stream_IStreamControl::control(%d), returning\n"),
                     module_p->name (),
@@ -1026,12 +1066,9 @@ Stream_Base_T<LockType,
     return;
   } // end IF
 
-  try
-  {
+  try {
     control_impl_p->pause ();
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::pause(), returning\n"),
                 module_p->name ()));
@@ -1100,12 +1137,9 @@ Stream_Base_T<LockType,
     return;
   } // end IF
 
-  try
-  {
+  try {
     control_impl_p->rewind ();
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::rewind(), returning\n"),
                 module_p->name ()));
@@ -1172,12 +1206,9 @@ Stream_Base_T<LockType,
     return result;
   } // end IF
 
-  try
-  {
+  try {
     result = control_impl_p->status ();
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::status(), aborting\n"),
                 module_p->name ()));
@@ -1284,14 +1315,11 @@ Stream_Base_T<LockType,
     return;
   } // end IF
 
-  try
-  {
+  try {
     // wait for state switch (xxx --> FINISHED) (/ any head module thread(s))
     control_impl_p->waitForCompletion (waitForThreads_in,
                                        waitForUpStream_in);
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_IStreamControl::waitForCompletion (), returning\n"),
                 module_p->name ()));
@@ -1510,12 +1538,9 @@ Stream_Base_T<LockType,
 //                  const_cast<MODULE_T*> (module_p)->writer ()));
 //      continue;
 //    } // end IF
-//    try
-//    {
+//    try {
 //      itask_p->waitForIdleState ();
-//    }
-//    catch (...)
-//    {
+//    } catch (...) {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("%s: caught exception in Stream_ITask_T::waitForIdleState(), continuing\n"),
 //                  module_p->name ()));
@@ -1563,12 +1588,9 @@ Stream_Base_T<LockType,
 //                  const_cast<MODULE_T*> (*iterator2)->reader ()));
 //      continue;
 //    } // end IF
-//    try
-//    {
+//    try {
 //      itask_p->waitForIdleState ();
-//    }
-//    catch (...)
-//    {
+//    } catch (...) {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("%s: caught exception in Stream_ITask_T::waitForIdleState(), continuing\n"),
 //                  (*iterator2)->name ()));
@@ -1937,12 +1959,9 @@ Stream_Base_T<LockType,
                     (*iterator)->name ()));
         return false;
       } // end IF
-      try
-      {
+      try {
         imodule_p->reset ();
-      }
-      catch (...)
-      {
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught exception in Stream_IModule::reset(), continuing\n")));
       }
@@ -2007,12 +2026,9 @@ Stream_Base_T<LockType,
     if (configuration_inout.cloneModule)
     {
       module_p = NULL;
-      try
-      {
+      try {
         module_p = imodule_p->clone ();
-      }
-      catch (...)
-      {
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("\"%s\": caught exception in Stream_IModule_T::clone(), aborting\n"),
                     configuration_inout.module->name ()));
@@ -2228,7 +2244,7 @@ Stream_Base_T<LockType,
 
   ///////////////////////////////////////
 
-  // (re)set session data ?
+  // merge upstream session data
   OWN_TYPE_T* stream_p = dynamic_cast<OWN_TYPE_T*> (&upStream_in);
   SessionDataContainerType* session_data_container_p = NULL;
   if (!stream_p)
@@ -2257,6 +2273,10 @@ done:
   //         --> retain another handle
   // *TODO*: modify ACE to make this a protected member
   upStream_ = &upStream_in;
+
+  // notify pipeline modules
+  control (STREAM_CONTROL_LINK,
+           true);
 
   return 0;
 }
@@ -2372,6 +2392,10 @@ Stream_Base_T<LockType,
   upstream_tailing_module_p->writer ()->next (upstream_tail_module_p->writer ());
 
   upStream_ = NULL;
+
+  // notify pipeline modules
+  control (STREAM_CONTROL_UNLINK,
+           false);
 
   //return inherited::unlink ();
   return 0;
@@ -2635,12 +2659,9 @@ Stream_Base_T<LockType,
       goto _continue;
     } // end IF
 
-    try
-    {
+    try {
       control_impl_p->finished ();
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_StateMachine_IControl_T::finished(), continuing\n"),
                   module_p->name ()));
@@ -2668,12 +2689,9 @@ _continue:
     return;
   } // end IF
 
-  try
-  {
+  try {
     control_impl_p->finished ();
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Stream_StateMachine_IControl_T::finished(), returning\n"),
                 module_p->name ()));
@@ -2759,13 +2777,10 @@ Stream_Base_T<LockType,
       //            ACE_TEXT ("closing module: \"%s\"\n"),
       //            module->name ()));
 
-      try
-      {
+      try {
         //module_p->close (ACE_Module_Base::M_DELETE_NONE);
         result = (*iterator)->close (ACE_Module_Base::M_DELETE_NONE);
-      }
-      catch (...)
-      {
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
                     (*iterator)->name ()));
@@ -2837,12 +2852,9 @@ Stream_Base_T<LockType,
   SessionMessageType* message_p = NULL;
   if (allocator_)
   {
-    try
-    { // *NOTE*: 0 --> session message
+    try { // *NOTE*: 0 --> session message
       message_p = static_cast<SessionMessageType*> (allocator_->malloc (0));
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_CRITICAL,
                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), returning\n")));
 

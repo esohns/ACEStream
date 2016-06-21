@@ -577,10 +577,12 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
+  ACE_ASSERT (inherited2::mod_);
   ACE_ASSERT (configuration_);
+  ACE_ASSERT (sessionData_);
 
-  SessionDataContainerType& session_data_container_r =
-    const_cast<SessionDataContainerType&> (message_inout->get ());
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (sessionData_->get ());
 
   switch (message_inout->type ())
   {
@@ -589,10 +591,6 @@ Stream_HeadModuleTaskBase_T<LockType,
       // *TODO*: remove type inference
       // sanity check(s)
       ACE_ASSERT (configuration_->streamConfiguration);
-
-      session_data_container_r.increase ();
-      sessionData_ =
-        &const_cast<SessionDataContainerType&> (session_data_container_r);
 
       // schedule regular statistic collection ?
       // *NOTE*: the runtime-statistic module is responsible for regular
@@ -611,7 +609,8 @@ Stream_HeadModuleTaskBase_T<LockType,
         if (timerID_ == -1)
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to Common_Timer_Manager::schedule_timer(): \"%m\", return\n")));
+                      ACE_TEXT ("%s: failed to Common_Timer_Manager::schedule_timer(): \"%m\", returning\n"),
+                      inherited2::mod_->name ()));
           return;
         } // end IF
 //        ACE_DEBUG ((LM_DEBUG,
@@ -622,11 +621,20 @@ Stream_HeadModuleTaskBase_T<LockType,
 
       break;
     }
+    // *NOTE*: the stream has been link()ed, the message contains the (merged)
+    //         upstream session data --> retain a reference
+    case STREAM_SESSION_LINK:
+    {
+      SessionDataContainerType& session_data_container_r =
+        const_cast<SessionDataContainerType&> (message_inout->get ());
+      session_data_container_r.increase ();
+      sessionData_->decrease ();
+      sessionData_ = &session_data_container_r;
+
+      break;
+    }
     case STREAM_SESSION_END:
     {
-      // sanity check(s)
-      ACE_ASSERT (sessionData_);
-
       if (timerID_ != -1)
       {
         const void* act_p = NULL;
@@ -635,24 +643,10 @@ Stream_HeadModuleTaskBase_T<LockType,
                                                                     &act_p);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                      ACE_TEXT ("%s: failed to cancel timer (ID: %d): \"%m\", continuing\n"),
+                      inherited2::mod_->name (),
                       timerID_));
         timerID_ = -1;
-      } // end IF
-
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (sessionData_->get ());
-      SessionDataType& session_data_2 =
-        const_cast<SessionDataType&> (session_data_container_r.get ());
-
-      // *NOTE*: most probable reason: stream has been link()ed after the
-      //         session had started, and session data is now that of upstream
-      // *TODO*: data could be merged to improve consistency
-      if (&session_data_r != &session_data_2)
-      {
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("re-setting session data...\n")));
-        session_data_container_r.set (session_data_r);
       } // end IF
 
       sessionData_->decrease ();
@@ -858,11 +852,14 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_ASSERT (configuration_->streamConfiguration);
   ACE_ASSERT (sessionData_);
 
+  enum Stream_SessionMessageType message_type = STREAM_SESSION_STEP;
   switch (control_in)
   {
+    case STREAM_CONTROL_LINK:
+      message_type = STREAM_SESSION_LINK;
     case STREAM_CONTROL_STEP:
     {
-      if (!putSessionMessage (STREAM_SESSION_STEP,
+      if (!putSessionMessage (message_type,
                               *sessionData_,
                               configuration_->streamConfiguration->messageAllocator))
         ACE_DEBUG ((LM_ERROR,
@@ -870,6 +867,8 @@ Stream_HeadModuleTaskBase_T<LockType,
                     inherited2::name ()));
       break;
     }
+    case STREAM_CONTROL_UNLINK:
+      break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -877,7 +876,7 @@ Stream_HeadModuleTaskBase_T<LockType,
                   control_in));
       return;
     }
-  } // end IF
+  } // end SWITCH
 }
 
 template <typename LockType,

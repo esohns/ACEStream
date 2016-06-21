@@ -32,7 +32,8 @@
 #define TEST_I_CNF_SYMBOLS_SECTION_HEADER            "symbols"
 
 #define TEST_I_DEFAULT_BUFFER_SIZE                   4096 // bytes
-#define TEST_I_DEFAULT_LIBREOFFICE_START_ROW         5
+#define TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW     5
+#define TEST_I_DEFAULT_LIBREOFFICE_START_ROW         8
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE    "soffice.ini"
 #else

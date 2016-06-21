@@ -113,6 +113,7 @@ class Stream_Module_HTMLParser_T
  protected:
   virtual bool initializeSAXParser ();
 
+  bool                            complete_;
   ModuleHandlerConfigurationType* configuration_;
   ParserContextType               parserContext_;
   SessionDataType*                sessionData_;
@@ -125,6 +126,9 @@ class Stream_Module_HTMLParser_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T (const Stream_Module_HTMLParser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T& operator= (const Stream_Module_HTMLParser_T&))
+
+  // helper methods
+  bool resetParser ();
 
   bool                            initialized_;
   Stream_Module_HTMLParser_Mode   mode_;

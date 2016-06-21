@@ -314,7 +314,8 @@ error:
       unsigned int column;
       unsigned int row;
       uno::Reference<table::XCellRange> cell_range_p;
-      Test_I_StockItemsIterator_t iterator_2;
+      //Test_I_StockRecordsIterator_t iterator = session_data_r.data.begin ();
+      bool is_reference = false;
 
       // sanity check(s)
       if (!document_.is ())
@@ -340,47 +341,80 @@ error:
       ACE_ASSERT (result_4);
       ACE_ASSERT (cell_range_p.is ());
 
+      //// retrieve reference data record
+      //for (;
+      //     iterator != session_data_r.data.end ();
+      //     ++iterator)
+      //{
+      //  // sanity check(s)
+      //  ACE_ASSERT ((*iterator).item);
+
+      //  // skip reference
+      //  if ((*iterator).item->ISIN == ACE_TEXT_ALWAYS_CHAR (TEST_I_ISIN_DAX))
+      //    break;
+      //} // end FOR
+      //ACE_ASSERT (iterator != session_data_r.data.end ());
+
       column = 0;
       row = inherited::configuration_->libreOfficeSheetStartRow;
-      for (Test_I_StockRecordsIterator_t iterator = session_data_r.data.begin ();
-           iterator != session_data_r.data.end ();
-           ++iterator)
+      for (Test_I_StockRecordsIterator_t iterator_2 = session_data_r.data.begin ();
+           iterator_2 != session_data_r.data.end ();
+           ++iterator_2)
       {
         // sanity check(s)
-        ACE_ASSERT ((*iterator).item);
+        ACE_ASSERT ((*iterator_2).item);
 
-        iterator_2 =
-          inherited::configuration_->stockItems.find (*(*iterator).item);
-        ACE_ASSERT (iterator_2 != inherited::configuration_->stockItems.end ());
+        // reference data ?
+        is_reference = false;
+        if ((*iterator_2).item->ISIN == ACE_TEXT_ALWAYS_CHAR (TEST_I_ISIN_DAX))
+          is_reference = true;
 
         column = inherited::configuration_->libreOfficeSheetStartColumn;
-        cell_p = cell_range_p->getCellByPosition (column, row);
+        cell_p =
+          cell_range_p->getCellByPosition (column,
+                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW
+                                                         : row));
         ACE_ASSERT (cell_p.is ());
         cell_value_string =
-            ::rtl::OUString::createFromAscii ((*iterator_2).symbol.c_str ());
+            ::rtl::OUString::createFromAscii ((*iterator_2).item->symbol.c_str ());
         cell_p->setFormula (cell_value_string);
 
         ++column;
-        cell_p = cell_range_p->getCellByPosition (column, row);
+        cell_p =
+          cell_range_p->getCellByPosition (column,
+                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW
+                                                         : row));
         ACE_ASSERT (cell_p.is ());
         cell_value_string =
-          ::rtl::OUString::createFromAscii ((*iterator_2).ISIN.c_str ());
+          ::rtl::OUString::createFromAscii ((*iterator_2).item->ISIN.c_str ());
         cell_p->setFormula (cell_value_string);
 
         ++column;
-        cell_p = cell_range_p->getCellByPosition (column, row);
+        cell_p =
+          cell_range_p->getCellByPosition (column,
+                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW
+                                                         : row));
         ACE_ASSERT (cell_p.is ());
-        cell_p->setFormula (::rtl::OUString::createFromAscii ((*iterator_2).WKN.c_str ()));
+        cell_p->setFormula (::rtl::OUString::createFromAscii ((*iterator_2).item->WKN.c_str ()));
 
         ++column;
-        cell_p = cell_range_p->getCellByPosition (column, row);
+        cell_p =
+          cell_range_p->getCellByPosition (column,
+                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW
+                                                         : row));
         ACE_ASSERT (cell_p.is ());
-        cell_p->setValue ((*iterator).value);
+        cell_p->setValue ((*iterator_2).value);
 
         ++column;
-        cell_p = cell_range_p->getCellByPosition (column, row);
+        cell_p =
+          cell_range_p->getCellByPosition (column,
+                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW
+                                                         : row));
         ACE_ASSERT (cell_p.is ());
-        cell_p->setValue ((*iterator).change);
+        cell_p->setValue ((*iterator_2).change);
+
+        if (!is_reference)
+          ++row;
       } // end FOR
       if (!session_data_r.data.empty ())
       {

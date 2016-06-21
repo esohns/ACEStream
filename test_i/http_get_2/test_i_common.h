@@ -100,7 +100,8 @@ struct Test_I_StockItem
     , symbol ()
     , WKN ()
   {};
-  inline bool operator== (Test_I_StockItem rhs_in)
+
+  inline bool operator== (const Test_I_StockItem& rhs_in)
   {
     return (ISIN == rhs_in.ISIN);
   };
@@ -119,6 +120,15 @@ struct Test_I_StockRecord
    , timeStamp (ACE_Time_Value::zero)
    , value (0.0)
   {};
+
+  inline bool operator== (const Test_I_StockRecord& rhs_in)
+  {
+    // sanity check(s)
+    ACE_ASSERT (rhs_in.item);
+    ACE_ASSERT (item);
+
+    return (*item == *rhs_in.item);
+  };
 
   double            change;
   Test_I_StockItem* item;

@@ -130,6 +130,14 @@ Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_ino
 
   inherited::handleDataMessage (message_inout,
                                 passMessageDownstream_out);
+
+  if (inherited::complete_)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: parsed HTML document...\n"),
+                inherited::mod_->name ()));
+    inherited::complete_ = false;
+  } // end IF
 }
 
 void
@@ -215,7 +223,7 @@ Test_I_Stream_HTMLParser::initializeSAXParser ()
 
   // set necessary SAX parser callbacks
   // *IMPORTANT NOTE*: the default SAX callbacks expect xmlParserCtxtPtr as user
-  //                   data, this implementation uses Test_I_SAXParserContext*
+  //                   data; this implementation uses Test_I_SAXParserContext*
   //                   --> all default callbacks will crash on invocation, so
   //                       disable them here
   inherited::SAXHandler_.cdataBlock = NULL;
@@ -275,19 +283,21 @@ characters (void* userData_in,
   ACE_ASSERT (data_p->data);
 
   // *TODO*: for some reason, libxml2 serves this data in chunks...
+  // *TODO*: make this a member
   static std::string value_string;
   std::string data_string = reinterpret_cast<const char*> (string_in);
   std::string regex_string;
   std::regex::flag_type flags = std::regex_constants::ECMAScript;
   std::regex regex;
-  std::smatch match_results;
+  std::smatch match_results, match_results_2;
+  std::istringstream converter;
 
   switch (data_p->state)
   {
     case SAXPARSER_STATE_READ_CHANGE:
     {
       regex_string =
-        ACE_TEXT_ALWAYS_CHAR ("^([+-]{1})([[:digit:]]+),([[:digit:]]+)%$");
+        ACE_TEXT_ALWAYS_CHAR ("^([+\\-]{1})([[:digit:]]+),([[:digit:]]+)%$");
       //try
       //{
       regex.assign (regex_string, flags);
@@ -317,7 +327,6 @@ characters (void* userData_in,
       std::string value_string_2 = match_results[2].str ();
       value_string_2 += '.';
       value_string_2 += match_results[3].str ();
-      std::istringstream converter;
       converter.str (value_string_2);
       converter >> data_p->data->change;
       value_string_2 = match_results[1].str ();
@@ -358,33 +367,28 @@ characters (void* userData_in,
       ACE_ASSERT (match_results[4].matched);
       ACE_ASSERT (match_results[5].matched);
 
-      std::stringstream converter;
       long value;
       struct tm tm_time;
       ACE_OS::memset (&tm_time, 0, sizeof (struct tm));
 
-      converter << match_results[1].str ();
+      converter.str (match_results[1].str ());
       converter >> value;
       tm_time.tm_mday = value;
       converter.clear ();
-      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-      converter << match_results[2].str ();
+      converter.str (match_results[2].str ());
       converter >> value;
       tm_time.tm_mon = value - 1; // months are 0-11
       converter.clear ();
-      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-      converter << match_results[3].str ();
+      converter.str (match_results[3].str ());
       converter >> value;
       tm_time.tm_year = value - 1900; // years are since 1900
 
       converter.clear ();
-      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-      converter << match_results[4].str ();
+      converter.str (match_results[4].str ());
       converter >> value;
       tm_time.tm_hour = value;
       converter.clear ();
-      converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-      converter << match_results[5].str ();
+      converter.str (match_results[5].str ());
       converter >> value;
       tm_time.tm_min = value;
 
@@ -405,7 +409,7 @@ characters (void* userData_in,
       ACE_ASSERT (data_p->data->item);
 
       regex_string =
-        ACE_TEXT_ALWAYS_CHAR ("^(?:\\s*)ISIN ([[:alpha:]]{2}[[:digit:]]{10})\\s\\|\\sWKN\\s([[:digit:]]{6})(?:\\s*)$");
+        ACE_TEXT_ALWAYS_CHAR ("^(?:\\s*)ISIN ([^[:space:]]+)\\s\\|\\sWKN\\s([^[:space:]]+)(?:\\s*)$");
       //try
       //{
       regex.assign (regex_string, flags);
@@ -431,11 +435,48 @@ characters (void* userData_in,
       ACE_ASSERT (match_results[1].matched);
       ACE_ASSERT (match_results[2].matched);
 
-      data_p->data->item->ISIN = match_results[3].str ();
-      data_p->data->item->WKN = match_results[2].str ();
+      // match ISIN
+      value_string = match_results[1].str ();
+      regex_string = ACE_TEXT_ALWAYS_CHAR ("^([[:alpha:]]{2}[[:digit:]]{10})$");
+      regex.assign (regex_string, flags);
+      if (std::regex_match (value_string,
+                            match_results_2,
+                            regex,
+                            std::regex_constants::match_default))
+      {
+        ACE_ASSERT (match_results_2.ready () && !match_results_2.empty ());
+        ACE_ASSERT (match_results_2[1].matched);
+
+        data_p->data->item->ISIN = match_results_2[1].str ();
+      } // end IF
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid isin string (was: \"%s\"), continuing\n"),
+                    ACE_TEXT (value_string.c_str ())));
+
+      value_string = match_results[2].str ();
+      regex_string = ACE_TEXT_ALWAYS_CHAR ("^([[:digit:]]{6})$");
+      regex.assign (regex_string, flags);
+      if (std::regex_match (value_string,
+                            match_results_2,
+                            regex,
+                            std::regex_constants::match_default))
+      {
+        ACE_ASSERT (match_results_2.ready () && !match_results_2.empty ());
+        ACE_ASSERT (match_results_2[1].matched);
+
+        data_p->data->item->WKN = match_results_2[1].str ();
+      } // end IF
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid wkn string (was: \"%s\"), continuing\n"),
+                    ACE_TEXT (value_string.c_str ())));
 
       // *TODO*: move this to endElement ()
       data_p->state = SAXPARSER_STATE_IN_BODY_DIV_CONTENT;
+
+      // clean up
+      value_string.clear ();
 
       break;
     }
@@ -447,12 +488,9 @@ characters (void* userData_in,
       ACE_ASSERT (data_p->data->item);
 
       regex_string = ACE_TEXT_ALWAYS_CHAR ("^(?:\\s*)([[:alpha:]]{3})(?:.*)$");
-      //try
-      //{
+      //try {
       regex.assign (regex_string, flags);
-      //}
-      //catch (std::regex_error exception_in)
-      //{
+      //} catch (std::regex_error exception_in) {
       //  ACE_DEBUG ((LM_ERROR,
       //              ACE_TEXT ("caught regex exception (was: \"%s\"), returning\n"),
       //              ACE_TEXT (exception_in.what ())));
@@ -690,6 +728,12 @@ body:
           data_p->state = SAXPARSER_STATE_READ_CHANGE;
           break;
         } // end IF
+        if (xmlStrEqual (attributes_p[1],
+                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("rightfloat big negative vertical_gap_1"))))
+        {
+          data_p->state = SAXPARSER_STATE_READ_CHANGE;
+          break;
+        } // end IF
         else if (xmlStrEqual (attributes_p[1],
                               BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("leftfloat bottom_aligned"))))
         {
@@ -736,13 +780,6 @@ endElement (void* userData_in,
 
     return;
   } // end IF
-  else if (xmlStrEqual (name_in,
-                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("title"))))
-  {
-    data_p->state = SAXPARSER_STATE_IN_HEAD;
-
-    return;
-  } // end ELSE IF
 
   // -------------------------------- body -------------------------------------
   if (xmlStrEqual (name_in,
@@ -753,14 +790,3 @@ endElement (void* userData_in,
     return;
   } // end IF
 }
-//xmlEntityPtr
-//getEntity (void* userData_in,
-//           const xmlChar* name_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::getEntity"));
-
-//  ACE_UNUSED_ARG (userData_in);
-//  ACE_UNUSED_ARG (name_in);
-
-//  return NULL;
-//}

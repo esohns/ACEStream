@@ -115,11 +115,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 void
-SAXDefaultErrorCallback (void* context_in,
+SAXDefaultErrorCallback (void* userData_in,
                          const char* message_in,
                          ...)
 {
   STREAM_TRACE (ACE_TEXT ("::SAXDefaultErrorCallback"));
+
+  ACE_UNUSED_ARG (userData_in);
 
   ACE_TCHAR buffer[BUFSIZ];
   va_list arguments;
@@ -133,7 +135,7 @@ SAXDefaultErrorCallback (void* context_in,
   va_end (arguments);
 
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("SAXDefaultErrorCallback: %s\n"),
+              ACE_TEXT ("SAXDefaultErrorCallback: %s"),
               buffer));
 }
 
@@ -143,7 +145,9 @@ SAXDefaultStructuredErrorCallback (void* userData_in,
 {
   STREAM_TRACE (ACE_TEXT ("::SAXDefaultStructuredErrorCallback"));
 
+  ACE_UNUSED_ARG (userData_in);
+
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("SAXDefaultStructuredErrorCallback: %s\n"),
+              ACE_TEXT ("SAXDefaultStructuredErrorCallback: %s"),
               ACE_TEXT (error_in->message)));
 }

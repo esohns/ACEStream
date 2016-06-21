@@ -20,6 +20,9 @@
 
 #include "ace/Log_Msg.h"
 
+//#include "libxml/parser.h"
+//#include "libxml/xmlIO.h"
+
 #include "stream_macros.h"
 
 #include "stream_html_tools.h"
@@ -35,6 +38,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
                            SessionDataType,
                            ParserContextType>::Stream_Module_HTMLParser_T ()
  : inherited ()
+ , complete_ (false)
  , configuration_ (NULL)
  , parserContext_ ()
  , sessionData_ (NULL)
@@ -93,7 +97,6 @@ Stream_Module_HTMLParser_T<SessionMessageType,
   ACE_Message_Block* message_block_p = message_inout;
   xmlParserErrors parse_errors = XML_ERR_OK;
   xmlErrorPtr error_p = NULL;
-  bool complete = false;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -115,12 +118,12 @@ Stream_Module_HTMLParser_T<SessionMessageType,
                              0);                           // terminate ?
     if (result)
     {
-      parse_errors = static_cast<xmlParserErrors> (result);
-      error_p = xmlGetLastError ();
-      ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p->level),
-                  ACE_TEXT ("failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
-                  parse_errors,
-                  ACE_TEXT (error_p->message)));
+      //parse_errors = static_cast<xmlParserErrors> (result);
+      //error_p = xmlGetLastError ();
+      //ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p->level),
+      //            ACE_TEXT ("failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
+      //            parse_errors,
+      //            ACE_TEXT (error_p->message)));
       //xmlCtxtResetLastError (parserContext_.parserContext);
     } // end IF
     message_block_p = message_block_p->cont ();
@@ -132,12 +135,12 @@ Stream_Module_HTMLParser_T<SessionMessageType,
     if ((message_block_p->length () == 0) &&
         (message_block_p->cont () == NULL))
     {
-      complete = true;
+      complete_ = true;
       break; // --> parsed all bytes: done
     } // end IF
   } while (true);
 
-  if (complete)
+  if (complete_)
   {
     result = htmlParseChunk (parserContext_.parserContext,
                              ACE_TEXT_ALWAYS_CHAR (""),
@@ -145,12 +148,12 @@ Stream_Module_HTMLParser_T<SessionMessageType,
                              1);
     if (result)
     {
-      parse_errors = static_cast<xmlParserErrors> (result);
-      error_p = xmlGetLastError ();
-      ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p->level),
-                  ACE_TEXT ("failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
-                  parse_errors,
-                  ACE_TEXT (error_p->message)));
+      //parse_errors = static_cast<xmlParserErrors> (result);
+      //error_p = xmlGetLastError ();
+      //ACE_DEBUG ((Stream_HTML_Tools::errorLevelToLogPriority (error_p->level),
+      //            ACE_TEXT ("failed to htmlParseChunk() (result was: %d): \"%s\", continuing\n"),
+      //            parse_errors,
+      //            ACE_TEXT (error_p->message)));
       //xmlCtxtResetLastError (parserContext_.parserContext);
     } // end IF
 
@@ -177,8 +180,52 @@ Stream_Module_HTMLParser_T<SessionMessageType,
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("failed to xmlCopyDoc(): \"%m\", continuing\n")));
     parserContext_.parserContext->myDoc = NULL;
-    xmlClearParserCtxt (parserContext_.parserContext);
+
+    // reset parser
+    // *TODO*: apparently, there currently is now way to 'correctly' reset the
+    //         parser that would allow reuse (htmlNewInputStream() internal...)
+    //         after xmlClearParserCtxt()/htmlCtxtReset() --> recreate
+    //xmlClearParserCtxt (parserContext_.parserContext);
+    //xmlParserInputBufferPtr buffer_p =
+    //  xmlAllocParserInputBuffer (XML_CHAR_ENCODING_NONE);
+    //if (!buffer_p)
+    //{
+    //  ACE_DEBUG ((LM_CRITICAL,
+    //              ACE_TEXT ("failed to xmlAllocParserInputBuffer(), returning\n")));
+    //  goto error;
+    //} // end IF
+    //htmlParserInputPtr stream_p =
+    //  htmlNewInputStream (parserContext_.parserContext);
+    //if (!stream_p)
+    //{
+    //  ACE_DEBUG ((LM_CRITICAL,
+    //              ACE_TEXT ("failed to htmlNewInputStream(), returning\n")));
+    //  goto error;
+    //} // end IF
+    //stream_p->buf = buffer_p;
+    //xmlBufResetInput (buffer_p->buffer, stream_p);
+    //inputPush (parserContext_.parserContext, stream_p);
+    htmlFreeParserCtxt (parserContext_.parserContext);
+    parserContext_.parserContext = NULL;
+    if (!resetParser ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Module_HTMLParser_T::resetParser(), returning\n"),
+                  inherited::mod_->name ()));
+      return;
+    } // end IF
+
+    goto continue_;
+
+//error:
+//    if (buffer_p)
+//      xmlFreeParserInputBuffer (buffer_p);
+//    if (stream_p)
+//      xmlFree (stream_p);
   } // end IF
+
+continue_:
+  return;
 }
 
 template <typename SessionMessageType,
@@ -279,6 +326,8 @@ Stream_Module_HTMLParser_T<SessionMessageType,
 
   if (initialized_)
   {
+    complete_ = false;
+
     if (parserContext_.parserContext)
     {
       if (parserContext_.parserContext->myDoc)
@@ -292,6 +341,8 @@ Stream_Module_HTMLParser_T<SessionMessageType,
     } // end IF
 
     xmlCleanupParser ();
+
+    sessionData_ = NULL;
 
     initialized_ = false;
   } // end IF
@@ -324,46 +375,15 @@ Stream_Module_HTMLParser_T<SessionMessageType,
     } // end IF
   } // end IF
 
-  parserContext_.parserContext =
-      htmlCreatePushParserCtxt (((mode_ == STREAM_MODULE_HTMLPARSER_SAX) ? &SAXHandler_
-                                                                         : NULL), // SAX handler
-                                ((mode_ == STREAM_MODULE_HTMLPARSER_SAX) ? &parserContext_
-                                                                         : NULL), // user data (SAX)
-                                NULL,                                             // chunk
-                                0,                                                // size
-                                NULL,                                             // filename
-                                XML_CHAR_ENCODING_NONE);                          // encoding
-  if (!parserContext_.parserContext)
+  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::SAXDefaultErrorCallback);
+
+  if (!resetParser ())
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to htmlCreatePushParserCtxt(): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to Stream_Module_HTMLParser_T::resetParser(), aborting\n"),
                 inherited::mod_->name ()));
     return false;
   } // end IF
-  int parser_options =
-      (HTML_PARSE_RECOVER    |     // relaxed parsing
-       HTML_PARSE_NODEFDTD   |     // do not default a doctype if not found
-//           HTML_PARSE_NOERROR   |   // suppress error reports
-//           HTML_PARSE_NOWARNING |   // suppress warning reports
-       HTML_PARSE_PEDANTIC   |     // pedantic error reporting
-       HTML_PARSE_NOBLANKS   |     // remove blank nodes
-//       HTML_PARSE_NONET      |     // forbid network access
-       HTML_PARSE_NOIMPLIED  |     // do not add implied html/body... elements
-       HTML_PARSE_COMPACT);        // compact small text nodes
-//           HTML_PARSE_IGNORE_ENC);  // ignore internal document encoding hint
-  int result = htmlCtxtUseOptions (parserContext_.parserContext,
-                                   parser_options);
-  if (result)
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: failed to htmlCtxtUseOptions(%d) (result was: %d), continuing\n"),
-                inherited::mod_->name (),
-                parser_options, result));
-
-  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::SAXDefaultErrorCallback);
-  xmlSetGenericErrorFunc (parserContext_.parserContext,
-                          &::SAXDefaultErrorCallback);
-  xmlSetStructuredErrorFunc (parserContext_.parserContext,
-                             &::SAXDefaultStructuredErrorCallback);
 
   initialized_ = true;
 
@@ -386,5 +406,67 @@ Stream_Module_HTMLParser_T<SessionMessageType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (false);
+
   ACE_NOTREACHED (return false;)
+}
+
+template <typename SessionMessageType,
+          typename MessageType,
+          typename ModuleHandlerConfigurationType,
+          typename SessionDataType,
+          typename ParserContextType>
+bool
+Stream_Module_HTMLParser_T<SessionMessageType,
+                           MessageType,
+                           ModuleHandlerConfigurationType,
+                           SessionDataType,
+                           ParserContextType>::resetParser ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::resetParser"));
+
+  // sanity check(s)
+  ACE_ASSERT (!parserContext_.parserContext);
+
+  parserContext_.parserContext =
+    htmlCreatePushParserCtxt (((mode_ == STREAM_MODULE_HTMLPARSER_SAX) ? &SAXHandler_
+                                                                       : NULL), // SAX handler
+                              ((mode_ == STREAM_MODULE_HTMLPARSER_SAX) ? &parserContext_
+                                                                       : NULL), // user data (SAX)
+                              NULL,                                             // chunk
+                              0,                                                // size
+                              NULL,                                             // filename
+                              XML_CHAR_ENCODING_NONE);                          // encoding
+  if (!parserContext_.parserContext)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to htmlCreatePushParserCtxt(): \"%m\", aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+  int parser_options =
+    (HTML_PARSE_RECOVER   | // relaxed parsing
+     HTML_PARSE_NODEFDTD  | // do not default a doctype if not found
+//           HTML_PARSE_NOERROR   |   // suppress error reports
+//           HTML_PARSE_NOWARNING |   // suppress warning reports
+     HTML_PARSE_PEDANTIC  | // pedantic error reporting
+     HTML_PARSE_NOBLANKS  | // remove blank nodes
+//       HTML_PARSE_NONET      |     // forbid network access
+     HTML_PARSE_NOIMPLIED | // do not add implied html/body... elements
+     HTML_PARSE_COMPACT   | // compact small text nodes
+//           HTML_PARSE_IGNORE_ENC);  // ignore internal document encoding hint
+     XML_PARSE_HUGE);       // parse large documents
+  int result = htmlCtxtUseOptions (parserContext_.parserContext,
+                                   parser_options);
+  if (result)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("%s: failed to htmlCtxtUseOptions(%d) (result was: %d), continuing\n"),
+                inherited::mod_->name (),
+                parser_options, result));
+
+  xmlSetGenericErrorFunc (parserContext_.parserContext,
+                          &::SAXDefaultErrorCallback);
+  xmlSetStructuredErrorFunc (parserContext_.parserContext,
+                             &::SAXDefaultStructuredErrorCallback);
+
+  return true;
 }

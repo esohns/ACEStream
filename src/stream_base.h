@@ -210,6 +210,8 @@ class Stream_Base_T
   bool setup (ACE_Notification_Strategy* = NULL); // head module (reader task)
                                                   // notification handle
 
+  bool putSessionMessage (Stream_SessionMessageType); // session message type
+
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
 
