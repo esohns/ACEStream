@@ -933,17 +933,23 @@ do_work (unsigned int bufferSize_in,
                                        interval);                  // interval
     if (timer_id == -1)
     {
-      ACE_DEBUG ((LM_DEBUG,
+      ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to schedule timer: \"%m\", returning\n")));
       goto clean;
     } // end IF
   } // end IF
 
   // step0c: initialize signal handling
+  configuration.signalHandlerConfiguration.useReactor = useReactor_in;
   //configuration.signalHandlerConfiguration.statisticReportingHandler =
   //  connection_manager_p;
   //configuration.signalHandlerConfiguration.statisticReportingTimerID = timer_id;
-  signalHandler_in.initialize (configuration.signalHandlerConfiguration);
+  if (!signalHandler_in.initialize (configuration.signalHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize signal handler, returning\n")));
+    goto clean;
+  } // end IF
   if (!Common_Tools::initializeSignals (signalSet_in,
                                         ignoredSignalSet_in,
                                         &signalHandler_in,
@@ -1372,7 +1378,8 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_Source_SignalHandler signal_handler (use_reactor);
+
+  Stream_Source_SignalHandler signal_handler;
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

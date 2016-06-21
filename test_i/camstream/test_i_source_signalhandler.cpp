@@ -32,10 +32,8 @@
 #include "test_i_source_common.h"
 #include "test_i_connection_manager_common.h"
 
-Stream_Source_SignalHandler::Stream_Source_SignalHandler (bool useReactor_in)
- : inherited (this,          // event handler handle
-              useReactor_in) // use reactor ?
- , configuration_ ()
+Stream_Source_SignalHandler::Stream_Source_SignalHandler ()
+ : inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::Stream_Source_SignalHandler"));
 
@@ -45,16 +43,6 @@ Stream_Source_SignalHandler::~Stream_Source_SignalHandler ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::~Stream_Source_SignalHandler"));
 
-}
-
-bool
-Stream_Source_SignalHandler::initialize (const Stream_SignalHandlerConfiguration& configuration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::initialize"));
-
-  configuration_ = configuration_in;
-
-  return true;
 }
 
 bool
@@ -91,7 +79,7 @@ Stream_Source_SignalHandler::handleSignal (int signal_in)
     case SIGBREAK:
 #endif
     {
-      // print statistics
+      // print statistic
       statistic = true;
 
       break;
@@ -102,7 +90,7 @@ Stream_Source_SignalHandler::handleSignal (int signal_in)
 #endif
     case SIGTERM:
     {
-      // print statistics
+      // print statistic
       statistic = true;
 
       break;
@@ -170,8 +158,8 @@ Stream_Source_SignalHandler::handleSignal (int signal_in)
     connection_manager_p->abort ();
 
     // step5: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (inherited::useReactor_,  // stop reactor ?
-                                         !inherited::useReactor_, // stop proactor ?
+    Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?
+                                         !inherited::configuration_->useReactor, // stop proactor ?
                                          -1);                     // group ID (--> don't block)
 
     // *IMPORTANT NOTE*: there is no real reason to wait here

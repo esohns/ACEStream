@@ -28,9 +28,7 @@
 #include "stream_macros.h"
 
 Stream_CamSave_SignalHandler::Stream_CamSave_SignalHandler ()
- : inherited (this, // event handler handle
-              true) // use reactor ?
- , configuration_ ()
+ : inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SignalHandler::Stream_CamSave_SignalHandler"));
 
@@ -43,23 +41,13 @@ Stream_CamSave_SignalHandler::~Stream_CamSave_SignalHandler ()
 }
 
 bool
-Stream_CamSave_SignalHandler::initialize (const Stream_CamSave_SignalHandlerConfiguration& configuration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SignalHandler::initialize"));
-
-  configuration_ = configuration_in;
-
-  return true;
-}
-
-bool
 Stream_CamSave_SignalHandler::handleSignal (int signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_SignalHandler::handleSignal"));
 
 //  int result = -1;
 
-  bool statistics = false;
+  bool statistic = false;
   bool shutdown = false;
   switch (signal_in)
   {
@@ -86,8 +74,8 @@ Stream_CamSave_SignalHandler::handleSignal (int signal_in)
     case SIGBREAK:
 #endif
     {
-      // print statistics
-      statistics = true;
+      // print statistic
+      statistic = true;
 
       break;
     }
@@ -97,8 +85,8 @@ Stream_CamSave_SignalHandler::handleSignal (int signal_in)
 #endif
     case SIGTERM:
     {
-      // print statistics
-      statistics = true;
+      // print statistic
+      statistic = true;
 
       break;
     }
@@ -115,15 +103,12 @@ Stream_CamSave_SignalHandler::handleSignal (int signal_in)
 
   // ------------------------------------
 
-  // print statistics ?
-  if (statistics)
+  // print statistic ?
+  if (statistic)
   {
-    try
-    {
+    try {
       //handle = configuration_.connector->connect (configuration_.peerAddress);
-    }
-    catch (...)
-    {
+    } catch (...) {
       //// *PORTABILITY*: tracing in a signal handler context is not portable
       //// *TODO*
       //ACE_DEBUG ((LM_ERROR,

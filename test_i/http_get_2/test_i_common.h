@@ -95,10 +95,10 @@ struct Test_I_AllocatorConfiguration
 struct Test_I_StockItem
 {
   inline Test_I_StockItem ()
-    : /*description ()
-      ,*/ ISIN ()
-    , symbol ()
-    , WKN ()
+   : /*description ()
+     ,*/ ISIN ()
+   , symbol ()
+   , WKN ()
   {};
 
   inline bool operator== (const Test_I_StockItem& rhs_in)
@@ -349,11 +349,13 @@ struct Stream_SignalHandlerConfiguration
 {
   inline Stream_SignalHandlerConfiguration ()
    : //messageAllocator (NULL)
-   /*,*/ statisticReportingInterval (0)
+   /*,*/ statisticReportingInterval (ACE_Time_Value::zero)
+   , useReactor (true)
   {};
 
   //Stream_IAllocator* messageAllocator;
-  unsigned int       statisticReportingInterval; // statistics collecting interval (second(s)) [0: off]
+  ACE_Time_Value     statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
+  bool               useReactor;
 };
 
 struct Test_I_Stream_Configuration

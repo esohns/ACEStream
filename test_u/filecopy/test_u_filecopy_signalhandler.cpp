@@ -30,9 +30,7 @@
 #include "stream_macros.h"
 
 Stream_Filecopy_SignalHandler::Stream_Filecopy_SignalHandler ()
- : inherited (this, // event handler handle
-              true) // use reactor ?
- , configuration_ ()
+ : inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::Stream_Filecopy_SignalHandler"));
 
@@ -45,23 +43,13 @@ Stream_Filecopy_SignalHandler::~Stream_Filecopy_SignalHandler ()
 }
 
 bool
-Stream_Filecopy_SignalHandler::initialize (const Stream_Filecopy_SignalHandlerConfiguration& configuration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::initialize"));
-
-  configuration_ = configuration_in;
-
-  return true;
-}
-
-bool
 Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_SignalHandler::handleSignal"));
 
 //  int result = -1;
 
-  bool statistics = false;
+  bool statistic = false;
   bool shutdown = false;
   switch (signal_in)
   {
@@ -88,8 +76,8 @@ Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
     case SIGBREAK:
 #endif
     {
-      // print statistics
-      statistics = true;
+      // print statistic
+      statistic = true;
 
       break;
     }
@@ -99,8 +87,8 @@ Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
 #endif
     case SIGTERM:
     {
-      // print statistics
-      statistics = true;
+      // print statistic
+      statistic = true;
 
       break;
     }
@@ -117,8 +105,8 @@ Stream_Filecopy_SignalHandler::handleSignal (int signal_in)
 
   // ------------------------------------
 
-  // print statistics ?
-  if (statistics)
+  // print statistic ?
+  if (statistic)
   {
     try
     {

@@ -23,34 +23,27 @@
 
 #include "ace/Global_Macros.h"
 
-#include "common_iinitialize.h"
 #include "common_isignal.h"
 #include "common_signalhandler.h"
 
 #include "test_i_target_common.h"
 
 class Stream_Target_SignalHandler
- : public Common_SignalHandler
- , public Common_IInitialize_T<Test_I_Target_SignalHandlerConfiguration>
+ : public Common_SignalHandler_T<Test_I_Target_SignalHandlerConfiguration>
  , public Common_ISignal
 {
  public:
-  Stream_Target_SignalHandler (bool = true); // use reactor ?
+  Stream_Target_SignalHandler ();
   virtual ~Stream_Target_SignalHandler ();
-
-  // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_Target_SignalHandlerConfiguration&); // configuration
 
   // implement Common_ISignal
   virtual bool handleSignal (int); // signal
 
  private:
-  typedef Common_SignalHandler inherited;
+  typedef Common_SignalHandler_T<Test_I_Target_SignalHandlerConfiguration> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler (const Stream_Target_SignalHandler&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler& operator= (const Stream_Target_SignalHandler&))
-
-  Test_I_Target_SignalHandlerConfiguration configuration_;
 };
 
 #endif

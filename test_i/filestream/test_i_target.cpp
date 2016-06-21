@@ -625,7 +625,7 @@ do_work (unsigned int bufferSize_in,
                                        interval);                  // interval
     if (timer_id == -1)
     {
-      ACE_DEBUG ((LM_DEBUG,
+      ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to schedule timer: \"%m\", returning\n")));
 
       // clean up
@@ -642,18 +642,29 @@ do_work (unsigned int bufferSize_in,
   else
     CBData_in.configuration->signalHandlerConfiguration.listener =
       TEST_I_TARGET_ASYNCHLISTENER_SINGLETON::instance ();
+  CBData_in.configuration->signalHandlerConfiguration.useReactor =
+    useReactor_in;
   CBData_in.configuration->signalHandlerConfiguration.statisticReportingHandler =
       connection_manager_p;
   CBData_in.configuration->signalHandlerConfiguration.statisticReportingTimerID =
       timer_id;
-  signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration);
+  if (!signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize signal handler, returning\n")));
+
+    // clean up
+    timer_manager_p->stop ();
+
+    return;
+  } // end IF
   if (!Common_Tools::initializeSignals (signalSet_in,
                                         ignoredSignalSet_in,
                                         &signalHandler_in,
                                         previousSignalActions_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
+                ACE_TEXT ("failed to Common_Tools::initializeSignals(), returning\n")));
 
     // clean up
     timer_manager_p->stop ();
@@ -1246,7 +1257,7 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_Target_SignalHandler signal_handler (use_reactor);
+  Stream_Target_SignalHandler signal_handler;
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

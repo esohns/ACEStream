@@ -711,7 +711,7 @@ do_work (unsigned int bufferSize_in,
                                        interval);                  // interval
     if (timer_id == -1)
     {
-      ACE_DEBUG ((LM_DEBUG,
+      ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to schedule timer: \"%m\", returning\n")));
 
       // clean up
@@ -723,17 +723,28 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step0c: initialize signal handling
+  configuration.signalHandlerConfiguration.useReactor = useReactor_in;
   //configuration.signalHandlerConfiguration.statisticReportingHandler =
   //  connection_manager_p;
   //configuration.signalHandlerConfiguration.statisticReportingTimerID = timer_id;
-  signalHandler_in.initialize (configuration.signalHandlerConfiguration);
+  if (!signalHandler_in.initialize (configuration.signalHandlerConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to initialize signal handler, returning\n")));
+
+    // clean up
+    timer_manager_p->stop ();
+    delete stream_p;
+
+    return;
+  } // end IF
   if (!Common_Tools::initializeSignals (signalSet_in,
                                         ignoredSignalSet_in,
                                         &signalHandler_in,
                                         previousSignalActions_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeSignals(), aborting\n")));
+                ACE_TEXT ("failed to Common_Tools::initializeSignals(), returning\n")));
 
     // clean up
     timer_manager_p->stop ();
@@ -777,7 +788,7 @@ loop:
   if (!stream_p->initialize (configuration.streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize stream, aborting\n")));
+                ACE_TEXT ("failed to initialize stream, returning\n")));
 
     // clean up
     Common_Tools::finalizeEventDispatch (useReactor_in,
@@ -1119,7 +1130,7 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_Source_SignalHandler signal_handler (use_reactor);
+  Stream_Source_SignalHandler signal_handler;
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

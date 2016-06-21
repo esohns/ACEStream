@@ -968,27 +968,54 @@ ACE_TMAIN (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::main"));
 
-  int result = -1;
+  int result = EXIT_FAILURE;
+  int result_2 = -1;
+  bool finalize_ACE = false;
+  bool finalize_logging = false;
+  bool finalize_signals = false;
+  ACE_Profile_Timer process_profile;
+
+  std::string path, bootstrap_file, configuration_file, host_name, output_file;
+  bool debug, log_to_file, use_thread_pool, use_reactor, trace_information;
+  unsigned short port;
+  std::string URL;
+  bool print_version_and_exit;
+  unsigned int number_of_dispatch_threads;
+  ACE_INET_Addr remote_host;
+  bool use_SSL;
+
+  std::string log_file_name;
+
+  ACE_Sig_Set signal_set (0);
+  ACE_Sig_Set ignored_signal_set (0);
+  Common_SignalActions_t previous_signal_actions;
+  sigset_t previous_signal_mask;
+  Stream_Source_SignalHandler signal_handler;
+
+  ACE_High_Res_Timer timer;
+  ACE_Profile_Timer::ACE_Elapsed_Time elapsed_time;
+  ACE_Profile_Timer::Rusage elapsed_rusage;
+  ACE_Time_Value user_time, system_time, working_time;
+  std::string user_time_string, system_time_string, working_time_string;
 
   // step0: initialize
-  // *PORTABILITY*: on Windows, initialize ACE...
+  // *PORTABILITY*: on Windows, initialize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  result = ACE::init ();
-  if (result == -1)
+  result_2 = ACE::init ();
+  if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE::init(): \"%m\", aborting\n")));
-    return EXIT_FAILURE;
+    goto error;
   } // end IF
 #endif
+  finalize_ACE = true;
   Common_Tools::initialize ();
 
-  // *PROCESS PROFILE*
-  ACE_Profile_Timer process_profile;
-  // start profile timer...
+  // start profile timer
   process_profile.start ();
 
-  std::string path = Common_File_Tools::getWorkingDirectory ();
+  path = Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR ("..");
@@ -1001,7 +1028,7 @@ ACE_TMAIN (int argc_in,
 #endif // #ifdef DEBUG_DEBUGGER
 
   // step1a set defaults
-  std::string bootstrap_file = path;
+  bootstrap_file = path;
 #if defined (DEBUG_DEBUGGER)
   bootstrap_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   bootstrap_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
@@ -1011,9 +1038,9 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   bootstrap_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   bootstrap_file +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
-  bool debug = NET_PROTOCOL_DEFAULT_YACC_TRACE;
-  std::string configuration_file = path;
+    ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
+  debug = NET_PROTOCOL_DEFAULT_YACC_TRACE;
+  configuration_file = path;
 #if defined (DEBUG_DEBUGGER)
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
@@ -1023,23 +1050,31 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_file +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE);
-  std::string host_name;
-  bool log_to_file = false;
-  std::string output_file = path;
+    ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE);
+  host_name.clear ();
+  log_to_file = false;
+  output_file = path;
   output_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   output_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
-  bool use_thread_pool = NET_EVENT_USE_THREAD_POOL;
-  unsigned short port = TEST_I_DEFAULT_PORT;
-  bool use_reactor = NET_EVENT_USE_REACTOR;
-  bool trace_information = false;
-  std::string URL;
-  bool print_version_and_exit = false;
-  unsigned int number_of_dispatch_threads =
+  use_thread_pool = NET_EVENT_USE_THREAD_POOL;
+  port = TEST_I_DEFAULT_PORT;
+  use_reactor = NET_EVENT_USE_REACTOR;
+  trace_information = false;
+  URL.clear ();
+  print_version_and_exit = false;
+  number_of_dispatch_threads =
     TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
-  ACE_INET_Addr remote_host (static_cast<u_short> (HTTP_DEFAULT_SERVER_PORT),
-                             static_cast<ACE_UINT32> (INADDR_LOOPBACK));
-  bool use_SSL = false;
+  result = remote_host.set (static_cast<u_short> (HTTP_DEFAULT_SERVER_PORT),
+                            static_cast<ACE_UINT32> (INADDR_LOOPBACK),
+                            1,
+                            0);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_INET_Addr::set(): \"%m\", aborting\n")));
+    goto error;
+  } // end IF
+  use_SSL = false;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -1059,18 +1094,8 @@ ACE_TMAIN (int argc_in,
                             remote_host,
                             use_SSL))
   {
-    // make 'em learn...
     do_printUsage (ACE::basename (argv_in[0]));
-
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
-
-    return EXIT_FAILURE;
+    goto error;
   } // end IF
 
   // step1c: validate arguments
@@ -1101,23 +1126,12 @@ ACE_TMAIN (int argc_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
-
     do_printUsage (ACE::basename (argv_in[0]));
-
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
-
-    return EXIT_FAILURE;
+    goto error;
   } // end IF
   if (number_of_dispatch_threads == 0) number_of_dispatch_threads = 1;
 
   // step1d: initialize logging and/or tracing
-  std::string log_file_name;
   if (log_to_file)
     log_file_name =
       Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE_NAME),
@@ -1131,42 +1145,20 @@ ACE_TMAIN (int argc_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
-
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
-
-    return EXIT_FAILURE;
+    goto error;
   } // end IF
+  finalize_logging = true;
 
   // step1e: pre-initialize signal handling
-  ACE_Sig_Set signal_set (0);
-  ACE_Sig_Set ignored_signal_set (0);
   do_initializeSignals (true, // allow SIGUSR1/SIGBREAK
                         signal_set,
                         ignored_signal_set);
-  Common_SignalActions_t previous_signal_actions;
-  sigset_t previous_signal_mask;
   result = ACE_OS::sigemptyset (&previous_signal_mask);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
-
-    Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
-
-    return EXIT_FAILURE;
+    goto error;
   } // end IF
   if (!Common_Tools::preInitializeSignals (signal_set,
                                            use_reactor,
@@ -1175,38 +1167,18 @@ ACE_TMAIN (int argc_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::preInitializeSignals(), aborting\n")));
-
-    Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
-
-    return EXIT_FAILURE;
+    goto error;
   } // end IF
-  Stream_Source_SignalHandler signal_handler (use_reactor);
+  finalize_signals = true;
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
   {
     do_printVersion (ACE::basename (argv_in[0]));
 
-    Common_Tools::finalizeSignals (signal_set,
-                                   previous_signal_actions,
-                                   previous_signal_mask);
-    Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
+    result = EXIT_SUCCESS;
 
-    return EXIT_SUCCESS;
+    goto continue_;
   } // end IF
 
   // step1g: set process resource limits
@@ -1217,23 +1189,9 @@ ACE_TMAIN (int argc_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::setResourceLimits(), aborting\n")));
-
-    Common_Tools::finalizeSignals (signal_set,
-                                   previous_signal_actions,
-                                   previous_signal_mask);
-    Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
-
-    return EXIT_FAILURE;
+    goto error;
   } // end IF
 
-  ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
   do_work (bootstrap_file,
@@ -1255,8 +1213,6 @@ ACE_TMAIN (int argc_in,
   timer.stop ();
 
   // debug info
-  std::string working_time_string;
-  ACE_Time_Value working_time;
   timer.elapsed_time (working_time);
   Common_Tools::period2String (working_time,
                                working_time_string);
@@ -1265,40 +1221,22 @@ ACE_TMAIN (int argc_in,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
               ACE_TEXT (working_time_string.c_str ())));
 
-  // stop profile timer...
+  // stop profile timer
   process_profile.stop ();
-
-  // only process profile left to do...
-  ACE_Profile_Timer::ACE_Elapsed_Time elapsed_time;
   elapsed_time.real_time = 0.0;
   elapsed_time.user_time = 0.0;
   elapsed_time.system_time = 0.0;
-  if (process_profile.elapsed_time (elapsed_time) == -1)
+  result = process_profile.elapsed_time (elapsed_time);
+  if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Profile_Timer::elapsed_time: \"%m\", aborting\n")));
-
-    Common_Tools::finalizeSignals (signal_set,
-                                   previous_signal_actions,
-                                   previous_signal_mask);
-    Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    result = ACE::fini ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
-#endif
-
-    return EXIT_FAILURE;
+    goto error;
   } // end IF
-  ACE_Profile_Timer::Rusage elapsed_rusage;
   ACE_OS::memset (&elapsed_rusage, 0, sizeof (elapsed_rusage));
   process_profile.elapsed_rusage (elapsed_rusage);
-  ACE_Time_Value user_time (elapsed_rusage.ru_utime);
-  ACE_Time_Value system_time (elapsed_rusage.ru_stime);
-  std::string user_time_string;
-  std::string system_time_string;
+  user_time.set (elapsed_rusage.ru_utime);
+  system_time.set (elapsed_rusage.ru_stime);
   Common_Tools::period2String (user_time,
                                user_time_string);
   Common_Tools::period2String (system_time,
@@ -1337,18 +1275,21 @@ ACE_TMAIN (int argc_in,
               ACE_TEXT (system_time_string.c_str ())));
 #endif
 
+  result = EXIT_SUCCESS;
+
+continue_:
+error:
   Common_Tools::finalizeSignals (signal_set,
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Tools::finalizeLogging ();
-
-  // *PORTABILITY*: on Windows, finalize ACE...
+  // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  result = ACE::fini ();
-  if (result == -1)
+  result_2 = ACE::fini ();
+  if (result_2 == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif
 
-  return EXIT_SUCCESS;
+  return result;
 } // end main

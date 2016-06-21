@@ -314,7 +314,7 @@ error:
       unsigned int column;
       unsigned int row;
       uno::Reference<table::XCellRange> cell_range_p;
-      //Test_I_StockRecordsIterator_t iterator = session_data_r.data.begin ();
+      Test_I_StockRecordsIterator_t iterator = session_data_r.data.begin ();
       bool is_reference = false;
 
       // sanity check(s)
@@ -341,20 +341,7 @@ error:
       ACE_ASSERT (result_4);
       ACE_ASSERT (cell_range_p.is ());
 
-      //// retrieve reference data record
-      //for (;
-      //     iterator != session_data_r.data.end ();
-      //     ++iterator)
-      //{
-      //  // sanity check(s)
-      //  ACE_ASSERT ((*iterator).item);
-
-      //  // skip reference
-      //  if ((*iterator).item->ISIN == ACE_TEXT_ALWAYS_CHAR (TEST_I_ISIN_DAX))
-      //    break;
-      //} // end FOR
-      //ACE_ASSERT (iterator != session_data_r.data.end ());
-
+      // set index data
       column = 0;
       row = inherited::configuration_->libreOfficeSheetStartRow;
       for (Test_I_StockRecordsIterator_t iterator_2 = session_data_r.data.begin ();
@@ -372,7 +359,7 @@ error:
         column = inherited::configuration_->libreOfficeSheetStartColumn;
         cell_p =
           cell_range_p->getCellByPosition (column,
-                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW
+                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW - 1
                                                          : row));
         ACE_ASSERT (cell_p.is ());
         cell_value_string =
@@ -382,7 +369,7 @@ error:
         ++column;
         cell_p =
           cell_range_p->getCellByPosition (column,
-                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW
+                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW - 1
                                                          : row));
         ACE_ASSERT (cell_p.is ());
         cell_value_string =
@@ -392,7 +379,7 @@ error:
         ++column;
         cell_p =
           cell_range_p->getCellByPosition (column,
-                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW
+                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW - 1
                                                          : row));
         ACE_ASSERT (cell_p.is ());
         cell_p->setFormula (::rtl::OUString::createFromAscii ((*iterator_2).item->WKN.c_str ()));
@@ -400,7 +387,7 @@ error:
         ++column;
         cell_p =
           cell_range_p->getCellByPosition (column,
-                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW
+                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW - 1
                                                          : row));
         ACE_ASSERT (cell_p.is ());
         cell_p->setValue ((*iterator_2).value);
@@ -408,7 +395,7 @@ error:
         ++column;
         cell_p =
           cell_range_p->getCellByPosition (column,
-                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW
+                                           (is_reference ? TEST_I_DEFAULT_LIBREOFFICE_REFERENCE_ROW - 1
                                                          : row));
         ACE_ASSERT (cell_p.is ());
         cell_p->setValue ((*iterator_2).change);
@@ -416,6 +403,14 @@ error:
         if (!is_reference)
           ++row;
       } // end FOR
+
+      // set date
+      cell_p =
+        cell_range_p->getCellByPosition (TEST_I_LIBREOFFICE_DATE_COLUMN - 1,
+                                         TEST_I_LIBREOFFICE_DATE_ROW - 1);
+      ACE_ASSERT (cell_p.is ());
+      cell_p->setValue ((*iterator).timeStamp.sec ());
+
       if (!session_data_r.data.empty ())
       {
         result_4 = storable_p.set (document_,

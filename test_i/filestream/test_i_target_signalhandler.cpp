@@ -31,10 +31,8 @@
 
 #include "test_i_connection_manager_common.h"
 
-Stream_Target_SignalHandler::Stream_Target_SignalHandler (bool useReactor_in)
- : inherited (this,          // event handler handle
-              useReactor_in) // use reactor ?
- , configuration_ ()
+Stream_Target_SignalHandler::Stream_Target_SignalHandler ()
+ : inherited (this) // event handler handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::Stream_Target_SignalHandler"));
 
@@ -44,16 +42,6 @@ Stream_Target_SignalHandler::~Stream_Target_SignalHandler ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::~Stream_Target_SignalHandler"));
 
-}
-
-bool
-Stream_Target_SignalHandler::initialize (const Test_I_Target_SignalHandlerConfiguration& configuration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Target_SignalHandler::initialize"));
-
-  configuration_ = configuration_in;
-
-  return true;
 }
 
 bool
@@ -121,14 +109,12 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
   // ------------------------------------
 
   // print statistic ?
-  if (statistic && configuration_.statisticReportingHandler)
+  if (statistic &&
+      inherited::configuration_->statisticReportingHandler)
   {
-    try
-    {
-      configuration_.statisticReportingHandler->report ();
-    }
-    catch (...)
-    {
+    try {
+      inherited::configuration_->statisticReportingHandler->report ();
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Common_IStatistic::report(), aborting\n")));
       return false;
@@ -157,14 +143,11 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
 //    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false, true);
 
     // step2: invoke controller (if any)
-    if (configuration_.listener)
+    if (inherited::configuration_->listener)
     {
-      try
-      {
-        configuration_.listener->stop ();
-      }
-      catch (...)
-      {
+      try {
+        inherited::configuration_->listener->stop ();
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught exception in Common_IControl::stop(), aborting\n")));
         return false;
@@ -172,24 +155,24 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
     } // end IF
 
     // step3: stop timer
-    if (configuration_.statisticReportingTimerID >= 0)
+    if (inherited::configuration_->statisticReportingTimerID >= 0)
     {
       const void* act_p = NULL;
       result =
-          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel (configuration_.statisticReportingTimerID,
+          COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel (inherited::configuration_->statisticReportingTimerID,
                                                               &act_p);
       if (result <= 0)
       {
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", aborting\n"),
-                    configuration_.statisticReportingTimerID));
+                    inherited::configuration_->statisticReportingTimerID));
 
         // clean up
-        configuration_.statisticReportingTimerID = -1;
+        inherited::configuration_->statisticReportingTimerID = -1;
 
         return false;
       } // end IF
-      configuration_.statisticReportingTimerID = -1;
+      inherited::configuration_->statisticReportingTimerID = -1;
     } // end IF
 
     // step4: stop/abort(/wait) for connections
@@ -197,9 +180,9 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
     connection_manager_p->abort ();
 
     // step5: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (inherited::useReactor_,  // stop reactor ?
-                                         !inherited::useReactor_, // stop proactor ?
-                                         -1);                     // group ID (--> don't block)
+    Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?
+                                         !inherited::configuration_->useReactor, // stop proactor ?
+                                         -1);                                    // group ID (--> don't block)
 
     // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF
