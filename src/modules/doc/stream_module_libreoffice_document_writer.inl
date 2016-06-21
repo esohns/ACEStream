@@ -45,8 +45,9 @@ Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
                                                SessionDataType,
                                                DocumentType>::Stream_Module_LibreOffice_Document_Writer_T ()
  : inherited ()
+ , component_ ()
+ , context_ ()
  , configuration_ (NULL)
- , documentComponent_ ()
  , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::Stream_Module_LibreOffice_Document_Writer_T"));
@@ -67,8 +68,10 @@ Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::~Stream_Module_LibreOffice_Document_Writer_T"));
 
   // *TODO*: ::lang::XComponent::dispose crashes the application
-  //if (documentComponent_.is ())
-  //  documentComponent_->dispose ();
+  //if (component_.is ())
+  //  component_->dispose ();
+  //if (context_.is ())
+  //  uno::Reference<lang::XComponent>::query (context_)->dispose ();
 }
 
 //template <typename SessionMessageType,
@@ -133,14 +136,13 @@ Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
       ACE_ASSERT (configuration_->socketConfiguration);
 
       uno::Reference<uno::XInterface> interface_p;
-      uno::Reference<uno::XComponentContext> component_context_p;
-      uno::Reference<lang::XMultiComponentFactory> client_p;
+      uno::Reference<lang::XMultiComponentFactory> multi_component_factory_p;
       std::string connection_string = ACE_TEXT_ALWAYS_CHAR ("uno:socket,host=");
       std::ostringstream converter;
       ::rtl::OUString connection_string_2;
       uno::Reference<bridge::XUnoUrlResolver> resolver_p;
       uno::Reference<frame::XDesktop2> component_loader_p;
-      uno::Reference<lang::XMultiComponentFactory> server_p;
+      uno::Reference<lang::XMultiComponentFactory> multi_component_factory_2;
       uno::Reference<beans::XPropertySet> property_set_p;
       ::rtl::OUString filename, working_directory, filename_url, absolute_filename_url;
       oslProcessError result_2 = osl_Process_E_InvalidError;
@@ -184,15 +186,15 @@ Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
         ::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR (connection_string.c_str ()));
 
       result_4 =
-        component_context_p.set (::cppu::defaultBootstrap_InitialComponentContext ());
+        context_.set (::cppu::defaultBootstrap_InitialComponentContext ());
       ACE_ASSERT (result_4);
-      result_4 = client_p.set (component_context_p->getServiceManager ());
+      result_4 = multi_component_factory_p.set (context_->getServiceManager ());
       ACE_ASSERT (result_4);
       result_4 =
-        interface_p.set (client_p->createInstanceWithContext (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.bridge.UnoUrlResolver"),
-                                                              component_context_p));
+        interface_p.set (multi_component_factory_p->createInstanceWithContext (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.bridge.UnoUrlResolver"),
+                                                                               context_));
       ACE_ASSERT (result_4);
-      uno::Reference<lang::XComponent>::query (client_p)->dispose ();
+      uno::Reference<lang::XComponent>::query (multi_component_factory_p)->dispose ();
       result_4 = resolver_p.set (interface_p,
                                  uno::UNO_QUERY);
       ACE_ASSERT (result_4);
@@ -223,13 +225,11 @@ Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
       result_4 = property_set_p.set (interface_p,
                                      uno::UNO_QUERY);
       ACE_ASSERT (result_4);
-      property_set_p->getPropertyValue ("DefaultContext") >>=
-        component_context_p;
+      property_set_p->getPropertyValue ("DefaultContext") >>= context_;
       //result_4 = server_p.set (component_context_p->getServiceManager ());
       //ACE_ASSERT (result_4);
 
-      result_4 =
-        component_loader_p.set (frame::Desktop::create (component_context_p));
+      result_4 = component_loader_p.set (frame::Desktop::create (context_));
       ACE_ASSERT (result_4);
 
       // generate document filename URL
@@ -245,10 +245,10 @@ Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
                                                       absolute_filename_url);
       ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
       result_4 =
-        documentComponent_.set (component_loader_p->loadComponentFromURL (absolute_filename_url,
-                                                                          ::rtl::OUString ("_blank"),
-                                                                          0,
-                                                                          uno::Sequence<beans::PropertyValue> ()));
+        component_.set (component_loader_p->loadComponentFromURL (absolute_filename_url,
+                                                                  ::rtl::OUString ("_blank"),
+                                                                  0,
+                                                                  uno::Sequence<beans::PropertyValue> ()));
       ACE_ASSERT (result_4);
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("loaded LibreOffice document (was: \"%s\")...\n"),
@@ -265,8 +265,11 @@ error:
     }
     case STREAM_SESSION_END:
     {
-      if (documentComponent_.is ())
-        documentComponent_->dispose ();
+      // *TODO*: ::lang::XComponent::dispose crashes the application
+      if (component_.is ())
+        component_->dispose ();
+      if (context_.is ())
+        uno::Reference<lang::XComponent>::query (context_)->dispose ();
 
       break;
     }
@@ -291,6 +294,12 @@ Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
 
   if (isInitialized_)
   {
+    // *TODO*: ::lang::XComponent::dispose crashes the application
+    if (component_.is ())
+      component_->dispose ();
+    if (context_.is ())
+      uno::Reference<lang::XComponent>::query (context_)->dispose ();
+
     isInitialized_ = false;
   } // end IF
 

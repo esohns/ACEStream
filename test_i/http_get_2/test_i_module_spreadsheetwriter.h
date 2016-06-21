@@ -24,7 +24,10 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "com/sun/star/sheet/XSpreadsheet.hpp"
+#include "sal/types.h"
+
+#include "com/sun/star/task/XInteractionHandler.hpp"
+#include "com/sun/star/task/XInteractionRequestStringResolver.hpp"
 #include "com/sun/star/sheet/XSpreadsheetDocument.hpp"
 #include "com/sun/star/uno/Reference.h"
 
@@ -33,6 +36,7 @@
 #include "stream_common.h"
 #include "stream_streammodule_base.h"
 
+#include "stream_module_libreoffice_document_handler.h"
 #include "stream_module_libreoffice_document_writer.h"
 
 #include "test_i_common.h"
@@ -40,6 +44,29 @@
 #include "test_i_session_message.h"
 
 using namespace ::com::sun::star;
+
+class Test_I_Stream_DocumentHandler
+ : public Stream_Module_LibreOffice_Document_Handler
+{
+ public:
+  Test_I_Stream_DocumentHandler ();
+  virtual ~Test_I_Stream_DocumentHandler ();
+
+  void initialize (uno::Reference<uno::XComponentContext>&);
+
+  // implement XInteractionHandler
+  virtual void SAL_CALL handle (const uno::Reference<task::XInteractionRequest>&) /* throw (uno::RuntimeException, ::std::exception) */;
+
+ private:
+  typedef Stream_Module_LibreOffice_Document_Handler inherited;
+
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_DocumentHandler (const Test_I_Stream_DocumentHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_DocumentHandler& operator= (const Test_I_Stream_DocumentHandler&))
+
+  uno::Reference<task::XInteractionRequestStringResolver> resolver_;
+};
+
+//////////////////////////////////////////
 
 class Test_I_Stream_SpreadsheetWriter
  : public Stream_Module_LibreOffice_Document_Writer_T<Test_I_Stream_SessionMessage,
@@ -73,6 +100,7 @@ class Test_I_Stream_SpreadsheetWriter
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter& operator= (const Test_I_Stream_SpreadsheetWriter&))
 
   uno::Reference<sheet::XSpreadsheetDocument> document_;
+  Test_I_Stream_DocumentHandler               handler_;
 };
 
 // declare module

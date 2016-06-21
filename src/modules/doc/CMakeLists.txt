@@ -20,6 +20,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set (${PROJECT_NAME}_Document_LIB_SRCS
      stream_document_defines.h
      stream_document_exports.h
+     stream_module_libreoffice_document_handler.cpp
+     stream_module_libreoffice_document_handler.h
      stream_module_libreoffice_document_writer.cpp
      stream_module_libreoffice_document_writer.h
      stream_module_libreoffice_document_writer.inl
@@ -33,6 +35,11 @@ add_dependencies (${PROJECT_NAME}_Document ${PROJECT_NAME})
 
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Document ${ACE_LIBRARY})
+
+ target_link_libraries (${PROJECT_NAME}_Document ${LIBREOFFICE_SDK_DIRECTORY}/lib/isal.lib)
+
+ target_link_libraries (${PROJECT_NAME}_Document ${LIBREOFFICE_SDK_DIRECTORY}/lib/icppu.lib)
+ target_link_libraries (${PROJECT_NAME}_Document ${LIBREOFFICE_SDK_DIRECTORY}/lib/icppuhelper.lib)
 endif ()
 target_link_libraries (${PROJECT_NAME}_Document Common)
 
@@ -47,6 +54,7 @@ export (TARGETS ${PROJECT_NAME}_Document
 install (FILES
          stream_document_defines.h
          stream_document_exports.h
+         stream_module_libreoffice_document_handler.h
          stream_module_libreoffice_document_writer.h
          stream_module_libreoffice_document_writer.inl
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"

@@ -23,8 +23,9 @@
 
 #include "ace/Global_Macros.h"
 
-#include "com/sun/star/lang/XComponent.hdl"
+#include "com/sun/star/lang/XComponent.hpp"
 #include "com/sun/star/uno/Reference.h"
+#include "com/sun/star/uno/XComponentContext.hpp"
 
 #include "common_time_common.h"
 
@@ -61,8 +62,11 @@ class Stream_Module_LibreOffice_Document_Writer_T
   virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
-  ModuleHandlerConfigurationType*                                      configuration_;
-  ::com::sun::star::uno::Reference<::com::sun::star::lang::XComponent> documentComponent_;
+  uno::Reference<lang::XComponent>       component_;
+  uno::Reference<uno::XComponentContext> context_;
+
+  ModuleHandlerConfigurationType*        configuration_;
+  bool                                   isInitialized_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -71,8 +75,6 @@ class Stream_Module_LibreOffice_Document_Writer_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T (const Stream_Module_LibreOffice_Document_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T& operator= (const Stream_Module_LibreOffice_Document_Writer_T&))
-
-  bool                                                                 isInitialized_;
 };
 
 #include "stream_module_libreoffice_document_writer.inl"

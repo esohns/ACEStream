@@ -255,9 +255,10 @@ elseif (WIN32)
  #target_link_libraries (http_get ${LIBXML2_LIBRARY})
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/win32/lib/libxml2.lib)
 
+ target_link_libraries (${EXECUTABLE} ${LIBREOFFICE_SDK_DIRECTORY}/lib/isal.lib)
+
  target_link_libraries (${EXECUTABLE} ${LIBREOFFICE_SDK_DIRECTORY}/lib/icppu.lib)
  target_link_libraries (${EXECUTABLE} ${LIBREOFFICE_SDK_DIRECTORY}/lib/icppuhelper.lib)
- target_link_libraries (${EXECUTABLE} ${LIBREOFFICE_SDK_DIRECTORY}/lib/isal.lib)
 endif ()
 #target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 target_link_libraries (${EXECUTABLE} Common)
