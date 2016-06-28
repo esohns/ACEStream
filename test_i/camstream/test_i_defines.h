@@ -21,6 +21,7 @@
 #ifndef TEST_I_DEFINES_H
 #define TEST_I_DEFINES_H
 
+#include "ace/config-lite.h"
 //#include "ace/Default_Constants.h"
 
 //#include "stream_misc_defines.h"

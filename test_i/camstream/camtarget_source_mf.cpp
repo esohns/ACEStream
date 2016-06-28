@@ -44,8 +44,8 @@ HMODULE g_hModule; // DLL module handle
 // Defines the class factory lock variable:
 DEFINE_CLASSFACTORY_SERVER_LOCK;
 
-#define IF_FAILED_GOTO (result, label) if (FAILED (result)) { goto label; }
-#define CHECK_HR (result) IF_FAILED_GOTO (result, done)
+//#define IF_FAILED_GOTO (result, label) if (FAILED (result)) { goto label; }
+//#define CHECK_HR (result) IF_FAILED_GOTO (result, done)
 
 // -----------------------------------------------------------------------------
 
@@ -68,15 +68,13 @@ DWORD g_numClassFactories = ARRAYSIZE (g_ClassFactories);
 // Text strings
 
 // Description string for the bytestream handler.
-const TCHAR* sByteStreamHandlerDescription =
-  TEXT ("ACEStream Source ByteStreamHandler");
-
+//const TCHAR* sByteStreamHandlerDescription =
+//  TEXT ("ACEStream Source ByteStreamHandler");
 // File extension for WAVE files.
 //const TCHAR* sFileExtension = TEXT(".mpg");
-
 // Registry location for bytestream handlers.
-const TCHAR* REGKEY_MF_BYTESTREAM_HANDLERS =
-  TEXT ("Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers");
+//const TCHAR* REGKEY_MF_BYTESTREAM_HANDLERS =
+//  TEXT ("Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers");
 
 // Forward declarations
 // Functions to register and unregister the byte stream handler.
@@ -131,14 +129,14 @@ STDAPI DllRegisterServer ()
   // Register the bytestream handler's CLSID as a COM object.
   result = RegisterObject (g_hModule,
                            CLSID_ACEStream_MF_MediaSource,
-                           sByteStreamHandlerDescription,
-                           TEXT ("Both"));
+                           ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MF_WIN32_BYTESTREAMHANDLER_DESCRIPTION),
+                           ACE_TEXT_ALWAYS_CHAR ("Both"));
   if (FAILED (result)) goto done;
 
   //// Register the bytestream handler as the handler for the MPEG-1 file extension.
-  //CHECK_HR (result = RegisterByteStreamHandler (CLSID_MFSampleMPEG1ByteStreamHandler, // CLSID 
-  //                                              sFileExtension,                       // Supported file extension
-  //                                              sByteStreamHandlerDescription));      // Description
+  //result = RegisterByteStreamHandler (CLSID_MFSampleMPEG1ByteStreamHandler, // CLSID 
+  //                                    sFileExtension,                       // Supported file extension
+  //                                    sByteStreamHandlerDescription);       // Description
 
 done:
   return result;
@@ -167,7 +165,6 @@ STDAPI DllGetClassObject (REFCLSID CLSID_in,
 
   // Find an entry in our look-up table for the specified CLSID.
   for (DWORD index = 0; index < g_numClassFactories; index++)
-  {
     if (*g_ClassFactories[index].pclsid == CLSID_in)
     {
       // Found an entry. Create a new class factory object.
@@ -176,7 +173,6 @@ STDAPI DllGetClassObject (REFCLSID CLSID_in,
       result = (class_factory_p ? S_OK : E_OUTOFMEMORY);
       break;
     } // end IF
-  } // end FOR
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -265,7 +261,7 @@ RegisterByteStreamHandler (const GUID& guid,
     result = StringFromGUID2 (guid, szCLSID, CHARS_IN_GUID);
   if (SUCCEEDED (result))
     result = CreateRegistryKey (HKEY_LOCAL_MACHINE,
-                                REGKEY_MF_BYTESTREAM_HANDLERS,
+                                ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY),
                                 &hKey);
   if (SUCCEEDED (result))
     result = CreateRegistryKey (hKey,
@@ -302,7 +298,7 @@ UnregisterByteStreamHandler (const GUID& guid,
   result_2 = StringCchPrintf (szKey,
                               MAX_PATH,
                               TEXT ("%s\\%s"),
-                              REGKEY_MF_BYTESTREAM_HANDLERS,
+                              ACE_TEXT (MODULE_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY),
                               sFileExtension);
   if (FAILED (result_2)) goto done;
 

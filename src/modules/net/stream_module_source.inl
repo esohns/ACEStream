@@ -355,6 +355,7 @@ Stream_Module_Net_Source_T<LockType,
       typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
+      SessionDataContainerType* session_data_container_p = NULL;
 
       if (isPassive_)
       {
@@ -553,13 +554,10 @@ reset:
       // *WARNING*: this works only if the STREAM_SESSION_LINK message has been
       //            received by now (see below; OK if upstream is completely
       //            synchronous)
-      Test_I_Stream_SessionData_t* session_data_container_p =
-        inherited::sessionData_;
-      Test_I_UserData& user_data_r =
-        const_cast<Test_I_UserData&> (message_inout->data ());
+      session_data_container_p = inherited::sessionData_;
       message_inout->initialize (STREAM_SESSION_BEGIN,
                                  session_data_container_p,
-                                 &user_data_r);
+                                 &const_cast<typename SessionMessageType::USER_DATA_T&> (message_inout->data ()));
 
       goto continue_;
 

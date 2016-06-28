@@ -102,14 +102,6 @@ else ()
 # *TODO*: repair pkgconfig support
 # include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
 # gtk
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/glib-2.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/glib-2.0/include)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gtk-2.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/gtk-2.0/include)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gdk-pixbuf-2.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/atk-1.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/cairo)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/pango-1.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/include/glib-2.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/glib-2.0/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/include/gtk-2.0)
@@ -118,8 +110,9 @@ else ()
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/include/atk-1.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/include/pango-1.0)
+
 # libglade
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade/include/libglade-2.0)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/include/libglade-2.0)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/msvc)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../libCommon/src)
@@ -166,10 +159,8 @@ set (camsource_EXE_SRCS
      stdafx.cpp
      stdafx.h)
 
-set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
-
 set (EXECUTABLE camsource)
-add_executable (${EXECUTABLE} ${camsource_EXE_SRCS} etc/resources.rc etc/source.glade)
+add_executable (${EXECUTABLE} ${camsource_EXE_SRCS})
 
 #add_dependencies (${EXECUTABLE} ACE)
 add_dependencies (${EXECUTABLE} Common)
@@ -198,18 +189,14 @@ elseif (WIN32)
  endif ()
  target_link_libraries (${EXECUTABLE} winmm.lib)
 # *TODO*: repair WIN32 pkgconfig support
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gio-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gobject-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/pango-1.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gdk-win32-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gio-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/glib-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gobject-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/pango-1.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gdk-win32-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gtk-win32-2.0.lib)
+
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/lib/libglade-2.0.dll.a)
 endif ()
 target_link_libraries (${EXECUTABLE} Common)
 if (WIN32)
@@ -223,6 +210,12 @@ target_link_libraries (${EXECUTABLE} ACEStream_Device)
 target_link_libraries (${EXECUTABLE} ACEStream_Miscellaneous)
 target_link_libraries (${EXECUTABLE} ACENetwork)
 #target_link_libraries (${EXECUTABLE} ACENetwork_Client)
+
+set (RESOURCE_FILES
+     etc/resources.rc
+     etc/source.glade)
+set_source_files_properties (${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
+source_group (res FILES ${RESOURCE_FILES})
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
@@ -272,7 +265,8 @@ if (WIN32)
       stdafx.h)
 
  set (LIBRARY camtarget_source)
- add_library (${LIBRARY} MODULE ${camtarget_source_LIB_SRCS} scripts/camstream_source.def)
+ add_library (${LIBRARY} MODULE
+              ${camtarget_source_LIB_SRCS} etc/camtarget_source.def)
 
  add_dependencies (${LIBRARY} Common)
  add_dependencies (${LIBRARY} ${PROJECT_NAME})
@@ -282,7 +276,7 @@ if (WIN32)
  target_link_libraries (${LIBRARY} winmm.lib)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug)
-  target_link_libraries (${LIBRARY} ${DIRECTSHOW_BASECLASSES_DIRECTORY}/Debug/strmbasd.lib)
+  target_link_libraries (${LIBRARY} strmbasd.lib)
  else ()
   link_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY}/Release)
   target_link_libraries (${LIBRARY} strmbase.lib)
@@ -305,13 +299,16 @@ if (WIN32)
           LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
           RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
 
+#-----------------------------------------
+
  set (camtarget_source_mf_LIB_SRCS
       camtarget_source_mf.cpp
       stdafx.cpp
       stdafx.h)
 
  set (LIBRARY camtarget_source_mf)
- add_library (${LIBRARY} MODULE ${camtarget_source_mf_LIB_SRCS} scripts/camstream_source_mf.def)
+ add_library (${LIBRARY} MODULE
+              ${camtarget_source_mf_LIB_SRCS} etc/camtarget_source_mf.def)
 
  add_dependencies (${LIBRARY} Common)
  add_dependencies (${LIBRARY} ${PROJECT_NAME})
@@ -403,18 +400,14 @@ elseif (WIN32)
   target_link_libraries (${EXECUTABLE} strmbase.lib)
  endif ()
 # *TODO*: repair WIN32 pkgconfig support
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gio-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gobject-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/pango-1.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gdk-win32-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gio-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/glib-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gobject-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/pango-1.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gdk-win32-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gtk-win32-2.0.lib)
+
+ target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libglade-2.6.4/lib/libglade-2.0.dll.a)
 endif ()
 target_link_libraries (${EXECUTABLE} Common)
 if (WIN32)
@@ -457,10 +450,10 @@ create_target_launcher (${EXECUTABLE}
                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                         ENVIRONMENT foo=bar)
 
-add_test (NAME camstream_target
-          COMMAND ${EXECUTABLE} -l -t
-          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test (${EXECUTABLE}_test
+          ${PROJECT_BINARY_DIR}/${EXECUTABLE} -l -t
+          ${PROJECT_SOURCE_DIR})
 
-set_tests_properties (camstream_target
+set_tests_properties (${EXECUTABLE}_test
                       PROPERTIES
                       ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")

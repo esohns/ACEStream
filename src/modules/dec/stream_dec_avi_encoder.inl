@@ -850,12 +850,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
   if ((media_type.formattype != FORMAT_VideoInfo) &&
       (media_type.formattype != FORMAT_VideoInfo2))
   {
-    OLECHAR GUID_string[39];
+    OLECHAR GUID_string[CHARS_IN_GUID];
     ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
     int nCount =
       StringFromGUID2 (media_type.formattype,
                        GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (nCount == 39);
+    ACE_ASSERT (nCount == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));

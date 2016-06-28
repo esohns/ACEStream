@@ -453,9 +453,9 @@ bool
 //                          IAMStreamConfig*& IAMStreamConfig_out,
 //                          struct _AMMediaType*& mediaType_out,
 //                          bool coInitialize_in)
-do_initialize_directshow (bool coInitialize_in)
+do_initialize_media_framework (bool coInitialize_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::do_initialize_directshow"));
+  STREAM_TRACE (ACE_TEXT ("::do_initialize_media_framework"));
 
   HRESULT result = E_FAIL;
   //std::list<std::wstring> filter_pipeline;
@@ -474,7 +474,8 @@ do_initialize_directshow (bool coInitialize_in)
                             COINIT_SPEED_OVER_MEMORY));
   if (FAILED (result))
   {
-    // *NOTE*: most probable reason: already initialized (happens in the debugger)
+    // *NOTE*: most probable reason: already initialized (happens in the
+    //         debugger)
     //         --> continue
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
@@ -684,9 +685,9 @@ error:
 }
 
 void
-do_finalize_directshow (Test_I_Source_GTK_CBData& CBData_in)
+do_finalize_media_framework (Test_I_Source_GTK_CBData& CBData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
+  STREAM_TRACE (ACE_TEXT ("::do_finalize_media_framework"));
 
   HRESULT result = E_FAIL;
 
@@ -764,20 +765,21 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // *NOTE*: in UI mode COM has already been initialized for this thread (why ?)
+  // *NOTE*: in UI mode, COM has already been initialized for this thread (where
+  //         has that happened ?)
   //if (!do_initialize_directshow (configuration.moduleHandlerConfiguration.device,
   //                               configuration.moduleHandlerConfiguration.builder,
   //                               CBData_in.streamConfiguration,
   //                               configuration.moduleHandlerConfiguration.format,
   //                               UIDefinitionFilename_in.empty ())) // initialize COM ?
-  if (!do_initialize_directshow (UIDefinitionFilename_in.empty ())) // initialize COM ?
+  if (!do_initialize_media_framework (UIDefinitionFilename_in.empty ())) // initialize COM ?
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::do_initialize_directshow(), returning\n")));
+                ACE_TEXT ("failed to ::do_initialize_media_framework(), returning\n")));
     return;
   } // end IF
   //ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
-  ACE_ASSERT (CBData_in.streamConfiguration);
+  //ACE_ASSERT (CBData_in.streamConfiguration);
 #endif
 
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
@@ -1094,7 +1096,7 @@ clean:
   //              event_handler.name ()));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  do_finalize_directshow (CBData_in);
+  do_finalize_media_framework (CBData_in);
 #endif
 
   delete CBData_in.stream;

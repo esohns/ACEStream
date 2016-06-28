@@ -25,9 +25,9 @@
 #include "ace/Message_Block.h"
 
 #include "libv4l2.h"
-#include "linux/videodev2.h"
 
 #include "stream_iallocator.h"
+#include "stream_macros.h"
 
 template <typename MessageType>
 bool

@@ -39,8 +39,6 @@
 #include "stream_misc_directshow_asynch_source_filter.h"
 #include "stream_misc_directshow_source_filter.h"
 
-#include "test_i_common.h"
-#include "test_i_common_modules.h"
 #include "test_i_defines.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
@@ -187,7 +185,7 @@ CFactoryTemplate g_Templates[] = {
   , InitRoutine                                            // Initialization function.
   , &sudFilterRegAM },                                     // Pointer to filter information.
 
-  { TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME   // Name.
+  { TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME     // Name.
   , &CLSID_ACEStream_Asynch_Source_Filter                         // CLSID.
   , Stream_Misc_DirectShow_Asynch_Source_Filter_t::CreateInstance // Creation function.
   , InitRoutine                                                   // Initialization function.
@@ -198,7 +196,7 @@ int g_cTemplates = sizeof (g_Templates) / sizeof (g_Templates[0]);
 // -----------------------------------------------------------------------------
 
 // [*NOTE*: "Non-member deallocation functions shall not be declared in a
-//         namespace scope other than the global namespace."]
+//          namespace scope other than the global namespace."]
 
 // *NOTE*: "These other signatures are only called automatically by a new - 
 //         expression when their object construction fails (e.g., if the
@@ -226,6 +224,12 @@ __CRTDECL operator delete (void* pointer_p)
   ::free (pointer_p);
 }
 
+//CUnknown*
+//WINAPI CreateInstance (LPUNKNOWN interface_in,
+//                       HRESULT* result_in)
+//{
+//  return NULL;
+//}
 void
 WINAPI InitRoutine (BOOL isLoading_in,
                     const CLSID* CLSID_in)
@@ -247,7 +251,6 @@ WINAPI InitRoutine (BOOL isLoading_in,
 //
 //  return S_OK;
 //}
-//
 //STDAPI
 //DllGetClassObject (__in REFCLSID rClsID_in,
 //                   __in REFIID riid_in,
@@ -282,7 +285,6 @@ WINAPI InitRoutine (BOOL isLoading_in,
 //
 //  return NOERROR;
 //}
-
 STDAPI
 DllRegisterServer ()
 {
@@ -299,9 +301,10 @@ DllRegisterServer ()
     return result;
   } // end IF
 
+  // *TODO*: is this necessary at all ?
   IFilterMapper2* ifilter_mapper_p = NULL;
   result = CoCreateInstance (CLSID_FilterMapper2, NULL, CLSCTX_INPROC_SERVER,
-                             IID_IFilterMapper2, (void**)&ifilter_mapper_p);
+                             IID_PPV_ARGS (&ifilter_mapper_p));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -346,7 +349,6 @@ clean:
 
   return result;
 } // DllRegisterServer
-
 STDAPI
 DllUnregisterServer ()
 {
@@ -363,9 +365,10 @@ DllUnregisterServer ()
     return result;
   } // end IF
 
+  // *TODO*: is this necessary at all ?
   IFilterMapper2* ifilter_mapper_p = NULL;
   result = CoCreateInstance (CLSID_FilterMapper2, NULL, CLSCTX_INPROC_SERVER,
-                             IID_IFilterMapper2, (void**)&ifilter_mapper_p);
+                             IID_PPV_ARGS (&ifilter_mapper_p));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -406,7 +409,6 @@ clean:
 } // DllUnregisterServer
 
 extern "C" BOOL WINAPI DllEntryPoint (HINSTANCE, ULONG, LPVOID);
-
 BOOL
 WINAPI DllMain (HANDLE hModule,
                 DWORD  dwReason,

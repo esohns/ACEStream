@@ -69,6 +69,8 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
+  // *TODO*: this really shouldn't be necessary...
+  inherited::head ()->next (inherited::tail ());
 }
 
 template <typename LockType,
@@ -202,9 +204,9 @@ Stream_Base_T<LockType,
 
   // step1: reset pipeline
   try {
-    result = inherited::open (NULL,  // argument to push()
-                              NULL,  // head --> allocate
-                              NULL); // tail --> allocate
+    result = inherited::open (NULL,                // argument to push()
+                              inherited::head (),  // head
+                              inherited::tail ()); // tail
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in ACE_Stream::open(), aborting\n")));
@@ -262,7 +264,9 @@ Stream_Base_T<LockType,
                 ACE_TEXT ("pushed \"%s\"...\n"),
                 (*iterator)->name ()));
   } // end IF
+#if defined (_DEBUG)
   dump_state ();
+#endif
 
   return true;
 }
@@ -366,6 +370,9 @@ Stream_Base_T<LockType,
   // step1: allocate session data
   if (resetSessionData_in)
   {
+    // sanity check(s)
+    ACE_ASSERT (!sessionData_);
+
     SessionDataType* session_data_p = NULL;
     ACE_NEW_NORETURN (session_data_p,
                       SessionDataType ());
@@ -404,6 +411,7 @@ Stream_Base_T<LockType,
       return;
     } // end IF
 
+  //// step3: initialize state machine
   //// delegate to the head module
   //MODULE_T* module_p = NULL;
   //result = inherited::top (module_p);
@@ -713,12 +721,6 @@ Stream_Base_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isRunning"));
 
   int result = -1;
-
-  // sanity check(s)
-  // *NOTE*: top() uses inherited::stream_head_. If the stream has not been
-  //         open()ed yet, or failed to initialize(), this will crash
-  if (!const_cast<OWN_TYPE_T*> (this)->head ())
-    return false;
 
   // delegate to the head module
   MODULE_T* module_p = NULL;
@@ -2903,4 +2905,42 @@ Stream_Base_T<LockType,
 
     return;
   } // end IF
+}
+
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
+void
+Stream_Base_T<LockType,
+              TaskSynchType,
+              TimePolicyType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+              ProtocolMessageType>::unlinkModules ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlinkModules"));
+
+  MODULE_T* head_p = inherited::head ();
+  for (MODULE_T* module_p = head_p;
+       module_p;
+       module_p = module_p->next ())
+    module_p->next (NULL);
+  head_p->next (inherited::tail ());
 }

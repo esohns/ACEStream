@@ -21,10 +21,11 @@
 #ifndef STREAM_MODULE_MISC_DEFINES_H
 #define STREAM_MODULE_MISC_DEFINES_H
 
+#include "ace/config-lite.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+// DirectShow
 #define MODULE_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS          60 // ==> max. #frames(/sec)
-// *NOTE*: #samples each stream tries to hold in its queue
-#define MODULE_MISC_MF_WIN32_MEDIA_SOURCE_SAMPLE_QUEUE_SIZE 2;
 
 #define MODULE_MISC_DS_WIN32_FILTER_SOURCE_FRAME_INTERVAL   20 // ms
 // *NOTE*: if the graph (i.e. usually the renderers'-) (default) allocator
@@ -42,6 +43,14 @@
 #define MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE             "ACEStream DirectShow Source"
 #define MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L           L"ACEStream DirectShow Source"
 #define MODULE_MISC_DS_WIN32_FILTER_PIN_OUTPUT_NAME         L"Output"
+
+// MediaFoundation
+// *NOTE*: #samples each stream tries to hold in its queue
+#define MODULE_MISC_MF_WIN32_MEDIA_SOURCE_SAMPLE_QUEUE_SIZE 2;
+
+#define MODULE_MISC_MF_WIN32_BYTESTREAMHANDLER_DESCRIPTION  "ACEStream Source ByteStreamHandler"
+#define MODULE_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY     "Software\\Microsoft\\Windows Media Foundation\\ByteStreamHandlers"
+
 #endif
 
 #endif

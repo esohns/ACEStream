@@ -41,12 +41,9 @@
 #include "gdk/gdkwin32.h"
 #else
 #include "ace/Dirent_Selector.h"
-
-#include "libv4l2.h"
-#include "linux/videodev2.h"
 #endif
 
-#include "glade/glade.h"
+//#include "glade/glade.h"
 
 #include "common_file_tools.h"
 #include "common_timer_manager.h"
@@ -243,6 +240,7 @@ load_capture_devices (GtkListStore* listStore_in)
   for (UINT32 i = 0; i < count; i++)
     devices_pp[i]->Release ();
   CoTaskMemFree (devices_pp);
+  devices_pp = NULL;
 
   result = true;
 
@@ -517,7 +515,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   } // end IF
 
   GtkTreeIter iterator;
-  OLECHAR GUID_string[39];
+  OLECHAR GUID_string[CHARS_IN_GUID];
   ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
   for (std::set<GUID, less_guid>::const_iterator iterator_2 = GUIDs.begin ();
        iterator_2 != GUIDs.end ();
@@ -525,7 +523,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     count = StringFromGUID2 (*iterator_2,
                              GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (count == 39);
+    ACE_ASSERT (count == CHARS_IN_GUID);
     GUID_stdstring =
       ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
     gtk_list_store_append (listStore_in, &iterator);
@@ -3264,43 +3262,46 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
   // sanity check(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.builder);
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.session);
   ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.format);
 
   HRESULT result_2 = E_FAIL;
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
   IMFTopology* topology_p = NULL;
-  result_2 =
-    data_p->configuration->moduleHandlerConfiguration.session->GetFullTopology (flags,
-                                                                                0,
-                                                                                &topology_p);
-  if (FAILED (result_2))
+  if (data_p->configuration->moduleHandlerConfiguration.session)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    goto error;
-  } // end IF
-  //if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-  if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
+    result_2 =
+      data_p->configuration->moduleHandlerConfiguration.session->GetFullTopology (flags,
+                                                                                  0,
+                                                                                  &topology_p);
+    if (FAILED (result_2))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
+      goto error;
+    } // end IF
+    //if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+    if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
 #else
-  if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
+    if (!Stream_Module_Device_Tools::setCaptureFormat (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
 #endif
-                                                     data_p->configuration->moduleHandlerConfiguration.format))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
-    goto error;
-  } // end IF
+                                                       data_p->configuration->moduleHandlerConfiguration.format))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
+      goto error;
+    } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  topology_p->Release ();
+    topology_p->Release ();
+
+    //struct _AMMediaType* media_type_p = NULL;
+    //Stream_Module_Device_Tools::getCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
+    //                                              media_type_p);
+    //media_type.Set (*media_type_p);
+    //ACE_ASSERT (media_type == *data_p->configuration->moduleHandlerConfiguration.format);
+  } // end IF
 #endif
-  //struct _AMMediaType* media_type_p = NULL;
-  //Stream_Module_Device_Tools::getCaptureFormat (data_p->configuration->moduleHandlerConfiguration.builder,
-  //                                              media_type_p);
-  //media_type.Set (*media_type_p);
-  //ACE_ASSERT (media_type == *data_p->configuration->moduleHandlerConfiguration.format);
 
   // step3: start processing thread
   ACE_NEW_NORETURN (thread_data_p,

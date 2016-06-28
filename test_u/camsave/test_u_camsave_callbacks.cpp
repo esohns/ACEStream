@@ -515,7 +515,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   } // end IF
 
   GtkTreeIter iterator;
-  OLECHAR GUID_string[39];
+  OLECHAR GUID_string[CHARS_IN_GUID];
   ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
   for (std::set<struct _GUID, less_guid>::const_iterator iterator_2 = GUIDs.begin ();
        iterator_2 != GUIDs.end ();
@@ -523,7 +523,7 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
   {
     count = StringFromGUID2 (*iterator_2,
                              GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (count == 39);
+    ACE_ASSERT (count == CHARS_IN_GUID);
     GUID_stdstring =
       ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
     gtk_list_store_append (listStore_in, &iterator);

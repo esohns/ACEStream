@@ -26,6 +26,8 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mfidl.h"
 #include "mfreadwrite.h"
+#else
+#include "linux/videodev2.h"
 #endif
 
 #include "gtk/gtk.h"

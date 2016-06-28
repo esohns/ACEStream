@@ -771,11 +771,11 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
                       (void**)&ibase_filter_p);
   if (FAILED (result))
   {
-    OLECHAR GUID_string[39];
+    OLECHAR GUID_string[CHARS_IN_GUID];
     ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
     int nCount = StringFromGUID2 (CLSID_in,
                                   GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (nCount == 39);
+    ACE_ASSERT (nCount == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),

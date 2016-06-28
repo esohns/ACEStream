@@ -2410,7 +2410,7 @@ Stream_Module_Device_Tools::loadRendererGraph (const struct _AMMediaType& mediaT
   //} // end ELSE
   //ACE_ASSERT (IGraphBuilder_out);
 
-  OLECHAR GUID_string[39];
+  OLECHAR GUID_string[CHARS_IN_GUID];
   ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
   int count = 0;
 
@@ -2444,7 +2444,7 @@ Stream_Module_Device_Tools::loadRendererGraph (const struct _AMMediaType& mediaT
   {
     count = StringFromGUID2 (converter_CLSID,
                              GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (count == 39);
+    ACE_ASSERT (count == CHARS_IN_GUID);
 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
@@ -2474,7 +2474,7 @@ Stream_Module_Device_Tools::loadRendererGraph (const struct _AMMediaType& mediaT
   {
     count = StringFromGUID2 (converter_CLSID,
                              GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (count == 39);
+    ACE_ASSERT (count == CHARS_IN_GUID);
 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
@@ -2508,7 +2508,7 @@ Stream_Module_Device_Tools::loadRendererGraph (const struct _AMMediaType& mediaT
     count = StringFromGUID2 ((windowHandle_in ? CLSID_VideoRenderer
                                               : CLSID_NullRenderer),
                              GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (count == 39);
+    ACE_ASSERT (count == CHARS_IN_GUID);
 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
@@ -3100,6 +3100,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   MFT_REGISTER_TYPE_INFO mft_register_type_info = { 0 };
   IMFMediaSource* media_source_p = NULL;
   IMFMediaType* media_type_p = NULL;
+  IMFActivate* activate_p = NULL;
 
   // initialize return value(s)
   sampleGrabberSinkNodeId_out = 0;
@@ -3577,8 +3578,6 @@ continue_:
 
 continue_2:
   // step4: add sample grabber sink ?
-  IMFActivate* activate_p = NULL;
-
   if (!IMFSampleGrabberSinkCallback2_in)
     goto continue_3;
 
@@ -3821,7 +3820,7 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
   ACE_ASSERT (IGraphBuilder_out);
 
   //// split
-  OLECHAR GUID_string[39];
+  OLECHAR GUID_string[CHARS_IN_GUID];
   IBaseFilter* filter_p = NULL;
   //result =
   //  IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI,
@@ -3891,7 +3890,7 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
       int nCount =
         StringFromGUID2 (CLSID_Colour,
                          GUID_string, sizeof (GUID_string));
-      ACE_ASSERT (nCount == 39);
+      ACE_ASSERT (nCount == CHARS_IN_GUID);
 
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
@@ -3945,7 +3944,7 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
         StringFromGUID2 ((windowHandle_in ? CLSID_VideoRenderer
                                           : CLSID_NullRenderer),
                          GUID_string, sizeof (GUID_string));
-      ACE_ASSERT (nCount == 39);
+      ACE_ASSERT (nCount == CHARS_IN_GUID);
 
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
@@ -7682,11 +7681,11 @@ Stream_Module_Device_Tools::mediaSubTypeToString (const struct _GUID& GUID_in)
     Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.find (GUID_in);
   if (iterator == Stream_Module_Device_Tools::Stream_MediaSubType2StringMap.end ())
   {
-    OLECHAR GUID_string[39];
+    OLECHAR GUID_string[CHARS_IN_GUID];
     ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
     int nCount = StringFromGUID2 (GUID_in,
                                   GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (nCount == 39);
+    ACE_ASSERT (nCount == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
@@ -7732,7 +7731,7 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
 
   std::string result;
 
-  OLECHAR GUID_string[39];
+  OLECHAR GUID_string[CHARS_IN_GUID];
   ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
   int count = -1;
   GUID2STRING_MAP_ITERATOR_T iterator =
@@ -7741,7 +7740,7 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
   {
     count = StringFromGUID2 (mediaType_in.majortype,
                              GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (count == 39);
+    ACE_ASSERT (count == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media majortype (was: \"%s\"), aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
@@ -7777,7 +7776,7 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
     ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
     count = StringFromGUID2 (mediaType_in.formattype,
                              GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (count == 39);
+    ACE_ASSERT (count == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
@@ -8071,7 +8070,7 @@ Stream_Module_Device_Tools::mediaTypeToString (const struct _AMMediaType& mediaT
     ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
     count = StringFromGUID2 (mediaType_in.formattype,
                              GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (count == 39);
+    ACE_ASSERT (count == CHARS_IN_GUID);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media formattype (was: \"%s\"), continuing\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string)));
