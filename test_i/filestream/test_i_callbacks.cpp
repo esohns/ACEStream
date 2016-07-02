@@ -1355,8 +1355,8 @@ idle_end_target_UI_cb (gpointer userData_in)
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_ACTION_CLOSE_ALL_NAME)));
   ACE_ASSERT (action_p);
-  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
-    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+  Test_I_Target_InetConnectionManager_t* connection_manager_p =
+    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
   gtk_action_set_sensitive (action_p,
                             (connection_manager_p->count () != 0));
@@ -2284,8 +2284,8 @@ action_listen_activate_cb (GtkAction* action_in,
   else
     data_p->configuration->protocol = NET_TRANSPORTLAYER_UDP;
 
-  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
-    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+  Test_I_Target_InetConnectionManager_t* connection_manager_p =
+    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
   if (start_listening)
   {
@@ -2296,7 +2296,7 @@ action_listen_activate_cb (GtkAction* action_in,
         // listening on UDP ? --> stop
         if (data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
-          Test_I_Stream_InetConnectionManager_t::ICONNECTION_T* connection_p =
+          Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
             connection_manager_p->get (data_p->configuration->handle);
           if (connection_p)
           {
@@ -2343,7 +2343,7 @@ action_listen_activate_cb (GtkAction* action_in,
 
         if (data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
-          Test_I_Stream_InetConnectionManager_t::ICONNECTION_T* connection_p =
+          Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
             connection_manager_p->get (data_p->configuration->handle);
           if (connection_p)
           {
@@ -2353,18 +2353,18 @@ action_listen_activate_cb (GtkAction* action_in,
           data_p->configuration->handle = ACE_INVALID_HANDLE;
         } // end IF
 
-        Test_I_Stream_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
+        Test_I_Target_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
           connection_manager_p;
         ACE_ASSERT (iconnection_manager_p);
-        Test_I_Stream_IInetConnector_t* connector_p = NULL;
+        Test_I_Target_IInetConnector_t* connector_p = NULL;
         if (data_p->configuration->useReactor)
           ACE_NEW_NORETURN (connector_p,
-                            Test_I_Stream_InboundUDPConnector_t (iconnection_manager_p,
-                                                                 data_p->configuration->streamConfiguration.statisticReportingInterval));
+                            Test_I_InboundUDPConnector_t (iconnection_manager_p,
+                                                          data_p->configuration->streamConfiguration.statisticReportingInterval));
         else
           ACE_NEW_NORETURN (connector_p,
-                            Test_I_Stream_InboundUDPAsynchConnector_t (iconnection_manager_p,
-                                                                       data_p->configuration->streamConfiguration.statisticReportingInterval));
+                            Test_I_InboundUDPAsynchConnector_t (iconnection_manager_p,
+                                                                data_p->configuration->streamConfiguration.statisticReportingInterval));
         if (!connector_p)
         {
           ACE_DEBUG ((LM_CRITICAL,
@@ -2407,7 +2407,7 @@ action_listen_activate_cb (GtkAction* action_in,
           //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
           //              &timeout));
           ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
-          Test_I_Stream_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
+          Test_I_InboundUDPAsynchConnector_t::ICONNECTION_T* connection_p =
             NULL;
           do
           {
@@ -2510,7 +2510,7 @@ action_listen_activate_cb (GtkAction* action_in,
 
     if (data_p->configuration->handle != ACE_INVALID_HANDLE)
     {
-      Test_I_Stream_InetConnectionManager_t::ICONNECTION_T* connection_p =
+      Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
         connection_manager_p->get (data_p->configuration->handle);
       if (connection_p)
       {

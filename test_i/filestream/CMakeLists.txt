@@ -90,14 +90,6 @@ else ()
  include_directories ($ENV{ACE_ROOT})
 
 # gtk
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/glib-2.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/glib-2.0/include)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gtk-2.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/lib/gtk-2.0/include)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/gdk-pixbuf-2.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/atk-1.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/cairo)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk2/include/pango-1.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/include/glib-2.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/glib-2.0/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/include/gtk-2.0)
@@ -166,11 +158,6 @@ if (UNIX)
 elseif (WIN32)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gobject-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gthread-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gdk-win32-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gio-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/glib-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gobject-2.0.lib)
@@ -191,6 +178,13 @@ target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACENetwork)
 #target_link_libraries (${EXECUTABLE} ACENetwork_Client)
 
+set (RESOURCE_FILES
+     etc/resources.rc
+     etc/source.glade
+     etc/target.glade)
+set_source_files_properties (${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
+source_group (resources FILES ${RESOURCE_FILES})
+
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
@@ -202,6 +196,47 @@ elseif (UNIX)
  install (FILES etc/source.glade
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/filestream" COMPONENT config)
 endif ()
+
+#guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
+if (UNIX)
+ create_target_launcher (${EXECUTABLE}
+#                         ARGS "-g./../../../test_i/filestream/etc/source.glade -l -t"
+                         ARGS "-f ~/Downloads/keyvalue-0.3.tgz -g -l -t"
+#                         FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/filestream
+                         ENVIRONMENT foo=bar)
+elseif (WIN32)
+ create_target_launcher (${EXECUTABLE}
+                         ARGS "-g.\\\\..\\\\..\\\\..\\\\test_i\\\\filestream\\\\etc\\\\source.glade -l -t"
+#                         FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                                              G:/software/Development/dll
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/filestream
+                         ENVIRONMENT foo=bar)
+endif ()
+
+add_test (NAME filestream_source
+          COMMAND ${EXECUTABLE} -l -t
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+set_tests_properties (filestream_source
+                      PROPERTIES
+                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
 
 ############## next target ################
 set (filetarget_EXE_SRCS
@@ -248,11 +283,6 @@ if (UNIX)
 elseif (WIN32)
 # *TODO*: repair WIN32 pkgconfig support
 # gtk
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/glib-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gobject-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gthread-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gdk-win32-2.0.lib)
-# target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/lib/gtk-win32-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gio-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/glib-2.0.lib)
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk3/lib/gobject-2.0.lib)
@@ -284,3 +314,43 @@ elseif (WIN32)
           DESTINATION "data/${PROJECT_NAME}/filestream" COMPONENT config)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
 endif ()
+
+#guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
+if (UNIX)
+ create_target_launcher (${EXECUTABLE}
+                         ARGS "-g./../../../test_i/filestream/etc/target.glade -l -t"
+#                         FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/filestream
+                         ENVIRONMENT foo=bar)
+elseif (WIN32)
+ create_target_launcher (${EXECUTABLE}
+                         ARGS "-g.\\\\..\\\\..\\\\..\\\\test_i\\\\filestream\\\\etc\\\\target.glade -l -t"
+#                         FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                                              G:/software/Development/dll
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/filestream
+                         ENVIRONMENT foo=bar)
+endif ()
+
+add_test (NAME ${EXECUTABLE}_test
+          COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE} -l -t
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+set_tests_properties (${EXECUTABLE}_test
+                      PROPERTIES
+                      ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")

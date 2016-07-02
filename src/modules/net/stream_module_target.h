@@ -63,6 +63,7 @@ class Stream_Module_Net_Target_T
  protected:
   ConfigurationType*                             configuration_;
   typename ConnectionManagerType::ICONNECTION_T* connection_;
+  ConnectorType                                  connector_;
   SessionDataContainerType*                      sessionData_;
 
  private:

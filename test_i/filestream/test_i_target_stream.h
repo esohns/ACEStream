@@ -42,20 +42,20 @@ class Stream_IAllocator;
 
 class Test_I_Target_Stream
  : public Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
+                        //////////////////
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        /////////////////
+                        //////////////////
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
-                        /////////////////
+                        //////////////////
                         Test_I_Stream_Configuration,
-                        /////////////////
+                        //////////////////
                         Test_I_RuntimeStatistic_t,
-                        /////////////////
+                        //////////////////
                         Stream_ModuleConfiguration,
                         Test_I_Stream_ModuleHandlerConfiguration,
-                        /////////////////
+                        //////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
                         Test_I_Stream_SessionMessage,
@@ -80,20 +80,20 @@ class Test_I_Target_Stream
 
  private:
   typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
+                        //////////////////
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        /////////////////
+                        //////////////////
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
-                        /////////////////
+                        //////////////////
                         Test_I_Stream_Configuration,
-                        /////////////////
+                        //////////////////
                         Test_I_RuntimeStatistic_t,
-                        /////////////////
+                        //////////////////
                         Stream_ModuleConfiguration,
                         Test_I_Stream_ModuleHandlerConfiguration,
-                        /////////////////
+                        //////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
                         Test_I_Stream_SessionMessage,
@@ -104,9 +104,9 @@ class Test_I_Target_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 
   // modules
-  Test_I_Stream_Module_Net_IO_Module           netReader_;
-  Test_I_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
-  Test_I_Stream_Module_FileWriter_Module       fileWriter_;
+  Test_I_Module_Net_IO_Module                  netIO_;
+  Test_I_Target_Module_RuntimeStatistic_Module runtimeStatistic_;
+  Test_I_Module_FileWriter_Module              fileWriter_;
 };
 
 #endif

@@ -213,9 +213,10 @@ target_link_libraries (${EXECUTABLE} ACENetwork)
 
 set (RESOURCE_FILES
      etc/resources.rc
-     etc/source.glade)
+     etc/source.glade
+     etc/target.glade)
 set_source_files_properties (${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
-source_group (res FILES ${RESOURCE_FILES})
+source_group (resources FILES ${RESOURCE_FILES})
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
@@ -229,30 +230,46 @@ elseif (UNIX)
           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/camstream" COMPONENT config)
 endif ()
 
-add_test (NAME camstream_source
-          COMMAND ${EXECUTABLE} -l -t
+#guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
+if (UNIX)
+ create_target_launcher (${EXECUTABLE}
+#                         ARGS "-g./../../../test_i/filestream/etc/source.glade -l -t"
+                         ARGS "-g -l -t"
+#                         FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/camstream
+                         ENVIRONMENT foo=bar)
+elseif (WIN32)
+ create_target_launcher (${EXECUTABLE}
+                         ARGS "-g.\\\\test_i\\\\camstream\\\\etc\\\\source.glade -l -t"
+#                         FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                                              G:/software/Development/dll
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/camstream
+                         ENVIRONMENT foo=bar)
+endif ()
+
+add_test (NAME ${EXECUTABLE}_test
+          COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE} -l -t
           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-set_tests_properties (camstream_source
+set_tests_properties (${EXECUTABLE}_test
                       PROPERTIES
                       ENVIRONMENT "PATH=D:\\projects\\ATCD\\ACE\\lib;D:\\projects\\gtk\\bin;D:\\projects\\libglade\\bin;D:\\projects\\libxml2-2.9.1\\.libs;G:\\software\\Development\\dll;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\..\\libCommon\\cmake\\src\\ui\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\Debug;${PROJECT_SOURCE_DIR}\\cmake\\src\\modules\\dev\\Debug;${PROJECT_SOURCE_DIR}\\..\\libACENetwork\\cmake\\src\\Debug;%PATH%")
-
-#guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
-create_target_launcher (${EXECUTABLE}
-                        ARGS "-g.\\\\test_i\\\\camstream\\\\etc\\\\source.glade -l -t"
-                        #FORWARD_ARGS 
-                        RUNTIME_LIBRARY_DIRS D:/projects/ATCD/ACE/lib
-                                             D:/projects/gtk/bin
-                                             D:/projects/libglade/bin
-                                             D:/projects/libxml2-2.9.1/.libs
-                                             G:/software/Development/dll
-                                             ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                             ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                             ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                             ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                             ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-                        ENVIRONMENT foo=bar)
 
 ############## next target ################
 
@@ -434,25 +451,41 @@ elseif (WIN32)
 #          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/camstream" COMPONENT config)
 endif ()
 
-create_target_launcher (${EXECUTABLE}
-                        ARGS "-g.\\\\test_i\\\\camstream\\\\etc\\\\target.glade -l -t"
+if (UNIX)
+ create_target_launcher (${EXECUTABLE}
+                         ARGS "-g./../../../test_i/camstream/etc/target.glade -l -t"
+#                         FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/camstream
+                         ENVIRONMENT foo=bar)
+elseif (WIN32)
+ create_target_launcher (${EXECUTABLE}
+                         ARGS "-g.\\\\..\\\\..\\\\..\\\\test_i\\\\camstream\\\\etc\\\\target.glade -l -t"
 #                        FORWARD_ARGS
-                        RUNTIME_LIBRARY_DIRS D:/projects/ATCD/ACE/lib
-                                             D:/projects/gtk/bin
-                                             D:/projects/libglade/bin
-                                             D:/projects/libxml2-2.9.1/.libs
-                                             G:/software/Development/dll
-                                             ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
-                                             ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
-                                             ${PROJECT_SOURCE_DIR}/cmake/src/Debug
-                                             ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
-                                             ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
-                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-                        ENVIRONMENT foo=bar)
+                         RUNTIME_LIBRARY_DIRS D:/projects/ATCD/ACE/lib
+                                              D:/projects/gtk/bin
+                                              D:/projects/libglade/bin
+                                              D:/projects/libxml2-2.9.1/.libs
+                                              G:/software/Development/dll
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/camstream
+                         ENVIRONMENT foo=bar)
+endif ()
 
-add_test (${EXECUTABLE}_test
-          ${PROJECT_BINARY_DIR}/${EXECUTABLE} -l -t
-          ${PROJECT_SOURCE_DIR})
+add_test (NAME ${EXECUTABLE}_test
+          COMMAND ${PROJECT_BINARY_DIR}/${EXECUTABLE} -l -t
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 set_tests_properties (${EXECUTABLE}_test
                       PROPERTIES

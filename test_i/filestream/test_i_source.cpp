@@ -80,6 +80,8 @@ do_printUsage (const std::string& programName_in)
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("test_i");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("filestream");
@@ -185,6 +187,8 @@ do_processArguments (int argc_in,
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -449,13 +453,29 @@ do_work (unsigned int bufferSize_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
-         Stream_Source_SignalHandler& signalHandler_in)
+         Test_I_Source_SignalHandler& signalHandler_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-  // step0a: initialize configuration and stream
+  // step0a: initialize event dispatch
+  struct Common_DispatchThreadData thread_data;
+  thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
+  thread_data.useReactor = useReactor_in;
+  Test_I_Source_Configuration configuration;
+  if (!Common_Tools::initializeEventDispatch (useReactor_in,
+                                              useThreadPool_in,
+                                              numberOfDispatchThreads_in,
+                                              thread_data.proactorType,
+                                              thread_data.reactorType,
+                                              configuration.streamConfiguration.serializeOutput))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+    return;
+  } // end IF
+
+  // step0b: initialize configuration and stream
   std::string stream_name = ACE_TEXT_ALWAYS_CHAR ("SourceStream");
-  Test_I_Configuration configuration;
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
   if (useReactor_in)
@@ -508,9 +528,9 @@ do_work (unsigned int bufferSize_in,
                                &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
 
-  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
-    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (connection_manager_p);
+  Test_I_Source_InetConnectionManager_t* iconnection_manager_p =
+    TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (iconnection_manager_p);
 
   // *********************** socket configuration data ************************
   int result =
@@ -542,6 +562,8 @@ do_work (unsigned int bufferSize_in,
     &configuration.socketConfiguration;
   configuration.socketHandlerConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
+  configuration.socketHandlerConfiguration.connectionManager =
+    iconnection_manager_p;
   configuration.socketHandlerConfiguration.userData =
     &configuration.userData;
 
@@ -553,9 +575,9 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
-  configuration.moduleHandlerConfiguration.configuration = &configuration;
+//  configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
-    connection_manager_p;
+    iconnection_manager_p;
   configuration.moduleHandlerConfiguration.fileName = fileName_in;
   configuration.moduleHandlerConfiguration.printProgressDot =
     UIDefinitionFile_in.empty ();
@@ -581,31 +603,10 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
 
-  // step0b: initialize event dispatch
-  struct Common_DispatchThreadData thread_data;
-  thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
-  thread_data.useReactor = useReactor_in;
-  if (!Common_Tools::initializeEventDispatch (useReactor_in,
-                                              useThreadPool_in,
-                                              numberOfDispatchThreads_in,
-                                              thread_data.proactorType,
-                                              thread_data.reactorType,
-                                              configuration.streamConfiguration.serializeOutput))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
-
-    // clean up
-    delete CBData_in.stream;
-    delete CBData_in.UDPStream;
-
-    return;
-  } // end IF
-
   // step0c: initialize connection manager
-  connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  connection_manager_p->set (configuration,
-                             &configuration.userData);
+  iconnection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
+  iconnection_manager_p->set (configuration,
+                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =
@@ -615,7 +616,7 @@ do_work (unsigned int bufferSize_in,
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();
   Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
-                                                       connection_manager_p,
+                                                       iconnection_manager_p,
                                                        false);
   //Stream_StatisticHandler_Proactor_t statistic_handler_proactor (ACTION_REPORT,
   //                                                               connection_manager_p,
@@ -644,11 +645,9 @@ do_work (unsigned int bufferSize_in,
     } // end IF
   } // end IF
 
-  // step0c: initialize signal handling
+  // step0e: initialize signal handling
   configuration.signalHandlerConfiguration.useReactor = useReactor_in;
-  //configuration.signalHandlerConfiguration.statisticReportingHandler =
-  //  connection_manager_p;
-  //configuration.signalHandlerConfiguration.statisticReportingTimerID = timer_id;
+  configuration.signalHandlerConfiguration.stream = CBData_in.stream;
   if (!signalHandler_in.initialize (configuration.signalHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -813,11 +812,11 @@ loop:
     } // end IF
 
     // clean up
-    connection_manager_p->stop ();
+    iconnection_manager_p->stop ();
+    iconnection_manager_p->wait ();
     Common_Tools::finalizeEventDispatch (useReactor_in,
                                          !useReactor_in,
                                          group_id);
-    connection_manager_p->wait ();
   } // end IF
   else
     Common_Tools::dispatchEvents (useReactor_in,
@@ -866,26 +865,26 @@ do_printVersion (const std::string& programName_in)
 
   std::ostringstream converter;
 
-  // compiler version string...
+  // compiler version string
   converter << ACE::compiler_major_version ();
-  converter << ACE_TEXT (".");
+  converter << ACE_TEXT_ALWAYS_CHAR (".");
   converter << ACE::compiler_minor_version ();
-  converter << ACE_TEXT (".");
+  converter << ACE_TEXT_ALWAYS_CHAR (".");
   converter << ACE::compiler_beta_version ();
 
   std::cout << programName_in
-            << ACE_TEXT (" compiled on ")
+            << ACE_TEXT_ALWAYS_CHAR (" compiled on ")
             << ACE::compiler_name ()
-            << ACE_TEXT (" ")
+            << ACE_TEXT_ALWAYS_CHAR (" ")
             << converter.str ()
             << std::endl << std::endl;
 
-  std::cout << ACE_TEXT ("libraries: ")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("libraries: ")
             << std::endl
 #ifdef HAVE_CONFIG_H
-            << ACE_TEXT (LIBACESTREAM_PACKAGE)
-            << ACE_TEXT (": ")
-            << ACE_TEXT (LIBACESTREAM_PACKAGE_VERSION)
+            << ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE)
+            << ACE_TEXT_ALWAYS_CHAR (": ")
+            << ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE_VERSION)
             << std::endl
 #endif
             ;
@@ -893,15 +892,15 @@ do_printVersion (const std::string& programName_in)
   converter.str ("");
   // ACE version string...
   converter << ACE::major_version ();
-  converter << ACE_TEXT (".");
+  converter << ACE_TEXT_ALWAYS_CHAR (".");
   converter << ACE::minor_version ();
-  converter << ACE_TEXT (".");
+  converter << ACE_TEXT_ALWAYS_CHAR (".");
   converter << ACE::beta_version ();
 
   // *NOTE*: cannot use ACE_VERSION, as it doesn't contain the (potential) beta
   // version number... Need this, as the library soname is compared to this
   // string
-  std::cout << ACE_TEXT ("ACE: ")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("ACE: ")
 //             << ACE_VERSION
             << converter.str ()
             << std::endl;
@@ -916,7 +915,7 @@ ACE_TMAIN (int argc_in,
   int result = -1;
 
   // step0: initialize
-  // *PORTABILITY*: on Windows, initialize ACE...
+  // *PORTABILITY*: on Windows, initialize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = ACE::init ();
   if (result == -1)
@@ -930,12 +929,14 @@ ACE_TMAIN (int argc_in,
 
   // *PROCESS PROFILE*
   ACE_Profile_Timer process_profile;
-  // start profile timer...
+  // start profile timer
   process_profile.start ();
 
   std::string configuration_path =
     Common_File_Tools::getWorkingDirectory ();
 #if defined (DEBUG_DEBUGGER)
+  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_path += ACE_TEXT_ALWAYS_CHAR ("..");
   configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -992,10 +993,9 @@ ACE_TMAIN (int argc_in,
                             number_of_dispatch_threads,
                             loop))
   {
-    // make 'em learn...
-    do_printUsage (ACE::basename (argv_in[0]));
+    do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
 
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
@@ -1027,8 +1027,8 @@ ACE_TMAIN (int argc_in,
        !Common_File_Tools::isReadable (source_file))                        ||
       (!gtk_glade_file.empty () &&
        !Common_File_Tools::isReadable (gtk_glade_file))                     ||
-      //(!gtk_rc_file_name.empty () &&
-      // !Common_File_Tools::isReadable (gtk_rc_file_name))                   ||
+      (!gtk_rc_file.empty () &&
+       !Common_File_Tools::isReadable (gtk_rc_file))                        ||
       (use_thread_pool && !use_reactor)                                     ||
       (use_reactor && (number_of_dispatch_threads > 1) && !use_thread_pool) ||
       (loop && !gtk_glade_file.empty ()))
@@ -1036,9 +1036,9 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
 
-    do_printUsage (ACE::basename (argv_in[0]));
+    do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
 
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
@@ -1060,8 +1060,8 @@ ACE_TMAIN (int argc_in,
   if (log_to_file)
     log_file_name =
       Common_File_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (LIBACESTREAM_PACKAGE_NAME),
-                                         ACE::basename (argv_in[0]));
-  if (!Common_Tools::initializeLogging (ACE::basename (argv_in[0]),           // program name
+                                         ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
+  if (!Common_Tools::initializeLogging (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
                                         log_file_name,                        // log file name
                                         false,                                // log to syslog ?
                                         false,                                // trace messages ?
@@ -1072,7 +1072,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Tools::initializeLogging(), aborting\n")));
 
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
@@ -1098,7 +1098,7 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to ACE_OS::sigemptyset(): \"%m\", aborting\n")));
 
     Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
@@ -1117,7 +1117,7 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to Common_Tools::preInitializeSignals(), aborting\n")));
 
     Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
@@ -1127,7 +1127,7 @@ ACE_TMAIN (int argc_in,
 
     return EXIT_FAILURE;
   } // end IF
-  Stream_Source_SignalHandler signal_handler;
+  Test_I_Source_SignalHandler signal_handler;
 
   // step1f: handle specific program modes
   if (print_version_and_exit)
@@ -1138,7 +1138,7 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
@@ -1162,7 +1162,7 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
@@ -1192,7 +1192,7 @@ ACE_TMAIN (int argc_in,
                                      previous_signal_actions,
                                      previous_signal_mask);
       Common_Tools::finalizeLogging ();
-      // *PORTABILITY*: on Windows, finalize ACE...
+      // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       result = ACE::fini ();
       if (result == -1)
@@ -1234,7 +1234,7 @@ ACE_TMAIN (int argc_in,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"...\n"),
               ACE_TEXT (working_time_string.c_str ())));
 
-  // stop profile timer...
+  // stop profile timer
   process_profile.stop ();
 
   // only process profile left to do...
@@ -1251,7 +1251,7 @@ ACE_TMAIN (int argc_in,
                                    previous_signal_actions,
                                    previous_signal_mask);
     Common_Tools::finalizeLogging ();
-    // *PORTABILITY*: on Windows, finalize ACE...
+    // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
@@ -1311,7 +1311,7 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_mask);
   Common_Tools::finalizeLogging ();
 
-  // *PORTABILITY*: on Windows, finalize ACE...
+  // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = ACE::fini ();
   if (result == -1)

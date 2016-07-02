@@ -52,11 +52,11 @@ Stream_Module_Net_Source_T<LockType,
                            SessionDataContainerType,
                            StatisticContainerType,
                            ConnectionManagerType,
-                           ConnectorType>::Stream_Module_Net_Source_T (bool isPassive_in)
- : inherited (NULL,  // lock handle
-              false, // active object ?
-              false, // auto-start ?
-              false) // run svc() routine on start ? (passive only)
+                           ConnectorType>::Stream_Module_Net_Source_T (LockType* lock_in,
+                                                                       bool isPassive_in)
+ : inherited (lock_in, // lock handle
+              false,   // auto-start ?
+              true)    // generate sesssion messages ?
  , connector_ (NULL,
                ACE_Time_Value::zero)
  , connection_ (NULL)
@@ -229,6 +229,9 @@ Stream_Module_Net_Source_T<LockType,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
     return false;
   } // end IF
+  // *NOTE*: data is fed into the stream from outside, as it arrives
+  //         --> do not run svc() on start()
+  inherited::runSvcOnStart_ = false;
 
   isPassive_ = inherited::configuration_->passive;
   if (isPassive_)

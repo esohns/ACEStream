@@ -730,13 +730,29 @@ do_work (unsigned int bufferSize_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
-         Stream_Source_SignalHandler& signalHandler_in)
+         Test_I_Source_SignalHandler& signalHandler_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
-  // step0a: initialize configuration and stream
-  std::string stream_name = ACE_TEXT_ALWAYS_CHAR ("SourceStream");
+  // step0a: initialize event dispatch
+  struct Common_DispatchThreadData thread_data;
+  thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
+  thread_data.useReactor = useReactor_in;
   Test_I_Source_Configuration configuration;
+  if (!Common_Tools::initializeEventDispatch (useReactor_in,
+                                              useThreadPool_in,
+                                              numberOfDispatchThreads_in,
+                                              thread_data.proactorType,
+                                              thread_data.reactorType,
+                                              configuration.streamConfiguration.serializeOutput))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
+    return;
+  } // end IF
+
+  // step0b: initialize configuration and stream
+  std::string stream_name = ACE_TEXT_ALWAYS_CHAR ("SourceStream");
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
   if (useReactor_in)
@@ -799,7 +815,6 @@ do_work (unsigned int bufferSize_in,
     ACE_ASSERT (timer_manager_p);
   long timer_id = -1;
   int group_id = -1;
-  struct Common_DispatchThreadData thread_data;
 
   Test_I_Source_InetConnectionManager_t* connection_manager_p =
     TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
@@ -901,21 +916,6 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
 
-  // step0b: initialize event dispatch
-  thread_data.numberOfDispatchThreads = numberOfDispatchThreads_in;
-  thread_data.useReactor = useReactor_in;
-  if (!Common_Tools::initializeEventDispatch (useReactor_in,
-                                              useThreadPool_in,
-                                              numberOfDispatchThreads_in,
-                                              thread_data.proactorType,
-                                              thread_data.reactorType,
-                                              configuration.streamConfiguration.serializeOutput))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Common_Tools::initializeEventDispatch(), returning\n")));
-    goto clean;
-  } // end IF
-
   // step0c: initialize connection manager
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
   connection_manager_p->set (configuration,
@@ -941,11 +941,9 @@ do_work (unsigned int bufferSize_in,
     } // end IF
   } // end IF
 
-  // step0c: initialize signal handling
+  // step0e: initialize signal handling
   configuration.signalHandlerConfiguration.useReactor = useReactor_in;
-  //configuration.signalHandlerConfiguration.statisticReportingHandler =
-  //  connection_manager_p;
-  //configuration.signalHandlerConfiguration.statisticReportingTimerID = timer_id;
+  configuration.signalHandlerConfiguration.stream = CBData_in.stream;
   if (!signalHandler_in.initialize (configuration.signalHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -967,7 +965,7 @@ do_work (unsigned int bufferSize_in,
   // - dispatch connection attempts to acceptor
   // - dispatch socket events
   // timer events:
-  // - perform statistics collecting/reporting
+  // - perform statistic collecting/reporting
   // [GTK events:]
   // - dispatch UI events (if any)
 
@@ -1381,7 +1379,7 @@ ACE_TMAIN (int argc_in,
     return EXIT_FAILURE;
   } // end IF
 
-  Stream_Source_SignalHandler signal_handler;
+  Test_I_Source_SignalHandler signal_handler;
 
   // step1f: handle specific program modes
   if (print_version_and_exit)

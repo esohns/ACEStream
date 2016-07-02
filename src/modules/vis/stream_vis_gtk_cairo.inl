@@ -41,21 +41,20 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::Stream_Module_Vis_GTK_DrawingArea_T ()
+Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
+                              MessageType,
+                              ConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType>::Stream_Module_Vis_GTK_Cairo_T ()
  : inherited ()
  , configuration_ (NULL)
  , sessionData_ (NULL)
  , cairoContext_ (NULL)
  , cairoSurface_ (NULL)
-// , pixelBuffer_ (NULL)
  , isFirst_ (true)
  , isInitialized_ (false)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::Stream_Module_Vis_GTK_DrawingArea_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::Stream_Module_Vis_GTK_Cairo_T"));
 
 }
 
@@ -64,16 +63,13 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::~Stream_Module_Vis_GTK_DrawingArea_T ()
+Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
+                              MessageType,
+                              ConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType>::~Stream_Module_Vis_GTK_Cairo_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::~Stream_Module_Vis_GTK_DrawingArea_T"));
-
-//  if (pixelBuffer_)
-//    g_object_unref (pixelBuffer_);
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::~Stream_Module_Vis_GTK_Cairo_T"));
 
   if (cairoSurface_)
     cairo_surface_destroy (cairoSurface_);
@@ -90,13 +86,13 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 int
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::clamp (int value_in)
+Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
+                              MessageType,
+                              ConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType>::clamp (int value_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::clamp"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::clamp"));
 
   return ((value_in > 255) ? 255
                            : ((value_in < 0) ? 0
@@ -108,14 +104,14 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
-                                                                                  bool& passMessageDownstream_out)
+Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
+                              MessageType,
+                              ConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
+                                                                            bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::handleDataMessage"));
 
 //  ACE_Message_Block* message_block_p = message_inout;
 
@@ -776,14 +772,14 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                     bool& passMessageDownstream_out)
+Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
+                              MessageType,
+                              ConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                               bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::handleSessionMessage"));
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
@@ -798,8 +794,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
       sessionData_ =
           &const_cast<SessionDataContainerType&> (message_inout->get ());
       sessionData_->increase ();
-      SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (sessionData_->get ());
+      const SessionDataType& session_data_r = sessionData_->get ();
 
       // sanity check(s)
       if (!configuration_->window)
@@ -884,13 +879,13 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 bool
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
+                              MessageType,
+                              ConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::initialize"));
 
   if (isInitialized_)
   {
@@ -947,13 +942,13 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 const ConfigurationType&
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::get () const
+Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
+                              MessageType,
+                              ConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType>::get () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::get"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::get"));
 
   // sanity check(s)
   ACE_ASSERT (configuration_);

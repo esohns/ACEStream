@@ -244,18 +244,18 @@ struct Test_I_Stream_SessionData
 
   Test_I_ConnectionState* connectionState;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //struct _AMMediaType*           format;
-  IDirect3DDevice9Ex*     direct3DDevice;
-  IMFMediaType*           format;
-  TOPOID                  rendererNodeId;
-  UINT                    resetToken; // direct 3D manager 'id'
-  IMFMediaSession*        session;
-  IMFTopology*            topology;
+//  struct _AMMediaType*   format;
+  IDirect3DDevice9Ex*    direct3DDevice;
+  IMFMediaType*          format;
+  TOPOID                 rendererNodeId;
+  UINT                   resetToken; // direct 3D manager 'id'
+  IMFMediaSession*       session;
+  IMFTopology*           topology;
 #else
-  struct v4l2_format      format;
-  struct v4l2_fract       frameRate;
+  struct v4l2_format     format;
+  struct v4l2_fract      frameRate;
 #endif
-  Test_I_UserData*        userData;
+  Test_I_UserData*       userData;
 };
 typedef Stream_SessionData_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 
@@ -313,18 +313,18 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
 };
 
-struct Stream_SignalHandlerConfiguration
- : Common_SignalHandlerConfiguration
-{
-  inline Stream_SignalHandlerConfiguration ()
-   : Common_SignalHandlerConfiguration ()
-   //messageAllocator (NULL)
-   , statisticReportingInterval (0)
-  {};
+//struct Stream_SignalHandlerConfiguration
+// : Common_SignalHandlerConfiguration
+//{
+//  inline Stream_SignalHandlerConfiguration ()
+//   : Common_SignalHandlerConfiguration ()
+//   , statisticReportingInterval (0)
+//   , stream (NULL)
+//  {};
 
-  //Stream_IAllocator* messageAllocator;
-  unsigned int       statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
-};
+//  unsigned int         statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
+//  Test_I_StreamBase_t* stream;
+//};
 
 struct Test_I_Stream_Configuration
  : Stream_Configuration
@@ -353,8 +353,8 @@ struct Test_I_Stream_State
 struct Test_I_Configuration
 {
   inline Test_I_Configuration ()
-   : signalHandlerConfiguration ()
-   , socketConfiguration ()
+//   : signalHandlerConfiguration ()
+   : socketConfiguration ()
    , socketHandlerConfiguration ()
    , moduleConfiguration ()
    , streamConfiguration ()
@@ -363,8 +363,8 @@ struct Test_I_Configuration
    , useReactor (NET_EVENT_USE_REACTOR)
   {};
 
-  // **************************** signal data **********************************
-  Stream_SignalHandlerConfiguration        signalHandlerConfiguration;
+//  // **************************** signal data **********************************
+//  Stream_SignalHandlerConfiguration        signalHandlerConfiguration;
   // **************************** socket data **********************************
   Net_SocketConfiguration                  socketConfiguration;
   Test_I_Stream_SocketHandlerConfiguration socketHandlerConfiguration;

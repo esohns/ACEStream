@@ -116,12 +116,10 @@ class Stream_HeadModuleTaskBase_T
   virtual void report () const;
 
  protected:
-  Stream_HeadModuleTaskBase_T (LockType*,    // lock handle (state machine)
+  Stream_HeadModuleTaskBase_T (LockType* = NULL, // lock handle (state machine)
                                //////////
-                               bool = false, // active object ?
-                               bool = false, // auto-start ?
-                               bool = true,  // run svc() routine on start ? (applies to 'passive' mode only)
-                               bool = true); // generate session messages ?
+                               bool = false,     // auto-start ?
+                               bool = true);     // generate session messages ?
 
   // convenient types
   typedef Stream_TaskBase_T<TaskSynchType,
@@ -153,6 +151,12 @@ class Stream_HeadModuleTaskBase_T
 
   ConfigurationType*        configuration_;
   bool                      initialized_;
+  // *NOTE*: default behaviour is true for '!active' modules (i.e. modules that
+  //         have no dedicated worker thread), which instructs the thread
+  //         calling start() to do the processing. However, this behaviour may
+  //         not be intended for passive modules that don't do their processing
+  //         via start(), but are 'fed' from outside (e.g. network modules)
+  bool                      runSvcOnStart_;
   SessionDataContainerType* sessionData_;
   StreamStateType*          streamState_;
 
@@ -201,9 +205,9 @@ class Stream_HeadModuleTaskBase_T
   virtual Stream_Base_t* upStream () const;
 
   bool                      active_;
-  bool                      autoStart_; // start worker thread in open ()
+  // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream
+  bool                      autoStart_;
   bool                      generateSessionMessages_;
-  bool                      runSvcRoutineOnStart_;
   bool                      sessionEndSent_;
   ACE_Thread_ID             threadID_;
 };

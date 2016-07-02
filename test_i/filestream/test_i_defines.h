@@ -25,13 +25,13 @@
 
 //#include "net_common.h"
 
-#define TEST_I_DEFAULT_GTK_RC_FILE                           "resource.rc"
+#define TEST_I_DEFAULT_GTK_RC_FILE                           "resources.rc"
 #define TEST_I_DEFAULT_SOURCE_GLADE_FILE                     "source.glade"
 #define TEST_I_DEFAULT_TARGET_GLADE_FILE                     "target.glade"
 #define TEST_I_DEFAULT_OUTPUT_FILE                           "output.tmp"
 #define TEST_I_THREAD_NAME                                   "stream processor"
 
-#define TEST_I_DEFAULT_BUFFER_SIZE                           4096 // bytes
+#define TEST_I_DEFAULT_BUFFER_SIZE                           32768 // bytes
 #define TEST_I_MAX_MESSAGES                                  0 // 0 --> no limits
 
 #define TEST_I_DEFAULT_TARGET_HOSTNAME                       ACE_LOCALHOST

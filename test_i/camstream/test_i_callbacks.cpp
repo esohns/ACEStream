@@ -1804,15 +1804,6 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //                             G_CALLBACK (togglebutton_protocol_toggled_cb),
   //                             cb_data_p);
 
-  result_2 =
-    g_signal_connect (G_OBJECT (drawing_area_p),
-                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-                      G_CALLBACK (drawingarea_configure_source_cb),
-                      userData_in);
-  ACE_ASSERT (result_2);
-
-  //-------------------------------------
-
   object_p =
     gtk_builder_get_object ((*iterator).second.second,
                             ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_TEXTVIEW_NAME));
@@ -1822,6 +1813,25 @@ idle_initialize_source_UI_cb (gpointer userData_in)
                       ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
                       G_CALLBACK (textview_size_allocate_cb),
                       cb_data_p);
+  ACE_ASSERT (result_2);
+
+  //-------------------------------------
+
+  result_2 =
+      g_signal_connect (G_OBJECT (drawing_area_p),
+                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+                        G_CALLBACK (drawingarea_draw_cb),
+                        userData_in);
+  ACE_ASSERT (result_2);
+  result_2 =
+//    g_signal_connect (G_OBJECT (drawing_area_p),
+//                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
+//                      G_CALLBACK (drawingarea_configure_source_cb),
+//                      userData_in);
+      g_signal_connect (G_OBJECT (drawing_area_p),
+                        ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
+                        G_CALLBACK (drawingarea_size_allocate_source_cb),
+                        userData_in);
   ACE_ASSERT (result_2);
 
   //-------------------------------------
@@ -2546,10 +2556,20 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   //-------------------------------------
 
   result_2 =
-    g_signal_connect (G_OBJECT (drawing_area_p),
-                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-                      G_CALLBACK (drawingarea_configure_target_cb),
-                      userData_in);
+      g_signal_connect (G_OBJECT (drawing_area_p),
+                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+                        G_CALLBACK (drawingarea_draw_cb),
+                        userData_in);
+  ACE_ASSERT (result_2);
+  result_2 =
+//    g_signal_connect (G_OBJECT (drawing_area_p),
+//                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
+//                      G_CALLBACK (drawingarea_configure_target_cb),
+//                      userData_in);
+      g_signal_connect (G_OBJECT (drawing_area_p),
+                        ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
+                        G_CALLBACK (drawingarea_size_allocate_target_cb),
+                        userData_in);
   ACE_ASSERT (result_2);
 
   //-------------------------------------
@@ -3983,6 +4003,22 @@ action_report_activate_cb (GtkAction* action_in,
 //                                                                          1);
 //} // spinbutton_port_value_changed_cb
 
+gboolean
+drawingarea_draw_cb (GtkWidget* widget_in,
+                     cairo_t* context_in,
+                     gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
+
+  Test_I_GTK_CBData* data_p =
+    static_cast<Test_I_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  return TRUE;
+}
+
 // -----------------------------------------------------------------------------
 
 gint
@@ -4872,11 +4908,11 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
 } // combobox_rate_changed_cb
 
 void
-drawingarea_configure_source_cb (GtkWindow* window_in,
-                                 GdkEvent* event_in,
-                                 gpointer userData_in)
+drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
+                                     GdkRectangle* allocation_in,
+                                     gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_source_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_size_allocate_source_cb"));
 
   Test_I_Source_GTK_CBData* data_p =
     static_cast<Test_I_Source_GTK_CBData*> (userData_in);
@@ -4930,11 +4966,11 @@ drawingarea_configure_source_cb (GtkWindow* window_in,
 #endif
 } // drawingarea_configure_source_cb
 void
-drawingarea_configure_target_cb (GtkWindow* window_in,
-                                 GdkEvent* event_in,
-                                 gpointer userData_in)
+drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
+                                     GdkRectangle* allocation_in,
+                                     gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_target_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_size_allocate_target_cb"));
 
   Test_I_Target_GTK_CBData* data_p =
     static_cast<Test_I_Target_GTK_CBData*> (userData_in);

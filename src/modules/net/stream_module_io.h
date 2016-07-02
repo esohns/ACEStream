@@ -31,40 +31,40 @@
 #include "stream_task_base_synch.h"
 
 template <typename LockType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionMessageType,
           typename ProtocolMessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename StreamStateType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
-          ///////////////////////////////
+          ////////////////////////////////
           typename StatisticContainerType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IOWriter_T // --> output
  : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_Net_IOWriter_T ();
+  Stream_Module_Net_IOWriter_T (LockType* = NULL); // lock handle (state machine)
   virtual ~Stream_Module_Net_IOWriter_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -104,19 +104,19 @@ class Stream_Module_Net_IOWriter_T // --> output
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType> inherited;
   typedef ACE_Message_Queue<ACE_MT_SYNCH,
                             Common_TimePolicy_t> MESSAGEQUEUE_T;
@@ -141,18 +141,18 @@ class Stream_Module_Net_IOWriter_T // --> output
   //long                                          timerID_;
 };
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 template <typename SessionMessageType,
           typename MessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ModuleHandlerConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
-          ///////////////////////////////
+          ////////////////////////////////
           typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IOReader_T // --> input

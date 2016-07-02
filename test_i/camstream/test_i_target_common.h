@@ -229,10 +229,10 @@ typedef Net_IListener_T<Test_I_Target_ListenerConfiguration,
                         Test_I_Target_SocketHandlerConfiguration> Test_I_Target_IListener_t;
 
 struct Test_I_Target_SignalHandlerConfiguration
- : Stream_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
 {
   inline Test_I_Target_SignalHandlerConfiguration ()
-   : Stream_SignalHandlerConfiguration ()
+   : Common_SignalHandlerConfiguration ()
    , listener (NULL)
    , statisticReportingHandler (NULL)
    , statisticReportingTimerID (-1)

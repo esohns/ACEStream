@@ -969,8 +969,9 @@ ACE_TMAIN (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::main"));
 
   int result = EXIT_FAILURE;
-  int result_2 = -1;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool finalize_ACE = false;
+#endif
   bool finalize_logging = false;
   bool finalize_signals = false;
   ACE_Profile_Timer process_profile;
@@ -1008,8 +1009,8 @@ ACE_TMAIN (int argc_in,
                 ACE_TEXT ("failed to ACE::init(): \"%m\", aborting\n")));
     goto error;
   } // end IF
-#endif
   finalize_ACE = true;
+#endif
   Common_Tools::initialize ();
 
   // start profile timer
@@ -1279,16 +1280,21 @@ ACE_TMAIN (int argc_in,
 
 continue_:
 error:
-  Common_Tools::finalizeSignals (signal_set,
-                                 previous_signal_actions,
-                                 previous_signal_mask);
-  Common_Tools::finalizeLogging ();
+  if (finalize_signals)
+    Common_Tools::finalizeSignals (signal_set,
+                                   previous_signal_actions,
+                                   previous_signal_mask);
+  if (finalize_logging)
+    Common_Tools::finalizeLogging ();
   // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  result_2 = ACE::fini ();
-  if (result_2 == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+  if (finalize_ACE)
+  {
+    int result_2 = ACE::fini ();
+    if (result_2 == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
+  } // end IF
 #endif
 
   return result;

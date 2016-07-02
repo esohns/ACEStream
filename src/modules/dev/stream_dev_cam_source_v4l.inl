@@ -42,14 +42,10 @@ Stream_Module_CamSource_V4L_T<LockType,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
-                              StatisticContainerType>::Stream_Module_CamSource_V4L_T (bool isActive_in,
+                              StatisticContainerType>::Stream_Module_CamSource_V4L_T (LockType* lock_in,
                                                                                       bool autoStart_in)
- : inherited (NULL,         // lock handle
-              isActive_in,  // active ?
+ : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
-              !isActive_in, // *NOTE*: in 'passive' mode, the calling thread
-                            //         runs svc() in start(). Note that this
-                            //         call blocks until processing completes
               true)         // generate sesssion messages ?
  , captureFileDescriptor_ (-1)
  , overlayFileDescriptor_ (-1)

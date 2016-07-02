@@ -49,24 +49,22 @@ Stream_HeadModuleTaskBase_T<LockType,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType>::Stream_HeadModuleTaskBase_T (LockType* lock_in,
-                                                                                  bool active_in,
                                                                                   bool autoStart_in,
-                                                                                  bool runSvcRoutineOnStart_in,
                                                                                   bool generateSessionMessages_in)
  : inherited (lock_in)
  , inherited2 ()
  , configuration_ (NULL)
  , initialized_ (false)
+ , runSvcOnStart_ (false)
  , sessionData_ (NULL)
  , streamState_ (NULL)
  , statisticCollectionHandler_ (ACTION_COLLECT,
                                 this,
                                 false)
  , timerID_ (-1)
- , active_ (active_in)
+ , active_ (false)
  , autoStart_ (autoStart_in)
  , generateSessionMessages_ (generateSessionMessages_in)
- , runSvcRoutineOnStart_ (runSvcRoutineOnStart_in)
  , sessionEndSent_ (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , threadID_ (std::numeric_limits<DWORD>::max (), ACE_INVALID_HANDLE)
@@ -448,10 +446,10 @@ Stream_HeadModuleTaskBase_T<LockType,
         // signal the controller ?
         if (!finished)
         {
+          finished = true;
           // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
           //         --> continue
           inherited::finished ();
-          finished = true;
 
           // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
           //         --> done
@@ -478,9 +476,10 @@ done:
     {
       // *IMPORTANT NOTE*: message_block_p has already been released() !
 
-      // signal the controller
-      inherited::finished ();
       finished = true;
+      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+      //         --> continue
+      inherited::finished ();
 
       continue;
     } // end IF
@@ -491,9 +490,10 @@ done:
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("session aborted...\n")));
 
-      // signal the controller
-      inherited::finished ();
       finished = true;
+      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+      //         --> continue
+      inherited::finished ();
 
       continue;
     } // end IF
@@ -742,10 +742,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   // *TODO*: remove type inference
   active_ = configuration_in.active;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  runSvcRoutineOnStart_ = (!configuration_in.active &&
-                            configuration_in.passive);
-  // sanity check(s)
-  ACE_ASSERT (!(active_ && runSvcRoutineOnStart_));
+  runSvcOnStart_ = !active_;
 
   // *TODO*: remove type inference
   result = inherited::initialize (*configuration_->stateMachineLock);
@@ -1308,7 +1305,7 @@ Stream_HeadModuleTaskBase_T<LockType,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));
     } // end IF
-    else if (runSvcRoutineOnStart_)
+    else if (runSvcOnStart_)
     {
       // *NOTE*: the stream head module is using the calling thread
 
@@ -1649,19 +1646,19 @@ Stream_HeadModuleTaskBase_T<LockType,
         const char* thread_names[1];
         thread_names[0] = thread_name;
         result =
-          inherited2::activate ((THR_NEW_LWP      |
-                                  THR_JOINABLE     |
-                                  THR_INHERIT_SCHED),         // flags
-                                inherited2::threadCount_,    // number of threads
-                                0,                           // force spawning
-                                ACE_DEFAULT_THREAD_PRIORITY, // priority
-                                inherited2::grp_id (),       // group id (see above)
-                                NULL,                        // corresp. task --> use 'this'
-                                thread_handles,              // thread handle(s)
-                                NULL,                        // thread stack(s)
-                                NULL,                        // thread stack size(s)
-                                thread_ids,                  // thread id(s)
-                                thread_names);               // thread name(s)
+            inherited2::activate ((THR_NEW_LWP      |
+                                   THR_JOINABLE     |
+                                   THR_INHERIT_SCHED),         // flags
+                                  inherited2::threadCount_,    // number of threads
+                                  0,                           // force spawning
+                                  ACE_DEFAULT_THREAD_PRIORITY, // priority
+                                  inherited2::grp_id (),       // group id (see above)
+                                  NULL,                        // corresp. task --> use 'this'
+                                  thread_handles,              // thread handle(s)
+                                  NULL,                        // thread stack(s)
+                                  NULL,                        // thread stack size(s)
+                                  thread_ids,                  // thread id(s)
+                                  thread_names);               // thread name(s)
         if (result == -1)
         {
           ACE_DEBUG ((LM_ERROR,
@@ -1690,13 +1687,13 @@ Stream_HeadModuleTaskBase_T<LockType,
           threadID_.handle (thread_handles[0]);
         } // end lock scope
       } // end IF
-      else if (runSvcRoutineOnStart_)
+      else if (runSvcOnStart_)
       {
         // *NOTE*: if the implementation is 'passive', the whole operation
-        //         pertaining to newState_in is processed 'in-line' by the
-        //         calling thread and would complete before the state
-        //         actually has been set to 'running'
-        //         --> in this case set the state early
+        //         pertaining to newState_in is processed 'inline' by the
+        //         calling thread, and would complete before (!) the state
+        //         has transitioned to 'running'
+        //         --> set the state early
         // *TODO*: this may not be the best way to implement that case
         inherited::state_ = STREAM_STATE_RUNNING;
 
@@ -1740,7 +1737,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 //                      ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
 //          break;
 //        } // end IF
-      } // end IF
+      } // end ELSE IF
       else
       {
         // *IMPORTANT NOTE*: this means that there is no worker thread
@@ -1833,15 +1830,15 @@ Stream_HeadModuleTaskBase_T<LockType,
 
       // *TODO*: remove type inference
       if (number_of_threads ||
-          (runSvcRoutineOnStart_  && !ACE_OS::thr_equal (thread_id,
-                                                         threadID_.id ())))
+          (runSvcOnStart_  && !ACE_OS::thr_equal (thread_id,
+                                                  threadID_.id ())))
       {
         // *TODO*: use ACE_Stream::control() instead ?
         inherited2::shutdown ();
       } // end IF
       else
       {
-        //if (runSvcRoutineOnStart_)
+        //if (runSvcOnStart_)
         //{
         //  ACE_ASSERT (threadID_ != -1);
         //  result = ACE_Thread::kill (threadID_, SIGKILL);

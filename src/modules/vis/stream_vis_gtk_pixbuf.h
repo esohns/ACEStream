@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_MODULE_VIS_GTK_DRAWINGAREA_H
-#define STREAM_MODULE_VIS_GTK_DRAWINGAREA_H
+#ifndef STREAM_MODULE_VIS_GTK_PIXBUF_H
+#define STREAM_MODULE_VIS_GTK_PIXBUF_H
 
 #include "ace/Global_Macros.h"
 
@@ -36,15 +36,15 @@ template <typename SessionMessageType,
           ///////////////////////////////
           typename SessionDataType,
           typename SessionDataContainerType>
-class Stream_Module_Vis_GTK_DrawingArea_T
+class Stream_Module_Vis_GTK_Pixbuf_T
  : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
                                  SessionMessageType,
                                  MessageType>
  , public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
-  Stream_Module_Vis_GTK_DrawingArea_T ();
-  virtual ~Stream_Module_Vis_GTK_DrawingArea_T ();
+  Stream_Module_Vis_GTK_Pixbuf_T ();
+  virtual ~Stream_Module_Vis_GTK_Pixbuf_T ();
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (MessageType*&, // data message handle
@@ -65,21 +65,19 @@ class Stream_Module_Vis_GTK_DrawingArea_T
                                  SessionMessageType,
                                  MessageType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_DrawingArea_T (const Stream_Module_Vis_GTK_DrawingArea_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_DrawingArea_T& operator= (const Stream_Module_Vis_GTK_DrawingArea_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T (const Stream_Module_Vis_GTK_Pixbuf_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Pixbuf_T& operator= (const Stream_Module_Vis_GTK_Pixbuf_T&))
 
   // helper methods
   int clamp (int);
 
-  cairo_t*                  cairoContext_;
-  cairo_surface_t*          cairoSurface_;
-//  GdkPixbuf*                pixelBuffer_;
+  GdkPixbuf*                pixelBuffer_;
 
   bool                      isFirst_;
   bool                      isInitialized_;
 };
 
 // include template implementation
-#include "stream_vis_gtk_drawingarea.inl"
+#include "stream_vis_gtk_pixbuf.inl"
 
 #endif

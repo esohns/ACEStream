@@ -95,6 +95,9 @@ struct Test_I_UserData
    , streamConfiguration (NULL)
   {};
 
+  // *TODO*: currently required by the connection handler (see:
+  //         netsocketconnectionbase.inl:437)
+  //         --> add to the socket handler configuration ASAP
   Test_I_Configuration*        configuration;
   Test_I_Stream_Configuration* streamConfiguration;
 };
@@ -134,84 +137,79 @@ struct Test_I_Stream_SessionData
 };
 typedef Stream_SessionData_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
 
-struct Test_I_Stream_SocketHandlerConfiguration
- : Net_SocketHandlerConfiguration
-{
-  inline Test_I_Stream_SocketHandlerConfiguration ()
-   : Net_SocketHandlerConfiguration ()
-   ////////////////////////////////////
-   , userData (NULL)
-  {};
+//struct Test_I_SocketHandlerConfiguration
+// : Net_SocketHandlerConfiguration
+//{
+//  inline Test_I_SocketHandlerConfiguration ()
+//   : Net_SocketHandlerConfiguration ()
+//   ////////////////////////////////////
+//   , userData (NULL)
+//  {};
 
-  Test_I_UserData* userData;
-};
+//  Test_I_UserData* userData;
+//};
 
 // forward declarations
 struct Test_I_Configuration;
-typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                      /////////////////
-                      ACE_MT_SYNCH,
-                      Common_TimePolicy_t,
-                      /////////////////
-                      Stream_StateMachine_ControlState,
-                      Test_I_Stream_State,
-                      /////////////////
-                      Test_I_Stream_Configuration,
-                      /////////////////
-                      Test_I_RuntimeStatistic_t,
-                      /////////////////
-                      Stream_ModuleConfiguration,
-                      Test_I_Stream_ModuleHandlerConfiguration,
-                      /////////////////
-                      Test_I_Stream_SessionData,   // session data
-                      Test_I_Stream_SessionData_t, // session data container (reference counted)
-                      Test_I_Stream_SessionMessage,
-                      Test_I_Stream_Message> Test_I_StreamBase_t;
+//struct Test_I_Stream_State;
+//typedef Stream_Base_T<ACE_SYNCH_MUTEX,
+//                      /////////////////
+//                      ACE_MT_SYNCH,
+//                      Common_TimePolicy_t,
+//                      /////////////////
+//                      Stream_StateMachine_ControlState,
+//                      Test_I_Stream_State,
+//                      /////////////////
+//                      Test_I_Stream_Configuration,
+//                      /////////////////
+//                      Test_I_RuntimeStatistic_t,
+//                      /////////////////
+//                      Stream_ModuleConfiguration,
+//                      Test_I_Stream_ModuleHandlerConfiguration,
+//                      /////////////////
+//                      Test_I_Stream_SessionData,   // session data
+//                      Test_I_Stream_SessionData_t, // session data container (reference counted)
+//                      Test_I_Stream_SessionMessage,
+//                      Test_I_Stream_Message> Test_I_StreamBase_t;
 struct Test_I_Stream_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
   inline Test_I_Stream_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
-   , configuration (NULL)
-   , connection (NULL)
-   , connectionManager (NULL)
+//   , connection (NULL)
+//   , connectionManager (NULL)
    , contextID (0)
    , fileName ()
    , inbound (false)
    , passive (false)
    , printProgressDot (false)
    , socketConfiguration (NULL)
-   , socketHandlerConfiguration (NULL)
-   , stream (NULL)
+//   , socketHandlerConfiguration (NULL)
    , targetFileName ()
   {};
 
-  Test_I_Configuration*                     configuration;
-  Test_I_IConnection_t*                     connection; // TCP target/IO module
-  Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
-  guint                                     contextID;
-  std::string                               fileName; // file reader module
-  bool                                      inbound; // TCP IO module
-  bool                                      passive;
-  bool                                      printProgressDot;
-  Net_SocketConfiguration*                  socketConfiguration;
-  Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
-  Test_I_StreamBase_t*                      stream;
-  std::string                               targetFileName; // file writer module
+//  Test_I_IConnection_t*                     connection; // TCP target/IO module
+//  Test_I_Stream_InetConnectionManager_t* connectionManager; // TCP IO module
+  guint                                  contextID;
+  std::string                            fileName; // file reader module
+  bool                                   inbound; // TCP IO module
+  bool                                   passive;
+  bool                                   printProgressDot;
+  Net_SocketConfiguration*               socketConfiguration;
+//  Test_I_SocketHandlerConfiguration*     socketHandlerConfiguration;
+  std::string                            targetFileName; // file writer module
 };
 
-struct Stream_SignalHandlerConfiguration
- : Common_SignalHandlerConfiguration
-{
-  inline Stream_SignalHandlerConfiguration ()
-   : Common_SignalHandlerConfiguration ()
-   //messageAllocator (NULL)
-   , statisticReportingInterval (0)
-  {};
+//struct Stream_SignalHandlerConfiguration
+// : Common_SignalHandlerConfiguration
+//{
+//  inline Stream_SignalHandlerConfiguration ()
+//   : Common_SignalHandlerConfiguration ()
+//   , statisticReportingInterval (0)
+//  {};
 
-  //Stream_IAllocator* messageAllocator;
-  unsigned int       statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
-};
+//  unsigned int         statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
+//};
 
 struct Test_I_Stream_Configuration
  : Stream_Configuration
@@ -240,22 +238,22 @@ struct Test_I_Stream_State
 struct Test_I_Configuration
 {
   inline Test_I_Configuration ()
-   : signalHandlerConfiguration ()
-   , socketConfiguration ()
-   , socketHandlerConfiguration ()
+//   : signalHandlerConfiguration ()
+   : socketConfiguration ()
+//   , socketHandlerConfiguration ()
    , moduleConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
-   , userData ()
+//   , userData ()
    , useReactor (NET_EVENT_USE_REACTOR)
   {};
 
-  // **************************** signal data **********************************
-  Stream_SignalHandlerConfiguration        signalHandlerConfiguration;
+//  // **************************** signal data **********************************
+//  Stream_SignalHandlerConfiguration        signalHandlerConfiguration;
   // **************************** socket data **********************************
   Net_SocketConfiguration                  socketConfiguration;
-  Test_I_Stream_SocketHandlerConfiguration socketHandlerConfiguration;
+//  Test_I_SocketHandlerConfiguration        socketHandlerConfiguration;
   // **************************** stream data **********************************
   Stream_ModuleConfiguration               moduleConfiguration;
   Test_I_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration;
@@ -263,7 +261,7 @@ struct Test_I_Configuration
   // *************************** protocol data *********************************
   Net_TransportLayerType                   protocol;
 
-  Test_I_UserData                          userData;
+//  Test_I_UserData                          userData;
   bool                                     useReactor;
 };
 
@@ -311,20 +309,20 @@ struct Stream_GTK_CBData
 {
   inline Stream_GTK_CBData ()
    : Common_UI_GTKState ()
-   , configuration (NULL)
+//   , configuration (NULL)
    , eventStack ()
    , logStack ()
    , progressData ()
-   , stream (NULL)
+//   , stream (NULL)
    , subscribers ()
    , subscribersLock ()
   {};
 
-  Test_I_Configuration*     configuration;
+//  Test_I_Configuration*     configuration;
   Stream_GTK_Events_t       eventStack;
   Common_MessageStack_t     logStack;
   Stream_GTK_ProgressData   progressData;
-  Test_I_StreamBase_t*      stream;
+//  Test_I_StreamBase_t*      stream;
   Stream_Subscribers_t      subscribers;
   ACE_SYNCH_RECURSIVE_MUTEX subscribersLock;
 };

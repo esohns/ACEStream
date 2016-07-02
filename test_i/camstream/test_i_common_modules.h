@@ -47,7 +47,7 @@
 #else
 #include "stream_dev_cam_source_v4l.h"
 
-#include "stream_vis_gtk_drawingarea.h"
+#include "stream_vis_gtk_pixbuf.h"
 #endif
 
 //#include "stream_dec_avi_decoder.h"
@@ -346,20 +346,20 @@ typedef Stream_Vis_Target_Direct3D_T<Test_I_Target_Stream_SessionMessage,
                                      Test_I_Target_Stream_SessionData,
                                      Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
 #else
-typedef Stream_Module_Vis_GTK_DrawingArea_T<Test_I_Source_Stream_SessionMessage,
-                                            Test_I_Source_Stream_Message,
+typedef Stream_Module_Vis_GTK_Pixbuf_T<Test_I_Source_Stream_SessionMessage,
+                                       Test_I_Source_Stream_Message,
 
-                                            Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                       Test_I_Source_Stream_ModuleHandlerConfiguration,
 
-                                            Test_I_Source_Stream_SessionData,
-                                            Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
-typedef Stream_Module_Vis_GTK_DrawingArea_T<Test_I_Target_Stream_SessionMessage,
-                                            Test_I_Target_Stream_Message,
+                                       Test_I_Source_Stream_SessionData,
+                                       Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
+typedef Stream_Module_Vis_GTK_Pixbuf_T<Test_I_Target_Stream_SessionMessage,
+                                       Test_I_Target_Stream_Message,
 
-                                            Test_I_Target_Stream_ModuleHandlerConfiguration,
+                                       Test_I_Target_Stream_ModuleHandlerConfiguration,
 
-                                            Test_I_Target_Stream_SessionData,
-                                            Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
+                                       Test_I_Target_Stream_SessionData,
+                                       Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
 #endif
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
                               Common_TimePolicy_t,                             // time policy

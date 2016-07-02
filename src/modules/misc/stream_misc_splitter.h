@@ -36,9 +36,9 @@ class ACE_Message_Block;
 
 template <typename SessionMessageType,
           typename MessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType>
 class Stream_Module_Splitter_T
  : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -81,41 +81,42 @@ class Stream_Module_Splitter_T
   ACE_Message_Block* currentBuffer_;
 };
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 template <typename LockType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionMessageType,
           typename ProtocolMessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename StreamStateType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
-          ///////////////////////////////
+          ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Module_SplitterH_T
  : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_SplitterH_T (bool = false,  // active object ?
-                             bool = false); // auto-start ?
+  Stream_Module_SplitterH_T (LockType* = NULL, // lock handle (state machine)
+                             /////////////
+                             bool = false);    // auto-start ?
   virtual ~Stream_Module_SplitterH_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -150,19 +151,19 @@ class Stream_Module_SplitterH_T
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T (const Stream_Module_SplitterH_T&))

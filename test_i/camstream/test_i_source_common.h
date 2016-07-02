@@ -185,6 +185,19 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
 #endif
 };
 
+struct Test_I_Source_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
+{
+  inline Test_I_Source_SignalHandlerConfiguration ()
+   : Common_SignalHandlerConfiguration ()
+//   , statisticReportingInterval (0)
+   , stream (NULL)
+  {};
+
+//  unsigned int                statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
+  Test_I_Source_StreamBase_t* stream;
+};
+
 struct Test_I_Source_Stream_StatisticData
  : Stream_Statistic
 {
@@ -265,12 +278,15 @@ struct Test_I_Source_Configuration
 {
   inline Test_I_Source_Configuration ()
    : Test_I_Configuration ()
+   , signalHandlerConfiguration ()
    , socketHandlerConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
   {};
 
+  // **************************** signal data **********************************
+  Test_I_Source_SignalHandlerConfiguration        signalHandlerConfiguration;
   // **************************** socket data **********************************
   Test_I_Source_SocketHandlerConfiguration        socketHandlerConfiguration;
   // **************************** stream data **********************************

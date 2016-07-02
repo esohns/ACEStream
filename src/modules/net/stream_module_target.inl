@@ -48,6 +48,8 @@ Stream_Module_Net_Target_T<SessionMessageType,
  : inherited ()
  , configuration_ (NULL)
  , connection_ (NULL)
+ , connector_ (NULL,
+               ACE_Time_Value::zero)
  , sessionData_ (NULL)
  , isInitialized_ (false)
  , isLinked_ (false)
@@ -77,6 +79,8 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
   int result = -1;
   typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
+
+  connector_.abort ();
 
   if (isLinked_)
   {
@@ -191,18 +195,16 @@ Stream_Module_Net_Target_T<SessionMessageType,
       SessionDataType& session_data_r =
           const_cast<SessionDataType&> (sessionData_->get ());
 
-      typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
         (configuration_->connectionManager ? configuration_->connectionManager
                                            : NULL);
-      ConnectorType connector (iconnection_manager_p,
-                               configuration_->streamConfiguration->statisticReportingInterval);
-      Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
-      typename ConnectorType::ICONNECTOR_T* iconnector_p = NULL;
-      typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
+      typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
+      typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
+      typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
+      Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
 
       if (configuration_->connection)
       {
@@ -222,10 +224,9 @@ Stream_Module_Net_Target_T<SessionMessageType,
       if (handle != ACE_INVALID_HANDLE)
       {
         // sanity check(s)
-        ACE_ASSERT (configuration_->connectionManager);
+        ACE_ASSERT (iconnection_manager_p);
 
-        connection_ =
-          configuration_->connectionManager->get (handle);
+        connection_ = iconnection_manager_p->get (handle);
         if (!connection_)
         {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -243,22 +244,6 @@ Stream_Module_Net_Target_T<SessionMessageType,
         goto link;
       } // end IF
 
-      // sanity check(s)
-      ACE_ASSERT (configuration_->connectionManager);
-      ACE_ASSERT (configuration_->socketConfiguration);
-      ACE_ASSERT (configuration_->socketHandlerConfiguration);
-      ACE_ASSERT (configuration_->streamConfiguration);
-
-      ACE_TCHAR buffer[BUFSIZ];
-      ACE_OS::memset (buffer, 0, sizeof (buffer));
-      result =
-        configuration_->socketConfiguration->address.addr_to_string (buffer,
-                                                                    sizeof (buffer),
-                                                                    1);
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
-
       // step1: initialize connection manager
       // *TODO*: remove type inferences
       //    typename ConnectionManagerType::CONFIGURATION_T original_configuration;
@@ -273,9 +258,11 @@ Stream_Module_Net_Target_T<SessionMessageType,
       //    configuration_in.connectionManager->set (configuration,
       //                                             user_data_p);
 
-      // step2: initialize connector
-      iconnector_p = &connector;
+      // sanity check(s)
+      ACE_ASSERT (configuration_->socketHandlerConfiguration);
+      ACE_ASSERT (configuration_->streamConfiguration);
 
+      // step2: initialize connector
       // *NOTE*: the stream configuration may contain a module handle that is
       //         meant to be the final module of this processing stream. As
       //         the connection stream will be prepended to this pipeline, the
@@ -297,13 +284,26 @@ Stream_Module_Net_Target_T<SessionMessageType,
         goto reset;
       } // end IF
 
+      // sanity check(s)
+      ACE_ASSERT (configuration_->socketConfiguration);
+
+      ACE_TCHAR buffer[BUFSIZ];
+      ACE_OS::memset (buffer, 0, sizeof (buffer));
+      result =
+        configuration_->socketConfiguration->address.addr_to_string (buffer,
+                                                                     sizeof (buffer),
+                                                                     1);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
+
       // step3: connect
       // *TODO*: support single-thread operation (e.g. by scheduling a signal
       //         and manually running the dispatch loop for a limited period)
       handle =
          iconnector_p->connect (configuration_->socketConfiguration->address);
-      if (connector.useReactor ())
-        connection_ = configuration_->connectionManager->get (handle);
+      if (iconnector_p->useReactor ())
+        connection_ = iconnection_manager_p->get (handle);
       else
       {
         // step3a: wait for the connection to register with the manager
@@ -312,19 +312,32 @@ Stream_Module_Net_Target_T<SessionMessageType,
         do
         {
           connection_ =
-            configuration_->connectionManager->get (configuration_->socketConfiguration->address);
+            iconnection_manager_p->get (configuration_->socketConfiguration->address);
           // *TODO*: avoid tight loop here
-          if (!connection_)
-            continue;
+          if (connection_)
+            break;
+        } while (COMMON_TIME_NOW < deadline);
+        if (!connection_)
+        {
+          ACE_ASSERT (COMMON_TIME_NOW >= deadline);
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to connect to \"%s\" (timeout: %#T), aborting\n"),
+                      buffer,
+                      &timeout));
 
-          // step3b: wait for the connection to finish initializing
+          // clean up
+          iconnector_p->abort ();
+
+          goto reset;
+        } // end IF
+
+        // step3b: wait for the connection to finish initializing
+        do
+        {
+          status = connection_->status ();
           // *TODO*: avoid tight loop here
-          do
-          {
-            status = connection_->status ();
-            if (status != NET_CONNECTION_STATUS_INVALID)
-              break;
-          } while (COMMON_TIME_NOW < deadline);
+          if (status != NET_CONNECTION_STATUS_INVALID)
+            break;
         } while (COMMON_TIME_NOW < deadline);
       } // end IF
       if (!connection_)
@@ -334,7 +347,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
                     buffer));
 
         // clean up
-        connector.abort ();
+        iconnector_p->abort ();
 
         goto reset;
       } // end IF
@@ -342,8 +355,9 @@ Stream_Module_Net_Target_T<SessionMessageType,
       if (status != NET_CONNECTION_STATUS_OK)
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to initialize connection to \"%s\", aborting\n"),
-                    buffer));
+                    ACE_TEXT ("failed to initialize connection to \"%s\" (status was: %d), aborting\n"),
+                    buffer,
+                    status));
 
         // clean up
         connection_->close ();
@@ -560,13 +574,14 @@ close:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
-        Net_Connection_Status status = configuration_->connection->status ();
+        // *NOTE*: potential race condition here
+        Net_Connection_Status status = connection_->status ();
         if (status == NET_CONNECTION_STATUS_OK)
         {
           connection_->close ();
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("closed connection to \"%s\"...\n"),
-                      ACE_TEXT (buffer)));
+                      buffer));
         } // end IF
       } // end IF
 
@@ -615,8 +630,8 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_->configuration);
-  if (configuration_->configuration->socketConfiguration.address.is_any ())
+  ACE_ASSERT (configuration_->socketConfiguration);
+  if (configuration_->socketConfiguration->address.is_any ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid peer address (was: any), aborting\n")));
@@ -624,8 +639,8 @@ Stream_Module_Net_Target_T<SessionMessageType,
   } // end IF
   //ACE_OS::memset (buffer, 0, sizeof (buffer));
   //result =
-  //  configuration_->configuration->socketConfiguration.peerAddress.addr_to_string (buffer,
-  //                                                                                 sizeof (buffer));
+  //  configuration_->socketConfiguration->peerAddress.addr_to_string (buffer,
+  //                                                                   sizeof (buffer));
   //if (result == -1)
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));

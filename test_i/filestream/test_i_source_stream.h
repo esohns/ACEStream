@@ -34,7 +34,7 @@
 
 #include "stream_module_target.h"
 
-#include "test_i_common.h"
+#include "test_i_source_common.h"
 #include "test_i_common_modules.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
@@ -52,12 +52,12 @@ class Test_I_Source_Stream_T
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
                         /////////////////
-                        Test_I_Stream_Configuration,
+                        Test_I_Source_Stream_Configuration,
                         /////////////////
                         Test_I_RuntimeStatistic_t,
                         /////////////////
                         Stream_ModuleConfiguration,
-                        Test_I_Stream_ModuleHandlerConfiguration,
+                        Test_I_Source_ModuleHandlerConfiguration,
                         /////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
@@ -69,9 +69,9 @@ class Test_I_Source_Stream_T
   virtual ~Test_I_Source_Stream_T ();
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_Stream_Configuration&, // configuration
-                           bool = true,                        // setup pipeline ?
-                           bool = true);                       // reset session data ?
+  virtual bool initialize (const Test_I_Source_Stream_Configuration&, // configuration
+                           bool = true,                               // setup pipeline ?
+                           bool = true);                              // reset session data ?
 
   // *TODO*: re-consider this API
   void ping ();
@@ -90,12 +90,12 @@ class Test_I_Source_Stream_T
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
                         /////////////////
-                        Test_I_Stream_Configuration,
+                        Test_I_Source_Stream_Configuration,
                         /////////////////
                         Test_I_RuntimeStatistic_t,
                         /////////////////
                         Stream_ModuleConfiguration,
-                        Test_I_Stream_ModuleHandlerConfiguration,
+                        Test_I_Source_ModuleHandlerConfiguration,
                         /////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
@@ -104,17 +104,17 @@ class Test_I_Source_Stream_T
   typedef Stream_Module_Net_Target_T<Test_I_Stream_SessionMessage,
                                      Test_I_Stream_Message,
                                      ////
-                                     Test_I_Stream_ModuleHandlerConfiguration,
+                                     Test_I_Source_ModuleHandlerConfiguration,
                                      ////
                                      Test_I_Stream_SessionData,
                                      Test_I_Stream_SessionData_t,
                                      ////
-                                     Test_I_Stream_InetConnectionManager_t,
+                                     Test_I_Source_InetConnectionManager_t,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                             // task synch type
                                          Common_TimePolicy_t,                      // time policy
                                          Stream_ModuleConfiguration,               // module configuration type
-                                         Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                                         Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
                                          WRITER_T> TARGET_MODULE_T;                // writer type
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T ())
@@ -122,8 +122,8 @@ class Test_I_Source_Stream_T
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
 
   // modules
-  Test_I_Stream_Module_FileReader_Module       fileReader_;
-  Test_I_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
+  Test_I_Module_FileReader_Module              fileReader_;
+  Test_I_Source_Module_RuntimeStatistic_Module runtimeStatistic_;
   TARGET_MODULE_T                              netTarget_;
 };
 
@@ -132,9 +132,9 @@ class Test_I_Source_Stream_T
 
 /////////////////////////////////////////
 
-typedef Test_I_Source_Stream_T<Test_I_Stream_TCPConnector_t> Test_I_Source_TCPStream_t;
-typedef Test_I_Source_Stream_T<Test_I_Stream_TCPAsynchConnector_t> Test_I_Source_AsynchTCPStream_t;
-typedef Test_I_Source_Stream_T<Test_I_Stream_UDPConnector_t> Test_I_Source_UDPStream_t;
-typedef Test_I_Source_Stream_T<Test_I_Stream_UDPAsynchConnector_t> Test_I_Source_AsynchUDPStream_t;
+typedef Test_I_Source_Stream_T<Test_I_Source_TCPConnector_t> Test_I_Source_TCPStream_t;
+typedef Test_I_Source_Stream_T<Test_I_Source_TCPAsynchConnector_t> Test_I_Source_AsynchTCPStream_t;
+typedef Test_I_Source_Stream_T<Test_I_Source_UDPConnector_t> Test_I_Source_UDPStream_t;
+typedef Test_I_Source_Stream_T<Test_I_Source_UDPAsynchConnector_t> Test_I_Source_AsynchUDPStream_t;
 
 #endif

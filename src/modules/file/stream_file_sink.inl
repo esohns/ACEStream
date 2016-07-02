@@ -183,7 +183,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
                         O_WRONLY);
 
       const ACE_TCHAR* path_name_p = fileName_.get_path_name ();
-      if ((!path_name_p) &&
+      if (!path_name_p &&
           session_data_r.targetFileName.empty ())
         goto continue_; // nothing to do
 
@@ -199,6 +199,8 @@ Stream_Module_FileWriter_T<SessionMessageType,
       // sanity check(s)
       if (!Common_File_Tools::isDirectory (directory))
       {
+        // *TODO*: ACE::dirname() returns '.' on an empty argument, this isn't
+        //         entirely accurate
         directory =
           ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (directory.c_str ())));
         if (Common_File_Tools::isValidPath (directory))

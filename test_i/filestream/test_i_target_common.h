@@ -32,6 +32,7 @@
 #include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
 
+struct Test_I_Target_SocketHandlerConfiguration;
 struct Test_I_Target_ListenerConfiguration
 {
   inline Test_I_Target_ListenerConfiguration ()
@@ -46,21 +47,21 @@ struct Test_I_Target_ListenerConfiguration
 
   ACE_INET_Addr                             address;
   int                                       addressFamily;
-  Test_I_Stream_IInetConnectionManager_t*   connectionManager;
+  Test_I_Target_IInetConnectionManager_t*   connectionManager;
   Stream_IAllocator*                        messageAllocator;
-  Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
+  Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
   ACE_Time_Value                            statisticReportingInterval; // [ACE_Time_Value::zero: off]
   bool                                      useLoopBackDevice;
 };
 
 typedef Net_IListener_T<Test_I_Target_ListenerConfiguration,
-                        Test_I_Stream_SocketHandlerConfiguration> Test_I_Target_IListener_t;
+                        Test_I_Target_SocketHandlerConfiguration> Test_I_Target_IListener_t;
 
 struct Test_I_Target_SignalHandlerConfiguration
- : Stream_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
 {
   inline Test_I_Target_SignalHandlerConfiguration ()
-   : Stream_SignalHandlerConfiguration ()
+   : Common_SignalHandlerConfiguration ()
    , listener (NULL)
    , statisticReportingHandler (NULL)
    , statisticReportingTimerID (-1)
@@ -69,6 +70,32 @@ struct Test_I_Target_SignalHandlerConfiguration
   Test_I_Target_IListener_t*          listener;
   Test_I_StatisticReportingHandler_t* statisticReportingHandler;
   long                                statisticReportingTimerID;
+};
+
+struct Test_I_Target_UserData
+ : Test_I_UserData
+{
+  inline Test_I_Target_UserData ()
+   : Test_I_UserData ()
+   , configuration (NULL)
+  {};
+
+  // *TODO*: currently required by the connection handler (see:
+  //         netsocketconnectionbase.inl:437)
+  //         --> add to the socket handler configuration ASAP
+  Test_I_Target_Configuration* configuration;
+};
+
+struct Test_I_Target_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
+{
+  inline Test_I_Target_SocketHandlerConfiguration ()
+   : Net_SocketHandlerConfiguration ()
+   ////////////////////////////////////
+   , userData (NULL)
+  {};
+
+  Test_I_Target_UserData* userData;
 };
 
 struct Test_I_Target_Configuration
@@ -80,14 +107,17 @@ struct Test_I_Target_Configuration
    //, listener (NULL)
    , listenerConfiguration ()
    , signalHandlerConfiguration ()
-   , useReactor (false)
+   , socketHandlerConfiguration ()
+   , userData ()
   {};
 
   ACE_HANDLE                               handle;
   //Test_I_Target_IListener_t*               listener;
   Test_I_Target_ListenerConfiguration      listenerConfiguration;
   Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
-  bool                                     useReactor;
+  Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
+
+  Test_I_Target_UserData                   userData;
 };
 
 struct Test_I_Target_GTK_CBData

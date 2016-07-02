@@ -30,43 +30,45 @@
 #include "stream_headmoduletask_base.h"
 
 template <typename LockType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionMessageType,
           typename ProtocolMessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename StreamStateType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
-          ///////////////////////////////
+          ////////////////////////////////
           typename StatisticContainerType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConnectionManagerType,
           typename ConnectorType>
 class Stream_Module_Net_Source_T
  : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType>
 {
  public:
   // *NOTE*: this module has two modes of operation:
   //         active:  establish and manage a connection
   //         passive: use an existing connection (handle passed in initialize())
-  Stream_Module_Net_Source_T (bool = false); // passive ?
+  Stream_Module_Net_Source_T (LockType* = NULL, // lock handle (state machine)
+                              ////////////
+                              bool = false);    // passive ?
   virtual ~Stream_Module_Net_Source_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -103,19 +105,19 @@ class Stream_Module_Net_Source_T
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType> inherited;
 
 //  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_T ())

@@ -31,23 +31,23 @@
 
 #include "test_i_connection_manager_common.h"
 
-Stream_Source_SignalHandler::Stream_Source_SignalHandler ()
+Test_I_Source_SignalHandler::Test_I_Source_SignalHandler ()
  : inherited (this) // event handler handle
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::Stream_Source_SignalHandler"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler::Test_I_Source_SignalHandler"));
 
 }
 
-Stream_Source_SignalHandler::~Stream_Source_SignalHandler ()
+Test_I_Source_SignalHandler::~Test_I_Source_SignalHandler ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::~Stream_Source_SignalHandler"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler::~Test_I_Source_SignalHandler"));
 
 }
 
 bool
-Stream_Source_SignalHandler::handleSignal (int signal_in)
+Test_I_Source_SignalHandler::handleSignal (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_SignalHandler::handleSignal"));
 
 //  int result = -1;
 
@@ -128,40 +128,25 @@ Stream_Source_SignalHandler::handleSignal (int signal_in)
   if (shutdown)
   {
     // stop everything, i.e.
+    // - stop processing stream
     // - leave event loop(s) handling signals, sockets, (maintenance) timers,
     //   exception handlers, ...
     // - activation timers (connection attempts, ...)
     // [- UI dispatch]
 
-    //// step1: stop action timer (if any)
-    //if (configuration_.actionTimerId >= 0)
-    //{
-    //  const void* act_p = NULL;
-    //  result =
-    //      COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (configuration_.actionTimerId,
-    //                                                                &act_p);
-    //  // *PORTABILITY*: tracing in a signal handler context is not portable
-    //  // *TODO*
-    //  if (result <= 0)
-    //    ACE_DEBUG ((LM_ERROR,
-    //                ACE_TEXT ("failed to cancel action timer (ID: %d): \"%m\", continuing\n"),
-    //                configuration_.actionTimerId));
-    //  configuration_.actionTimerId = -1;
-    //} // end IF
+    // step1: stop processing stream
+    ACE_ASSERT (inherited::configuration_->stream);
+    inherited::configuration_->stream->stop (false, // don't block
+                                             true); // locked access
 
-    // step2: stop/abort(/wait) for connections
-    Test_I_Stream_IInetConnectionManager_t* connection_manager_p =
-        TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+    // step2: stop/abort connection(s)
+    Test_I_Source_IInetConnectionManager_t* connection_manager_p =
+        TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
     ACE_ASSERT (connection_manager_p);
     connection_manager_p->stop ();
     connection_manager_p->abort ();
 
-    // step5: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?
-                                         !inherited::configuration_->useReactor, // stop proactor ?
-                                         -1);                                    // group ID (--> don't block)
-
-    // *IMPORTANT NOTE*: there is no real reason to wait here
+    // *IMPORTANT NOTE*: there is no reason to wait here
   } // end IF
 
   return true;

@@ -41,21 +41,19 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::Stream_Module_Vis_GTK_DrawingArea_T ()
+Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
+                               MessageType,
+                               ConfigurationType,
+                               SessionDataType,
+                               SessionDataContainerType>::Stream_Module_Vis_GTK_Pixbuf_T ()
  : inherited ()
  , configuration_ (NULL)
  , sessionData_ (NULL)
- , cairoContext_ (NULL)
- , cairoSurface_ (NULL)
-// , pixelBuffer_ (NULL)
+ , pixelBuffer_ (NULL)
  , isFirst_ (true)
  , isInitialized_ (false)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::Stream_Module_Vis_GTK_DrawingArea_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::Stream_Module_Vis_GTK_Pixbuf_T"));
 
 }
 
@@ -64,21 +62,16 @@ template <typename SessionMessageType,
           typename ConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::~Stream_Module_Vis_GTK_DrawingArea_T ()
+Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
+                               MessageType,
+                               ConfigurationType,
+                               SessionDataType,
+                               SessionDataContainerType>::~Stream_Module_Vis_GTK_Pixbuf_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::~Stream_Module_Vis_GTK_DrawingArea_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::~Stream_Module_Vis_GTK_Pixbuf_T"));
 
-//  if (pixelBuffer_)
-//    g_object_unref (pixelBuffer_);
-
-  if (cairoSurface_)
-    cairo_surface_destroy (cairoSurface_);
-  if (cairoContext_)
-    cairo_destroy (cairoContext_);
+  if (pixelBuffer_)
+    g_object_unref (pixelBuffer_);
 
   if (sessionData_)
     sessionData_->decrease ();
@@ -90,13 +83,13 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 int
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::clamp (int value_in)
+Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
+                               MessageType,
+                               ConfigurationType,
+                               SessionDataType,
+                               SessionDataContainerType>::clamp (int value_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::clamp"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::clamp"));
 
   return ((value_in > 255) ? 255
                            : ((value_in < 0) ? 0
@@ -108,14 +101,14 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
-                                                                                  bool& passMessageDownstream_out)
+Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
+                               MessageType,
+                               ConfigurationType,
+                               SessionDataType,
+                               SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
+                                                                             bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::handleDataMessage"));
 
 //  ACE_Message_Block* message_block_p = message_inout;
 
@@ -138,7 +131,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 //    message_block_p = message_block_p->cont ();
 //  } // end IF
   ACE_ASSERT (sessionData_);
-  ACE_ASSERT (cairoSurface_);
+  ACE_ASSERT (pixelBuffer_);
   const SessionDataType& session_data_r = sessionData_->get ();
   unsigned int total_length = message_inout->total_length ();
   ACE_ASSERT (total_length ==
@@ -161,14 +154,8 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
   unsigned char* data_p =
       reinterpret_cast<unsigned char*> (message_block_p->rd_ptr ());
   ACE_ASSERT (data_p);
-  unsigned char* data_2 = cairo_image_surface_get_data (cairoSurface_);
+  guchar* data_2 = gdk_pixbuf_get_pixels (pixelBuffer_);
   ACE_ASSERT (data_2);
-
-//  if (pixelBuffer_)
-//  {
-//    g_object_unref (pixelBuffer_);
-//    pixelBuffer_ = NULL;
-//  } // end IF
 
 //  int bits_per_sample = 8;
   int row_stride = session_data_r.format.fmt.pix.bytesperline;
@@ -180,9 +167,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
     case V4L2_PIX_FMT_BGR24:
     {
       // convert BGR (24bit) to RGB (32bit)
-      row_stride =
-          cairo_format_stride_for_width (MODULE_VIS_DEFAULT_CAIRO_FORMAT,
-                                         session_data_r.format.fmt.pix.width);
+      row_stride = gdk_pixbuf_get_rowstride (pixelBuffer_);
       for (unsigned int y = 0;
            y < session_data_r.format.fmt.pix.height;
            ++y)
@@ -205,9 +190,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
     case V4L2_PIX_FMT_RGB24:
     {
       // convert RGB (24bit) to RGB (32bit)
-      row_stride =
-          cairo_format_stride_for_width (MODULE_VIS_DEFAULT_CAIRO_FORMAT,
-                                         session_data_r.format.fmt.pix.width);
+      row_stride = gdk_pixbuf_get_rowstride (pixelBuffer_);
       for (unsigned int y = 0;
            y < session_data_r.format.fmt.pix.height;
            ++y)
@@ -231,25 +214,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
     case V4L2_PIX_FMT_YVU420:
     {
       // decode YVU to RGB (planar format)
-      cairo_surface_t* cairo_surface_p =
-          cairo_image_surface_create (MODULE_VIS_DEFAULT_CAIRO_FORMAT,       // format
-                                      session_data_r.format.fmt.pix.width,   // width
-                                      session_data_r.format.fmt.pix.height); // height
-      cairo_status_t status = cairo_surface_status (cairo_surface_p);
-      if (!cairo_surface_p ||
-          (status != CAIRO_STATUS_SUCCESS))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cairo_image_surface_create(%d,%d,%d): \"%s\", returning\n"),
-                    MODULE_VIS_DEFAULT_CAIRO_FORMAT,
-                    session_data_r.format.fmt.pix.width, session_data_r.format.fmt.pix.height,
-                    ACE_TEXT (cairo_status_to_string (status))));
-        return;
-      } // end IF
-
-      int row_stride_2 =
-          cairo_format_stride_for_width (MODULE_VIS_DEFAULT_CAIRO_FORMAT,
-                                         session_data_r.format.fmt.pix.width);
+      int row_stride_2 = gdk_pixbuf_get_rowstride (pixelBuffer_);
       unsigned int number_of_pixels =
           (session_data_r.format.fmt.pix.height *
            session_data_r.format.fmt.pix.width);
@@ -259,7 +224,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
       unsigned char* chrominance_r_base_p = data_p + number_of_pixels;
       unsigned char* chrominance_b_p = chrominance_b_base_p; // Cb
       unsigned char* chrominance_r_p = chrominance_r_base_p; // Cr
-      unsigned char* R1_p = cairo_image_surface_get_data (cairo_surface_p);
+      unsigned char* R1_p = data_2;
       unsigned char* G1_p = R1_p + 1;
       unsigned char* B1_p = R1_p + 2;
       unsigned char* R2_p = R1_p + row_stride_2;
@@ -340,37 +305,12 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
         Y2_p += row_stride;
       } // end WHILE
 
-      cairo_surface_destroy (cairoSurface_);
-      cairoSurface_ = cairo_surface_p;
-
-//      data_p = cairo_image_surface_get_data (cairoSurface_);
-//      row_stride =
-//          cairo_format_stride_for_width (cairoFormat_,
-//                                         session_data_r.format.fmt.pix.width);
       break;
     }
     case V4L2_PIX_FMT_YUV420:
     {
       // decode YUV to RGB (planar format)
-      cairo_surface_t* cairo_surface_p =
-          cairo_image_surface_create (MODULE_VIS_DEFAULT_CAIRO_FORMAT,       // format
-                                      session_data_r.format.fmt.pix.width,   // width
-                                      session_data_r.format.fmt.pix.height); // height
-      cairo_status_t status = cairo_surface_status (cairo_surface_p);
-      if (!cairo_surface_p ||
-          (status != CAIRO_STATUS_SUCCESS))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cairo_image_surface_create(%d,%d,%d): \"%s\", returning\n"),
-                    MODULE_VIS_DEFAULT_CAIRO_FORMAT,
-                    session_data_r.format.fmt.pix.width, session_data_r.format.fmt.pix.height,
-                    ACE_TEXT (cairo_status_to_string (status))));
-        return;
-      } // end IF
-
-      int row_stride_2 =
-          cairo_format_stride_for_width (MODULE_VIS_DEFAULT_CAIRO_FORMAT,
-                                         session_data_r.format.fmt.pix.width);
+      int row_stride_2 = gdk_pixbuf_get_rowstride (pixelBuffer_);
       unsigned int number_of_pixels =
           (session_data_r.format.fmt.pix.height *
            session_data_r.format.fmt.pix.width);
@@ -380,7 +320,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
                                             (number_of_pixels / 4);
       unsigned char* chrominance_b_p = chrominance_b_base_p; // Cb
       unsigned char* chrominance_r_p = chrominance_r_base_p; // Cr
-      unsigned char* R1_p = cairo_image_surface_get_data (cairo_surface_p);
+      unsigned char* R1_p = data_2;
       unsigned char* G1_p = R1_p + 1;
       unsigned char* B1_p = R1_p + 2;
       unsigned char* R2_p = R1_p + row_stride_2;
@@ -461,36 +401,13 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
         Y2_p += row_stride;
       } // end WHILE
 
-      cairo_surface_destroy (cairoSurface_);
-      cairoSurface_ = cairo_surface_p;
-
-//      data_p = cairo_image_surface_get_data (cairoSurface_);
-//      row_stride =
-//          cairo_format_stride_for_width (cairoFormat_,
-//                                         session_data_r.format.fmt.pix.width);
       break;
     }
     case V4L2_PIX_FMT_YUYV:
     {
       // decode YUYV to RGB (packed format)
-      cairo_surface_t* cairo_surface_p =
-          cairo_image_surface_create (MODULE_VIS_DEFAULT_CAIRO_FORMAT,       // format
-                                      session_data_r.format.fmt.pix.width,   // width
-                                      session_data_r.format.fmt.pix.height); // height
-      cairo_status_t status = cairo_surface_status (cairo_surface_p);
-      if (!cairo_surface_p ||
-          (status != CAIRO_STATUS_SUCCESS))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cairo_image_surface_create(%d,%d,%d): \"%s\", returning\n"),
-                    MODULE_VIS_DEFAULT_CAIRO_FORMAT,
-                    session_data_r.format.fmt.pix.width, session_data_r.format.fmt.pix.height,
-                    ACE_TEXT (cairo_status_to_string (status))));
-        return;
-      } // end IF
-
       unsigned char* pointer_p = data_p;
-      unsigned char* pixel_p = cairo_image_surface_get_data (cairo_surface_p);
+      unsigned char* pixel_p = data_2;
       unsigned int number_of_pixels =
           (session_data_r.format.fmt.pix.height *
            session_data_r.format.fmt.pix.width);
@@ -532,34 +449,11 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
         pointer_p += 4;
       } // end FOR
 
-      cairo_surface_destroy (cairoSurface_);
-      cairoSurface_ = cairo_surface_p;
-
-//      data_p = cairo_image_surface_get_data (cairoSurface_);
-//      row_stride =
-//          cairo_format_stride_for_width (cairoFormat_,
-//                                         session_data_r.format.fmt.pix.width);
       break;
     }
     // compressed formats
     case V4L2_PIX_FMT_MJPEG:
     {
-      cairo_surface_t* cairo_surface_p =
-          cairo_image_surface_create (MODULE_VIS_DEFAULT_CAIRO_FORMAT,       // format
-                                      session_data_r.format.fmt.pix.width,   // width
-                                      session_data_r.format.fmt.pix.height); // height
-      cairo_status_t status = cairo_surface_status (cairo_surface_p);
-      if (!cairo_surface_p ||
-          (status != CAIRO_STATUS_SUCCESS))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cairo_image_surface_create(%d,%d,%d): \"%s\", returning\n"),
-                    MODULE_VIS_DEFAULT_CAIRO_FORMAT,
-                    session_data_r.format.fmt.pix.width, session_data_r.format.fmt.pix.height,
-                    ACE_TEXT (cairo_status_to_string (status))));
-        return;
-      } // end IF
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
       avcodec_register_all ();
@@ -581,10 +475,8 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 //        return;
 //      } // end IF
 //      av_frame_unref (frame_p);
-      frame_p->data[0] = cairo_image_surface_get_data (cairo_surface_p);
-      frame_p->linesize[0] =
-          cairo_format_stride_for_width (MODULE_VIS_DEFAULT_CAIRO_FORMAT,
-                                         session_data_r.format.fmt.pix.width);
+      frame_p->data[0] = data_2;
+      frame_p->linesize[0] = gdk_pixbuf_get_rowstride (pixelBuffer_);
       AVPacket packet;
       av_init_packet (&packet);
       packet.data = data_p;
@@ -667,13 +559,6 @@ clean:
         avcodec_free_context (&context_p);
 #endif
 
-      cairo_surface_destroy (cairoSurface_);
-      cairoSurface_ = cairo_surface_p;
-
-//      data_p = cairo_image_surface_get_data (cairoSurface_);
-//      row_stride =
-//          cairo_format_stride_for_width (cairoFormat_,
-//                                         session_data_r.format.fmt.pix.width);
       break;
     }
     default:
@@ -708,42 +593,15 @@ clean:
 //    return;
 //  } // end IF
 
-//  // step3: scale image to window area
-//  gint x, y;
-//  gdk_window_get_origin (configuration_->window,
-//                         &x, &y);
-//  gint width, height;
-//  gdk_drawable_get_size (GDK_DRAWABLE (configuration_->window),
-//                         &width, &height);
-//  double scale_factor, scale_factor_x, scale_factor_y;
-//  scale_factor_x =
-//      width / static_cast<double> (sessionData_->format.fmt.pix.width);
-//  scale_factor_y =
-//      height / static_cast<double> (sessionData_->format.fmt.pix.height);
-//  scale_factor = MIN (scale_factor_x, scale_factor_y);
-//  cairo_scale (cairoContext_,
-//               scale_factor, scale_factor);
+  // step3: draw pixbuf to image widget
+  gint width, height;
+  gdk_drawable_get_size (GDK_DRAWABLE (configuration_->image),
+                         &width, &height);
 
-  //  cairo_surface_set_mime_data (cairoSurface_,                                               // surface
-  //                               ACE_TEXT_ALWAYS_CHAR ("video/x-raw-yuv/i420"),               // MIME type
-  //                               reinterpret_cast<unsigned char*> (message_inout->rd_ptr ()), // data
-  //                               message_inout->length (),                                    // length
-  //                               NULL,                                                        // destroy function
-  //                               NULL);                                                       // destroy function act
-
-  //  pixmap = gdk_pixmap_new(window->window, width, height, -1);
-  //  gdk_draw_pixbuf((GdkDrawable *) pixmap, NULL,
-  //                  pixbuf,
-  //                  0, 0, 0, 0, wifth, height,
-  //                  GDK_RGB_DITHER_NORMAL, 0, 0);
-  //  gtk_image_set_from_pixmap((GtkImage*) image, pixmap, NULL);
-//  gdk_cairo_set_source_pixbuf (cairoContext_,
-//                               pixelBuffer_,
-//                               0.0, 0.0);
-
-  // step4: paste the pixel buffer into the specified window area
-  cairo_paint (cairoContext_);
-//  cairo_surface_flush (cairoSurface_);
+  gdk_draw_pixbuf (GDK_DRAWABLE (configuration_->image), NULL,
+                   pixelBuffer_,
+                   0, 0, 0, 0, width, height,
+                   GDK_RGB_DITHER_NONE, 0, 0);
 
   // step5: schedule an 'expose' event
   // *NOTE*: gdk_window_invalidate_rect() is not thread-safe. It will race with
@@ -752,9 +610,9 @@ clean:
   //         --> schedule a refresh with gtk_widget_queue_draw_area() instead
   // *NOTE*: this does not work either... :-(
   //         --> let the downstream event handler queue an idle request
-//  gdk_window_invalidate_rect (configuration_->window,
-//                              NULL,
-//                              false);
+  gdk_window_invalidate_rect (configuration_->window,
+                              NULL,
+                              false);
 //  GtkWidget* widget_p = NULL;
 //  gdk_window_get_user_data (configuration_->window,
 //                            reinterpret_cast<gpointer*> (&widget_p));
@@ -776,14 +634,14 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                     bool& passMessageDownstream_out)
+Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
+                               MessageType,
+                               ConfigurationType,
+                               SessionDataType,
+                               SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::handleSessionMessage"));
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
@@ -802,51 +660,12 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
           const_cast<SessionDataType&> (sessionData_->get ());
 
       // sanity check(s)
-      if (!configuration_->window)
+      if (!configuration_->image)
         break; // done
-      ACE_ASSERT (cairoContext_);
-      ACE_ASSERT (!cairoSurface_);
+      ACE_ASSERT (pixelBuffer_);
 
-      // step1: allocate/retrieve a pixel buffer
-      cairo_status_t result = CAIRO_STATUS_SUCCESS;
-      cairo_format_t format = CAIRO_FORMAT_INVALID;
-      int width, height;
-//      cairoSurface_ =
-//          cairo_image_surface_create (MODULE_VIS_DEFAULT_CAIRO_FORMAT,       // format
-//                                      session_data_r.format.fmt.pix.width,   // width
-//                                      session_data_r.format.fmt.pix.height); // height
-//      result = cairo_surface_status (cairoSurface_);
-//      if (!cairoSurface_ ||
-//          (result != CAIRO_STATUS_SUCCESS))
-//      {
-//        ACE_DEBUG ((LM_ERROR,
-//                    ACE_TEXT ("failed to cairo_image_surface_create(%d,%d,%d): \"%s\", returning\n"),
-//                    cairoFormat_,
-//                    session_data_r.format.fmt.pix.width, session_data_r.format.fmt.pix.height,
-//                    ACE_TEXT (cairo_status_to_string (result))));
-//        return;
-//      } // end IF
-//      cairo_set_source_surface (cairoContext_, // context
-//                                cairoSurface_, // surface
-//    //                            (width  - (scale_factor * width))  / (2.0 * scale_factor),
-//    //                            (height - (scale_factor * height)) / (2.0 * scale_factor));
-//                                0.0, 0.0);     // x,y offset
-      cairo_pattern_t* pattern_p = cairo_get_source (cairoContext_);
-      ACE_ASSERT (pattern_p);
-      result = cairo_pattern_get_surface (pattern_p,
-                                          &cairoSurface_);
-      if (!cairoSurface_ ||
-          (result != CAIRO_STATUS_SUCCESS))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to cairo_pattern_get_surface(): \"%s\", aborting\n"),
-                    ACE_TEXT (cairo_status_to_string (result))));
-        goto error;
-      } // end IF
-      format = cairo_image_surface_get_format (cairoSurface_);
-      width = cairo_image_surface_get_width (cairoSurface_);
-      height = cairo_image_surface_get_height (cairoSurface_);
-      ACE_ASSERT (format == MODULE_VIS_DEFAULT_CAIRO_FORMAT);
+      int width = gdk_pixbuf_get_width (pixelBuffer_);
+      int height = gdk_pixbuf_get_height (pixelBuffer_);
       ACE_ASSERT (width < session_data_r.format.fmt.pix.width);
       ACE_ASSERT (height < session_data_r.format.fmt.pix.height);
 
@@ -859,10 +678,10 @@ error:
     }
     case STREAM_SESSION_END:
     {
-      if (cairoSurface_)
+      if (pixelBuffer_)
       {
-        cairo_surface_destroy (cairoSurface_);
-        cairoSurface_ = NULL;
+        g_object_unref (pixelBuffer_);
+        pixelBuffer_ = NULL;
       } // end IF
 
       if (sessionData_)
@@ -884,33 +703,28 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 bool
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
+                               MessageType,
+                               ConfigurationType,
+                               SessionDataType,
+                               SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::initialize"));
 
   if (isInitialized_)
   {
     configuration_ = NULL;
+
+    if (pixelBuffer_)
+    {
+      g_object_unref (pixelBuffer_);
+      pixelBuffer_ = NULL;
+    } // end IF
+
     if (sessionData_)
     {
       sessionData_->decrease ();
       sessionData_ = NULL;
-    } // end IF
-
-    if (cairoSurface_)
-    {
-      cairo_surface_destroy (cairoSurface_);
-      cairoSurface_ = NULL;
-    } // end IF
-
-    if (cairoContext_)
-    {
-      cairo_destroy (cairoContext_);
-      cairoContext_ = NULL;
     } // end IF
 
     isFirst_ = true;
@@ -921,20 +735,21 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
   configuration_ = &configuration_in;
 
   // *TODO*: remove type inference
-  if (configuration_->window)
+  if (configuration_->image)
   {
-    ACE_ASSERT (!cairoContext_);
-
-    cairoContext_ = gdk_cairo_create (GDK_DRAWABLE (configuration_->window));
-    if (!cairoContext_)
+    gdk_threads_enter ();
+    pixelBuffer_ = gtk_image_get_pixbuf (configuration_->image);
+    if (!pixelBuffer_)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+                  ACE_TEXT ("failed to gtk_image_get_pixbuf(), aborting\n")));
+
+      // clean up
+      gdk_threads_leave ();
+
       return false;
     } // end IF
-//    gdk_cairo_set_source_window (cairoContext_,
-//                                 configuration_->window,
-//                                 0.0, 0.0);
+    gdk_threads_leave ();
   } // end IF
 
   isInitialized_ = true;
@@ -947,13 +762,13 @@ template <typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 const ConfigurationType&
-Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::get () const
+Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
+                               MessageType,
+                               ConfigurationType,
+                               SessionDataType,
+                               SessionDataContainerType>::get () const
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_DrawingArea_T::get"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::get"));
 
   // sanity check(s)
   ACE_ASSERT (configuration_);

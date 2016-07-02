@@ -59,8 +59,9 @@ class Stream_Module_CamSource_V4L_T
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_CamSource_V4L_T (bool = false,  // active object ?
-                                 bool = false); // auto-start ?
+  Stream_Module_CamSource_V4L_T (LockType* = NULL, // lock handle (state machine)
+                                 /////////
+                                 bool = false);    // auto-start ?
   virtual ~Stream_Module_CamSource_V4L_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed

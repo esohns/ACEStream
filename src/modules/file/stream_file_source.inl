@@ -43,17 +43,11 @@ Stream_Module_FileReader_T<LockType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
-                           StatisticContainerType>::Stream_Module_FileReader_T (bool isActive_in,
+                           StatisticContainerType>::Stream_Module_FileReader_T (LockType* lock_in,
                                                                                 bool autoStart_in)
- : inherited (NULL,         // lock handle
-              isActive_in,  // active ?
+ : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
-              true)         // *NOTE*: when working in 'passive' mode, enabling
-                            //         this utilizes the calling thread. Note
-                            //         that this potentially renders state
-                            //         transitions during processing a tricky
-                            //         affair, as the calling thread may be
-                            //         holding the lock --> check carefully
+              true)         // generate session messages ?
  , isOpen_ (false)
  , stream_ ()
 {
@@ -152,30 +146,6 @@ Stream_Module_FileReader_T<LockType,
 //                           StreamStateType,
 //                           SessionDataType,
 //                           SessionDataContainerType,
-//                           StatisticContainerType>::handleDataMessage (ProtocolMessageType*& message_inout,
-//                                                                       bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::handleDataMessage"));
-
-//  // sanity check(s)
-//  ACE_ASSERT (message_inout);
-//  ACE_ASSERT (isInitialized_);
-//}
-
-//template <typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Module_FileReader_T<SessionMessageType,
-//                           ProtocolMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
 //                           StatisticContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
 //                                                                          bool& passMessageDownstream_out)
 //{
@@ -219,7 +189,7 @@ Stream_Module_FileReader_T<LockType,
 //        //                    &interval));
 //      } // end IF
 
-////      // start profile timer...
+////      // start profile timer
 ////      profile_.start ();
 
 //      break;
@@ -238,7 +208,9 @@ Stream_Module_FileReader_T<LockType,
 //                      timerID_));
 //        timerID_ = -1;
 //      } // end IF
-
+//
+//      inherited2::shutdown ();
+//
 //      break;
 //    }
 //    default:
@@ -348,10 +320,10 @@ Stream_Module_FileReader_T<LockType,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (!isOpen_);
-//  ACE_ASSERT (inherited::sessionData_);
-//  const SessionDataType& session_data_r = inherited::sessionData_->get ();
-//  ACE_ASSERT (session_data_r.lock);
+  const SessionDataType& session_data_r = inherited::sessionData_->get ();
+  ACE_ASSERT (session_data_r.lock);
 
   result = file_address.set (inherited::configuration_->fileName.c_str ());
   if (result == -1)
@@ -363,7 +335,7 @@ Stream_Module_FileReader_T<LockType,
     // signal the controller
     inherited::finished ();
 
-    goto done;
+    goto continue_;
   } // end IF
   result =
     file_connector.connect (stream_,                 // stream
@@ -371,7 +343,8 @@ Stream_Module_FileReader_T<LockType,
                             NULL,                    // timeout (block)
                             ACE_Addr::sap_any,       // (local) filename: N/A
                             0,                       // reuse_addr: N/A
-                            (O_RDONLY | O_BINARY),   // flags --> open
+                            (O_RDONLY |
+                             O_BINARY),              // flags --> open
                             ACE_DEFAULT_FILE_PERMS); // permissions --> open
   if (result == -1)
   {
@@ -382,11 +355,11 @@ Stream_Module_FileReader_T<LockType,
     // signal the controller
     inherited::finished ();
 
-    goto done;
+    goto continue_;
   } // end IF
   isOpen_ = true;
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened file stream \"%s\" (%u byte(s))...\n"),
+              ACE_TEXT ("opened file \"%s\" (%u byte(s))\n"),
               ACE_TEXT (inherited::configuration_->fileName.c_str ()),
               Common_File_Tools::size (inherited::configuration_->fileName)));
 
@@ -414,21 +387,29 @@ Stream_Module_FileReader_T<LockType,
         // signal the controller ?
         if (!finished)
         {
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("session aborted...\n")));
-
           finished = true;
+          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+          //         --> continue
           inherited::finished ();
+
+          // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
+          //         --> done
+          if (inherited::thr_count_ == 0)
+            goto done; // finished processing
 
           continue;
         } // end IF
 
-        break; // aborted
+done:
+        result_2 = 0;
+
+        goto continue_; // STREAM_SESSION_END has been processed
       } // end IF
 
       // process manually
       inherited::handleMessage (message_block_p,
                                 stop_processing);
+      message_block_p = NULL;
     } // end IF
     else if (result == -1)
     {
@@ -442,11 +423,39 @@ Stream_Module_FileReader_T<LockType,
         if (!finished)
         {
           finished = true;
+          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+          //         --> continue
           inherited::finished ();
         } // end IF
 
         break;
       } // end IF
+    } // end ELSE IF
+    // finished ?
+    if (stop_processing)
+    {
+      // *IMPORTANT NOTE*: message_block_p has already been released() !
+
+      finished = true;
+      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+      //         --> continue
+      inherited::finished ();
+
+      continue;
+    } // end IF
+
+    // session aborted ?
+    if (session_data_r.aborted)
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("session aborted...\n")));
+
+      finished = true;
+      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+      //         --> continue
+      inherited::finished ();
+
+      continue;
     } // end IF
 
     // *TODO*: remove type inference
@@ -458,8 +467,9 @@ Stream_Module_FileReader_T<LockType,
                   ACE_TEXT ("allocateMessage(%d) failed: \"%m\", aborting\n"),
                   inherited::configuration_->streamConfiguration->bufferSize));
 
-      // signal the controller
       finished = true;
+      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+      //         --> continue
       inherited::finished ();
 
       continue;
@@ -477,8 +487,9 @@ Stream_Module_FileReader_T<LockType,
         // clean up
         message_p->release ();
 
-        // signal the controller
         finished = true;
+        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+        //         --> continue
         inherited::finished ();
 
         result_2 = 0;
@@ -491,8 +502,13 @@ Stream_Module_FileReader_T<LockType,
                     ACE_TEXT ("failed to ACE_FILE_IO::recv(%d): \"%m\", aborting\n"),
                     message_p->size ()));
 
-        // signal the controller
+
+        // clean up
+        message_p->release ();
+
         finished = true;
+        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+        //         --> continue
         inherited::finished ();
 
         break;
@@ -509,8 +525,9 @@ Stream_Module_FileReader_T<LockType,
           // clean up
           message_p->release ();
 
-          // signal the controller
           finished = true;
+          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+          //         --> continue
           inherited::finished ();
         } // end IF
 
@@ -519,78 +536,22 @@ Stream_Module_FileReader_T<LockType,
     } // end SWITCH
   } while (true);
 
-  result = stream_.close ();
-  if (result == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n"),
+continue_:
+  if (isOpen_)
+  {
+    result = stream_.close ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_FILE_IO::close(): \"%m\", continuing\n")));
+    isOpen_ = false;
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("closed file \"%s\"\n"),
                 ACE_TEXT (inherited::configuration_->fileName.c_str ())));
-  isOpen_ = false;
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("closed file stream \"%s\"...\n"),
-              ACE_TEXT (inherited::configuration_->fileName.c_str ())));
+  } // end IF
 
-done:
   return result_2;
 }
 
-//template <typename LockType,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//ProtocolMessageType*
-//Stream_Module_FileReader_T<LockType,
-//                           SessionMessageType,
-//                           ProtocolMessageType,
-//                           ConfigurationType,
-//                           StreamStateType,
-//                           SessionDataType,
-//                           SessionDataContainerType,
-//                           StatisticContainerType>::allocateMessage (unsigned int requestedSize_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::allocateMessage"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (inherited::configuration_);
-//  // *TODO*: remove type inference
-//  ACE_ASSERT (inherited::configuration_->streamConfiguration);
-//
-//  // initialize return value(s)
-//  ProtocolMessageType* message_out = NULL;
-//
-//  if (inherited::configuration_->streamConfiguration->messageAllocator)
-//  {
-//    try
-//    {
-//      // *TODO*: remove type inference
-//      message_out =
-//          static_cast<ProtocolMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
-//    }
-//    catch (...)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
-//                  requestedSize_in));
-//      message_out = NULL;
-//    }
-//  } // end IF
-//  else
-//  {
-//    ACE_NEW_NORETURN (message_out,
-//                      ProtocolMessageType (requestedSize_in));
-//  } // end ELSE
-//  if (!message_out)
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("failed to Stream_IAllocator::malloc(%u), aborting\n"),
-//                requestedSize_in));
-//  } // end IF
-//
-//  return message_out;
-//}
 //
 //template <typename LockType,
 //          typename SessionMessageType,

@@ -67,9 +67,12 @@ else ()
       stream_vis_common.h
       stream_vis_defines.h
       stream_vis_exports.h
-      stream_vis_gtk_drawingarea.cpp
-      stream_vis_gtk_drawingarea.h
-      stream_vis_gtk_drawingarea.inl
+      stream_vis_gtk_cairo.cpp
+      stream_vis_gtk_cairo.h
+      stream_vis_gtk_cairo.inl
+      stream_vis_gtk_pixbuf.cpp
+      stream_vis_gtk_pixbuf.h
+      stream_vis_gtk_pixbuf.inl
       stream_vis_tools.cpp
       stream_vis_tools.h
       stdafx.cpp
@@ -99,17 +102,29 @@ export (TARGETS ${PROJECT_NAME}_Visualization
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
-install (FILES
-         stream_vis_common.h
-         stream_vis_defines.h
-         stream_vis_exports.h
-         stream_vis_gtk_drawingarea.h
-         stream_vis_gtk_drawingarea.inl
-         stream_vis_target_directshow.h
-         stream_vis_target_directshow.inl
-         stream_vis_tools.h
-         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-         COMPONENT mod_include)
+if (WIN32)
+ install (FILES
+          stream_vis_common.h
+          stream_vis_defines.h
+          stream_vis_exports.h
+          stream_vis_target_directshow.h
+          stream_vis_target_directshow.inl
+          stream_vis_tools.h
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+else ()
+ install (FILES
+          stream_vis_common.h
+          stream_vis_defines.h
+          stream_vis_exports.h
+          stream_vis_gtk_cairo.h
+          stream_vis_gtk_cairo.inl
+          stream_vis_gtk_pixbuf.h
+          stream_vis_gtk_pixbuf.inl
+          stream_vis_tools.h
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+endif ()
 install (TARGETS ${PROJECT_NAME}_Visualization
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib

@@ -493,11 +493,11 @@
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="yalign">0</property>
                                     <property name="label" translatable="yes">source</property>
                                     <property name="single_line_mode">True</property>
                                     <property name="track_visited_links">False</property>
-                                    <property name="xalign">0</property>
-                                    <property name="yalign">0</property>
                                     <attributes>
                                       <attribute name="scale" value="0.80000000000000004"/>
                                     </attributes>
@@ -591,11 +591,11 @@
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="yalign">0</property>
                                     <property name="label" translatable="yes">destination</property>
                                     <property name="single_line_mode">True</property>
                                     <property name="track_visited_links">False</property>
-                                    <property name="xalign">0</property>
-                                    <property name="yalign">0</property>
                                     <attributes>
                                       <attribute name="scale" value="0.80000000000000004"/>
                                     </attributes>
@@ -699,10 +699,10 @@
                                               <object class="GtkLabel" id="label_device_options">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
-                                                <property name="use_markup">True</property>
-                                                <property name="track_visited_links">False</property>
                                                 <property name="xalign">0</property>
                                                 <property name="yalign">0</property>
+                                                <property name="use_markup">True</property>
+                                                <property name="track_visited_links">False</property>
                                               </object>
                                             </child>
                                           </object>
@@ -785,11 +785,11 @@
                                                           <object class="GtkLabel" id="label_protocol">
                                                             <property name="sensitive">False</property>
                                                             <property name="can_focus">False</property>
+                                                            <property name="xalign">0</property>
+                                                            <property name="yalign">0</property>
                                                             <property name="label" translatable="yes">protocol</property>
                                                             <property name="use_markup">True</property>
                                                             <property name="track_visited_links">False</property>
-                                                            <property name="xalign">0</property>
-                                                            <property name="yalign">0</property>
                                                             <attributes>
                                                             <attribute name="scale" value="0.80000000000000004"/>
                                                             </attributes>
@@ -865,10 +865,10 @@
                                                           <object class="GtkLabel" id="label_other">
                                                             <property name="sensitive">False</property>
                                                             <property name="can_focus">False</property>
-                                                            <property name="label" translatable="yes">other</property>
-                                                            <property name="track_visited_links">False</property>
                                                             <property name="xalign">0</property>
                                                             <property name="yalign">0</property>
+                                                            <property name="label" translatable="yes">other</property>
+                                                            <property name="track_visited_links">False</property>
                                                             <attributes>
                                                             <attribute name="scale" value="0.80000000000000004"/>
                                                             </attributes>
@@ -889,11 +889,11 @@
                                               <object class="GtkLabel" id="label_protocol_options">
                                                 <property name="sensitive">False</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">0</property>
                                                 <property name="use_markup">True</property>
                                                 <property name="single_line_mode">True</property>
                                                 <property name="track_visited_links">False</property>
-                                                <property name="xalign">0</property>
-                                                <property name="yalign">0</property>
                                               </object>
                                             </child>
                                           </object>
@@ -958,11 +958,11 @@
                                             <child type="label">
                                               <object class="GtkLabel" id="label_other_options_2">
                                                 <property name="can_focus">False</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">0</property>
                                                 <property name="use_markup">True</property>
                                                 <property name="single_line_mode">True</property>
                                                 <property name="track_visited_links">False</property>
-                                                <property name="xalign">0</property>
-                                                <property name="yalign">0</property>
                                               </object>
                                             </child>
                                           </object>
@@ -980,11 +980,11 @@
                                   <object class="GtkLabel" id="label_options">
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="yalign">0</property>
                                     <property name="label" translatable="yes">options</property>
                                     <property name="single_line_mode">True</property>
                                     <property name="track_visited_links">False</property>
-                                    <property name="xalign">0</property>
-                                    <property name="yalign">0</property>
                                     <attributes>
                                       <attribute name="scale" value="0.80000000000000004"/>
                                     </attributes>
@@ -1005,12 +1005,12 @@
                       <object class="GtkLabel" id="label_configuration">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="xalign">0</property>
+                        <property name="yalign">0</property>
                         <property name="label" translatable="yes">&lt;b&gt;&lt;i&gt;configuration&lt;/i&gt;&lt;/b&gt;</property>
                         <property name="use_markup">True</property>
                         <property name="single_line_mode">True</property>
                         <property name="track_visited_links">False</property>
-                        <property name="xalign">0</property>
-                        <property name="yalign">0</property>
                       </object>
                     </child>
                   </object>
@@ -1107,9 +1107,11 @@
                     <property name="visible">True</property>
                     <property name="app_paintable">True</property>
                     <property name="can_focus">False</property>
-                    <property name="events">GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                    <property name="events">GDK_EXPOSURE_MASK | GDK_STRUCTURE_MASK</property>
                     <property name="tooltip_text" translatable="yes">video</property>
                     <property name="double_buffered">False</property>
+                    <signal name="configure-event" handler="drawingarea_configure_event_cb" swapped="no"/>
+                    <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
                   </object>
                 </child>
               </object>

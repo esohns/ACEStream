@@ -207,17 +207,10 @@ Stream_Module_SplitterH_T<LockType,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::Stream_Module_SplitterH_T (bool isActive_in,
+                          StatisticContainerType>::Stream_Module_SplitterH_T (LockType* lock_in,
                                                                               bool autoStart_in)
- : inherited (NULL,         // lock handle
-              isActive_in,  // active ?
+ : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
-              true,         // *NOTE*: when working in 'passive' mode, enabling
-                            //         this utilizes the calling thread. Note
-                            //         that this potentially renders state
-                            //         transitions during processing a tricky
-                            //         affair, as the calling thread may be
-                            //         holding the lock --> check carefully
               true)         // generate sesssion messages ?
  , configuration_ (NULL)
  , currentBuffer_ (NULL)
