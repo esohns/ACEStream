@@ -102,7 +102,7 @@ Stream_Module_XPathQuery_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       if (!session_data_r.parserContext)
         return;

@@ -67,7 +67,7 @@ struct Test_I_Source_SocketHandlerConfiguration
 {
   inline Test_I_Source_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
-   ////////////////////////////////////
+   ///////////////////////////////////////
    , userData (NULL)
   {};
 
@@ -81,20 +81,22 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration;
 class Test_I_Source_Stream_SessionMessage;
 class Test_I_Source_Stream_Message;
 typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                      /////////////////
+                      ////////////////////
                       ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      /////////////////
+                      ////////////////////
+                      int,
+                      int,
                       Stream_StateMachine_ControlState,
                       Test_I_Source_StreamState,
-                      /////////////////
+                      ////////////////////
                       Test_I_Source_StreamConfiguration,
-                      /////////////////
+                      ////////////////////
                       Test_I_Source_Stream_StatisticData,
-                      /////////////////
+                      ////////////////////
                       Stream_ModuleConfiguration,
                       Test_I_Source_Stream_ModuleHandlerConfiguration,
-                      /////////////////
+                      ////////////////////
                       Test_I_Source_Stream_SessionData,   // session data
                       Test_I_Source_Stream_SessionData_t, // session data container (reference counted)
                       Test_I_Source_Stream_SessionMessage,
@@ -105,28 +107,23 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
   inline Test_I_Source_Stream_ModuleHandlerConfiguration ()
    : Test_I_Stream_ModuleHandlerConfiguration ()
    , area ()
-   , connection (NULL)
-   , connectionManager (NULL)
-   , device ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , format (NULL)
-#else
-   , format ()
-   , frameRate ()
-#endif
-   , socketHandlerConfiguration (NULL)
-   , statisticCollectionInterval (ACE_Time_Value::zero)
-   , stream (NULL)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
    , windowController (NULL)
 #else
-   , bufferMap ()
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
+   , format ()
    , fileDescriptor (-1)
+   , frameRate ()
    , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
    , v4l2Window (NULL)
 #endif
-   , window (NULL)
+   , connection (NULL)
+   , connectionManager (NULL)
+   , device ()
+   , socketHandlerConfiguration (NULL)
+   , statisticCollectionInterval (ACE_Time_Value::zero)
+   , stream (NULL)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     //format =
@@ -153,36 +150,27 @@ struct Test_I_Source_Stream_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct tagRECT                            area;
   //IVideoWindow*                             windowController;
+  //struct _AMMediaType*                      format;
+  IMFMediaType*                             format;
   IMFVideoDisplayControl*                   windowController;
 #else
   GdkRectangle                              area;
+  __u32                                     buffers; // v4l device buffers
+  struct v4l2_format                        format;
+  int                                       fileDescriptor;
+  struct v4l2_fract                         frameRate; // time-per-frame (s)
+  v4l2_memory                               method; // v4l camera source
+  struct v4l2_window*                       v4l2Window;
 #endif
+
   Test_I_Source_IConnection_t*              connection; // TCP target/IO module
   Test_I_Source_InetConnectionManager_t*    connectionManager; // TCP IO module
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
   std::string                               device;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //struct _AMMediaType*                      format;
-  IMFMediaType*                             format;
-#else
-  struct v4l2_format                        format;
-  struct v4l2_fract                         frameRate; // time-per-frame (s)
-#endif
   Test_I_Source_SocketHandlerConfiguration* socketHandlerConfiguration;
   ACE_Time_Value                            statisticCollectionInterval;
   Test_I_Source_StreamBase_t*               stream;
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                      window;
-#else
-  INDEX2BUFFER_MAP_T                        bufferMap;
-  __u32                                     buffers; // v4l device buffers
-  int                                       fileDescriptor;
-  v4l2_memory                               method; // v4l camera source
-  struct v4l2_window*                       v4l2Window;
-  GdkWindow*                                window;
-#endif
 };
 
 struct Test_I_Source_SignalHandlerConfiguration

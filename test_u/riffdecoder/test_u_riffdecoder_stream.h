@@ -40,20 +40,22 @@ class Stream_IAllocator;
 
 class Stream_RIFFDecoder_Stream
  : public Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
+                        //////////////////
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        /////////////////
+                        //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Stream_State,
-                        /////////////////
+                        //////////////////
                         Stream_RIFFDecoder_StreamConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_Statistic,
-                        /////////////////
+                        //////////////////
                         Stream_ModuleConfiguration,
                         Stream_RIFFDecoder_ModuleHandlerConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_RIFFDecoder_SessionData,   // session data
                         Stream_RIFFDecoder_SessionData_t, // session data container (reference counted)
                         Stream_RIFFDecoder_SessionMessage,
@@ -75,20 +77,22 @@ class Stream_RIFFDecoder_Stream
 
  private:
   typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
+                        //////////////////
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        /////////////////
+                        //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Stream_State,
-                        /////////////////
+                        //////////////////
                         Stream_RIFFDecoder_StreamConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_Statistic,
-                        /////////////////
+                        //////////////////
                         Stream_ModuleConfiguration,
                         Stream_RIFFDecoder_ModuleHandlerConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_RIFFDecoder_SessionData,   // session data
                         Stream_RIFFDecoder_SessionData_t, // session data container (reference counted)
                         Stream_RIFFDecoder_SessionMessage,

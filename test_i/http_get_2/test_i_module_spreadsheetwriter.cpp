@@ -142,7 +142,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
     const_cast<Test_I_Stream_SessionData&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_->socketConfiguration);
@@ -409,7 +409,7 @@ error:
 
       return;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       uno::Reference<sheet::XSpreadsheets> spreadsheets_p;
       uno::Reference<container::XIndexAccess> index_p;

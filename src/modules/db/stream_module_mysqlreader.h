@@ -37,40 +37,45 @@
 #include "stream_headmoduletask_base.h"
 
 template <typename LockType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionMessageType,
           typename ProtocolMessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
-          ///////////////////////////////
+          ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Module_MySQLReader_T
  : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_MySQLReader_T (bool = false,  // active object ?
-                               bool = false,  // auto-start ?
+  Stream_Module_MySQLReader_T (LockType* = NULL, // lock handle (state machine)
+                               /////////
+                               bool = false,     // auto-start ?
                                //////////
-                               bool = false); // manage library ?
+                               bool = false);    // manage library ?
   virtual ~Stream_Module_MySQLReader_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -82,6 +87,8 @@ class Stream_Module_MySQLReader_T
                                     SessionMessageType,
                                     ProtocolMessageType,
                                     ConfigurationType,
+                                    StreamControlType,
+                                    StreamNotificationType,
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
@@ -105,30 +112,28 @@ class Stream_Module_MySQLReader_T
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   //virtual void report () const;
 
-  //virtual void upStream (Stream_Base_t*);
-  //virtual Stream_Base_t* upStream () const;
-
  protected:
   MYSQL* state_;
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType> inherited;
 
-//  ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLReader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLReader_T (const Stream_Module_MySQLReader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLReader_T& operator= (const Stream_Module_MySQLReader_T&))
 

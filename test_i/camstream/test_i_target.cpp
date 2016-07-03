@@ -843,7 +843,7 @@ do_work (unsigned int bufferSize_in,
     goto clean;
   } // end IF
   event_handler_p->initialize (&CBData_in.subscribers,
-                               &CBData_in.subscribersLock);
+                               &CBData_in.lock);
   event_handler_p->subscribe (&ui_event_handler);
 
   // ********************** socket configuration data *************************
@@ -933,7 +933,7 @@ do_work (unsigned int bufferSize_in,
 //      V4L2_FIELD_NONE;
   configuration.moduleHandlerConfiguration.format.fmt.pix.height = 240;
   configuration.moduleHandlerConfiguration.format.fmt.pix.pixelformat =
-      V4L2_PIX_FMT_RGB24;
+      V4L2_PIX_FMT_BGR24;
   configuration.moduleHandlerConfiguration.format.fmt.pix.sizeimage = 230400;
   configuration.moduleHandlerConfiguration.format.fmt.pix.width = 320;
 #endif

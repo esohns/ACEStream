@@ -283,7 +283,7 @@ Stream_Decoder_AVIParserDriver::wait ()
     } // end IF
     ACE_ASSERT (message_block_p);
 
-    if (message_block_p->msg_type () >= STREAM_MESSAGE_MAP_2)
+    if (message_block_p->msg_type () & STREAM_MESSAGE_DATA_MASK)
       break;
 
     // session message --> put it back

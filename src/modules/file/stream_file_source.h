@@ -37,6 +37,8 @@ template <typename LockType,
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
           typename SessionDataType,          // session data
@@ -53,6 +55,8 @@ class Stream_Module_FileReader_T
                                       ////
                                       ConfigurationType,
                                       ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
                                       ////
                                       SessionDataType,
@@ -75,6 +79,8 @@ class Stream_Module_FileReader_T
                                     SessionMessageType,
                                     ProtocolMessageType,
                                     ConfigurationType,
+                                    StreamControlType,
+                                    StreamNotificationType,
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
@@ -111,6 +117,8 @@ class Stream_Module_FileReader_T
                                       ////
                                       ConfigurationType,
                                       ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
                                       ////
                                       SessionDataType,
@@ -118,7 +126,6 @@ class Stream_Module_FileReader_T
                                       ////
                                       StatisticContainerType> inherited;
 
-//  ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_T (const Stream_Module_FileReader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileReader_T& operator= (const Stream_Module_FileReader_T&))
 

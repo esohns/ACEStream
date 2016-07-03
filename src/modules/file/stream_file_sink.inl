@@ -172,7 +172,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       const typename SessionMessageType::DATA_T& session_data_container_r =
           message_inout->get ();
@@ -266,7 +266,7 @@ Stream_Module_FileWriter_T<SessionMessageType,
 continue_:
       break;
     }
-    case STREAM_SESSION_STEP:
+    case STREAM_SESSION_MESSAGE_STEP:
     {
       result = stream_.get_local_addr (fileName_);
       if (result == -1)
@@ -360,7 +360,7 @@ continue_:
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       if (isOpen_)
       {
@@ -461,6 +461,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -471,15 +473,16 @@ Stream_Module_FileWriterH_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
-                           StatisticContainerType>::Stream_Module_FileWriterH_T ()
- : inherited (NULL,  // lock handle
-              false, // passive by default
-              false, // DON'T auto-start !
-              false, // do not run the svc() routine on start
-              true)  // push session messages
+                           StatisticContainerType>::Stream_Module_FileWriterH_T (LockType* lock_in,
+                                                                                 bool autoStart_in)
+ : inherited (lock_in,      // lock handle
+              autoStart_in, // auto-start ?
+              true)         // generate sesssion messages ?
  , fileName_ ()
  , isOpen_ (false)
  , previousError_ (0)
@@ -495,6 +498,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -505,6 +510,8 @@ Stream_Module_FileWriterH_T<LockType,
                             SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -529,6 +536,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -540,6 +549,8 @@ Stream_Module_FileWriterH_T<LockType,
                             SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -617,6 +628,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -628,6 +641,8 @@ Stream_Module_FileWriterH_T<LockType,
                             SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -646,7 +661,7 @@ Stream_Module_FileWriterH_T<LockType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       const typename SessionMessageType::DATA_T& session_data_container_r =
           message_inout->get ();
@@ -758,7 +773,7 @@ Stream_Module_FileWriterH_T<LockType,
 continue_:
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       if (isOpen_)
       {
@@ -805,6 +820,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -816,6 +833,8 @@ Stream_Module_FileWriterH_T<LockType,
                             SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -875,6 +894,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -886,6 +907,8 @@ Stream_Module_FileWriterH_T<LockType,
                             SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -905,6 +928,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -916,6 +941,8 @@ Stream_Module_FileWriterH_T<LockType,
                             SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,

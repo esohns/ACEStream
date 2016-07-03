@@ -42,20 +42,22 @@ class ACE_Notification_Strategy;
 class Stream_IAllocator;
 
 template <typename LockType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename TaskSynchType,
           typename TimePolicyType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename ControlType,
+          typename NotificationType,
           typename StatusType, // (state machine) status
           typename StateType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename StatisticContainerType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // (reference counted)
           typename SessionMessageType,
@@ -63,7 +65,9 @@ template <typename LockType,
 class Stream_Base_T
  : public ACE_Stream<TaskSynchType,
                      TimePolicyType>
- , public Stream_IStreamControl_T<StatusType,
+ , public Stream_IStreamControl_T<ControlType,
+                                  NotificationType,
+                                  StatusType,
                                   StateType>
  , public Common_IDumpState
 // , public Common_IGetSet_T<SessionDataType>
@@ -82,7 +86,9 @@ class Stream_Base_T
                      TimePolicyType> STREAM_T;
   typedef ACE_Stream_Iterator<TaskSynchType,
                               TimePolicyType> ITERATOR_T;
-  typedef Stream_IStreamControl_T<StatusType,
+  typedef Stream_IStreamControl_T<ControlType,
+                                  NotificationType,
+                                  StatusType,
                                   StateType> ISTREAM_CONTROL_T;
   typedef ConfigurationType CONFIGURATION_T;
   typedef StateType STATE_T;
@@ -108,23 +114,26 @@ class Stream_Base_T
                      bool = true); // locked access ?
   virtual bool isRunning () const;
 
-  virtual void control (Stream_ControlType, // control type
-                        bool = false);      // forward upstream ?
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false); // flush upstream (if any) ?
   virtual void pause ();
   virtual void rewind ();
-  virtual StatusType status () const;
   virtual void waitForCompletion (bool = true,   // wait for any worker thread(s) ?
                                   bool = false); // wait for upstream (if any) ?
   //virtual void waitForIdleState (bool = false) const; // wait for upstream (if any) ?
 
   virtual Stream_Module_t* find (const std::string&) const; // module name
   virtual std::string name () const;
-  virtual const StateType& state () const;
 
   virtual void upStream (Stream_Base_t*);
   virtual Stream_Base_t* upStream () const;
+
+  virtual void control (ControlType,   // control type
+                        bool = false); // forward upstream ?
+  virtual void notify (NotificationType, // notification type
+                       bool = false);    // forward upstream ?
+  virtual StatusType status () const;
+  virtual const StateType& state () const;
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -237,14 +246,22 @@ class Stream_Base_T
 
   // convenient types
   typedef Stream_Base_T<LockType,
+                        //////////////////
                         TaskSynchType,
                         TimePolicyType,
+                        //////////////////
+                        ControlType,
+                        NotificationType,
                         StatusType,
                         StateType,
+                        //////////////////
                         ConfigurationType,
+                        //////////////////
                         StatisticContainerType,
+                        //////////////////
                         ModuleConfigurationType,
                         HandlerConfigurationType,
+                        //////////////////
                         SessionDataType,
                         SessionDataContainerType,
                         SessionMessageType,

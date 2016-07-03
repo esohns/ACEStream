@@ -90,7 +90,7 @@ Stream_Module_Dump_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       //// *TODO*: remove type inferences
       //const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
@@ -99,7 +99,7 @@ Stream_Module_Dump_T<SessionMessageType,
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     default:
       break;
   } // end SWITCH

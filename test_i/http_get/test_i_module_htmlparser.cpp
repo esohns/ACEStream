@@ -187,7 +187,7 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // *TODO*: remove type inferences
         const Test_I_Stream_SessionData_t& session_data_container_r =
@@ -214,14 +214,14 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 
       break;
     }
-    case STREAM_SESSION_STEP:
+    case STREAM_SESSION_MESSAGE_STEP:
     {
       if (inherited::parserContext_.parserContext)
         htmlCtxtReset (inherited::parserContext_.parserContext);
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
 //      // *TODO*: the upstream session data may not be the same as the downstream
 //      //         one...

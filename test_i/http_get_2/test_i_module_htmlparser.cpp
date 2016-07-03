@@ -158,7 +158,7 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
 //      if (parserContext_)
 //        htmlCtxtReset (parserContext_);
@@ -169,7 +169,7 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 
       break;
     }
-    case STREAM_SESSION_STEP:
+    case STREAM_SESSION_MESSAGE_STEP:
     {
       if (inherited::parserContext_.parserContext)
         htmlCtxtReset (inherited::parserContext_.parserContext);
@@ -181,7 +181,7 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       sessionData_ = NULL;
 
@@ -711,7 +711,7 @@ body:
           break;
         } // end IF
         //else if (xmlStrEqual (attributes_p[1],
-        //                      BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("prozentuale Veränderung zum Vortag"))))
+        //                      BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("prozentuale VerÃ¤nderung zum Vortag"))))
         //{
         //  data_p->state = SAXPARSER_STATE_READ_CHANGE;
         //  break;

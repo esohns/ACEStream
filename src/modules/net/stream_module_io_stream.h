@@ -31,43 +31,47 @@
 #include "stream_module_io.h"
 
 template <typename LockType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename TaskSynchType,
           typename TimePolicyType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename ControlType,
+          typename NotificationType,
           typename StatusType,
           typename StateType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename StatisticContainerType,
           ///////////////////////////////
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // (reference counted)
           typename SessionMessageType,
           typename ProtocolMessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IO_Stream_T
  : public Stream_Base_T<LockType,
-                        /////////////////
+                        //////////////////
                         TaskSynchType,
                         TimePolicyType,
-                        /////////////////
+                        //////////////////
+                        ControlType,
+                        NotificationType,
                         StatusType,
                         StateType,
-                        /////////////////
+                        //////////////////
                         ConfigurationType,
-                        /////////////////
+                        //////////////////
                         StatisticContainerType,
-                        /////////////////
+                        //////////////////
                         ModuleConfigurationType,
                         HandlerConfigurationType,
-                        /////////////////
+                        //////////////////
                         SessionDataType,          // session data
                         SessionDataContainerType, // session data container (reference counted)
                         SessionMessageType,
@@ -91,31 +95,33 @@ class Stream_Module_Net_IO_Stream_T
 
  protected:
   typedef Stream_Module_Net_IOWriter_T<LockType,
-                                       //
+                                       ///
                                        SessionMessageType,
                                        ProtocolMessageType,
-                                       //
+                                       ///
                                        HandlerConfigurationType,
-                                       //
+                                       ///
+                                       ControlType,
+                                       NotificationType,
                                        StateType,
-                                       //
+                                       ///
                                        SessionDataType,
                                        SessionDataContainerType,
-                                       //
+                                       ///
                                        StatisticContainerType,
-                                       //
+                                       ///
                                        AddressType,
                                        ConnectionManagerType> WRITER_T;
   typedef Stream_Module_Net_IOReader_T<SessionMessageType,
                                        ProtocolMessageType,
-                                       //
+                                       ///
                                        ConfigurationType,
-                                       //
+                                       ///
                                        HandlerConfigurationType,
-                                       //
+                                       ///
                                        SessionDataType,
                                        SessionDataContainerType,
-                                       //
+                                       ///
                                        AddressType,
                                        ConnectionManagerType> READER_T;
   typedef Stream_StreamModule_T<TaskSynchType,             // task synch type
@@ -130,20 +136,22 @@ class Stream_Module_Net_IO_Stream_T
 
  private:
   typedef Stream_Base_T<LockType,
-                        /////////////////
+                        //////////////////
                         TaskSynchType,
                         TimePolicyType,
-                        /////////////////
+                        //////////////////
+                        ControlType,
+                        NotificationType,
                         StatusType,
                         StateType,
-                        /////////////////
+                        //////////////////
                         ConfigurationType,
-                        /////////////////
+                        //////////////////
                         StatisticContainerType,
-                        /////////////////
+                        //////////////////
                         ModuleConfigurationType,
                         HandlerConfigurationType,
-                        /////////////////
+                        //////////////////
                         SessionDataType,          // session data
                         SessionDataContainerType, // session data container (reference counted)
                         SessionMessageType,
@@ -151,25 +159,27 @@ class Stream_Module_Net_IO_Stream_T
 
   // convenient types
   typedef Stream_Module_Net_IO_Stream_T<LockType,
-
+                                        //
                                         TaskSynchType,
                                         TimePolicyType,
-
+                                        //
+                                        ControlType,
+                                        NotificationType,
                                         StatusType,
                                         StateType,
-
+                                        //
                                         ConfigurationType,
-
+                                        //
                                         StatisticContainerType,
-
+                                        //
                                         ModuleConfigurationType,
                                         HandlerConfigurationType,
-
+                                        //
                                         SessionDataType,          // session data
                                         SessionDataContainerType, // session data container (reference counted)
                                         SessionMessageType,
                                         ProtocolMessageType,
-
+                                        //
                                         AddressType,
                                         ConnectionManagerType> OWN_TYPE_T;
 

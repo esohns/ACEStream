@@ -252,7 +252,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (inherited::mod_);
@@ -279,7 +279,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       if (sessionData_)
       {

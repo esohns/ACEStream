@@ -59,7 +59,7 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
     const_cast<Test_I_Stream_SessionData&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (inherited::state_);
@@ -228,7 +228,7 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       // sanity check(s)
       if (!inherited::state_)

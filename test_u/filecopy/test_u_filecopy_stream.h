@@ -41,20 +41,22 @@ class Stream_IAllocator;
 
 class Stream_Filecopy_Stream
  : public Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
+                        //////////////////
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        /////////////////
+                        //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Stream_State,
-                        /////////////////
+                        //////////////////
                         Stream_Filecopy_StreamConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_Statistic,
-                        /////////////////
+                        //////////////////
                         Stream_ModuleConfiguration,
                         Stream_Filecopy_ModuleHandlerConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_Filecopy_SessionData,   // session data
                         Stream_Filecopy_SessionData_t, // session data container (reference counted)
                         Stream_Filecopy_SessionMessage,
@@ -76,20 +78,22 @@ class Stream_Filecopy_Stream
 
  private:
   typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
+                        //////////////////
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        /////////////////
+                        //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Stream_State,
-                        /////////////////
+                        //////////////////
                         Stream_Filecopy_StreamConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_Statistic,
-                        /////////////////
+                        //////////////////
                         Stream_ModuleConfiguration,
                         Stream_Filecopy_ModuleHandlerConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_Filecopy_SessionData,   // session data
                         Stream_Filecopy_SessionData_t, // session data container (reference counted)
                         Stream_Filecopy_SessionMessage,

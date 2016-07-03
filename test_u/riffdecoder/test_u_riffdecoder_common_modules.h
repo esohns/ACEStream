@@ -38,17 +38,19 @@
 
 // declare module(s)
 typedef Stream_Module_FileReader_T<ACE_SYNCH_MUTEX,
-
+                                   ///////
                                    Stream_RIFFDecoder_SessionMessage,
                                    Stream_RIFFDecoder_Message,
-
+                                   ///////
                                    Stream_RIFFDecoder_ModuleHandlerConfiguration,
-
+                                   ///////
+                                   int,
+                                   int,
                                    Stream_State,
-
+                                   ///////
                                    Stream_RIFFDecoder_SessionData,
                                    Stream_RIFFDecoder_SessionData_t,
-
+                                   ///////
                                    Stream_Statistic> Stream_RIFFDecoder_Module_Source;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                  // task synch type
                               Common_TimePolicy_t,                           // time policy
@@ -58,9 +60,9 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                  // 
 
 typedef Stream_Decoder_AVIDecoder_T<Stream_RIFFDecoder_SessionMessage,
                                     Stream_RIFFDecoder_Message,
-
+                                    //////
                                     Stream_RIFFDecoder_ModuleHandlerConfiguration,
-
+                                    //////
                                     Stream_RIFFDecoder_SessionData> Stream_RIFFDecoder_Module_Decoder;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                  // task synch type
                               Common_TimePolicy_t,                           // time policy

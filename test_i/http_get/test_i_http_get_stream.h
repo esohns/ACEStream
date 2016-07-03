@@ -50,6 +50,8 @@ class Test_I_HTTPGet_Stream_T
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
                         //////////////////
@@ -88,6 +90,8 @@ class Test_I_HTTPGet_Stream_T
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
                         //////////////////
@@ -109,6 +113,8 @@ class Test_I_HTTPGet_Stream_T
                                      /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
                                      /////
+                                     int,
+                                     int,
                                      Test_I_Stream_State,
                                      /////
                                      Test_I_Stream_SessionData,
@@ -139,7 +145,7 @@ class Test_I_HTTPGet_Stream_T
 // include template implementation
 #include "test_i_http_get_stream.inl"
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 typedef Test_I_HTTPGet_Stream_T<Test_I_Stream_TCPConnector_t> Test_I_HTTPGet_Stream_t;
 typedef Test_I_HTTPGet_Stream_T<Test_I_Stream_SSLTCPConnector_t> Test_I_HTTPGet_SSL_Stream_t;

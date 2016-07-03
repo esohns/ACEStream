@@ -284,8 +284,12 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , sampleGrabberNodeId (0)
    //, sourceReader (NULL)
    , session (NULL)
-   , topology (NULL)
+//   , topology (NULL)
+#else
+   , lock (NULL)
+   , pixelBuffer (NULL)
 #endif
+   , window (NULL)
    , configuration (NULL)
    //, connection (NULL)
    //, connectionManager (NULL)
@@ -300,9 +304,13 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   IMFMediaSource*                           mediaSource;
   TOPOID                                    sampleGrabberNodeId;
   //IMFSourceReaderEx*                        sourceReader;
-  IMFTopology*                              topology;
   IMFMediaSession*                          session;
+//  IMFTopology*                              topology;
+  HWND                                      window;
 #else
+  ACE_SYNCH_RECURSIVE_MUTEX*                lock;
+  GdkPixbuf*                                pixelBuffer;
+  GdkWindow*                                window;
 #endif
   Test_I_Configuration*                     configuration;
   //Test_I_IConnection_t*                     connection; // TCP target/IO module
@@ -424,20 +432,18 @@ struct Test_I_GTK_CBData
    : Common_UI_GTKState ()
    , configuration (NULL)
    , eventStack ()
-   , logStack ()
+   , pixelBuffer (NULL)
    , progressData ()
    , progressEventSourceID (0)
    , subscribers ()
-   , subscribersLock ()
   {};
 
-  Test_I_Configuration*     configuration;
-  Test_I_GTK_Events_t       eventStack;
-  Common_MessageStack_t     logStack;
-  Test_I_GTK_ProgressData   progressData;
-  guint                     progressEventSourceID;
-  Test_I_Subscribers_t      subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX subscribersLock;
+  Test_I_Configuration*   configuration;
+  Test_I_GTK_Events_t     eventStack;
+  GdkPixbuf*              pixelBuffer;
+  Test_I_GTK_ProgressData progressData;
+  guint                   progressEventSourceID;
+  Test_I_Subscribers_t    subscribers;
 };
 
 #endif

@@ -37,6 +37,8 @@ template <typename LockType,
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
           typename SessionDataType,          // session data
@@ -56,6 +58,8 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       ////
                                       ConfigurationType,
                                       ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
                                       ////
                                       SessionDataType,
@@ -76,6 +80,8 @@ class Stream_Module_Net_IOWriter_T // --> output
                                     SessionMessageType,
                                     ProtocolMessageType,
                                     ConfigurationType,
+                                    StreamControlType,
+                                    StreamNotificationType,
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
@@ -112,6 +118,8 @@ class Stream_Module_Net_IOWriter_T // --> output
                                       ////
                                       ConfigurationType,
                                       ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
                                       ////
                                       SessionDataType,

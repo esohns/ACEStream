@@ -103,7 +103,7 @@ Test_I_Stream_Source_EventHandler::notify (unsigned int sessionID_in,
 
   switch (sessionMessage_in.type ())
   {
-    case STREAM_SESSION_STATISTIC:
+    case STREAM_SESSION_MESSAGE_STATISTIC:
     {
       float current_bytes = 0.0F;
 

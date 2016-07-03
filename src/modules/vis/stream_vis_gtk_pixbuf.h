@@ -57,8 +57,8 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   virtual const ConfigurationType& get () const;
 
  protected:
-  const ConfigurationType*  configuration_;
-  SessionDataContainerType* sessionData_;
+  ConfigurationType*         configuration_;
+  SessionDataContainerType*  sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
@@ -71,10 +71,11 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   // helper methods
   int clamp (int);
 
-  GdkPixbuf*                pixelBuffer_;
+  ACE_SYNCH_RECURSIVE_MUTEX* lock_;
+  GdkPixbuf*                 pixelBuffer_;
 
-  bool                      isFirst_;
-  bool                      isInitialized_;
+  bool                       isFirst_;
+  bool                       isInitialized_;
 };
 
 // include template implementation

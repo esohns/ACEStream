@@ -267,7 +267,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   IMFVideoDisplayControl* windowController;
 #else
   GdkRectangle            area;
-  INDEX2BUFFER_MAP_T      bufferMap;
+  Stream_Module_Device_BufferMap_t bufferMap;
   __u32                   buffers; // v4l device buffers
   int                     fileDescriptor;
   struct v4l2_format      format;

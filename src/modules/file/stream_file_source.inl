@@ -32,6 +32,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -40,6 +42,8 @@ Stream_Module_FileReader_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -59,6 +63,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -67,6 +73,8 @@ Stream_Module_FileReader_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -89,6 +97,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -98,6 +108,8 @@ Stream_Module_FileReader_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -209,7 +221,7 @@ Stream_Module_FileReader_T<LockType,
 //        timerID_ = -1;
 //      } // end IF
 //
-//      inherited2::shutdown ();
+//      inherited::shutdown ();
 //
 //      break;
 //    }
@@ -222,6 +234,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -231,6 +245,8 @@ Stream_Module_FileReader_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -290,6 +306,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -299,6 +317,8 @@ Stream_Module_FileReader_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+StreamControlType,
+StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -308,11 +328,13 @@ Stream_Module_FileReader_T<LockType,
 
   int result = -1;
   int result_2 = -1;
+  int error = 0;
   ACE_FILE_Addr file_address;
   ACE_FILE_Connector file_connector;
   ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  int message_type = -1;
   ProtocolMessageType* message_p = NULL;
   bool finished = false;
   bool stop_processing = false;
@@ -323,7 +345,7 @@ Stream_Module_FileReader_T<LockType,
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (!isOpen_);
   const SessionDataType& session_data_r = inherited::sessionData_->get ();
-  ACE_ASSERT (session_data_r.lock);
+//  ACE_ASSERT (session_data_r.lock);
 
   result = file_address.set (inherited::configuration_->fileName.c_str ());
   if (result == -1)
@@ -368,58 +390,71 @@ Stream_Module_FileReader_T<LockType,
 //               ACE_TEXT ("entering processing loop...\n")));
   do
   {
+    message_block_p = NULL;
     result = inherited::getq (message_block_p,
                               &no_wait);
     if (result == 0)
     {
       ACE_ASSERT (message_block_p);
-      ACE_Message_Block::ACE_Message_Type message_type =
-        message_block_p->msg_type ();
-      if (message_type == ACE_Message_Block::MB_STOP)
+      message_type = message_block_p->msg_type ();
+      switch (message_type)
       {
-        // clean up
-        message_block_p->release ();
-        message_block_p = NULL;
-
-        // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
-        //         have been set at this stage
-
-        // signal the controller ?
-        if (!finished)
+        case ACE_Message_Block::MB_STOP:
         {
-          finished = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
-          inherited::finished ();
+          // clean up
+          message_block_p->release ();
+          message_block_p = NULL;
 
-          // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
-          //         --> done
-          if (inherited::thr_count_ == 0)
-            goto done; // finished processing
+          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will not
+          //         have been set at this stage
 
-          continue;
-        } // end IF
+          // signal the controller ?
+          if (!finished)
+          {
+            finished = true;
+            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+            //         --> continue
+            inherited::finished ();
+            // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
+            //         --> done
+            if (inherited::thr_count_ == 0)
+              goto done; // finished processing
+
+            continue;
+          } // end IF
 
 done:
-        result_2 = 0;
+          result_2 = 0;
 
-        goto continue_; // STREAM_SESSION_END has been processed
-      } // end IF
+          goto continue_; // STREAM_SESSION_END has been processed
+        }
+        default:
+          break;
+      } // end SWITCH
 
       // process manually
       inherited::handleMessage (message_block_p,
                                 stop_processing);
-      message_block_p = NULL;
+      if (stop_processing)
+      {
+        // *IMPORTANT NOTE*: message_block_p has already been released() !
+
+        finished = true;
+        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+        //         --> continue
+        inherited::finished ();
+
+        continue;
+      } // end IF
     } // end IF
     else if (result == -1)
     {
-      int error = ACE_OS::last_error ();
+      error = ACE_OS::last_error ();
       if (error != EWOULDBLOCK) // Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
-        // signal the controller ?
         if (!finished)
         {
           finished = true;
@@ -431,18 +466,6 @@ done:
         break;
       } // end IF
     } // end ELSE IF
-    // finished ?
-    if (stop_processing)
-    {
-      // *IMPORTANT NOTE*: message_block_p has already been released() !
-
-      finished = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::finished ();
-
-      continue;
-    } // end IF
 
     // session aborted ?
     if (session_data_r.aborted)

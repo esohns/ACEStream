@@ -50,6 +50,8 @@ typedef Stream_Module_FileReader_T<ACE_SYNCH_MUTEX,
                                    ///////
                                    Test_I_Source_ModuleHandlerConfiguration,
                                    ///////
+                                   int,
+                                   int,
                                    Test_I_Stream_State,
                                    ///////
                                    Test_I_Stream_SessionData,
@@ -94,6 +96,8 @@ typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_MUTEX,
                                      /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
                                      /////
+                                     int,
+                                     int,
                                      Test_I_Stream_State,
                                      /////
                                      Test_I_Stream_SessionData,

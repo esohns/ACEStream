@@ -835,7 +835,7 @@ do_work (unsigned int bufferSize_in,
     goto clean;
   } // end IF
   event_handler_p->initialize (&CBData_in.subscribers,
-                               &CBData_in.subscribersLock);
+                               &CBData_in.lock);
   event_handler_p->subscribe (&ui_event_handler);
 
   // *********************** socket configuration data ************************

@@ -94,6 +94,8 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ////
+                                      int,
+                                      int,
                                       Stream_StateMachine_ControlState,
                                       Test_I_Stream_State,
                                       ////
@@ -116,6 +118,8 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ////
+                                      int,
+                                      int,
                                       Stream_StateMachine_ControlState,
                                       Test_I_Stream_State,
                                       ////

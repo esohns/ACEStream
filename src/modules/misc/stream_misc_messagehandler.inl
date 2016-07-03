@@ -219,7 +219,7 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (!sessionData_);
@@ -258,7 +258,7 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       // sanity check(s)
       ACE_ASSERT (sessionData_);

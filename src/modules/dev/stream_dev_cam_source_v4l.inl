@@ -31,6 +31,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -39,6 +41,8 @@ Stream_Module_CamSource_V4L_T<LockType,
                               SessionMessageType,
                               ProtocolMessageType,
                               ConfigurationType,
+                              StreamControlType,
+                              StreamNotificationType,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -49,7 +53,11 @@ Stream_Module_CamSource_V4L_T<LockType,
               true)         // generate sesssion messages ?
  , captureFileDescriptor_ (-1)
  , overlayFileDescriptor_ (-1)
+ , bufferMap_ ()
+#if defined (_DEBUG)
  , debug_ (false)
+#endif
+ , hasFinished_ (false)
  , isPassive_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::Stream_Module_CamSource_V4L_T"));
@@ -60,6 +68,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -68,6 +78,8 @@ Stream_Module_CamSource_V4L_T<LockType,
                               SessionMessageType,
                               ProtocolMessageType,
                               ConfigurationType,
+                              StreamControlType,
+                              StreamNotificationType,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -127,6 +139,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -136,6 +150,8 @@ Stream_Module_CamSource_V4L_T<LockType,
                               SessionMessageType,
                               ProtocolMessageType,
                               ConfigurationType,
+                              StreamControlType,
+                              StreamNotificationType,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -155,7 +171,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
       ACE_ASSERT (inherited::sessionData_);
@@ -180,7 +196,7 @@ Stream_Module_CamSource_V4L_T<LockType,
         if (!Stream_Module_Device_Tools::initializeBuffers<ProtocolMessageType> (captureFileDescriptor_,
                                                                                  inherited::configuration_->method,
                                                                                  inherited::configuration_->buffers,
-                                                                                 const_cast<ConfigurationType*> (inherited::configuration_)->bufferMap,
+                                                                                 bufferMap_,
                                                                                  inherited::configuration_->streamConfiguration->messageAllocator))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -225,15 +241,35 @@ error:
 
       return;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
-      int toggle = 0;
 
-      // *NOTE*: in some scenarios (which ?), VIDIOC_DQBUF blocks here
-      //         --> stop stream first
-      // *TODO*: perform step2 first, i.e. remove all buffers before stopping
-      //         the stream
-      // step1: stop stream
+      int toggle = 0;
+      bool shutdown = true;
+
+//      // *NOTE*: if the stream is being shut down due to an external event (i.e.
+//      //         peer has closed the connection, ...), the stream is finished(),
+//      //         which enqueues STREAM_SESSION_END, and control lands here while
+//      //         processing is still ongoing (see svc()). The VIDIOC_DQBUF calls
+//      //         in the buffer finalization routine below will then contend and
+//      //         potentially deadlock
+//      //         --> stop it first
+//      if (!hasFinished_)
+//      {
+//        hasFinished_ = true;
+//        inherited::shutdown ();
+//        shutdown = false;
+
+//        // *TODO*: wait for the processing thread and flush buffers
+//      } // end IF
+
+      // step1: empty buffer queue(s)
+      if (captureFileDescriptor_ != -1)
+        Stream_Module_Device_Tools::finalizeBuffers<ProtocolMessageType> (captureFileDescriptor_,
+                                                                          inherited::configuration_->method,
+                                                                          bufferMap_);
+
+      // step2: stop stream
       if (overlayFileDescriptor_ != -1)
       {
         result = v4l2_ioctl (overlayFileDescriptor_,
@@ -256,12 +292,6 @@ error:
                       captureFileDescriptor_, ACE_TEXT ("VIDIOC_STREAMOFF")));
       } // end IF
 
-      // step2: empty buffer queue(s)
-      if (captureFileDescriptor_ != -1)
-        Stream_Module_Device_Tools::finalizeBuffers<ProtocolMessageType> (captureFileDescriptor_,
-                                                                          inherited::configuration_->method,
-                                                                          const_cast<ConfigurationType*> (inherited::configuration_)->bufferMap);
-
       // step3: deallocate device buffer queue slots
       struct v4l2_requestbuffers request_buffers;
       ACE_OS::memset (&request_buffers, 0, sizeof (struct v4l2_requestbuffers));
@@ -277,7 +307,7 @@ error:
                     captureFileDescriptor_, ACE_TEXT ("VIDIOC_REQBUFS")));
       else
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("de-allocated %d device buffer slots...\n"),
+                    ACE_TEXT ("de-allocated %d device buffer slot(s)\n"),
                     inherited::configuration_->buffers));
 
 //      if (captureFileDescriptor_ != -1)
@@ -297,6 +327,9 @@ error:
 //                      overlayFileDescriptor_));
 //      } // end IF
 
+      if (shutdown)
+        inherited::shutdown ();
+
       break;
     }
     default:
@@ -308,6 +341,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -317,6 +352,8 @@ Stream_Module_CamSource_V4L_T<LockType,
                               SessionMessageType,
                               ProtocolMessageType,
                               ConfigurationType,
+                              StreamControlType,
+                              StreamNotificationType,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -376,6 +413,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -385,6 +424,8 @@ Stream_Module_CamSource_V4L_T<LockType,
                               SessionMessageType,
                               ProtocolMessageType,
                               ConfigurationType,
+                              StreamControlType,
+                              StreamNotificationType,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -545,6 +586,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -554,6 +597,8 @@ Stream_Module_CamSource_V4L_T<LockType,
                               SessionMessageType,
                               ProtocolMessageType,
                               ConfigurationType,
+                              StreamControlType,
+                              StreamNotificationType,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
@@ -562,15 +607,14 @@ Stream_Module_CamSource_V4L_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_V4L_T::svc"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::initialized_);
 
   int result = -1;
   int result_2 = -1;
+  int error = 0;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   int message_type = -1;
-  bool finished = false;
   bool stop_processing = false;
   struct v4l2_buffer buffer;
   ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
@@ -578,8 +622,12 @@ Stream_Module_CamSource_V4L_T<LockType,
   buffer.memory = V4L2_MEMORY_USERPTR;
   struct v4l2_event event;
   ACE_OS::memset (&event, 0, sizeof (struct v4l2_event));
-  INDEX2BUFFER_MAP_ITERATOR_T iterator;
+  Stream_Module_Device_BufferMapIterator_t iterator;
 //  unsigned int queued, done = 0;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+  const SessionDataType& session_data_r = inherited::sessionData_->get ();
 
   // step1: start processing data...
 //   ACE_DEBUG ((LM_DEBUG,
@@ -601,26 +649,26 @@ Stream_Module_CamSource_V4L_T<LockType,
           message_block_p->release ();
           message_block_p = NULL;
 
-          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
-          //         not have been set at this stage
-
-          // signal the controller ?
-          if (!finished)
+          // *NOTE*: when close()d manually (i.e. user abort, ...),
+          //         'hasFinished_' will not have been set at this stage
+          if (!hasFinished_)
           {
-            finished = true;
+            hasFinished_ = true;
             // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
             //         --> continue
             inherited::finished ();
             // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
             //         --> done
             if (inherited::thr_count_ == 0)
-            {
-              result_2 = 0; // success
               goto done; // finished processing
-            } // end IF
 
+            continue;
           } // end IF
-          continue;
+
+done:
+          result_2 = 0;
+
+          goto continue_; // STREAM_SESSION_END has been processed
         }
         default:
           break;
@@ -632,61 +680,52 @@ Stream_Module_CamSource_V4L_T<LockType,
                                 stop_processing);
       if (stop_processing)
       {
-//        SessionMessageType* session_message_p = NULL;
-//        // downcast message
-//        session_message_p = dynamic_cast<SessionMessageType*> (message_block_p);
-//        if (!session_message_p)
-//        {
-//          if (inherited::module ())
-//            ACE_DEBUG ((LM_ERROR,
-//                        ACE_TEXT ("%s: dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
-//                        inherited::name (),
-//                        message_block_p,
-//                        message_type));
-//          else
-//            ACE_DEBUG ((LM_ERROR,
-//                        ACE_TEXT ("dynamic_cast<SessionMessageType*>(0x%@) failed (type was: %d), aborting\n"),
-//                        message_block_p,
-//                        message_type));
-//          break;
-//        } // end IF
-//        if (session_message_p->type () == STREAM_SESSION_END)
-        result_2 = 0; // success
-        goto done; // finished processing
+        // *IMPORTANT NOTE*: message_block_p has already been released() !
+
+        hasFinished_ = true;
+        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+        //         --> continue
+        inherited::finished ();
+
+        continue;
       } // end IF
     } // end IF
     else if (result == -1)
     {
-      int error = ACE_OS::last_error ();
+      error = ACE_OS::last_error ();
       if (error != EWOULDBLOCK) // Win32: 10035
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
-        // signal the controller ?
-        if (!finished)
+        if (!hasFinished_)
         {
-          finished = true;
+          hasFinished_ = true;
+          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+          //         --> continue
           inherited::finished ();
         } // end IF
 
         break;
       } // end IF
-
-      // session aborted ? (i.e. connection failed)
-      ACE_ASSERT (inherited::sessionData_);
-      const SessionDataType& session_data_r = inherited::sessionData_->get ();
-      if (session_data_r.aborted)
-      {
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("session aborted...\n")));
-
-        inherited::shutdown ();
-        continue;
-      } // end IF
     } // end IF
 
-    // log device status to kernel log
+    // session aborted ?
+    if (session_data_r.aborted)
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("session aborted...\n")));
+
+      hasFinished_ = true;
+      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+      //         --> continue
+      inherited::finished ();
+
+      continue;
+    } // end IF
+
+#if defined (_DEBUG)
+    // log device status to kernel log ?
     if (debug_)
     {
       result = v4l2_ioctl (captureFileDescriptor_,
@@ -696,6 +735,7 @@ Stream_Module_CamSource_V4L_T<LockType,
                     ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
                     captureFileDescriptor_, ACE_TEXT ("VIDIOC_LOG_STATUS")));
     } // end IF
+#endif
 
 //    // dequeue pending events
 //    result = v4l2_ioctl (captureFileDescriptor_,
@@ -750,12 +790,11 @@ Stream_Module_CamSource_V4L_T<LockType,
                   inherited::mod_->name (),
                   captureFileDescriptor_, buffer.index));
 
-//    // sanity check(s)
-//    ACE_ASSERT (buffer.reserved);
-//    message_block_p = reinterpret_cast<ACE_Message_Block*> (buffer.reserved);
-    iterator = inherited::configuration_->bufferMap.find (buffer.index);
-    ACE_ASSERT (iterator != inherited::configuration_->bufferMap.end ());
+    iterator = bufferMap_.find (buffer.index);
+    ACE_ASSERT (iterator != bufferMap_.end ());
     message_block_p = (*iterator).second;
+    message_block_p->reset ();
+    message_block_p->wr_ptr (buffer.bytesused);
 
     result = inherited::put_next (message_block_p, NULL);
     if (result == -1)
@@ -768,10 +807,8 @@ Stream_Module_CamSource_V4L_T<LockType,
 
       break;
     } // end IF
-
-    buffer.reserved = 0;
   } while (true);
 
-done:
+continue_:
   return result_2;
 }

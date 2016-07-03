@@ -33,6 +33,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -41,22 +43,18 @@ Stream_Module_MySQLReader_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
-                           StatisticContainerType>::Stream_Module_MySQLReader_T (bool isActive_in,
+                           StatisticContainerType>::Stream_Module_MySQLReader_T (LockType* lock_in,
                                                                                  bool autoStart_in,
 
                                                                                  bool manageLibrary_in)
- : inherited (NULL,         // lock handle
-              isActive_in,  // active ?
+ : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
-              true)         // *NOTE*: when working in 'passive' mode, enabling
-                            //         this utilizes the calling thread. Note
-                            //         that this potentially renders state
-                            //         transitions during processing a tricky
-                            //         affair, as the calling thread may be
-                            //         holding the lock --> check carefully
+              true)         // generate sesssion messages ?
  , state_ (NULL)
  , manageLibrary_ (manageLibrary_in)
 {
@@ -80,6 +78,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -88,6 +88,8 @@ Stream_Module_MySQLReader_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -106,6 +108,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -115,6 +119,8 @@ Stream_Module_MySQLReader_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -232,6 +238,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -241,6 +249,8 @@ Stream_Module_MySQLReader_T<LockType,
                             SessionMessageType,
                             ProtocolMessageType,
                             ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
@@ -265,7 +275,7 @@ Stream_Module_MySQLReader_T<LockType,
       const_cast<SessionDataType&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // schedule regular statistic collection ?
       if (inherited::configuration_.streamConfiguration->statisticReportingInterval !=
@@ -408,7 +418,7 @@ Stream_Module_MySQLReader_T<LockType,
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       if (inherited::timerID_ != -1)
       {
@@ -443,6 +453,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -452,6 +464,8 @@ Stream_Module_MySQLReader_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -512,6 +526,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -521,6 +537,8 @@ Stream_Module_MySQLReader_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,

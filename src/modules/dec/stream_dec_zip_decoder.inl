@@ -449,7 +449,7 @@ Stream_Decoder_ZIPDecoder_T<SessionMessageType,
     const_cast<SessionDataType&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       sessionData_ = &session_data_r;
       break;

@@ -790,7 +790,7 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (!sessionData_);
@@ -857,7 +857,7 @@ error:
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       if (cairoSurface_)
       {

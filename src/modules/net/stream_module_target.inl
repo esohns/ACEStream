@@ -182,7 +182,7 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (configuration_->streamConfiguration);
@@ -474,7 +474,7 @@ done:
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
@@ -484,7 +484,7 @@ done:
       if (!isPassive_ && connection_)
       {
         // wait for data (!) processing to complete
-        ACE_ASSERT (configuration_->stream);
+//        ACE_ASSERT (configuration_->stream);
         isocket_connection_p =
           dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
         if (!isocket_connection_p)

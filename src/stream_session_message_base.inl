@@ -36,7 +36,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
                                                                         SessionDataType*& data_inout,
                                                                         UserDataType* userData_in)
  : inherited (0,                                  // size
-              STREAM_SESSION_MESSAGE_MAP,         // type
+              STREAM_MESSAGE_SESSION,             // type
               NULL,                               // continuation
               NULL,                               // data
               NULL,                               // buffer allocator
@@ -69,14 +69,14 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
  : inherited (messageAllocator_in) // message block allocator
  , data_ (NULL)
  , initialized_ (false)
- , type_ (STREAM_SESSION_INVALID)
+ , type_ (STREAM_SESSION_MESSAGE_INVALID)
  , userData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
   // set correct message type
   // *WARNING*: need to finalize initialization through initialize()
-  inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
+  inherited::msg_type (STREAM_MESSAGE_SESSION);
 
   // reset read/write pointers
   inherited::reset ();
@@ -94,14 +94,14 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
               messageAllocator_in) // re-use the same allocator
  , data_ (NULL)
  , initialized_ (false)
- , type_ (STREAM_SESSION_INVALID)
+ , type_ (STREAM_SESSION_MESSAGE_INVALID)
  , userData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
   // set correct message type
   // *WARNING*: need to finalize initialization through initialize()
-  inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
+  inherited::msg_type (STREAM_MESSAGE_SESSION);
 
   // reset read/write pointers
   inherited::reset ();
@@ -130,7 +130,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   if (data_)
     data_->increase ();
 
-  inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
+  inherited::msg_type (STREAM_MESSAGE_SESSION);
 
   // set read/write pointers
   inherited::rd_ptr (message_in.rd_ptr ());
@@ -152,7 +152,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
     data_ = NULL;
   } // end IF
   initialized_ = false;
-  type_ = STREAM_SESSION_INVALID;
+  type_ = STREAM_SESSION_MESSAGE_INVALID;
   userData_ = NULL;
 
 //  // *WARNING*: cannot do that anymore (data block has already gone away)
@@ -288,7 +288,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   type_ = messageType_in;
   userData_ = userData_in;
 
-  inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
+//  inherited::msg_type (STREAM_MESSAGE_SESSION);
 }
 
 template <typename AllocatorConfigurationType,
@@ -336,30 +336,30 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   switch (type_in)
   {
     // *** control ***
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_BEGIN");
+      string_out = ACE_TEXT_ALWAYS_CHAR ("BEGIN");
       break;
     }
-    case STREAM_SESSION_LINK:
+    case STREAM_SESSION_MESSAGE_LINK:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_LINK");
+      string_out = ACE_TEXT_ALWAYS_CHAR ("LINK");
       break;
     }
-    case STREAM_SESSION_STEP:
+    case STREAM_SESSION_MESSAGE_STEP:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_STEP");
+      string_out = ACE_TEXT_ALWAYS_CHAR ("STEP");
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_END");
+      string_out = ACE_TEXT_ALWAYS_CHAR ("END");
       break;
     }
     // *** data ***
-    case STREAM_SESSION_STATISTIC:
+    case STREAM_SESSION_MESSAGE_STATISTIC:
     {
-      string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION_STATISTIC");
+      string_out = ACE_TEXT_ALWAYS_CHAR ("STATISTIC");
       break;
     }
     default:

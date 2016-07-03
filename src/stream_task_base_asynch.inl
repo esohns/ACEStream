@@ -372,9 +372,10 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       inherited::shutdown ();
+
       break;
     }
     default:

@@ -37,6 +37,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -47,6 +49,8 @@ Stream_Module_Net_Source_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -73,6 +77,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -83,6 +89,8 @@ Stream_Module_Net_Source_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -139,6 +147,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -150,6 +160,8 @@ Stream_Module_Net_Source_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -278,6 +290,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -289,6 +303,8 @@ Stream_Module_Net_Source_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -319,7 +335,7 @@ Stream_Module_Net_Source_T<LockType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // schedule regular statistic collection ?
       if (inherited::configuration_->streamConfiguration->statisticReportingInterval !=
@@ -558,7 +574,7 @@ reset:
       //            received by now (see below; OK if upstream is completely
       //            synchronous)
       session_data_container_p = inherited::sessionData_;
-      message_inout->initialize (STREAM_SESSION_BEGIN,
+      message_inout->initialize (STREAM_SESSION_MESSAGE_BEGIN,
                                  session_data_container_p,
                                  &const_cast<typename SessionMessageType::USER_DATA_T&> (message_inout->data ()));
 
@@ -594,7 +610,7 @@ continue_:
     }
     // *NOTE*: the stream has been link()ed (see above), the message contains
     //         the (merged) upstream session data --> retain a reference
-    case STREAM_SESSION_LINK:
+    case STREAM_SESSION_MESSAGE_LINK:
     {
       SessionDataContainerType& session_data_container_r =
         const_cast<SessionDataContainerType&> (message_inout->get ());
@@ -611,7 +627,7 @@ continue_:
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       // *NOTE*: when the connection is (asynchronously) closed by the peer, the
       //         connection handler will finished() the connection processing
@@ -748,6 +764,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -759,6 +777,8 @@ Stream_Module_Net_Source_T<LockType,
                            SessionMessageType,
                            ProtocolMessageType,
                            ConfigurationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,

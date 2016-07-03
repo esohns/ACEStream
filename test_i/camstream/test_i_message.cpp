@@ -178,6 +178,9 @@ Test_I_Source_Stream_Message::release (void)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_Message::release"));
 
+  int result = -1;
+  int error = 0;
+
   // release any continuations first
   if (inherited::cont_)
   {
@@ -196,7 +199,7 @@ Test_I_Source_Stream_Message::release (void)
   // reset reference counter/message
   reference_count = inherited2::increase ();
   ACE_ASSERT (reference_count == 1);
-  inherited::rd_ptr (inherited::base ());
+//  inherited::rd_ptr (inherited::base ());
 
   // *NOTE*: this is a device data buffer
   //         --> return it to the pool
@@ -228,17 +231,20 @@ Test_I_Source_Stream_Message::release (void)
   // *NOTE*: in oder to retrieve the buffer instance handle from the device
   //         buffer when it has written the frame data, the address of the
   //         ACE_Message_Block (!) could be embedded in the 'reserved' field(s).
-  //         Unfortunately, this does not work, the fields seem to be zeroed by
-  //         the driver
+  //         Unfortunately this does not work, the fields are 0-ed by the driver
   //         --> maintain a mapping: buffer index <--> buffer handle
 //        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
-  int result = v4l2_ioctl (inherited::data_.device,
-                           VIDIOC_QBUF,
-                           &buffer);
+  result = v4l2_ioctl (inherited::data_.device,
+                       VIDIOC_QBUF,
+                       &buffer);
   if (result == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-                inherited::data_.device, ACE_TEXT ("VIDIOC_QBUF")));
+  {
+    error = ACE_OS::last_error ();
+    if (error != EINVAL) // 22
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
+                  inherited::data_.device, ACE_TEXT ("VIDIOC_QBUF")));
+  } // end IF
 
 //  unsigned int done = 0;
 //  unsigned int queued =

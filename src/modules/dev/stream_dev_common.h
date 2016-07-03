@@ -5,15 +5,16 @@
 #else
 #include <map>
 
-#include "ace/Message_Block.h"
-
 #include "linux/videodev2.h"
+
+// forward declarations
+class ACE_Message_Block;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-typedef std::map<__u32, ACE_Message_Block*> INDEX2BUFFER_MAP_T;
-typedef INDEX2BUFFER_MAP_T::const_iterator INDEX2BUFFER_MAP_ITERATOR_T;
+typedef std::map<__u32, ACE_Message_Block*> Stream_Module_Device_BufferMap_t;
+typedef Stream_Module_Device_BufferMap_t::const_iterator Stream_Module_Device_BufferMapIterator_t;
 #endif
 
 //struct Stream_Module_Device_CamOptions

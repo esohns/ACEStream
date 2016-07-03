@@ -48,30 +48,32 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  Test_I_Target_Configuration,
                                  Test_I_Target_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 ////////
+                                 /////////
                                  Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
 
 class Test_I_Target_Stream
  : public Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
-
+                                        //
                                         ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
-
+                                        //
+                                        int,
+                                        int,
                                         Stream_StateMachine_ControlState,
                                         Test_I_Target_StreamState,
-
+                                        //
                                         Test_I_Target_StreamConfiguration,
-
+                                        //
                                         Test_I_RuntimeStatistic_t,
-
+                                        //
                                         Stream_ModuleConfiguration,
                                         Test_I_Target_Stream_ModuleHandlerConfiguration,
-
+                                        //
                                         Test_I_Target_Stream_SessionData,   // session data
                                         Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
                                         Test_I_Target_Stream_SessionMessage,
                                         Test_I_Target_Stream_Message,
-
+                                        //
                                         ACE_INET_Addr,
                                         Test_I_Target_InetConnectionManager_t>
 {
@@ -94,25 +96,27 @@ class Test_I_Target_Stream
 
  private:
   typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
-
+                                        //
                                         ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
-
+                                        //
+                                        int,
+                                        int,
                                         Stream_StateMachine_ControlState,
                                         Test_I_Target_StreamState,
-
+                                        //
                                         Test_I_Target_StreamConfiguration,
-
+                                        //
                                         Test_I_RuntimeStatistic_t,
-
+                                        //
                                         Stream_ModuleConfiguration,
                                         Test_I_Target_Stream_ModuleHandlerConfiguration,
-
+                                        //
                                         Test_I_Target_Stream_SessionData,   // session data
                                         Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
                                         Test_I_Target_Stream_SessionMessage,
                                         Test_I_Target_Stream_Message,
-
+                                        //
                                         ACE_INET_Addr,
                                         Test_I_Target_InetConnectionManager_t> inherited;
 

@@ -49,6 +49,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
  : inherited ()
  , configuration_ (NULL)
  , sessionData_ (NULL)
+ , lock_ (NULL)
  , pixelBuffer_ (NULL)
  , isFirst_ (true)
  , isInitialized_ (false)
@@ -110,12 +111,11 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::handleDataMessage"));
 
-//  ACE_Message_Block* message_block_p = message_inout;
-
   // sanity check(s)
   ACE_ASSERT (configuration_);
   if (!configuration_->window)
     return; // done
+
 //  if (configuration_->hasHeader &&
 //      isFirst_)
 //  {
@@ -149,6 +149,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
   ACE_ASSERT (message_inout->length () ==
               session_data_r.format.fmt.pix.sizeimage);
 
+  int result = -1;
   ACE_Message_Block* message_block_p = message_inout;
   unsigned int offset = 0;//, length = message_block_p->length ();
   unsigned char* data_p =
@@ -156,17 +157,32 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
   ACE_ASSERT (data_p);
   guchar* data_2 = gdk_pixbuf_get_pixels (pixelBuffer_);
   ACE_ASSERT (data_2);
+  int bytes_per_pixel =
+      ((gdk_pixbuf_get_bits_per_sample (pixelBuffer_) / 8) * 4);
+  ACE_ASSERT (bytes_per_pixel == 4);
 
 //  int bits_per_sample = 8;
   int row_stride = session_data_r.format.fmt.pix.bytesperline;
   unsigned char* pixel_p = data_p;
   unsigned int* pixel_2 = (unsigned int*)data_2;
+
+  if (lock_)
+  {
+    result = lock_->acquire ();
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::acquire(): \"%m\", returning\n")));
+      return;
+    } // end IF
+  } // end IF
+
   switch (session_data_r.format.fmt.pix.pixelformat)
   {
     // RGB formats
     case V4L2_PIX_FMT_BGR24:
     {
-      // convert BGR (24bit) to RGB (32bit)
+      // convert BGR (24bit) to RGB (24bit)
       row_stride = gdk_pixbuf_get_rowstride (pixelBuffer_);
       for (unsigned int y = 0;
            y < session_data_r.format.fmt.pix.height;
@@ -176,7 +192,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
              ++x)
         {
           pixel_p = data_p + offset;
-          pixel_2 = (unsigned int*)(data_2 + ((y * row_stride) + (x * 4)));
+          pixel_2 =
+              (unsigned int*)(data_2 + ((y * row_stride) + (x * 3)));
 
           *pixel_2 = ((*(pixel_p + 2) << 16) |
                       (*(pixel_p + 1) << 8)  |
@@ -189,7 +206,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
     }
     case V4L2_PIX_FMT_RGB24:
     {
-      // convert RGB (24bit) to RGB (32bit)
+      // convert RGB (24bit) to RGB (24bit)
       row_stride = gdk_pixbuf_get_rowstride (pixelBuffer_);
       for (unsigned int y = 0;
            y < session_data_r.format.fmt.pix.height;
@@ -199,7 +216,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
              ++x)
         {
           pixel_p = data_p + offset;
-          pixel_2 = (unsigned int*)(data_2 + ((y * row_stride) + (x * 4)));
+          pixel_2 =
+              (unsigned int*)(data_2 + ((y * row_stride) + (x * 3)));
 
           *pixel_2 = (*pixel_p        << 16) |
                       (*(pixel_p + 1) << 8)  |
@@ -255,16 +273,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
           *G2_p = clamp (y2 - (((88 * cr) + (183 * cb)) >> 8));
           *B2_p = clamp (y2 + ((359 * cb) >> 8));
 
-          R1_p += 4;
-          G1_p += 4;
-          B1_p += 4;
+          R1_p += 4; G1_p += 4; B1_p += 4;
+          R2_p += 4; G2_p += 4; B2_p += 4;
 
-          R2_p += 4;
-          G2_p += 4;
-          B2_p += 4;
-
-          ++Y1_p;
-          ++Y2_p;
+          ++Y1_p; ++Y2_p;
 
           // second pixel
           y1 = *Y1_p - 16;
@@ -280,29 +292,17 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
           *G2_p = clamp (y2 - (((88 * cr) + (183 * cb)) >> 8));
           *B2_p = clamp (y2 + ((359 * cb) >> 8));
 
-          R1_p += 4;
-          G1_p += 4;
-          B1_p += 4;
+          R1_p += 4; G1_p += 4; B1_p += 4;
+          R2_p += 4; G2_p += 4; B2_p += 4;
 
-          R2_p += 4;
-          G2_p += 4;
-          B2_p += 4;
+          ++Y1_p; ++Y2_p;
 
-          ++Y1_p;
-          ++Y2_p;
-
-          ++chrominance_b_p;
-          ++chrominance_r_p;
+          ++chrominance_b_p; ++chrominance_r_p;
         } // end WHILE
 
-        R1_p += row_stride_2;
-        G1_p += row_stride_2;
-        B1_p += row_stride_2;
-        R2_p += row_stride_2;
-        G2_p += row_stride_2;
-        B2_p += row_stride_2;
-        Y1_p += row_stride;
-        Y2_p += row_stride;
+        R1_p += row_stride_2; G1_p += row_stride_2; B1_p += row_stride_2;
+        R2_p += row_stride_2; G2_p += row_stride_2; B2_p += row_stride_2;
+        Y1_p += row_stride; Y2_p += row_stride;
       } // end WHILE
 
       break;
@@ -351,16 +351,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
           *G2_p = clamp (y2 - (((88 * cr) + (183 * cb)) >> 8));
           *B2_p = clamp (y2 + ((359 * cb) >> 8));
 
-          R1_p += 4;
-          G1_p += 4;
-          B1_p += 4;
+          R1_p += 4; G1_p += 4; B1_p += 4;
+          R2_p += 4; G2_p += 4; B2_p += 4;
 
-          R2_p += 4;
-          G2_p += 4;
-          B2_p += 4;
-
-          ++Y1_p;
-          ++Y2_p;
+          ++Y1_p; ++Y2_p;
 
           // second pixel
           y1 = *Y1_p - 16;
@@ -376,29 +370,17 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
           *G2_p = clamp (y2 - (((88 * cr) + (183 * cb)) >> 8));
           *B2_p = clamp (y2 + ((359 * cb) >> 8));
 
-          R1_p += 4;
-          G1_p += 4;
-          B1_p += 4;
+          R1_p += 4; G1_p += 4; B1_p += 4;
+          R2_p += 4; G2_p += 4; B2_p += 4;
 
-          R2_p += 4;
-          G2_p += 4;
-          B2_p += 4;
+          ++Y1_p; ++Y2_p;
 
-          ++Y1_p;
-          ++Y2_p;
-
-          ++chrominance_b_p;
-          ++chrominance_r_p;
+          ++chrominance_b_p; ++chrominance_r_p;
         } // end WHILE
 
-        R1_p += row_stride_2;
-        G1_p += row_stride_2;
-        B1_p += row_stride_2;
-        R2_p += row_stride_2;
-        G2_p += row_stride_2;
-        B2_p += row_stride_2;
-        Y1_p += row_stride;
-        Y2_p += row_stride;
+        R1_p += row_stride_2; G1_p += row_stride_2; B1_p += row_stride_2;
+        R2_p += row_stride_2; G2_p += row_stride_2; B2_p += row_stride_2;
+        Y1_p += row_stride; Y2_p += row_stride;
       } // end WHILE
 
       break;
@@ -431,7 +413,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
         R = clamp (Y1 + ((454 * Cr) >> 8));
         G = clamp (Y1 - (((88 * Cr) + (183 * Cb)) >> 8));
         B = clamp (Y1 + ((359 * Cb) >> 8));
-        RGB = static_cast<unsigned int> (B)         |
+        RGB =  static_cast<unsigned int> (B)        |
               (static_cast<unsigned int> (G) <<  8) |
               (static_cast<unsigned int> (R) << 16);
         *reinterpret_cast<unsigned int*> (pixel_p) = RGB;
@@ -442,7 +424,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
         B = clamp (Y2 + ((359 * Cb) >> 8));
         RGB = (static_cast<unsigned char> (R) << 16) |
               (static_cast<unsigned char> (G) <<  8) |
-              static_cast<unsigned char> (B);
+               static_cast<unsigned char> (B);
         *reinterpret_cast<unsigned int*> (pixel_p) = RGB;
         pixel_p += 4;
 
@@ -482,7 +464,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
       packet.data = data_p;
       packet.size = session_data_r.format.fmt.pix.sizeimage;
 
-      int result = -1;
       int got_picture = -1;
       int image_size = -1;
       context_p = avcodec_alloc_context3 (codec_p);
@@ -566,9 +547,26 @@ clean:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
                   session_data_r.format.fmt.pix.pixelformat));
-      return;
+
+      result = -1;
+
+      goto unlock;
     }
   } // end SWITCH
+
+  result = 0;
+
+unlock:
+  if (lock_)
+  {
+    result = lock_->release ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n")));
+  } // end IF
+
+  if (result == -1)
+    return; // error
 
   gdk_threads_enter ();
 
@@ -593,15 +591,19 @@ clean:
 //    return;
 //  } // end IF
 
-  // step3: draw pixbuf to image widget
-  gint width, height;
-  gdk_drawable_get_size (GDK_DRAWABLE (configuration_->image),
-                         &width, &height);
-
-  gdk_draw_pixbuf (GDK_DRAWABLE (configuration_->image), NULL,
-                   pixelBuffer_,
-                   0, 0, 0, 0, width, height,
-                   GDK_RGB_DITHER_NONE, 0, 0);
+  // step3: draw pixbuf to widget
+//  gint width, height;
+//  gdk_drawable_get_size (GDK_DRAWABLE (configuration_->window),
+//                         &width, &height);
+  // *IMPORTANT NOTE*: potentially, this involves tranfer of image data to an X
+  //                   server running on a different host. Also, X servers don't
+  //                   react kindly to multithreaded access
+  //                   --> move this into the gtk context and simply schedule a
+  //                       refresh, which takes care of that
+//  gdk_draw_pixbuf (GDK_DRAWABLE (configuration_->window), NULL,
+//                   pixelBuffer_,
+//                   0, 0, 0, 0, width, height,
+//                   GDK_RGB_DITHER_NONE, 0, 0);
 
   // step5: schedule an 'expose' event
   // *NOTE*: gdk_window_invalidate_rect() is not thread-safe. It will race with
@@ -648,7 +650,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (!sessionData_);
@@ -660,23 +662,25 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
           const_cast<SessionDataType&> (sessionData_->get ());
 
       // sanity check(s)
-      if (!configuration_->image)
+      if (!configuration_->window)
         break; // done
       ACE_ASSERT (pixelBuffer_);
 
-      int width = gdk_pixbuf_get_width (pixelBuffer_);
-      int height = gdk_pixbuf_get_height (pixelBuffer_);
-      ACE_ASSERT (width < session_data_r.format.fmt.pix.width);
-      ACE_ASSERT (height < session_data_r.format.fmt.pix.height);
+      unsigned int width =
+          static_cast<unsigned int> (gdk_pixbuf_get_width (pixelBuffer_));
+      unsigned int height =
+          static_cast<unsigned int> (gdk_pixbuf_get_height (pixelBuffer_));
+      ACE_ASSERT (width  >= session_data_r.format.fmt.pix.width);
+      ACE_ASSERT (height >= session_data_r.format.fmt.pix.height);
 
       break;
 
-error:
-      session_data_r.aborted = true;
+//error:
+//      session_data_r.aborted = true;
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       if (pixelBuffer_)
       {
@@ -732,24 +736,53 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
     isInitialized_ = false;
   } // end IF
 
-  configuration_ = &configuration_in;
+  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
-  // *TODO*: remove type inference
-  if (configuration_->image)
+  lock_ = configuration_->lock;
+  if (!configuration_->pixelBuffer)
   {
-    gdk_threads_enter ();
-    pixelBuffer_ = gtk_image_get_pixbuf (configuration_->image);
-    if (!pixelBuffer_)
+    // *TODO*: remove type inference
+    if (configuration_->window)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to gtk_image_get_pixbuf(), aborting\n")));
+      gdk_threads_enter ();
 
-      // clean up
+      // sanity check(s)
+      // *TODO*: remove type inference
+      ACE_ASSERT (!configuration_->pixelBuffer);
+
+      // *TODO*: remove type inference
+      pixelBuffer_ =
+          //        gdk_pixbuf_get_from_window (configuration_->window,
+          //                                    0, 0,
+          //                                    configuration_->area.width, configuration_->area.height);
+          gdk_pixbuf_get_from_drawable (NULL,
+                                        GDK_DRAWABLE (configuration_->window),
+                                        NULL,
+                                        0, 0,
+                                        0, 0, configuration_->area.width, configuration_->area.height);
+      if (!pixelBuffer_)
+      { // *NOTE*: most probable reason: window is not mapped
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
+
+        // clean up
+        gdk_threads_leave ();
+
+        return false;
+      } // end IF
       gdk_threads_leave ();
-
-      return false;
     } // end IF
-    gdk_threads_leave ();
+  } // end IF
+  else
+  {
+    g_object_ref (configuration_->pixelBuffer);
+    pixelBuffer_ = configuration_->pixelBuffer;
+  } // end ELSE
+  if (!pixelBuffer_)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to obtain pixel buffer, aborting\n")));
+    return false;
   } // end IF
 
   isInitialized_ = true;

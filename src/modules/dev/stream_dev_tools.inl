@@ -34,13 +34,13 @@ bool
 Stream_Module_Device_Tools::initializeBuffers (int fd_in,
                                                v4l2_memory method_in,
                                                __u32 numberOfBuffers_in,
-                                               INDEX2BUFFER_MAP_T& bufferMap_out,
+                                               Stream_Module_Device_BufferMap_t& bufferMap_out,
                                                Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::initializeBuffers"));
 
-  // sanity check(s)
-  ACE_ASSERT (bufferMap_out.empty ());
+  // initialize return values(s)
+  bufferMap_out.clear ();
 
   int result = -1;
   struct v4l2_buffer buffer;
@@ -78,13 +78,10 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
         buffer.index = i;
         if (allocator_in)
         {
-          try
-          {
+          try {
             message_block_p =
                 static_cast<ACE_Message_Block*> (allocator_in->malloc (format.fmt.pix.sizeimage));
-          }
-          catch (...)
-          {
+          } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
                         format.fmt.pix.sizeimage));
@@ -148,7 +145,7 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
         bufferMap_out.insert (std::make_pair (buffer.index, message_block_p));
       } // end FOR
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("allocated %d (user-pointer) device buffers (%u byte(s))...\n"),
+                  ACE_TEXT ("allocated %d (user-pointer) device buffer(s) (%u byte(s))\n"),
                   numberOfBuffers_in,
                   numberOfBuffers_in * format.fmt.pix.sizeimage));
       break;
@@ -176,13 +173,10 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
 
         if (allocator_in)
         {
-          try
-          {
+          try {
             message_block_p =
                 static_cast<ACE_Message_Block*> (allocator_in->malloc (buffer.length));
-          }
-          catch (...)
-          {
+          } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
                         buffer.length));
@@ -242,10 +236,9 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
         // *NOTE*: in oder to retrieve the buffer instance handle from the
         //         device buffer when it has written the frame data, the address
         //         of the ACE_Message_Block (!) could be embedded in the
-        //         'reserved' field(s). Unfortunately, this does not work, the
-        //         fields seem to be zeroed by the driver
+        //         'reserved' field(s). Unfortunately, this does not work, these
+        //         fields are 0-ed by the driver
         //         --> maintain a mapping: buffer index <--> buffer handle
-//        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
         result = v4l2_ioctl (fd_in,
                              VIDIOC_QBUF,
                              &buffer);
@@ -260,7 +253,7 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
 
             // clean up
             result = v4l2_munmap (message_block_p->base (),
-                                  message_block_p->length ());
+                                  buffer.length);
             if (result == -1)
               ACE_DEBUG ((LM_ERROR,
                           ACE_TEXT ("failed to v4l2_munmap(): \"%m\", continuing\n")));
@@ -271,7 +264,7 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
 
           // clean up
           result = v4l2_munmap (message_block_p->base (),
-                                message_block_p->length ());
+                                buffer.length);
           if (result == -1)
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to v4l2_munmap(): \"%m\", continuing\n")));
@@ -282,7 +275,7 @@ Stream_Module_Device_Tools::initializeBuffers (int fd_in,
         bufferMap_out.insert (std::make_pair (buffer.index, message_block_p));
       } // end FOR
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("allocated %d (memory-mapped) device buffers (%u byte(s))...\n"),
+                  ACE_TEXT ("allocated %d (memory-mapped) device buffer(s) (%u byte(s))\n"),
                   numberOfBuffers_in,
                   numberOfBuffers_in * buffer.length));
       break;
@@ -310,41 +303,34 @@ template <typename MessageType>
 void
 Stream_Module_Device_Tools::finalizeBuffers (int fd_in,
                                              v4l2_memory method_in,
-                                             INDEX2BUFFER_MAP_T& bufferMap_inout)
+                                             Stream_Module_Device_BufferMap_t& bufferMap_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::finalizeBuffers"));
 
   int result = -1;
 
-  // step1: dequeue all buffers and unmap/release associated memory
+  // dequeue all buffers and unmap/release associated (device) memory
   struct v4l2_buffer buffer;
-  ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
-  buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  buffer.memory = method_in;
   ACE_Message_Block* message_block_p = NULL;
   MessageType* message_p = NULL;
   unsigned int counter = 0;
-  INDEX2BUFFER_MAP_ITERATOR_T iterator;
+  Stream_Module_Device_BufferMapIterator_t iterator;
   do
   {
+    ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
+    buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buffer.memory = method_in;
     result = v4l2_ioctl (fd_in,
                          VIDIOC_DQBUF,
                          &buffer);
     if (result == -1)
     {
-      // *NOTE*: most probable reason: VIDIOC_STREAMOFF has been called
-      //         previously (EINVAL), dequeueing all buffers; the ioctl fails to
-      //         retrieve buffer information in this case
-      //         --> set the index manually
-      int error = ACE_OS::last_error ();
-      if (error != EINVAL)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-                    fd_in, ACE_TEXT ("VIDIOC_DQBUF")));
-      buffer.index = counter;
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", returning\n"),
+                  fd_in, ACE_TEXT ("VIDIOC_DQBUF")));
+      return;
     } // end IF
 
-//    message_block_p = reinterpret_cast<ACE_Message_Block*> (buffer.reserved);
     iterator = bufferMap_inout.find (buffer.index);
     ACE_ASSERT (iterator != bufferMap_inout.end ());
     message_block_p = (*iterator).second;
@@ -353,7 +339,7 @@ Stream_Module_Device_Tools::finalizeBuffers (int fd_in,
     if (buffer.type == V4L2_MEMORY_MMAP)
     {
       result = v4l2_munmap (message_block_p->base (),
-                            message_block_p->size ());
+                            buffer.length);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to v4l2_munmap(): \"%m\", continuing\n")));
@@ -376,18 +362,16 @@ Stream_Module_Device_Tools::finalizeBuffers (int fd_in,
     data_r.release = true;
     message_block_p->release ();
 
-    // *NOTE*: unfortunately, V4L2_BUF_FLAG_LAST is not set consistently
-    if (//(buffer.flags & V4L2_BUF_FLAG_LAST) ||
-        (buffer.index == (bufferMap_inout.size () - 1)))
-      break; // done
-
     ++counter;
+
+    // *NOTE*: V4L2_BUF_FLAG_LAST is not set consistently
+    if (//(buffer.flags & V4L2_BUF_FLAG_LAST) ||
+        (counter == bufferMap_inout.size ()))
+      break; // done
   } while (true);
-  ++counter;
-  ACE_ASSERT (counter == bufferMap_inout.size ());
   bufferMap_inout.clear ();
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("de-allocated %d device buffers...\n"),
+              ACE_TEXT ("de-allocated %d device buffer(s)\n"),
               counter));
 }
 #endif

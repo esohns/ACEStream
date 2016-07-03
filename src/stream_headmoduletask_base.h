@@ -40,19 +40,21 @@ class ACE_Time_Value;
 class Stream_IAllocator;
 
 template <typename LockType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename TaskSynchType,
           typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
-          ///////////////////////////////
+          ////////////////////////////////
           typename StatisticContainerType>
 class Stream_HeadModuleTaskBase_T
  : public Stream_StateMachine_Control_T<LockType>
@@ -61,7 +63,9 @@ class Stream_HeadModuleTaskBase_T
                             SessionMessageType,
                             ProtocolMessageType>
  , public Stream_IModuleHandler_T<ConfigurationType>
- , public Stream_IStreamControl_T<Stream_StateMachine_ControlState,
+ , public Stream_IStreamControl_T<StreamControlType,
+                                  StreamNotificationType,
+                                  Stream_StateMachine_ControlState,
                                   StreamStateType>
  , public Common_IInitialize_T<StreamStateType>
  , public Common_IStatistic_T<StatisticContainerType>
@@ -87,15 +91,12 @@ class Stream_HeadModuleTaskBase_T
   virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_IStreamControl_T
-  virtual void control (Stream_ControlType, // control type
-                        bool = false);      // N/A
   virtual void start ();
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true); // locked access ?
   virtual bool isRunning () const;
 
   virtual void pause ();
-  virtual Stream_StateMachine_ControlState status () const;
   virtual void waitForCompletion (bool = true,   // wait for any worker
                                                  // thread(s) ?
                                   bool = false); // N/A
@@ -104,8 +105,14 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: just a stub
   virtual Stream_Module_t* find (const std::string&) const; // module name
   virtual std::string name () const;
-  // *NOTE*: just a stub
+
+  virtual void control (StreamControlType, // control type
+                        bool = false);     // N/A
+  virtual void notify (StreamNotificationType, // notification type
+                       bool = false);          // N/A
+    // *NOTE*: just a stub
   virtual const StreamStateType& state () const;
+  virtual Stream_StateMachine_ControlState status () const;
 
   // implement Common_IInitialize_T
   virtual bool initialize (const StreamStateType&);
@@ -173,19 +180,21 @@ class Stream_HeadModuleTaskBase_T
 
   // convenient types
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       TaskSynchType,
                                       TimePolicyType,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T ())
@@ -197,7 +206,6 @@ class Stream_HeadModuleTaskBase_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement (part of) Stream_IStreamControl_T
-  //virtual void initialize ();
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false); // flush upstream (if any) ?
   virtual void rewind ();

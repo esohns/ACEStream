@@ -44,20 +44,22 @@ class Stream_IAllocator;
 
 class Stream_CamSave_Stream
  : public Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
+                        //////////////////
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        /////////////////
+                        //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Stream_State,
-                        /////////////////
+                        //////////////////
                         Stream_CamSave_StreamConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_CamSave_StatisticData,
-                        /////////////////
+                        //////////////////
                         Stream_ModuleConfiguration,
                         Stream_CamSave_ModuleHandlerConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_CamSave_SessionData,   // session data
                         Stream_CamSave_SessionData_t, // session data container (reference counted)
                         Stream_CamSave_SessionMessage,
@@ -99,20 +101,22 @@ class Stream_CamSave_Stream
 
  private:
   typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
+                        //////////////////
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        /////////////////
+                        //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Stream_State,
-                        /////////////////
+                        //////////////////
                         Stream_CamSave_StreamConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_CamSave_StatisticData,
-                        /////////////////
+                        //////////////////
                         Stream_ModuleConfiguration,
                         Stream_CamSave_ModuleHandlerConfiguration,
-                        /////////////////
+                        //////////////////
                         Stream_CamSave_SessionData,   // session data
                         Stream_CamSave_SessionData_t, // session data container (reference counted)
                         Stream_CamSave_SessionMessage,

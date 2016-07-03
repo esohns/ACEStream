@@ -241,17 +241,17 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   // *IMPORTANT NOTE*: invoke this AFTER VIDIOC_S_FMT, and BEFORE
   //                   VIDIOC_STREAMON
   template <typename MessageType>
-  static bool initializeBuffers (int,                        // file descriptor
-                                 v4l2_memory,                // I/O streaming method
-                                 __u32,                      // number of buffers
+  static bool initializeBuffers (int,                               // file descriptor
+                                 v4l2_memory,                       // I/O streaming method
+                                 __u32,                             // number of buffers
                                  /////////
-                                 INDEX2BUFFER_MAP_T&,        // return value: buffer map
+                                 Stream_Module_Device_BufferMap_t&, // return value: buffer map
                                  /////////
-                                 Stream_IAllocator* = NULL); // allocator
+                                 Stream_IAllocator* = NULL);        // allocator
   template <typename MessageType>
-  static void finalizeBuffers (int,                  // file descriptor
-                               v4l2_memory,          // I/O streaming method
-                               INDEX2BUFFER_MAP_T&); // buffer map
+  static void finalizeBuffers (int,                                // file descriptor
+                               v4l2_memory,                        // I/O streaming method
+                               Stream_Module_Device_BufferMap_t&); // buffer map
   static unsigned int queued (int,            // file descriptor
                               unsigned int,   // number of buffers
                               unsigned int&); // return value: #done

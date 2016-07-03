@@ -33,38 +33,43 @@
 class ACE_Message_Queue_Base;
 
 template <typename LockType,                 // connection stream state machine lock
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionMessageType,
           typename ProtocolMessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
-          ///////////////////////////////
+          ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Module_QueueReader_T
  : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_QueueReader_T (bool = false,  // active object ?
-                               bool = false); // auto-start ?
+  Stream_Module_QueueReader_T (LockType* = NULL, // lock handle (state machine)
+                               ///////////
+                               bool = false);    // auto-start ?
   virtual ~Stream_Module_QueueReader_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
@@ -76,6 +81,8 @@ class Stream_Module_QueueReader_T
                                     SessionMessageType,
                                     ProtocolMessageType,
                                     ConfigurationType,
+                                    StreamControlType,
+                                    StreamNotificationType,
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
@@ -102,22 +109,24 @@ class Stream_Module_QueueReader_T
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType> inherited;
 
-  //ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T (const Stream_Module_QueueReader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_QueueReader_T& operator= (const Stream_Module_QueueReader_T&))
 

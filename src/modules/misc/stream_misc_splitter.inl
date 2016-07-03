@@ -32,7 +32,7 @@ Stream_Module_Splitter_T<SessionMessageType,
                          SessionDataType>::Stream_Module_Splitter_T ()
  : inherited ()
  , configuration_ (NULL)
- , currentBuffer_ (NULL)
+ , buffer_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::Stream_Module_Splitter_T"));
 
@@ -49,8 +49,8 @@ Stream_Module_Splitter_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::~Stream_Module_Splitter_T"));
 
-  if (currentBuffer_)
-    currentBuffer_->release ();
+  if (buffer_)
+    buffer_->release ();
 }
 
 template <typename SessionMessageType,
@@ -71,17 +71,17 @@ Stream_Module_Splitter_T<SessionMessageType,
   // sanity check(s)
   ACE_ASSERT (configuration_);
 
-  if (!currentBuffer_)
-    currentBuffer_ = message_inout;
+  if (!buffer_)
+    buffer_ = message_inout;
   else
-    currentBuffer_->cont (message_inout);
+    buffer_->cont (message_inout);
 
-  if (currentBuffer_->total_length () < configuration_->frameSize)
+  if (buffer_->total_length () < configuration_->frameSize)
     return; // done
 
   // got enough data --> split and forward
   unsigned int count = 0;
-  ACE_Message_Block* message_block_p = currentBuffer_;
+  ACE_Message_Block* message_block_p = buffer_;
   do
   {
     count += message_block_p->length ();
@@ -92,16 +92,16 @@ Stream_Module_Splitter_T<SessionMessageType,
   } while (true);
   ACE_ASSERT (message_block_p);
 
-  currentBuffer_ = message_block_p->duplicate ();
-  if (!currentBuffer_)
+  buffer_ = message_block_p->duplicate ();
+  if (!buffer_)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
                 inherited::mod_->name ()));
     return;
   } // end IF
-  currentBuffer_->cont (NULL);
-  currentBuffer_->rd_ptr (count - configuration_->frameSize);
+  buffer_->cont (NULL);
+  buffer_->rd_ptr (count - configuration_->frameSize);
 
   message_block_p->reset ();
   message_block_p->wr_ptr (count - configuration_->frameSize);
@@ -140,7 +140,7 @@ Stream_Module_Splitter_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       //// *TODO*: remove type inferences
       //const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
@@ -149,7 +149,7 @@ Stream_Module_Splitter_T<SessionMessageType,
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     default:
       break;
   } // end SWITCH
@@ -190,12 +190,14 @@ Stream_Module_Splitter_T<SessionMessageType,
   return *configuration_;
 }
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -204,6 +206,8 @@ Stream_Module_SplitterH_T<LockType,
                           SessionMessageType,
                           ProtocolMessageType,
                           ConfigurationType,
+                          StreamControlType,
+                          StreamNotificationType,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
@@ -213,7 +217,7 @@ Stream_Module_SplitterH_T<LockType,
               autoStart_in, // auto-start ?
               true)         // generate sesssion messages ?
  , configuration_ (NULL)
- , currentBuffer_ (NULL)
+ , buffer_ (NULL)
  //, isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::Stream_Module_SplitterH_T"));
@@ -224,6 +228,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -232,6 +238,8 @@ Stream_Module_SplitterH_T<LockType,
                           SessionMessageType,
                           ProtocolMessageType,
                           ConfigurationType,
+                          StreamControlType,
+                          StreamNotificationType,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
@@ -239,14 +247,16 @@ Stream_Module_SplitterH_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::~Stream_Module_SplitterH_T"));
 
-  if (currentBuffer_)
-    currentBuffer_->release ();
+  if (buffer_)
+    buffer_->release ();
 }
 
 template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -256,6 +266,8 @@ Stream_Module_SplitterH_T<LockType,
                           SessionMessageType,
                           ProtocolMessageType,
                           ConfigurationType,
+                          StreamControlType,
+                          StreamNotificationType,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
@@ -270,14 +282,14 @@ Stream_Module_SplitterH_T<LockType,
   ACE_ASSERT (configuration_);
 
   ACE_Message_Block* message_block_p = NULL;
-  if (!currentBuffer_)
+  if (!buffer_)
   {
-    currentBuffer_ = message_inout;
-    message_block_p = currentBuffer_;
+    buffer_ = message_inout;
+    message_block_p = buffer_;
   } // end IF
   else
   {
-    message_block_p = currentBuffer_;
+    message_block_p = buffer_;
     while (message_block_p->cont ())
       message_block_p = message_block_p->cont ();
     message_block_p->cont (message_inout);
@@ -288,7 +300,7 @@ Stream_Module_SplitterH_T<LockType,
 continue_:
   // message_block_p points at the trailing fragment
 
-  unsigned int total_length = currentBuffer_->total_length ();
+  unsigned int total_length = buffer_->total_length ();
   // *TODO*: remove type inference
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
@@ -335,14 +347,14 @@ continue_:
 
     message_block_p->reset ();
     message_block_p->wr_ptr (message_block_2->rd_ptr ());
-    message_block_p = currentBuffer_;
+    message_block_p = buffer_;
 
-    currentBuffer_ = message_block_2;
+    buffer_ = message_block_2;
   } // end IF
   else
   {
-    message_block_p = currentBuffer_;
-    currentBuffer_ = NULL;
+    message_block_p = buffer_;
+    buffer_ = NULL;
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -366,11 +378,11 @@ continue_:
 
     return;
   } // end IF
-  message_block_p = currentBuffer_;
+  message_block_p = buffer_;
 
   // *NOTE*: more than one frame may have been received
   //         --> split again ?
-  if (currentBuffer_)
+  if (buffer_)
     goto continue_;
 }
 
@@ -378,6 +390,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -387,6 +401,8 @@ Stream_Module_SplitterH_T<LockType,
                           SessionMessageType,
                           ProtocolMessageType,
                           ConfigurationType,
+                          StreamControlType,
+                          StreamNotificationType,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
@@ -406,7 +422,7 @@ Stream_Module_SplitterH_T<LockType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
 //      ACE_ASSERT (inherited::sessionData_);
 
@@ -415,7 +431,7 @@ Stream_Module_SplitterH_T<LockType,
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     default:
       break;
   } // end SWITCH
@@ -425,6 +441,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -434,6 +452,8 @@ Stream_Module_SplitterH_T<LockType,
                           SessionMessageType,
                           ProtocolMessageType,
                           ConfigurationType,
+                          StreamControlType,
+                          StreamNotificationType,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
@@ -493,6 +513,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -502,6 +524,8 @@ Stream_Module_SplitterH_T<LockType,
                           SessionMessageType,
                           ProtocolMessageType,
                           ConfigurationType,
+                          StreamControlType,
+                          StreamNotificationType,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
@@ -515,10 +539,10 @@ Stream_Module_SplitterH_T<LockType,
   {
     configuration_ = NULL;
 
-    if (currentBuffer_)
+    if (buffer_)
     {
-      currentBuffer_->release ();
-      currentBuffer_ = NULL;
+      buffer_->release ();
+      buffer_ = NULL;
     } // end IF
   } // end IF
 

@@ -34,9 +34,9 @@
 
 template <typename SessionMessageType,
           typename MessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ModuleHandlerConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType>
 class Stream_Module_FileWriter_T
  : public Stream_TaskBaseAsynch_T<Common_TimePolicy_t,
@@ -78,39 +78,45 @@ class Stream_Module_FileWriter_T
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename LockType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename TaskSynchType,
           typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
-          ///////////////////////////////
+          ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Module_FileWriterH_T
  : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       TaskSynchType,
                                       TimePolicyType,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_FileWriterH_T ();
+  Stream_Module_FileWriterH_T (LockType* = NULL, // lock handle (state machine)
+                               ///////////
+                               bool = false);    // auto-start ?
   virtual ~Stream_Module_FileWriterH_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -121,6 +127,8 @@ class Stream_Module_FileWriterH_T
                                     SessionMessageType,
                                     ProtocolMessageType,
                                     ConfigurationType,
+                                    StreamControlType,
+                                    StreamNotificationType,
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
@@ -143,27 +151,29 @@ class Stream_Module_FileWriterH_T
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       TaskSynchType,
                                       TimePolicyType,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T (const Stream_Module_FileWriterH_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriterH_T& operator= (const Stream_Module_FileWriterH_T&))
 
   // convenience types
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> STATISTICHANDLER_T;
-  //typedef IRC_Client_SessionData SESSIONDATA_T;
 
   // helper methods
   bool putStatisticMessage (const StatisticContainerType&) const;

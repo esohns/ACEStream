@@ -56,7 +56,7 @@ Stream_MessageQueue::flushData ()
   int result_2 = -1;
   while (message_block_p)
   {
-    if (message_block_p->msg_type () > STREAM_MESSAGE_MAP_2)
+    if (message_block_p->msg_type () & STREAM_MESSAGE_DATA_MASK)
     {
       // remove this block
       if (message_block_p == inherited::head_)

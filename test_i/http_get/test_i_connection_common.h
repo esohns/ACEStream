@@ -62,36 +62,38 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  Test_I_Configuration,
                                  Test_I_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 ////////
+                                 /////////
                                  Test_I_UserData> Test_I_Stream_InetConnectionManager_t;
 struct Test_I_Stream_SocketHandlerConfiguration;
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      ///
+                                      ////
+                                      int,
+                                      int,
                                       Stream_StateMachine_ControlState,
                                       Test_I_Stream_State,
-                                      ///
+                                      ////
                                       Test_I_Stream_Configuration,
-                                      ///
+                                      ////
                                       Test_I_RuntimeStatistic_t,
-                                      ///
+                                      ////
                                       Stream_ModuleConfiguration,
                                       Test_I_Stream_ModuleHandlerConfiguration,
-                                      ///
+                                      ////
                                       Test_I_Stream_SessionData,   // session data
                                       Test_I_Stream_SessionData_t, // session data container (reference counted)
                                       Test_I_Stream_SessionMessage,
                                       Test_I_Stream_Message,
-                                      ///
+                                      ////
                                       ACE_INET_Addr,
                                       Test_I_Stream_InetConnectionManager_t> Test_I_NetStream_t;
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 struct Test_I_ConnectionState
 {
@@ -112,14 +114,14 @@ struct Test_I_ConnectionState
   Test_I_UserData*          userData;
 };
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 typedef Net_IConnection_T<ACE_INET_Addr,
                           Test_I_Configuration,
                           Test_I_ConnectionState,
                           Test_I_RuntimeStatistic_t> Test_I_IConnection_t;
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 // outbound
 typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration,

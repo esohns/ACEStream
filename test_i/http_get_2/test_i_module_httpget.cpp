@@ -125,7 +125,7 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
 
   switch (message_inout->type ())
   {
-  case STREAM_SESSION_BEGIN:
+  case STREAM_SESSION_MESSAGE_BEGIN:
   {
     // sanity check(s)
     ACE_ASSERT (!inherited::sessionData_);
@@ -198,7 +198,7 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
 
     break;
   }
-  case STREAM_SESSION_END:
+  case STREAM_SESSION_MESSAGE_END:
   {
     if (inherited::sessionData_)
     {

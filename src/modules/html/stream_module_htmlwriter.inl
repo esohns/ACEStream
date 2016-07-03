@@ -84,7 +84,7 @@ Stream_Module_HTMLWriter_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       ACE_ASSERT (!document_);
       document_ = htmlNewDocNoDtD (NULL,  // URI
@@ -103,7 +103,7 @@ Stream_Module_HTMLWriter_T<SessionMessageType,
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       // sanity check(s)
       if (!document_) break; // nothing to do

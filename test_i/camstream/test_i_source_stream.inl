@@ -49,7 +49,7 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Test_I_Source_Stream_T"));
 
-  // remember the "owned" ones...
+  // remember the 'used' ones
   // *TODO*: clean this up
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
@@ -57,8 +57,8 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
   inherited::modules_.push_front (&source_);
   inherited::modules_.push_front (&runtimeStatistic_);
   inherited::modules_.push_front (&netTarget_);
-  inherited::modules_.push_front (&display_);
-  //inherited::modules_.push_front (&displayNull_);
+//  inherited::modules_.push_front (&display_);
+//  inherited::modules_.push_front (&displayNull_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -405,7 +405,17 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (!isRunning ());
+  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
+
+  // *TODO*: remove type inference
+  if (configuration_in.moduleHandlerConfiguration->window)
+    inherited::modules_.push_front (&display_);
+  else
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    inherited::modules_.push_front (&displayNull_);
+#endif
+  } // end ELSE
 
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in,
@@ -428,33 +438,60 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   // ---------------------------------------------------------------------------
   // sanity check(s)
   ACE_ASSERT (configuration_in.moduleConfiguration);
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   // ---------------------------------------------------------------------------
 
   Test_I_Source_Stream_Module_Display* display_impl_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Source_Stream_Module_DisplayNull* displayNull_impl_p = NULL;
+#endif
   WRITER_T* netTarget_impl_p = NULL;
   Test_I_Source_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Stream_Module_CamSource* source_impl_p = NULL;
   //Test_I_Source_Stream_SessionData* session_data_p = NULL;
 
   // ******************* Display ************************
-  display_.initialize (*configuration_in.moduleConfiguration);
-  display_impl_p =
-    dynamic_cast<Test_I_Source_Stream_Module_Display*> (display_.writer ());
-  if (!display_impl_p)
+  // *TODO*: remove type inference
+  if (configuration_in.moduleHandlerConfiguration->window)
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_Display> failed, aborting\n")));
-    return false;
+    display_.initialize (*configuration_in.moduleConfiguration);
+    display_impl_p =
+        dynamic_cast<Test_I_Source_Stream_Module_Display*> (display_.writer ());
+    if (!display_impl_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_Display> failed, aborting\n")));
+      return false;
+    } // end IF
+    if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+                  display_.name ()));
+      return false;
+    } // end IF
   } // end IF
-  if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  else
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                display_.name ()));
-    return false;
-  } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    displayNull_.initialize (*configuration_in.moduleConfiguration);
+    displayNull_impl_p =
+        dynamic_cast<Test_I_Source_Stream_Module_DisplayNull*> (displayNull_.writer ());
+    if (!displayNull_impl_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_DisplayNull> failed, aborting\n")));
+      return false;
+    } // end IF
+    if (!displayNull_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+                  displayNull_.name ()));
+      return false;
+    } // end IF
+#endif
+  } // end ELSE
 
   // ******************* Net Target ************************
   netTarget_.initialize (*configuration_in.moduleConfiguration);

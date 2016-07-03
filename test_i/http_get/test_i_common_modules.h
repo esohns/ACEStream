@@ -46,20 +46,32 @@
 // declare module(s)
 typedef Stream_Module_Net_IOReader_T<Test_I_Stream_SessionMessage,
                                      Test_I_Stream_Message,
+                                     /////
                                      Test_I_Configuration,
+                                     /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
+                                     /////
                                      Test_I_Stream_SessionData,
                                      Test_I_Stream_SessionData_t,
+                                     /////
                                      ACE_INET_Addr,
                                      Test_I_Stream_InetConnectionManager_t> Test_I_Stream_Net_Reader_t;
 typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_MUTEX,
+                                     /////
                                      Test_I_Stream_SessionMessage,
                                      Test_I_Stream_Message,
+                                     /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
+                                     /////
+                                     int,
+                                     int,
                                      Test_I_Stream_State,
+                                     /////
                                      Test_I_Stream_SessionData,
                                      Test_I_Stream_SessionData_t,
+                                     /////
                                      Test_I_RuntimeStatistic_t,
+                                     /////
                                      ACE_INET_Addr,
                                      Test_I_Stream_InetConnectionManager_t> Test_I_Stream_Net_Writer_t;
 DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task synch type
@@ -138,9 +150,9 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task 
 
 typedef Stream_Module_FileWriter_T<Test_I_Stream_SessionMessage,
                                    Test_I_Stream_Message,
-                                   //////
+                                   ///////
                                    Test_I_Stream_ModuleHandlerConfiguration,
-                                   //////
+                                   ///////
                                    Test_I_Stream_SessionData> Test_I_Stream_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
                               Common_TimePolicy_t,                      // time policy

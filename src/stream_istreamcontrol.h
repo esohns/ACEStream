@@ -30,23 +30,18 @@
 //#include "common_iget.h"
 #include "common_time_common.h"
 
-#include "stream_common.h"
+// forward declarations
+typedef ACE_Module<ACE_MT_SYNCH,
+                   Common_TimePolicy_t> Stream_Module_t;
+typedef ACE_Stream<ACE_MT_SYNCH,
+                   Common_TimePolicy_t> Stream_Base_t;
 
-//// forward declarations
-//typedef ACE_Stream<ACE_MT_SYNCH,
-//                   Common_TimePolicy_t> Stream_Base_t;
-
-template <typename StatusType,
-          typename StateType>
-class Stream_IStreamControl_T
+class Stream_IStreamControlBase
  : public Common_IControl
-// , public Common_IGet_T<StateType>
 {
  public:
-  inline virtual ~Stream_IStreamControl_T () {};
+  inline virtual ~Stream_IStreamControlBase () {};
 
-  virtual void control (Stream_ControlType, // control type
-                        bool = false) = 0;  // forward upstream ?
   // *NOTE*: flush the pipeline, releasing any data
   // *NOTE*: session messages are not flushed, if all modules implement
   //         Stream_IMessageQueue
@@ -55,7 +50,6 @@ class Stream_IStreamControl_T
                       bool = false) = 0; // flush upstream (if any) ?
   virtual void pause () = 0;
   virtual void rewind () = 0;
-  virtual StatusType status () const = 0;
   // *NOTE*: wait for all data queues to drain
   virtual void waitForCompletion (bool = true,       // wait for any worker thread(s) ?
                                   bool = false) = 0; // wait for upstream (if any) ?
@@ -64,12 +58,34 @@ class Stream_IStreamControl_T
 
   virtual Stream_Module_t* find (const std::string&) const = 0; // module name
   virtual std::string name () const = 0;
-  virtual const StateType& state () const = 0;
 
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_ from child classes
   //         --> use this API to set/retrieve upstream (if any)
   virtual void upStream (Stream_Base_t*) = 0;
   virtual Stream_Base_t* upStream () const = 0;
+};
+
+template <typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType>
+class Stream_IStreamControl_T
+ : public Stream_IStreamControlBase
+// , public Common_IGet_T<StateType>
+{
+ public:
+  inline virtual ~Stream_IStreamControl_T () {};
+
+  // *NOTE*: enqeues a control message
+  virtual void control (ControlType,       // control type
+                        bool = false) = 0; // forward upstream ?
+  // *NOTE*: enqeues a session message
+  virtual void notify (NotificationType,  // session message type
+                       bool = false) = 0; // forward upstream ?
+
+  virtual const StateType& state () const = 0;
+
+  virtual StatusType status () const = 0;
 };
 
 #endif

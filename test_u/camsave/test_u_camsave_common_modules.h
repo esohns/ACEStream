@@ -82,6 +82,8 @@ typedef Stream_Module_CamSource_V4L_T<ACE_SYNCH_MUTEX,
                                       ////
                                       Stream_CamSave_ModuleHandlerConfiguration,
                                       ////
+                                      int,
+                                      int,
                                       Stream_State,
                                       ////
                                       Stream_CamSave_SessionData,
@@ -192,9 +194,9 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task
 
 typedef Stream_Module_FileWriter_T<Stream_CamSave_SessionMessage,
                                    Stream_CamSave_Message,
-                                   //////
+                                   ///////
                                    Stream_CamSave_ModuleHandlerConfiguration,
-                                   //////
+                                   ///////
                                    Stream_CamSave_SessionData> Stream_CamSave_Module_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task synch type
                               Common_TimePolicy_t,                       // time policy

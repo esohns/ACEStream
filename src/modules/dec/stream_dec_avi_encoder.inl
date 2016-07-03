@@ -469,7 +469,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (!sessionData_);
@@ -668,7 +668,7 @@ continue_:
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       // sanity check(s)
       ACE_ASSERT (sessionData_);

@@ -68,17 +68,10 @@ class Stream_Module_Splitter_T
                                  SessionMessageType,
                                  MessageType> inherited;
 
-  //typedef Stream_Module_Splitter_T<SessionMessageType,
-  //                             MessageType,
-  //                             ///////////
-  //                             ConfigurationType,
-  //                             ///////////
-  //                             SessionDataType> OWN_TYPE_T;
-
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T (const Stream_Module_Splitter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T& operator= (const Stream_Module_Splitter_T&))
 
-  ACE_Message_Block* currentBuffer_;
+  ACE_Message_Block* buffer_;
 };
 
 //////////////////////////////////////////
@@ -90,6 +83,8 @@ template <typename LockType,
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           ////////////////////////////////
           typename SessionDataType,          // session data
@@ -106,6 +101,8 @@ class Stream_Module_SplitterH_T
                                       ////
                                       ConfigurationType,
                                       ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
                                       ////
                                       SessionDataType,
@@ -127,6 +124,8 @@ class Stream_Module_SplitterH_T
                                     SessionMessageType,
                                     ProtocolMessageType,
                                     ConfigurationType,
+                                    StreamControlType,
+                                    StreamNotificationType,
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
@@ -159,6 +158,8 @@ class Stream_Module_SplitterH_T
                                       ////
                                       ConfigurationType,
                                       ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
                                       ////
                                       SessionDataType,
@@ -174,8 +175,7 @@ class Stream_Module_SplitterH_T
   // helper methods
   //bool putStatisticMessage (const StatisticContainerType&) const; // statistics info
 
-  ACE_Message_Block* currentBuffer_;
-  //bool               isInitialized_;
+  ACE_Message_Block* buffer_;
 };
 
 // include template defintion

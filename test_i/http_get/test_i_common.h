@@ -155,15 +155,15 @@ typedef Test_I_DataSets_t::const_iterator Test_I_DataSetsIterator_t;
 enum Test_I_SAXParserState
 {
   SAXPARSER_STATE_INVALID = -1,
-  /////////////////////////////////////
+  ////////////////////////////////////////
   SAXPARSER_STATE_IN_HEAD = 0,
   SAXPARSER_STATE_IN_HTML,
   SAXPARSER_STATE_IN_BODY,
-  /////////////////////////////////////
+  ////////////////////////////////////////
   SAXPARSER_STATE_READ_DATE,
   SAXPARSER_STATE_READ_DESCRIPTION,
   SAXPARSER_STATE_READ_TITLE,
-  /////////////////////////////////////
+  ////////////////////////////////////////
   SAXPARSER_STATE_READ_ITEM,
   SAXPARSER_STATE_READ_ITEMS
 };
@@ -243,7 +243,7 @@ struct Test_I_Stream_SocketHandlerConfiguration
 {
   inline Test_I_Stream_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
-   ////////////////////////////////////
+   ///////////////////////////////////////
    , userData (NULL)
   {};
 
@@ -253,20 +253,22 @@ struct Test_I_Stream_SocketHandlerConfiguration
 // forward declarations
 struct Test_I_Configuration;
 typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                      ///////////////////
+                      ////////////////////
                       ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      ///////////////////
+                      ////////////////////
+                      int,
+                      int,
                       Stream_StateMachine_ControlState,
                       Test_I_Stream_State,
-                      ///////////////////
+                      ////////////////////
                       Test_I_Stream_Configuration,
-                      ///////////////////
+                      ////////////////////
                       Test_I_RuntimeStatistic_t,
-                      ///////////////////
+                      ////////////////////
                       Stream_ModuleConfiguration,
                       Test_I_Stream_ModuleHandlerConfiguration,
-                      ///////////////////
+                      ////////////////////
                       Test_I_Stream_SessionData,   // session data
                       Test_I_Stream_SessionData_t, // session data container (reference counted)
                       Test_I_Stream_SessionMessage,

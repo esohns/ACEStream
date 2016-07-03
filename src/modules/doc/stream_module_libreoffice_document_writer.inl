@@ -130,7 +130,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
       const_cast<SessionDataType&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (configuration_->socketConfiguration);
@@ -263,7 +263,7 @@ error:
 
       return;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       // *TODO*: ::lang::XComponent::dispose crashes the application
       if (component_.is ())

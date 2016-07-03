@@ -150,10 +150,11 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   //         of a session
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
-    case STREAM_SESSION_STEP:
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    case STREAM_SESSION_MESSAGE_LINK:
+    case STREAM_SESSION_MESSAGE_STEP:
       break;
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       try
       {
@@ -172,11 +173,8 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
       break;
     }
-    case STREAM_SESSION_STATISTIC:
+    case STREAM_SESSION_MESSAGE_STATISTIC:
       break;
-    case STREAM_SESSION_MESSAGE_MAP:
-    case STREAM_SESSION_INVALID:
-    case STREAM_SESSION_MAX:
     default:
     {
       ACE_DEBUG ((LM_WARNING,
@@ -439,7 +437,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
       // *NOTE*: if this was a Stream_SessionMessage::SESSION_END, stop
       //         processing (see above) !
-      if (session_message_type == STREAM_SESSION_END)
+      if (session_message_type == STREAM_SESSION_MESSAGE_END)
         stopProcessing_out = true;
 
       break;

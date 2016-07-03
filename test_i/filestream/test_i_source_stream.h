@@ -45,20 +45,22 @@ class Stream_IAllocator;
 template <typename ConnectorType>
 class Test_I_Source_Stream_T
  : public Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
+                        //////////////////
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        /////////////////
+                        //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
-                        /////////////////
+                        //////////////////
                         Test_I_Source_Stream_Configuration,
-                        /////////////////
+                        //////////////////
                         Test_I_RuntimeStatistic_t,
-                        /////////////////
+                        //////////////////
                         Stream_ModuleConfiguration,
                         Test_I_Source_ModuleHandlerConfiguration,
-                        /////////////////
+                        //////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
                         Test_I_Stream_SessionMessage,
@@ -83,32 +85,34 @@ class Test_I_Source_Stream_T
 
  private:
   typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                        /////////////////
+                        //////////////////
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        /////////////////
+                        //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
-                        /////////////////
+                        //////////////////
                         Test_I_Source_Stream_Configuration,
-                        /////////////////
+                        //////////////////
                         Test_I_RuntimeStatistic_t,
-                        /////////////////
+                        //////////////////
                         Stream_ModuleConfiguration,
                         Test_I_Source_ModuleHandlerConfiguration,
-                        /////////////////
+                        //////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
                         Test_I_Stream_SessionMessage,
                         Test_I_Stream_Message> inherited;
   typedef Stream_Module_Net_Target_T<Test_I_Stream_SessionMessage,
                                      Test_I_Stream_Message,
-                                     ////
+                                     /////
                                      Test_I_Source_ModuleHandlerConfiguration,
-                                     ////
+                                     /////
                                      Test_I_Stream_SessionData,
                                      Test_I_Stream_SessionData_t,
-                                     ////
+                                     /////
                                      Test_I_Source_InetConnectionManager_t,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                             // task synch type
@@ -130,7 +134,7 @@ class Test_I_Source_Stream_T
 // include template definition
 #include "test_i_source_stream.inl"
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 typedef Test_I_Source_Stream_T<Test_I_Source_TCPConnector_t> Test_I_Source_TCPStream_t;
 typedef Test_I_Source_Stream_T<Test_I_Source_TCPAsynchConnector_t> Test_I_Source_AsynchTCPStream_t;

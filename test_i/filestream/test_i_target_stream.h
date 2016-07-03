@@ -46,6 +46,8 @@ class Test_I_Target_Stream
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
                         //////////////////
@@ -84,6 +86,8 @@ class Test_I_Target_Stream
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         //////////////////
+                        int,
+                        int,
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
                         //////////////////

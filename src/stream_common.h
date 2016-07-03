@@ -40,47 +40,63 @@
 enum Stream_MessageType : int
 {
   // *NOTE*: see "ace/Message_Block.h" for details
-  STREAM_MESSAGE_MAP   = ACE_Message_Block::MB_USER, // session (== 0x200)
-  // *** control ***
+  STREAM_MESSAGE_MASK         = ACE_Message_Block::MB_USER, // == 0x200
+  STREAM_MESSAGE_CONTROL,
   STREAM_MESSAGE_SESSION,
-  // *** control - END ***
-  STREAM_MESSAGE_MAP_2 = 0x300,                      // data
+  ////////////////////////////////////////
+  STREAM_MESSAGE_DATA_MASK    = 0x400,                      // data
   // *** data ***
-  STREAM_MESSAGE_DATA,                               // protocol data
-  STREAM_MESSAGE_OBJECT,                             // (OO) message object type (--> dynamic type)
+  STREAM_MESSAGE_DATA,                                      // data (raw)
+  STREAM_MESSAGE_OBJECT,                                    // data (dynamic type)
   // *** data - END ***
-  STREAM_MESSAGE_MAP_3 = 0x400,                      // protocol
-  // *** protocol ***
-  // *** protocol - END ***
-  ///////////////////////////////////////
+  STREAM_MESSAGE_PROTCOL_MASK = 0x800,                      // protocol
+  ////////////////////////////////////////
   STREAM_MESSAGE_MAX,
   STREAM_MESSAGE_INVALID
 };
 
-enum Stream_SessionMessageType
+enum Stream_ControlMessageType : int
 {
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
-  STREAM_SESSION_MESSAGE_MAP = ACE_Message_Block::MB_USER + 1,
+  STREAM_CONTROL_MESSAGE_MASK      = ACE_Message_Block::MB_USER, // == 0x200
   // *** control ***
-  STREAM_SESSION_BEGIN,
-  STREAM_SESSION_LINK,
-  STREAM_SESSION_STEP,
-  STREAM_SESSION_END,
+  STREAM_CONTROL_MESSAGE_FLUSH,
   // *** control - END ***
-  // *** data ***
-  STREAM_SESSION_STATISTIC,
-  // *** data - END ***
-  ///////////////////////////////////////
-  STREAM_SESSION_MAX,
-  STREAM_SESSION_INVALID
+  ////////////////////////////////////////
+  STREAM_CONTROL_MESSAGE_USER_MASK = 0x400, // user-defined message mask
+  ////////////////////////////////////////
+  STREAM_CONTROL_MESSAGE_MAX,
+  STREAM_CONTROL_MESSAGE_INVALID
 };
 
-enum Stream_ControlType
+enum Stream_SessionMessageType : int
+{
+  // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
+  STREAM_SESSION_MESSAGE_MASK      = ACE_Message_Block::MB_USER, // == 0x200
+  // *** notification ***
+  STREAM_SESSION_MESSAGE_BEGIN,
+  STREAM_SESSION_MESSAGE_LINK,
+  STREAM_SESSION_MESSAGE_STEP,
+  STREAM_SESSION_MESSAGE_END,
+  // *** notification - END ***
+  // *** data ***
+  STREAM_SESSION_MESSAGE_STATISTIC,
+  // *** data - END ***
+  ////////////////////////////////////////
+  STREAM_SESSION_MESSAGE_USER_MASK = 0x400, // user-defined message mask
+  ////////////////////////////////////////
+  STREAM_SESSION_MESSAGE_MAX,
+  STREAM_SESSION_MESSAGE_INVALID
+};
+
+enum Stream_ControlType : int
 {
   STREAM_CONTROL_LINK = 0,
   STREAM_CONTROL_STEP,
   STREAM_CONTROL_UNLINK,
-  ///////////////////////////////////////
+  ////////////////////////////////////////
+  STREAM_CONTROL_USER_MASK = 0x200, // user-defined message mask
+  ////////////////////////////////////////
   STREAM_CONTROL_MAX,
   STREAM_CONTROL_INVALID
 };

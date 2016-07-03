@@ -280,7 +280,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (!sessionData_);
@@ -318,7 +318,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 
       break;
     }
-    case STREAM_SESSION_STATISTIC:
+    case STREAM_SESSION_MESSAGE_STATISTIC:
     {
       // *NOTE*: in some scenarios, the reset timer generates statistic session
       //         messages (see reset()). In this case, the session data has
@@ -351,7 +351,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       // stop (reporting) timer(s) --> need to re-initialize after this
       finiTimers (true);
@@ -751,7 +751,7 @@ allocate:
     // *TODO*: remove type inference
     // *IMPORTANT NOTE*: fire-and-forget session_data_container_p
     ACE_NEW_NORETURN (session_message_p,
-                      SessionMessageType (STREAM_SESSION_STATISTIC,
+                      SessionMessageType (STREAM_SESSION_MESSAGE_STATISTIC,
                                           session_data_container_p,
                                           (session_data_p ? session_data_p->userData
                                                           : NULL)));
@@ -777,7 +777,7 @@ allocate:
   {
     // *TODO*: remove type inference
     // *IMPORTANT NOTE*: fire-and-forget session_data_container_p
-    session_message_p->initialize (STREAM_SESSION_STATISTIC,
+    session_message_p->initialize (STREAM_SESSION_MESSAGE_STATISTIC,
                                    session_data_container_p,
                                    (session_data_p ? session_data_p->userData
                                                    : NULL));

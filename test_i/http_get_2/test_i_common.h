@@ -174,16 +174,16 @@ typedef Test_I_StockRecords_t::const_iterator Test_I_StockRecordsIterator_t;
 enum Test_I_SAXParserState
 {
   SAXPARSER_STATE_INVALID = -1,
-  /////////////////////////////////////
+  ////////////////////////////////////////
   SAXPARSER_STATE_IN_HTML = 0,
-  /////////////////////////////////////
+  ////////////////////////////////////////
   SAXPARSER_STATE_IN_HEAD,
   SAXPARSER_STATE_IN_BODY,
-  /////////////////////////////////////
+  ////////////////////////////////////////
   //SAXPARSER_STATE_IN_HEAD_TITLE,
-  /////////////////////////////////////
+  ////////////////////////////////////////
   SAXPARSER_STATE_IN_BODY_DIV_CONTENT,
-  /////////////////////////////////////
+  ////////////////////////////////////////
   SAXPARSER_STATE_READ_CHANGE,
   SAXPARSER_STATE_READ_DATE,
   SAXPARSER_STATE_READ_ISIN_WKN,
@@ -261,7 +261,7 @@ struct Test_I_Stream_SocketHandlerConfiguration
 {
   inline Test_I_Stream_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
-   ////////////////////////////////////
+   ///////////////////////////////////////
    , userData (NULL)
   {};
 
@@ -271,20 +271,22 @@ struct Test_I_Stream_SocketHandlerConfiguration
 // forward declarations
 struct Test_I_Configuration;
 typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                      ///////////////////
+                      ////////////////////
                       ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      ///////////////////
+                      ////////////////////
+                      int,
+                      int,
                       Stream_StateMachine_ControlState,
                       Test_I_Stream_State,
-                      ///////////////////
+                      ////////////////////
                       Test_I_Stream_Configuration,
-                      ///////////////////
+                      ////////////////////
                       Test_I_RuntimeStatistic_t,
-                      ///////////////////
+                      ////////////////////
                       Stream_ModuleConfiguration,
                       Test_I_Stream_ModuleHandlerConfiguration,
-                      ///////////////////
+                      ////////////////////
                       Test_I_Stream_SessionData,   // session data
                       Test_I_Stream_SessionData_t, // session data container (reference counted)
                       Test_I_Stream_SessionMessage,

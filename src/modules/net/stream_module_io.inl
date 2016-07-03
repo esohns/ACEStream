@@ -36,6 +36,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -46,6 +48,8 @@ Stream_Module_Net_IOWriter_T<LockType,
                              SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
+                             StreamControlType,
+                             StreamNotificationType,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
@@ -66,6 +70,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -76,6 +82,8 @@ Stream_Module_Net_IOWriter_T<LockType,
                              SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
+                             StreamControlType,
+                             StreamNotificationType,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
@@ -130,6 +138,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -141,6 +151,8 @@ Stream_Module_Net_IOWriter_T<LockType,
                              SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
+                             StreamControlType,
+                             StreamNotificationType,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
@@ -182,6 +194,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -193,6 +207,8 @@ Stream_Module_Net_IOWriter_T<LockType,
                              SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
+                             StreamControlType,
+                             StreamNotificationType,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
@@ -248,6 +264,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -259,6 +277,8 @@ Stream_Module_Net_IOWriter_T<LockType,
                              SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
+                             StreamControlType,
+                             StreamNotificationType,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
@@ -285,7 +305,7 @@ Stream_Module_Net_IOWriter_T<LockType,
   Stream_Queue_t* queue_p = NULL;
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       if (inherited::configuration_->streamConfiguration->statisticReportingInterval !=
           ACE_Time_Value::zero)
@@ -405,7 +425,7 @@ Stream_Module_Net_IOWriter_T<LockType,
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
@@ -497,10 +517,10 @@ Stream_Module_Net_IOWriter_T<LockType,
         //stream_p->finished ();
 
         // *NOTE*: there is a subtle race condition here. When the connection
-        //         aborts, the reactor stop()s the connections' stream (through
-        //         handle_close(), which eventually lands here (state switch).
-        //         waitForCompletion() will wait for upstream, which could
-        //         deadlock when upstream blocks on the mutex above
+        //         aborts, the pro/reactor finished() the connections' stream
+        //         (through handle_close(), which eventually lands here (state
+        //         switch). waitForCompletion() will wait for upstream, which
+        //         could deadlock when upstream blocks on the mutex above
         //         --> release the mutex while waiting for upstream; grab a
         //             reference to the connection so it does not go away early;
         //             recheck/release the connection_ handle on return
@@ -569,6 +589,8 @@ template <typename LockType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
           typename SessionDataType,
           typename SessionDataContainerType,
@@ -580,6 +602,8 @@ Stream_Module_Net_IOWriter_T<LockType,
                              SessionMessageType,
                              ProtocolMessageType,
                              ConfigurationType,
+                             StreamControlType,
+                             StreamNotificationType,
                              StreamStateType,
                              SessionDataType,
                              SessionDataContainerType,
@@ -950,7 +974,7 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (!connection_);
@@ -990,7 +1014,7 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       if (connection_)
       {

@@ -124,8 +124,8 @@ Stream_Filecopy_EventHandler::notify (unsigned int sessionID_in,
   ACE_ASSERT (CBData_);
 
   Stream_GTK_Event event =
-    ((sessionMessage_in.type () == STREAM_SESSION_STATISTIC) ? STREAM_GTKEVENT_STATISTIC
-                                                             : STREAM_GKTEVENT_INVALID);
+    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? STREAM_GTKEVENT_STATISTIC
+                                                                     : STREAM_GKTEVENT_INVALID);
 
   {
     ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);

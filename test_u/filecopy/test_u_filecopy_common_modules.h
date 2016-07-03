@@ -38,17 +38,19 @@
 
 // declare module(s)
 typedef Stream_Module_FileReader_T<ACE_SYNCH_MUTEX,
-                                   //////
+                                   ///////
                                    Stream_Filecopy_SessionMessage,
                                    Stream_Filecopy_Message,
-                                   //////
+                                   ///////
                                    Stream_Filecopy_ModuleHandlerConfiguration,
-                                   //////
+                                   ///////
+                                   int,
+                                   int,
                                    Stream_State,
-                                   //////
+                                   ///////
                                    Stream_Filecopy_SessionData,
                                    Stream_Filecopy_SessionData_t,
-                                   //////
+                                   ///////
                                    Stream_Statistic> Stream_Filecopy_Module_FileReader;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                               // task synch type
                               Common_TimePolicy_t,                        // time policy
@@ -82,9 +84,9 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                  // task
 
 typedef Stream_Module_FileWriter_T<Stream_Filecopy_SessionMessage,
                                    Stream_Filecopy_Message,
-                                   //////
+                                   ///////
                                    Stream_Filecopy_ModuleHandlerConfiguration,
-                                   //////
+                                   ///////
                                    Stream_Filecopy_SessionData> Stream_Filecopy_Module_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                               // task synch type
                               Common_TimePolicy_t,                        // time policy
