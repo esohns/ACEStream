@@ -217,7 +217,6 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , session (NULL)
    , windowController (NULL)
 #else
-   , bufferMap ()
    , buffers (MODULE_DEV_CAM_V4L_DEFAULT_DEVICE_BUFFERS)
    , fileDescriptor (-1)
    , format ()
@@ -229,6 +228,8 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+   , lock (NULL)
+   , pixelBuffer (NULL)
    , v4l2Window (NULL)
 #endif
    , window (NULL)
@@ -256,34 +257,35 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct tagRECT          area;
-  //IGraphBuilder*       builder;
-  //struct _AMMediaType* format;
-  IMFMediaType*           format;
-  TOPOID                  rendererNodeId;
-  TOPOID                  sampleGrabberNodeId;
-  IMFMediaSession*        session;
+  struct tagRECT             area;
+  //IGraphBuilder*           builder;
+  //struct _AMMediaType*     format;
+  IMFMediaType*              format;
+  TOPOID                     rendererNodeId;
+  TOPOID                     sampleGrabberNodeId;
+  IMFMediaSession*           session;
   //IVideoWindow*        windowController;
-  IMFVideoDisplayControl* windowController;
+  IMFVideoDisplayControl*    windowController;
 #else
-  GdkRectangle            area;
-  Stream_Module_Device_BufferMap_t bufferMap;
-  __u32                   buffers; // v4l device buffers
-  int                     fileDescriptor;
-  struct v4l2_format      format;
-  struct v4l2_fract       frameRate; // time-per-frame (s)
-  v4l2_memory             method; // v4l camera source
+  GdkRectangle               area;
+  __u32                      buffers; // v4l device buffers
+  int                        fileDescriptor;
+  struct v4l2_format         format;
+  struct v4l2_fract          frameRate; // time-per-frame (s)
+  v4l2_memory                method; // v4l camera source
 #endif
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
-  std::string             device;
-  ACE_Time_Value          statisticCollectionInterval;
-  std::string             targetFileName;
+  std::string                device;
+  ACE_Time_Value             statisticCollectionInterval;
+  std::string                targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                    window;
+  HWND                       window;
 #else
-  struct v4l2_window*     v4l2Window;
-  GdkWindow*              window;
+  ACE_SYNCH_RECURSIVE_MUTEX* lock;
+  GdkPixbuf*                 pixelBuffer;
+  struct v4l2_window*        v4l2Window;
+  GdkWindow*                 window;
 #endif
 };
 
@@ -371,6 +373,7 @@ struct Stream_CamSave_GTK_CBData
    : Stream_Test_U_GTK_CBData ()
    , configuration (NULL)
    , isFirst (true)
+   , pixelBuffer (NULL)
    , progressData ()
    , progressEventSourceID (0)
    , stream (NULL)
@@ -385,6 +388,7 @@ struct Stream_CamSave_GTK_CBData
 
   Stream_CamSave_Configuration*   configuration;
   bool                            isFirst; // first activation ?
+  GdkPixbuf*                      pixelBuffer;
   Stream_CamSave_GTK_ProgressData progressData;
   guint                           progressEventSourceID;
   Stream_CamSave_Stream*          stream;

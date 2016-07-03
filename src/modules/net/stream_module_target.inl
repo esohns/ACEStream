@@ -178,7 +178,6 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
-  ACE_ASSERT (message_inout);
 
   switch (message_inout->type ())
   {
@@ -596,6 +595,25 @@ close:
         sessionData_->decrease ();
         sessionData_ = NULL;
       } // end IF
+
+      break;
+    }
+    case NET_STREAM_SESSION_MESSAGE_CLOSE:
+    {
+      SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (sessionData_->get ());
+
+      // sanity check(s)
+      ACE_ASSERT (connection_);
+
+      // check whether the connection is still active
+      Net_Connection_Status status = connection_->status ();
+      if (status == NET_CONNECTION_STATUS_PEER_CLOSED)
+      {
+        ACE_ASSERT (session_data_r.lock);
+        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_r.lock);
+        session_data_r.aborted = true;
+      } // end lock scope
 
       break;
     }

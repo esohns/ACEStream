@@ -36,7 +36,7 @@
 #include "stream_vis_target_direct3d.h"
 #else
 #include "stream_dev_cam_source_v4l.h"
-#include "stream_vis_gtk_drawingarea.h"
+#include "stream_vis_gtk_cairo.h"
 #endif
 #include "stream_dec_avi_encoder.h"
 #include "stream_file_sink.h"
@@ -171,13 +171,13 @@ typedef Stream_Vis_Target_Direct3D_T<Stream_CamSave_SessionMessage,
                                      Stream_CamSave_SessionData,
                                      Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
 #else
-typedef Stream_Module_Vis_GTK_DrawingArea_T<Stream_CamSave_SessionMessage,
-                                            Stream_CamSave_Message,
-
-                                            Stream_CamSave_ModuleHandlerConfiguration,
-
-                                            Stream_CamSave_SessionData,
-                                            Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
+typedef Stream_Module_Vis_GTK_Cairo_T<Stream_CamSave_SessionMessage,
+                                      Stream_CamSave_Message,
+                                      ////
+                                      Stream_CamSave_ModuleHandlerConfiguration,
+                                      ////
+                                      Stream_CamSave_SessionData,
+                                      Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
 #endif
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task synch type
                               Common_TimePolicy_t,                       // time policy

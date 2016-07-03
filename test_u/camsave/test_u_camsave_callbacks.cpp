@@ -1175,19 +1175,22 @@ load_rates (int fd_in,
     frame_intervals.insert (frame_interval_description.discrete);
   } while (true);
 
+  std::ostringstream converter;
+  std::string frame_rate_string;
   GtkTreeIter iterator;
-  guint frame_rate = 0;
   for (std::set<v4l2_fract, less_fract>::const_iterator iterator_2 = frame_intervals.begin ();
        iterator_2 != frame_intervals.end ();
        ++iterator_2)
   {
-    frame_rate =
-        (((*iterator_2).numerator == 1) ? (*iterator_2).denominator
-                                        : static_cast<guint> (static_cast<float> ((*iterator_2).denominator) /
-                                                              static_cast<float> ((*iterator_2).numerator)));
+    converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+    converter.clear ();
+    converter << ((double)(*iterator_2).denominator /
+                  (double)(*iterator_2).numerator);
+    frame_rate_string = converter.str ();
+
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, frame_rate,
+                        0, frame_rate_string.c_str (),
                         1, (*iterator_2).numerator,
                         2, (*iterator_2).denominator,
                         -1);
@@ -1953,11 +1956,35 @@ idle_initialize_UI_cb (gpointer userData_in)
                       userData_in);
   ACE_ASSERT (result_2);
 
+  object_p =
+    gtk_builder_get_object ((*iterator).second.second,
+                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TEXTVIEW_NAME));
+  ACE_ASSERT (object_p);
   result_2 =
-    g_signal_connect (G_OBJECT (drawing_area_p),
-                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
-                      G_CALLBACK (drawingarea_configure_event_cb),
+    g_signal_connect (object_p,
+                      ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
+                      G_CALLBACK (textview_size_allocate_cb),
                       userData_in);
+  ACE_ASSERT (result_2);
+
+  //-------------------------------------
+
+  result_2 =
+      g_signal_connect (G_OBJECT (drawing_area_p),
+//                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+                        ACE_TEXT_ALWAYS_CHAR ("expose-event"),
+                        G_CALLBACK (drawingarea_draw_cb),
+                        userData_in);
+  ACE_ASSERT (result_2);
+  result_2 =
+//    g_signal_connect (G_OBJECT (drawing_area_p),
+//                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
+//                      G_CALLBACK (drawingarea_configure_event_cb),
+//                      userData_in);
+      g_signal_connect (G_OBJECT (drawing_area_p),
+                        ACE_TEXT_ALWAYS_CHAR ("size-allocate"),
+                        G_CALLBACK (drawingarea_size_allocate_cb),
+                        userData_in);
   ACE_ASSERT (result_2);
 
   //-------------------------------------
@@ -2021,16 +2048,17 @@ idle_initialize_UI_cb (gpointer userData_in)
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
 
-  // step10: retrieve window handle (and canvas coordinates)
+  // step10: retrieve canvas coordinates, window handle and pixel buffer
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  ACE_ASSERT (window_p);
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.window);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
   data_p->configuration->moduleHandlerConfiguration.window =
     //gdk_win32_window_get_impl_hwnd (window_p);
     static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
 #else
-  data_p->configuration->moduleHandlerConfiguration.window =
-    window_p;
+  data_p->configuration->moduleHandlerConfiguration.window = window_p;
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
@@ -2039,16 +2067,31 @@ idle_initialize_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   data_p->configuration->moduleHandlerConfiguration.area.bottom =
     allocation.y + allocation.height;
-  data_p->configuration->moduleHandlerConfiguration.area.left =
-    allocation.x;
+  data_p->configuration->moduleHandlerConfiguration.area.left = allocation.x;
   data_p->configuration->moduleHandlerConfiguration.area.right =
     allocation.x + allocation.width;
-  data_p->configuration->moduleHandlerConfiguration.area.top =
-    allocation.y;
+  data_p->configuration->moduleHandlerConfiguration.area.top = allocation.y;
 #else
-  data_p->configuration->moduleHandlerConfiguration.area =
-    allocation;
+  data_p->configuration->moduleHandlerConfiguration.area = allocation;
 #endif
+  ACE_ASSERT (!data_p->pixelBuffer);
+  data_p->pixelBuffer =
+      gdk_pixbuf_get_from_drawable (NULL,
+                                    GDK_DRAWABLE (window_p),
+                                    NULL,
+                                    0, 0,
+                                    0, 0, allocation.width, allocation.height);
+//      gdk_pixbuf_get_from_window (window_p,
+//                                  0, 0,
+//                                  allocation.width, allocation.height);
+  if (!data_p->pixelBuffer)
+  { // *NOTE*: most probable reason: window is not mapped
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_pixbuf_get_from_drawable(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
+      data_p->pixelBuffer;
 
   // step11: select default capture source (if any)
   //         --> populate the options comboboxes
@@ -2490,6 +2533,36 @@ idle_update_video_display_cb (gpointer userData_in)
 extern "C"
 {
 #endif /* __cplusplus */
+void
+textview_size_allocate_cb (GtkWidget* widget_in,
+                           GdkRectangle* rectangle_in,
+                           gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::textview_size_allocate_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (rectangle_in);
+  Stream_CamSave_GTK_CBData* data_p =
+      static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT(iterator != data_p->builders.end ());
+
+  GtkScrolledWindow* scrolled_window_p =
+    GTK_SCROLLED_WINDOW (gtk_builder_get_object ((*iterator).second.second,
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SCROLLEDWINDOW_NAME)));
+  ACE_ASSERT (scrolled_window_p);
+  GtkAdjustment* adjustment_p =
+    gtk_scrolled_window_get_vadjustment (scrolled_window_p);
+  ACE_ASSERT (adjustment_p);
+  gtk_adjustment_set_value (adjustment_p,
+                            adjustment_p->upper - adjustment_p->page_size);
+} // textview_size_allocate_cb
 
 void
 toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
@@ -3870,12 +3943,123 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #endif
 } // combobox_rate_changed_cb
 
-void
-drawingarea_configure_event_cb (GtkWindow* window_in,
-                                GdkEvent* event_in,
-                                gpointer userData_in)
+gboolean
+drawingarea_draw_cb (GtkWidget* widget_in,
+                     cairo_t* context_in,
+                     gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_event_cb"));
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
+
+//  ACE_UNUSED_ARG (widget_in);
+
+  // sanity check(s)
+  ACE_ASSERT (context_in);
+  ACE_ASSERT (userData_in);
+
+  Stream_CamSave_GTK_CBData* data_p =
+    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+  if (!data_p->pixelBuffer)
+    return FALSE; // --> widget has not been realized yet
+
+  GdkWindow* window_p = gtk_widget_get_window (widget_in);
+  ACE_ASSERT (window_p);
+  cairo_t* context_p = gdk_cairo_create (GDK_DRAWABLE (window_p));
+  if (!context_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+    return FALSE;
+  } // end IF
+  gdk_cairo_set_source_pixbuf (context_p,
+                               data_p->pixelBuffer,
+                               0.0, 0.0);
+
+  {
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+
+    cairo_paint (context_p);
+  } // end lock scope
+
+  // clean up
+  cairo_destroy (context_p);
+
+  return TRUE;
+}
+
+//void
+//drawingarea_configure_event_cb (GtkWindow* window_in,
+//                                GdkEvent* event_in,
+//                                gpointer userData_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_event_cb"));
+
+//  Stream_CamSave_GTK_CBData* data_p =
+//    static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
+
+//  // sanity check(s)
+//  ACE_ASSERT (data_p);
+//  ACE_ASSERT (data_p->configuration);
+
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  if (!data_p->configuration->moduleHandlerConfiguration.window          ||
+//      !data_p->configuration->moduleHandlerConfiguration.windowController) // <-- window not realized yet ?
+//    return;
+//#else
+//  if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
+//    return;
+//#endif
+
+//  Common_UI_GTKBuildersIterator_t iterator =
+//    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+//  // sanity check(s)
+//  ACE_ASSERT (iterator != data_p->builders.end ());
+
+//  GtkDrawingArea* drawing_area_p =
+//    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+//                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
+//  ACE_ASSERT (drawing_area_p);
+//  GtkAllocation allocation;
+//  ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
+//  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+//                             &allocation);
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  // sanity check(s)
+//  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.windowController);
+
+//  data_p->configuration->moduleHandlerConfiguration.area.bottom =
+//    allocation.height;
+//  data_p->configuration->moduleHandlerConfiguration.area.left =
+//    allocation.x;
+//  data_p->configuration->moduleHandlerConfiguration.area.right =
+//    allocation.width;
+//  data_p->configuration->moduleHandlerConfiguration.area.top =
+//    allocation.y;
+
+//  //HRESULT result =
+//  //  data_p->configuration->moduleHandlerConfiguration.windowController->SetWindowPosition (data_p->configuration->moduleHandlerConfiguration.area.left,
+//  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.top,
+//  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.right,
+//  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.bottom);
+//  //if (FAILED (result))
+//  //  ACE_DEBUG ((LM_ERROR,
+//  //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
+//  //              data_p->configuration->moduleHandlerConfiguration.area.left, data_p->configuration->moduleHandlerConfiguration.area.top,
+//  //              data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
+//  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//#else
+//  data_p->configuration->moduleHandlerConfiguration.area =
+//    allocation;
+//#endif
+//} // drawingarea_configure_event_cb
+void
+drawingarea_size_allocate_cb (GtkWidget* widget_in,
+                              GdkRectangle* allocation_in,
+                              gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_size_allocate_cb"));
 
   Stream_CamSave_GTK_CBData* data_p =
     static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
@@ -3884,31 +4068,21 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!data_p->configuration->moduleHandlerConfiguration.window          ||
-      !data_p->configuration->moduleHandlerConfiguration.windowController) // <-- window not realized yet ?
-    return;
-#else
   if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
     return;
-#endif
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   // sanity check(s)
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkDrawingArea* drawing_area_p =
-    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
-  ACE_ASSERT (drawing_area_p);
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
-  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+  gtk_widget_get_allocation (GTK_WIDGET (widget_in),
                              &allocation);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // sanity check(s)
-  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.windowController);
+  //// sanity check(s)
+  //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration->windowController);
 
   data_p->configuration->moduleHandlerConfiguration.area.bottom =
     allocation.height;
@@ -3920,10 +4094,10 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
     allocation.y;
 
   //HRESULT result =
-  //  data_p->configuration->moduleHandlerConfiguration.windowController->SetWindowPosition (data_p->configuration->moduleHandlerConfiguration.area.left,
-  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.top,
-  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.right,
-  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.bottom);
+  //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (data_p->configuration->moduleHandlerConfiguration.area.left,
+  //                                                                                         data_p->configuration->moduleHandlerConfiguration.area.top,
+  //                                                                                         data_p->configuration->moduleHandlerConfiguration.area.right,
+  //                                                                                         data_p->configuration->moduleHandlerConfiguration.area.bottom);
   //if (FAILED (result))
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to IVideoWindow::SetWindowPosition(%d,%d,%d,%d): \"%s\", continuing\n"),
@@ -3931,10 +4105,9 @@ drawingarea_configure_event_cb (GtkWindow* window_in,
   //              data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #else
-  data_p->configuration->moduleHandlerConfiguration.area =
-    allocation;
+  data_p->configuration->moduleHandlerConfiguration.area = allocation;
 #endif
-} // drawingarea_configure_event_cb
+} // drawingarea_size_allocate_cb
 
 void
 filechooserbutton_cb (GtkFileChooserButton* button_in,

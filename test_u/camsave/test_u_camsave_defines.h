@@ -60,6 +60,7 @@
 #define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_BASE            "#FFFFFF" // white
 #define TEST_U_STREAM_UI_GTK_PANGO_LOG_COLOR_TEXT            "#000000" // green
 #define TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME                "progressbar"
+#define TEST_U_STREAM_UI_GTK_SCROLLEDWINDOW_NAME             "scrolledwindow"
 #define TEST_U_STREAM_UI_GTK_SCROLLMARK_NAME                 "insert"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME      "spinbutton_buffersize"
 #define TEST_U_STREAM_UI_GTK_SPINBUTTON_CAPTUREDFRAMES_NAME  "spinbutton_captured_frames"

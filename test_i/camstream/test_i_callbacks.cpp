@@ -1819,7 +1819,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
-                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+//                        ACE_TEXT_ALWAYS_CHAR ("draw"),
+                        ACE_TEXT_ALWAYS_CHAR ("expose-event"),
                         G_CALLBACK (drawingarea_draw_cb),
                         userData_in);
   ACE_ASSERT (result_2);
@@ -1878,12 +1879,12 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
   GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  ACE_ASSERT (window_p);
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.window);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   data_p->configuration->moduleHandlerConfiguration.window =
     gdk_win32_window_get_impl_hwnd (window_p);
 #else
-  ACE_ASSERT (window_p);
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.window);
   data_p->configuration->moduleHandlerConfiguration.window = window_p;
 #endif
   GtkAllocation allocation;
@@ -1893,12 +1894,10 @@ idle_initialize_source_UI_cb (gpointer userData_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   data_p->configuration->moduleHandlerConfiguration.area.bottom =
     allocation.height;
-  data_p->configuration->moduleHandlerConfiguration.area.left =
-    allocation.x;
+  data_p->configuration->moduleHandlerConfiguration.area.left = allocation.x;
   data_p->configuration->moduleHandlerConfiguration.area.right =
     allocation.width;
-  data_p->configuration->moduleHandlerConfiguration.area.top =
-    allocation.y;
+  data_p->configuration->moduleHandlerConfiguration.area.top = allocation.y;
 #else
   data_p->configuration->moduleHandlerConfiguration.area = allocation;
 #endif
@@ -2577,6 +2576,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
+//                        ACE_TEXT_ALWAYS_CHAR ("draw"),
                         ACE_TEXT_ALWAYS_CHAR ("expose-event"),
                         G_CALLBACK (drawingarea_draw_cb),
                         userData_in);
@@ -4067,8 +4067,8 @@ drawingarea_draw_cb (GtkWidget* widget_in,
   {
     ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
 
-    // *IMPORTANT NOTE*: potentially, this involves tranfer of image data to an X
-    //                   server running on a different host
+    // *IMPORTANT NOTE*: potentially, this involves tranfer of image data to an
+    //                   X server running on a different host
     gdk_draw_pixbuf (GDK_DRAWABLE (window_p), NULL,
                      data_p->pixelBuffer,
                      0, 0, 0, 0, width, height,

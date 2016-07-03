@@ -51,7 +51,6 @@ Stream_Module_Vis_GTK_DrawingArea_T<SessionMessageType,
  , sessionData_ (NULL)
  , cairoContext_ (NULL)
  , cairoSurface_ (NULL)
-// , pixelBuffer_ (NULL)
  , isFirst_ (true)
  , isInitialized_ (false)
 {

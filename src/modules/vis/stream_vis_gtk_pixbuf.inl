@@ -231,7 +231,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
     // luminance / chrominance formats
     case V4L2_PIX_FMT_YVU420:
     {
-      // decode YVU to RGB (planar format)
+      // decode YVU to RGB24 (planar format)
       int row_stride_2 = gdk_pixbuf_get_rowstride (pixelBuffer_);
       unsigned int number_of_pixels =
           (session_data_r.format.fmt.pix.height *
@@ -273,8 +273,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
           *G2_p = clamp (y2 - (((88 * cr) + (183 * cb)) >> 8));
           *B2_p = clamp (y2 + ((359 * cb) >> 8));
 
-          R1_p += 4; G1_p += 4; B1_p += 4;
-          R2_p += 4; G2_p += 4; B2_p += 4;
+          R1_p += 3; G1_p += 3; B1_p += 3;
+          R2_p += 3; G2_p += 3; B2_p += 3;
 
           ++Y1_p; ++Y2_p;
 
@@ -292,8 +292,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
           *G2_p = clamp (y2 - (((88 * cr) + (183 * cb)) >> 8));
           *B2_p = clamp (y2 + ((359 * cb) >> 8));
 
-          R1_p += 4; G1_p += 4; B1_p += 4;
-          R2_p += 4; G2_p += 4; B2_p += 4;
+          R1_p += 3; G1_p += 3; B1_p += 3;
+          R2_p += 3; G2_p += 3; B2_p += 3;
 
           ++Y1_p; ++Y2_p;
 
@@ -309,7 +309,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
     }
     case V4L2_PIX_FMT_YUV420:
     {
-      // decode YUV to RGB (planar format)
+      // decode YUV to RGB24 (planar format)
       int row_stride_2 = gdk_pixbuf_get_rowstride (pixelBuffer_);
       unsigned int number_of_pixels =
           (session_data_r.format.fmt.pix.height *
@@ -351,8 +351,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
           *G2_p = clamp (y2 - (((88 * cr) + (183 * cb)) >> 8));
           *B2_p = clamp (y2 + ((359 * cb) >> 8));
 
-          R1_p += 4; G1_p += 4; B1_p += 4;
-          R2_p += 4; G2_p += 4; B2_p += 4;
+          R1_p += 3; G1_p += 3; B1_p += 3;
+          R2_p += 3; G2_p += 3; B2_p += 3;
 
           ++Y1_p; ++Y2_p;
 
@@ -370,8 +370,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
           *G2_p = clamp (y2 - (((88 * cr) + (183 * cb)) >> 8));
           *B2_p = clamp (y2 + ((359 * cb) >> 8));
 
-          R1_p += 4; G1_p += 4; B1_p += 4;
-          R2_p += 4; G2_p += 4; B2_p += 4;
+          R1_p += 3; G1_p += 3; B1_p += 3;
+          R2_p += 3; G2_p += 3; B2_p += 3;
 
           ++Y1_p; ++Y2_p;
 
@@ -387,7 +387,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
     }
     case V4L2_PIX_FMT_YUYV:
     {
-      // decode YUYV to RGB (packed format)
+      // decode YUYV to RGB24 (packed format)
       unsigned char* pointer_p = data_p;
       unsigned char* pixel_p = data_2;
       unsigned int number_of_pixels =
@@ -395,7 +395,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
            session_data_r.format.fmt.pix.width);
       int Y1, Y2, Cr, Cb = 0;
       int R, G, B = 0;
-      unsigned int RGB = 0;
       for (unsigned int i = 0;
            i < number_of_pixels;
            i += 2)
@@ -413,20 +412,20 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
         R = clamp (Y1 + ((454 * Cr) >> 8));
         G = clamp (Y1 - (((88 * Cr) + (183 * Cb)) >> 8));
         B = clamp (Y1 + ((359 * Cb) >> 8));
-        RGB =  static_cast<unsigned int> (B)        |
-              (static_cast<unsigned int> (G) <<  8) |
-              (static_cast<unsigned int> (R) << 16);
-        *reinterpret_cast<unsigned int*> (pixel_p) = RGB;
-        pixel_p += 4;
+
+        *pixel_p       = static_cast<unsigned char> (R);
+        *(pixel_p + 1) = static_cast<unsigned char> (G);
+        *(pixel_p + 2) = static_cast<unsigned char> (B);
+        pixel_p += 3;
 
         R = clamp (Y2 + ((454 * Cr) >> 8));
         G = clamp (Y2 - (((88 * Cr) + (183 * Cb)) >> 8));
         B = clamp (Y2 + ((359 * Cb) >> 8));
-        RGB = (static_cast<unsigned char> (R) << 16) |
-              (static_cast<unsigned char> (G) <<  8) |
-               static_cast<unsigned char> (B);
-        *reinterpret_cast<unsigned int*> (pixel_p) = RGB;
-        pixel_p += 4;
+
+        *pixel_p       = static_cast<unsigned char> (R);
+        *(pixel_p + 1) = static_cast<unsigned char> (G);
+        *(pixel_p + 2) = static_cast<unsigned char> (B);
+        pixel_p += 3;
 
         pointer_p += 4;
       } // end FOR

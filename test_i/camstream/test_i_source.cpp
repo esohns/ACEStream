@@ -887,6 +887,8 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.frameRate.numerator = 1;
   configuration.moduleHandlerConfiguration.frameRate.denominator = 30;
   configuration.moduleHandlerConfiguration.method = V4L2_MEMORY_MMAP;
+
+  configuration.moduleHandlerConfiguration.lock = &CBData_in.lock;
 #endif
 
   configuration.moduleHandlerConfiguration.streamConfiguration =

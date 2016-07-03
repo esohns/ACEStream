@@ -107,8 +107,14 @@ if (WIN32)
           stream_vis_common.h
           stream_vis_defines.h
           stream_vis_exports.h
+          stream_vis_gtk_drawingarea.h
+          stream_vis_gtk_drawingarea.inl
+          stream_vis_target_direct3d.h
+          stream_vis_target_direct3d.inl
           stream_vis_target_directshow.h
           stream_vis_target_directshow.inl
+          stream_vis_target_mediafoundation.h
+          stream_vis_target_mediafoundation.inl
           stream_vis_tools.h
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
