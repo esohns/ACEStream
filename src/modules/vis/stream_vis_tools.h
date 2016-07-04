@@ -23,12 +23,20 @@
 
 #include "ace/Global_Macros.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "guiddef.h"
+
+#include "libavutil/pixfmt.h"
+#endif
+
 #include "stream_vis_exports.h"
 
 class Stream_Vis_Export Stream_Module_Visualization_Tools
 {
  public:
-
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   static enum AVPixelFormat mediaSubType2AVPixelFormat (const struct _GUID&); // media foundation subtype
+#endif
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Visualization_Tools ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Visualization_Tools (const Stream_Module_Visualization_Tools&))

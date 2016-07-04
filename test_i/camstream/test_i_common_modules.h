@@ -39,8 +39,9 @@
 
 //#include "stream_misc_common.h"
 //#include "stream_misc_directshow_source.h"
-#include "stream_misc_mediafoundation_source.h"
+//#include "stream_misc_mediafoundation_source.h"
 
+#include "stream_vis_gtk_cairo.h"
 #include "stream_vis_target_direct3d.h"
 //#include "stream_vis_target_directshow.h"
 #include "stream_vis_target_mediafoundation.h"
@@ -98,20 +99,22 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_MUTEX,
 
                                                 Test_I_Source_Stream_ModuleHandlerConfiguration,
 
+                                                int,
+                                                int,
                                                 Test_I_Source_StreamState,
 
                                                 Test_I_Source_Stream_SessionData,
                                                 Test_I_Source_Stream_SessionData_t,
 
                                                 Test_I_Source_Stream_StatisticData> Test_I_Stream_Module_CamSource;
-typedef Stream_Misc_MediaFoundation_Source_T<Test_I_Target_Stream_SessionMessage,
-                                             Test_I_Target_Stream_Message,
-
-                                             Test_I_Target_Stream_ModuleHandlerConfiguration,
-
-                                             Test_I_Target_Stream_SessionData_t,
-
-                                             IMFMediaType*> Test_I_Target_Stream_Module_MediaFoundationSource;
+//typedef Stream_Misc_MediaFoundation_Source_T<Test_I_Target_Stream_SessionMessage,
+//                                             Test_I_Target_Stream_Message,
+//
+//                                             Test_I_Target_Stream_ModuleHandlerConfiguration,
+//
+//                                             Test_I_Target_Stream_SessionData_t,
+//
+//                                             IMFMediaType*> Test_I_Target_Stream_Module_MediaFoundationSource;
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_SYNCH_MUTEX,
                                       ////
@@ -140,11 +143,11 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    /
 //                              Stream_ModuleConfiguration,                      // module configuration type
 //                              Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
 //                              Test_I_Target_Stream_Module_DirectShowSource);   // writer type
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                       // task synch type
-                              Common_TimePolicy_t,                                // time policy
-                              Stream_ModuleConfiguration,                         // module configuration type
-                              Test_I_Target_Stream_ModuleHandlerConfiguration,    // module handler configuration type
-                              Test_I_Target_Stream_Module_MediaFoundationSource); // writer type
+//DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                       // task synch type
+//                              Common_TimePolicy_t,                                // time policy
+//                              Stream_ModuleConfiguration,                         // module configuration type
+//                              Test_I_Target_Stream_ModuleHandlerConfiguration,    // module handler configuration type
+//                              Test_I_Target_Stream_Module_MediaFoundationSource); // writer type
 #endif
 
 //typedef Stream_Decoder_AVIDecoder_T<Test_I_Target_Stream_SessionMessage,
@@ -344,13 +347,20 @@ typedef Stream_Vis_Target_Direct3D_T<Test_I_Source_Stream_SessionMessage,
                                      /////
                                      Test_I_Source_Stream_SessionData,
                                      Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
-typedef Stream_Vis_Target_Direct3D_T<Test_I_Target_Stream_SessionMessage,
-                                     Test_I_Target_Stream_Message,
-                                     /////
-                                     Test_I_Target_Stream_ModuleHandlerConfiguration,
-                                     /////
-                                     Test_I_Target_Stream_SessionData,
-                                     Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
+//typedef Stream_Vis_Target_Direct3D_T<Test_I_Target_Stream_SessionMessage,
+//                                     Test_I_Target_Stream_Message,
+//                                     /////
+//                                     Test_I_Target_Stream_ModuleHandlerConfiguration,
+//                                     /////
+//                                     Test_I_Target_Stream_SessionData,
+//                                     Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
+typedef Stream_Module_Vis_GTK_Cairo_T<Test_I_Target_Stream_SessionMessage,
+                                      Test_I_Target_Stream_Message,
+                                      ////
+                                      Test_I_Target_Stream_ModuleHandlerConfiguration,
+                                      ////
+                                      Test_I_Target_Stream_SessionData,
+                                      Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
 #else
 typedef Stream_Module_Vis_GTK_Pixbuf_T<Test_I_Source_Stream_SessionMessage,
                                        Test_I_Source_Stream_Message,

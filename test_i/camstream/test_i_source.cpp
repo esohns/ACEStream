@@ -103,6 +103,10 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("])")
             << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : show console [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << std::endl;
 #else
   std::string device_file = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
   device_file += ACE_DIRECTORY_SEPARATOR_CHAR;
@@ -171,6 +175,7 @@ do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      unsigned int& bufferSize_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+                     bool& showConsole_out,
 #else
                      std::string& deviceFilename_out,
 #endif
@@ -207,6 +212,7 @@ do_processArguments (int argc_in,
   // initialize results
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  showConsole_out = false;
 #else
   deviceFilename_out = ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
   deviceFilename_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -236,7 +242,7 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("b:e:g::h:lop:rs:tuvx:"),
+                              ACE_TEXT ("b:ce:g::h:lop:rs:tuvx:"),
 #else
                               ACE_TEXT ("b:d:e:g::h:lop:rs:tuvx:"),
 #endif
@@ -260,6 +266,11 @@ do_processArguments (int argc_in,
         break;
       }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      case 'c':
+      {
+        showConsole_out = true;
+        break;
+      }
 #else
       case 'd':
       {
@@ -715,6 +726,7 @@ do_finalize_media_framework (Test_I_Source_GTK_CBData& CBData_in)
 void
 do_work (unsigned int bufferSize_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+         bool showConsole_in,
 #else
          const std::string& deviceFilename_in,
 #endif
@@ -1006,7 +1018,9 @@ do_work (unsigned int bufferSize_in,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
       goto clean;
     } // end IF
-    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
+    BOOL was_visible_b = false;
+    if (!showConsole_in)
+      was_visible_b = ShowWindow (window_p, SW_HIDE);
     ACE_UNUSED_ARG (was_visible_b);
 #endif
   } // end IF
@@ -1198,6 +1212,7 @@ ACE_TMAIN (int argc_in,
   // step1a set defaults
   unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool show_console = false;
 #else
   std::string device_filename =
       ACE_TEXT_ALWAYS_CHAR (MODULE_DEV_DEVICE_DIRECTORY);
@@ -1233,6 +1248,7 @@ ACE_TMAIN (int argc_in,
                             argv_in,
                             buffer_size,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+                            show_console,
 #else
                             device_filename,
 #endif
@@ -1462,6 +1478,7 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (buffer_size,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+           show_console,
 #else
            device_filename,
 #endif

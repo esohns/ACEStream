@@ -225,7 +225,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                              struct _AMMediaType*&);     // return value: handle
   static void deleteMediaType (struct _AMMediaType*&); // handle
   static void freeMediaType (struct _AMMediaType&);
-  static std::string mediaSubTypeToString (const struct _GUID&); // GUID
+  static std::string mediaSubTypeToString (const struct _GUID&); // media subtype
   static std::string mediaTypeToString (const struct _AMMediaType&); // media type
   static std::string mediaTypeToString (const IMFMediaType*); // media type
   static std::string topologyStatusToString (enum MF_TOPOSTATUS); // topology status

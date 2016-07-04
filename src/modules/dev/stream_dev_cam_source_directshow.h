@@ -35,39 +35,45 @@
 #include "stream_headmoduletask_base.h"
 
 template <typename LockType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionMessageType,
           typename ProtocolMessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename StreamControlType,
+          typename StreamNotificationType,
           typename StreamStateType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
-          ///////////////////////////////
+          ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Dev_Cam_Source_DirectShow_T
  : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType>
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
 {
  public:
-  Stream_Dev_Cam_Source_DirectShow_T ();
+  Stream_Dev_Cam_Source_DirectShow_T (LockType* = NULL, // lock handle (state machine)
+                                      ////
+                                      bool = false);    // auto-start ?
   virtual ~Stream_Dev_Cam_Source_DirectShow_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -78,6 +84,8 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                     SessionMessageType,
                                     ProtocolMessageType,
                                     ConfigurationType,
+                                    StreamControlType,
+                                    StreamNotificationType,
                                     StreamStateType,
                                     SessionDataType,
                                     SessionDataContainerType,
@@ -116,21 +124,24 @@ class Stream_Dev_Cam_Source_DirectShow_T
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ///
+                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       SessionMessageType,
                                       ProtocolMessageType,
-                                      ///
+                                      ////
                                       ConfigurationType,
-                                      ///
+                                      ////
+                                      StreamControlType,
+                                      StreamNotificationType,
                                       StreamStateType,
-                                      ///
+                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ///
+                                      ////
                                       StatisticContainerType> inherited;
 
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T (const Stream_Dev_Cam_Source_DirectShow_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T& operator= (const Stream_Dev_Cam_Source_DirectShow_T&))
 

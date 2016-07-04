@@ -285,9 +285,6 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    //, sourceReader (NULL)
    , session (NULL)
 //   , topology (NULL)
-#else
-   , lock (NULL)
-   , pixelBuffer (NULL)
 #endif
    , window (NULL)
    , configuration (NULL)
@@ -295,6 +292,8 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    //, connectionManager (NULL)
    , contextID (0)
    , inbound (false)
+   , lock (NULL)
+   , pixelBuffer (NULL)
    , socketConfiguration (NULL)
    , socketHandlerConfiguration (NULL)
   {};
@@ -308,8 +307,6 @@ struct Test_I_Stream_ModuleHandlerConfiguration
 //  IMFTopology*                              topology;
   HWND                                      window;
 #else
-  ACE_SYNCH_RECURSIVE_MUTEX*                lock;
-  GdkPixbuf*                                pixelBuffer;
   GdkWindow*                                window;
 #endif
   Test_I_Configuration*                     configuration;
@@ -317,6 +314,8 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   //Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
   guint                                     contextID;
   bool                                      inbound; // TCP IO module
+  ACE_SYNCH_RECURSIVE_MUTEX*                lock;
+  GdkPixbuf*                                pixelBuffer;
   Net_SocketConfiguration*                  socketConfiguration;
   Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
 };

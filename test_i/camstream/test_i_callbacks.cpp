@@ -1900,17 +1900,17 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   data_p->configuration->moduleHandlerConfiguration.area.top = allocation.y;
 #else
   data_p->configuration->moduleHandlerConfiguration.area = allocation;
-#endif
+
   ACE_ASSERT (!data_p->pixelBuffer);
   data_p->pixelBuffer =
-      gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE (window_p),
-                                    NULL,
-                                    0, 0,
-                                    0, 0, allocation.width, allocation.height);
-//      gdk_pixbuf_get_from_window (window_p,
-//                                  0, 0,
-//                                  allocation.width, allocation.height);
+    gdk_pixbuf_get_from_drawable (NULL,
+                                  GDK_DRAWABLE (window_p),
+                                  NULL,
+                                  0, 0,
+                                  0, 0, allocation.width, allocation.height);
+  //      gdk_pixbuf_get_from_window (window_p,
+  //                                  0, 0,
+  //                                  allocation.width, allocation.height);
   if (!data_p->pixelBuffer)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
@@ -1918,7 +1918,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
   data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
-      data_p->pixelBuffer;
+    data_p->pixelBuffer;
+#endif
 
   // step11: select default capture source (if any)
   //         --> populate the option-comboboxes
@@ -2682,17 +2683,16 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     allocation.y;
 #else
   data_p->configuration->moduleHandlerConfiguration.area = allocation;
-#endif
 
   data_p->pixelBuffer =
-//      gdk_pixbuf_get_from_window (window_p,
-//                                  0, 0,
-//                                  allocation.width, allocation.height);
-      gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE (window_p),
-                                    NULL,
-                                    0, 0,
-                                    0, 0, allocation.width, allocation.height);
+    //      gdk_pixbuf_get_from_window (window_p,
+    //                                  0, 0,
+    //                                  allocation.width, allocation.height);
+    gdk_pixbuf_get_from_drawable (NULL,
+                                  GDK_DRAWABLE (window_p),
+                                  NULL,
+                                  0, 0,
+                                  0, 0, allocation.width, allocation.height);
   if (!data_p->pixelBuffer)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
@@ -2700,7 +2700,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
   data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
-      data_p->pixelBuffer;
+    data_p->pixelBuffer;
+#endif
 
   return G_SOURCE_REMOVE;
 }
@@ -2853,11 +2854,11 @@ idle_update_progress_target_cb (gpointer userData_in)
   ACE_TCHAR buffer[BUFSIZ];
   ACE_OS::memset (buffer, 0, sizeof (buffer));
   int result = -1;
-  float speed = 0.0F;
-
+  float fps, speed = 0.0F;
   {
     ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->GTKState->lock);
 
+    fps   = data_p->statistic.messagesPerSecond;
     speed = data_p->statistic.bytesPerSecond;
   } // end lock scope
   std::string magnitude_string = ACE_TEXT_ALWAYS_CHAR ("byte(s)/s");
@@ -2873,8 +2874,8 @@ idle_update_progress_target_cb (gpointer userData_in)
       speed /= 1024.0F;
       magnitude_string = ACE_TEXT_ALWAYS_CHAR ("mbyte(s)/s");
     } // end IF
-    result = ACE_OS::sprintf (buffer, ACE_TEXT ("%.2f %s"),
-                              speed, magnitude_string.c_str ());
+    result = ACE_OS::sprintf (buffer, ACE_TEXT ("%.0f fps | %.2f %s"),
+                              fps, speed, magnitude_string.c_str ());
     if (result < 0)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sprintf(): \"%m\", continuing\n")));
@@ -4308,10 +4309,10 @@ g_value_unset (&value_2);
     data_p->configuration->moduleHandlerConfiguration.mediaSource =
       NULL;
   } // end IF
-  if (data_p->configuration->moduleHandlerConfiguration.topology)
+  if (data_p->configuration->moduleHandlerConfiguration.session)
   {
-    data_p->configuration->moduleHandlerConfiguration.topology->Release ();
-    data_p->configuration->moduleHandlerConfiguration.topology = NULL;
+    data_p->configuration->moduleHandlerConfiguration.session->Release ();
+    data_p->configuration->moduleHandlerConfiguration.session = NULL;
   } // end IF
 
   //IAMBufferNegotiation* buffer_negotiation_p = NULL;

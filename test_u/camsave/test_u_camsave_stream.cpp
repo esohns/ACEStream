@@ -435,8 +435,6 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   session_data_r.targetFileName =
     configuration_in.moduleHandlerConfiguration->targetFileName;
 
-//  int result = -1;
-
   // ---------------------------------------------------------------------------
   // sanity check(s)
   ACE_ASSERT (configuration_in.moduleConfiguration);

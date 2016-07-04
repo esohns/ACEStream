@@ -224,12 +224,12 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , method (MODULE_DEV_CAM_V4L_DEFAULT_IO_METHOD)
 #endif
    , device ()
+   , lock (NULL)
+   , pixelBuffer (NULL)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-   , lock (NULL)
-   , pixelBuffer (NULL)
    , v4l2Window (NULL)
 #endif
    , window (NULL)
@@ -277,13 +277,13 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
   std::string                device;
+  ACE_SYNCH_RECURSIVE_MUTEX* lock;
+  GdkPixbuf*                 pixelBuffer;
   ACE_Time_Value             statisticCollectionInterval;
   std::string                targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                       window;
 #else
-  ACE_SYNCH_RECURSIVE_MUTEX* lock;
-  GdkPixbuf*                 pixelBuffer;
   struct v4l2_window*        v4l2Window;
   GdkWindow*                 window;
 #endif

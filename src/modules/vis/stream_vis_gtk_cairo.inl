@@ -23,18 +23,22 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "linux/videodev2.h"
-#ifdef __cplusplus
+#endif
+
 extern "C"
 {
 #include "libavcodec/avcodec.h"
 }
-#endif
-#endif
+
+#include "common_tools.h"
 
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
+#include "stream_dev_tools.h"
+
 #include "stream_vis_defines.h"
+#include "stream_vis_tools.h"
 
 template <typename SessionMessageType,
           typename MessageType,
@@ -140,9 +144,9 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 //  ACE_ASSERT (cairoSurface_);
   ACE_ASSERT (pixelBuffer_);
   const SessionDataType& session_data_r = sessionData_->get ();
-  unsigned int total_length = message_inout->total_length ();
-  ACE_ASSERT (total_length ==
-              session_data_r.format.fmt.pix.sizeimage);
+  //unsigned int total_length = message_inout->total_length ();
+  //ACE_ASSERT (total_length ==
+  //            session_data_r.format.fmt.pix.sizeimage);
 
   // *NOTE*: 'crunching' the message data simplifies the data transformation
   //         algorithms, at the cost of several memory copies. This is a
@@ -153,8 +157,47 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
                 ACE_TEXT ("failed to Stream_MessageBase_T::crunch(): \"%m\", returning\n")));
     return;
   } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (session_data_r.format);
+
+  struct _GUID sub_type = GUID_NULL;
+  HRESULT result_3 = session_data_r.format->GetGUID (MF_MT_SUBTYPE, &sub_type);
+  if (FAILED (result_3))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
+    return;
+  } // end IF
+  UINT32 width, height = 0;
+  result_3 = MFGetAttributeSize (session_data_r.format,
+                                 MF_MT_FRAME_SIZE,
+                                 &width, &height);
+  if (FAILED (result_3))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
+    return;
+  } // end IF
+  unsigned int image_size = 0;
+  result_3 = MFCalculateImageSize (sub_type,
+                                   width, height,
+                                   &image_size);
+  if (FAILED (result_3))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCalculateImageSize(\"%s\", %u,%u): \"%s\", returning\n"),
+                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ()),
+                width, height,
+                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
+    return;
+  } // end IF
+  ACE_ASSERT (message_inout->length () == image_size);
+#else
   ACE_ASSERT (message_inout->length () ==
               session_data_r.format.fmt.pix.sizeimage);
+#endif
 
   bool unlock = false;
 //  bool leave_gdk = false;
@@ -189,14 +232,36 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
   ACE_ASSERT (bytes_per_pixel == 4);
 
 //  int bits_per_sample = 8;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  LONG row_stride = 0;
+  result_3 = MFGetStrideForBitmapInfoHeader (sub_type.Data1,
+                                             width,
+                                             &row_stride);
+  if (FAILED (result_3))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFGetStrideForBitmapInfoHeader(): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
+    return;
+  } // end IF
+#else
   int row_stride = session_data_r.format.fmt.pix.bytesperline;
+#endif
   unsigned char* pixel_p = data_p;
   unsigned char* pixel_2 = data_2;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (sub_type))
+#else
   switch (session_data_r.format.fmt.pix.pixelformat)
+#endif
   {
     // RGB formats
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  case AV_PIX_FMT_BGR24:
+#else
     case V4L2_PIX_FMT_BGR24:
+#endif
     {
       // convert BGR (24bit) to RGB (24bit)
 //      row_stride =
@@ -204,10 +269,18 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 //                                         session_data_r.format.fmt.pix.width);
       row_stride = gdk_pixbuf_get_rowstride (pixelBuffer_);
       for (unsigned int y = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+           y < height;
+#else
            y < session_data_r.format.fmt.pix.height;
+#endif
            ++y)
         for (unsigned int x = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+             x < width;
+#else
              x < session_data_r.format.fmt.pix.width;
+#endif
              ++x)
         {
           pixel_p = data_p + offset;
@@ -222,7 +295,11 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 
       break;
     }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case AV_PIX_FMT_RGB24:
+#else
     case V4L2_PIX_FMT_RGB24:
+#endif
     {
       // convert RGB (24bit) to RGB (24bit)
 //      row_stride =
@@ -230,10 +307,18 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 //                                         session_data_r.format.fmt.pix.width);
       row_stride = gdk_pixbuf_get_rowstride (pixelBuffer_);
       for (unsigned int y = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+           y < height;
+#else
            y < session_data_r.format.fmt.pix.height;
+#endif
            ++y)
         for (unsigned int x = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+             x < width;
+#else
              x < session_data_r.format.fmt.pix.width;
+#endif
              ++x)
         {
           pixel_p = data_p + offset;
@@ -249,7 +334,12 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
       break;
     }
     // luminance / chrominance formats
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    // *TODO*: this is wrong...
+    case AV_PIX_FMT_NV21:
+#else
     case V4L2_PIX_FMT_YVU420:
+#endif
     {
       // decode YVU to RGB24 (planar format)
 //      cairo_surface_t* cairo_surface_p =
@@ -273,8 +363,12 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 //                                         session_data_r.format.fmt.pix.width);
       int row_stride_2 = gdk_pixbuf_get_rowstride (pixelBuffer_);
       unsigned int number_of_pixels =
-          (session_data_r.format.fmt.pix.height *
-           session_data_r.format.fmt.pix.width);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        height * width;
+#else
+        (session_data_r.format.fmt.pix.height *
+         session_data_r.format.fmt.pix.width);
+#endif
       unsigned char* chrominance_b_base_p = data_p           +
                                             number_of_pixels +
                                             (number_of_pixels / 4);
@@ -291,7 +385,11 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
       unsigned char* Y1_p = data_p;
       unsigned char* Y2_p = Y1_p + row_stride;
       unsigned char* end_p =
-          R1_p + (row_stride_2 * session_data_r.format.fmt.pix.height);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        R1_p + (row_stride_2 * height);
+#else
+        R1_p + (row_stride_2 * session_data_r.format.fmt.pix.height);
+#endif
       unsigned char* line_end_p = R2_p;
       int y1, y2, cb, cr = 0;
       while (R1_p != end_p)
@@ -354,7 +452,12 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 //                                         session_data_r.format.fmt.pix.width);
       break;
     }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case AV_PIX_FMT_YUV420P16LE:
+    case AV_PIX_FMT_YUV420P16BE:
+#else
     case V4L2_PIX_FMT_YUV420:
+#endif
     {
       // decode YUV to RGB24 (planar format)
 //      cairo_surface_t* cairo_surface_p =
@@ -378,8 +481,12 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 //                                         session_data_r.format.fmt.pix.width);
       int row_stride_2 = gdk_pixbuf_get_rowstride (pixelBuffer_);
       unsigned int number_of_pixels =
-          (session_data_r.format.fmt.pix.height *
-           session_data_r.format.fmt.pix.width);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        height * width;
+#else
+        (session_data_r.format.fmt.pix.height *
+         session_data_r.format.fmt.pix.width);
+#endif
       unsigned char* chrominance_b_base_p = data_p + number_of_pixels;
       unsigned char* chrominance_r_base_p = data_p           +
                                             number_of_pixels +
@@ -396,7 +503,11 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
       unsigned char* Y1_p = data_p;
       unsigned char* Y2_p = Y1_p + row_stride;
       unsigned char* end_p =
-          R1_p + (row_stride_2 * session_data_r.format.fmt.pix.height);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        R1_p + (row_stride_2 * height);
+#else
+        R1_p + (row_stride_2 * session_data_r.format.fmt.pix.height);
+#endif
       unsigned char* line_end_p = R2_p;
       int y1, y2, cb, cr = 0;
       while (R1_p != end_p)
@@ -459,7 +570,11 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 //                                         session_data_r.format.fmt.pix.width);
       break;
     }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case AV_PIX_FMT_YUYV422:
+#else
     case V4L2_PIX_FMT_YUYV:
+#endif
     {
       // decode YUYV to RGB24 (packed format)
 //      cairo_surface_t* cairo_surface_p =
@@ -482,8 +597,12 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 //      unsigned char* pixel_p = cairo_image_surface_get_data (cairo_surface_p);
       unsigned char* pixel_p = data_2;
       unsigned int number_of_pixels =
-          (session_data_r.format.fmt.pix.height *
-           session_data_r.format.fmt.pix.width);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+        height * width;
+#else
+        (session_data_r.format.fmt.pix.height *
+         session_data_r.format.fmt.pix.width);
+#endif
       int Y1, Y2, Cr, Cb = 0;
       int R, G, B = 0;
       for (unsigned int i = 0;
@@ -531,7 +650,11 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
       break;
     }
     // compressed formats
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case AV_PIX_FMT_NB: // *TODO*: remove this ASAP
+#else
     case V4L2_PIX_FMT_MJPEG:
+#endif
     {
 //      cairo_surface_t* cairo_surface_p =
 //          cairo_image_surface_create (MODULE_VIS_DEFAULT_CAIRO_FORMAT,       // format
@@ -549,8 +672,6 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 //        return;
 //      } // end IF
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
       avcodec_register_all ();
 
       AVCodecContext* context_p = NULL;
@@ -579,7 +700,11 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
       AVPacket packet;
       av_init_packet (&packet);
       packet.data = data_p;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      packet.size = image_size;
+#else
       packet.size = session_data_r.format.fmt.pix.sizeimage;
+#endif
 
       int result = -1;
       int got_picture = -1;
@@ -600,8 +725,13 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
       } // end IF
 //      context_p->flags2 |= AV_CODEC_FLAG2_FAST;
       context_p->pix_fmt = AVPixelFormat::AV_PIX_FMT_ARGB;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      context_p->width = width;
+      context_p->height = height;
+#else
       context_p->width = session_data_r.format.fmt.pix.width;
       context_p->height = session_data_r.format.fmt.pix.height;
+#endif
       result = avcodec_open2 (context_p, codec_p, NULL);
       if (result < 0)
       {
@@ -656,7 +786,6 @@ clean:
       } // end IF
       if (context_p)
         avcodec_free_context (&context_p);
-#endif
 
 //      cairo_surface_destroy (cairoSurface_);
 //      cairoSurface_ = cairo_surface_p;
@@ -669,9 +798,15 @@ clean:
     }
     default:
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown pixel format (was: \"%s\"), returning\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
+#else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: %d), returning\n"),
                   session_data_r.format.fmt.pix.pixelformat));
+#endif
 
       result = -1;
 
@@ -696,7 +831,8 @@ unlock:
   } // end IF
 
   if (result == -1)
-    goto error;
+    return;
+    //goto error;
 
 //  pixelBuffer_ =
 //      gdk_pixbuf_new_from_data (data_p,                               // data
@@ -819,12 +955,30 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
         break; // done
       ACE_ASSERT (pixelBuffer_);
 
-      unsigned int width =
+      unsigned int width_window =
           static_cast<unsigned int> (gdk_pixbuf_get_width (pixelBuffer_));
-      unsigned int height =
+      unsigned int height_window =
           static_cast<unsigned int> (gdk_pixbuf_get_height (pixelBuffer_));
-      ACE_ASSERT (width  >= session_data_r.format.fmt.pix.width);
-      ACE_ASSERT (height >= session_data_r.format.fmt.pix.height);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_ASSERT (session_data_r.format);
+
+      UINT32 width, height = 0;
+      HRESULT result = MFGetAttributeSize (session_data_r.format,
+                                           MF_MT_FRAME_SIZE,
+                                           &width, &height);
+      if (FAILED (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (width_window  >= width);
+      ACE_ASSERT (height_window >= height);
+#else
+      ACE_ASSERT (width_window  >= session_data_r.format.fmt.pix.width);
+      ACE_ASSERT (height_window >= session_data_r.format.fmt.pix.height);
+#endif
 
 //      ACE_ASSERT (cairoContext_);
 //      ACE_ASSERT (!cairoSurface_);
@@ -876,10 +1030,10 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 
       break;
 
-//error:
-//      session_data_r.aborted = true;
+error:
+      session_data_r.aborted = true;
 
-//      break;
+      break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
@@ -978,7 +1132,13 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
                                         GDK_DRAWABLE (configuration_->window),
                                         NULL,
                                         0, 0,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                                        0, 0,
+                                        configuration_->area.right - configuration_->area.left,
+                                        configuration_->area.bottom - configuration_->area.top);
+#else
                                         0, 0, configuration_->area.width, configuration_->area.height);
+#endif
       if (!pixelBuffer_)
       { // *NOTE*: most probable reason: window is not mapped
         ACE_DEBUG ((LM_ERROR,

@@ -41,8 +41,6 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
  , displayNull_ (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
                  NULL,
                  false)
-#endif
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaSession_ (NULL)
  , referenceCount_ (1)
 #endif
@@ -134,7 +132,7 @@ Test_I_Source_Stream_T<ConnectorType>::start ()
   PropVariantInit (&property_s);
   //property_s.vt = VT_EMPTY;
   HRESULT result = mediaSession_->Start (&GUID_s,      // time format
-    &property_s); // start position
+                                         &property_s); // start position
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,

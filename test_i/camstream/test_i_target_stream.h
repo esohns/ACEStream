@@ -130,13 +130,18 @@ class Test_I_Target_Stream
   Test_I_Target_Stream_Module_Splitter_Module              splitter_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //Test_I_Target_Stream_Module_DirectShowSource_Module directShowSource_;
-  Test_I_Target_Stream_Module_MediaFoundationSource_Module mediaFoundationSource_;
+  //Test_I_Target_Stream_Module_MediaFoundationSource_Module mediaFoundationSource_;
 #endif
   Test_I_Target_Stream_Module_RuntimeStatistic_Module      runtimeStatistic_;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //IGraphBuilder*                                           graphBuilder_;
-#else
   Test_I_Target_Stream_Module_Display_Module               display_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Target_Stream_Module_DisplayNull_Module           displayNull_;
+#endif
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // media session
+  IMFMediaSession*                                         mediaSession_;
+  ULONG                                                    referenceCount_;
 #endif
 };
 

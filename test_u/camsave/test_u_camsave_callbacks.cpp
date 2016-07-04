@@ -1969,6 +1969,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   //-------------------------------------
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
 //                        ACE_TEXT_ALWAYS_CHAR ("draw"),
@@ -1976,6 +1978,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                         G_CALLBACK (drawingarea_draw_cb),
                         userData_in);
   ACE_ASSERT (result_2);
+#endif
   result_2 =
 //    g_signal_connect (G_OBJECT (drawing_area_p),
 //                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
@@ -2073,17 +2076,17 @@ idle_initialize_UI_cb (gpointer userData_in)
   data_p->configuration->moduleHandlerConfiguration.area.top = allocation.y;
 #else
   data_p->configuration->moduleHandlerConfiguration.area = allocation;
-#endif
+
   ACE_ASSERT (!data_p->pixelBuffer);
   data_p->pixelBuffer =
-      gdk_pixbuf_get_from_drawable (NULL,
-                                    GDK_DRAWABLE (window_p),
-                                    NULL,
-                                    0, 0,
-                                    0, 0, allocation.width, allocation.height);
-//      gdk_pixbuf_get_from_window (window_p,
-//                                  0, 0,
-//                                  allocation.width, allocation.height);
+    gdk_pixbuf_get_from_drawable (NULL,
+                                  GDK_DRAWABLE (window_p),
+                                  NULL,
+                                  0, 0,
+                                  0, 0, allocation.width, allocation.height);
+  //      gdk_pixbuf_get_from_window (window_p,
+  //                                  0, 0,
+  //                                  allocation.width, allocation.height);
   if (!data_p->pixelBuffer)
   { // *NOTE*: most probable reason: window is not mapped
     ACE_DEBUG ((LM_ERROR,
@@ -2091,7 +2094,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
   data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
-      data_p->pixelBuffer;
+    data_p->pixelBuffer;
+#endif
 
   // step11: select default capture source (if any)
   //         --> populate the options comboboxes
@@ -3943,6 +3947,8 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #endif
 } // combobox_rate_changed_cb
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
 gboolean
 drawingarea_draw_cb (GtkWidget* widget_in,
                      cairo_t* context_in,
@@ -3988,6 +3994,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 
   return TRUE;
 }
+#endif
 
 //void
 //drawingarea_configure_event_cb (GtkWindow* window_in,

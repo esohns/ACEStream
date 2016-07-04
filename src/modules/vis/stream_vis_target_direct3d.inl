@@ -392,7 +392,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       const SessionDataContainerType& session_data_container_r =
         message_inout->get ();
@@ -549,7 +549,7 @@ continue_:
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       result_2 = CoInitializeEx (NULL,
                                  (COINIT_MULTITHREADED    |

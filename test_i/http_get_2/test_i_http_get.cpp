@@ -1002,7 +1002,7 @@ ACE_TMAIN (int argc_in,
   // step0: initialize
   // *PORTABILITY*: on Windows, initialize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  result_2 = ACE::init ();
+  int result_2 = ACE::init ();
   if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,

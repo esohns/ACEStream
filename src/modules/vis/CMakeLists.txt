@@ -3,27 +3,20 @@ cmake_minimum_required (VERSION 2.8)
 include (FindPkgConfig)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
 if (UNIX)
- pkg_check_modules (PKG_GTK_GLADE REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0 libglade-2.0)
+ pkg_check_modules (PKG_GTK REQUIRED libpng gmodule-2.0 gthread-2.0 gtk+-2.0)
+ pkg_check_modules (PKG_LIBAVCODEC REQUIRED libavcodec)
 endif ()
 # *TODO*: repair WIN32 pkgconfig support
 
 if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/ACE)
- include_directories (${PKG_GTK_GLADE_INCLUDE_DIRS})
+ include_directories (${PKG_GTK_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
 elseif (WIN32)
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
  include_directories ($ENV{ACE_ROOT})
 # *TODO*: repair pkgconfig support
 # gtk
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/include/atk-1.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/include/pango-1.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/include/cairo)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/lib/glib-2.0/include)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/include/glib-2.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/include/gdk-pixbuf-2.0)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/lib/gtk-2.0/include)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk/include/gtk-2.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/glib-2.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/lib/glib-2.0/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/gtk-2.0)
@@ -32,10 +25,12 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/atk-1.0)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/pango-1.0)
-# libglade
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libglade/include/libglade-2.0)
+
+# libavformat
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libav-11.7)
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../libCommon/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dev)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../misc)
@@ -46,9 +41,9 @@ if (WIN32)
       stream_vis_common.h
       stream_vis_defines.h
       stream_vis_exports.h
-      stream_vis_gtk_drawingarea.cpp
-      stream_vis_gtk_drawingarea.h
-      stream_vis_gtk_drawingarea.inl
+      stream_vis_gtk_cairo.cpp
+      stream_vis_gtk_cairo.h
+      stream_vis_gtk_cairo.inl
       stream_vis_target_direct3d.cpp
       stream_vis_target_direct3d.h
       stream_vis_target_direct3d.inl
@@ -89,8 +84,9 @@ add_dependencies (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Visualization ${ACE_LIBRARY})
- target_link_libraries (${PROJECT_NAME}_Visualization mfplat.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization strmiids.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization mfplat.lib)
+ target_link_libraries (${PROJECT_NAME}_Visualization mfuuid.lib)
  target_link_libraries (${PROJECT_NAME}_Visualization Common)
 endif ()
 
@@ -107,8 +103,8 @@ if (WIN32)
           stream_vis_common.h
           stream_vis_defines.h
           stream_vis_exports.h
-          stream_vis_gtk_drawingarea.h
-          stream_vis_gtk_drawingarea.inl
+          stream_vis_gtk_cairo.h
+          stream_vis_gtk_cairo.inl
           stream_vis_target_direct3d.h
           stream_vis_target_direct3d.inl
           stream_vis_target_directshow.h

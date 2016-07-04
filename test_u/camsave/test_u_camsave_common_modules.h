@@ -31,12 +31,12 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //#include "stream_dev_cam_source_directshow.h"
 #include "stream_dev_cam_source_mediafoundation.h"
+#include "stream_vis_gtk_cairo.h"
 //#include "stream_vis_target_directshow.h"
 #include "stream_vis_target_mediafoundation.h"
 #include "stream_vis_target_direct3d.h"
 #else
 #include "stream_dev_cam_source_v4l.h"
-#include "stream_vis_gtk_cairo.h"
 #endif
 #include "stream_dec_avi_encoder.h"
 #include "stream_file_sink.h"
@@ -68,6 +68,8 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_MUTEX,
 
                                                 Stream_CamSave_ModuleHandlerConfiguration,
 
+                                                int,
+                                                int,
                                                 Stream_State,
 
                                                 Stream_CamSave_SessionData,
@@ -163,14 +165,14 @@ typedef Stream_Vis_Target_MediaFoundation_2<Stream_CamSave_SessionMessage,
 
                                             Stream_CamSave_SessionData,
                                             Stream_CamSave_SessionData_t> Stream_CamSave_Module_DisplayNull;
-typedef Stream_Vis_Target_Direct3D_T<Stream_CamSave_SessionMessage,
-                                     Stream_CamSave_Message,
-                                     /////
-                                     Stream_CamSave_ModuleHandlerConfiguration,
-                                     /////
-                                     Stream_CamSave_SessionData,
-                                     Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
-#else
+//typedef Stream_Vis_Target_Direct3D_T<Stream_CamSave_SessionMessage,
+//                                     Stream_CamSave_Message,
+//                                     /////
+//                                     Stream_CamSave_ModuleHandlerConfiguration,
+//                                     /////
+//                                     Stream_CamSave_SessionData,
+//                                     Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
+#endif
 typedef Stream_Module_Vis_GTK_Cairo_T<Stream_CamSave_SessionMessage,
                                       Stream_CamSave_Message,
                                       ////
@@ -178,7 +180,6 @@ typedef Stream_Module_Vis_GTK_Cairo_T<Stream_CamSave_SessionMessage,
                                       ////
                                       Stream_CamSave_SessionData,
                                       Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
-#endif
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task synch type
                               Common_TimePolicy_t,                       // time policy
                               Stream_ModuleConfiguration,                // module configuration type
