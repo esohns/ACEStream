@@ -206,6 +206,7 @@ class Stream_HeadModuleTaskBase_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement (part of) Stream_IStreamControl_T
+  virtual bool load (Stream_ModuleList_t&); // return value: module list
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false); // flush upstream (if any) ?
   virtual void rewind ();

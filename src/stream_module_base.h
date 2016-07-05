@@ -50,6 +50,7 @@ class Stream_Module_Base_T
 {
  public:
   // convenient types
+  typedef ConfigurationType CONFIGURATION_T;
   //  typedef ReaderTaskType READER_TASK_T;
   //  typedef WriterTaskType WRITER_TASK_T;
   typedef Stream_IModule_T<TaskSynchType,

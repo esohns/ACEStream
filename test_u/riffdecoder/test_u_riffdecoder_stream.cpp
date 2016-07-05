@@ -58,7 +58,7 @@ Stream_RIFFDecoder_Stream::Stream_RIFFDecoder_Stream ()
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
+  for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
        iterator != inherited::modules_.end ();
        iterator++)
      (*iterator)->next (NULL);
@@ -264,9 +264,6 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
     } // end IF
 
   // -------------------------------------------------------------
-
-  // set (session) message allocator
-  inherited::allocator_ = configuration_in.messageAllocator;
 
   // OK: all went well
   inherited::isInitialized_ = true;

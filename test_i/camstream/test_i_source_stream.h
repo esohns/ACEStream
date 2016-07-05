@@ -38,7 +38,6 @@
 #include "stream_module_target.h"
 
 #include "test_i_common.h"
-#include "test_i_common_modules.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 #include "test_i_source_common.h"
@@ -79,7 +78,7 @@ class Test_I_Source_Stream_T
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // override (part of) Stream_IStreamControl_T
-  virtual Stream_Module_t* find (const std::string&) const; // module name
+  //virtual Stream_Module_t* find (const std::string&) const; // module name
   virtual void start ();
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true); // locked access ?
@@ -93,6 +92,9 @@ class Test_I_Source_Stream_T
                               DWORD*); // return value: queue handle
   STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 #endif
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&); // return value: module list
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Source_StreamConfiguration&, // configuration
@@ -151,19 +153,10 @@ class Test_I_Source_Stream_T
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
 
-  // modules
-  Test_I_Stream_Module_CamSource_Module               source_;
-  Test_I_Source_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
-  TARGET_MODULE_T                                     netTarget_;
-  Test_I_Source_Stream_Module_Display_Module          display_;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_Stream_Module_DisplayNull_Module      displayNull_;
-#endif
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // media session
-  IMFMediaSession*                                    mediaSession_;
-  ULONG                                               referenceCount_;
+  IMFMediaSession* mediaSession_;
+  ULONG            referenceCount_;
 #endif
 };
 

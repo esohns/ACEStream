@@ -1495,10 +1495,42 @@ Stream_Module_Device_Tools::getMediaSource (const IMFMediaSession* IMFMediaSessi
     return false;
   } // end IF
 
-  IMFCollection* collection_p = NULL;
-  result = topology_p->GetSourceNodeCollection (&collection_p);
-  ACE_ASSERT (SUCCEEDED (result));
+  if (!Stream_Module_Device_Tools::getMediaSource (topology_p,
+                                                   IMFMediaSource_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
+
+    // clean up
+    topology_p->Release ();
+
+    return false;
+  } // end IF
   topology_p->Release ();
+  ACE_ASSERT (IMFMediaSource_out);
+
+  return true;
+}
+bool
+Stream_Module_Device_Tools::getMediaSource (const IMFTopology* IMFTopology_in,
+                                            IMFMediaSource*& IMFMediaSource_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getMediaSource"));
+
+  // initialize return value(s)
+  if (IMFMediaSource_out)
+  {
+    IMFMediaSource_out->Release ();
+    IMFMediaSource_out = NULL;
+  } // end IF
+
+  // sanity check(s)
+  ACE_ASSERT (IMFTopology_in);
+
+  IMFCollection* collection_p = NULL;
+  HRESULT result =
+    const_cast<IMFTopology*> (IMFTopology_in)->GetSourceNodeCollection (&collection_p);
+  ACE_ASSERT (SUCCEEDED (result));
   DWORD number_of_source_nodes = 0;
   result = collection_p->GetElementCount (&number_of_source_nodes);
   ACE_ASSERT (SUCCEEDED (result));
@@ -3101,6 +3133,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   IMFMediaSource* media_source_p = NULL;
   IMFMediaType* media_type_p = NULL;
   IMFActivate* activate_p = NULL;
+  IMFTopologyNode* topology_node_p = NULL;
 
   // initialize return value(s)
   sampleGrabberSinkNodeId_out = 0;
@@ -3119,6 +3152,14 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
     } // end IF
     release_topology = true;
   } // end IF
+  else if (!Stream_Module_Device_Tools::getMediaSource (IMFTopology_inout,
+                                                        media_source_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
+    goto error;
+  } // end ELSE IF
+  ACE_ASSERT (media_source_p);
 
   // step1: retrieve source node
   IMFTopologyNode* source_node_p = NULL;
@@ -3161,8 +3202,30 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   unknown_p->Release ();
   unknown_p = NULL;
 
-  if (!Stream_Module_Device_Tools::copyMediaType (IMFMediaType_in,
-                                                  media_type_p))
+  // step1a: set default capture media type ?
+  UINT32 item_count = 0;
+  result = const_cast<IMFMediaType*> (IMFMediaType_in)->GetCount (&item_count);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  if (!item_count)
+  {
+    if (!Stream_Module_Device_Tools::getCaptureFormat (media_source_p,
+                                                       media_type_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("using default/preset capture format...\n")));
+  } // end IF
+  else if (!Stream_Module_Device_Tools::copyMediaType (IMFMediaType_in,
+                                                       media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
@@ -3179,6 +3242,15 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   } // end IF
 
   // step2: add decoder nodes ?
+  //BOOL is_compressed = false;
+  //result = media_type_p->IsCompressedFormat (&is_compressed);
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFMediaType::IsCompressedFormat(): \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
   if (!Stream_Module_Device_Tools::isCompressed (sub_type))
     goto continue_;
 
@@ -3193,7 +3265,6 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
                   MFT_ENUM_FLAG_TRANSCODE_ONLY |
                   MFT_ENUM_FLAG_SORTANDFILTER);
   IMFTransform* transform_p = NULL;
-  IMFTopologyNode* topology_node_p = NULL;
   TOPOID node_id = 0;
   //if (!media_source_p)
   //{
@@ -3748,6 +3819,8 @@ continue_3:
   } // end IF
   topology_node_p->Release ();
   topology_node_p = NULL;
+  media_source_p->Release ();
+  media_source_p = NULL;
   media_type_p->Release ();
   media_type_p = NULL;
 

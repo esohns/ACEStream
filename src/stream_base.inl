@@ -60,7 +60,7 @@ Stream_Base_T<LockType,
  : inherited (NULL, // argument to module open()
               NULL, // no head module --> allocate !
               NULL) // no tail module --> allocate !
- , allocator_ (NULL)
+ , configuration_ (NULL)
  , isInitialized_ (false)
  , lock_ ()
  , modules_ ()
@@ -73,7 +73,13 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
-  // *TODO*: this really shouldn't be necessary...
+  int result = inherited::open (NULL,
+                                NULL,
+                                NULL);
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", continuing\n")));
+  // *TODO*: this really shouldn't be necessary
   inherited::head ()->next (inherited::tail ());
 }
 
@@ -234,6 +240,8 @@ Stream_Base_T<LockType,
                 ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", aborting\n")));
     return false;
   } // end IF
+  // *TODO*: this really shouldn't be necessary
+  inherited::head ()->next (inherited::tail ());
 
   // step2: set notification strategy ?
   MODULE_T* module_p = NULL;
@@ -264,7 +272,7 @@ Stream_Base_T<LockType,
   } // end IF
 
   // step3: push all available modules
-  for (MODULE_CONTAINER_ITERATOR_T iterator = modules_.begin ();
+  for (Stream_ModuleListIterator_t iterator = modules_.begin ();
        iterator != modules_.end ();
        iterator++)
   {
@@ -387,7 +395,7 @@ Stream_Base_T<LockType,
   // sanity check(s)
   ACE_ASSERT (!isInitialized_);
 
-  // step1: allocate session data
+  // step1: allocate session data ?
   if (resetSessionData_in)
   {
     // sanity check(s)
@@ -422,14 +430,77 @@ Stream_Base_T<LockType,
     } // end IF
   } // end IF
 
-  // step2: setup pipeline
+  if (!load (modules_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_IStreamControlBase::load(), returning\n")));
+    return;
+  } // end IF
+  // *TODO* fix ACE bug: modules should initialize their 'next_' member
+  for (Stream_ModuleListIterator_t iterator = modules_.begin ();
+       iterator != modules_.end ();
+       iterator++)
+    (*iterator)->next (NULL);
+
+  // step2: setup pipeline ?
   if (setupPipeline_in)
-    if (!setup ())
+  {
+    // sanity check(s)
+    ACE_ASSERT (configuration_);
+    ACE_ASSERT (configuration_->moduleHandlerConfiguration);
+
+    IMODULE_T* imodule_p = NULL;
+    Stream_Task_t* task_p = NULL;
+    MODULEHANDLER_IINITIALIZE_T* iinitialize_p = NULL;
+    for (Stream_ModuleListIterator_t iterator = modules_.begin ();
+         iterator != modules_.end ();
+         iterator++)
+    {
+      imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
+      if (!imodule_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, returning\n"),
+                    (*iterator)->name ()));
+        return;
+      } // end IF
+      if (!imodule_p->initialize (*configuration_->moduleConfiguration))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
+                    (*iterator)->name ()));
+        return;
+      } // end IF
+
+      task_p = (*iterator)->writer ();
+      ACE_ASSERT (task_p);
+      iinitialize_p = dynamic_cast<MODULEHANDLER_IINITIALIZE_T*> (task_p);
+      if (!iinitialize_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, returning\n"),
+                    (*iterator)->name ()));
+        return;
+      } // end IF
+      if (!iinitialize_p->initialize (*configuration_->moduleHandlerConfiguration))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
+                    (*iterator)->name ()));
+        return;
+      } // end IF
+
+      //// *TODO* fix ACE bug: modules should initialize their 'next_' member
+      //(*iterator)->next (NULL);
+    } // end IF
+
+    if (!setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to setup pipeline, returning\n")));
+                  ACE_TEXT ("failed to Stream_Base_T::setup(), returning\n")));
       return;
     } // end IF
+  } // end IF
 
   //// step3: initialize state machine
   //// delegate to the head module
@@ -995,6 +1066,48 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename SessionMessageType,
           typename ProtocolMessageType>
+bool
+Stream_Base_T<LockType,
+              TaskSynchType,
+              TimePolicyType,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              SessionMessageType,
+              ProtocolMessageType>::load (Stream_ModuleList_t& modules_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::load"));
+
+  ACE_UNUSED_ARG (modules_out);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (false);
+
+  ACE_NOTREACHED (return false;)
+}
+
+template <typename LockType,
+          typename TaskSynchType,
+          typename TimePolicyType,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename SessionMessageType,
+          typename ProtocolMessageType>
 void
 Stream_Base_T<LockType,
               TaskSynchType,
@@ -1039,7 +1152,7 @@ Stream_Base_T<LockType,
     //            ACE_TEXT (istream_control_p->name ().c_str ())));
   } // end IF
 
-  MODULE_CONTAINER_T modules;
+  Stream_ModuleList_t modules;
   const MODULE_T* head_p = inherited::head ();
   const MODULE_T* tail_p = inherited::tail ();
   const MODULE_T* module_p = NULL;
@@ -1104,7 +1217,7 @@ Stream_Base_T<LockType,
 
 continue_:
   // reader (outbound) side
-  for (MODULE_CONTAINER_ITERATOR_T iterator = modules.begin ();
+  for (Stream_ModuleListIterator_t iterator = modules.begin ();
        iterator != modules.end ();
        iterator++)
   {
@@ -1422,7 +1535,7 @@ Stream_Base_T<LockType,
   // *NOTE*: the logic here is this:
   //         step1: wait for (message source) processing to finish
   //         step2: wait for any upstreamed messages to 'flush' (message sink)
-  MODULE_CONTAINER_T modules;
+  Stream_ModuleList_t modules;
   modules.push_front (inherited::head ());
 
   // step1a: get head module, skip over ACE_Stream_Head
@@ -1523,7 +1636,7 @@ Stream_Base_T<LockType,
   } // end FOR
 
   // step2: wait for any upstreamed workers and messages to flush
-  for (MODULE_CONTAINER_ITERATOR_T iterator2 = modules.begin ();
+  for (Stream_ModuleListIterator_t iterator2 = modules.begin ();
        iterator2 != modules.end ();
        iterator2++)
   {
@@ -1784,12 +1897,22 @@ Stream_Base_T<LockType,
   Stream_Module_t* result = NULL;
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
 
+  // step1: search for the module on the stream
   const ACE_TCHAR* name_p = ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ());
-  result = this_p->find (const_cast<ACE_TCHAR*> (name_p));
+  result = this_p->inherited::find (name_p);
   if (!result)
+  {
+    // step2: search loaded modules
+    for (Stream_ModuleListIterator_t iterator = modules_.begin ();
+         iterator != modules_.end ();
+         iterator++)
+      if (ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()) == name_in)
+        return *iterator;
+
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("module (name was: \"%s\") not found, aborting\n"),
                 ACE_TEXT (name_in.c_str ())));
+  } // end IF
 
   return result;
 }
@@ -2128,13 +2251,14 @@ Stream_Base_T<LockType,
       return false;
     } // end IF
 
+    configuration_ = NULL;
+
     // *NOTE*: finalize() calls close(), resetting the task handles
     //         of all enqueued modules --> reset them manually
-    for (MODULE_CONTAINER_ITERATOR_T iterator = modules_.begin ();
+    for (Stream_ModuleListIterator_t iterator = modules_.begin ();
          iterator != modules_.end ();
          iterator++)
     {
-      // need a downcast...
       imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
       if (!imodule_p)
       {
@@ -2271,29 +2395,28 @@ Stream_Base_T<LockType,
     } // end IF
     Stream_Task_t* task_p = state_.module->writer ();
     ACE_ASSERT (task_p);
-    IMODULEHANDLER_T* imodule_handler_p =
-        dynamic_cast<IMODULEHANDLER_T*> (task_p);
-    if (!imodule_handler_p)
+    MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
+        dynamic_cast<MODULEHANDLER_IINITIALIZE_T*> (task_p);
+    if (!iinitialize_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
                   state_.module->name ()));
       return false;
     } // end IF
-    if (!imodule_handler_p->initialize (*configuration_inout.moduleHandlerConfiguration))
+    if (!iinitialize_p->initialize (*configuration_inout.moduleHandlerConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
+                  ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
                   state_.module->name ()));
       return false;
     } // end IF
   } // end IF
 
-  ConfigurationType& configuration_r =
-    const_cast<ConfigurationType&> (configuration_inout);
+  configuration_ = &const_cast<ConfigurationType&> (configuration_inout);
   // sanity check(s)
-  ACE_ASSERT (configuration_r.moduleHandlerConfiguration);
-  configuration_r.moduleHandlerConfiguration->stateMachineLock =
+  ACE_ASSERT (configuration_->moduleHandlerConfiguration);
+  configuration_->moduleHandlerConfiguration->stateMachineLock =
     &state_.stateMachineLock;
 
   initialize (setupPipeline_in,
@@ -2977,7 +3100,7 @@ Stream_Base_T<LockType,
   //for (ACE_DLList_Iterator<MODULE_T> iterator (availableModules_);
   //     (iterator.next (module_p) != 0);
   //     iterator.advance ())
-  for (MODULE_CONTAINER_ITERATOR_T iterator = modules_.begin ();
+  for (Stream_ModuleListIterator_t iterator = modules_.begin ();
        iterator != modules_.end ();
        iterator++)
   {
@@ -3059,17 +3182,21 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::deactivateModules"));
 
-  // *TODO*: remove type inferences
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  // *TODO*: remove type inference
   // *NOTE*: session message assumes responsibility for session data
   //         --> add a reference
   sessionData_->increase ();
 
   // allocate SESSION_END session message
   SessionMessageType* message_p = NULL;
-  if (allocator_)
+  // *TODO*: remove type inference
+  if (configuration_->messageAllocator)
   {
     try { // *NOTE*: 0 --> session message
-      message_p = static_cast<SessionMessageType*> (allocator_->malloc (0));
+      message_p = static_cast<SessionMessageType*> (configuration_->messageAllocator->malloc (0));
     } catch (...) {
       ACE_DEBUG ((LM_CRITICAL,
                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), returning\n")));
@@ -3099,7 +3226,7 @@ Stream_Base_T<LockType,
 
     return;
   } // end IF
-  if (allocator_)
+  if (configuration_->messageAllocator)
   {
     // *TODO*: remove type inference
     message_p->initialize (STREAM_SESSION_MESSAGE_END,

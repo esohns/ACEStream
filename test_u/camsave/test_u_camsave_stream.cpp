@@ -58,28 +58,6 @@ Stream_CamSave_Stream::Stream_CamSave_Stream ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::Stream_CamSave_Stream"));
 
-  // remember the "owned" ones...
-  // *TODO*: clean this up
-  // *NOTE*: one problem is that all modules which have NOT enqueued onto the
-  //         stream (e.g. because initialize() failed...) need to be explicitly
-  //         close()d
-  inherited::modules_.push_front (&source_);
-  inherited::modules_.push_front (&runtimeStatistic_);
-  inherited::modules_.push_front (&display_);
-  //inherited::modules_.push_front (&displayNull_);
-  inherited::modules_.push_front (&encoder_);
-  inherited::modules_.push_front (&fileWriter_);
-
-  // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
-  //inherited::MODULE_T* module_p = NULL;
-  //for (ACE_DLList_Iterator<inherited::MODULE_T> iterator (inherited::availableModules_);
-  //     iterator.next (module_p);
-  //     iterator.advance ())
-  //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
-       iterator != inherited::modules_.end ();
-       iterator++)
-     (*iterator)->next (NULL);
 }
 
 Stream_CamSave_Stream::~Stream_CamSave_Stream ()
@@ -385,6 +363,33 @@ error:
   return E_FAIL;
 }
 #endif
+
+bool
+Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::load"));
+
+  // initialize return value(s)
+  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
+       iterator != modules_out.end ();
+       iterator++)
+    delete *iterator;
+  modules_out.clear ();
+
+  // remember the 'owned' ones
+  // *TODO*: clean this up
+  // *NOTE*: one problem is that all modules which have NOT enqueued onto the
+  //         stream (e.g. because initialize() failed...) need to be explicitly
+  //         close()d
+  modules_out.push_front (&source_);
+  modules_out.push_front (&runtimeStatistic_);
+  modules_out.push_front (&display_);
+  //modules_out.push_front (&displayNull_);
+  modules_out.push_front (&encoder_);
+  modules_out.push_front (&fileWriter_);
+
+  return true;
+}
 
 bool
 Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& configuration_in,
@@ -939,9 +944,6 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
     } // end IF
 
   // -------------------------------------------------------------
-
-  // set (session) message allocator
-  inherited::allocator_ = configuration_in.messageAllocator;
 
   // OK: all went well
   inherited::isInitialized_ = true;

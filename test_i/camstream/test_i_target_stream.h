@@ -37,7 +37,6 @@
 #include "net_connection_manager.h"
 
 #include "test_i_common.h"
-#include "test_i_common_modules.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 #include "test_i_target_common.h"
@@ -80,6 +79,9 @@ class Test_I_Target_Stream
  public:
   Test_I_Target_Stream (const std::string&); // name
   virtual ~Test_I_Target_Stream ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&); // return value: module list
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Target_StreamConfiguration&, // configuration
@@ -124,24 +126,10 @@ class Test_I_Target_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 
-  // modules
-  //Test_I_Target_Stream_Module_Net_IO_Module                source_;
-  //Test_I_Target_Stream_Module_AVIDecoder_Module            decoder_;
-  Test_I_Target_Stream_Module_Splitter_Module              splitter_;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Test_I_Target_Stream_Module_DirectShowSource_Module directShowSource_;
-  //Test_I_Target_Stream_Module_MediaFoundationSource_Module mediaFoundationSource_;
-#endif
-  Test_I_Target_Stream_Module_RuntimeStatistic_Module      runtimeStatistic_;
-  Test_I_Target_Stream_Module_Display_Module               display_;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_Stream_Module_DisplayNull_Module           displayNull_;
-#endif
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // media session
-  IMFMediaSession*                                         mediaSession_;
-  ULONG                                                    referenceCount_;
+  IMFMediaSession* mediaSession_;
+  ULONG            referenceCount_;
 #endif
 };
 

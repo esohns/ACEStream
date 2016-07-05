@@ -88,6 +88,8 @@ class Stream_CamSave_Stream
                               DWORD*); // return value: queue handle
   STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 #endif
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&); // return value: module list
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Stream_CamSave_StreamConfiguration&, // configuration

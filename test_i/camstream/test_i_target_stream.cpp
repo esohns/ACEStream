@@ -28,71 +28,14 @@
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
+#include "test_i_common_modules.h"
 #include "test_i_source_stream.h"
 
 Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
  : inherited (name_in)
-// , source_ (ACE_TEXT_ALWAYS_CHAR ("NetSource"),
-//            NULL,
-//            false)
-// , decoder_ (ACE_TEXT_ALWAYS_CHAR ("AVIDecoder"),
-//             NULL,
-//             false)
- , splitter_ (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
-              NULL,
-              false)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
- //, directShowSource_ (ACE_TEXT_ALWAYS_CHAR ("DirectShowSource"),
- //                     NULL,
- //                     false)
- //, mediaFoundationSource_ (ACE_TEXT_ALWAYS_CHAR ("MediaFoundationSource"),
- //                          NULL,
- //                          false)
-#endif
- , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                      NULL,
-                      false)
- , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
-             NULL,
-             false)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
- , displayNull_ (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-                 NULL,
-                 false)
- , mediaSession_ (NULL)
- , referenceCount_ (1)
-#endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::Test_I_Target_Stream"));
 
-  // remember the "owned" ones...
-  // *TODO*: clean this up
-  // *NOTE*: one problem is that all modules which have NOT enqueued onto the
-  //         stream (e.g. because initialize() failed...) need to be explicitly
-  //         close()d
-//  inherited::modules_.push_front (&source_);
-//  inherited::modules_.push_front (&decoder_);
-  inherited::modules_.push_front (&splitter_);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //inherited::modules_.push_front (&directShowSource_);
-  //inherited::modules_.push_front (&mediaFoundationSource_);
-#endif
-  inherited::modules_.push_front (&runtimeStatistic_);
-  inherited::modules_.push_front (&display_);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  inherited::modules_.push_front (&displayNull_);
-#endif
-
-  // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
-  //inherited::MODULE_T* module_p = NULL;
-  //for (ACE_DLList_Iterator<inherited::MODULE_T> iterator (inherited::availableModules_);
-  //     iterator.next (module_p);
-  //     iterator.advance ())
-  //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
-       iterator != inherited::modules_.end ();
-       iterator++)
-     (*iterator)->next (NULL);
 }
 
 Test_I_Target_Stream::~Test_I_Target_Stream ()
@@ -111,14 +54,60 @@ Test_I_Target_Stream::~Test_I_Target_Stream ()
 #endif
 }
 
-void
-Test_I_Target_Stream::ping ()
+bool
+Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::ping"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::load"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
+  // initialize return value(s)
+  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
+       iterator != modules_out.end ();
+       iterator++)
+    delete *iterator;
+  modules_out.clear ();
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  // *TODO*: remove type inference
+  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
+
+  Stream_Module_t* module_p = NULL;
+  //Test_I_Target_Stream_Module_Net_IO_Module                source_;
+  //Test_I_Target_Stream_Module_AVIDecoder_Module            decoder_;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_Stream_Module_Splitter_Module (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
+                                                               NULL,
+                                                               false),
+                  false);
+  modules_out.push_front (module_p);
+  module_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //Test_I_Target_Stream_Module_DirectShowSource_Module directShowSource_;
+  //Test_I_Target_Stream_Module_MediaFoundationSource_Module mediaFoundationSource_;
+#endif
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_Stream_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
+                                                                       NULL,
+                                                                       false),
+                  false);
+  modules_out.push_front (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_Stream_Module_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                                                              NULL,
+                                                              false),
+                  false);
+  modules_out.push_front (module_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  ACE_NEW_RETURN (module_p,
+//                  Test_I_Target_Stream_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+//                                                                  NULL,
+//                                                                  false),
+//                  false);
+//  modules_out.push_front (module_p);
+#endif
+
+  return true;
 }
 
 bool
@@ -169,11 +158,11 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Target_Stream_Module_Display* display_impl_p = NULL;
+  //Test_I_Target_Stream_Module_Display* display_impl_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Target_Stream_Module_DisplayNull* displayNull_impl_p = NULL;
+  //Test_I_Target_Stream_Module_DisplayNull* displayNull_impl_p = NULL;
 #endif
-  Test_I_Target_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  //Test_I_Target_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
     NULL;
   Test_I_Target_Stream_Module_Splitter* splitter_impl_p = NULL;
 
@@ -188,65 +177,65 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   // *TODO*: remove type inference
   if (configuration_in.moduleHandlerConfiguration->window)
   {
-    display_.initialize (*configuration_in.moduleConfiguration);
-    display_impl_p =
-      dynamic_cast<Test_I_Target_Stream_Module_Display*> (display_.writer ());
-    if (!display_impl_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Display> failed, aborting\n")));
-      goto error;
-    } // end IF
-    if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                  display_.name ()));
-      goto error;
-    } // end IF
+    //display_.initialize (*configuration_in.moduleConfiguration);
+    //display_impl_p =
+    //  dynamic_cast<Test_I_Target_Stream_Module_Display*> (display_.writer ());
+    //if (!display_impl_p)
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Display> failed, aborting\n")));
+    //  goto error;
+    //} // end IF
+    //if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+    //              display_.name ()));
+    //  goto error;
+    //} // end IF
   } // end IF
   else
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    displayNull_.initialize (*configuration_in.moduleConfiguration);
-    displayNull_impl_p =
-      dynamic_cast<Test_I_Target_Stream_Module_DisplayNull*> (displayNull_.writer ());
-    if (!displayNull_impl_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_DisplayNull> failed, aborting\n")));
-      goto error;
-    } // end IF
-    if (!displayNull_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                  displayNull_.name ()));
-      goto error;
-    } // end IF
+    //displayNull_.initialize (*configuration_in.moduleConfiguration);
+    //displayNull_impl_p =
+    //  dynamic_cast<Test_I_Target_Stream_Module_DisplayNull*> (displayNull_.writer ());
+    //if (!displayNull_impl_p)
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_DisplayNull> failed, aborting\n")));
+    //  goto error;
+    //} // end IF
+    //if (!displayNull_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+    //              displayNull_.name ()));
+    //  goto error;
+    //} // end IF
 #endif
   } // end ELSE
 
   // ******************* Runtime Statistic *************************
-  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  runtimeStatistic_impl_p =
-      dynamic_cast<Test_I_Target_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Statistic_WriterTask_T> failed, aborting\n")));
-    goto error;
-  } // end IF
-  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval
-                                            true,                                        // push statistic messages
-                                            configuration_in.printFinalReport,           // print final report ?
-                                            configuration_in.messageAllocator))          // message allocator handle
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                runtimeStatistic_.name ()));
-    goto error;
-  } // end IF
+  //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
+  //runtimeStatistic_impl_p =
+  //    dynamic_cast<Test_I_Target_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  //if (!runtimeStatistic_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Statistic_WriterTask_T> failed, aborting\n")));
+  //  goto error;
+  //} // end IF
+  //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval
+  //                                          true,                                        // push statistic messages
+  //                                          configuration_in.printFinalReport,           // print final report ?
+  //                                          configuration_in.messageAllocator))          // message allocator handle
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+  //              runtimeStatistic_.name ()));
+  //  goto error;
+  //} // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // ******************* DirectShow Source ************************
@@ -533,33 +522,33 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 #endif
 
   // ************************ Splitter *****************************
-  splitter_.initialize (*configuration_in.moduleConfiguration);
+  Stream_Module_t* module_p = inherited::find (ACE_TEXT_ALWAYS_CHAR ("CamSource"));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("CamSource")));
+    goto error;
+  } // end IF
   splitter_impl_p =
-    dynamic_cast<Test_I_Target_Stream_Module_Splitter*> (splitter_.writer ());
+    dynamic_cast<Test_I_Target_Stream_Module_Splitter*> (module_p->writer ());
   if (!splitter_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Splitter> failed, aborting\n")));
     goto error;
   } // end IF
-  if (!splitter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                splitter_.name ()));
-    goto error;
-  } // end IF
   if (!splitter_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                splitter_.name ()));
+                module_p->name ()));
     goto error;
   } // end IF
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  splitter_.arg (inherited::sessionData_);
+  module_p->arg (inherited::sessionData_);
 
 //  // ************************ AVI Decoder *****************************
 //  decoder_.initialize (*configuration_in.moduleConfiguration);
@@ -635,9 +624,6 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
       goto error;
     } // end IF
 
-  // set (session) message allocator
-  inherited::allocator_ = configuration_in.messageAllocator;
-
   return true;
 
 error:
@@ -678,6 +664,17 @@ error:
   return false;
 }
 
+void
+Test_I_Target_Stream::ping ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::ping"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+
 bool
 Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
 {
@@ -689,10 +686,18 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   int result = -1;
   Test_I_Target_Stream_SessionData& session_data_r =
         const_cast<Test_I_Target_Stream_SessionData&> (inherited::sessionData_->get ());
-
-  Test_I_Target_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Test_I_Target_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl)
+  Stream_Module_t* module_p =
+    inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("RuntimeStatistic")));
+    return false;
+  } // end IF
+  Test_I_Target_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+    dynamic_cast<Test_I_Target_Stream_Module_Statistic_WriterTask_t*> (module_p->writer ());
+  if (!runtimeStatistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Statistic_WriterTask_t> failed, aborting\n")));
@@ -717,7 +722,7 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   bool result_2 = false;
   try
   {
-    result_2 = runtimeStatistic_impl->collect (data_out);
+    result_2 = runtimeStatistic_impl_p->collect (data_out);
   }
   catch (...)
   {

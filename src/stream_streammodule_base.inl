@@ -21,7 +21,6 @@
 #include "ace/Log_Msg.h"
 #include "ace/Module.h"
 
-#include "stream_common.h"
 #include "stream_macros.h"
 
 template <typename TaskSynchType,
@@ -83,12 +82,9 @@ Stream_StreamModule_T<TaskSynchType,
     ////            inherited::name ()));
 
     int result = -1;
-    try
-    {
+    try {
       result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
                   inherited::name ()));
@@ -149,12 +145,9 @@ Stream_StreamModuleInputOnly_T<TaskSynchType,
     //            ACE_TEXT (module->name ())));
 
     int result = -1;
-    try
-    {
+    try {
       result = inherited::close (ACE_Module_Base::M_DELETE_NONE);
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
                   inherited::name ()));

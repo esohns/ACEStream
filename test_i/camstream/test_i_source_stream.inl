@@ -22,52 +22,18 @@
 
 #include "stream_macros.h"
 
+#include "test_i_common_modules.h"
+
 template <typename ConnectorType>
 Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string& name_in)
  : inherited (name_in)
- , source_ (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
-            NULL,
-            false)
- , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                      NULL,
-                      false)
- , netTarget_ (ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
-               NULL,
-               false)
- , display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
-             NULL,
-             false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
- , displayNull_ (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-                 NULL,
-                 false)
  , mediaSession_ (NULL)
  , referenceCount_ (1)
 #endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Test_I_Source_Stream_T"));
 
-  // remember the 'used' ones
-  // *TODO*: clean this up
-  // *NOTE*: one problem is that all modules which have NOT enqueued onto the
-  //         stream (e.g. because initialize() failed...) need to be explicitly
-  //         close()d
-  inherited::modules_.push_front (&source_);
-  inherited::modules_.push_front (&runtimeStatistic_);
-  inherited::modules_.push_front (&netTarget_);
-//  inherited::modules_.push_front (&display_);
-//  inherited::modules_.push_front (&displayNull_);
-
-  // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
-  //inherited::MODULE_T* module_p = NULL;
-  //for (ACE_DLList_Iterator<inherited::MODULE_T> iterator (inherited::availableModules_);
-  //     iterator.next (module_p);
-  //     iterator.advance ())
-  //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
-       iterator != inherited::modules_.end ();
-       iterator++)
-     (*iterator)->next (NULL);
 }
 
 template <typename ConnectorType>
@@ -104,18 +70,18 @@ Test_I_Source_Stream_T<ConnectorType>::ping ()
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-template <typename ConnectorType>
-Stream_Module_t*
-Test_I_Source_Stream_T<ConnectorType>::find (const std::string& name_in) const
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::find"));
-
-  if (ACE_OS::strcmp (name_in.c_str (),
-                      ACE_TEXT_ALWAYS_CHAR ("DisplayNull")) == 0)
-    return const_cast<Test_I_Source_Stream_Module_DisplayNull_Module*> (&displayNull_);
-
-  return inherited::find (name_in);
-}
+//template <typename ConnectorType>
+//Stream_Module_t*
+//Test_I_Source_Stream_T<ConnectorType>::find (const std::string& name_in) const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::find"));
+//
+//  if (ACE_OS::strcmp (name_in.c_str (),
+//                      ACE_TEXT_ALWAYS_CHAR ("DisplayNull")) == 0)
+//    return const_cast<Test_I_Source_Stream_Module_DisplayNull_Module*> (&displayNull_);
+//
+//  return inherited::find (name_in);
+//}
 template <typename ConnectorType>
 void
 Test_I_Source_Stream_T<ConnectorType>::start ()
@@ -396,24 +362,88 @@ error:
 
 template <typename ConnectorType>
 bool
+Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::load"));
+
+  // initialize return value(s)
+  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
+       iterator != modules_out.end ();
+       iterator++)
+    delete *iterator;
+  modules_out.clear ();
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  // *TODO*: remove type inference
+  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
+
+  Stream_Module_t* module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Stream_Module_CamSource_Module (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
+                                                         NULL,
+                                                         false),
+                  false);
+  modules_out.push_front (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_Stream_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
+                                                                       NULL,
+                                                                       false),
+                  false);
+  modules_out.push_front (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  TARGET_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
+                                   NULL,
+                                   false),
+                  false);
+  modules_out.push_front (module_p);
+  module_p = NULL;
+  if (inherited::configuration_->moduleHandlerConfiguration->window)
+  {
+    ACE_NEW_RETURN (module_p,
+                    Test_I_Source_Stream_Module_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                                                                NULL,
+                                                                false),
+                    false);
+    modules_out.push_front (module_p);
+  } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  //else
+  //{
+  //  ACE_NEW_RETURN (module_p,
+  //                  Test_I_Source_Stream_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+  //                                                                  NULL,
+  //                                                                  false),
+  //                  false);
+  //  modules_out.push_front (module_p);
+  //} // end ELSE
+#endif
+
+  return true;
+}
+
+template <typename ConnectorType>
+bool
 Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamConfiguration& configuration_in,
                                                    bool setupPipeline_in,
                                                    bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
+  //// sanity check(s)
+  //ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
-  // *TODO*: remove type inference
-  if (configuration_in.moduleHandlerConfiguration->window)
-    inherited::modules_.push_front (&display_);
-  else
-  {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    inherited::modules_.push_front (&displayNull_);
-#endif
-  } // end ELSE
+  //// *TODO*: remove type inference
+  //if (configuration_in.moduleHandlerConfiguration->window)
+  //  inherited::modules_.push_front (&display_);
+//  else
+//  {
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//    inherited::modules_.push_front (&displayNull_);
+//#endif
+//  } // end ELSE
 
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in,
@@ -439,12 +469,12 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Source_Stream_Module_Display* display_impl_p = NULL;
+  //Test_I_Source_Stream_Module_Display* display_impl_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_Stream_Module_DisplayNull* displayNull_impl_p = NULL;
+  //Test_I_Source_Stream_Module_DisplayNull* displayNull_impl_p = NULL;
 #endif
-  WRITER_T* netTarget_impl_p = NULL;
-  Test_I_Source_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
+  //WRITER_T* netTarget_impl_p = NULL;
+  //Test_I_Source_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Stream_Module_CamSource* source_impl_p = NULL;
   //Test_I_Source_Stream_SessionData* session_data_p = NULL;
 
@@ -452,86 +482,96 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   // *TODO*: remove type inference
   if (configuration_in.moduleHandlerConfiguration->window)
   {
-    display_.initialize (*configuration_in.moduleConfiguration);
-    display_impl_p =
-        dynamic_cast<Test_I_Source_Stream_Module_Display*> (display_.writer ());
-    if (!display_impl_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_Display> failed, aborting\n")));
-      return false;
-    } // end IF
-    if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                  display_.name ()));
-      return false;
-    } // end IF
+    //display_.initialize (*configuration_in.moduleConfiguration);
+    //display_impl_p =
+    //    dynamic_cast<Test_I_Source_Stream_Module_Display*> (display_.writer ());
+    //if (!display_impl_p)
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_Display> failed, aborting\n")));
+    //  return false;
+    //} // end IF
+    //if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+    //              display_.name ()));
+    //  return false;
+    //} // end IF
   } // end IF
   else
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    displayNull_.initialize (*configuration_in.moduleConfiguration);
-    displayNull_impl_p =
-        dynamic_cast<Test_I_Source_Stream_Module_DisplayNull*> (displayNull_.writer ());
-    if (!displayNull_impl_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_DisplayNull> failed, aborting\n")));
-      return false;
-    } // end IF
-    if (!displayNull_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                  displayNull_.name ()));
-      return false;
-    } // end IF
+    //displayNull_.initialize (*configuration_in.moduleConfiguration);
+    //displayNull_impl_p =
+    //    dynamic_cast<Test_I_Source_Stream_Module_DisplayNull*> (displayNull_.writer ());
+    //if (!displayNull_impl_p)
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_DisplayNull> failed, aborting\n")));
+    //  return false;
+    //} // end IF
+    //if (!displayNull_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
+    //              displayNull_.name ()));
+    //  return false;
+    //} // end IF
+    //inherited::modules_.push_front (&displayNull_);
 #endif
   } // end ELSE
 
   // ******************* Net Target ************************
-  netTarget_.initialize (*configuration_in.moduleConfiguration);
-  netTarget_impl_p = dynamic_cast<WRITER_T*> (netTarget_.writer ());
-  if (!netTarget_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Net_Target_T> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!netTarget_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                netTarget_.name ()));
-    return false;
-  } // end IF
+  //netTarget_.initialize (*configuration_in.moduleConfiguration);
+  //netTarget_impl_p = dynamic_cast<WRITER_T*> (netTarget_.writer ());
+  //if (!netTarget_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Net_Target_T> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!netTarget_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to initialize module, aborting\n"),
+  //              netTarget_.name ()));
+  //  return false;
+  //} // end IF
 
   // ******************* Runtime Statistic ************************
-  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  runtimeStatistic_impl_p =
-      dynamic_cast<Test_I_Source_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_RuntimeStatistic> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-                                            true,                                        // push 1-second interval statistic messages downstream ?
-                                            configuration_in.printFinalReport,           // print final report ?
-                                            configuration_in.messageAllocator))          // message allocator handle
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                runtimeStatistic_.name ()));
-    return false;
-  } // end IF
+  //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
+  //runtimeStatistic_impl_p =
+  //    dynamic_cast<Test_I_Source_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  //if (!runtimeStatistic_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_RuntimeStatistic> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
+  //                                          true,                                        // push 1-second interval statistic messages downstream ?
+  //                                          configuration_in.printFinalReport,           // print final report ?
+  //                                          configuration_in.messageAllocator))          // message allocator handle
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to initialize module, aborting\n"),
+  //              runtimeStatistic_.name ()));
+  //  return false;
+  //} // end IF
 
   // ******************* Camera Source ************************
+  Stream_Module_t* module_p =
+    inherited::find (ACE_TEXT_ALWAYS_CHAR ("CamSource"));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("CamSource")));
+    return false;
+  } // end IF
   source_impl_p =
-    dynamic_cast<Test_I_Stream_Module_CamSource*> (source_.writer ());
+    dynamic_cast<Test_I_Stream_Module_CamSource*> (module_p->writer ());
   if (!source_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -547,7 +587,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
   result = CoInitializeEx (NULL,
                             (COINIT_MULTITHREADED    |
-                            COINIT_DISABLE_OLE1DDE  |
+                            COINIT_DISABLE_OLE1DDE   |
                             COINIT_SPEED_OVER_MEMORY));
   if (FAILED (result))
   {
@@ -558,14 +598,34 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   } // end IF
   COM_initialized = true;
 
+  IMFMediaType* media_type_p = NULL;
+  if (!configuration_in.moduleHandlerConfiguration->format)
+  {
+    result = MFCreateMediaType (&configuration_in.moduleHandlerConfiguration->format);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+  } // end IF
+  if (!Stream_Module_Device_Tools::copyMediaType (configuration_in.moduleHandlerConfiguration->format,
+                                                  media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
+    goto error;
+  } // end IF
+
   if (!Stream_Module_Device_Tools::loadRendererTopology (configuration_in.moduleHandlerConfiguration->device,
-                                                          configuration_in.moduleHandlerConfiguration->format,
-                                                          source_impl_p,
-                                                          NULL,
-                                                          //configuration_in.moduleHandlerConfiguration->window,
-                                                          configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
-                                                          session_data_r.rendererNodeId,
-                                                          topology_p))
+                                                         media_type_p,
+                                                         source_impl_p,
+                                                         NULL,
+                                                         //configuration_in.moduleHandlerConfiguration->window,
+                                                         configuration_in.moduleHandlerConfiguration->sampleGrabberNodeId,
+                                                         session_data_r.rendererNodeId,
+                                                         topology_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::loadRendererTopology(\"%s\"), aborting\n"),
@@ -575,17 +635,61 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   ACE_ASSERT (topology_p);
   graph_loaded = true;
 
-  if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
-                                                      configuration_in.moduleHandlerConfiguration->format))
+  // set default capture media type ?
+  UINT32 item_count = 0;
+  result = media_type_p->GetCount (&item_count);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::GetCount(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  if (!item_count)
+  {
+    IMFMediaSource* media_source_p = NULL;
+    if (!Stream_Module_Device_Tools::getMediaSource (topology_p,
+                                                     media_source_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
+      goto error;
+    } // end IF
+    if (!Stream_Module_Device_Tools::getCaptureFormat (media_source_p,
+                                                       media_type_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+  
+      // clean up
+      media_source_p->Release ();
+
+      goto error;
+    } // end IF
+    media_source_p->Release ();
+
+    if (!Stream_Module_Device_Tools::copyMediaType (media_type_p,
+                                                    configuration_in.moduleHandlerConfiguration->format))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), aborting\n")));
+      goto error;
+    } // end IF
+  } // end IF
+  else if (!Stream_Module_Device_Tools::setCaptureFormat (topology_p,
+                                                          media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
-  if (_DEBUG)
+#if defined (_DEBUG)
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("capture format: \"%s\"...\n"),
-                ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (configuration_in.moduleHandlerConfiguration->format).c_str ())));
+                ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (media_type_p).c_str ())));
+#endif
+  media_type_p->Release ();
+  media_type_p = NULL;
 
   if (session_data_r.format)
   {
@@ -638,6 +742,8 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     goto error;
   } // end IF
   topology_p->Release ();
+  topology_p = NULL;
+  ACE_ASSERT (mediaSession_);
 
   if (!configuration_in.moduleHandlerConfiguration->session)
   {
@@ -646,26 +752,25 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   } // end IF
 #endif
 
-  source_.initialize (*configuration_in.moduleConfiguration);
   if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
-                source_.name ()));
+                module_p->name ()));
     goto error;
   } // end IF
   if (!source_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
-                source_.name ()));
+                module_p->name ()));
     goto error;
   } // end IF
   //fileReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  source_.arg (inherited::sessionData_);
+  module_p->arg (inherited::sessionData_);
 
   if (setupPipeline_in)
     if (!inherited::setup (NULL))
@@ -685,9 +790,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   //session_data_p->size =
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
-  // set (session) message allocator
-  inherited::allocator_ = configuration_in.messageAllocator;
-
   // OK: all went well
   inherited::isInitialized_ = true;
 
@@ -700,6 +802,8 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
 error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (media_type_p)
+    media_type_p->Release ();
   if (topology_p)
   {
     Stream_Module_Device_Tools::dump (topology_p);
@@ -747,10 +851,18 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_Source_Stream_StatisticDa
   int result = -1;
   Test_I_Source_Stream_SessionData& session_data_r =
       const_cast<Test_I_Source_Stream_SessionData&> (inherited::sessionData_->get ());
-
-  Test_I_Source_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Test_I_Source_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl)
+  Stream_Module_t* module_p =
+    inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("RuntimeStatistic")));
+    return false;
+  } // end IF
+  Test_I_Source_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+    dynamic_cast<Test_I_Source_Stream_Module_Statistic_WriterTask_t*> (module_p->writer ());
+  if (!runtimeStatistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_Statistic_WriterTask_t> failed, aborting\n")));
@@ -771,14 +883,11 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_Source_Stream_StatisticDa
 
   session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
 
-  // delegate to the statistics module...
+  // delegate to the statistic module
   bool result_2 = false;
-  try
-  {
-    result_2 = runtimeStatistic_impl->collect (data_out);
-  }
-  catch (...)
-  {
+  try {
+    result_2 = runtimeStatistic_impl_p->collect (data_out);
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
   }

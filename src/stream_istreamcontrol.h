@@ -23,12 +23,15 @@
 
 #include <string>
 
+#include "ace/Module.h"
 #include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_icontrol.h"
 //#include "common_iget.h"
 #include "common_time_common.h"
+
+#include "stream_common.h"
 
 // forward declarations
 typedef ACE_Module<ACE_MT_SYNCH,
@@ -41,6 +44,8 @@ class Stream_IStreamControlBase
 {
  public:
   inline virtual ~Stream_IStreamControlBase () {};
+
+  virtual bool load (Stream_ModuleList_t&) = 0; // return value: module list
 
   // *NOTE*: flush the pipeline, releasing any data
   // *NOTE*: session messages are not flushed, if all modules implement

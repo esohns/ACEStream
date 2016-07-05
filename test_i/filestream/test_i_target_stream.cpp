@@ -56,7 +56,7 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
+  for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
        iterator != inherited::modules_.end ();
        iterator++)
      (*iterator)->next (NULL);
@@ -152,16 +152,16 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
     imodule_p->reset ();
     Stream_Task_t* task_p = configuration_in.module->writer ();
     ACE_ASSERT (task_p);
-    inherited::IMODULEHANDLER_T* module_handler_p =
-      dynamic_cast<inherited::IMODULEHANDLER_T*> (task_p);
-    if (!module_handler_p)
+    inherited::MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
+      dynamic_cast<inherited::MODULEHANDLER_IINITIALIZE_T*> (task_p);
+    if (!iinitialize_p)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    if (!module_handler_p->initialize (*configuration_in.moduleHandlerConfiguration))
+    if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
@@ -250,9 +250,6 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
     } // end IF
 
   // -------------------------------------------------------------
-
-  // set (session) message allocator
-  inherited::allocator_ = configuration_in.messageAllocator;
 
   // OK: all went well
   inherited::isInitialized_ = true;

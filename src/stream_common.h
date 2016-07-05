@@ -21,7 +21,10 @@
 #ifndef STREAM_COMMON_H
 #define STREAM_COMMON_H
 
+#include <deque>
+
 #include "ace/Message_Block.h"
+#include "ace/Module.h"
 #include "ace/Notification_Strategy.h"
 #include "ace/Stream.h"
 #include "ace/Synch_Traits.h"
@@ -222,6 +225,8 @@ typedef ACE_Stream<ACE_MT_SYNCH,
                    Common_TimePolicy_t> Stream_Base_t;
 typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
                             Common_TimePolicy_t> Stream_Iterator_t;
+typedef std::deque<Stream_Module_t*> Stream_ModuleList_t;
+typedef Stream_ModuleList_t::const_iterator Stream_ModuleListIterator_t;
 
 struct Stream_ModuleConfiguration;
 struct Stream_ModuleHandlerConfiguration;

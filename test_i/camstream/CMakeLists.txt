@@ -244,7 +244,8 @@ if (UNIX)
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-c -g.\\\\etc\\\\source.glade -l -t"
+#                         ARGS "-c -g.\\\\etc\\\\source.glade -l -t"
+                         ARGS "-g -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk3/bin

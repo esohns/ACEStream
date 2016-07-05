@@ -68,7 +68,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (inherited::MODULE_CONTAINER_ITERATOR_T iterator = inherited::modules_.begin ();
+  for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
        iterator != inherited::modules_.end ();
        iterator++)
      (*iterator)->next (NULL);
@@ -305,9 +305,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
     } // end IF
 
   // -------------------------------------------------------------
-
-  // set (session) message allocator
-  inherited::allocator_ = configuration_in.messageAllocator;
 
   // OK: all went well
   inherited::isInitialized_ = true;

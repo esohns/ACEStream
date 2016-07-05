@@ -134,7 +134,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                               WCHAR*&,            // return value: symbolic link
                               UINT32&);           // return value: symbolic link size
   static bool getMediaSource (const IMFMediaSession*, // media session handle
-                              IMFMediaSource*&);      // return value: media device handle
+                              IMFMediaSource*&);      // return value: media source handle
+  static bool getMediaSource (const IMFTopology*, // topology handle
+                              IMFMediaSource*&);  // return value: media source handle
   static bool getDirect3DDevice (const HWND,                      // target window handle
                                  const IMFMediaType*,             // media format handle
                                  IDirect3DDevice9Ex*&,            // return value: Direct3D device handle

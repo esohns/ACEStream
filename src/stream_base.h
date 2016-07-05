@@ -114,6 +114,7 @@ class Stream_Base_T
                      bool = true); // locked access ?
   virtual bool isRunning () const;
 
+  virtual bool load (Stream_ModuleList_t&);
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false); // flush upstream (if any) ?
   virtual void pause ();
@@ -199,9 +200,7 @@ class Stream_Base_T
                    TimePolicyType> TASK_T;
   typedef ACE_Message_Queue<TaskSynchType,
                             TimePolicyType> QUEUE_T;
-  typedef Common_IInitialize_T<HandlerConfigurationType> IMODULEHANDLER_T;
-  typedef std::deque<MODULE_T*> MODULE_CONTAINER_T;
-  typedef typename MODULE_CONTAINER_T::const_iterator MODULE_CONTAINER_ITERATOR_T;
+  typedef Common_IInitialize_T<HandlerConfigurationType> MODULEHANDLER_IINITIALIZE_T;
   typedef Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
 
   Stream_Base_T (const std::string&); // name
@@ -224,16 +223,13 @@ class Stream_Base_T
   // *NOTE*: derived classes must call this in their dtor
   void shutdown ();
 
-  // *NOTE*: derived classes need to initialize these !
-  Stream_IAllocator*        allocator_;
+  ConfigurationType*        configuration_;
   // *NOTE*: derived classes set this IF their initialization succeeded;
   //         otherwise, the dtor will NOT stop all worker threads before
   //         close()ing the modules
   bool                      isInitialized_;
   ACE_SYNCH_MUTEX           lock_;
-  // *IMPORTANT NOTE*: derived classes add handles to ALL of their modules to
-  //                   this container
-  MODULE_CONTAINER_T        modules_;
+  Stream_ModuleList_t       modules_;
   SessionDataContainerType* sessionData_;
   StateType                 state_;
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_
