@@ -931,9 +931,8 @@ Stream_Module_Device_Tools::pin (IBaseFilter* filter_in,
   } // end IF
   ACE_ASSERT (enumerator_p);
 
-  IKsPropertySet* property_set_p = NULL;
-  struct _GUID GUID_s;
-  ACE_OS::memset (&GUID_s, 0, sizeof (struct _GUID));
+  //IKsPropertySet* property_set_p = NULL;
+  struct _GUID GUID_s = GUID_NULL;
   enum _PinDirection pin_direction;
   while (S_OK == enumerator_p->Next (1, &result, NULL))
   {
@@ -950,7 +949,7 @@ Stream_Module_Device_Tools::pin (IBaseFilter* filter_in,
       result->Release ();
       enumerator_p->Release ();
 
-      return false;
+      return NULL;
     } // end IF
     if (pin_direction == direction_in)
       break;
@@ -3128,8 +3127,8 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadRendererTopology"));
 
   bool release_topology = false;
-  struct _GUID sub_type = { 0 };
-  MFT_REGISTER_TYPE_INFO mft_register_type_info = { 0 };
+  struct _GUID sub_type = GUID_NULL;
+  MFT_REGISTER_TYPE_INFO mft_register_type_info = { GUID_NULL, GUID_NULL };
   IMFMediaSource* media_source_p = NULL;
   IMFMediaType* media_type_p = NULL;
   IMFActivate* activate_p = NULL;
@@ -3282,7 +3281,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   //media_source_p->Release ();
   //media_source_p = NULL;
 
-  IMFAttributes* attributes_p = NULL;
+  //IMFAttributes* attributes_p = NULL;
   while (true)
   {
     mft_register_type_info.guidSubtype = sub_type;
@@ -5078,7 +5077,7 @@ Stream_Module_Device_Tools::graphConnect (IGraphBuilder* builder_in,
   filter_p->Release ();
   IPin* pin_p = NULL;
   PIN_DIRECTION pin_direction;
-  IAMStreamConfig* stream_config_p = NULL;
+  //IAMStreamConfig* stream_config_p = NULL;
   while (S_OK == enumerator_p->Next (1, &pin_p, NULL))
   {
     ACE_ASSERT (pin_p);
@@ -6856,7 +6855,7 @@ Stream_Module_Device_Tools::nodeTypeToString (enum MF_TOPOLOGY_TYPE nodeType_in)
   return result;
 }
 std::string
-Stream_Module_Device_Tools::topologyStatusToString (enum MF_TOPOSTATUS topologyStatus_in)
+Stream_Module_Device_Tools::topologyStatusToString (MF_TOPOSTATUS topologyStatus_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::topologyStatusToString"));
 
@@ -7625,8 +7624,6 @@ Stream_Module_Device_Tools::copyMediaType (const IMFMediaType* IMFMediaType_in,
                                            IMFMediaType*& IMFMediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::copyMediaType"));
-
-  bool free_memory = false;
 
   // sanity check(s)
   if (IMFMediaType_out)

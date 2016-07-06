@@ -153,6 +153,9 @@ if (VALGRIND_SUPPORT)
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS LIBACESTREAM_ENABLE_VALGRIND_SUPPORT)
 endif ()
 
+option (BUILD_MODULES
+        "build (git) sub-modules" OFF)
+
 if (CMAKE_COMPILER_IS_GNUCXX)
  add_compile_options (-ansi)
  add_compile_options (-std=c++11)
@@ -161,9 +164,17 @@ if (CMAKE_COMPILER_IS_GNUCXX)
  add_definitions (-D_GNU_SOURCE)
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS _GNU_SOURCE)
 endif ()
+if (MSVC)  
+ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")  
+endif (MSVC)
 
-option (BUILD_MODULES
-        "build (git) sub-modules" OFF)
+#if (WIN32)
+# set (CMAKE_GENERATOR_TOOLSET "LLVM-vs2014" CACHE STRING "Platform Toolset" FORCE) 
+# set (CMAKE_VS_PLATFORM_TOOLSET "LLVM-vs2014" CACHE STRING "Platform Toolset" FORCE)
+# if (CMAKE_VS_PLATFORM_TOOLSET STREQUAL LLVM-vs2014)
+#  add_compile_options (-Wno-c++11-narrowing)
+# endif ()
+#endif ()
 
 #add_definitions (-DHAVE_CONFIG_H)
 #set_property (SOURCE PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H)

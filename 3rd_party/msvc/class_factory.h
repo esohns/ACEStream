@@ -77,8 +77,9 @@ class ClassFactory
 
  public:
   ClassFactory (CreateInstanceFn pfnCreation)
-   : m_pfnCreation (pfnCreation), m_refCount (1)
+   : m_refCount (1), m_pfnCreation (pfnCreation)
   {}
+  virtual ~ClassFactory () {}
 
   static bool IsLocked ()
   {

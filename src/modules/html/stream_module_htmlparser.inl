@@ -95,7 +95,7 @@ Stream_Module_HTMLParser_T<SessionMessageType,
 
   int result = -1;
   ACE_Message_Block* message_block_p = message_inout;
-  xmlParserErrors parse_errors = XML_ERR_OK;
+  //xmlParserErrors parse_errors = XML_ERR_OK;
   xmlErrorPtr error_p = NULL;
 
   // don't care (implies yes per default, if part of a stream)

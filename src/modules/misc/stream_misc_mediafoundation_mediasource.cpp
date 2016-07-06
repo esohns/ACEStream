@@ -19,4 +19,6 @@
 ***************************************************************************/
 #include "stdafx.h"
 
+#include "ace/Synch.h"
+
 #include "stream_misc_mediafoundation_mediasource.h"

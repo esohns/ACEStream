@@ -617,8 +617,8 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_ASSERT (configuration_);
   ACE_ASSERT (sessionData_);
 
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (sessionData_->get ());
+  //SessionDataType& session_data_r =
+  //  const_cast<SessionDataType&> (sessionData_->get ());
 
   switch (message_inout->type ())
   {

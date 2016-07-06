@@ -128,6 +128,9 @@ class Stream_Vis_Target_MediaFoundation_2
   //                                DWORD,               // buffer size
   //                                IMFAttributes*);     // media sample attributes
 
+ protected:
+  ConfigurationType* configuration_;
+
  private:
   typedef Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
                                                MessageType,

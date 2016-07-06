@@ -54,7 +54,7 @@ Test_I_Source_Stream_T<ConnectorType>::~Test_I_Source_Stream_T ()
   } // end IF
 #endif
 
-  // *NOTE*: this implements an ordered shutdown on destruction...
+  // *NOTE*: implements an ordered shutdown on destruction
   inherited::shutdown ();
 }
 
@@ -322,8 +322,8 @@ Test_I_Source_Stream_T<ConnectorType>::Invoke (IMFAsyncResult* result_in)
     result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
                                        &attribute_value);
     ACE_ASSERT (SUCCEEDED (result));
-    enum MF_TOPOSTATUS topology_status =
-      static_cast<enum MF_TOPOSTATUS> (attribute_value);
+    MF_TOPOSTATUS topology_status =
+      static_cast<MF_TOPOSTATUS> (attribute_value);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("received MESessionTopologyStatus: \"%s\"...\n"),
                 ACE_TEXT (Stream_Module_Device_Tools::topologyStatusToString (topology_status).c_str ())));

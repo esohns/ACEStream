@@ -74,15 +74,15 @@ const AMOVIESETUP_MEDIATYPE sudMediaTypes[] =
   , { &MEDIATYPE_Video, &MEDIASUBTYPE_YUY2  } */
 };
 
-const struct REGPINTYPES sudPinTypes[] =
-{
-  { &MEDIATYPE_Video, &MEDIASUBTYPE_Avi }
-  /*{ &MEDIATYPE_Video, &MEDIASUBTYPE_NULL  }
-  ,*/ /*{ &MEDIATYPE_Video, &MEDIASUBTYPE_RGB24 }
-  //, { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB32 }
-  , { &MEDIATYPE_Video, &MEDIASUBTYPE_MJPG  }
-  , { &MEDIATYPE_Video, &MEDIASUBTYPE_YUY2  } */
-};
+//const struct REGPINTYPES sudPinTypes[] =
+//{
+//  { &MEDIATYPE_Video, &MEDIASUBTYPE_Avi }
+//  /*{ &MEDIATYPE_Video, &MEDIASUBTYPE_NULL  }
+//  ,*/ /*{ &MEDIATYPE_Video, &MEDIASUBTYPE_RGB24 }
+//  //, { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB32 }
+//  , { &MEDIATYPE_Video, &MEDIASUBTYPE_MJPG  }
+//  , { &MEDIATYPE_Video, &MEDIASUBTYPE_YUY2  } */
+//};
 
 const struct REGFILTERPINS sudOutputPin =
 {

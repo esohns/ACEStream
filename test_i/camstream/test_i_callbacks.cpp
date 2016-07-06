@@ -213,7 +213,7 @@ load_capture_devices (GtkListStore* listStore_in)
   GtkTreeIter iterator;
   WCHAR friendly_name_string[BUFSIZ];
   UINT32 length = 0;
-  unsigned int index = 0;
+  //unsigned int index = 0;
   for (UINT32 index = 0; index < count; index++)
   {
     ACE_OS::memset (friendly_name_string, 0, sizeof (friendly_name_string));

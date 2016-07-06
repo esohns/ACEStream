@@ -215,8 +215,8 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
   ACE_ASSERT (mediaSession_);
   ACE_ASSERT (inherited::sessionData_);
 
-  Stream_CamSave_SessionData& session_data_r =
-    const_cast<Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
+  //Stream_CamSave_SessionData& session_data_r =
+  //  const_cast<Stream_CamSave_SessionData&> (inherited::sessionData_->get ());
 
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
   if (FAILED (result))
@@ -326,8 +326,8 @@ Stream_CamSave_Stream::Invoke (IMFAsyncResult* result_in)
     result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
                                        &attribute_value);
     ACE_ASSERT (SUCCEEDED (result));
-    enum MF_TOPOSTATUS topology_status =
-      static_cast<enum MF_TOPOSTATUS> (attribute_value);
+    MF_TOPOSTATUS topology_status =
+      static_cast<MF_TOPOSTATUS> (attribute_value);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("received MESessionTopologyStatus: \"%s\"...\n"),
                 ACE_TEXT (Stream_Module_Device_Tools::topologyStatusToString (topology_status).c_str ())));
@@ -849,7 +849,7 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   } // end IF
   ACE_ASSERT (session_data_r.format);
 
-  HRESULT result = E_FAIL;
+  //HRESULT result = E_FAIL;
   if (mediaSession_)
   {
     // *TODO*: this crashes in CTopoNode::UnlinkInput ()...

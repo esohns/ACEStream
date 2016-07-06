@@ -209,7 +209,7 @@ load_capture_devices (GtkListStore* listStore_in)
   GtkTreeIter iterator;
   WCHAR friendly_name_string[BUFSIZ];
   UINT32 length = 0;
-  unsigned int index = 0;
+  //unsigned int index = 0;
   for (UINT32 index = 0; index < count; index++)
   {
     ACE_OS::memset (friendly_name_string, 0, sizeof (friendly_name_string));
@@ -2759,7 +2759,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   //         --> recreate a new session every time
   if (data_p->configuration->moduleHandlerConfiguration.session)
   {
-    HRESULT result = E_FAIL;
+    //HRESULT result = E_FAIL;
     // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
     //result =
     //  data_p->configuration->moduleHandlerConfiguration.session->Shutdown ();

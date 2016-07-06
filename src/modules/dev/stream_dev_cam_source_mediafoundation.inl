@@ -358,6 +358,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
       //IMFTopologyNode* source_node_p = NULL;
       //IMFPresentationDescriptor* presentation_descriptor_p = NULL;
       HRESULT result_2 = E_FAIL;
+      ULONG reference_count = 0;
 
       if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       {
@@ -427,7 +428,6 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
       //    goto error;
       //  } // end IF
 
-      ULONG reference_count = 0;
       if (inherited::configuration_->session)
       {
         reference_count = inherited::configuration_->session->AddRef ();
@@ -1416,7 +1416,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
   ProtocolMessageType* message_p = NULL;
   int result = -1;
-  HRESULT result_2 = E_FAIL;
+  //HRESULT result_2 = E_FAIL;
 
   if (isFirst_)
   {
@@ -1451,7 +1451,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
-                inherited::name ()));
+                ACE_TEXT (inherited::name ().c_str ())));
     goto error;
   } // end IF
 
@@ -1462,7 +1462,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
     if (error != ESHUTDOWN)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
-                  inherited::name ()));
+                  ACE_TEXT (inherited::name ().c_str ())));
     goto error;
   } // end IF
 
@@ -1508,6 +1508,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   if (presentationClock_in)
   {
     ULONG reference_count = presentationClock_in->AddRef ();
+    ACE_UNUSED_ARG (reference_count);
     presentationClock_ = presentationClock_in;
   } // end IF
 

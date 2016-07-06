@@ -1,6 +1,6 @@
 LIBRARY camtarget_source
 
-DESCRIPTION "camtarget directshow source filter"
+#DESCRIPTION "camtarget directshow source filter"
 
 EXPORTS
   DllMain             PRIVATE

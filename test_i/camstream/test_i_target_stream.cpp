@@ -33,6 +33,10 @@
 
 Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
  : inherited (name_in)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , mediaSession_ (NULL)
+ , referenceCount_ (1)
+#endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::Test_I_Target_Stream"));
 

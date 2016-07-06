@@ -1093,6 +1093,7 @@ Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
                                     SessionDataType,
                                     SessionDataContainerType>::Stream_Vis_Target_MediaFoundation_2 ()
  : inherited ()
+ , configuration_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::Stream_Vis_Target_MediaFoundation_2"));
 
@@ -1228,7 +1229,7 @@ Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::handleSessionMessage"));
 
-  int result = -1;
+  //int result = -1;
   HRESULT result_2 = E_FAIL;
   bool COM_initialized = false;
 

@@ -155,7 +155,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   HRESULT result = E_FAIL;
-  typename const MessageType::DATA_T& message_data_r = message_inout->get ();
+  const typename MessageType::DATA_T& message_data_r = message_inout->get ();
   IMFMediaBuffer* media_buffer_p = NULL;
   BYTE* data_p = NULL;
   bool unlock_media_buffer = false;
@@ -383,7 +383,7 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::handleSessionMessage"));
 
-  int result = -1;
+  //int result = -1;
   HRESULT result_2 = E_FAIL;
   bool COM_initialized = false;
 

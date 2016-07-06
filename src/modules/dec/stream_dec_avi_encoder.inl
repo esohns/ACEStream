@@ -210,7 +210,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::initialize"));
 
-  int result = -1;
+  //int result = -1;
 
   if (isInitialized_)
   {
@@ -368,8 +368,9 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
   ACE_Message_Block* message_block_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _riffchunk RIFF_chunk;
-#endif
+#else
   unsigned int riff_chunk_size = 0;
+#endif
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
@@ -477,11 +478,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
       sessionData_ =
         &const_cast<SessionDataContainerType&> (message_inout->get ());
       sessionData_->increase ();
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (sessionData_->get ());
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (sessionData_->get ());
+
       ACE_ASSERT (formatContext_);
       ACE_ASSERT (formatContext_->oformat);
 

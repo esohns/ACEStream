@@ -57,7 +57,7 @@ class Stream_Misc_DirectShow_Asynch_Source_Filter_T
   typedef Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T<PinConfigurationType,
                                                                  OWN_TYPE_T,
                                                                  MediaType> OUTPUT_PIN_T;
-  friend class OUTPUT_PIN_T;
+  friend OUTPUT_PIN_T;
 
  public:
   // convenience typedefs

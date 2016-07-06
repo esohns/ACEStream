@@ -56,10 +56,9 @@ Stream_Base_T<LockType,
               SessionDataContainerType,
               SessionMessageType,
               ProtocolMessageType>::Stream_Base_T (const std::string& name_in)
-// *TODO*: use default ctor and rely on init/fini() ?
  : inherited (NULL, // argument to module open()
-              NULL, // no head module --> allocate !
-              NULL) // no tail module --> allocate !
+              NULL, // allocate head module
+              NULL) // allocate tail module
  , configuration_ (NULL)
  , isInitialized_ (false)
  , lock_ ()
@@ -73,14 +72,30 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
-  int result = inherited::open (NULL,
-                                NULL,
-                                NULL);
-  if (result == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", continuing\n")));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  int result = -1;
+
+  // *TODO*: (for reasons yet unknown,) inherited::stream_head_::next_ and
+  //         inherited::stream_tail_::next_ fail to initialize; i.e. the
+  //         memory address contains 0xcdcdcdcd on debug builds and ignores
+  //         subsequent assignment (MSVC 2015 update 2)
+  //         --> re-initialize
+  // *NOTE*: cannot close() for reasons above
+  //result = inherited::close (inherited::M_DELETE);
+  //if (result == -1)
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to ACE_Stream::close(): \"%m\", continuing\n")));
+
+  // *TODO*: Note that this leaks memory (cannot close(), see above)
+  //result = inherited::open (NULL,  // argument to module open()
+  //                          NULL,  // allocate head module
+  //                          NULL); // allocate tail module
+  //if (result == -1)
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", continuing\n")));
   // *TODO*: this really shouldn't be necessary
   inherited::head ()->next (inherited::tail ());
+#endif
 }
 
 template <typename LockType,
@@ -1899,22 +1914,25 @@ Stream_Base_T<LockType,
 
   // step1: search for the module on the stream
   const ACE_TCHAR* name_p = ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ());
-  result = this_p->inherited::find (name_p);
-  if (!result)
-  {
-    // step2: search loaded modules
-    for (Stream_ModuleListIterator_t iterator = modules_.begin ();
-         iterator != modules_.end ();
-         iterator++)
-      if (ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()) == name_in)
-        return *iterator;
+  for (Stream_Module_t* module_p = this_p->head ();
+       module_p;
+       module_p = module_p->next ())
+    if (ACE_OS::strcmp (module_p->name (), name_p) == 0)
+      return module_p;
+  //result = this_p->inherited::find (name_p);
 
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("module (name was: \"%s\") not found, aborting\n"),
-                ACE_TEXT (name_in.c_str ())));
-  } // end IF
+  // step2: search loaded modules
+  for (Stream_ModuleListIterator_t iterator = modules_.begin ();
+       iterator != modules_.end ();
+       iterator++)
+    if (ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()) == name_in)
+      return *iterator;
 
-  return result;
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("module (name was: \"%s\") not found, aborting\n"),
+              ACE_TEXT (name_in.c_str ())));
+
+  return NULL;
 }
 
 template <typename LockType,

@@ -564,7 +564,7 @@ Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
 
   MessageType* message_p = NULL;
   int result = -1;
-  HRESULT result_2 = E_FAIL;
+  //HRESULT result_2 = E_FAIL;
 
   if (isFirst_)
   {
@@ -637,6 +637,7 @@ Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
   } // end IF
 
   ULONG reference_count = presentationClock_in->AddRef ();
+  ACE_UNUSED_ARG (reference_count);
   presentationClock_ = presentationClock_in;
 
   return S_OK;
@@ -711,7 +712,7 @@ Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::handleSessionMessage"));
 
-  int result = -1;
+  //int result = -1;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -770,8 +771,8 @@ Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
         mediaSession_ = session_data_r.session;
       } // end IF
 
-      WCHAR* symbolic_link_p = NULL;
-      UINT32 symbolic_link_size = 0;
+      //WCHAR* symbolic_link_p = NULL;
+      //UINT32 symbolic_link_size = 0;
       if (!initialize_MediaFoundation (session_data_r.format,
                                        this,
                                        sampleGrabberSinkNodeId_,

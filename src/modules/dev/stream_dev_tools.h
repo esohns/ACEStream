@@ -230,7 +230,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static std::string mediaSubTypeToString (const struct _GUID&); // media subtype
   static std::string mediaTypeToString (const struct _AMMediaType&); // media type
   static std::string mediaTypeToString (const IMFMediaType*); // media type
-  static std::string topologyStatusToString (enum MF_TOPOSTATUS); // topology status
+  static std::string topologyStatusToString (MF_TOPOSTATUS); // topology status
 #else
   static bool canOverlay (int); // file descriptor
   static bool canStream (int); // file descriptor

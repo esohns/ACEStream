@@ -330,11 +330,12 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
  , isInitialized_ (false)
  //, mediaType_ (NULL)
  , queue_ (NULL)
+ /////////////////////////////////////////
  , configuration_ (NULL)
  , defaultFrameInterval_ (MODULE_MISC_DS_WIN32_FILTER_SOURCE_FRAME_INTERVAL)
  , frameInterval_ (0)
- , lock_ ()
  , numberOfMediaTypes_ (1)
+ , lock_ ()
  , sampleTime_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_Filter_OutputPin_T::Stream_Misc_DirectShow_Source_Filter_OutputPin_T"));

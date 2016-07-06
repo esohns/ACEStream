@@ -1,6 +1,6 @@
 LIBRARY camtarget_source_mf
 
-DESCRIPTION "camtarget mediafoundation media source"
+#DESCRIPTION "camtarget mediafoundation media source"
 
 EXPORTS
   DllMain             PRIVATE
