@@ -34,33 +34,48 @@
 
 #include "stream_macros.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename DocumentType>
-Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
-                                               MessageType,
-                                               ModuleHandlerConfigurationType,
-                                               SessionDataType,
-                                               DocumentType>::Stream_Module_LibreOffice_Document_Writer_T ()
+Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
+                                            TimePolicyType,
+                                            ConfigurationType,
+                                            ControlMessageType,
+                                            DataMessageType,
+                                            SessionMessageType,
+                                            ModuleHandlerConfigurationType,
+                                            SessionDataType,
+                                            DocumentType>::Stream_Module_LibreOffice_Document_Writer_T ()
  : inherited ()
  , component_ ()
  , context_ ()
- , configuration_ (NULL)
  , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::Stream_Module_LibreOffice_Document_Writer_T"));
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename DocumentType>
-Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
-                                            MessageType,
+Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
+                                            TimePolicyType,
+                                            ConfigurationType,
+                                            ControlMessageType,
+                                            DataMessageType,
+                                            SessionMessageType,
                                             ModuleHandlerConfigurationType,
                                             SessionDataType,
                                             DocumentType>::~Stream_Module_LibreOffice_Document_Writer_T ()
@@ -101,14 +116,22 @@ Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
 //  } // end IF
 //}
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename DocumentType>
 void
-Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
-                                            MessageType,
+Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
+                                            TimePolicyType,
+                                            ConfigurationType,
+                                            ControlMessageType,
+                                            DataMessageType,
+                                            SessionMessageType,
                                             ModuleHandlerConfigurationType,
                                             SessionDataType,
                                             DocumentType>::handleSessionMessage (SessionMessageType*& message_inout,
@@ -278,17 +301,25 @@ error:
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType,
           typename DocumentType>
 bool
-Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
-                                            MessageType,
+Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
+                                            TimePolicyType,
+                                            ConfigurationType,
+                                            ControlMessageType,
+                                            DataMessageType,
+                                            SessionMessageType,
                                             ModuleHandlerConfigurationType,
                                             SessionDataType,
-                                            DocumentType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
+                                            DocumentType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::initialize"));
 
@@ -303,29 +334,38 @@ Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
     isInitialized_ = false;
   } // end IF
 
-  configuration_ =
-    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
+  isInitialized_ = inherited::initialize (configuration_in);
+  if (!isInitialized_)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
+                ACE_TEXT (inherited::name ())));
 
-  isInitialized_ = true;
-
-  return true;
+  return isInitialized_;
 }
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType,
-          typename DocumentType>
-const ModuleHandlerConfigurationType&
-Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
-                                            MessageType,
-                                            ModuleHandlerConfigurationType,
-                                            SessionDataType,
-                                            DocumentType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionDataType,
+//          typename DocumentType>
+//const ModuleHandlerConfigurationType&
+//Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
+//                                            TimePolicyType,
+//                                            ConfigurationType,
+//                                            ControlMessageType,
+//                                            DataMessageType,
+//                                            SessionMessageType,
+//                                            ModuleHandlerConfigurationType,
+//                                            SessionDataType,
+//                                            DocumentType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}

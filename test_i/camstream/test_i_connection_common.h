@@ -110,8 +110,10 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
                                       ////
                                       Test_I_Source_Stream_SessionData,   // session data
                                       Test_I_Source_Stream_SessionData_t, // session data container (reference counted)
-                                      Test_I_Source_Stream_SessionMessage,
+                                      ////
+                                      ACE_Message_Block,
                                       Test_I_Source_Stream_Message,
+                                      Test_I_Source_Stream_SessionMessage,
                                       ////
                                       ACE_INET_Addr,
                                       Test_I_Source_InetConnectionManager_t> Test_I_Source_NetStream_t;

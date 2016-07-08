@@ -69,8 +69,14 @@ class Test_I_Stream_DocumentHandler
 //////////////////////////////////////////
 
 class Test_I_Stream_SpreadsheetWriter
- : public Stream_Module_LibreOffice_Document_Writer_T<Test_I_Stream_SessionMessage,
+ : public Stream_Module_LibreOffice_Document_Writer_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+
+                                                      Test_I_Stream_ModuleHandlerConfiguration,
+ 
+                                                      ACE_Message_Block,
                                                       Test_I_Stream_Message,
+                                                      Test_I_Stream_SessionMessage,
 
                                                       Test_I_Stream_ModuleHandlerConfiguration,
 
@@ -87,8 +93,14 @@ class Test_I_Stream_SpreadsheetWriter
                                      bool&);                         // return value: pass message downstream ?
 
  private:
-  typedef Stream_Module_LibreOffice_Document_Writer_T<Test_I_Stream_SessionMessage,
+  typedef Stream_Module_LibreOffice_Document_Writer_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+
+                                                      Test_I_Stream_ModuleHandlerConfiguration,
+ 
+                                                      ACE_Message_Block,
                                                       Test_I_Stream_Message,
+                                                      Test_I_Stream_SessionMessage,
 
                                                       Test_I_Stream_ModuleHandlerConfiguration,
 

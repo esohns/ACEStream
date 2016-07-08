@@ -70,8 +70,10 @@ class Test_I_Target_Stream
                                         //
                                         Test_I_Target_Stream_SessionData,   // session data
                                         Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
-                                        Test_I_Target_Stream_SessionMessage,
+                                        //
+                                        ACE_Message_Block,
                                         Test_I_Target_Stream_Message,
+                                        Test_I_Target_Stream_SessionMessage,
                                         //
                                         ACE_INET_Addr,
                                         Test_I_Target_InetConnectionManager_t>
@@ -116,8 +118,10 @@ class Test_I_Target_Stream
                                         //
                                         Test_I_Target_Stream_SessionData,   // session data
                                         Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
-                                        Test_I_Target_Stream_SessionMessage,
+                                        //
+                                        ACE_Message_Block,
                                         Test_I_Target_Stream_Message,
+                                        Test_I_Target_Stream_SessionMessage,
                                         //
                                         ACE_INET_Addr,
                                         Test_I_Target_InetConnectionManager_t> inherited;

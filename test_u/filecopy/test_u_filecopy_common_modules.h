@@ -39,8 +39,9 @@
 // declare module(s)
 typedef Stream_Module_FileReader_T<ACE_SYNCH_MUTEX,
                                    ///////
-                                   Stream_Filecopy_SessionMessage,
+                                   ACE_Message_Block,
                                    Stream_Filecopy_Message,
+                                   Stream_Filecopy_SessionMessage,
                                    ///////
                                    Stream_Filecopy_ModuleHandlerConfiguration,
                                    ///////
@@ -60,16 +61,26 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                               // tas
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Stream_Filecopy_SessionMessage,
+
+                                             Stream_Filecopy_ModuleHandlerConfiguration,
+
+                                             ACE_Message_Block,
                                              Stream_Filecopy_Message,
+                                             Stream_Filecopy_SessionMessage,
+
                                              Stream_CommandType_t,
                                              Stream_Statistic,
                                              Stream_Filecopy_SessionData,
                                              Stream_Filecopy_SessionData_t> Stream_Filecopy_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Stream_Filecopy_SessionMessage,
+
+                                             Stream_Filecopy_ModuleHandlerConfiguration,
+
+                                             ACE_Message_Block,
                                              Stream_Filecopy_Message,
+                                             Stream_Filecopy_SessionMessage,
+
                                              Stream_CommandType_t,
                                              Stream_Statistic,
                                              Stream_Filecopy_SessionData,
@@ -82,10 +93,14 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                  // task
                           Stream_Filecopy_Module_Statistic_WriterTask_t, // writer type
                           Stream_Filecopy_Module_RuntimeStatistic);      // name
 
-typedef Stream_Module_FileWriter_T<Stream_Filecopy_SessionMessage,
-                                   Stream_Filecopy_Message,
+typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
                                    ///////
                                    Stream_Filecopy_ModuleHandlerConfiguration,
+                                   ///////
+                                   ACE_Message_Block,
+                                   Stream_Filecopy_Message,
+                                   Stream_Filecopy_SessionMessage,
                                    ///////
                                    Stream_Filecopy_SessionData> Stream_Filecopy_Module_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                               // task synch type

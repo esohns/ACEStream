@@ -34,8 +34,9 @@ class ACE_Message_Queue_Base;
 
 template <typename LockType,                 // connection stream state machine lock
           ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
@@ -52,8 +53,9 @@ class Stream_Module_QueueReader_T
                                       ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
                                       SessionMessageType,
-                                      ProtocolMessageType,
                                       ////
                                       ConfigurationType,
                                       ////
@@ -78,8 +80,9 @@ class Stream_Module_QueueReader_T
   using Stream_HeadModuleTaskBase_T<LockType,
                                     ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
+                                    ControlMessageType,
+                                    DataMessageType,
                                     SessionMessageType,
-                                    ProtocolMessageType,
                                     ConfigurationType,
                                     StreamControlType,
                                     StreamNotificationType,
@@ -112,8 +115,9 @@ class Stream_Module_QueueReader_T
                                       ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
                                       SessionMessageType,
-                                      ProtocolMessageType,
                                       ////
                                       ConfigurationType,
                                       ////

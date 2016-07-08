@@ -29,41 +29,55 @@
 
 #include "stream_task_base_synch.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
-          ///////////////////////////////
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename SessionDataType,
           typename SessionDataContainerType>
 class Stream_Module_Vis_GTK_Cairo_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
   Stream_Module_Vis_GTK_Cairo_T ();
   virtual ~Stream_Module_Vis_GTK_Cairo_T ();
 
+  virtual bool initialize (const ConfigurationType&);
+
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
-  virtual const ConfigurationType& get () const;
+  //// implement Stream_IModuleHandler_T
+  //virtual const ConfigurationType& get () const;
 
  protected:
-  ConfigurationType*         configuration_;
   SessionDataContainerType*  sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T (const Stream_Module_Vis_GTK_Cairo_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T& operator= (const Stream_Module_Vis_GTK_Cairo_T&))

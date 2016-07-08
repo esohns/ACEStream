@@ -22,6 +22,7 @@
 #define TEST_I_COMMON_MODULES_H
 
 #include "ace/INET_Addr.h"
+#include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
@@ -45,8 +46,9 @@
 // outbound
 typedef Stream_Module_FileReader_T<ACE_SYNCH_MUTEX,
                                    ///////
-                                   Test_I_Stream_SessionMessage,
+                                   ACE_Message_Block,
                                    Test_I_Stream_Message,
+                                   Test_I_Stream_SessionMessage,
                                    ///////
                                    Test_I_Source_ModuleHandlerConfiguration,
                                    ///////
@@ -66,16 +68,20 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task 
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Test_I_Stream_SessionMessage,
+                                             Test_I_Source_ModuleHandlerConfiguration,
+                                             ACE_Message_Block,
                                              Test_I_Stream_Message,
+                                             Test_I_Stream_SessionMessage,
                                              Stream_CommandType_t,
                                              Test_I_RuntimeStatistic_t,
                                              Test_I_Stream_SessionData,
                                              Test_I_Stream_SessionData_t> Test_I_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Test_I_Stream_SessionMessage,
+                                             Test_I_Source_ModuleHandlerConfiguration,
+                                             ACE_Message_Block,
                                              Test_I_Stream_Message,
+                                             Test_I_Stream_SessionMessage,
                                              Stream_CommandType_t,
                                              Test_I_RuntimeStatistic_t,
                                              Test_I_Stream_SessionData,
@@ -91,8 +97,9 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task sync
 // inbound
 typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_MUTEX,
                                      /////
-                                     Test_I_Stream_SessionMessage,
+                                     ACE_Message_Block,
                                      Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
                                      /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
                                      /////
@@ -107,12 +114,14 @@ typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_MUTEX,
                                      /////
                                      ACE_INET_Addr,
                                      Test_I_Target_InetConnectionManager_t> Test_I_Stream_Module_Net_Writer_t;
-typedef Stream_Module_Net_IOReader_T<Test_I_Stream_SessionMessage,
-                                     Test_I_Stream_Message,
-                                     /////
-                                     Test_I_Configuration,
+typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
                                      /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
+                                     /////
+                                     ACE_Message_Block,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
                                      /////
                                      Test_I_Stream_SessionData,
                                      Test_I_Stream_SessionData_t,
@@ -135,10 +144,14 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task sync
                           Test_I_Module_Statistic_WriterTask_t,     // writer type
                           Test_I_Target_Module_RuntimeStatistic);   // name
 
-typedef Stream_Module_FileWriter_T<Test_I_Stream_SessionMessage,
-                                   Test_I_Stream_Message,
+typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
                                    ///////
                                    Test_I_Stream_ModuleHandlerConfiguration,
+                                   ///////
+                                   ACE_Message_Block,
+                                   Test_I_Stream_Message,
+                                   Test_I_Stream_SessionMessage,
                                    ///////
                                    Test_I_Stream_SessionData> Test_I_Module_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type

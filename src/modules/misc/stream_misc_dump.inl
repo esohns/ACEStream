@@ -22,44 +22,61 @@
 
 #include "stream_macros.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
-Stream_Module_Dump_T<SessionMessageType,
-                     MessageType,
-                     ModuleHandlerConfigurationType,
-                     SessionDataType>::Stream_Module_Dump_T ()
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
+Stream_Module_Dump_T<SynchStrategyType,
+                     TimePolicyType,
+                     ConfigurationType,
+                     ControlMessageType,
+                     DataMessageType,
+                     SessionMessageType,
+                     SessionDataContainerType>::Stream_Module_Dump_T ()
  : inherited ()
- , configuration_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::Stream_Module_Dump_T"));
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
-Stream_Module_Dump_T<SessionMessageType,
-                               MessageType,
-                               ModuleHandlerConfigurationType,
-                               SessionDataType>::~Stream_Module_Dump_T ()
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
+Stream_Module_Dump_T<SynchStrategyType,
+                     TimePolicyType,
+                     ConfigurationType,
+                     ControlMessageType,
+                     DataMessageType,
+                     SessionMessageType,
+                     SessionDataContainerType>::~Stream_Module_Dump_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::~Stream_Module_Dump_T"));
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
 void
-Stream_Module_Dump_T<SessionMessageType,
-                               MessageType,
-                               ModuleHandlerConfigurationType,
-                               SessionDataType>::handleDataMessage (MessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+Stream_Module_Dump_T<SynchStrategyType,
+                     TimePolicyType,
+                     ConfigurationType,
+                     ControlMessageType,
+                     DataMessageType,
+                     SessionMessageType,
+                     SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                   bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::handleDataMessage"));
 
@@ -69,16 +86,22 @@ Stream_Module_Dump_T<SessionMessageType,
   message_inout->dump_state ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
 void
-Stream_Module_Dump_T<SessionMessageType,
-                               MessageType,
-                               ModuleHandlerConfigurationType,
-                               SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                       bool& passMessageDownstream_out)
+Stream_Module_Dump_T<SynchStrategyType,
+                     TimePolicyType,
+                     ConfigurationType,
+                     ControlMessageType,
+                     DataMessageType,
+                     SessionMessageType,
+                     SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                      bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::handleSessionMessage"));
 
@@ -95,7 +118,7 @@ Stream_Module_Dump_T<SessionMessageType,
       //// *TODO*: remove type inferences
       //const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
       //  message_inout->get ();
-      //const SessionDataType& session_data_r = session_data_container_r.get ();
+      //const SessionDataContainerType& session_data_r = session_data_container_r.get ();
 
       break;
     }
@@ -105,37 +128,43 @@ Stream_Module_Dump_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
-bool
-Stream_Module_Dump_T<SessionMessageType,
-                               MessageType,
-                               ModuleHandlerConfigurationType,
-                               SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::initialize"));
-
-  configuration_ =
-    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
-
-  return true;
-}
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
-const ModuleHandlerConfigurationType&
-Stream_Module_Dump_T<SessionMessageType,
-                               MessageType,
-                               ModuleHandlerConfigurationType,
-                               SessionDataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataContainerType>
+//bool
+//Stream_Module_Dump_T<SynchStrategyType,
+//                     TimePolicyType,
+//                     ConfigurationType,
+//                     ControlMessageType,
+//                     DataMessageType,
+//                     SessionMessageType,
+//                     SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::initialize"));
+//
+//  configuration_ =
+//    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
+//
+//  return true;
+//}
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionDataContainerType>
+//const ModuleHandlerConfigurationType&
+//Stream_Module_Dump_T<SessionMessageType,
+//                               MessageType,
+//                               ModuleHandlerConfigurationType,
+//                               SessionDataContainerType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Dump_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}

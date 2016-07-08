@@ -35,18 +35,27 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
-          ///////////////////////////////
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_Misc_MediaFoundation_Target_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType, 
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ConfigurationType>
  , public IMFSampleGrabberSinkCallback2
 {
  public:
@@ -56,15 +65,16 @@ class Stream_Misc_MediaFoundation_Target_T
   Stream_Misc_MediaFoundation_Target_T ();
   virtual ~Stream_Misc_MediaFoundation_Target_T ();
 
+  virtual bool initialize (const ConfigurationType&);
+
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
-  virtual const ConfigurationType& get () const;
+  //// implement Stream_IModuleHandler_T
+  //virtual const ConfigurationType& get () const;
 
   // implement IMFSampleGrabberSinkCallback2
   STDMETHODIMP QueryInterface (const IID&,
@@ -103,21 +113,29 @@ class Stream_Misc_MediaFoundation_Target_T
   STDMETHODIMP OnShutdown ();
 
  protected:
-  ConfigurationType*        configuration_;
   SessionDataContainerType* sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType, 
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   // convenient types
-  typedef Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
-                                               MessageType,
+  typedef Stream_Misc_MediaFoundation_Target_T<SynchStrategyType,
+                                               TimePolicyType,
 
                                                ConfigurationType,
 
-                                               SessionDataType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+
+                                               SessionDataType,          // session data
                                                SessionDataContainerType> OWN_TYPE_T;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Target_T ())
@@ -125,7 +143,7 @@ class Stream_Misc_MediaFoundation_Target_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_MediaFoundation_Target_T& operator= (const Stream_Misc_MediaFoundation_Target_T&))
 
   // helper methods
-  MessageType* allocateMessage (unsigned int); // (requested) size
+  DataMessageType* allocateMessage (unsigned int); // (requested) size
   bool initialize_MediaFoundation (const IMFMediaType*,                  // sample grabber sink input media type handle
                                    const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
                                    TOPOID&,                              // return value: node id

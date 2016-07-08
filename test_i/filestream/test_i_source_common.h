@@ -59,8 +59,10 @@ typedef Stream_Base_T<ACE_SYNCH_MUTEX,
                       ////////////////////
                       Test_I_Stream_SessionData,   // session data
                       Test_I_Stream_SessionData_t, // session data container (reference counted)
-                      Test_I_Stream_SessionMessage,
-                      Test_I_Stream_Message> Test_I_StreamBase_t;
+                      ////////////////////
+                      int,
+                      Test_I_Stream_Message,
+                      Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
 struct Test_I_Source_ModuleHandlerConfiguration
  : Test_I_Stream_ModuleHandlerConfiguration
 {

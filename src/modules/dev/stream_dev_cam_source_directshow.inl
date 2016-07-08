@@ -33,8 +33,9 @@
 #include "stream_dev_tools.h"
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -43,8 +44,9 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,
@@ -68,8 +70,9 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -78,8 +81,9 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,
@@ -131,8 +135,9 @@ continue_:
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -142,8 +147,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,
@@ -277,8 +283,9 @@ continue_:
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -288,8 +295,9 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,
@@ -743,8 +751,9 @@ continue_2:
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -754,8 +763,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,
@@ -836,8 +846,9 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -847,8 +858,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,
@@ -865,8 +877,9 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -876,8 +889,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,
@@ -900,8 +914,9 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   ACE_NOTREACHED (return E_FAIL;)
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -911,8 +926,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,
@@ -936,12 +952,9 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   ULONG reference_count = IMediaSample_in->AddRef ();
 
   ProtocolMessageType* message_p = NULL;
-  try
-  {
+  try {
     message_p = dynamic_cast<ProtocolMessageType*> (IMediaSample_in);
-  }
-  catch (...)
-  {
+  } catch (...) {
     //ACE_DEBUG ((LM_ERROR,
     //            ACE_TEXT ("failed to dynamic_cast<ProtocolMessageType*>(0x%@), continuing\n"),
     //            IMediaSample_in));
@@ -1000,8 +1013,9 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   return S_OK;
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1011,8 +1025,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,
@@ -1030,8 +1045,9 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   ACE_NOTREACHED (return E_FAIL;)
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1041,8 +1057,9 @@ template <typename LockType,
           typename StatisticContainerType>
 ULONG
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,
@@ -1056,8 +1073,9 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   return 1;
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1067,8 +1085,9 @@ template <typename LockType,
           typename StatisticContainerType>
 ULONG
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,
@@ -1236,8 +1255,9 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1247,8 +1267,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Dev_Cam_Source_DirectShow_T<LockType,
+                                   ControlMessageType,
+                                   DataMessageType,
                                    SessionMessageType,
-                                   ProtocolMessageType,
                                    ConfigurationType,
                                    StreamControlType,
                                    StreamNotificationType,

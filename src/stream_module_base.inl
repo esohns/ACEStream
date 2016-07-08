@@ -138,27 +138,24 @@ Stream_Module_Base_T<TaskSynchType,
                      ConfigurationType,
                      HandlerConfigurationType,
                      ReaderTaskType,
-                     WriterTaskType>::get ()
+                     WriterTaskType>::getHandlerConfiguration () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::get"));
 
   // need a downcast...
   Stream_Task_t* task_p = writer_;
   ACE_ASSERT (task_p);
-  IMODULEHANDLER_T* imodule_handler_p =
-      dynamic_cast<IMODULEHANDLER_T*> (task_p);
-  if (!imodule_handler_p)
+  IGET_T* iget_p = dynamic_cast<IGET_T*> (task_p);
+  if (!iget_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IModuleHandler_T*>(%@) failed, aborting\n"),
+                ACE_TEXT ("%s: dynamic_cast<Common_IGet_T*>(%@) failed, aborting\n"),
                 inherited::name (),
                 task_p));
-
-    ACE_ASSERT (false);
     return HandlerConfigurationType ();
   } // end IF
 
-  return imodule_handler_p->get ();
+  return iget_p->get ();
 }
 
 template <typename TaskSynchType,

@@ -43,11 +43,11 @@ extern "C"
 #include "stream_dec_defines.h"
 #include "stream_dec_tools.h"
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename SessionDataContainerType,
           typename SessionDataType>
-Stream_Decoder_AVIEncoder_ReaderTask_T<TaskSynchType,
+Stream_Decoder_AVIEncoder_ReaderTask_T<SynchStrategyType,
                                        TimePolicyType,
                                        SessionDataContainerType,
                                        SessionDataType>::Stream_Decoder_AVIEncoder_ReaderTask_T ()
@@ -57,11 +57,11 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<TaskSynchType,
 
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename SessionDataContainerType,
           typename SessionDataType>
-Stream_Decoder_AVIEncoder_ReaderTask_T<TaskSynchType,
+Stream_Decoder_AVIEncoder_ReaderTask_T<SynchStrategyType,
                                        TimePolicyType,
                                        SessionDataContainerType,
                                        SessionDataType>::~Stream_Decoder_AVIEncoder_ReaderTask_T ()
@@ -70,12 +70,12 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<TaskSynchType,
 
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 int
-Stream_Decoder_AVIEncoder_ReaderTask_T<TaskSynchType,
+Stream_Decoder_AVIEncoder_ReaderTask_T<SynchStrategyType,
                                        TimePolicyType,
                                        SessionDataContainerType,
                                        SessionDataType>::put (ACE_Message_Block* messageBlock_in,
@@ -114,12 +114,12 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<TaskSynchType,
   return 0;
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 bool
-Stream_Decoder_AVIEncoder_ReaderTask_T<TaskSynchType,
+Stream_Decoder_AVIEncoder_ReaderTask_T<SynchStrategyType,
                                        TimePolicyType,
                                        SessionDataContainerType,
                                        SessionDataType>::postProcessHeader (const std::string& filename_in)
@@ -135,18 +135,23 @@ Stream_Decoder_AVIEncoder_ReaderTask_T<TaskSynchType,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
-Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
-                                       MessageType,
+Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
+                                       TimePolicyType,
                                        ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType>::Stream_Decoder_AVIEncoder_WriterTask_T ()
  : inherited ()
- , configuration_ (NULL)
  , sessionData_ (NULL)
  , isFirst_ (true)
  , isInitialized_ (false)
@@ -159,14 +164,20 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
-Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
-                                       MessageType,
+Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
+                                       TimePolicyType,
                                        ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType>::~Stream_Decoder_AVIEncoder_WriterTask_T ()
 {
@@ -196,15 +207,21 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 #endif
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
 bool
-Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
-                                       MessageType,
+Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
+                                       TimePolicyType,
                                        ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType>::initialize (const ConfigurationType& configuration_in)
 {
@@ -248,7 +265,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
     isInitialized_ = false;
   } // end IF
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   av_register_all ();
@@ -289,7 +305,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
   ACE_ASSERT (formatContext_->oformat);
 #endif
 
-  isInitialized_ = true;
+  isInitialized_ = inherited::initialize (configuration_in);
 
   return isInitialized_;
 
@@ -315,37 +331,43 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
 
   return false;
 }
-template <typename SessionMessageType,
-          typename MessageType,
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataContainerType,
+//          typename SessionDataType>
+//const ConfigurationType&
+//Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
+//                                       MessageType,
+//                                       ConfigurationType,
+//                                       SessionDataContainerType,
+//                                       SessionDataType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}
+
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataContainerType,
-          typename SessionDataType>
-const ConfigurationType&
-Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
-                                       MessageType,
-                                       ConfigurationType,
-                                       SessionDataContainerType,
-                                       SessionDataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
-
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
 void
-Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
-                                       MessageType,
+Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
+                                       TimePolicyType,
                                        ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        SessionDataContainerType,
-                                       SessionDataType>::handleDataMessage (MessageType*& message_inout,
+                                       SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                                             bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::handleDataMessage"));
@@ -447,15 +469,21 @@ error:
     message_block_p->release ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
 void
-Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
-                                       MessageType,
+Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
+                                       TimePolicyType,
                                        ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                bool& passMessageDownstream_out)
@@ -742,34 +770,39 @@ continue_2:
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
-MessageType*
-Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
-                                       MessageType,
+DataMessageType*
+Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
+                                       TimePolicyType,
                                        ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType>::allocateMessage (unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::allocateMessage"));
 
   // initialize return value(s)
-  MessageType* message_block_p = NULL;
+  DataMessageType* message_block_p = NULL;
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->streamConfiguration);
 
-  if (configuration_->streamConfiguration->messageAllocator)
+  if (configuration_->messageAllocator)
   {
 allocate:
     try
     {
       message_block_p =
-        static_cast<MessageType*> (configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
+        static_cast<DataMessageType*> (configuration_->messageAllocator->malloc (requestedSize_in));
     }
     catch (...)
     {
@@ -781,37 +814,43 @@ allocate:
 
     // keep retrying ?
     if (!message_block_p &&
-        !configuration_->streamConfiguration->messageAllocator->block ())
+        !configuration_->messageAllocator->block ())
       goto allocate;
   } // end IF
   else
     ACE_NEW_NORETURN (message_block_p,
-                      MessageType (requestedSize_in));
+                      DataMessageType (requestedSize_in));
   if (!message_block_p)
   {
-    if (configuration_->streamConfiguration->messageAllocator)
+    if (configuration_->messageAllocator)
     {
-      if (configuration_->streamConfiguration->messageAllocator->block ())
+      if (configuration_->messageAllocator->block ())
         ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate MessageType: \"%m\", aborting\n")));
+                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
     } // end IF
     else
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate MessageType: \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
   } // end IF
 
   return message_block_p;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
 bool
-Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
-                                       MessageType,
+Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
+                                       TimePolicyType,
                                        ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType>::generateHeader (ACE_Message_Block* messageBlock_inout)
 {
@@ -1136,15 +1175,21 @@ continue_:
 
   return true;
 }
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
 bool
-Stream_Decoder_AVIEncoder_WriterTask_T<SessionMessageType,
-                                       MessageType,
+Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
+                                       TimePolicyType,
                                        ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        SessionDataContainerType,
                                        SessionDataType>::generateIndex (ACE_Message_Block* messageBlock_inout)
 {

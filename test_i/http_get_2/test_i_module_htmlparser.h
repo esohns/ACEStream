@@ -60,10 +60,14 @@ structuredErrorCallback (void*,        // user data
                          xmlErrorPtr); // error
 
 class Test_I_Stream_HTMLParser
- : public Stream_Module_HTMLParser_T<Test_I_Stream_SessionMessage,
-                                     Test_I_Stream_Message,
+ : public Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
                                      /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
+                                     /////
+                                     ACE_Message_Block,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
                                      /////
                                      Test_I_Stream_SessionData,
                                      /////
@@ -83,10 +87,17 @@ class Test_I_Stream_HTMLParser
   virtual bool initialize (const Test_I_Stream_ModuleHandlerConfiguration&);
 
  private:
-  typedef Stream_Module_HTMLParser_T<Test_I_Stream_SessionMessage,
-                                     Test_I_Stream_Message,
+  typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
+                                     /////
+                                     ACE_Message_Block,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
+                                     /////
                                      Test_I_Stream_SessionData,
+                                     /////
                                      Test_I_SAXParserContext> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser (const Test_I_Stream_HTMLParser&))

@@ -30,15 +30,22 @@
 class ACE_Message_Block;
 class ACE_Time_Value;
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 class Stream_TaskBaseSynch_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case
- : public Stream_TaskBase_T<ACE_MT_SYNCH,
+ : public Stream_TaskBase_T<SynchStrategyType,
                             TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType>
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType>
 {
  public:
   virtual ~Stream_TaskBaseSynch_T ();
@@ -50,17 +57,21 @@ class Stream_TaskBaseSynch_T
   virtual int close (u_long = 0);
   virtual int module_closed (void);
 
-  // *NOTE*: this is a NOP (not an active object)
+  // *NOTE*: a NOP in this instance
   virtual void waitForIdleState () const;
 
  protected:
   Stream_TaskBaseSynch_T ();
 
  private:
-  typedef Stream_TaskBase_T<ACE_MT_SYNCH,
+  typedef Stream_TaskBase_T<SynchStrategyType,
                             TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType> inherited;
+                            //////////////
+                            ConfigurationType,
+                            //////////////
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T (const Stream_TaskBaseSynch_T&))
 //   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T& operator= (const Stream_TaskBaseSynch_T&))

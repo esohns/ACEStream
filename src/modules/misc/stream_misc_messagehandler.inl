@@ -24,18 +24,25 @@
 
 #include "stream_macros.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionIdType,
-          typename SessionDataType>
-Stream_Module_MessageHandler_T<SessionMessageType,
-                               MessageType,
+          typename SessionDataContainerType>
+Stream_Module_MessageHandler_T<SynchStrategyType,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                ModuleHandlerConfigurationType,
                                SessionIdType,
-                               SessionDataType>::Stream_Module_MessageHandler_T ()
+                               SessionDataContainerType>::Stream_Module_MessageHandler_T ()
  : inherited ()
- , configuration_ (NULL)
  , delete_ (false)
  , lock_ (NULL)
  , subscribers_ (NULL)
@@ -45,16 +52,24 @@ Stream_Module_MessageHandler_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionIdType,
-          typename SessionDataType>
-Stream_Module_MessageHandler_T<SessionMessageType,
-                               MessageType,
+          typename SessionDataContainerType>
+Stream_Module_MessageHandler_T<SynchStrategyType,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                ModuleHandlerConfigurationType,
                                SessionIdType,
-                               SessionDataType>::~Stream_Module_MessageHandler_T ()
+                               SessionDataContainerType>::~Stream_Module_MessageHandler_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::~Stream_Module_MessageHandler_T"));
 
@@ -66,17 +81,25 @@ Stream_Module_MessageHandler_T<SessionMessageType,
   } // end IF
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionIdType,
-          typename SessionDataType>
+          typename SessionDataContainerType>
 void
-Stream_Module_MessageHandler_T<SessionMessageType,
-                               MessageType,
+Stream_Module_MessageHandler_T<SynchStrategyType,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                ModuleHandlerConfigurationType,
                                SessionIdType,
-                               SessionDataType>::initialize (SUBSCRIBERS_T* subscribers_in,
+                               SessionDataContainerType>::initialize (SUBSCRIBERS_T* subscribers_in,
                                                              ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::initialize"));
@@ -135,17 +158,25 @@ Stream_Module_MessageHandler_T<SessionMessageType,
   sessionData_ = NULL;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionIdType,
-          typename SessionDataType>
+          typename SessionDataContainerType>
 void
-Stream_Module_MessageHandler_T<SessionMessageType,
-                               MessageType,
+Stream_Module_MessageHandler_T<SynchStrategyType,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                ModuleHandlerConfigurationType,
                                SessionIdType,
-                               SessionDataType>::handleDataMessage (MessageType*& message_inout,
+                               SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                     bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::handleDataMessage"));
@@ -181,14 +212,11 @@ Stream_Module_MessageHandler_T<SessionMessageType,
          iterator != subscribers_->end ();
          )
     {
-      try
-      {
+      try {
         // *TODO*: remove type inference
         (*iterator++)->notify ((sessionData_ ? sessionData_->sessionID : 0),
                                *message_inout);
-      }
-      catch (...)
-      {
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught exception in Common_INotify_T::notify (), continuing\n")));
       }
@@ -196,18 +224,26 @@ Stream_Module_MessageHandler_T<SessionMessageType,
   } // end lock scope
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionIdType,
-          typename SessionDataType>
+          typename SessionDataContainerType>
 void
-Stream_Module_MessageHandler_T<SessionMessageType,
-                               MessageType,
+Stream_Module_MessageHandler_T<SynchStrategyType,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                ModuleHandlerConfigurationType,
                                SessionIdType,
-                               SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                       bool& passMessageDownstream_out)
+                               SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::handleSessionMessage"));
 
@@ -225,9 +261,9 @@ Stream_Module_MessageHandler_T<SessionMessageType,
       ACE_ASSERT (!sessionData_);
 
       // forward the session data to any subscriber(s)
-      const SessionDataType& session_data_container_r = message_inout->get ();
+      const SessionDataContainerType& session_data_container_r = message_inout->get ();
       sessionData_ =
-          &const_cast<typename SessionDataType::DATA_T&> (session_data_container_r.get ());
+          &const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.get ());
 
       // synch access
       {
@@ -242,14 +278,11 @@ Stream_Module_MessageHandler_T<SessionMessageType,
              iterator != subscribers_->end ();
              )
         {
-          try
-          {
+          try {
             // *TODO*: remove type inference
             (*iterator++)->start (sessionData_->sessionID,
                                   *sessionData_);
-          }
-          catch (...)
-          {
+          } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Common_INotify_T::start(), continuing\n")));
           }
@@ -278,13 +311,10 @@ Stream_Module_MessageHandler_T<SessionMessageType,
              iterator != subscribers_->end ();
              )
         {
-          try
-          {
+          try {
             // *TODO*: remove type inference
             (*(iterator++))->end (sessionData_->sessionID);
-          }
-          catch (...)
-          {
+          } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Common_INotify_T::end(), continuing\n")));
           }
@@ -312,15 +342,12 @@ Stream_Module_MessageHandler_T<SessionMessageType,
              iterator != subscribers_->end ();
              )
         {
-          try
-          {
+          try {
             // *TODO*: remove type inference
             (*(iterator++))->notify ((sessionData_ ? sessionData_->sessionID
                                                    : 0),
                                      *message_inout);
-          }
-          catch (...)
-          {
+          } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Common_INotify_T::notify(), continuing\n")));
           }
@@ -332,56 +359,80 @@ Stream_Module_MessageHandler_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionIdType,
+//          typename SessionDataContainerType>
+//bool
+//Stream_Module_MessageHandler_T<SynchStrategyType,
+//                               TimePolicyType,
+//                               ConfigurationType,
+//                               ControlMessageType,
+//                               DataMessageType,
+//                               SessionMessageType,
+//                               ModuleHandlerConfigurationType,
+//                               SessionIdType,
+//                               SessionDataContainerType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::initialize"));
+//
+//  configuration_ =
+//      &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
+//
+//  return true;
+//}
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionIdType,
+//          typename SessionDataContainerType>
+//const ModuleHandlerConfigurationType&
+//Stream_Module_MessageHandler_T<SynchStrategyType,
+//                               TimePolicyType,
+//                               ConfigurationType,
+//                               ControlMessageType,
+//                               DataMessageType,
+//                               SessionMessageType,
+//                               ModuleHandlerConfigurationType,
+//                               SessionIdType,
+//                               SessionDataContainerType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}
+
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionIdType,
-          typename SessionDataType>
-bool
-Stream_Module_MessageHandler_T<SessionMessageType,
-                               MessageType,
-                               ModuleHandlerConfigurationType,
-                               SessionIdType,
-                               SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::initialize"));
-
-  configuration_ =
-      &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
-
-  return true;
-}
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionIdType,
-          typename SessionDataType>
-const ModuleHandlerConfigurationType&
-Stream_Module_MessageHandler_T<SessionMessageType,
-                               MessageType,
-                               ModuleHandlerConfigurationType,
-                               SessionIdType,
-                               SessionDataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
-
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionIdType,
-          typename SessionDataType>
+          typename SessionDataContainerType>
 void
-Stream_Module_MessageHandler_T<SessionMessageType,
-                               MessageType,
+Stream_Module_MessageHandler_T<SynchStrategyType,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                ModuleHandlerConfigurationType,
                                SessionIdType,
-                               SessionDataType>::subscribe (INOTIFY_T* interfaceHandle_in)
+                               SessionDataContainerType>::subscribe (INOTIFY_T* interfaceHandle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::subscribe"));
 
@@ -402,17 +453,25 @@ Stream_Module_MessageHandler_T<SessionMessageType,
   subscribers_->push_back (interfaceHandle_in);
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionIdType,
-          typename SessionDataType>
+          typename SessionDataContainerType>
 void
-Stream_Module_MessageHandler_T<SessionMessageType,
-                               MessageType,
+Stream_Module_MessageHandler_T<SynchStrategyType,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                ModuleHandlerConfigurationType,
                                SessionIdType,
-                               SessionDataType>::unsubscribe (INOTIFY_T* interfaceHandle_in)
+                               SessionDataContainerType>::unsubscribe (INOTIFY_T* interfaceHandle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::unsubscribe"));
 

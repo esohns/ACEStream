@@ -292,6 +292,9 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    //, connectionManager (NULL)
    , contextID (0)
    , inbound (false)
+   , printFinalReport (true)
+   , printProgressDot (false)
+   , pushStatisticMessages (true)
    , lock (NULL)
    , pixelBuffer (NULL)
    , socketConfiguration (NULL)
@@ -314,6 +317,9 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   //Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
   guint                                     contextID;
   bool                                      inbound; // TCP IO module
+  bool                                      printFinalReport;
+  bool                                      printProgressDot; // file writer module
+  bool                                      pushStatisticMessages;
   ACE_SYNCH_RECURSIVE_MUTEX*                lock;
   GdkPixbuf*                                pixelBuffer;
   Net_SocketConfiguration*                  socketConfiguration;

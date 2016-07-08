@@ -34,15 +34,21 @@
 #include "stream_vis_defines.h"
 
 // initialize statics
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 STREAM_VIS_TARGET_DIRECT3D_CONVERSION_T
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::formatConversions[] =
 {
@@ -53,15 +59,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
 };
 
 // *TODO*: find a way to set this using the ARRAYSIZE (formatConversions) macro
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 const DWORD
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::formats = 4;
 //ARRAYSIZE (Stream_Vis_Target_Direct3D_T<SessionMessageType,\
@@ -70,18 +82,23 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
 //                                        SessionDataType,\
 //                                        SessionDataContainerType>::formatConversions);
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::Stream_Vis_Target_Direct3D_T ()
  : inherited ()
- , configuration_ (NULL)
  , closeWindow_ (false)
  , isInitialized_ (false)
  , defaultStride_ (0)
@@ -108,14 +125,20 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                   sizeof (struct _D3DPRESENT_PARAMETERS_));
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::~Stream_Vis_Target_Direct3D_T ()
 {
@@ -124,12 +147,12 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   if (IDirect3DDevice9Ex_)
     IDirect3DDevice9Ex_->Release ();
 
-  if (configuration_)
+  if (inherited::configuration_)
   {
     if (closeWindow_ &&
-        configuration_->window)
+        inherited::configuration_->window)
     {
-      if (!::CloseWindow (configuration_->window))
+      if (!::CloseWindow (inherited::configuration_->window))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CloseWindow(): \"%s\", continuing\n"),
                     ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
@@ -137,17 +160,23 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   } // end IF
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
-                             SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
+                             SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                            bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::handleDataMessage"));
@@ -155,7 +184,8 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   HRESULT result = E_FAIL;
-  const typename MessageType::DATA_T& message_data_r = message_inout->get ();
+  const typename DataMessageType::DATA_T& message_data_r =
+    message_inout->get ();
   IMFMediaBuffer* media_buffer_p = NULL;
   BYTE* data_p = NULL;
   bool unlock_media_buffer = false;
@@ -368,18 +398,24 @@ continue_:
   return;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                               bool& passMessageDownstream_out)
+                                                                              bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::handleSessionMessage"));
 
@@ -589,15 +625,21 @@ continue_:
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 bool
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
 {
@@ -624,40 +666,48 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
     } // end IF
   } // end IF
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  isInitialized_ = true;
+  isInitialized_ = inherited::initialize (configuration_in);
 
-  return true;
+  return isInitialized_;
 }
-template <typename SessionMessageType,
-          typename MessageType,
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//const ConfigurationType&
+//Stream_Vis_Target_Direct3D_T<SessionMessageType,
+//                             MessageType,
+//                             ConfigurationType,
+//                             SessionDataType,
+//                             SessionDataContainerType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}
+
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-const ConfigurationType&
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
-                             ConfigurationType,
-                             SessionDataType,
-                             SessionDataContainerType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
-
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 bool
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::initialize_Direct3D (HWND windowHandle_in,
                                                                              IMFMediaType* mediaType_in,
@@ -712,15 +762,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   return true;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 HRESULT
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::test_cooperative_level ()
 {
@@ -748,15 +804,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   return result;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 HRESULT
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::reset_device ()
 {
@@ -841,15 +903,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   return result;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 RECT
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::letterbox_rectangle (const struct tagRECT& source_in,
                                                                              const struct tagRECT& destination_in)
@@ -890,15 +958,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   return result;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 RECT
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::normalize_aspect_ratio (const struct tagRECT& rectangle_in,
                                                                                 const struct _MFRatio& pixelAspectRatio_in)
@@ -934,15 +1008,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
 
   return result;
 }
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::update_destination_rectangle ()
 {
@@ -973,15 +1053,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
                                                destination_rectangle);
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 HRESULT
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::create_swap_chains (HWND windowHandle_in,
                                                                             UINT32 width_in,
@@ -1036,15 +1122,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   return result;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 HRESULT
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::get_default_stride (IMFMediaType* mediaType_in,
                                                                             LONG& stride_out)
@@ -1109,15 +1201,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   return S_OK;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 HRESULT
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::initialize_Direct3DDevice (HWND windowHandle_in,
                                                                                    IMFMediaType* mediaType_in)
@@ -1200,15 +1298,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   return S_OK;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 HRESULT
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::set_adapter (REFGUID subType_in)
 {
@@ -1231,15 +1335,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   return MF_E_INVALIDMEDIATYPE;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 bool
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::is_supported (REFGUID subType_in)
 {
@@ -1252,15 +1362,21 @@ Stream_Vis_Target_Direct3D_T<SessionMessageType,
   return false;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 HRESULT
-Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                             MessageType,
+Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType>::get_format (DWORD index_in,
                                                                     struct _GUID& subType_out) const

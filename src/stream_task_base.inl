@@ -29,35 +29,44 @@
 #include "stream_session_message_base.h"
 #include "stream_tools.h"
 
-template <typename TaskSynchStrategyType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
-Stream_TaskBase_T<TaskSynchStrategyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+Stream_TaskBase_T<SynchStrategyType,
                   TimePolicyType,
-                  SessionMessageType,
-                  ProtocolMessageType>::Stream_TaskBase_T ()
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::Stream_TaskBase_T ()
  : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME), // thread name
               STREAM_MODULE_TASK_GROUP_ID,                                   // group id
               1,                                                             // # thread(s)
               false,                                                         // auto-start ?
-              ///////////////////////////
+              ////////////////////////////
               &queue_)                                                       // queue handle
- , lock_ ()
+ , configuration_ (NULL)
+ //, lock_ ()
  , queue_ (STREAM_QUEUE_MAX_SLOTS)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
 }
 
-template <typename TaskSynchStrategyType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
-Stream_TaskBase_T<TaskSynchStrategyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+Stream_TaskBase_T<SynchStrategyType,
                   TimePolicyType,
-                  SessionMessageType,
-                  ProtocolMessageType>::~Stream_TaskBase_T ()
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::~Stream_TaskBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::~Stream_TaskBase_T"));
 
@@ -91,52 +100,106 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   } // end ELSE IF
 }
 
-template <typename TaskSynchStrategyType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
-bool
-Stream_TaskBase_T<TaskSynchStrategyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+const ConfigurationType&
+Stream_TaskBase_T<SynchStrategyType,
                   TimePolicyType,
-                  SessionMessageType,
-                  ProtocolMessageType>::initialize (const void* configuration_in)
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::get () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::get"));
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  return *configuration_;
+}
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+bool
+Stream_TaskBase_T<SynchStrategyType,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::initialize"));
 
-  ACE_UNUSED_ARG (configuration_in);
+  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
   return true;
 }
 
-template <typename TaskSynchStrategyType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
-Stream_TaskBase_T<TaskSynchStrategyType,
+Stream_TaskBase_T<SynchStrategyType,
                   TimePolicyType,
-                  SessionMessageType,
-                  ProtocolMessageType>::handleDataMessage (ProtocolMessageType*& message_inout,
-                                                           bool& passMessageDownstream_out)
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::handleControlMessage (ControlMessageType& message_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleControlMessage"));
+
+  ACE_UNUSED_ARG (message_in);
+
+  // *NOTE*: a stub
+}
+
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_TaskBase_T<SynchStrategyType,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
+                                                          bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleDataMessage"));
 
   ACE_UNUSED_ARG (message_inout);
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // *NOTE*: just a stub
+  // *NOTE*: a stub
 }
 
-template <typename TaskSynchStrategyType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
-Stream_TaskBase_T<TaskSynchStrategyType,
+Stream_TaskBase_T<SynchStrategyType,
                   TimePolicyType,
-                  SessionMessageType,
-                  ProtocolMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                              bool& passMessageDownstream_out)
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                             bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleSessionMessage"));
 
@@ -185,15 +248,19 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   } // end SWITCH
 }
 
-template <typename TaskSynchStrategyType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
-Stream_TaskBase_T<TaskSynchStrategyType,
+Stream_TaskBase_T<SynchStrategyType,
                   TimePolicyType,
-                  SessionMessageType,
-                  ProtocolMessageType>::handleProcessingError (const ACE_Message_Block* const messageBlock_in)
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::handleProcessingError (const ACE_Message_Block* const messageBlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleProcessingError"));
 
@@ -208,15 +275,19 @@ Stream_TaskBase_T<TaskSynchStrategyType,
                 messageBlock_in));
 }
 
-template <typename TaskSynchStrategyType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
-Stream_TaskBase_T<TaskSynchStrategyType,
+Stream_TaskBase_T<SynchStrategyType,
                   TimePolicyType,
-                  SessionMessageType,
-                  ProtocolMessageType>::dump_state () const
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::dump_state"));
 
@@ -229,16 +300,20 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 //                 ACE_TEXT ("dump_state() API not implemented\n")));
 }
 
-template <typename TaskSynchStrategyType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
-Stream_TaskBase_T<TaskSynchStrategyType,
+Stream_TaskBase_T<SynchStrategyType,
                   TimePolicyType,
-                  SessionMessageType,
-                  ProtocolMessageType>::handleMessage (ACE_Message_Block* messageBlock_in,
-                                                       bool& stopProcessing_out)
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::handleMessage (ACE_Message_Block* messageBlock_in,
+                                                      bool& stopProcessing_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleMessage"));
 
@@ -250,7 +325,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   // initialize return value(s)
   stopProcessing_out = false;
 
-  // default behavior is to pass EVERYTHING downstream...
+  // *NOTE*: the default behavior is to pass EVERYTHING downstream
   bool passMessageDownstream = true;
   switch (messageBlock_in->msg_type ())
   {
@@ -258,8 +333,8 @@ Stream_TaskBase_T<TaskSynchStrategyType,
     case STREAM_MESSAGE_DATA:
     case STREAM_MESSAGE_OBJECT:
     {
-      ProtocolMessageType* message_p =
-        dynamic_cast<ProtocolMessageType*> (messageBlock_in);
+      DataMessageType* message_p =
+        dynamic_cast<DataMessageType*> (messageBlock_in);
 //       // *OPTIMIZATION*: not as safe, but (arguably) a lot faster !...
 //       message = static_cast<Stream_MessageBase*>(mb_in);
       if (!message_p)
@@ -269,13 +344,13 @@ Stream_TaskBase_T<TaskSynchStrategyType,
         Stream_Module_t* module_p = inherited::module ();
         if (module_p)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("module \"%s\": dynamic_cast<ProtocolMessageType*>(%@) failed (type was: \"%s\"), aborting\n"),
+                      ACE_TEXT ("module \"%s\": dynamic_cast<DataMessageType*>(%@) failed (type was: \"%s\"), aborting\n"),
                       module_p->name (),
                       messageBlock_in,
                       ACE_TEXT (type_string.c_str ())));
         else
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("dynamic_cast<ProtocolMessageType*>(%@) failed (type was: \"%s\"), aborting\n"),
+                      ACE_TEXT ("dynamic_cast<DataMessageType*>(%@) failed (type was: \"%s\"), aborting\n"),
                       messageBlock_in,
                       ACE_TEXT (type_string.c_str ())));
 
@@ -286,17 +361,14 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       } // end IF
 
       // OK: process data...
-      try
-      {
+      try {
         // invoke specific implementation...
         // *IMPORTANT NOTE*: invoke OWN implementation here, otherwise, the (ld)
         //                   linker complains about a missing reference to
         //                   StreamITaskBase::handleDataMessage...
         this->handleDataMessage (message_p,
                                  passMessageDownstream);
-      }
-      catch (...)
-      {
+      } catch (...) {
         if (inherited::module ())
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": caught an exception in handleDataMessage() (message ID: %u), continuing\n"),
@@ -310,13 +382,13 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
       break;
     }
-    // *NOTE*: anything that is NOT data is defined as a control message...
+    // *NOTE*: anything that is NOT data is defined as a control message
     default:
     {
-      // OK: process control message...
+      // OK: process control message
       try
       {
-        // invoke specific implementation...
+        // invoke specific implementation
         handleControlMessage (messageBlock_in,
                               stopProcessing_out,
                               passMessageDownstream);
@@ -369,17 +441,21 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   } // end IF
 }
 
-template <typename TaskSynchStrategyType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
-Stream_TaskBase_T<TaskSynchStrategyType,
+Stream_TaskBase_T<SynchStrategyType,
                   TimePolicyType,
-                  SessionMessageType,
-                  ProtocolMessageType>::handleControlMessage (ACE_Message_Block* messageBlock_in,
-                                                              bool& stopProcessing_out,
-                                                              bool& passMessageDownstream_out)
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::handleControlMessage (ACE_Message_Block* messageBlock_in,
+                                                             bool& stopProcessing_out,
+                                                             bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleControlMessage"));
 
@@ -389,6 +465,49 @@ Stream_TaskBase_T<TaskSynchStrategyType,
 
   switch (messageBlock_in->msg_type ())
   {
+    case STREAM_MESSAGE_CONTROL:
+    {
+      ControlMessageType* control_message_p = NULL;
+      // downcast message
+      control_message_p = dynamic_cast<ControlMessageType*> (messageBlock_in);
+      if (!control_message_p)
+      {
+        if (inherited::module ())
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: dynamic_cast<ControlMessageType*>(%@) failed (type was: %d), aborting\n"),
+                      inherited::name (),
+                      messageBlock_in,
+                      messageBlock_in->msg_type ()));
+        else
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("dynamic_cast<ControlMessageType*>(%@) failed (type was: %d), aborting\n"),
+                      messageBlock_in,
+                      messageBlock_in->msg_type ()));
+
+        // clean up
+        passMessageDownstream_out = false;
+        messageBlock_in->release ();
+
+        break;
+      } // end IF
+
+      // OK: process control message...
+      try {
+        // invoke specific implementation...
+        handleControlMessage (*control_message_p);
+      }
+      catch (...) {
+        if (inherited::module ())
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: caught an exception in handleControlMessage(), continuing\n"),
+                      inherited::name ()));
+        else
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("caught an exception in handleControlMessage(), continuing\n")));
+      }
+
+      break;
+    }
     case STREAM_MESSAGE_SESSION:
     {
       SessionMessageType* session_message_p = NULL;
@@ -418,14 +537,11 @@ Stream_TaskBase_T<TaskSynchStrategyType,
       // OK: process session message...
       Stream_SessionMessageType session_message_type =
         session_message_p->type ();
-      try
-      {
+      try {
         // invoke specific implementation...
         handleSessionMessage (session_message_p,
                               passMessageDownstream_out);
-      }
-      catch (...)
-      {
+      } catch (...) {
         if (inherited::module ())
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: caught an exception in handleSessionMessage(), continuing\n"),
@@ -435,8 +551,7 @@ Stream_TaskBase_T<TaskSynchStrategyType,
                       ACE_TEXT ("caught an exception in handleSessionMessage(), continuing\n")));
       }
 
-      // *NOTE*: if this was a Stream_SessionMessage::SESSION_END, stop
-      //         processing (see above) !
+      // *NOTE*: if this was a SESSION_END message, stop processing (see above)
       if (session_message_type == STREAM_SESSION_MESSAGE_END)
         stopProcessing_out = true;
 
@@ -444,9 +559,6 @@ Stream_TaskBase_T<TaskSynchStrategyType,
     }
     default:
     {
-      // *NOTE*: if someone defines their own control message type and enqueues
-      //         it on the stream, it will land here (this is just a sanity
-      //         check warning...)
       if (inherited::module ())
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("module \"%s\": received an unknown control message (type: %d), continuing\n"),
@@ -461,16 +573,20 @@ Stream_TaskBase_T<TaskSynchStrategyType,
   } // end SWITCH
 }
 
-template <typename TaskSynchStrategyType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
-Stream_TaskBase_T<TaskSynchStrategyType,
+Stream_TaskBase_T<SynchStrategyType,
                   TimePolicyType,
-                  SessionMessageType,
-                  ProtocolMessageType>::put (ACE_Message_Block* messageBlock_in,
-                                             ACE_Time_Value* timeValue_in)
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType>::put (ACE_Message_Block* messageBlock_in,
+                                            ACE_Time_Value* timeValue_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::put"));
 

@@ -26,16 +26,21 @@
 #include "stream_dec_common.h"
 #include "stream_dec_defines.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
-Stream_Decoder_ZIPDecoder_T<SessionMessageType,
-                            MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
+Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::Stream_Decoder_ZIPDecoder_T ()
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::Stream_Decoder_ZIPDecoder_T ()
  : inherited ()
- , configuration_ (NULL)
  , sessionData_ (NULL)
  , allocator_ (NULL)
  , buffer_ (NULL)
@@ -48,14 +53,20 @@ Stream_Decoder_ZIPDecoder_T<SessionMessageType,
   ACE_OS::memset (&stream_, 0, sizeof (struct z_stream_s));
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
-Stream_Decoder_ZIPDecoder_T<SessionMessageType,
-                            MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
+Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::~Stream_Decoder_ZIPDecoder_T ()
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::~Stream_Decoder_ZIPDecoder_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::~Stream_Decoder_ZIPDecoder_T"));
 
@@ -64,20 +75,23 @@ Stream_Decoder_ZIPDecoder_T<SessionMessageType,
     buffer_->release ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
 bool
-Stream_Decoder_ZIPDecoder_T<SessionMessageType,
-                            MessageType,
+Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::initialize (const ConfigurationType& configuration_in)
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::initialize"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.streamConfiguration);
 
   if (isInitialized_)
   {
@@ -96,48 +110,52 @@ Stream_Decoder_ZIPDecoder_T<SessionMessageType,
     isInitialized_ = false;
   } // end IF
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-
   // *TODO*: remove type dependencies
-  allocator_ = configuration_->streamConfiguration->messageAllocator;
-  crunchMessages_ = configuration_->crunchMessages;
+  allocator_ = configuration_in.messageAllocator;
+  crunchMessages_ = configuration_in.crunchMessages;
 
   stream_.zalloc = Z_NULL;
   stream_.zfree = Z_NULL;
   stream_.opaque = (voidpf)NULL;
 
-  isInitialized_ = true;
+  isInitialized_ = inherited::initialize (configuration_in);
 
   return isInitialized_;
 }
-template <typename SessionMessageType,
-          typename MessageType,
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataContainerType>
+//const ConfigurationType&
+//Stream_Decoder_ZIPDecoder_T<SessionMessageType,
+//                            MessageType,
+//                            ConfigurationType,
+//                            SessionDataContainerType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}
+
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
-const ConfigurationType&
-Stream_Decoder_ZIPDecoder_T<SessionMessageType,
-                            MessageType,
-                            ConfigurationType,
-                            SessionDataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
-
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename SessionDataType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
 void
-Stream_Decoder_ZIPDecoder_T<SessionMessageType,
-                            MessageType,
+Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::handleDataMessage (MessageType*& message_inout,
-                                                                 bool& passMessageDownstream_out)
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                          bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::handleDataMessage"));
 
@@ -181,7 +199,7 @@ Stream_Decoder_ZIPDecoder_T<SessionMessageType,
   message_inout = NULL;
 
   int result = -1;
-  MessageType* message_p = NULL;
+  DataMessageType* message_p = NULL;
   ACE_Message_Block* message_block_2 = NULL;
   bool finalize_stream = false;
   bool complete = false;
@@ -423,16 +441,22 @@ error:
   buffer_ = NULL;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
 void
-Stream_Decoder_ZIPDecoder_T<SessionMessageType,
-                            MessageType,
+Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                             bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::handleSessionMessage"));
 
@@ -443,10 +467,10 @@ Stream_Decoder_ZIPDecoder_T<SessionMessageType,
   ACE_ASSERT (message_inout);
   ACE_ASSERT (isInitialized_);
 
-  const typename SessionMessageType::DATA_T& session_data_container_r =
+  const SessionDataContainerType& session_data_container_r =
     message_inout->get ();
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (session_data_container_r.get ());
+  typename SessionDataContainerType::DATA_T& session_data_r =
+    const_cast<SessionDataContainerType::DATA_T&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -459,31 +483,34 @@ Stream_Decoder_ZIPDecoder_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
-MessageType*
-Stream_Decoder_ZIPDecoder_T<SessionMessageType,
-                            MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
+DataMessageType*
+Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::allocateMessage (unsigned int requestedSize_in)
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::allocateMessage"));
 
   // initialize return value(s)
-  MessageType* message_p = NULL;
+  DataMessageType* message_p = NULL;
 
   if (allocator_)
   {
 allocate:
-    try
-    {
+    try {
       message_p =
-        static_cast<MessageType*> (allocator_->malloc (requestedSize_in));
-    }
-    catch (...)
-    {
+        static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
                   requestedSize_in));
@@ -496,18 +523,18 @@ allocate:
   } // end IF
   else
     ACE_NEW_NORETURN (message_p,
-                      MessageType (requestedSize_in));
+                      DataMessageType (requestedSize_in));
   if (!message_p)
   {
     if (allocator_)
     {
       if (allocator_->block ())
         ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate MessageType: \"%m\", aborting\n")));
+                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
     } // end IF
     else
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate MessageType: \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
   } // end IF
 
   return message_p;

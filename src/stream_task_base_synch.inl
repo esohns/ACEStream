@@ -23,37 +23,55 @@
 
 #include "stream_macros.h"
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
-Stream_TaskBaseSynch_T<TimePolicyType,
-                       SessionMessageType,
-                       ProtocolMessageType>::Stream_TaskBaseSynch_T ()
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+Stream_TaskBaseSynch_T<SynchStrategyType,
+                       TimePolicyType,
+                       ConfigurationType,
+                       ControlMessageType,
+                       DataMessageType,
+                       SessionMessageType>::Stream_TaskBaseSynch_T ()
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::Stream_TaskBaseSynch_T"));
 
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
-Stream_TaskBaseSynch_T<TimePolicyType,
-                       SessionMessageType,
-                       ProtocolMessageType>::~Stream_TaskBaseSynch_T ()
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+Stream_TaskBaseSynch_T<SynchStrategyType,
+                       TimePolicyType,
+                       ConfigurationType,
+                       ControlMessageType,
+                       DataMessageType,
+                       SessionMessageType>::~Stream_TaskBaseSynch_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::~Stream_TaskBaseSynch_T"));
 
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
-Stream_TaskBaseSynch_T<TimePolicyType,
-                       SessionMessageType,
-                       ProtocolMessageType>::put (ACE_Message_Block* messageBlock_in,
-                                                  ACE_Time_Value* timeout_in)
+Stream_TaskBaseSynch_T<SynchStrategyType,
+                       TimePolicyType,
+                       ConfigurationType,
+                       ControlMessageType,
+                       DataMessageType,
+                       SessionMessageType>::put (ACE_Message_Block* messageBlock_in,
+                                                 ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::put"));
 
@@ -68,13 +86,19 @@ Stream_TaskBaseSynch_T<TimePolicyType,
   return 0;
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
-Stream_TaskBaseSynch_T<TimePolicyType,
-                       SessionMessageType,
-                       ProtocolMessageType>::open (void* arg_in)
+Stream_TaskBaseSynch_T<SynchStrategyType,
+                       TimePolicyType,
+                       ConfigurationType,
+                       ControlMessageType,
+                       DataMessageType,
+                       SessionMessageType>::open (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::open"));
 
@@ -92,17 +116,23 @@ Stream_TaskBaseSynch_T<TimePolicyType,
 //                 ACE_TEXT ("no worker thread\n")));
 //   } // end ELSE
 
-  // nothing to do...
+  // nothing to do
   return 0;
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
-Stream_TaskBaseSynch_T<TimePolicyType,
-                       SessionMessageType,
-                       ProtocolMessageType>::close (u_long arg_in)
+Stream_TaskBaseSynch_T<SynchStrategyType,
+                       TimePolicyType,
+                       ConfigurationType,
+                       ControlMessageType,
+                       DataMessageType,
+                       SessionMessageType>::close (u_long arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::close"));
 
@@ -113,13 +143,19 @@ Stream_TaskBaseSynch_T<TimePolicyType,
   return 0;
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
-Stream_TaskBaseSynch_T<TimePolicyType,
-                       SessionMessageType,
-                       ProtocolMessageType>::module_closed (void)
+Stream_TaskBaseSynch_T<SynchStrategyType,
+                       TimePolicyType,
+                       ConfigurationType,
+                       ControlMessageType,
+                       DataMessageType,
+                       SessionMessageType>::module_closed (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::module_closed"));
 
@@ -129,13 +165,19 @@ Stream_TaskBaseSynch_T<TimePolicyType,
   return 0;
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
-Stream_TaskBaseSynch_T<TimePolicyType,
-                       SessionMessageType,
-                       ProtocolMessageType>::waitForIdleState () const
+Stream_TaskBaseSynch_T<SynchStrategyType,
+                       TimePolicyType,
+                       ConfigurationType,
+                       ControlMessageType,
+                       DataMessageType,
+                       SessionMessageType>::waitForIdleState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::waitForIdleState"));
 

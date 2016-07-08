@@ -22,28 +22,43 @@
 
 #include "stream_macros.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType>
-Stream_Module_HTMLWriter_T<SessionMessageType,
-                           MessageType,
+Stream_Module_HTMLWriter_T<SynchStrategyType,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            ModuleHandlerConfigurationType,
                            SessionDataType>::Stream_Module_HTMLWriter_T ()
  : inherited ()
- , configuration_ (NULL)
  , document_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLWriter_T::Stream_Module_HTMLWriter_T"));
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType>
-Stream_Module_HTMLWriter_T<SessionMessageType,
-                           MessageType,
+Stream_Module_HTMLWriter_T<SynchStrategyType,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            ModuleHandlerConfigurationType,
                            SessionDataType>::~Stream_Module_HTMLWriter_T ()
 {
@@ -54,13 +69,21 @@ Stream_Module_HTMLWriter_T<SessionMessageType,
     xmlFreeDoc (document_);
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType>
 void
-Stream_Module_HTMLWriter_T<SessionMessageType,
-                           MessageType,
+Stream_Module_HTMLWriter_T<SynchStrategyType,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            ModuleHandlerConfigurationType,
                            SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                    bool& passMessageDownstream_out)
@@ -135,32 +158,40 @@ Stream_Module_HTMLWriter_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
-const ModuleHandlerConfigurationType&
-Stream_Module_HTMLWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLWriter_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
-template <typename SessionMessageType,
-          typename MessageType,
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionDataType>
+//const ModuleHandlerConfigurationType&
+//Stream_Module_HTMLWriter_T<SessionMessageType,
+//                           MessageType,
+//                           ModuleHandlerConfigurationType,
+//                           SessionDataType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLWriter_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType>
 bool
-Stream_Module_HTMLWriter_T<SessionMessageType,
-                           MessageType,
+Stream_Module_HTMLWriter_T<SynchStrategyType,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            ModuleHandlerConfigurationType,
-                           SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
+                           SessionDataType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLWriter_T::initialize"));
 
@@ -178,8 +209,6 @@ Stream_Module_HTMLWriter_T<SessionMessageType,
     document_ = NULL;
   } // end IF
 
-  configuration_ =
-    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
-
-  return true;
+  return inherited::initialize (configuration_in);
+  ;
 }

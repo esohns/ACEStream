@@ -24,14 +24,20 @@
 
 #include "stream_dec_defines.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
-Stream_Decoder_AVIDecoder_T<SessionMessageType,
-                            MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
+Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::Stream_Decoder_AVIDecoder_T ()
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::Stream_Decoder_AVIDecoder_T ()
  : inherited ()
  , driver_ (STREAM_DECODER_DEFAULT_LEX_TRACE,
             STREAM_DECODER_DEFAULT_YACC_TRACE)
@@ -48,14 +54,20 @@ Stream_Decoder_AVIDecoder_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
-Stream_Decoder_AVIDecoder_T<SessionMessageType,
-                            MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
+Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::~Stream_Decoder_AVIDecoder_T ()
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::~Stream_Decoder_AVIDecoder_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::~Stream_Decoder_AVIDecoder_T"));
 
@@ -64,15 +76,21 @@ Stream_Decoder_AVIDecoder_T<SessionMessageType,
     buffer_->release ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
 bool
-Stream_Decoder_AVIDecoder_T<SessionMessageType,
-                            MessageType,
+Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::initialize (const ConfigurationType& configuration_in)
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::initialize"));
 
@@ -84,7 +102,7 @@ Stream_Decoder_AVIDecoder_T<SessionMessageType,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("re-initializing...\n")));
 
-    allocator_ = NULL;
+    //allocator_ = NULL;
     if (buffer_)
       buffer_->release ();
     buffer_ = NULL;
@@ -104,37 +122,52 @@ Stream_Decoder_AVIDecoder_T<SessionMessageType,
   debugScanner_ = configuration_in.traceScanning;
   debugParser_ = configuration_in.traceParsing;
 
-  isInitialized_ = true;
+  isInitialized_ = inherited::initialize (configuration_in);
 
   return isInitialized_;
 }
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename SessionDataType>
-const ConfigurationType&
-Stream_Decoder_AVIDecoder_T<SessionMessageType,
-                            MessageType,
-                            ConfigurationType,
-                            SessionDataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::get"));
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionDataContainerType>
+//const ConfigurationType&
+//Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+//                            TimePolicyType,
+//                            ConfigurationType,
+//                            ControlMessageType,
+//                            DataMessageType,
+//                            SessionMessageType,
+//                            ModuleHandlerConfigurationType,
+//                            SessionDataContainerType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::get"));
+//
+//  ACE_ASSERT (false);
+//  ACE_NOTSUP_RETURN (ConfigurationType ());
+//
+//  ACE_NOTREACHED (return ConfigurationType ();)
+//}
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (ConfigurationType ());
-  ACE_NOTREACHED (return ConfigurationType ();)
-}
-
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
 void
-Stream_Decoder_AVIDecoder_T<SessionMessageType,
-                            MessageType,
+Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::handleDataMessage (MessageType*& message_inout,
-                                                                 bool& passMessageDownstream_out)
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                          bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::handleDataMessage"));
 
@@ -221,7 +254,7 @@ Stream_Decoder_AVIDecoder_T<SessionMessageType,
     //     message->dump_state();
 
     // step1: get a new message buffer
-    MessageType* message_p = allocateMessage (STREAM_DECODER_BUFFER_SIZE);
+    DataMessageType* message_p = allocateMessage (STREAM_DECODER_BUFFER_SIZE);
     if (!message_p)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -294,16 +327,22 @@ error:
   buffer_ = NULL;
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
 void
-Stream_Decoder_AVIDecoder_T<SessionMessageType,
-                            MessageType,
+Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                             bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::handleSessionMessage"));
 
@@ -316,8 +355,8 @@ Stream_Decoder_AVIDecoder_T<SessionMessageType,
 
   const typename SessionMessageType::DATA_T& session_data_container_r =
     message_inout->get ();
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (session_data_container_r.get ());
+  SessionDataContainerType& session_data_r =
+    const_cast<SessionDataContainerType&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -330,31 +369,34 @@ Stream_Decoder_AVIDecoder_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType>
-MessageType*
-Stream_Decoder_AVIDecoder_T<SessionMessageType,
-                            MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
+DataMessageType*
+Stream_Decoder_AVIDecoder_T<SynchStrategyType,
+                            TimePolicyType,
                             ConfigurationType,
-                            SessionDataType>::allocateMessage (unsigned int requestedSize_in)
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIDecoder_T::allocateMessage"));
 
   // initialize return value(s)
-  MessageType* message_p = NULL;
+  DataMessageType* message_p = NULL;
 
   if (allocator_)
   {
 allocate:
-    try
-    {
+    try {
       message_p =
-        static_cast<MessageType*> (allocator_->malloc (requestedSize_in));
-    }
-    catch (...)
-    {
+        static_cast<DataMessageType*> (allocator_->malloc (requestedSize_in));
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
                   requestedSize_in));
@@ -367,18 +409,18 @@ allocate:
   } // end IF
   else
     ACE_NEW_NORETURN (message_p,
-                      MessageType (requestedSize_in));
+                      DataMessageType (requestedSize_in));
   if (!message_p)
   {
     if (allocator_)
     {
       if (allocator_->block ())
         ACE_DEBUG ((LM_CRITICAL,
-                    ACE_TEXT ("failed to allocate MessageType: \"%m\", aborting\n")));
+                    ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
     } // end IF
     else
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate MessageType: \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
   } // end IF
 
   return message_p;

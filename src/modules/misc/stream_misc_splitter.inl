@@ -22,29 +22,40 @@
 
 #include "stream_macros.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
-Stream_Module_Splitter_T<SessionMessageType,
-                         MessageType,
+Stream_Module_Splitter_T<SynchStrategyType,
+                         TimePolicyType,
                          ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
                          SessionDataType>::Stream_Module_Splitter_T ()
  : inherited ()
- , configuration_ (NULL)
  , buffer_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::Stream_Module_Splitter_T"));
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
-Stream_Module_Splitter_T<SessionMessageType,
-                         MessageType,
+Stream_Module_Splitter_T<SynchStrategyType,
+                         TimePolicyType,
                          ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
                          SessionDataType>::~Stream_Module_Splitter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::~Stream_Module_Splitter_T"));
@@ -53,15 +64,21 @@ Stream_Module_Splitter_T<SessionMessageType,
     buffer_->release ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Module_Splitter_T<SessionMessageType,
-                         MessageType,
+Stream_Module_Splitter_T<SynchStrategyType,
+                         TimePolicyType,
                          ConfigurationType,
-                         SessionDataType>::handleDataMessage (MessageType*& message_inout,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                               bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::handleDataMessage"));
@@ -119,14 +136,20 @@ Stream_Module_Splitter_T<SessionMessageType,
   } // end IF
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Module_Splitter_T<SessionMessageType,
-                         MessageType,
+Stream_Module_Splitter_T<SynchStrategyType,
+                         TimePolicyType,
                          ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
                          SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                  bool& passMessageDownstream_out)
 {
@@ -155,46 +178,50 @@ Stream_Module_Splitter_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename SessionDataType>
-bool
-Stream_Module_Splitter_T<SessionMessageType,
-                         MessageType,
-                         ConfigurationType,
-                         SessionDataType>::initialize (const ConfigurationType& configuration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::initialize"));
-
-  configuration_ =
-    &const_cast<ConfigurationType&> (configuration_in);
-
-  return true;
-}
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename SessionDataType>
-const ConfigurationType&
-Stream_Module_Splitter_T<SessionMessageType,
-                         MessageType,
-                         ConfigurationType,
-                         SessionDataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataType>
+//bool
+//Stream_Module_Splitter_T<SessionMessageType,
+//                         MessageType,
+//                         ConfigurationType,
+//                         SessionDataType>::initialize (const ConfigurationType& configuration_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::initialize"));
+//
+//  configuration_ =
+//    &const_cast<ConfigurationType&> (configuration_in);
+//
+//  return true;
+//}
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataType>
+//const ConfigurationType&
+//Stream_Module_Splitter_T<SessionMessageType,
+//                         MessageType,
+//                         ConfigurationType,
+//                         SessionDataType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}
 
 //////////////////////////////////////////
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -203,8 +230,9 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Module_SplitterH_T<LockType,
+                          ControlMessageType,
+                          DataMessageType,
                           SessionMessageType,
-                          ProtocolMessageType,
                           ConfigurationType,
                           StreamControlType,
                           StreamNotificationType,
@@ -216,7 +244,6 @@ Stream_Module_SplitterH_T<LockType,
  : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
               true)         // generate sesssion messages ?
- , configuration_ (NULL)
  , buffer_ (NULL)
  //, isInitialized_ (false)
 {
@@ -225,8 +252,9 @@ Stream_Module_SplitterH_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -235,8 +263,9 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Module_SplitterH_T<LockType,
+                          ControlMessageType,
+                          DataMessageType,
                           SessionMessageType,
-                          ProtocolMessageType,
                           ConfigurationType,
                           StreamControlType,
                           StreamNotificationType,
@@ -252,8 +281,9 @@ Stream_Module_SplitterH_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -263,15 +293,16 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_Module_SplitterH_T<LockType,
+                          ControlMessageType,
+                          DataMessageType,
                           SessionMessageType,
-                          ProtocolMessageType,
                           ConfigurationType,
                           StreamControlType,
                           StreamNotificationType,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::handleDataMessage (ProtocolMessageType*& message_inout,
+                          StatisticContainerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                       bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::handleDataMessage"));
@@ -387,8 +418,9 @@ continue_:
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -398,8 +430,9 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_Module_SplitterH_T<LockType,
+                          ControlMessageType,
+                          DataMessageType,
                           SessionMessageType,
-                          ProtocolMessageType,
                           ConfigurationType,
                           StreamControlType,
                           StreamNotificationType,
@@ -438,8 +471,9 @@ Stream_Module_SplitterH_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -449,8 +483,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Module_SplitterH_T<LockType,
+                          ControlMessageType,
+                          DataMessageType,
                           SessionMessageType,
-                          ProtocolMessageType,
                           ConfigurationType,
                           StreamControlType,
                           StreamNotificationType,
@@ -510,8 +545,9 @@ Stream_Module_SplitterH_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -521,8 +557,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Module_SplitterH_T<LockType,
+                          ControlMessageType,
+                          DataMessageType,
                           SessionMessageType,
-                          ProtocolMessageType,
                           ConfigurationType,
                           StreamControlType,
                           StreamNotificationType,

@@ -188,46 +188,46 @@ Stream_RIFFDecoder_Stream::initialize (const Stream_RIFFDecoder_StreamConfigurat
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   // ******************* Runtime Statistics ************************
-  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  Stream_RIFFDecoder_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-      dynamic_cast<Stream_RIFFDecoder_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_RIFFDecoder_Module_RuntimeStatistic> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-                                            true,                                        // push 1-second interval statistic messages downstream ?
-                                            configuration_in.printFinalReport,           // print final report ?
-                                            configuration_in.messageAllocator))          // message allocator handle
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                runtimeStatistic_.name ()));
-    return false;
-  } // end IF
+  //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
+  //Stream_RIFFDecoder_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  //    dynamic_cast<Stream_RIFFDecoder_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  //if (!runtimeStatistic_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Stream_RIFFDecoder_Module_RuntimeStatistic> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
+  //                                          true,                                        // push 1-second interval statistic messages downstream ?
+  //                                          configuration_in.printFinalReport,           // print final report ?
+  //                                          configuration_in.messageAllocator))          // message allocator handle
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              runtimeStatistic_.name ()));
+  //  return false;
+  //} // end IF
 
   // ******************* Decoder ************************
-  decoder_.initialize (*configuration_in.moduleConfiguration);
-  Stream_RIFFDecoder_Module_Decoder* decoder_impl_p =
-    dynamic_cast<Stream_RIFFDecoder_Module_Decoder*> (decoder_.writer ());
-  if (!decoder_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_RIFFDecoder_Module_Decoder> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!decoder_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                decoder_.name ()));
-    return false;
-  } // end IF
+  //decoder_.initialize (*configuration_in.moduleConfiguration);
+  //Stream_RIFFDecoder_Module_Decoder* decoder_impl_p =
+  //  dynamic_cast<Stream_RIFFDecoder_Module_Decoder*> (decoder_.writer ());
+  //if (!decoder_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Stream_RIFFDecoder_Module_Decoder> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!decoder_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              decoder_.name ()));
+  //  return false;
+  //} // end IF
 
   // ******************* File Source ************************
-  source_.initialize (*configuration_in.moduleConfiguration);
+  //source_.initialize (*configuration_in.moduleConfiguration);
   Stream_RIFFDecoder_Module_Source* source_impl_p =
     dynamic_cast<Stream_RIFFDecoder_Module_Source*> (source_.writer ());
   if (!source_impl_p)

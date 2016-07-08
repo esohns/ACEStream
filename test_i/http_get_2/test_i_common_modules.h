@@ -43,12 +43,14 @@
 #include "test_i_session_message.h"
 
 // declare module(s)
-typedef Stream_Module_Net_IOReader_T<Test_I_Stream_SessionMessage,
-                                     Test_I_Stream_Message,
-                                     /////
-                                     Test_I_Configuration,
+typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
                                      /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
+                                     /////
+                                     ACE_Message_Block,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
                                      /////
                                      Test_I_Stream_SessionData,
                                      Test_I_Stream_SessionData_t,
@@ -57,8 +59,9 @@ typedef Stream_Module_Net_IOReader_T<Test_I_Stream_SessionMessage,
                                      Test_I_Stream_InetConnectionManager_t> Test_I_Stream_Net_Reader_t;
 typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_MUTEX,
                                      /////
-                                     Test_I_Stream_SessionMessage,
+                                     ACE_Message_Block,
                                      Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
                                      /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
                                      /////
@@ -83,12 +86,21 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task sync
 
 typedef HTTP_Module_Streamer_T<ACE_MT_SYNCH,
                                Common_TimePolicy_t,
-                               Test_I_Stream_SessionMessage,
-                               Test_I_Stream_Message> Test_I_Stream_HTTP_Streamer;
-typedef HTTP_Module_Parser_T<Common_TimePolicy_t,
-                             Test_I_Stream_SessionMessage,
-                             Test_I_Stream_Message,
+                               ///////////
+                               Test_I_Stream_ModuleHandlerConfiguration,
+                               ///////////
+                               ACE_Message_Block,
+                               Test_I_Stream_Message,
+                               Test_I_Stream_SessionMessage> Test_I_Stream_HTTP_Streamer;
+typedef HTTP_Module_Parser_T<ACE_MT_SYNCH,
+                             Common_TimePolicy_t,
+                             /////////////
                              Test_I_Stream_ModuleHandlerConfiguration,
+                             /////////////
+                             ACE_Message_Block,
+                             Test_I_Stream_Message,
+                             Test_I_Stream_SessionMessage,
+                             /////////////
                              HTTP_Record> Test_I_Stream_HTTP_Parser;
 //DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
 //                              Common_TimePolicy_t,                      // time policy
@@ -105,16 +117,20 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task sync
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Test_I_Stream_SessionMessage,
+                                             Test_I_Stream_ModuleHandlerConfiguration,
+                                             ACE_Message_Block,
                                              Test_I_Stream_Message,
+                                             Test_I_Stream_SessionMessage,
                                              HTTP_Method_t,
                                              Test_I_RuntimeStatistic_t,
                                              Test_I_Stream_SessionData,
                                              Test_I_Stream_SessionData_t> Test_I_Stream_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Test_I_Stream_SessionMessage,
+                                             Test_I_Stream_ModuleHandlerConfiguration,
+                                             ACE_Message_Block,
                                              Test_I_Stream_Message,
+                                             Test_I_Stream_SessionMessage,
                                              HTTP_Method_t,
                                              Test_I_RuntimeStatistic_t,
                                              Test_I_Stream_SessionData,
@@ -127,10 +143,16 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task sync
                           Test_I_Stream_Statistic_WriterTask_t,     // writer type
                           Test_I_Stream_RuntimeStatistic);          // name
 
-typedef Stream_Decoder_ZIPDecoder_T<Test_I_Stream_SessionMessage,
-                                    Test_I_Stream_Message,
+typedef Stream_Decoder_ZIPDecoder_T<ACE_MT_SYNCH,
+                                    Common_TimePolicy_t,
+                                    //////
                                     Test_I_Stream_ModuleHandlerConfiguration,
-                                    Test_I_Stream_SessionData> Test_I_Stream_Decompressor;
+                                    //////
+                                    ACE_Message_Block,
+                                    Test_I_Stream_Message,
+                                    Test_I_Stream_SessionMessage,
+                                    //////
+                                    Test_I_Stream_SessionData_t> Test_I_Stream_Decompressor;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
                               Common_TimePolicy_t,                      // time policy
                               Stream_ModuleConfiguration,               // module configuration type

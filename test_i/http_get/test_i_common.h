@@ -271,8 +271,10 @@ typedef Stream_Base_T<ACE_SYNCH_MUTEX,
                       ////////////////////
                       Test_I_Stream_SessionData,   // session data
                       Test_I_Stream_SessionData_t, // session data container (reference counted)
-                      Test_I_Stream_SessionMessage,
-                      Test_I_Stream_Message> Test_I_StreamBase_t;
+                      ////////////////////
+                      ACE_Message_Block,
+                      Test_I_Stream_Message,
+                      Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
 struct Test_I_Stream_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
@@ -290,7 +292,9 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , loginOptions ()
    , mode (STREAM_MODULE_HTMLPARSER_SAX)
    , passive (false)
+   , printFinalReport (true)
    , printProgressDot (false)
+   , pushStatisticMessages (true)
    , socketConfiguration (NULL)
    , socketHandlerConfiguration (NULL)
    , stream (NULL)
@@ -316,7 +320,9 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   Stream_Module_DataBase_LoginOptions       loginOptions; // db writer module
   Stream_Module_HTMLParser_Mode             mode; // html parser module
   bool                                      passive; // net source module
+  bool                                      printFinalReport;
   bool                                      printProgressDot; // file writer module
+  bool                                      pushStatisticMessages;
   Net_SocketConfiguration*                  socketConfiguration;
   Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
   Test_I_StreamBase_t*                      stream;
@@ -388,7 +394,7 @@ struct Test_I_Configuration
   bool                                     useReactor;
 };
 
-typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
+//typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
 typedef Stream_MessageAllocatorHeapBase_T<Test_I_AllocatorConfiguration,
 
                                           Test_I_Stream_Message,

@@ -32,15 +32,22 @@ class ACE_Time_Value;
 
 // *IMPORTANT NOTE*: the message queue needs to be synchronized so that shutdown
 //                   can be asynchronous
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 class Stream_TaskBaseAsynch_T
 // *TODO*: figure out whether it is possible to use ACE_NULL_SYNCH in this case
- : public Stream_TaskBase_T<ACE_MT_SYNCH,
+ : public Stream_TaskBase_T<SynchStrategyType,
                             TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType>
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType>
 {
  public:
   virtual ~Stream_TaskBaseAsynch_T ();
@@ -66,10 +73,12 @@ class Stream_TaskBaseAsynch_T
   ACE_Thread_ID threadID_;
 
  private:
-  typedef Stream_TaskBase_T<ACE_MT_SYNCH,
+  typedef Stream_TaskBase_T<SynchStrategyType,
                             TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType> inherited;
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T (const Stream_TaskBaseAsynch_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&))

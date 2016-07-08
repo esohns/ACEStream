@@ -54,12 +54,12 @@ stream_decoder_aviencoder_libav_write_cb (void*,    // act
                                           int);     // buffer size
 #endif
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 class Stream_Decoder_AVIEncoder_ReaderTask_T
- : public ACE_Thru_Task<TaskSynchType,
+ : public ACE_Thru_Task<SynchStrategyType,
                         TimePolicyType>
 {
  public:
@@ -70,7 +70,7 @@ class Stream_Decoder_AVIEncoder_ReaderTask_T
                    ACE_Time_Value* = NULL); // time
 
  private:
-  typedef ACE_Thru_Task<TaskSynchType,
+  typedef ACE_Thru_Task<SynchStrategyType,
                         TimePolicyType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_ReaderTask_T (const Stream_Decoder_AVIEncoder_ReaderTask_T&))
@@ -82,45 +82,60 @@ class Stream_Decoder_AVIEncoder_ReaderTask_T
 
 //////////////////////////////////////////
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
           typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename SessionDataContainerType,
           typename SessionDataType>
 class Stream_Decoder_AVIEncoder_WriterTask_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
   Stream_Decoder_AVIEncoder_WriterTask_T ();
   virtual ~Stream_Decoder_AVIEncoder_WriterTask_T ();
 
-  // override (part of) Stream_IModuleHandler_T
+  //// override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&);
-  virtual const ConfigurationType& get () const;
+  //virtual const ConfigurationType& get () const;
 
   // implement (part of) Stream_ITaskBase
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  ConfigurationType*        configuration_;
   SessionDataContainerType* sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
 
   // helper methods
-  MessageType* allocateMessage (unsigned int); // requested size
+  DataMessageType* allocateMessage (unsigned int); // requested size
   bool generateHeader (ACE_Message_Block*); // message buffer handle
   bool generateIndex (ACE_Message_Block*); // message buffer handle
 

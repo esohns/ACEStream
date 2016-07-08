@@ -29,12 +29,18 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
-Stream_TaskBaseAsynch_T<TimePolicyType,
-                        SessionMessageType,
-                        ProtocolMessageType>::Stream_TaskBaseAsynch_T ()
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+Stream_TaskBaseAsynch_T<SynchStrategyType,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType>::Stream_TaskBaseAsynch_T ()
  : inherited ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , threadID_ (std::numeric_limits<DWORD>::max (), ACE_INVALID_HANDLE)
@@ -47,16 +53,22 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
   inherited::threadCount_ = 1;
 
   // set group ID for worker thread(s)
-  // *TODO*: pass this in from outside...
+  // *TODO*: pass this in from outside
   inherited::grp_id (STREAM_MODULE_TASK_GROUP_ID);
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
-Stream_TaskBaseAsynch_T<TimePolicyType,
-                        SessionMessageType,
-                        ProtocolMessageType>::~Stream_TaskBaseAsynch_T ()
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+Stream_TaskBaseAsynch_T<SynchStrategyType,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType>::~Stream_TaskBaseAsynch_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::~Stream_TaskBaseAsynch_T"));
 
@@ -71,13 +83,19 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
 #endif
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
-Stream_TaskBaseAsynch_T<TimePolicyType,
-                        SessionMessageType,
-                        ProtocolMessageType>::open (void* args_in)
+Stream_TaskBaseAsynch_T<SynchStrategyType,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType>::open (void* args_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::open"));
 
@@ -152,13 +170,19 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
   return result;
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
-Stream_TaskBaseAsynch_T<TimePolicyType,
-                        SessionMessageType,
-                        ProtocolMessageType>::close (u_long arg_in)
+Stream_TaskBaseAsynch_T<SynchStrategyType,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType>::close (u_long arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::close"));
 
@@ -226,13 +250,19 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
   return 0;
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
-Stream_TaskBaseAsynch_T<TimePolicyType,
-                        SessionMessageType,
-                        ProtocolMessageType>::module_closed (void)
+Stream_TaskBaseAsynch_T<SynchStrategyType,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType>::module_closed (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::module_closed"));
 
@@ -252,14 +282,20 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
   return result;
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
-Stream_TaskBaseAsynch_T<TimePolicyType,
-                        SessionMessageType,
-                        ProtocolMessageType>::put (ACE_Message_Block* messageBlock_in,
-                                                   ACE_Time_Value* timeout_in)
+Stream_TaskBaseAsynch_T<SynchStrategyType,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType>::put (ACE_Message_Block* messageBlock_in,
+                                                  ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::put"));
 
@@ -267,13 +303,19 @@ Stream_TaskBaseAsynch_T<TimePolicyType,
   return inherited::putq (messageBlock_in, timeout_in);
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
-Stream_TaskBaseAsynch_T<TimePolicyType,
-                        SessionMessageType,
-                        ProtocolMessageType>::svc (void)
+Stream_TaskBaseAsynch_T<SynchStrategyType,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::svc"));
 
@@ -331,36 +373,45 @@ done:
   return result;
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
-Stream_TaskBaseAsynch_T<TimePolicyType,
-                        SessionMessageType,
-                        ProtocolMessageType>::waitForIdleState () const
+Stream_TaskBaseAsynch_T<SynchStrategyType,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType>::waitForIdleState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::waitForIdleState"));
 
   // delegate this to the queue
-  try
-  {
+  try {
     inherited::queue_.waitForIdleState ();
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Stream_IMessageQueue::waitForIdleState, continuing\n")));
   }
 }
 
-template <typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
-Stream_TaskBaseAsynch_T<TimePolicyType,
-                        SessionMessageType,
-                        ProtocolMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+Stream_TaskBaseAsynch_T<SynchStrategyType,
+                        TimePolicyType,
+                        ConfigurationType,
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                   bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::handleSessionMessage"));
 

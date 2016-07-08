@@ -22,8 +22,10 @@
 #define STREAM_TASK_BASE_H
 
 #include "ace/Global_Macros.h"
-#include "ace/Synch_Traits.h"
+//#include "ace/Synch_Traits.h"
 
+#include "common_iget.h"
+#include "common_iinitialize.h"
 #include "common_task_base.h"
 
 #include "stream_itask.h"
@@ -33,37 +35,51 @@
 class ACE_Message_Block;
 class ACE_Time_Value;
 
-template <typename TaskSynchStrategyType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 class Stream_TaskBase_T
- : public Common_TaskBase_T<TaskSynchStrategyType,
+ : public Common_TaskBase_T<SynchStrategyType,
                             TimePolicyType>
- , public Stream_ITask_T<SessionMessageType,
-                         ProtocolMessageType>
+ , public Common_IGet_T<ConfigurationType>
+ , public Common_IInitialize_T<ConfigurationType>
+ , public Stream_ITask_T<ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType>
 {
  public:
   virtual ~Stream_TaskBase_T ();
 
+  // implement Common_IGet_T
+  virtual const ConfigurationType& get () const;
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const ConfigurationType&);
+
   // implement (part of) Stream_ITaskBase_T
+  virtual void handleControlMessage (ControlMessageType&); // control message handle
   // *NOTE*: these are just default (essentially NOP) implementations
-  virtual bool initialize (const void*); // configuration handle
-  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-                                  bool&);                // return value: pass message downstream ?
+  //virtual bool initialize (const void*); // configuration handle
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass this message downstream ?
   virtual void handleProcessingError (const ACE_Message_Block* const); // message handle
 
   // implement Common_IDumpState
-  // *NOTE*: this is just a stub implementation...
+  // *NOTE*: this is an implementation stub
   virtual void dump_state () const;
 
  protected:
   Stream_TaskBase_T ();
 
   // helper methods
-  // standard message handling (to be used by both asynch/synch children !!!)
+  // standard message handling (to be used by both asynch/synch derivates)
   void handleMessage (ACE_Message_Block*, // message handle
                       bool&);             // return value: stop processing ?
 
@@ -72,14 +88,16 @@ class Stream_TaskBase_T
                                      bool&,              // return value: stop processing ?
                                      bool&);             // return value: pass message downstream ?
 
-  ACE_SYNCH_MUTEX     lock_;
+  ConfigurationType*  configuration_;
+  //ACE_SYNCH_MUTEX     lock_;
   Stream_MessageQueue queue_;
 
  private:
-  typedef Common_TaskBase_T<TaskSynchStrategyType,
+  typedef Common_TaskBase_T<SynchStrategyType,
                             TimePolicyType> inherited;
-  typedef Stream_ITask_T<SessionMessageType,
-                         ProtocolMessageType> inherited2;
+  typedef Stream_ITask_T<ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType> inherited2;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T (const Stream_TaskBase_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator= (const Stream_TaskBase_T&))

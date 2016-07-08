@@ -40,18 +40,23 @@ extern "C"
 #include "stream_vis_defines.h"
 #include "stream_vis_tools.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
-                              MessageType,
+Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+                              TimePolicyType,
                               ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
                               SessionDataType,
                               SessionDataContainerType>::Stream_Module_Vis_GTK_Cairo_T ()
  : inherited ()
- , configuration_ (NULL)
  , sessionData_ (NULL)
 // , cairoContext_ (NULL)
 // , cairoSurface_ (NULL)
@@ -64,14 +69,20 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
-                              MessageType,
+Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+                              TimePolicyType,
                               ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
                               SessionDataType,
                               SessionDataContainerType>::~Stream_Module_Vis_GTK_Cairo_T ()
 {
@@ -89,15 +100,21 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
     sessionData_->decrease ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 int
-Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
-                              MessageType,
+Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+                              TimePolicyType,
                               ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
                               SessionDataType,
                               SessionDataContainerType>::clamp (int value_in)
 {
@@ -107,17 +124,23 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
                            : ((value_in < 0) ? 0
                                              : value_in));
 }
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
-                              MessageType,
+Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+                              TimePolicyType,
                               ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
                               SessionDataType,
-                              SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
+                              SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                             bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::handleDataMessage"));
@@ -919,15 +942,21 @@ unlock:
 //    gdk_threads_leave ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
-                              MessageType,
+Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+                              TimePolicyType,
                               ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
                               SessionDataType,
                               SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                bool& passMessageDownstream_out)
@@ -1062,15 +1091,21 @@ error:
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 bool
-Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
-                              MessageType,
+Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+                              TimePolicyType,
                               ConfigurationType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
                               SessionDataType,
                               SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
 {
@@ -1078,8 +1113,6 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 
   if (isInitialized_)
   {
-    configuration_ = NULL;
-
 //    if (cairoSurface_)
 //    {
 //      cairo_surface_destroy (cairoSurface_);
@@ -1109,19 +1142,17 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
     isInitialized_ = false;
   } // end IF
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-
-  lock_ = configuration_->lock;
-  if (!configuration_->pixelBuffer)
+  lock_ = configuration_in.lock;
+  if (!configuration_in.pixelBuffer)
   {
     // *TODO*: remove type inference
-    if (configuration_->window)
+    if (configuration_in.window)
     {
       gdk_threads_enter ();
 
       // sanity check(s)
       // *TODO*: remove type inference
-      ACE_ASSERT (!configuration_->pixelBuffer);
+      ACE_ASSERT (!configuration_in.pixelBuffer);
 
       // *TODO*: remove type inference
       pixelBuffer_ =
@@ -1129,15 +1160,15 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
           //                                    0, 0,
           //                                    configuration_->area.width, configuration_->area.height);
           gdk_pixbuf_get_from_drawable (NULL,
-                                        GDK_DRAWABLE (configuration_->window),
+                                        GDK_DRAWABLE (configuration_in.window),
                                         NULL,
                                         0, 0,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                                         0, 0,
-                                        configuration_->area.right - configuration_->area.left,
-                                        configuration_->area.bottom - configuration_->area.top);
+                                        configuration_in.area.right  - configuration_in.area.left,
+                                        configuration_in.area.bottom - configuration_in.area.top);
 #else
-                                        0, 0, configuration_->area.width, configuration_->area.height);
+                                        0, 0, configuration_in.area.width, configuration_in.area.height);
 #endif
       if (!pixelBuffer_)
       { // *NOTE*: most probable reason: window is not mapped
@@ -1154,8 +1185,8 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
   } // end IF
   else
   {
-    g_object_ref (configuration_->pixelBuffer);
-    pixelBuffer_ = configuration_->pixelBuffer;
+    g_object_ref (configuration_in.pixelBuffer);
+    pixelBuffer_ = configuration_in.pixelBuffer;
   } // end ELSE
   if (!pixelBuffer_)
   {
@@ -1181,26 +1212,26 @@ Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
 //                                 0.0, 0.0);
 //  } // end IF
 
-  isInitialized_ = true;
+  isInitialized_ = inherited::initialize (configuration_in);
 
   return isInitialized_;
 }
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-const ConfigurationType&
-Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
-                              MessageType,
-                              ConfigurationType,
-                              SessionDataType,
-                              SessionDataContainerType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//const ConfigurationType&
+//Stream_Module_Vis_GTK_Cairo_T<SessionMessageType,
+//                              MessageType,
+//                              ConfigurationType,
+//                              SessionDataType,
+//                              SessionDataContainerType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}

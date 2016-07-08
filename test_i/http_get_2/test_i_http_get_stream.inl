@@ -156,117 +156,117 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   SOURCE_WRITER_T* netSource_impl_p = NULL;
 
   // ******************* Spreadsheet Writer ************************
-  spreadsheetWriter_.initialize (*configuration_in.moduleConfiguration);
-  spreadsheetWriter_impl_p =
-    dynamic_cast<Test_I_Stream_SpreadsheetWriter*> (spreadsheetWriter_.writer ());
-  if (!spreadsheetWriter_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_SpreadsheetWriter*> failed, aborting\n")));
-    goto failed;
-  } // end IF
-  if (!spreadsheetWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                spreadsheetWriter_.name ()));
-    goto failed;
-  } // end IF
+  //spreadsheetWriter_.initialize (*configuration_in.moduleConfiguration);
+  //spreadsheetWriter_impl_p =
+  //  dynamic_cast<Test_I_Stream_SpreadsheetWriter*> (spreadsheetWriter_.writer ());
+  //if (!spreadsheetWriter_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_SpreadsheetWriter*> failed, aborting\n")));
+  //  goto failed;
+  //} // end IF
+  //if (!spreadsheetWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              spreadsheetWriter_.name ()));
+  //  goto failed;
+  //} // end IF
 
   // ******************* HTML Parser ************************
-  HTMLParser_.initialize (*configuration_in.moduleConfiguration);
-  HTMLParser_impl_p = dynamic_cast<Test_I_Stream_HTMLParser*> (HTMLParser_.writer ());
-  if (!HTMLParser_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_HTMLParser*> failed, aborting\n")));
-    goto failed;
-  } // end IF
-  // *TODO*: remove type inferences
-  if (!HTMLParser_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                HTMLParser_.name ()));
-    goto failed;
-  } // end IF
+  //HTMLParser_.initialize (*configuration_in.moduleConfiguration);
+  //HTMLParser_impl_p = dynamic_cast<Test_I_Stream_HTMLParser*> (HTMLParser_.writer ());
+  //if (!HTMLParser_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_HTMLParser*> failed, aborting\n")));
+  //  goto failed;
+  //} // end IF
+  //// *TODO*: remove type inferences
+  //if (!HTMLParser_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              HTMLParser_.name ()));
+  //  goto failed;
+  //} // end IF
 
   // ******************* Decompressor ************************
-  decompressor_.initialize (*configuration_in.moduleConfiguration);
-  decompressor_impl_p =
-    dynamic_cast<Test_I_Stream_Decompressor*> (decompressor_.writer ());
-  if (!decompressor_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Decompressor*> failed, aborting\n")));
-    goto failed;
-  } // end IF
-  // *TODO*: remove type inferences
-  if (!decompressor_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                decompressor_.name ()));
-    goto failed;
-  } // end IF
+  //decompressor_.initialize (*configuration_in.moduleConfiguration);
+  //decompressor_impl_p =
+  //  dynamic_cast<Test_I_Stream_Decompressor*> (decompressor_.writer ());
+  //if (!decompressor_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_Decompressor*> failed, aborting\n")));
+  //  goto failed;
+  //} // end IF
+  //// *TODO*: remove type inferences
+  //if (!decompressor_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              decompressor_.name ()));
+  //  goto failed;
+  //} // end IF
 
   // ******************* HTTP Get ************************
-  HTTPGet_.initialize (*configuration_in.moduleConfiguration);
-  HTTPGet_impl_p =
-    dynamic_cast<Test_I_Stream_HTTPGet*> (HTTPGet_.writer ());
-  if (!HTTPGet_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_HTTPGet*> failed, aborting\n")));
-    goto failed;
-  } // end IF
-  // *TODO*: remove type inferences
-  if (!HTTPGet_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                HTTPGet_.name ()));
-    goto failed;
-  } // end IF
+  //HTTPGet_.initialize (*configuration_in.moduleConfiguration);
+  //HTTPGet_impl_p =
+  //  dynamic_cast<Test_I_Stream_HTTPGet*> (HTTPGet_.writer ());
+  //if (!HTTPGet_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_HTTPGet*> failed, aborting\n")));
+  //  goto failed;
+  //} // end IF
+  //// *TODO*: remove type inferences
+  //if (!HTTPGet_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              HTTPGet_.name ()));
+  //  goto failed;
+  //} // end IF
 
   // ******************* Runtime Statistics ************************
-  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  runtimeStatistic_impl_p =
-      dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_RuntimeStatistic*> failed, aborting\n")));
-    goto failed;
-  } // end IF
-  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-                                            configuration_in.printFinalReport,           // print final report ?
-                                            configuration_in.messageAllocator))          // message allocator handle
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                runtimeStatistic_.name ()));
-    goto failed;
-  } // end IF
+  //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
+  //runtimeStatistic_impl_p =
+  //    dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  //if (!runtimeStatistic_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_RuntimeStatistic*> failed, aborting\n")));
+  //  goto failed;
+  //} // end IF
+  //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
+  //                                          configuration_in.printFinalReport,           // print final report ?
+  //                                          configuration_in.messageAllocator))          // message allocator handle
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              runtimeStatistic_.name ()));
+  //  goto failed;
+  //} // end IF
 
   // ******************* HTTP Marshal ************************
-  HTTPMarshal_.initialize (*configuration_in.moduleConfiguration);
-  HTTPParser_impl_p =
-    dynamic_cast<Test_I_Stream_HTTP_Parser*> (HTTPMarshal_.writer ());
-  if (!HTTPParser_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_HTTP_Parser*> failed, aborting\n")));
-    goto failed;
-  } // end IF
-  // *TODO*: remove type inferences
-  if (!HTTPParser_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                HTTPMarshal_.name ()));
-    goto failed;
-  } // end IF
+  //HTTPMarshal_.initialize (*configuration_in.moduleConfiguration);
+  //HTTPParser_impl_p =
+  //  dynamic_cast<Test_I_Stream_HTTP_Parser*> (HTTPMarshal_.writer ());
+  //if (!HTTPParser_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_HTTP_Parser*> failed, aborting\n")));
+  //  goto failed;
+  //} // end IF
+  //// *TODO*: remove type inferences
+  //if (!HTTPParser_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              HTTPMarshal_.name ()));
+  //  goto failed;
+  //} // end IF
 
   // ******************* Net Source ************************
   netSource_.initialize (*configuration_in.moduleConfiguration);

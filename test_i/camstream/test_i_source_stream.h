@@ -66,8 +66,10 @@ class Test_I_Source_Stream_T
                         //////////////////
                         Test_I_Source_Stream_SessionData,   // session data
                         Test_I_Source_Stream_SessionData_t, // session data container (reference counted)
-                        Test_I_Source_Stream_SessionMessage,
-                        Test_I_Source_Stream_Message>
+                        //////////////////
+                        ACE_Message_Block,
+                        Test_I_Source_Stream_Message,
+                        Test_I_Source_Stream_SessionMessage>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , public IMFAsyncCallback
 #endif
@@ -129,18 +131,22 @@ class Test_I_Source_Stream_T
                         //////////////////
                         Test_I_Source_Stream_SessionData,   // session data
                         Test_I_Source_Stream_SessionData_t, // session data container (reference counted)
-                        Test_I_Source_Stream_SessionMessage,
-                        Test_I_Source_Stream_Message> inherited;
+                        //////////////////
+                        ACE_Message_Block,
+                        Test_I_Source_Stream_Message,
+                        Test_I_Source_Stream_SessionMessage> inherited;
 
   typedef Test_I_Source_Stream_T<ConnectorType> OWN_TYPE_T;
-  typedef Stream_Module_Net_Target_T<Test_I_Source_Stream_SessionMessage,
-                                     Test_I_Source_Stream_Message,
+  typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
                                      /////
                                      Test_I_Source_Stream_ModuleHandlerConfiguration,
                                      /////
-                                     Test_I_Source_Stream_SessionData,
-                                     Test_I_Source_Stream_SessionData_t,
+                                     ACE_Message_Block,
+                                     Test_I_Source_Stream_Message,
+                                     Test_I_Source_Stream_SessionMessage,
                                      /////
+                                     Test_I_Source_Stream_SessionData_t,
                                      Test_I_Source_InetConnectionManager_t,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                                    // task synch type

@@ -26,18 +26,23 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-Stream_Vis_Target_DirectShow_T<SessionMessageType,
-                               MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType>
+Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
-                               SessionDataContainerType>::Stream_Vis_Target_DirectShow_T ()
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               SessionDataType>::Stream_Vis_Target_DirectShow_T ()
  : inherited ()
- , configuration_ (NULL)
  , isInitialized_ (false)
  //, IVideoWindow_ (NULL)
  , IMFVideoRenderer_ (NULL)
@@ -47,16 +52,22 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-Stream_Vis_Target_DirectShow_T<SessionMessageType,
-                               MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType>
+Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
-                               SessionDataContainerType>::~Stream_Vis_Target_DirectShow_T ()
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               SessionDataType>::~Stream_Vis_Target_DirectShow_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::~Stream_Vis_Target_DirectShow_T"));
 
@@ -97,18 +108,24 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
   } // end IF
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType>
 void
-Stream_Vis_Target_DirectShow_T<SessionMessageType,
-                               MessageType,
+Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
-                               SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
-                                                                             bool& passMessageDownstream_out)
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::handleDataMessage"));
 
@@ -116,18 +133,24 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType>
 void
-Stream_Vis_Target_DirectShow_T<SessionMessageType,
-                               MessageType,
+Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
-                               SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                bool& passMessageDownstream_out)
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                       bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::handleSessionMessage"));
 
@@ -282,17 +305,23 @@ continue_:
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType>
 bool
-Stream_Vis_Target_DirectShow_T<SessionMessageType,
-                               MessageType,
+Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
-                               SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               SessionDataType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::initialize"));
 
@@ -329,47 +358,52 @@ Stream_Vis_Target_DirectShow_T<SessionMessageType,
     } // end IF
   } // end IF
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  isInitialized_ = true;
+  isInitialized_ = inherited::initialize (configuration_in);
 
-  return true;
+  return isInitialized_;
 }
-template <typename SessionMessageType,
-          typename MessageType,
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//const ConfigurationType&
+//Stream_Vis_Target_DirectShow_T<SessionMessageType,
+//                               MessageType,
+//                               ConfigurationType,
+//                               SessionDataType,
+//                               SessionDataContainerType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}
+
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-const ConfigurationType&
-Stream_Vis_Target_DirectShow_T<SessionMessageType,
-                               MessageType,
-                               ConfigurationType,
-                               SessionDataType,
-                               SessionDataContainerType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
-
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename SessionDataType>
 bool
-Stream_Vis_Target_DirectShow_T<SessionMessageType,
-                               MessageType,
+Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
-                               SessionDataContainerType>::initialize_DirectShow (const HWND windowHandle_in,
-                                                                                 const struct tagRECT& windowArea_in,
-                                                                                 //IGraphBuilder* IGraphBuilder_in,
-                                                                                 //IVideoWindow*& IVideoWindow_out)
-                                                                                 IMFVideoRenderer*& IMFVideoRenderer_out,
-                                                                                 IMFVideoDisplayControl*& IMFVideoDisplayControl_out)
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               SessionDataType>::initialize_DirectShow (const HWND windowHandle_in,
+                                                                        const struct tagRECT& windowArea_in,
+                                                                        //IGraphBuilder* IGraphBuilder_in,
+                                                                        //IVideoWindow*& IVideoWindow_out)
+                                                                        IMFVideoRenderer*& IMFVideoRenderer_out,
+                                                                        IMFVideoDisplayControl*& IMFVideoDisplayControl_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_DirectShow_T::initialize_DirectShow"));
 

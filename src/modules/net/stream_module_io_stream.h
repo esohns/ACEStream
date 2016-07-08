@@ -32,7 +32,7 @@
 
 template <typename LockType,
           ////////////////////////////////
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           ////////////////////////////////
           typename ControlType,
@@ -49,15 +49,17 @@ template <typename LockType,
           ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // (reference counted)
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           ////////////////////////////////
           typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IO_Stream_T
  : public Stream_Base_T<LockType,
                         //////////////////
-                        TaskSynchType,
+                        SynchStrategyType,
                         TimePolicyType,
                         //////////////////
                         ControlType,
@@ -74,8 +76,10 @@ class Stream_Module_Net_IO_Stream_T
                         //////////////////
                         SessionDataType,          // session data
                         SessionDataContainerType, // session data container (reference counted)
-                        SessionMessageType,
-                        ProtocolMessageType>
+                        //////////////////
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType>
 {
  public:
   Stream_Module_Net_IO_Stream_T (const std::string&); // name
@@ -96,8 +100,9 @@ class Stream_Module_Net_IO_Stream_T
  protected:
   typedef Stream_Module_Net_IOWriter_T<LockType,
                                        ///
+                                       ControlMessageType,
+                                       DataMessageType,
                                        SessionMessageType,
-                                       ProtocolMessageType,
                                        ///
                                        HandlerConfigurationType,
                                        ///
@@ -112,19 +117,21 @@ class Stream_Module_Net_IO_Stream_T
                                        ///
                                        AddressType,
                                        ConnectionManagerType> WRITER_T;
-  typedef Stream_Module_Net_IOReader_T<SessionMessageType,
-                                       ProtocolMessageType,
-                                       ///
-                                       ConfigurationType,
+  typedef Stream_Module_Net_IOReader_T<SynchStrategyType,
+                                       TimePolicyType,
                                        ///
                                        HandlerConfigurationType,
+                                       ///
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
                                        ///
                                        SessionDataType,
                                        SessionDataContainerType,
                                        ///
                                        AddressType,
                                        ConnectionManagerType> READER_T;
-  typedef Stream_StreamModule_T<TaskSynchType,             // task synch type
+  typedef Stream_StreamModule_T<SynchStrategyType,             // task synch type
                                 TimePolicyType,            // time policy
                                 ModuleConfigurationType,   // module configuration type
                                 HandlerConfigurationType,  // module handler configuration type
@@ -137,7 +144,7 @@ class Stream_Module_Net_IO_Stream_T
  private:
   typedef Stream_Base_T<LockType,
                         //////////////////
-                        TaskSynchType,
+                        SynchStrategyType,
                         TimePolicyType,
                         //////////////////
                         ControlType,
@@ -154,13 +161,15 @@ class Stream_Module_Net_IO_Stream_T
                         //////////////////
                         SessionDataType,          // session data
                         SessionDataContainerType, // session data container (reference counted)
-                        SessionMessageType,
-                        ProtocolMessageType> inherited;
+                        //////////////////
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType> inherited;
 
   // convenient types
   typedef Stream_Module_Net_IO_Stream_T<LockType,
                                         //
-                                        TaskSynchType,
+                                        SynchStrategyType,
                                         TimePolicyType,
                                         //
                                         ControlType,
@@ -177,8 +186,10 @@ class Stream_Module_Net_IO_Stream_T
                                         //
                                         SessionDataType,          // session data
                                         SessionDataContainerType, // session data container (reference counted)
+                                        //
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         //
                                         AddressType,
                                         ConnectionManagerType> OWN_TYPE_T;

@@ -28,13 +28,19 @@
 
 #include "stream_module_db_defines.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
-Stream_Module_MySQLWriter_T<SessionMessageType,
-                            MessageType,
-                            ModuleHandlerConfigurationType,
+Stream_Module_MySQLWriter_T<SynchStrategyType,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
                             SessionDataType>::Stream_Module_MySQLWriter_T ()
  : inherited ()
  , state_ (NULL)
@@ -57,13 +63,19 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
   //  } // end IF
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
-Stream_Module_MySQLWriter_T<SessionMessageType,
-                            MessageType,
-                            ModuleHandlerConfigurationType,
+Stream_Module_MySQLWriter_T<SynchStrategyType,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
                             SessionDataType>::~Stream_Module_MySQLWriter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::~Stream_Module_MySQLWriter_T"));
@@ -102,14 +114,20 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
 //  } // end IF
 //}
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Module_MySQLWriter_T<SessionMessageType,
-                            MessageType,
-                            ModuleHandlerConfigurationType,
+Stream_Module_MySQLWriter_T<SynchStrategyType,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
                             SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                     bool& passMessageDownstream_out)
 {
@@ -121,7 +139,7 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
+  ACE_ASSERT (inherited::configuration_);
 
   const typename SessionMessageType::DATA_T& session_data_container_r =
       message_inout->get ();
@@ -133,13 +151,13 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
     {
       // sanity check(s)
       ACE_ASSERT (state_);
-      ACE_ASSERT (configuration_.socketConfiguration);
+      ACE_ASSERT (inherited::configuration_->socketConfiguration);
 
       ACE_TCHAR buffer[BUFSIZ];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
       result =
-        configuration_.socketConfiguration->address.addr_to_string (buffer,
-                                                                    sizeof (buffer));
+        inherited::configuration_->socketConfiguration->address.addr_to_string (buffer,
+                                                                                sizeof (buffer));
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -152,8 +170,8 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
       ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
       const char* result_p =
-        configuration_.socketConfiguration->address.get_host_addr (host_address,
-                                                                   sizeof (host_address));
+        inherited::configuration_->socketConfiguration->address.get_host_addr (host_address,
+                                                                               sizeof (host_address));
       if (!result_p || (result_p != host_address))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -193,21 +211,21 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
            CLIENT_REMEMBER_OPTIONS);        // remember options specified by
                                             // calls to mysql_options()
       const char* user_name_string_p =
-        (configuration_.loginOptions.user.empty () ? NULL // <-- current user (Unix) : options file (?)
-                                                   : configuration_.loginOptions.user.c_str ());
+        (inherited::configuration_->loginOptions.user.empty () ? NULL // <-- current user (Unix) : options file (?)
+                                                               : inherited::configuration_->loginOptions.user.c_str ());
       const char* password_string_p =
-        (configuration_.loginOptions.password.empty () ? NULL // <-- (user table ?, options file (?))
-                                                       : configuration_.loginOptions.password.c_str ());
+        (inherited::configuration_->loginOptions.password.empty () ? NULL // <-- (user table ?, options file (?))
+                                                                   : inherited::configuration_->loginOptions.password.c_str ());
       const char* database_name_string_p =
-        (configuration_.loginOptions.database.empty () ? NULL // <-- default database : options file (?)
-                                                       : configuration_.loginOptions.database.c_str ());
+        (inherited::configuration_->loginOptions.database.empty () ? NULL // <-- default database : options file (?)
+                                                                   : inherited::configuration_->loginOptions.database.c_str ());
       MYSQL* result_2 =
         mysql_real_connect (state_,                                                         // state handle
                             host_address,                                                   // host name/address
                             user_name_string_p,                                             // user
                             password_string_p,                                              // password (non-encrypted)
                             database_name_string_p,                                         // database
-                            configuration_.socketConfiguration->address.get_port_number (), // port
+                            inherited::configuration_->socketConfiguration->address.get_port_number (), // port
                             NULL,                                                           // (UNIX) socket/named pipe
                             client_flags);                                                  // client flags
       if (result_2 != state_)
@@ -265,7 +283,7 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
         return; // nothing to do
 
       std::string query_string = ACE_TEXT_ALWAYS_CHAR ("INSERT INTO ");
-      query_string += configuration_.dataBaseTable
+      query_string += inherited::configuration_->dataBaseTable
                    += ACE_TEXT_ALWAYS_CHAR ("VALUES (");
 //      for (Test_I_PageDataIterator_t iterator = session_data_r.data.pageData.begin ();
 //           iterator != session_data_r.data.pageData.end ();
@@ -333,21 +351,25 @@ close:
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
 bool
-Stream_Module_MySQLWriter_T<SessionMessageType,
-                            MessageType,
-                            ModuleHandlerConfigurationType,
-                            SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
+Stream_Module_MySQLWriter_T<SynchStrategyType,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionDataType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::initialize"));
 
   int result = -1;
-
-  configuration_ = configuration_in;
 
   // step0: initialize library ?
   static bool first_run = true;
@@ -441,18 +463,21 @@ Stream_Module_MySQLWriter_T<SessionMessageType,
                           option,
                           &timeout);
   if (result) goto error;
-  if (!configuration_.dataBaseOptionsFileName.empty ())
+  if (!configuration_in.dataBaseOptionsFileName.empty ())
   {
     option = MYSQL_READ_DEFAULT_FILE;
     result = mysql_options (state_,
                             option,
-                            configuration_.dataBaseOptionsFileName.c_str ());
+                            configuration_in.dataBaseOptionsFileName.c_str ());
     if (result) goto error;
   } // end IF
 
-  isInitialized_ = true;
+  isInitialized_ = inherited::initialize (configuration_in);
+  if (!isInitialized_)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_TaskBaseAsynch_T::initialize(): \"%s\", aborting\n")));
 
-  return true;
+  return isInitialized_;
 
 error:
   ACE_DEBUG ((LM_DEBUG,
@@ -461,17 +486,17 @@ error:
               ACE_TEXT (mysql_error (state_))));
   return false;
 }
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
-const ModuleHandlerConfigurationType&
-Stream_Module_MySQLWriter_T<SessionMessageType,
-                            MessageType,
-                            ModuleHandlerConfigurationType,
-                            SessionDataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::get"));
-
-  return configuration_;
-}
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionDataType>
+//const ModuleHandlerConfigurationType&
+//Stream_Module_MySQLWriter_T<SessionMessageType,
+//                            MessageType,
+//                            ModuleHandlerConfigurationType,
+//                            SessionDataType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::get"));
+//
+//  return configuration_;
+//}

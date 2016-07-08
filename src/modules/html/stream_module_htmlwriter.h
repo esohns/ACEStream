@@ -30,38 +30,53 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
-          ///////////////////////////////
-          typename ModuleHandlerConfigurationType,
-          ///////////////////////////////
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename SessionDataContainerType,
           typename SessionDataType>
 class Stream_Module_HTMLWriter_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
   Stream_Module_HTMLWriter_T ();
   virtual ~Stream_Module_HTMLWriter_T ();
 
+  virtual bool initialize (const ConfigurationType&);
+
   // implement (part of) Stream_ITaskBase_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual const ModuleHandlerConfigurationType& get () const;
-  virtual bool initialize (const ModuleHandlerConfigurationType&);
+  //// implement Stream_IModuleHandler_T
+  //virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
-  ModuleHandlerConfigurationType* configuration_;
-  struct _xmlDoc*                 document_;
+  struct _xmlDoc* document_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLWriter_T (const Stream_Module_HTMLWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLWriter_T& operator= (const Stream_Module_HTMLWriter_T&))

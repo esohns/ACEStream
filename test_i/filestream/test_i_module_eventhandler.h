@@ -35,8 +35,14 @@
 #include "test_i_session_message.h"
 
 class Test_I_Stream_Module_EventHandler
- : public Stream_Module_MessageHandler_T<Test_I_Stream_SessionMessage,
+ : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
+                                         Common_TimePolicy_t,
+
+                                         Test_I_Stream_ModuleHandlerConfiguration,
+
+                                         ACE_Message_Block,
                                          Test_I_Stream_Message,
+                                         Test_I_Stream_SessionMessage,
 
                                          Test_I_Stream_ModuleHandlerConfiguration,
 
@@ -51,8 +57,14 @@ class Test_I_Stream_Module_EventHandler
   virtual Stream_Module_t* clone ();
 
  private:
-  typedef Stream_Module_MessageHandler_T<Test_I_Stream_SessionMessage,
+  typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
+                                         Common_TimePolicy_t,
+
+                                         Test_I_Stream_ModuleHandlerConfiguration,
+
+                                         ACE_Message_Block,
                                          Test_I_Stream_Message,
+                                         Test_I_Stream_SessionMessage,
 
                                          Test_I_Stream_ModuleHandlerConfiguration,
 

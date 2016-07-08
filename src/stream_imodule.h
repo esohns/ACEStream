@@ -31,14 +31,14 @@
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
 
-template <typename ConfigurationType>
-class Stream_IModuleHandler_T
- : public Common_IGet_T<ConfigurationType>
- , public Common_IInitialize_T<ConfigurationType>
-{
- public:
-  inline virtual ~Stream_IModuleHandler_T () {};
-};
+//template <typename ConfigurationType>
+//class Stream_IModuleHandler_T
+// : public Common_IGet_T<ConfigurationType>
+// , public Common_IInitialize_T<ConfigurationType>
+//{
+// public:
+//  inline virtual ~Stream_IModuleHandler_T () {};
+//};
 
 template <typename TaskSynchType,
           typename TimePolicyType,
@@ -72,7 +72,7 @@ class Stream_IModule_T
   typedef Common_IClone_T<MODULE_T> ICLONE_T;
 
   // *TODO*: see above
-  virtual const HandlerConfigurationType& get () = 0;
+  virtual const HandlerConfigurationType& getHandlerConfiguration () const = 0;
 
   virtual bool isFinal () const = 0;
 

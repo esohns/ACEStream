@@ -33,8 +33,14 @@
 
 using namespace ::com::sun::star;
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           ////////////////////////////////
           typename ModuleHandlerConfigurationType,
           ////////////////////////////////
@@ -42,14 +48,22 @@ template <typename SessionMessageType,
           ////////////////////////////////
           typename DocumentType>
 class Stream_Module_LibreOffice_Document_Writer_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
   Stream_Module_LibreOffice_Document_Writer_T ();
   virtual ~Stream_Module_LibreOffice_Document_Writer_T ();
+
+  //// implement Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase_T
   //virtual void handleDataMessage (MessageType*&, // data message handle
@@ -57,26 +71,31 @@ class Stream_Module_LibreOffice_Document_Writer_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ModuleHandlerConfigurationType&);
-  virtual const ModuleHandlerConfigurationType& get () const;
+  //// implement Stream_IModuleHandler_T
+  //virtual bool initialize (const ModuleHandlerConfigurationType&);
+  //virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
   uno::Reference<lang::XComponent>       component_;
   uno::Reference<uno::XComponentContext> context_;
 
-  ModuleHandlerConfigurationType*        configuration_;
   bool                                   isInitialized_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T (const Stream_Module_LibreOffice_Document_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T& operator= (const Stream_Module_LibreOffice_Document_Writer_T&))
 };
 
+// include template implementation
 #include "stream_module_libreoffice_document_writer.inl"
 
 #endif

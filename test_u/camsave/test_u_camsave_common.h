@@ -200,7 +200,7 @@ struct Stream_CamSave_SignalHandlerConfiguration
 
   long               actionTimerId;
   Stream_IAllocator* messageAllocator;
-  unsigned int       statisticReportingInterval; // statistics collecting interval (second(s)) [0: off]
+  unsigned int       statisticReportingInterval; // (statistic) reporting interval (second(s)) [0: off]
 };
 
 struct Stream_CamSave_ModuleHandlerConfiguration
@@ -226,7 +226,6 @@ struct Stream_CamSave_ModuleHandlerConfiguration
    , device ()
    , lock (NULL)
    , pixelBuffer (NULL)
-   , statisticCollectionInterval (ACE_Time_Value::zero)
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -279,7 +278,6 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   std::string                device;
   ACE_SYNCH_RECURSIVE_MUTEX* lock;
   GdkPixbuf*                 pixelBuffer;
-  ACE_Time_Value             statisticCollectionInterval;
   std::string                targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HWND                       window;

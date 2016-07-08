@@ -30,22 +30,24 @@
 #include "stream_macros.h"
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -85,22 +87,24 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -144,23 +148,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -195,23 +201,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -266,12 +274,9 @@ Stream_HeadModuleTaskBase_T<LockType,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("auto-starting...\n")));
 
-    try
-    {
+    try {
       start ();
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IStreamControl_T::start(), aborting\n")));
       return -1;
@@ -282,23 +287,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -355,23 +362,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -414,23 +423,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -539,23 +550,25 @@ continue_:
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -567,35 +580,34 @@ Stream_HeadModuleTaskBase_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::waitForIdleState"));
 
   // delegate this to the queue
-  try
-  {
+  try {
     inherited2::queue_.waitForIdleState ();
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Stream_IMessageQueue::waitForIdleState, continuing\n")));
   }
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -699,23 +711,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 const ConfigurationType&
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -732,23 +746,25 @@ Stream_HeadModuleTaskBase_T<LockType,
   return *configuration_;
 }
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -805,23 +821,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -840,23 +858,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -873,23 +893,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -934,23 +956,25 @@ Stream_HeadModuleTaskBase_T<LockType,
   } // end SWITCH
 }
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -977,23 +1001,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1017,23 +1043,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1055,23 +1083,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1088,23 +1118,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1123,23 +1155,25 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_NOTREACHED (return false;)
 }
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1161,23 +1195,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1193,23 +1229,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
-ProtocolMessageType*
+DataMessageType*
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1225,20 +1263,17 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_ASSERT (configuration_->streamConfiguration);
 
   // initialize return value(s)
-  ProtocolMessageType* message_p = NULL;
+  DataMessageType* message_p = NULL;
 
   // *TODO*: remove type inference
   if (configuration_->streamConfiguration->messageAllocator)
   {
 allocate:
-    try
-    {
+    try {
       // *TODO*: remove type inference
       message_p =
-          static_cast<ProtocolMessageType*> (configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
-    }
-    catch (...)
-    {
+          static_cast<DataMessageType*> (configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
                   requestedSize_in));
@@ -1252,7 +1287,7 @@ allocate:
   } // end IF
   else
     ACE_NEW_NORETURN (message_p,
-                      ProtocolMessageType (requestedSize_in));
+                      DataMessageType (requestedSize_in));
   if (!message_p)
   {
     if (configuration_->streamConfiguration->messageAllocator)
@@ -1272,23 +1307,25 @@ allocate:
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1305,23 +1342,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1339,23 +1378,25 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_NOTREACHED (return;)
 }
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 Stream_Base_t*
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1372,23 +1413,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 Stream_StateMachine_ControlState
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1405,23 +1448,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1524,23 +1569,25 @@ continue_:
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 Stream_Module_t*
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1558,23 +1605,25 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_NOTREACHED (return NULL;)
 }
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 std::string
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1589,23 +1638,25 @@ Stream_HeadModuleTaskBase_T<LockType,
   return result;
 }
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 const StreamStateType&
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1622,23 +1673,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1658,23 +1711,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -1720,23 +1775,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -2117,23 +2174,25 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            TaskSynchType,
+                            SynchStrategyType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -2156,14 +2215,11 @@ Stream_HeadModuleTaskBase_T<LockType,
   if (allocator_in)
   {
 allocate:
-    try
-    {
+    try {
       // *IMPORTANT NOTE*: 0 --> session message !
       session_message_p =
         static_cast<SessionMessageType*> (allocator_in->malloc (0));
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 

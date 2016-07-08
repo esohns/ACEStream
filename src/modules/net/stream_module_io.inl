@@ -33,8 +33,9 @@
 #include "stream_module_net_common.h"
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -45,8 +46,9 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 Stream_Module_Net_IOWriter_T<LockType,
+                             ControlMessageType,
+                             DataMessageType,
                              SessionMessageType,
-                             ProtocolMessageType,
                              ConfigurationType,
                              StreamControlType,
                              StreamNotificationType,
@@ -67,8 +69,9 @@ Stream_Module_Net_IOWriter_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -79,8 +82,9 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 Stream_Module_Net_IOWriter_T<LockType,
+                             ControlMessageType,
+                             DataMessageType,
                              SessionMessageType,
-                             ProtocolMessageType,
                              ConfigurationType,
                              StreamControlType,
                              StreamNotificationType,
@@ -135,8 +139,9 @@ Stream_Module_Net_IOWriter_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -148,8 +153,9 @@ template <typename LockType,
           typename ConnectionManagerType>
 bool
 Stream_Module_Net_IOWriter_T<LockType,
+                             ControlMessageType,
+                             DataMessageType,
                              SessionMessageType,
-                             ProtocolMessageType,
                              ConfigurationType,
                              StreamControlType,
                              StreamNotificationType,
@@ -191,8 +197,9 @@ Stream_Module_Net_IOWriter_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -204,8 +211,9 @@ template <typename LockType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_IOWriter_T<LockType,
+                             ControlMessageType,
+                             DataMessageType,
                              SessionMessageType,
-                             ProtocolMessageType,
                              ConfigurationType,
                              StreamControlType,
                              StreamNotificationType,
@@ -214,7 +222,7 @@ Stream_Module_Net_IOWriter_T<LockType,
                              SessionDataContainerType,
                              StatisticContainerType,
                              AddressType,
-                             ConnectionManagerType>::handleDataMessage (ProtocolMessageType*& message_inout,
+                             ConnectionManagerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                         bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::handleDataMessage"));
@@ -261,8 +269,9 @@ Stream_Module_Net_IOWriter_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -274,8 +283,9 @@ template <typename LockType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_IOWriter_T<LockType,
+                             ControlMessageType,
+                             DataMessageType,
                              SessionMessageType,
-                             ProtocolMessageType,
                              ConfigurationType,
                              StreamControlType,
                              StreamNotificationType,
@@ -586,8 +596,9 @@ Stream_Module_Net_IOWriter_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -599,8 +610,9 @@ template <typename LockType,
           typename ConnectionManagerType>
 bool
 Stream_Module_Net_IOWriter_T<LockType,
+                             ControlMessageType,
+                             DataMessageType,
                              SessionMessageType,
-                             ProtocolMessageType,
                              ConfigurationType,
                              StreamControlType,
                              StreamNotificationType,
@@ -851,24 +863,27 @@ Stream_Module_Net_IOWriter_T<LockType,
 
 /////////////////////////////////////////
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IOReader_T<SessionMessageType,
-                             MessageType,
+Stream_Module_Net_IOReader_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
-                             ModuleHandlerConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              AddressType,
                              ConnectionManagerType>::Stream_Module_Net_IOReader_T ()
  : inherited ()
- , configuration_ (NULL)
  , connection_ (NULL)
  , initialized_ (false)
 {
@@ -876,18 +891,22 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IOReader_T<SessionMessageType,
-                             MessageType,
+Stream_Module_Net_IOReader_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
-                             ModuleHandlerConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              AddressType,
@@ -945,19 +964,23 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
 //  ACE_UNUSED_ARG (passMessageDownstream_out);
 //}
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IOReader_T<SessionMessageType,
-                             MessageType,
+Stream_Module_Net_IOReader_T<SynchStrategyType,
+                             TimePolicyType,
                              ConfigurationType,
-                             ModuleHandlerConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
                              SessionDataType,
                              SessionDataContainerType,
                              AddressType,
@@ -1029,53 +1052,56 @@ Stream_Module_Net_IOReader_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename AddressType,
-          typename ConnectionManagerType>
-bool
-Stream_Module_Net_IOReader_T<SessionMessageType,
-                             MessageType,
-                             ConfigurationType,
-                             ModuleHandlerConfigurationType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             AddressType,
-                             ConnectionManagerType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::initialize"));
-
-  configuration_ =
-    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
-
-  return true;
-}
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename AddressType,
-          typename ConnectionManagerType>
-const ModuleHandlerConfigurationType&
-Stream_Module_Net_IOReader_T<SessionMessageType,
-                             MessageType,
-                             ConfigurationType,
-                             ModuleHandlerConfigurationType,
-                             SessionDataType,
-                             SessionDataContainerType,
-                             AddressType,
-                             ConnectionManagerType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionDataType,          // session data
+//          typename SessionDataContainerType, // session message payload (reference counted)
+//          typename AddressType,
+//          typename ConnectionManagerType>
+//bool
+//Stream_Module_Net_IOReader_T<SessionMessageType,
+//                             MessageType,
+//                             ConfigurationType,
+//                             ModuleHandlerConfigurationType,
+//                             SessionDataType,
+//                             SessionDataContainerType,
+//                             AddressType,
+//                             ConnectionManagerType>::initialize (const ConfigurationType& configuration_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::initialize"));
+//
+//  configuration_ =
+//    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
+//
+//  return true;
+//}
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType,
+//          typename AddressType,
+//          typename ConnectionManagerType>
+//const ModuleHandlerConfigurationType&
+//Stream_Module_Net_IOReader_T<SessionMessageType,
+//                             MessageType,
+//                             ConfigurationType,
+//                             ModuleHandlerConfigurationType,
+//                             SessionDataType,
+//                             SessionDataContainerType,
+//                             AddressType,
+//                             ConnectionManagerType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOReader_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}

@@ -23,7 +23,7 @@
 #include "stream_macros.h"
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -33,14 +33,15 @@ template <typename LockType,
           typename StatisticContainerType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // (reference counted)
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 Stream_Module_Net_IO_Stream_T<LockType,
-                              TaskSynchType,
+                              SynchStrategyType,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -52,8 +53,9 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               AddressType,
                               ConnectionManagerType>::Stream_Module_Net_IO_Stream_T (const std::string& name_in)
  : inherited (name_in)
@@ -83,7 +85,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -93,14 +95,15 @@ template <typename LockType,
           typename StatisticContainerType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // (reference counted)
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 Stream_Module_Net_IO_Stream_T<LockType,
-                              TaskSynchType,
+                              SynchStrategyType,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -112,8 +115,9 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               AddressType,
                               ConnectionManagerType>::~Stream_Module_Net_IO_Stream_T ()
 {
@@ -123,7 +127,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -133,15 +137,16 @@ template <typename LockType,
           typename StatisticContainerType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // (reference counted)
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_IO_Stream_T<LockType,
-                              TaskSynchType,
+                              SynchStrategyType,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -153,8 +158,9 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               AddressType,
                               ConnectionManagerType>::ping ()
 {
@@ -162,11 +168,12 @@ Stream_Module_Net_IO_Stream_T<LockType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
+
   ACE_NOTREACHED (return;)
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -176,15 +183,16 @@ template <typename LockType,
           typename StatisticContainerType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // (reference counted)
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
 Stream_Module_Net_IO_Stream_T<LockType,
-                              TaskSynchType,
+                              SynchStrategyType,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -196,8 +204,9 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               AddressType,
                               ConnectionManagerType>::initialize (const ConfigurationType& configuration_in,
                                                                   bool setupPipeline_in,
@@ -337,7 +346,7 @@ error:
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -347,15 +356,16 @@ template <typename LockType,
           typename StatisticContainerType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // (reference counted)
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
 Stream_Module_Net_IO_Stream_T<LockType,
-                              TaskSynchType,
+                              SynchStrategyType,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -367,8 +377,9 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               AddressType,
                               ConnectionManagerType>::collect (StatisticContainerType& data_out)
 {
@@ -408,7 +419,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -418,15 +429,16 @@ template <typename LockType,
           typename StatisticContainerType,
           typename ModuleConfigurationType,
           typename HandlerConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // (reference counted)
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename AddressType,
           typename ConnectionManagerType>
 void
 Stream_Module_Net_IO_Stream_T<LockType,
-                              TaskSynchType,
+                              SynchStrategyType,
                               TimePolicyType,
                               ControlType,
                               NotificationType,
@@ -438,8 +450,9 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               HandlerConfigurationType,
                               SessionDataType,
                               SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               AddressType,
                               ConnectionManagerType>::report () const
 {

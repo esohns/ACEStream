@@ -565,20 +565,20 @@ do_work (unsigned int bufferSize_in,
   module_p = &file_writer;
   if (dataBase_in)
     module_p = &database_writer;
-  Test_I_IModuleHandler_t* module_handler_p =
-    dynamic_cast<Test_I_IModuleHandler_t*> (module_p->writer ());
-  if (!module_handler_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Test_I_IModuleHandler_t>(0x%@) failed, returning\n"),
-                module_p->name (),
-                module_p->writer ()));
+  //Test_I_IModuleHandler_t* module_handler_p =
+  //  dynamic_cast<Test_I_IModuleHandler_t*> (module_p->writer ());
+  //if (!module_handler_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: dynamic_cast<Test_I_IModuleHandler_t>(0x%@) failed, returning\n"),
+  //              module_p->name (),
+  //              module_p->writer ()));
 
-    // clean up
-    delete stream_p;
+  //  // clean up
+  //  delete stream_p;
 
-    return;
-  } // end IF
+  //  return;
+  //} // end IF
 
   Stream_AllocatorHeap_T<Test_I_AllocatorConfiguration> heap_allocator;
   Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
@@ -659,7 +659,7 @@ do_work (unsigned int bufferSize_in,
   configuration.streamConfiguration.statisticReportingInterval =
     statisticReportingInterval_in;
 
-  module_handler_p->initialize (configuration.moduleHandlerConfiguration);
+  //module_handler_p->initialize (configuration.moduleHandlerConfiguration);
 
   // step0b: initialize event dispatch
   struct Common_DispatchThreadData thread_data;

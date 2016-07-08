@@ -30,39 +30,51 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           ///////////////////////////////
-          typename ModuleHandlerConfigurationType,
-          ///////////////////////////////
-          typename SessionDataType>
+          typename SessionDataContainerType>
 class Stream_Module_Dump_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
   Stream_Module_Dump_T ();
   virtual ~Stream_Module_Dump_T ();
 
+  //virtual bool initialize (const ConfigurationType&);
+
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ModuleHandlerConfigurationType&);
-  virtual const ModuleHandlerConfigurationType& get () const;
-
- protected:
-  ModuleHandlerConfigurationType* configuration_;
+  //// implement Stream_IModuleHandler_T
+  //virtual const ModuleHandlerConfigurationType& get () const;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   //typedef Stream_Module_Dump_T<SessionMessageType,
   //                             MessageType,

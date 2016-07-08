@@ -175,7 +175,7 @@ Test_I_Stream_HTMLParser::~Test_I_Stream_HTMLParser ()
 
 void
 Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& message_inout,
-                                                       bool& passMessageDownstream_out)
+                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::handleSessionMessage"));
 

@@ -30,18 +30,23 @@
 
 #include "stream_vis_defines.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
-                                    MessageType,
+Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+                                    TimePolicyType,
                                     ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
                                     SessionDataType,
                                     SessionDataContainerType>::Stream_Vis_Target_MediaFoundation_T ()
  : inherited ()
- , configuration_ (NULL)
  , isInitialized_ (false)
  , device_ (NULL)
  , mediaSession_ (NULL)
@@ -53,14 +58,20 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
-                                    MessageType,
+Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+                                    TimePolicyType,
                                     ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
                                     SessionDataType,
                                     SessionDataContainerType>::~Stream_Vis_Target_MediaFoundation_T ()
 {
@@ -85,17 +96,23 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
     device_->Release ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
-                                    MessageType,
+Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+                                    TimePolicyType,
                                     ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
                                     SessionDataType,
-                                    SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
+                                    SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                                   bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::handleDataMessage"));
@@ -185,15 +202,21 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
   //sample_p->Release ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
-                                    MessageType,
+Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+                                    TimePolicyType,
                                     ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
                                     SessionDataType,
                                     SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                      bool& passMessageDownstream_out)
@@ -517,15 +540,21 @@ continue_:
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 bool
-Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
-                                    MessageType,
+Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+                                    TimePolicyType,
                                     ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
                                     SessionDataType,
                                     SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
 {
@@ -572,35 +601,41 @@ Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
 
   return true;
 }
-template <typename SessionMessageType,
-          typename MessageType,
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//const ConfigurationType&
+//Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
+//                                    MessageType,
+//                                    ConfigurationType,
+//                                    SessionDataType,
+//                                    SessionDataContainerType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}
+
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-const ConfigurationType&
-Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
-
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 bool
-Stream_Vis_Target_MediaFoundation_T<SessionMessageType,
-                                    MessageType,
+Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+                                    TimePolicyType,
                                     ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
                                     SessionDataType,
                                     SessionDataContainerType>::initialize_MediaFoundation (const HWND windowHandle_in,
                                                                                            const struct tagRECT& windowArea_in,
@@ -1082,31 +1117,42 @@ continue_3:
 
 //////////////////////////////////////////
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
-                                    MessageType,
+Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
+                                    TimePolicyType,
                                     ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
                                     SessionDataType,
                                     SessionDataContainerType>::Stream_Vis_Target_MediaFoundation_2 ()
  : inherited ()
- , configuration_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::Stream_Vis_Target_MediaFoundation_2"));
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
-                                    MessageType,
+Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
+                                    TimePolicyType,
                                     ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
                                     SessionDataType,
                                     SessionDataContainerType>::~Stream_Vis_Target_MediaFoundation_2 ()
 {
@@ -1114,17 +1160,23 @@ Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
-                                    MessageType,
+Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
+                                    TimePolicyType,
                                     ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
                                     SessionDataType,
-                                    SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
+                                    SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                                   bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::handleDataMessage"));
@@ -1214,15 +1266,21 @@ Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
   //sample_p->Release ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
-                                    MessageType,
+Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
+                                    TimePolicyType,
                                     ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
                                     SessionDataType,
                                     SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                      bool& passMessageDownstream_out)
@@ -1294,41 +1352,44 @@ Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-bool
-Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::initialize"));
-
-  return inherited::initialize (configuration_in);
-}
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-const ConfigurationType&
-Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
-                                    MessageType,
-                                    ConfigurationType,
-                                    SessionDataType,
-                                    SessionDataContainerType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//bool
+//Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
+//                                    MessageType,
+//                                    ConfigurationType,
+//                                    SessionDataType,
+//                                    SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::initialize"));
+//
+//  return inherited::initialize (configuration_in);
+//}
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataType,
+//          typename SessionDataContainerType>
+//const ConfigurationType&
+//Stream_Vis_Target_MediaFoundation_2<SessionMessageType,
+//                                    MessageType,
+//                                    ConfigurationType,
+//                                    SessionDataType,
+//                                    SessionDataContainerType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_2::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}
 
 //template <typename SessionMessageType,
 //          typename MessageType,

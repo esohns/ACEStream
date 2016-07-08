@@ -33,21 +33,32 @@
 
 #include "stream_task_base_asynch.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
-          ///////////////////////////////
-          typename ModuleHandlerConfigurationType,
-          ///////////////////////////////
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename SessionDataType>
 class Stream_Module_MySQLWriter_T
- : public Stream_TaskBaseAsynch_T<Common_TimePolicy_t,
-                                  SessionMessageType,
-                                  MessageType>
- , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
+ : public Stream_TaskBaseAsynch_T<SynchStrategyType,
+                                  TimePolicyType,
+                                  ////////
+                                  ConfigurationType,
+                                  ////////
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType>
+ //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
   Stream_Module_MySQLWriter_T ();
   virtual ~Stream_Module_MySQLWriter_T ();
+
+  virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase_T
   //virtual void handleDataMessage (MessageType*&, // data message handle
@@ -55,26 +66,31 @@ class Stream_Module_MySQLWriter_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ModuleHandlerConfigurationType&);
-  virtual const ModuleHandlerConfigurationType& get () const;
+  //// implement Stream_IModuleHandler_T
+  //virtual bool initialize (const ModuleHandlerConfigurationType&);
+  //virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
-  ModuleHandlerConfigurationType configuration_;
-  MYSQL*                         state_;
+  MYSQL* state_;
 
  private:
-  typedef Stream_TaskBaseAsynch_T<Common_TimePolicy_t,
-                                  SessionMessageType,
-                                  MessageType> inherited;
+  typedef Stream_TaskBaseAsynch_T<SynchStrategyType,
+                                  TimePolicyType,
+                                  ////////
+                                  ConfigurationType,
+                                  ////////
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLWriter_T (const Stream_Module_MySQLWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLWriter_T& operator= (const Stream_Module_MySQLWriter_T&))
 
-  bool                           isInitialized_;
-  bool                           manageLibrary_;
+  bool   isInitialized_;
+  bool   manageLibrary_;
 };
 
+// include template definition
 #include "stream_module_mysqlwriter.inl"
 
 #endif

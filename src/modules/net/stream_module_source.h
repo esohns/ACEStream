@@ -31,8 +31,9 @@
 
 template <typename LockType,
           ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
@@ -52,8 +53,9 @@ class Stream_Module_Net_Source_T
                                       ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
                                       SessionMessageType,
-                                      ProtocolMessageType,
                                       ////
                                       ConfigurationType,
                                       ////
@@ -81,8 +83,9 @@ class Stream_Module_Net_Source_T
   using Stream_HeadModuleTaskBase_T<LockType,
                                     ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
+                                    ControlMessageType,
+                                    DataMessageType,
                                     SessionMessageType,
-                                    ProtocolMessageType,
                                     ConfigurationType,
                                     StreamControlType,
                                     StreamNotificationType,
@@ -114,8 +117,9 @@ class Stream_Module_Net_Source_T
                                       ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
+                                      ControlMessageType,
+                                      DataMessageType,
                                       SessionMessageType,
-                                      ProtocolMessageType,
                                       ////
                                       ConfigurationType,
                                       ////

@@ -35,28 +35,39 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
-          ///////////////////////////////
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename ModuleHandlerConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename SessionIdType,
-          typename SessionDataType>
+          typename SessionDataContainerType>
 class Stream_Module_MessageHandler_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
  , public Common_ISubscribe_T<Common_INotify_T<SessionIdType,
-                                               typename SessionDataType::DATA_T,
-                                               MessageType,
+                                               typename SessionDataContainerType::DATA_T,
+                                               DataMessageType,
                                                SessionMessageType> >
  , public Common_IClone_T<Stream_Module_t>
 {
  public:
   typedef Common_INotify_T<SessionIdType,
-                           typename SessionDataType::DATA_T,
-                           MessageType,
+                           typename SessionDataContainerType::DATA_T,
+                           DataMessageType,
                            SessionMessageType> INOTIFY_T;
   typedef std::list<INOTIFY_T*> SUBSCRIBERS_T;
 
@@ -67,42 +78,51 @@ class Stream_Module_MessageHandler_T
                    ACE_SYNCH_RECURSIVE_MUTEX* = NULL); // subscribers lock
 
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ModuleHandlerConfigurationType&);
-  virtual const ModuleHandlerConfigurationType& get () const;
+  //// implement Stream_IModuleHandler_T
+  //virtual bool initialize (const ModuleHandlerConfigurationType&);
+  //virtual const ModuleHandlerConfigurationType& get () const;
 
   // implement Common_ISubscribe_T
   virtual void subscribe (INOTIFY_T*);   // new subscriber
   virtual void unsubscribe (INOTIFY_T*); // existing subscriber
 
  protected:
-  ModuleHandlerConfigurationType*   configuration_;
-
-  bool                              delete_;
+  bool                                       delete_;
   // *NOTE*: recursive so that callees may unsubscribe from within the
   //         notification callbacks...
-  ACE_SYNCH_RECURSIVE_MUTEX*        lock_;
-  SUBSCRIBERS_T*                    subscribers_;
+  ACE_SYNCH_RECURSIVE_MUTEX*                 lock_;
+  SUBSCRIBERS_T*                             subscribers_;
 
-  typename SessionDataType::DATA_T* sessionData_;
+  typename SessionDataContainerType::DATA_T* sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
-  typedef Stream_Module_MessageHandler_T<SessionIdType,
+  typedef Stream_Module_MessageHandler_T<SynchStrategyType,
+                                         TimePolicyType,
+
+                                         ConfigurationType,
+
+                                         ControlMessageType,
+                                         DataMessageType,
                                          SessionMessageType,
-                                         MessageType,
-                                         
+
                                          ModuleHandlerConfigurationType,
-                                         
-                                         SessionDataType> OWN_TYPE_T;
+
+                                         SessionIdType,
+                                         SessionDataContainerType> OWN_TYPE_T;
   typedef typename SUBSCRIBERS_T::iterator SUBSCRIBERS_ITERATOR_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MessageHandler_T (const Stream_Module_MessageHandler_T&))

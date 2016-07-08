@@ -36,21 +36,30 @@
 #include "stream_misc_directshow_asynch_source_filter.h"
 #include "stream_misc_directshow_source_filter.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
-          ///////////////////////////////
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename SessionDataType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 class Stream_Misc_DirectShow_Source_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ConfigurationType>
 {
   //typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
   //                                                      SessionMessageType,
@@ -74,25 +83,30 @@ class Stream_Misc_DirectShow_Source_T
   Stream_Misc_DirectShow_Source_T ();
   virtual ~Stream_Misc_DirectShow_Source_T ();
 
+  virtual bool initialize (const ConfigurationType&);
+
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
-  virtual const ConfigurationType& get () const;
+  //// implement Stream_IModuleHandler_T
+  //virtual const ConfigurationType& get () const;
 
  protected:
-  ConfigurationType*   configuration_;
   //struct _AMMediaType* mediaType_; // 'preferred' media type
   SessionDataType*     sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T (const Stream_Misc_DirectShow_Source_T&))

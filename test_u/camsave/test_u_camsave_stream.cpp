@@ -369,24 +369,15 @@ Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::load"));
 
-  // initialize return value(s)
-  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
-       iterator != modules_out.end ();
-       iterator++)
-    delete *iterator;
-  modules_out.clear ();
-
-  // remember the 'owned' ones
-  // *TODO*: clean this up
-  // *NOTE*: one problem is that all modules which have NOT enqueued onto the
-  //         stream (e.g. because initialize() failed...) need to be explicitly
+  // *NOTE*: one problem is that any module that was NOT enqueued onto the
+  //         stream (e.g. because initialize() failed) needs to be explicitly
   //         close()d
-  modules_out.push_front (&source_);
-  modules_out.push_front (&runtimeStatistic_);
-  modules_out.push_front (&display_);
-  //modules_out.push_front (&displayNull_);
-  modules_out.push_front (&encoder_);
-  modules_out.push_front (&fileWriter_);
+  modules_out.push_back (&fileWriter_);
+  modules_out.push_back (&encoder_);
+  //modules_out.push_back (&displayNull_);
+  modules_out.push_back (&display_);
+  modules_out.push_back (&runtimeStatistic_);
+  modules_out.push_back (&source_);
 
   return true;
 }
@@ -440,84 +431,84 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   session_data_r.targetFileName =
     configuration_in.moduleHandlerConfiguration->targetFileName;
 
-  // ---------------------------------------------------------------------------
-  // sanity check(s)
-  ACE_ASSERT (configuration_in.moduleConfiguration);
+  //// ---------------------------------------------------------------------------
+  //// sanity check(s)
+  //ACE_ASSERT (configuration_in.moduleConfiguration);
 
-  // ******************* File Writer ************************
-  fileWriter_.initialize (*configuration_in.moduleConfiguration);
-  Stream_CamSave_Module_FileWriter* fileWriter_impl_p =
-    dynamic_cast<Stream_CamSave_Module_FileWriter*> (fileWriter_.writer ());
-  if (!fileWriter_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_FileWriter> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                fileWriter_.name ()));
-    return false;
-  } // end IF
+  //// ******************* File Writer ************************
+  //fileWriter_.initialize (*configuration_in.moduleConfiguration);
+  //Stream_CamSave_Module_FileWriter* fileWriter_impl_p =
+  //  dynamic_cast<Stream_CamSave_Module_FileWriter*> (fileWriter_.writer ());
+  //if (!fileWriter_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_FileWriter> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              fileWriter_.name ()));
+  //  return false;
+  //} // end IF
 
-  // ******************* AVI Encoder ************************
-  encoder_.initialize (*configuration_in.moduleConfiguration);
-  Stream_CamSave_Module_AVIEncoder_WriterTask_t* encoder_impl_p =
-    dynamic_cast<Stream_CamSave_Module_AVIEncoder_WriterTask_t*> (encoder_.writer ());
-  if (!encoder_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_AVIEncoder_WriterTask_T> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!encoder_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                encoder_.name ()));
-    return false;
-  } // end IF
+  //// ******************* AVI Encoder ************************
+  //encoder_.initialize (*configuration_in.moduleConfiguration);
+  //Stream_CamSave_Module_AVIEncoder_WriterTask_t* encoder_impl_p =
+  //  dynamic_cast<Stream_CamSave_Module_AVIEncoder_WriterTask_t*> (encoder_.writer ());
+  //if (!encoder_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_AVIEncoder_WriterTask_T> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!encoder_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              encoder_.name ()));
+  //  return false;
+  //} // end IF
 
-  // ******************* Display ************************
-  display_.initialize (*configuration_in.moduleConfiguration);
-  Stream_CamSave_Module_Display* display_impl_p =
-    dynamic_cast<Stream_CamSave_Module_Display*> (display_.writer ());
-  if (!display_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_Display> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                display_.name ()));
-    return false;
-  } // end IF
+  //// ******************* Display ************************
+  //display_.initialize (*configuration_in.moduleConfiguration);
+  //Stream_CamSave_Module_Display* display_impl_p =
+  //  dynamic_cast<Stream_CamSave_Module_Display*> (display_.writer ());
+  //if (!display_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_Display> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              display_.name ()));
+  //  return false;
+  //} // end IF
 
   // ******************* Runtime Statistics ************************
-  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  Stream_CamSave_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-      dynamic_cast<Stream_CamSave_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_RuntimeStatistic> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-                                            true,                                        // push 1-second interval statistic messages downstream ?
-                                            configuration_in.printFinalReport,           // print final report ?
-                                            configuration_in.messageAllocator))          // message allocator handle
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                runtimeStatistic_.name ()));
-    return false;
-  } // end IF
+  //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
+  //Stream_CamSave_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  //    dynamic_cast<Stream_CamSave_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  //if (!runtimeStatistic_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Stream_CamSave_Module_RuntimeStatistic> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
+  //                                          true,                                        // push 1-second interval statistic messages downstream ?
+  //                                          configuration_in.printFinalReport,           // print final report ?
+  //                                          configuration_in.messageAllocator))          // message allocator handle
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              runtimeStatistic_.name ()));
+  //  return false;
+  //} // end IF
 
   // ******************* Camera Source ************************
   Stream_CamSave_Module_Source* source_impl_p =
@@ -674,10 +665,11 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
                   ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
       goto error;
     } // end IF
-    if (_DEBUG)
+#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("capture format: \"%s\"...\n"),
                   ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (configuration_in.moduleHandlerConfiguration->format).c_str ())));
+#endif
 
     // clean up
     //stream_config_p->Release ();

@@ -68,49 +68,69 @@ void TransformImage_NV12 (BYTE*,
                           DWORD,
                           DWORD);
 
-template <typename SessionMessageType,
-          typename MessageType,
-          ///////////////////////////////
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename SessionDataType,
           typename SessionDataContainerType>
 class Stream_Vis_Target_Direct3D_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
   Stream_Vis_Target_Direct3D_T ();
   virtual ~Stream_Vis_Target_Direct3D_T ();
 
+  virtual bool initialize (const ConfigurationType&);
+
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
-  virtual const ConfigurationType& get () const;
+  //// implement Stream_IModuleHandler_T
+  //virtual const ConfigurationType& get () const;
 
  protected:
-  ConfigurationType*                   configuration_;
   SessionDataType*                     sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T (const Stream_Vis_Target_Direct3D_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T& operator= (const Stream_Vis_Target_Direct3D_T&))
 
   // helper types
-  typedef Stream_Vis_Target_Direct3D_T<SessionMessageType,
-                                       MessageType,
+  typedef Stream_Vis_Target_Direct3D_T<SynchStrategyType,
+                                       TimePolicyType,
+                                       ///
                                        ConfigurationType,
+                                       ///
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
+                                       ///
                                        SessionDataType,
                                        SessionDataContainerType> OWN_TYPE_T;
   static STREAM_VIS_TARGET_DIRECT3D_CONVERSION_T formatConversions[];

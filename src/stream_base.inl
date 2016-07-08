@@ -27,7 +27,7 @@
 #include "stream_session_message_base.h"
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -39,10 +39,11 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -54,8 +55,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::Stream_Base_T (const std::string& name_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::Stream_Base_T (const std::string& name_in)
  : inherited (NULL, // argument to module open()
               NULL, // allocate head module
               NULL) // allocate tail module
@@ -66,7 +68,7 @@ Stream_Base_T<LockType,
  , sessionData_ (NULL)
  , state_ ()
  , upStream_ (NULL)
- ////////////////////////////////////////
+ /////////////////////////////////////////
  , hasFinal_ (false)
  , name_ (name_in)
 {
@@ -99,7 +101,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -111,10 +113,11 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -126,8 +129,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::~Stream_Base_T ()
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::~Stream_Base_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::~Stream_Base_T"));
 
@@ -155,7 +159,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -167,11 +171,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -183,8 +188,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::reset ()
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::reset ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::reset"));
 
@@ -204,7 +210,7 @@ Stream_Base_T<LockType,
   return result;
 }
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -216,11 +222,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -232,8 +239,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::setup (ACE_Notification_Strategy* notificationStrategy_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::setup (ACE_Notification_Strategy* notificationStrategy_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::setup"));
 
@@ -256,7 +264,7 @@ Stream_Base_T<LockType,
     return false;
   } // end IF
   // *TODO*: this really shouldn't be necessary
-  inherited::head ()->next (inherited::tail ());
+  //inherited::head ()->next (inherited::tail ());
 
   // step2: set notification strategy ?
   MODULE_T* module_p = NULL;
@@ -311,7 +319,7 @@ Stream_Base_T<LockType,
 }
 
 //template <typename LockType,
-//          typename TaskSynchType,
+//          typename SynchStrategyType,
 //          typename TimePolicyType,
 //          typename StatusType,
 //          typename StateType,
@@ -325,7 +333,7 @@ Stream_Base_T<LockType,
 //          typename ProtocolMessageType>
 //bool
 //Stream_Base_T<LockType,
-//              TaskSynchType,
+//              SynchStrategyType,
 //              TimePolicyType,
 //              StatusType,
 //              StateType,
@@ -373,7 +381,7 @@ Stream_Base_T<LockType,
 //}
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -385,11 +393,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -401,9 +410,10 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::initialize (bool setupPipeline_in,
-                                                bool resetSessionData_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::initialize (bool setupPipeline_in,
+                                               bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
@@ -551,7 +561,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -563,11 +573,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -579,8 +590,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::finalize ()
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::finalize ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::finalize"));
 
@@ -608,7 +620,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -620,11 +632,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -636,8 +649,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::start ()
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::start ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::start"));
 
@@ -684,7 +698,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -696,11 +710,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -712,9 +727,10 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::stop (bool waitForCompletion_in,
-                                          bool lockedAccess_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::stop (bool waitForCompletion_in,
+                                         bool lockedAccess_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::stop"));
 
@@ -809,7 +825,7 @@ wait:
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -821,11 +837,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -837,8 +854,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::isRunning () const
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::isRunning () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isRunning"));
 
@@ -877,7 +895,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -889,11 +907,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -905,9 +924,10 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::control (ControlType control_in,
-                                             bool forwardUpstream_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::control (ControlType control_in,
+                                            bool forwardUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::control"));
 
@@ -980,7 +1000,7 @@ Stream_Base_T<LockType,
   } // end IF
 }
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -992,11 +1012,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1008,9 +1029,10 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::notify (NotificationType notification_in,
-                                            bool forwardUpstream_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::notify (NotificationType notification_in,
+                                           bool forwardUpstream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::notify"));
 
@@ -1067,7 +1089,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1079,11 +1101,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1095,8 +1118,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::load (Stream_ModuleList_t& modules_out)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::load (Stream_ModuleList_t& modules_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::load"));
 
@@ -1109,7 +1133,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1121,11 +1145,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1137,9 +1162,10 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::flush (bool flushInbound_in,
-                                           bool flushUpStream_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::flush (bool flushInbound_in,
+                                          bool flushUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::flush"));
 
@@ -1272,7 +1298,7 @@ continue_:
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1284,11 +1310,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1300,8 +1327,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::pause ()
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::pause ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::pause"));
 
@@ -1341,7 +1369,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1353,11 +1381,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1369,8 +1398,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::rewind ()
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::rewind ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::rewind"));
 
@@ -1416,7 +1446,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1428,11 +1458,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 StatusType
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1444,8 +1475,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::status () const
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::status () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::status"));
 
@@ -1491,7 +1523,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1503,11 +1535,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1519,9 +1552,10 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::waitForCompletion (bool waitForThreads_in,
-                                                       bool waitForUpStream_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::waitForCompletion (bool waitForThreads_in,
+                                                      bool waitForUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::waitForCompletion"));
 
@@ -1688,7 +1722,7 @@ Stream_Base_T<LockType,
 }
 
 //template <typename LockType,
-//          typename TaskSynchType,
+//          typename SynchStrategyType,
 //          typename TimePolicyType,
 //          typename StatusType,
 //          typename StateType,
@@ -1702,7 +1736,7 @@ Stream_Base_T<LockType,
 //          typename ProtocolMessageType>
 //void
 //Stream_Base_T<LockType,
-//              TaskSynchType,
+//              SynchStrategyType,
 //              TimePolicyType,
 //              StatusType,
 //              StateType,
@@ -1876,7 +1910,7 @@ Stream_Base_T<LockType,
 //}
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1888,11 +1922,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 Stream_Module_t*
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1904,8 +1939,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::find (const std::string& name_in) const
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::find (const std::string& name_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
 
@@ -1936,7 +1972,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1948,11 +1984,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 std::string
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1964,8 +2001,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::name () const
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::name () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::name"));
 
@@ -1973,7 +2011,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1985,11 +2023,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 const StateType&
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2001,8 +2040,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::state () const
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::state"));
 
@@ -2010,7 +2050,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2022,11 +2062,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2038,8 +2079,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::upStream (Stream_Base_t* upStream_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::upStream (Stream_Base_t* upStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::upStream"));
 
@@ -2049,7 +2091,7 @@ Stream_Base_T<LockType,
   upStream_ = upStream_in;
 }
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2061,11 +2103,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 Stream_Base_t*
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2077,8 +2120,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::upStream () const
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::upStream () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::upStream"));
 
@@ -2086,7 +2130,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2098,11 +2142,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2114,8 +2159,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::dump_state () const
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::dump_state"));
 
@@ -2144,7 +2190,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2156,11 +2202,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 const SessionDataContainerType*
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2172,15 +2219,16 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::get () const
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::get"));
 
   return sessionData_;
 }
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2192,11 +2240,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2208,8 +2257,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::set (const SessionDataContainerType* sessionData_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::set (const SessionDataContainerType* sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::set"));
 
@@ -2221,7 +2271,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2233,11 +2283,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2249,10 +2300,11 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::initialize (const ConfigurationType& configuration_inout,
-                                                bool setupPipeline_in,
-                                                bool resetSessionData_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::initialize (const ConfigurationType& configuration_inout,
+                                               bool setupPipeline_in,
+                                               bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::initialize"));
 
@@ -2444,7 +2496,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2456,11 +2508,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2472,10 +2525,10 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-//              ProtocolMessageType>::get () const
-              ProtocolMessageType>::get (ACE_Message_Block*& messageBlock_inout,
-                                         ACE_Time_Value* timeout_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::get (ACE_Message_Block*& messageBlock_inout,
+                                        ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::get"));
 
@@ -2484,7 +2537,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2496,11 +2549,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2512,9 +2566,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-//              ProtocolMessageType>::get () const
-              ProtocolMessageType>::link (Stream_Base_t& upStream_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::link (Stream_Base_t& upStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
@@ -2528,7 +2582,7 @@ Stream_Base_T<LockType,
     upstream_name_string = istreamcontrol_p->name ();
 
   // sanity check(s)
-  ACE_Module<TaskSynchType, TimePolicyType>* upstream_tailing_module_p =
+  ACE_Module<SynchStrategyType, TimePolicyType>* upstream_tailing_module_p =
     upStream_in.head ();
   if (!upstream_tailing_module_p)
   {
@@ -2539,7 +2593,7 @@ Stream_Base_T<LockType,
   } // end IF
 
   // locate the module just above the upstreams' tail
-  ACE_Module<TaskSynchType, TimePolicyType>* upstream_tail_module_p =
+  ACE_Module<SynchStrategyType, TimePolicyType>* upstream_tail_module_p =
       upStream_in.tail ();
   if (!upstream_tail_module_p)
   {
@@ -2552,7 +2606,7 @@ Stream_Base_T<LockType,
     upstream_tailing_module_p = upstream_tailing_module_p->next ();
 
   //int result = inherited::link (upStream_in);
-  ACE_Module<TaskSynchType, TimePolicyType>* head_module_p =
+  ACE_Module<SynchStrategyType, TimePolicyType>* head_module_p =
       inherited::head ();
   if (!head_module_p)
   {
@@ -2561,7 +2615,7 @@ Stream_Base_T<LockType,
                 ACE_TEXT (name_.c_str ())));
     return -1;
   } // end IF
-  ACE_Module<TaskSynchType, TimePolicyType>* heading_module_p =
+  ACE_Module<SynchStrategyType, TimePolicyType>* heading_module_p =
       head_module_p->next ();
   if (!heading_module_p)
   {
@@ -2614,7 +2668,7 @@ done:
   return 0;
 }
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2626,11 +2680,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 int
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2642,9 +2697,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-//              ProtocolMessageType>::get () const
-              ProtocolMessageType>::unlink (void)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::unlink (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlink"));
 
@@ -2665,7 +2720,7 @@ Stream_Base_T<LockType,
                 ACE_TEXT (name_.c_str ())));
     return -1;
   } // end IF
-  ACE_Module<TaskSynchType, TimePolicyType>* upstream_tailing_module_p =
+  ACE_Module<SynchStrategyType, TimePolicyType>* upstream_tailing_module_p =
     upStream_->head ();
   if (!upstream_tailing_module_p)
   {
@@ -2676,8 +2731,8 @@ Stream_Base_T<LockType,
   } // end IF
 
   // locate the module just above the upstreams' tail
-  ACE_Module<TaskSynchType, TimePolicyType>* module_p = NULL;
-  ACE_Module<TaskSynchType, TimePolicyType>* head_module_p = inherited::head ();
+  ACE_Module<SynchStrategyType, TimePolicyType>* module_p = NULL;
+  ACE_Module<SynchStrategyType, TimePolicyType>* head_module_p = inherited::head ();
   if (!head_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2685,7 +2740,7 @@ Stream_Base_T<LockType,
                 ACE_TEXT (name_.c_str ())));
     return -1;
   } // end IF
-  ACE_Module<TaskSynchType, TimePolicyType>* heading_module_p =
+  ACE_Module<SynchStrategyType, TimePolicyType>* heading_module_p =
       head_module_p->next ();
   if (!heading_module_p)
   {
@@ -2716,7 +2771,7 @@ Stream_Base_T<LockType,
 
   //int result = inherited::link (upStream_in);
   heading_module_p->reader ()->next (head_module_p->reader ());
-  ACE_Module<TaskSynchType, TimePolicyType>* upstream_tail_module_p =
+  ACE_Module<SynchStrategyType, TimePolicyType>* upstream_tail_module_p =
       upStream_->tail ();
   if (!upstream_tail_module_p)
   {
@@ -2738,7 +2793,7 @@ Stream_Base_T<LockType,
   return 0;
 }
 
-//template <typename TaskSynchType,
+//template <typename SynchStrategyType,
 //          typename TimePolicyType,
 //          typename StateType,
 //          typename ConfigurationType,
@@ -2750,7 +2805,7 @@ Stream_Base_T<LockType,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType>
 //int
-//Stream_Base_T<TaskSynchType,
+//Stream_Base_T<SynchStrategyType,
 //              TimePolicyType,
 //              StateType,
 //              ConfigurationType,
@@ -2819,7 +2874,7 @@ Stream_Base_T<LockType,
 //}
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2831,11 +2886,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2847,8 +2903,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::remove (MODULE_T* module_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::remove (MODULE_T* module_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::remove"));
 
@@ -2910,7 +2967,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2922,11 +2979,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2938,8 +2996,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::isInitialized () const
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::isInitialized () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::isInitialized"));
 
@@ -2947,7 +3006,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2959,11 +3018,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2975,8 +3035,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::finished (bool finishUpStream_in)
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::finished (bool finishUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::finished"));
 
@@ -3049,7 +3110,7 @@ _continue:
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3061,11 +3122,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3077,8 +3139,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::shutdown ()
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::shutdown ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::shutdown"));
 
@@ -3167,7 +3230,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3179,11 +3242,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3195,8 +3259,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::deactivateModules ()
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::deactivateModules ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::deactivateModules"));
 
@@ -3267,7 +3332,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3279,11 +3344,12 @@ template <typename LockType,
           typename HandlerConfigurationType,
           typename SessionDataType,
           typename SessionDataContainerType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              TaskSynchType,
+              SynchStrategyType,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3295,8 +3361,9 @@ Stream_Base_T<LockType,
               HandlerConfigurationType,
               SessionDataType,
               SessionDataContainerType,
-              SessionMessageType,
-              ProtocolMessageType>::unlinkModules ()
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::unlinkModules ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlinkModules"));
 

@@ -41,10 +41,11 @@ class Stream_IAllocator;
 
 template <typename LockType,
           ////////////////////////////////
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
@@ -58,11 +59,13 @@ template <typename LockType,
           typename StatisticContainerType>
 class Stream_HeadModuleTaskBase_T
  : public Stream_StateMachine_Control_T<LockType>
- , public Stream_TaskBase_T<TaskSynchType,
+ , public Stream_TaskBase_T<SynchStrategyType,
                             TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType>
- , public Stream_IModuleHandler_T<ConfigurationType>
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType>
+ //, public Stream_IModuleHandler_T<ConfigurationType>
  , public Stream_IStreamControl_T<StreamControlType,
                                   StreamNotificationType,
                                   Stream_StateMachine_ControlState,
@@ -129,16 +132,18 @@ class Stream_HeadModuleTaskBase_T
                                bool = true);     // generate session messages ?
 
   // convenient types
-  typedef Stream_TaskBase_T<TaskSynchType,
+  typedef Stream_TaskBase_T<SynchStrategyType,
                             TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType> TASK_BASE_T;
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType> TASK_BASE_T;
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
 
   using TASK_BASE_T::shutdown;
 
   // helper methods
-  ProtocolMessageType* allocateMessage (unsigned int); // (requested) size
+  DataMessageType* allocateMessage (unsigned int); // (requested) size
   // *TODO*: clean this API
   // convenience methods to send (session-specific) notifications downstream
   // *WARNING*: - handle with care -
@@ -173,18 +178,21 @@ class Stream_HeadModuleTaskBase_T
 
  private:
   typedef Stream_StateMachine_Control_T<LockType> inherited;
-  typedef Stream_TaskBase_T<TaskSynchType,
+  typedef Stream_TaskBase_T<SynchStrategyType,
                             TimePolicyType,
-                            SessionMessageType,
-                            ProtocolMessageType> inherited2;
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType> inherited2;
 
   // convenient types
   typedef Stream_HeadModuleTaskBase_T<LockType,
                                       ////
-                                      TaskSynchType,
+                                      SynchStrategyType,
                                       TimePolicyType,
+                                      ControlMessageType,
+                                      DataMessageType,
                                       SessionMessageType,
-                                      ProtocolMessageType,
                                       ////
                                       ConfigurationType,
                                       ////

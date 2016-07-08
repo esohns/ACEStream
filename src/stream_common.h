@@ -323,25 +323,36 @@ struct Stream_ModuleHandlerConfiguration
    : active (false)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
    , hasHeader (false)
+   , messageAllocator (NULL)
    , passive (true)
+   , reportingInterval (0)
+   , statisticCollectionInterval (ACE_Time_Value::zero)
    , stateMachineLock (NULL)
+   //, socketConfiguration (NULL)
    , streamConfiguration (NULL)
    , traceParsing (STREAM_DEFAULT_YACC_TRACE)
    , traceScanning (STREAM_DEFAULT_LEX_TRACE)
   {};
 
-  bool                  active; // *NOTE*: head module(s)
+  bool                     active; // *NOTE*: head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
-  bool                  crunchMessages;
-  bool                  hasHeader;
-  bool                  passive; // *NOTE*: head module(s)
+  bool                     crunchMessages;
+  bool                     hasHeader;
+  Stream_IAllocator*       messageAllocator;
+  bool                     passive; // *NOTE*: network/device/... module(s)
 
-  ACE_SYNCH_MUTEX*      stateMachineLock;
+  unsigned int             reportingInterval; // (statistic) reporting interval (second(s)) [0: off]
+  ACE_Time_Value           statisticCollectionInterval;
 
-  Stream_Configuration* streamConfiguration;
-  bool                  traceParsing;  // debug yacc (bison) ?
-  bool                  traceScanning; // debug (f)lex ?
+  ACE_SYNCH_MUTEX*         stateMachineLock;
+
+  //Net_SocketConfiguration* socketConfiguration;
+  // *TODO*: remove this ASAP
+  Stream_Configuration*    streamConfiguration;
+
+  bool                     traceParsing;  // debug yacc (bison) ?
+  bool                     traceScanning; // debug (f)lex ?
 };
 
 typedef Stream_SessionData_T<Stream_SessionData> Stream_SessionData_t;

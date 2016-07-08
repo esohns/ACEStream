@@ -41,25 +41,35 @@
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_IAllocator;
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
+          ////////////////////////////////
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,                                                      // session data
+          typename SessionDataType,
           typename SessionDataContainerType> class Stream_Module_Statistic_WriterTask_T; // session message payload (reference counted)
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
+          ////////////////////////////////
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_Module_Statistic_ReaderTask_T
- : public ACE_Thru_Task<TaskSynchType,
+ : public ACE_Thru_Task<SynchStrategyType,
                         TimePolicyType>
 {
  public:
@@ -70,42 +80,59 @@ class Stream_Module_Statistic_ReaderTask_T
                    ACE_Time_Value* = NULL); // time
 
  private:
-  typedef ACE_Thru_Task<TaskSynchType,
+  typedef ACE_Thru_Task<SynchStrategyType,
                         TimePolicyType> inherited;
-  typedef Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+  typedef Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                                TimePolicyType,
+
+                                               ConfigurationType,
+
+                                               ControlMessageType,
+                                               DataMessageType,
                                                SessionMessageType,
-                                               ProtocolMessageType,
+
                                                ProtocolCommandType,
                                                StatisticContainerType,
                                                SessionDataType,
                                                SessionDataContainerType> WRITER_TASK_T;
-  typedef ProtocolMessageType MESSAGE_T;
+  typedef DataMessageType MESSAGE_T;
   typedef ProtocolCommandType COMMAND_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_ReaderTask_T (const Stream_Module_Statistic_ReaderTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_ReaderTask_T& operator= (const Stream_Module_Statistic_ReaderTask_T&))
 };
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
+          ////////////////////////////////
           typename ProtocolCommandType,
           typename StatisticContainerType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_Module_Statistic_WriterTask_T
- : public Stream_TaskBaseSynch_T<TimePolicyType,
-                                 SessionMessageType,
-                                 ProtocolMessageType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType, 
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
  , public Common_ICounter
  , public Common_IStatistic_T<StatisticContainerType>
 {
- friend class Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
+ friend class Stream_Module_Statistic_ReaderTask_T<SynchStrategyType,
                                                    TimePolicyType,
+                                                   ConfigurationType,
+                                                   ControlMessageType,
+                                                   DataMessageType,
                                                    SessionMessageType,
-                                                   ProtocolMessageType,
                                                    ProtocolCommandType,
                                                    StatisticContainerType,
                                                    SessionDataType,
@@ -116,14 +143,16 @@ class Stream_Module_Statistic_WriterTask_T
   virtual ~Stream_Module_Statistic_WriterTask_T ();
 
   // initialization
-  bool initialize (const ACE_Time_Value&,      // reporting interval (second(s)) [ACE_Time_Value::zero: off]
-                   bool = false,               // push 1-second interval statistic messages downstream ?
-                   bool = false,               // print final report ?
-                   Stream_IAllocator* = NULL); // report cache usage ? [NULL: off]
+  virtual bool initialize (const ConfigurationType&);
+  //bool initialize (const ACE_Time_Value&,      // reporting interval (second(s)) [ACE_Time_Value::zero: off]
+  //                 bool = false,               // push 1-second interval statistic messages downstream ?
+  //                 bool = false,               // print final report ?
+  //                 Stream_IAllocator* = NULL); // report cache usage ? [NULL: off]
 
   // implement (part of) Stream_ITaskBase
-  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-                                  bool&);                // return value: pass message downstream ?
+  virtual void handleControlMessage (ControlMessageType&); // control message handle
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -135,19 +164,34 @@ class Stream_Module_Statistic_WriterTask_T
   // *NOTE*: this also implements locally triggered reporting
   virtual void report () const;
 
+ protected:
+  // *NOTE*: protects statistic and sessionData_
+  mutable ACE_SYNCH_MUTEX    lock_;
+  SessionDataContainerType*  sessionData_;
+
  private:
-  typedef Stream_TaskBaseSynch_T<TimePolicyType,
-                                 SessionMessageType,
-                                 ProtocolMessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType, 
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   // convenient types
-  typedef Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+  typedef Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                                TimePolicyType,
+
+                                               ConfigurationType,
+
+                                               ControlMessageType,
+                                               DataMessageType,
                                                SessionMessageType,
-                                               ProtocolMessageType,
+
                                                ProtocolCommandType,
                                                StatisticContainerType,
-                                               SessionDataType,
+                                               SessionDataType,          // session data
                                                SessionDataContainerType> OWN_TYPE_T;
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> REPORTING_HANDLER_T;
 
@@ -180,9 +224,6 @@ class Stream_Module_Statistic_WriterTask_T
   bool                       pushStatisticMessages_; // 1-second interval
 
   // *DATA STATISTIC*
-  // *NOTE*: protects statistic and sessionData_
-  mutable ACE_SYNCH_MUTEX    lock_;
-
   // *NOTE*: data messages == (messageCounter_ - sessionMessages_)
   unsigned int               inboundMessages_;
   unsigned int               outboundMessages_;
@@ -204,8 +245,6 @@ class Stream_Module_Statistic_WriterTask_T
 
   // *CACHE STATISTIC*
   Stream_IAllocator*         allocator_;
-
-  SessionDataContainerType*  sessionData_;
 };
 
 // include template implementation

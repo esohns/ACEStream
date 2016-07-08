@@ -32,22 +32,27 @@
 //#include "stream_misc_common.h"
 #include "stream_misc_defines.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
-Stream_Misc_DirectShow_Source_T<SessionMessageType,
-                                MessageType,
+Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+                                TimePolicyType,
                                 ConfigurationType,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
                                 SessionDataType,
                                 FilterConfigurationType,
                                 PinConfigurationType,
                                 MediaType>::Stream_Misc_DirectShow_Source_T ()
  : inherited ()
- , configuration_ (NULL)
  //, mediaType_  (NULL)
  , sessionData_ (NULL)
  , isInitialized_ (false)
@@ -63,16 +68,22 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
-Stream_Misc_DirectShow_Source_T<SessionMessageType,
-                                MessageType,
+Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+                                TimePolicyType,
                                 ConfigurationType,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
                                 SessionDataType,
                                 FilterConfigurationType,
                                 PinConfigurationType,
@@ -133,17 +144,23 @@ continue_:
     IGraphBuilder_->Release ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 bool
-Stream_Misc_DirectShow_Source_T<SessionMessageType,
-                                MessageType,
+Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+                                TimePolicyType,
                                 ConfigurationType,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
                                 SessionDataType,
                                 FilterConfigurationType,
                                 PinConfigurationType,
@@ -261,49 +278,55 @@ continue_:
   configuration_->filterConfiguration->pinConfiguration->queue =
     &(inherited::queue_);
 
-  isInitialized_ = true;
+  isInitialized_ = inherited::initialize (configuration_in);
 
-  return true;
+  return isInitialized_;
 }
-template <typename SessionMessageType,
-          typename MessageType,
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataType,
+//          typename FilterConfigurationType,
+//          typename PinConfigurationType,
+//          typename MediaType>
+//const ConfigurationType&
+//Stream_Misc_DirectShow_Source_T<SessionMessageType,
+//                                MessageType,
+//                                ConfigurationType,
+//                                SessionDataType,
+//                                FilterConfigurationType,
+//                                PinConfigurationType,
+//                                MediaType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}
+
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
-          typename FilterConfigurationType,
-          typename PinConfigurationType,
-          typename MediaType>
-const ConfigurationType&
-Stream_Misc_DirectShow_Source_T<SessionMessageType,
-                                MessageType,
-                                ConfigurationType,
-                                SessionDataType,
-                                FilterConfigurationType,
-                                PinConfigurationType,
-                                MediaType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
-
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 void
-Stream_Misc_DirectShow_Source_T<SessionMessageType,
-                                MessageType,
+Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+                                TimePolicyType,
                                 ConfigurationType,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
                                 SessionDataType,
                                 FilterConfigurationType,
                                 PinConfigurationType,
-                                MediaType>::handleDataMessage (MessageType*& message_inout,
+                                MediaType>::handleDataMessage (DataMessageType*& message_inout,
                                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_DirectShow_Source_T::handleDataMessage"));
@@ -393,17 +416,23 @@ Stream_Misc_DirectShow_Source_T<SessionMessageType,
   ////} while (remaining);
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 void
-Stream_Misc_DirectShow_Source_T<SessionMessageType,
-                                MessageType,
+Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+                                TimePolicyType,
                                 ConfigurationType,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
                                 SessionDataType,
                                 FilterConfigurationType,
                                 PinConfigurationType,
@@ -702,17 +731,23 @@ continue_:
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 bool
-Stream_Misc_DirectShow_Source_T<SessionMessageType,
-                                MessageType,
+Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+                                TimePolicyType,
                                 ConfigurationType,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
                                 SessionDataType,
                                 FilterConfigurationType,
                                 PinConfigurationType,
@@ -985,17 +1020,23 @@ continue_:
 
   return true;
 }
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
 void
-Stream_Misc_DirectShow_Source_T<SessionMessageType,
-                                MessageType,
+Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+                                TimePolicyType,
                                 ConfigurationType,
+                                ControlMessageType,
+                                DataMessageType,
+                                SessionMessageType,
                                 SessionDataType,
                                 FilterConfigurationType,
                                 PinConfigurationType,

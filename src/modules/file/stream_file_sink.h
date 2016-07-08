@@ -32,47 +32,59 @@
 
 #define STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE "output.tmp"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           ////////////////////////////////
-          typename ModuleHandlerConfigurationType,
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataType>
 class Stream_Module_FileWriter_T
- : public Stream_TaskBaseAsynch_T<Common_TimePolicy_t,
-                                  SessionMessageType,
-                                  MessageType>
- , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
+ : public Stream_TaskBaseAsynch_T<SynchStrategyType,
+                                  TimePolicyType,
+                                  ////////
+                                  ConfigurationType,
+                                  ////////
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType>
+ //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
   Stream_Module_FileWriter_T ();
   virtual ~Stream_Module_FileWriter_T ();
 
+  virtual bool initialize (const ConfigurationType&);
+
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ModuleHandlerConfigurationType&);
-  virtual const ModuleHandlerConfigurationType& get () const;
-
- protected:
-  ModuleHandlerConfigurationType* configuration_;
+  //// implement Stream_IModuleHandler_T
+  //virtual const ModuleHandlerConfigurationType& get () const;
 
  private:
-  typedef Stream_TaskBaseAsynch_T<Common_TimePolicy_t,
-                                  SessionMessageType,
-                                  MessageType> inherited;
+  typedef Stream_TaskBaseAsynch_T<SynchStrategyType,
+                                  TimePolicyType,
+                                  ////////
+                                  ConfigurationType,
+                                  ////////
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T (const Stream_Module_FileWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_FileWriter_T& operator= (const Stream_Module_FileWriter_T&))
 
-  ACE_FILE_Addr                   fileName_;
-  bool                            isOpen_;
-  int                             previousError_; // print (significant) errors message once only
-  ACE_FILE_IO                     stream_;
+  ACE_FILE_Addr fileName_;
+  bool          isOpen_;
+  int           previousError_; // print (significant) errors message once only
+  ACE_FILE_IO   stream_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,8 +93,10 @@ template <typename LockType,
           ////////////////////////////////
           typename TaskSynchType,
           typename TimePolicyType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           ////////////////////////////////
           typename ConfigurationType,
           ////////////////////////////////
@@ -99,8 +113,9 @@ class Stream_Module_FileWriterH_T
                                       ////
                                       TaskSynchType,
                                       TimePolicyType,
+                                      ControlMessageType,
+                                      DataMessageType,
                                       SessionMessageType,
-                                      ProtocolMessageType,
                                       ////
                                       ConfigurationType,
                                       ////
@@ -124,8 +139,9 @@ class Stream_Module_FileWriterH_T
   using Stream_HeadModuleTaskBase_T<LockType,
                                     TaskSynchType,
                                     TimePolicyType,
+                                    ControlMessageType,
+                                    DataMessageType,
                                     SessionMessageType,
-                                    ProtocolMessageType,
                                     ConfigurationType,
                                     StreamControlType,
                                     StreamNotificationType,
@@ -139,8 +155,8 @@ class Stream_Module_FileWriterH_T
   virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-                                  bool&);                // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -154,8 +170,9 @@ class Stream_Module_FileWriterH_T
                                       ////
                                       TaskSynchType,
                                       TimePolicyType,
+                                      ControlMessageType,
+                                      DataMessageType,
                                       SessionMessageType,
-                                      ProtocolMessageType,
                                       ////
                                       ConfigurationType,
                                       ////

@@ -182,7 +182,9 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , fileName ()
    , inbound (false)
    , passive (false)
+   , printFinalReport (true)
    , printProgressDot (false)
+   , pushStatisticMessages (true)
    , socketConfiguration (NULL)
 //   , socketHandlerConfiguration (NULL)
    , targetFileName ()
@@ -194,7 +196,9 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   std::string                            fileName; // file reader module
   bool                                   inbound; // TCP IO module
   bool                                   passive;
-  bool                                   printProgressDot;
+  bool                                   printFinalReport;
+  bool                                   printProgressDot; // file writer module
+  bool                                   pushStatisticMessages;
   Net_SocketConfiguration*               socketConfiguration;
 //  Test_I_SocketHandlerConfiguration*     socketHandlerConfiguration;
   std::string                            targetFileName; // file writer module

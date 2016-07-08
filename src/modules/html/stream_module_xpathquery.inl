@@ -27,28 +27,43 @@
 
 #include "stream_macros.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
           typename SessionDataType>
-Stream_Module_XPathQuery_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
+Stream_Module_XPathQuery_T<SynchStrategyType,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionDataContainerType,
                            SessionDataType>::Stream_Module_XPathQuery_T ()
  : inherited ()
- , configuration_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::Stream_Module_XPathQuery_T"));
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
           typename SessionDataType>
-Stream_Module_XPathQuery_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
+Stream_Module_XPathQuery_T<SynchStrategyType,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionDataContainerType,
                            SessionDataType>::~Stream_Module_XPathQuery_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::~Stream_Module_XPathQuery_T"));
@@ -73,16 +88,24 @@ Stream_Module_XPathQuery_T<SessionMessageType,
 //  ACE_UNUSED_ARG (message_inout);
 //}
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
           typename SessionDataType>
 void
-Stream_Module_XPathQuery_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                   bool& passMessageDownstream_out)
+Stream_Module_XPathQuery_T<SynchStrategyType,
+                                       TimePolicyType,
+                                       ConfigurationType,
+                                       ControlMessageType,
+                                       DataMessageType,
+                                       SessionMessageType,
+                                       SessionDataContainerType,
+                                       SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                               bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::handleSessionMessage"));
 
@@ -185,33 +208,37 @@ Stream_Module_XPathQuery_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
-const ModuleHandlerConfigurationType&
-Stream_Module_XPathQuery_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::get"));
-
-  return configuration_;
-}
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
-bool
-Stream_Module_XPathQuery_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::initialize"));
-
-  configuration_ = configuration_in;
-
-  return true;
-}
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionDataType>
+//const ModuleHandlerConfigurationType&
+//Stream_Module_XPathQuery_T<SessionMessageType,
+//                           MessageType,
+//                           ModuleHandlerConfigurationType,
+//                           SessionDataType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::get"));
+//
+//  return configuration_;
+//}
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataContainerType,
+//          typename SessionDataType>
+//bool
+//Stream_Module_XPathQuery_T<SessionMessageType,
+//                           MessageType,
+//                           ModuleHandlerConfigurationType,
+//                           SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::initialize"));
+//
+//  configuration_ = configuration_in;
+//
+//  return true;
+//}

@@ -36,11 +36,15 @@
 #include "test_i_session_message.h"
 
 class Test_I_Stream_Module_HTMLWriter
- : public Stream_Module_HTMLWriter_T<Test_I_Stream_SessionMessage,
-                                     Test_I_Stream_Message,
-                                     ////
+ : public Stream_Module_HTMLWriter_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
-                                     ////
+                                     /////
+                                     ACE_Message_Block,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
+                                     /////
                                      Test_I_Stream_SessionData>
 {
  public:
@@ -52,11 +56,15 @@ class Test_I_Stream_Module_HTMLWriter
                                      bool&);                         // return value: pass message downstream ?
 
  private:
-  typedef Stream_Module_HTMLWriter_T<Test_I_Stream_SessionMessage,
-                                     Test_I_Stream_Message,
-                                     ////
+  typedef Stream_Module_HTMLWriter_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
-                                     ////
+                                     /////
+                                     ACE_Message_Block,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
+                                     /////
                                      Test_I_Stream_SessionData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_HTMLWriter (const Test_I_Stream_Module_HTMLWriter&))

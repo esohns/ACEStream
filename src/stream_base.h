@@ -43,7 +43,7 @@ class Stream_IAllocator;
 
 template <typename LockType,
           ////////////////////////////////
-          typename TaskSynchType,
+          typename SynchStrategyType,
           typename TimePolicyType,
           ////////////////////////////////
           typename ControlType,
@@ -60,10 +60,12 @@ template <typename LockType,
           ////////////////////////////////
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // (reference counted)
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 class Stream_Base_T
- : public ACE_Stream<TaskSynchType,
+ : public ACE_Stream<SynchStrategyType,
                      TimePolicyType>
  , public Stream_IStreamControl_T<ControlType,
                                   NotificationType,
@@ -76,15 +78,15 @@ class Stream_Base_T
 {
  public:
   // convenient types
-  typedef ACE_Module<TaskSynchType,
+  typedef ACE_Module<SynchStrategyType,
                      TimePolicyType> MODULE_T;
-  typedef Stream_IModule_T<TaskSynchType,
+  typedef Stream_IModule_T<SynchStrategyType,
                            TimePolicyType,
                            ModuleConfigurationType,
                            HandlerConfigurationType> IMODULE_T;
-  typedef ACE_Stream<TaskSynchType,
+  typedef ACE_Stream<SynchStrategyType,
                      TimePolicyType> STREAM_T;
-  typedef ACE_Stream_Iterator<TaskSynchType,
+  typedef ACE_Stream_Iterator<SynchStrategyType,
                               TimePolicyType> ITERATOR_T;
   typedef Stream_IStreamControl_T<ControlType,
                                   NotificationType,
@@ -94,7 +96,7 @@ class Stream_Base_T
   typedef StateType STATE_T;
   typedef SessionDataContainerType SESSION_DATA_CONTAINER_T;
   typedef SessionDataType SESSION_DATA_T;
-  typedef ProtocolMessageType PROTOCOL_DATA_T;
+  typedef DataMessageType MESSAGE_T;
 
 //  using STREAM_T::get;
 
@@ -196,9 +198,9 @@ class Stream_Base_T
 
  protected:
   // convenient types
-  typedef ACE_Task<TaskSynchType,
+  typedef ACE_Task<SynchStrategyType,
                    TimePolicyType> TASK_T;
-  typedef ACE_Message_Queue<TaskSynchType,
+  typedef ACE_Message_Queue<SynchStrategyType,
                             TimePolicyType> QUEUE_T;
   typedef Common_IInitialize_T<HandlerConfigurationType> MODULEHANDLER_IINITIALIZE_T;
   typedef Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
@@ -237,13 +239,13 @@ class Stream_Base_T
   STREAM_T*                 upStream_;
 
  private:
-  typedef ACE_Stream<TaskSynchType,
+  typedef ACE_Stream<SynchStrategyType,
                      TimePolicyType> inherited;
 
   // convenient types
   typedef Stream_Base_T<LockType,
                         //////////////////
-                        TaskSynchType,
+                        SynchStrategyType,
                         TimePolicyType,
                         //////////////////
                         ControlType,
@@ -260,10 +262,13 @@ class Stream_Base_T
                         //////////////////
                         SessionDataType,
                         SessionDataContainerType,
-                        SessionMessageType,
-                        ProtocolMessageType> OWN_TYPE_T;
-  typedef Stream_ITask_T<SessionMessageType,
-                         ProtocolMessageType> ITASK_T;
+                        //////////////////
+                        ControlMessageType,
+                        DataMessageType,
+                        SessionMessageType> OWN_TYPE_T;
+  typedef Stream_ITask_T<ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType> ITASK_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&))

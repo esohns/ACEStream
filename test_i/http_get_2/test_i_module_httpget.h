@@ -36,10 +36,14 @@
 #include "test_i_session_message.h"
 
 class Test_I_Stream_HTTPGet
- : public Stream_Module_Net_Source_HTTP_Get_T<Test_I_Stream_ModuleHandlerConfiguration,
+ : public Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
+                                              Common_TimePolicy_t,
  
-                                              Test_I_Stream_SessionMessage,
-                                              Test_I_Stream_Message>
+                                              Test_I_Stream_ModuleHandlerConfiguration,
+ 
+                                              ACE_Message_Block,
+                                              Test_I_Stream_Message,
+                                              Test_I_Stream_SessionMessage>
 {
  public:
   Test_I_Stream_HTTPGet ();
@@ -52,10 +56,14 @@ class Test_I_Stream_HTTPGet
                                      bool&);                         // return value: pass message downstream ?
 
  private:
-  typedef Stream_Module_Net_Source_HTTP_Get_T<Test_I_Stream_ModuleHandlerConfiguration,
-
-                                              Test_I_Stream_SessionMessage,
-                                              Test_I_Stream_Message> inherited;
+  typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
+                                              Common_TimePolicy_t,
+ 
+                                              Test_I_Stream_ModuleHandlerConfiguration,
+ 
+                                              ACE_Message_Block,
+                                              Test_I_Stream_Message,
+                                              Test_I_Stream_SessionMessage> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTTPGet (const Test_I_Stream_HTTPGet&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTTPGet& operator= (const Test_I_Stream_HTTPGet&))

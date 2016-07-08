@@ -58,8 +58,10 @@ class Stream_RIFFDecoder_Stream
                         //////////////////
                         Stream_RIFFDecoder_SessionData,   // session data
                         Stream_RIFFDecoder_SessionData_t, // session data container (reference counted)
-                        Stream_RIFFDecoder_SessionMessage,
-                        Stream_RIFFDecoder_Message>
+                        //////////////////
+                        ACE_Message_Block,
+                        Stream_RIFFDecoder_Message,
+                        Stream_RIFFDecoder_SessionMessage>
 {
  public:
   Stream_RIFFDecoder_Stream ();
@@ -95,8 +97,10 @@ class Stream_RIFFDecoder_Stream
                         //////////////////
                         Stream_RIFFDecoder_SessionData,   // session data
                         Stream_RIFFDecoder_SessionData_t, // session data container (reference counted)
-                        Stream_RIFFDecoder_SessionMessage,
-                        Stream_RIFFDecoder_Message> inherited;
+                        //////////////////
+                        ACE_Message_Block,
+                        Stream_RIFFDecoder_Message,
+                        Stream_RIFFDecoder_SessionMessage> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_RIFFDecoder_Stream (const Stream_RIFFDecoder_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Stream_RIFFDecoder_Stream& operator= (const Stream_RIFFDecoder_Stream&))

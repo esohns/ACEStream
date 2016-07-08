@@ -63,7 +63,7 @@ class Stream_Module_Base_T
   // implement (part of) Stream_IModule_T
   virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&);
-  virtual const HandlerConfigurationType& get ();
+  virtual const HandlerConfigurationType& getHandlerConfiguration () const;
   virtual bool isFinal () const;
   virtual void reset ();
 
@@ -83,13 +83,13 @@ class Stream_Module_Base_T
                      TimePolicyType> inherited;
 
   // convenient types
-  typedef ACE_Module<TaskSynchType,
-                     TimePolicyType> MODULE_T;
-  typedef Stream_IModuleHandler_T<HandlerConfigurationType> IMODULEHANDLER_T;
+  //typedef ACE_Module<TaskSynchType,
+  //                   TimePolicyType> MODULE_T;
+  //typedef Stream_IModuleHandler_T<HandlerConfigurationType> IMODULE_HANDLER_T;
+  typedef Common_IGet_T<HandlerConfigurationType> IGET_T;
 
   // implement (part of) Stream_IModule
-  virtual ACE_Module<TaskSynchType,
-                     TimePolicyType>* clone ();
+  virtual inherited* clone ();
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T (const Stream_Module_Base_T&))

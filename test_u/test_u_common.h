@@ -87,14 +87,18 @@ struct Stream_Test_U_ModuleHandlerConfiguration
    , contextID (0)
    //, queue (NULL)
    , fileName ()
+   , printFinalReport (true)
    , printProgressDot (false)
+   , pushStatisticMessages (true)
    //, targetFileName ()
   {};
 
   guint                   contextID; // display module
   //ACE_Message_Queue_Base* queue; // head module
   std::string             fileName; // file writer module
+  bool                    printFinalReport;
   bool                    printProgressDot; // file writer module
+  bool                    pushStatisticMessages;
   //std::string             targetFileName;
 };
 

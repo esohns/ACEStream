@@ -33,40 +33,52 @@
 
 #include "stream_misc_mediafoundation_target.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
-          ///////////////////////////////
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename SessionDataType,
           typename SessionDataContainerType>
 class Stream_Vis_Target_MediaFoundation_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
   Stream_Vis_Target_MediaFoundation_T ();
   virtual ~Stream_Vis_Target_MediaFoundation_T ();
 
+  virtual bool initialize (const ConfigurationType&);
+
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
-  virtual const ConfigurationType& get () const;
-
- protected:
-  ConfigurationType*       configuration_;
+  //// implement Stream_IModuleHandler_T
+  //virtual const ConfigurationType& get () const;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T (const Stream_Vis_Target_MediaFoundation_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T& operator= (const Stream_Vis_Target_MediaFoundation_T&))
@@ -91,17 +103,24 @@ class Stream_Vis_Target_MediaFoundation_T
 
 //////////////////////////////////////////
 
-template <typename SessionMessageType,
-          typename MessageType,
-          ///////////////////////////////
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
           typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename SessionDataType,
           typename SessionDataContainerType>
 class Stream_Vis_Target_MediaFoundation_2
- : public Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
-                                               MessageType,
+ : public Stream_Misc_MediaFoundation_Target_T<SynchStrategyType,
+                                               TimePolicyType,
                                                ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
                                                SessionDataType,
                                                SessionDataContainerType>
 {
@@ -109,15 +128,16 @@ class Stream_Vis_Target_MediaFoundation_2
   Stream_Vis_Target_MediaFoundation_2 ();
   virtual ~Stream_Vis_Target_MediaFoundation_2 ();
 
+  //virtual bool initialize (const ConfigurationType&);
+
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
-  virtual const ConfigurationType& get () const;
+  //// implement Stream_IModuleHandler_T
+  //virtual const ConfigurationType& get () const;
 
   //// override (part of) IMFSampleGrabberSinkCallback2
   //STDMETHODIMP OnProcessSampleEx (const struct _GUID&, // major media type
@@ -128,13 +148,13 @@ class Stream_Vis_Target_MediaFoundation_2
   //                                DWORD,               // buffer size
   //                                IMFAttributes*);     // media sample attributes
 
- protected:
-  ConfigurationType* configuration_;
-
  private:
-  typedef Stream_Misc_MediaFoundation_Target_T<SessionMessageType,
-                                               MessageType,
+  typedef Stream_Misc_MediaFoundation_Target_T<SynchStrategyType,
+                                               TimePolicyType,
                                                ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
                                                SessionDataType,
                                                SessionDataContainerType> inherited;
 

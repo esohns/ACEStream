@@ -82,47 +82,61 @@ struct Stream_Module_HTMLParser_SAXParserContextBase
   htmlParserCtxtPtr parserContext;
 };
 
-template <typename SessionMessageType,
-          typename MessageType,
-          ///////////////////////////////
-          typename ModuleHandlerConfigurationType,
-          ///////////////////////////////
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename SessionDataType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ParserContextType>
 class Stream_Module_HTMLParser_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
   Stream_Module_HTMLParser_T ();
   virtual ~Stream_Module_HTMLParser_T ();
 
+  virtual bool initialize (const ConfigurationType&);
+
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  // implement Stream_IModuleHandler_T
-  virtual const ModuleHandlerConfigurationType& get () const;
-  virtual bool initialize (const ModuleHandlerConfigurationType&);
+  //// implement Stream_IModuleHandler_T
+  //virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
   virtual bool initializeSAXParser ();
 
-  bool                            complete_;
-  ModuleHandlerConfigurationType* configuration_;
-  ParserContextType               parserContext_;
-  SessionDataType*                sessionData_;
-  htmlSAXHandler                  SAXHandler_;
+  bool                          complete_;
+  ParserContextType             parserContext_;
+  SessionDataType*              sessionData_;
+  htmlSAXHandler                SAXHandler_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T (const Stream_Module_HTMLParser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T& operator= (const Stream_Module_HTMLParser_T&))
@@ -130,8 +144,8 @@ class Stream_Module_HTMLParser_T
   // helper methods
   bool resetParser ();
 
-  bool                            initialized_;
-  Stream_Module_HTMLParser_Mode   mode_;
+  bool                          initialized_;
+  Stream_Module_HTMLParser_Mode mode_;
 };
 
 #include "stream_module_htmlparser.inl"

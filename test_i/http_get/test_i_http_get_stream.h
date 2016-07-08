@@ -64,8 +64,10 @@ class Test_I_HTTPGet_Stream_T
                         //////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        Test_I_Stream_SessionMessage,
-                        Test_I_Stream_Message>
+                        //////////////////
+                        ACE_Message_Block,
+                        Test_I_Stream_Message,
+                        Test_I_Stream_SessionMessage>
 {
  public:
   Test_I_HTTPGet_Stream_T ();
@@ -104,12 +106,15 @@ class Test_I_HTTPGet_Stream_T
                         //////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        Test_I_Stream_SessionMessage,
-                        Test_I_Stream_Message> inherited;
+                        //////////////////
+                        ACE_Message_Block,
+                        Test_I_Stream_Message,
+                        Test_I_Stream_SessionMessage> inherited;
   typedef Stream_Module_Net_Source_T<ACE_SYNCH_MUTEX,
                                      /////
-                                     Test_I_Stream_SessionMessage,
+                                     ACE_Message_Block,
                                      Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
                                      /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
                                      /////

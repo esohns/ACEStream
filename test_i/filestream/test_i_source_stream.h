@@ -63,8 +63,10 @@ class Test_I_Source_Stream_T
                         //////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        Test_I_Stream_SessionMessage,
-                        Test_I_Stream_Message>
+                        //////////////////
+                        Stream_ControlType,
+                        Test_I_Stream_Message,
+                        Test_I_Stream_SessionMessage>
 {
  public:
   Test_I_Source_Stream_T (const std::string&); // name
@@ -103,16 +105,20 @@ class Test_I_Source_Stream_T
                         //////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        Test_I_Stream_SessionMessage,
-                        Test_I_Stream_Message> inherited;
-  typedef Stream_Module_Net_Target_T<Test_I_Stream_SessionMessage,
-                                     Test_I_Stream_Message,
+                        //////////////////
+                        Stream_ControlType,
+                        Test_I_Stream_Message,
+                        Test_I_Stream_SessionMessage> inherited;
+  typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
                                      /////
                                      Test_I_Source_ModuleHandlerConfiguration,
                                      /////
-                                     Test_I_Stream_SessionData,
-                                     Test_I_Stream_SessionData_t,
+                                     int,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
                                      /////
+                                     Test_I_Stream_SessionData_t,
                                      Test_I_Source_InetConnectionManager_t,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                             // task synch type

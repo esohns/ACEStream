@@ -63,8 +63,9 @@
 //                                           Stream_CamSave_StatisticData> Stream_CamSave_Module_Source;
 typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_MUTEX,
 
-                                                Stream_CamSave_SessionMessage,
+                                                ACE_Message_Block,
                                                 Stream_CamSave_Message,
+                                                Stream_CamSave_SessionMessage,
 
                                                 Stream_CamSave_ModuleHandlerConfiguration,
 
@@ -101,16 +102,26 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Stream_CamSave_SessionMessage,
+
+                                             Stream_CamSave_ModuleHandlerConfiguration,
+
+                                             ACE_Message_Block,
                                              Stream_CamSave_Message,
+                                             Stream_CamSave_SessionMessage,
+
                                              Stream_CommandType_t,
                                              Stream_CamSave_StatisticData,
                                              Stream_CamSave_SessionData,
                                              Stream_CamSave_SessionData_t> Stream_CamSave_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Stream_CamSave_SessionMessage,
+
+                                             Stream_CamSave_ModuleHandlerConfiguration,
+
+                                             ACE_Message_Block,
                                              Stream_CamSave_Message,
+                                             Stream_CamSave_SessionMessage,
+
                                              Stream_CommandType_t,
                                              Stream_CamSave_StatisticData,
                                              Stream_CamSave_SessionData,
@@ -128,11 +139,15 @@ typedef Stream_Decoder_AVIEncoder_ReaderTask_T<ACE_MT_SYNCH,
 
                                                Stream_CamSave_SessionData_t,
                                                Stream_CamSave_SessionData> Stream_CamSave_Module_AVIEncoder_ReaderTask_t;
-typedef Stream_Decoder_AVIEncoder_WriterTask_T<Stream_CamSave_SessionMessage,
-                                               Stream_CamSave_Message,
-                                              
+typedef Stream_Decoder_AVIEncoder_WriterTask_T<ACE_MT_SYNCH,
+                                               Common_TimePolicy_t,
+
                                                Stream_CamSave_ModuleHandlerConfiguration,
-                                   
+
+                                               ACE_Message_Block,
+                                               Stream_CamSave_Message,
+                                               Stream_CamSave_SessionMessage,
+
                                                Stream_CamSave_SessionData_t,
                                                Stream_CamSave_SessionData> Stream_CamSave_Module_AVIEncoder_WriterTask_t;
 DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                  // task synch type
@@ -158,10 +173,14 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                  // task
 //                                            
 //                                            Stream_CamSave_SessionData,
 //                                            Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
-typedef Stream_Vis_Target_MediaFoundation_2<Stream_CamSave_SessionMessage,
-                                            Stream_CamSave_Message,
+typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
+                                            Common_TimePolicy_t,
 
                                             Stream_CamSave_ModuleHandlerConfiguration,
+
+                                            ACE_Message_Block,
+                                            Stream_CamSave_Message,
+                                            Stream_CamSave_SessionMessage,
 
                                             Stream_CamSave_SessionData,
                                             Stream_CamSave_SessionData_t> Stream_CamSave_Module_DisplayNull;
@@ -173,11 +192,15 @@ typedef Stream_Vis_Target_MediaFoundation_2<Stream_CamSave_SessionMessage,
 //                                     Stream_CamSave_SessionData,
 //                                     Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
 #endif
-typedef Stream_Module_Vis_GTK_Cairo_T<Stream_CamSave_SessionMessage,
-                                      Stream_CamSave_Message,
-                                      ////
+typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+
                                       Stream_CamSave_ModuleHandlerConfiguration,
-                                      ////
+
+                                      ACE_Message_Block,
+                                      Stream_CamSave_Message,
+                                      Stream_CamSave_SessionMessage,
+
                                       Stream_CamSave_SessionData,
                                       Stream_CamSave_SessionData_t> Stream_CamSave_Module_Display;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task synch type
@@ -193,11 +216,15 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task
                               Stream_CamSave_Module_DisplayNull);        // writer type
 #endif
 
-typedef Stream_Module_FileWriter_T<Stream_CamSave_SessionMessage,
-                                   Stream_CamSave_Message,
-                                   ///////
+typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+
                                    Stream_CamSave_ModuleHandlerConfiguration,
-                                   ///////
+
+                                   ACE_Message_Block,
+                                   Stream_CamSave_Message,
+                                   Stream_CamSave_SessionMessage,
+
                                    Stream_CamSave_SessionData> Stream_CamSave_Module_FileWriter;
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task synch type
                               Common_TimePolicy_t,                       // time policy

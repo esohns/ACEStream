@@ -33,29 +33,40 @@
 #include "http_defines.h"
 #include "http_tools.h"
 
-template <typename ConfigurationType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
-Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
-                                    SessionMessageType,
-                                    ProtocolMessageType>::Stream_Module_Net_Source_HTTP_Get_T ()
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType>::Stream_Module_Net_Source_HTTP_Get_T ()
  : inherited ()
- , configuration_ (NULL)
  , responseParsed_ (false)
  , responseReceived_ (false)
  , sessionData_ (NULL)
- , initialized_ (false)
+ , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::Stream_Module_Net_Source_HTTP_Get_T"));
 
 }
 
-template <typename ConfigurationType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
-Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
-                                    SessionMessageType,
-                                    ProtocolMessageType>::~Stream_Module_Net_Source_HTTP_Get_T ()
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType>::~Stream_Module_Net_Source_HTTP_Get_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::~Stream_Module_Net_Source_HTTP_Get_T"));
 
@@ -63,19 +74,25 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
     sessionData_->decrease ();
 }
 
-template <typename ConfigurationType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
-Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
-                                    SessionMessageType,
-                                    ProtocolMessageType>::initialize (const ConfigurationType& configuration_in)
+Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::initialize"));
 
-  if (initialized_)
+  if (isInitialized_)
   {
-    initialized_ = false;
+    isInitialized_ = false;
 
     if (sessionData_)
     {
@@ -84,23 +101,29 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
     } // end IF
   } // end IF
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  // *TODO*: validate URI
-  initialized_ = true;
   responseParsed_ = false;
   responseReceived_ = false;
 
-  return true;
+  // *TODO*: validate URI
+  isInitialized_ = inherited::initialize (configuration_in);
+
+  return isInitialized_;
 }
 
-template <typename ConfigurationType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
-Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
-                                    SessionMessageType,
-                                    ProtocolMessageType>::handleDataMessage (ProtocolMessageType*& message_inout,
-                                                                             bool& passMessageDownstream_out)
+Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                            bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::handleDataMessage"));
 
@@ -126,9 +149,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   //         here
   if (message_inout->isInitialized ())
   {
-    const typename ProtocolMessageType::DATA_T& data_container_r =
+    const typename DataMessageType::DATA_T& data_container_r =
         message_inout->get ();
-    const typename ProtocolMessageType::DATA_T::DATA_T& data_r =
+    const typename DataMessageType::DATA_T::DATA_T& data_r =
         data_container_r.get ();
     record_p = data_r.HTTPRecord;
   } // end IF
@@ -236,14 +259,20 @@ continue_:
   } // end IF
 }
 
-template <typename ConfigurationType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 void
-Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
-                                    SessionMessageType,
-                                    ProtocolMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                                bool& passMessageDownstream_out)
+Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                               bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::handleSessionMessage"));
 
@@ -294,18 +323,24 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   } // end SWITCH
 }
 
-template <typename ConfigurationType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
-ProtocolMessageType*
-Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
-                                    SessionMessageType,
-                                    ProtocolMessageType>::allocateMessage (unsigned int requestedSize_in)
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+DataMessageType*
+Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType>::allocateMessage (unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::allocateMessage"));
 
   // initialize return value(s)
-  ProtocolMessageType* message_out = NULL;
+  DataMessageType* message_out = NULL;
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
@@ -313,14 +348,11 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
 
   if (configuration_->streamConfiguration->messageAllocator)
   {
-    try
-    {
+    try {
       // *TODO*: remove type inference
       message_out =
-        static_cast<ProtocolMessageType*> (configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
-    }
-    catch (...)
-    {
+        static_cast<DataMessageType*> (configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
                   requestedSize_in));
@@ -330,7 +362,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   else
   {
     ACE_NEW_NORETURN (message_out,
-                      ProtocolMessageType (requestedSize_in));
+                      DataMessageType (requestedSize_in));
   } // end ELSE
   if (!message_out)
   {
@@ -342,15 +374,21 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   return message_out;
 }
 
-template <typename ConfigurationType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
-ProtocolMessageType*
-Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
-                                    SessionMessageType,
-                                    ProtocolMessageType>::makeRequest (const std::string& URI_in,
-                                                                       const HTTP_Headers_t& headers_in,
-                                                                       const HTTP_Form_t& form_in)
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+DataMessageType*
+Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType>::makeRequest (const std::string& URI_in,
+                                                                      const HTTP_Headers_t& headers_in,
+                                                                      const HTTP_Form_t& form_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::makeRequest"));
 
@@ -359,9 +397,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   ACE_ASSERT (configuration_->socketHandlerConfiguration);
 
   // step1: allocate message
-  typename ProtocolMessageType::DATA_T::DATA_T* message_data_p = NULL;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
   ACE_NEW_NORETURN (message_data_p,
-                    typename ProtocolMessageType::DATA_T::DATA_T ());
+                    typename DataMessageType::DATA_T::DATA_T ());
   if (!message_data_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -381,9 +419,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
     return NULL;
   } // end IF
   // *IMPORTANT NOTE*: fire-and-forget API (message_data_p)
-  typename ProtocolMessageType::DATA_T* message_data_container_p = NULL;
+  typename DataMessageType::DATA_T* message_data_container_p = NULL;
   ACE_NEW_NORETURN (message_data_container_p,
-                    typename ProtocolMessageType::DATA_T (message_data_p,
+                    typename DataMessageType::DATA_T (message_data_p,
                                                           true));
   if (!message_data_container_p)
   {
@@ -392,7 +430,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
     return NULL;
   } // end IF
   // *TODO*: remove type inference
-  ProtocolMessageType* message_out =
+  DataMessageType* message_out =
     allocateMessage (configuration_->socketHandlerConfiguration->PDUSize);
   if (!message_out)
   {
@@ -406,10 +444,10 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
                            NULL);
 
   // step2: populate HTTP GET request
-  const typename ProtocolMessageType::DATA_T& message_data_container_r =
+  const typename DataMessageType::DATA_T& message_data_container_r =
       message_out->get ();
-  typename ProtocolMessageType::DATA_T::DATA_T& message_data_r =
-      const_cast<typename ProtocolMessageType::DATA_T::DATA_T&> (message_data_container_r.get ());
+  typename DataMessageType::DATA_T::DATA_T& message_data_r =
+      const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.get ());
   message_data_r.HTTPRecord->form = form_in;
   message_data_r.HTTPRecord->headers = headers_in;
   message_data_r.HTTPRecord->method =
@@ -421,15 +459,21 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   return message_out;
 }
 
-template <typename ConfigurationType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 bool
-Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
-                                    SessionMessageType,
-                                    ProtocolMessageType>::sendRequest (const std::string& URI_in,
-                                                                       const HTTP_Headers_t& headers_in,
-                                                                       const HTTP_Form_t& form_in)
+Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType>::sendRequest (const std::string& URI_in,
+                                                                      const HTTP_Headers_t& headers_in,
+                                                                      const HTTP_Form_t& form_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::sendRequest"));
 
@@ -439,9 +483,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   ACE_ASSERT (inherited::mod_);
 
   // *TODO*: estimate a reasonable buffer size
-  ProtocolMessageType* message_p = makeRequest (URI_in,
-                                                headers_in,
-                                                form_in);
+  DataMessageType* message_p = makeRequest (URI_in,
+                                            headers_in,
+                                            form_in);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -471,13 +515,19 @@ Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
   return true;
 }
 
-template <typename ConfigurationType,
-          typename SessionMessageType,
-          typename ProtocolMessageType>
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
 HTTP_Record*
-Stream_Module_Net_Source_HTTP_Get_T<ConfigurationType,
-                                    SessionMessageType,
-                                    ProtocolMessageType>::parseResponse (ProtocolMessageType& message_in)
+Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+                                    TimePolicyType,
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType>::parseResponse (DataMessageType& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::parseResponse"));
 

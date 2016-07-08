@@ -59,12 +59,17 @@ class Stream_Filecopy_Stream
                         //////////////////
                         Stream_Filecopy_SessionData,   // session data
                         Stream_Filecopy_SessionData_t, // session data container (reference counted)
-                        Stream_Filecopy_SessionMessage,
-                        Stream_Filecopy_Message>
+                        //////////////////
+                        ACE_Message_Block,
+                        Stream_Filecopy_Message,
+                        Stream_Filecopy_SessionMessage>
 {
  public:
   Stream_Filecopy_Stream ();
   virtual ~Stream_Filecopy_Stream ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&); // return value: module list
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Stream_Filecopy_StreamConfiguration&, // configuration
@@ -96,8 +101,10 @@ class Stream_Filecopy_Stream
                         //////////////////
                         Stream_Filecopy_SessionData,   // session data
                         Stream_Filecopy_SessionData_t, // session data container (reference counted)
-                        Stream_Filecopy_SessionMessage,
-                        Stream_Filecopy_Message> inherited;
+                        //////////////////
+                        ACE_Message_Block,
+                        Stream_Filecopy_Message,
+                        Stream_Filecopy_SessionMessage> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Stream (const Stream_Filecopy_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Stream& operator= (const Stream_Filecopy_Stream&))

@@ -29,8 +29,9 @@
 #include "stream_session_message_base.h"
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -39,8 +40,9 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Module_FileReader_T<LockType,
+                           ControlMessageType,
+                           DataMessageType,
                            SessionMessageType,
-                           ProtocolMessageType,
                            ConfigurationType,
                            StreamControlType,
                            StreamNotificationType,
@@ -60,8 +62,9 @@ Stream_Module_FileReader_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -70,8 +73,9 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Module_FileReader_T<LockType,
+                           ControlMessageType,
+                           DataMessageType,
                            SessionMessageType,
-                           ProtocolMessageType,
                            ConfigurationType,
                            StreamControlType,
                            StreamNotificationType,
@@ -94,8 +98,9 @@ Stream_Module_FileReader_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -105,8 +110,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Module_FileReader_T<LockType,
+                           ControlMessageType,
+                           DataMessageType,
                            SessionMessageType,
-                           ProtocolMessageType,
                            ConfigurationType,
                            StreamControlType,
                            StreamNotificationType,
@@ -145,7 +151,7 @@ Stream_Module_FileReader_T<LockType,
 }
 
 //template <typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -153,7 +159,7 @@ Stream_Module_FileReader_T<LockType,
 //          typename StatisticContainerType>
 //void
 //Stream_Module_FileReader_T<SessionMessageType,
-//                           ProtocolMessageType,
+//                           DataMessageType,
 //                           ConfigurationType,
 //                           StreamStateType,
 //                           SessionDataType,
@@ -231,8 +237,9 @@ Stream_Module_FileReader_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -242,8 +249,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Module_FileReader_T<LockType,
+                           ControlMessageType,
+                           DataMessageType,
                            SessionMessageType,
-                           ProtocolMessageType,
                            ConfigurationType,
                            StreamControlType,
                            StreamNotificationType,
@@ -279,7 +287,7 @@ Stream_Module_FileReader_T<LockType,
 
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -288,7 +296,7 @@ Stream_Module_FileReader_T<LockType,
 //void
 //Stream_Module_FileReader_T<LockType,
 //                           SessionMessageType,
-//                           ProtocolMessageType,
+//                           DataMessageType,
 //                           ConfigurationType,
 //                           StreamStateType,
 //                           SessionDataType,
@@ -303,8 +311,9 @@ Stream_Module_FileReader_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -314,11 +323,12 @@ template <typename LockType,
           typename StatisticContainerType>
 int
 Stream_Module_FileReader_T<LockType,
+                           ControlMessageType,
+                           DataMessageType,
                            SessionMessageType,
-                           ProtocolMessageType,
                            ConfigurationType,
-StreamControlType,
-StreamNotificationType,
+                           StreamControlType,
+                           StreamNotificationType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
@@ -335,7 +345,7 @@ StreamNotificationType,
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   int message_type = -1;
-  ProtocolMessageType* message_p = NULL;
+  DataMessageType* message_p = NULL;
   bool finished = false;
   bool stop_processing = false;
 
@@ -578,7 +588,7 @@ continue_:
 //
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -587,7 +597,7 @@ continue_:
 //bool
 //Stream_Module_FileReader_T<LockType,
 //                           SessionMessageType,
-//                           ProtocolMessageType,
+//                           DataMessageType,
 //                           ConfigurationType,
 //                           StreamStateType,
 //                           SessionDataType,

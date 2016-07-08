@@ -161,55 +161,55 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
                   configuration_in.module->name ()));
       return false;
     } // end IF
-    if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
+    //if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
+    //              configuration_in.module->name ()));
+    //  return false;
+    //} // end IF
   } // end IF
 
   // ---------------------------------------------------------------------------
 
   // ******************* File Writer ************************
-  fileWriter_.initialize (*configuration_in.moduleConfiguration);
-  Test_I_Module_FileWriter* fileWriter_impl_p =
-    dynamic_cast<Test_I_Module_FileWriter*> (fileWriter_.writer ());
-  if (!fileWriter_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Module_FileWriter> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                fileWriter_.name ()));
-    return false;
-  } // end IF
+  //fileWriter_.initialize (*configuration_in.moduleConfiguration);
+  //Test_I_Module_FileWriter* fileWriter_impl_p =
+  //  dynamic_cast<Test_I_Module_FileWriter*> (fileWriter_.writer ());
+  //if (!fileWriter_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Module_FileWriter> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              fileWriter_.name ()));
+  //  return false;
+  //} // end IF
 
   // ******************* Runtime Statistics ************************
-  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  Test_I_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-      dynamic_cast<Test_I_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Module_RuntimeStatistic> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval
-                                            true,                                        // push statistic messages
-                                            configuration_in.printFinalReport,           // print final report ?
-                                            configuration_in.messageAllocator))          // message allocator handle
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                runtimeStatistic_.name ()));
-    return false;
-  } // end IF
+  //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
+  //Test_I_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  //    dynamic_cast<Test_I_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  //if (!runtimeStatistic_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Test_I_Module_RuntimeStatistic> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval
+  //                                          true,                                        // push statistic messages
+  //                                          configuration_in.printFinalReport,           // print final report ?
+  //                                          configuration_in.messageAllocator))          // message allocator handle
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              runtimeStatistic_.name ()));
+  //  return false;
+  //} // end IF
 
   // ******************* Net IO ***********************
   netIO_.initialize (*configuration_in.moduleConfiguration);

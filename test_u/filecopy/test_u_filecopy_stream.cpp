@@ -73,6 +73,48 @@ Stream_Filecopy_Stream::~Stream_Filecopy_Stream ()
 }
 
 bool
+Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::load"));
+
+  // initialize return value(s)
+  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
+       iterator != modules_out.end ();
+       iterator++)
+    delete *iterator;
+  modules_out.clear ();
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  // *TODO*: remove type inference
+  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
+
+  Stream_Module_t* module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Stream_Filecopy_Module_FileWriter_Module (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+                                                            NULL,
+                                                            false),
+                  false);
+  modules_out.push_front (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Stream_Filecopy_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
+                                                                  NULL,
+                                                                  false),
+                  false);
+  modules_out.push_front (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Stream_Filecopy_Module_FileReader_Module (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
+                                                            NULL,
+                                                            false),
+                  false);
+  modules_out.push_front (module_p);
+
+  return true;
+}
+
+bool
 Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& configuration_in,
                                     bool setupPipeline_in,
                                     bool resetSessionData_in)
@@ -196,46 +238,46 @@ Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& c
   // ---------------------------------------------------------------------------
 
   // ******************* File Writer ************************
-  fileWriter_.initialize (*configuration_in.moduleConfiguration);
-  Stream_Filecopy_Module_FileWriter* fileWriter_impl_p =
-    dynamic_cast<Stream_Filecopy_Module_FileWriter*> (fileWriter_.writer ());
-  if (!fileWriter_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_FileWriter> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                fileWriter_.name ()));
-    return false;
-  } // end IF
+  //fileWriter_.initialize (*configuration_in.moduleConfiguration);
+  //Stream_Filecopy_Module_FileWriter* fileWriter_impl_p =
+  //  dynamic_cast<Stream_Filecopy_Module_FileWriter*> (fileWriter_.writer ());
+  //if (!fileWriter_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_FileWriter> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              fileWriter_.name ()));
+  //  return false;
+  //} // end IF
 
   // ******************* Runtime Statistic ************************
-  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  Stream_Filecopy_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-      dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_RuntimeStatistic> failed, aborting\n")));
-    return false;
-  } // end IF
-  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-                                            true,                                        // push statistic messages downstream ?
-                                            configuration_in.printFinalReport,           // print final report ?
-                                            configuration_in.messageAllocator))          // message allocator handle
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                runtimeStatistic_.name ()));
-    return false;
-  } // end IF
+  //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
+  //Stream_Filecopy_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+  //    dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  //if (!runtimeStatistic_impl_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_RuntimeStatistic> failed, aborting\n")));
+  //  return false;
+  //} // end IF
+  //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
+  //                                          true,                                        // push statistic messages downstream ?
+  //                                          configuration_in.printFinalReport,           // print final report ?
+  //                                          configuration_in.messageAllocator))          // message allocator handle
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              runtimeStatistic_.name ()));
+  //  return false;
+  //} // end IF
 
   // ******************* File Reader ************************
-  fileReader_.initialize (*configuration_in.moduleConfiguration);
+  //fileReader_.initialize (*configuration_in.moduleConfiguration);
   Stream_Filecopy_Module_FileReader* fileReader_impl_p =
     dynamic_cast<Stream_Filecopy_Module_FileReader*> (fileReader_.writer ());
   if (!fileReader_impl_p)
@@ -289,12 +331,12 @@ Stream_Filecopy_Stream::collect (Stream_Statistic& data_out)
 
   int result = -1;
 
-  Stream_Filecopy_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
+  Stream_Filecopy_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
     dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl)
+  if (!runtimeStatistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_T> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -314,14 +356,11 @@ Stream_Filecopy_Stream::collect (Stream_Statistic& data_out)
 
   session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
 
-  // delegate to the statistics module...
+  // delegate to the statistic module
   bool result_2 = false;
-  try
-  {
-    result_2 = runtimeStatistic_impl->collect (data_out);
-  }
-  catch (...)
-  {
+  try {
+    result_2 = runtimeStatistic_impl_p->collect (data_out);
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
   }
@@ -357,7 +396,7 @@ Stream_Filecopy_Stream::report () const
 //     return;
 //   } // end IF
 //
-//   // delegate to this module...
+//   // delegate to this module
 //   return (runtimeStatistic_impl->report ());
 
   ACE_ASSERT (false);

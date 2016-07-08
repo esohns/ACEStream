@@ -30,8 +30,9 @@
 #include "stream_session_message_base.h"
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -40,18 +41,19 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Module_MySQLReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::Stream_Module_MySQLReader_T (LockType* lock_in,
-                                                                                 bool autoStart_in,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::Stream_Module_MySQLReader_T (LockType* lock_in,
+                                                                                  bool autoStart_in,
 
-                                                                                 bool manageLibrary_in)
+                                                                                  bool manageLibrary_in)
  : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
               true)         // generate sesssion messages ?
@@ -75,8 +77,9 @@ Stream_Module_MySQLReader_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -85,15 +88,16 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Module_MySQLReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::~Stream_Module_MySQLReader_T ()
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::~Stream_Module_MySQLReader_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::~Stream_Module_MySQLReader_T"));
 
@@ -105,8 +109,9 @@ Stream_Module_MySQLReader_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -116,15 +121,16 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Module_MySQLReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::initialize"));
 
@@ -235,8 +241,9 @@ Stream_Module_MySQLReader_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -246,8 +253,9 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_Module_MySQLReader_T<LockType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -450,8 +458,9 @@ Stream_Module_MySQLReader_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -461,15 +470,16 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Module_MySQLReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::collect (StatisticContainerType& data_out)
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::collect"));
 
@@ -523,8 +533,9 @@ Stream_Module_MySQLReader_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -534,15 +545,16 @@ template <typename LockType,
           typename StatisticContainerType>
 int
 Stream_Module_MySQLReader_T<LockType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::svc (void)
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::svc"));
 

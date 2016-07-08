@@ -31,22 +31,25 @@
 
 #include "stream_module_net_common.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Stream_Module_Net_Target_T<SessionMessageType,
-                           MessageType,
+Stream_Module_Net_Target_T<SynchStrategyType,
+                           TimePolicyType,
                            ConfigurationType,
-                           SessionDataType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            SessionDataContainerType,
                            ConnectionManagerType,
                            ConnectorType>::Stream_Module_Net_Target_T (bool isPassive_in)
  : inherited ()
- , configuration_ (NULL)
  , connection_ (NULL)
  , connector_ (NULL,
                ACE_Time_Value::zero)
@@ -60,17 +63,21 @@ Stream_Module_Net_Target_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Stream_Module_Net_Target_T<SessionMessageType,
-                           MessageType,
+Stream_Module_Net_Target_T<SynchStrategyType,
+                           TimePolicyType,
                            ConfigurationType,
-                           SessionDataType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            SessionDataContainerType,
                            ConnectionManagerType,
                            ConnectorType>::~Stream_Module_Net_Target_T ()
@@ -132,21 +139,25 @@ close:
     sessionData_->decrease ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
-Stream_Module_Net_Target_T<SessionMessageType,
-                           MessageType,
+Stream_Module_Net_Target_T<SynchStrategyType,
+                           TimePolicyType,
                            ConfigurationType,
-                           SessionDataType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            SessionDataContainerType,
                            ConnectionManagerType,
-                           ConnectorType>::handleDataMessage (MessageType*& message_inout,
+                           ConnectorType>::handleDataMessage (DataMessageType*& message_inout,
                                                               bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::handleDataMessage"));
@@ -155,18 +166,22 @@ Stream_Module_Net_Target_T<SessionMessageType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
-Stream_Module_Net_Target_T<SessionMessageType,
-                           MessageType,
+Stream_Module_Net_Target_T<SynchStrategyType,
+                           TimePolicyType,
                            ConfigurationType,
-                           SessionDataType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            SessionDataContainerType,
                            ConnectionManagerType,
                            ConnectorType>::handleSessionMessage (SessionMessageType*& message_inout,
@@ -189,10 +204,10 @@ Stream_Module_Net_Target_T<SessionMessageType,
       ACE_ASSERT (!sessionData_);
 
       sessionData_ =
-          &const_cast<SessionDataContainerType&> (message_inout->get ());
+          &const_cast<typename SessionDataContainerType&> (message_inout->get ());
       sessionData_->increase ();
-      SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (sessionData_->get ());
+      typename SessionDataContainerType::DATA_T& session_data_r =
+          const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->get ());
 
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
@@ -600,8 +615,8 @@ close:
     }
     case NET_STREAM_SESSION_MESSAGE_CLOSE:
     {
-      SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (sessionData_->get ());
+      typename SessionDataContainerType::DATA_T& session_data_r =
+          const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->get ());
 
       // sanity check(s)
       ACE_ASSERT (connection_);
@@ -622,25 +637,27 @@ close:
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
-Stream_Module_Net_Target_T<SessionMessageType,
-                           MessageType,
+Stream_Module_Net_Target_T<SynchStrategyType,
+                           TimePolicyType,
                            ConfigurationType,
-                           SessionDataType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            SessionDataContainerType,
                            ConnectionManagerType,
                            ConnectorType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::initialize"));
-
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
   int result = -1;
   ACE_TCHAR buffer[BUFSIZ];
@@ -729,30 +746,30 @@ close:
     isInitialized_ = false;
   } // end IF
 
-  isInitialized_ = true;
+  isInitialized_ = inherited::initialize (configuration_in);
 
   return true;
 }
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
-const ConfigurationType&
-Stream_Module_Net_Target_T<SessionMessageType,
-                           MessageType,
-                           ConfigurationType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           ConnectionManagerType,
-                           ConnectorType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ConfigurationType,
+//          typename SessionDataContainerType,
+//          typename SessionDataContainerType,
+//          typename ConnectionManagerType,
+//          typename ConnectorType>
+//const ConfigurationType&
+//Stream_Module_Net_Target_T<SessionMessageType,
+//                           MessageType,
+//                           ConfigurationType,
+//                           SessionDataContainerType,
+//                           SessionDataContainerType,
+//                           ConnectionManagerType,
+//                           ConnectorType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}

@@ -41,8 +41,9 @@
 #include "stream_dev_tools.h"
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -51,8 +52,9 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -78,8 +80,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -88,15 +91,16 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
-                                         SessionMessageType,
-                                         ProtocolMessageType,
-                                         ConfigurationType,
-                                         StreamControlType,
-                                         StreamNotificationType,
-                                         StreamStateType,
-                                         SessionDataType,
-                                         SessionDataContainerType,
-                                         StatisticContainerType>::~Stream_Dev_Cam_Source_MediaFoundation_T ()
+                                        ControlMessageType,
+                                        DataMessageType,
+                                        SessionMessageType,
+                                        ConfigurationType,
+                                        StreamControlType,
+                                        StreamNotificationType,
+                                        StreamStateType,
+                                        SessionDataType,
+                                        SessionDataContainerType,
+                                        StatisticContainerType>::~Stream_Dev_Cam_Source_MediaFoundation_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::~Stream_Dev_Cam_Source_MediaFoundation_T"));
 
@@ -120,8 +124,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -131,8 +136,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -221,7 +227,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 }
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -230,7 +236,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //void
 //Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //                                        SessionMessageType,
-//                                        ProtocolMessageType,
+//                                        DataMessageType,
 //                                        ConfigurationType,
 //                                        StreamStateType,
 //                                        SessionDataType,
@@ -255,7 +261,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //}
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -264,7 +270,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //void
 //Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //                                        SessionMessageType,
-//                                        ProtocolMessageType,
+//                                        DataMessageType,
 //                                        ConfigurationType,
 //                                        StreamStateType,
 //                                        SessionDataType,
@@ -283,7 +289,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //}
 
 //template <typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -291,12 +297,12 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //          typename StatisticContainerType>
 //void
 //Stream_Dev_Cam_Source_MediaFoundation_T<SessionMessageType,
-//                           ProtocolMessageType,
+//                           DataMessageType,
 //                           ConfigurationType,
 //                           StreamStateType,
 //                           SessionDataType,
 //                           SessionDataContainerType,
-//                           StatisticContainerType>::handleDataMessage (ProtocolMessageType*& message_inout,
+//                           StatisticContainerType>::handleDataMessage (DataMessageType*& message_inout,
 //                                                                       bool& passMessageDownstream_out)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::handleDataMessage"));
@@ -307,8 +313,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -318,8 +325,9 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -754,8 +762,9 @@ continue_:
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -765,8 +774,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -798,7 +808,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -807,7 +817,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //void
 //Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //                                   SessionMessageType,
-//                                   ProtocolMessageType,
+//                                   DataMessageType,
 //                                   ConfigurationType,
 //                                   StreamStateType,
 //                                   SessionDataType,
@@ -822,8 +832,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -833,8 +844,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -859,8 +871,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
                    interface_out);
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -870,8 +883,9 @@ template <typename LockType,
           typename StatisticContainerType>
 ULONG
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -885,8 +899,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   return InterlockedIncrement (&referenceCount_);
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -896,8 +911,9 @@ template <typename LockType,
           typename StatisticContainerType>
 ULONG
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -916,7 +932,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 }
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -925,7 +941,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //HRESULT
 //Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //                                        SessionMessageType,
-//                                        ProtocolMessageType,
+//                                        DataMessageType,
 //                                        ConfigurationType,
 //                                        StreamStateType,
 //                                        SessionDataType,
@@ -944,7 +960,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //}
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -953,7 +969,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //HRESULT
 //Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //                                        SessionMessageType,
-//                                        ProtocolMessageType,
+//                                        DataMessageType,
 //                                        ConfigurationType,
 //                                        StreamStateType,
 //                                        SessionDataType,
@@ -970,7 +986,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //}
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -979,7 +995,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //HRESULT
 //Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //                                        SessionMessageType,
-//                                        ProtocolMessageType,
+//                                        DataMessageType,
 //                                        ConfigurationType,
 //                                        StreamStateType,
 //                                        SessionDataType,
@@ -996,7 +1012,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //  ACE_UNUSED_ARG (streamFlags_in);
 //
 //  bool read_next_sample = false;
-//  ProtocolMessageType* message_p = NULL;
+//  DataMessageType* message_p = NULL;
 //  int result = -1;
 //  HRESULT result_2 = E_FAIL;
 //  IMFMediaBuffer* media_buffer_p = NULL;
@@ -1042,12 +1058,12 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //
 //  try
 //  {
-//    message_p = dynamic_cast<ProtocolMessageType*> (sample_in);
+//    message_p = dynamic_cast<DataMessageType*> (sample_in);
 //  }
 //  catch (...)
 //  {
 //    //ACE_DEBUG ((LM_ERROR,
-//    //            ACE_TEXT ("failed to dynamic_cast<ProtocolMessageType*>(0x%@), continuing\n"),
+//    //            ACE_TEXT ("failed to dynamic_cast<DataMessageType*>(0x%@), continuing\n"),
 //    //            IMediaSample_in));
 //    message_p = NULL;
 //  }
@@ -1067,8 +1083,8 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //  } // end IF
 //  ACE_ASSERT (message_p);
 //
-//  typename ProtocolMessageType::DATA_T& data_r =
-//    const_cast<typename ProtocolMessageType::DATA_T&> (message_p->get ());
+//  typename DataMessageType::DATA_T& data_r =
+//    const_cast<typename DataMessageType::DATA_T&> (message_p->get ());
 //  ACE_ASSERT (!data_r.sample);
 //
 //  ULONG reference_count = sample_in->AddRef ();
@@ -1189,8 +1205,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //  return S_OK;
 //}
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1200,8 +1217,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -1221,8 +1239,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   ACE_NOTREACHED (return S_OK;)
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1232,8 +1251,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -1249,8 +1269,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   return S_OK;
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1260,8 +1281,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -1279,8 +1301,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   ACE_NOTREACHED (return S_OK;)
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1290,8 +1313,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -1309,8 +1333,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   ACE_NOTREACHED (return S_OK;)
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1320,8 +1345,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -1341,8 +1367,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   ACE_NOTREACHED (return S_OK;)
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1352,8 +1379,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -1380,8 +1408,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
                             attributes_p);
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1391,8 +1420,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -1414,7 +1444,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   ACE_UNUSED_ARG (duration_in);
   ACE_UNUSED_ARG (attributes_in);
 
-  ProtocolMessageType* message_p = NULL;
+  DataMessageType* message_p = NULL;
   int result = -1;
   //HRESULT result_2 = E_FAIL;
 
@@ -1444,7 +1474,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   ACE_ASSERT (message_p->capacity () >= bufferSize_in);
 
   // *TODO*: apparently, there is no way to retrieve the media sample, so a
-  //         memcpy is unavoidable...
+  //         memcpy is unavoidable
   result = message_p->copy (reinterpret_cast<const char*> (buffer_in),
                             bufferSize_in);
   if (result == -1)
@@ -1475,8 +1505,9 @@ error:
   return E_FAIL;
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1486,8 +1517,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -1515,8 +1547,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   return S_OK;
 }
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1526,8 +1559,9 @@ template <typename LockType,
           typename StatisticContainerType>
 HRESULT
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,
@@ -1542,7 +1576,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 }
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -1551,7 +1585,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //HRESULT
 //Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //                                        SessionMessageType,
-//                                        ProtocolMessageType,
+//                                        DataMessageType,
 //                                        ConfigurationType,
 //                                        StreamStateType,
 //                                        SessionDataType,
@@ -1570,7 +1604,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //}
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -1579,7 +1613,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //HRESULT
 //Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //                                        SessionMessageType,
-//                                        ProtocolMessageType,
+//                                        DataMessageType,
 //                                        ConfigurationType,
 //                                        StreamStateType,
 //                                        SessionDataType,
@@ -1708,8 +1742,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -1719,8 +1754,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType,
-                                        ProtocolMessageType,
                                         ConfigurationType,
                                         StreamControlType,
                                         StreamNotificationType,

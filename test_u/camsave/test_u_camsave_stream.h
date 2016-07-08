@@ -62,8 +62,10 @@ class Stream_CamSave_Stream
                         //////////////////
                         Stream_CamSave_SessionData,   // session data
                         Stream_CamSave_SessionData_t, // session data container (reference counted)
-                        Stream_CamSave_SessionMessage,
-                        Stream_CamSave_Message>
+                        //////////////////
+                        ACE_Message_Block,
+                        Stream_CamSave_Message,
+                        Stream_CamSave_SessionMessage>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , public IMFAsyncCallback
 #endif
@@ -121,8 +123,10 @@ class Stream_CamSave_Stream
                         //////////////////
                         Stream_CamSave_SessionData,   // session data
                         Stream_CamSave_SessionData_t, // session data container (reference counted)
-                        Stream_CamSave_SessionMessage,
-                        Stream_CamSave_Message> inherited;
+                        //////////////////
+                        ACE_Message_Block,
+                        Stream_CamSave_Message,
+                        Stream_CamSave_SessionMessage> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Stream (const Stream_CamSave_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Stream& operator= (const Stream_CamSave_Stream&))

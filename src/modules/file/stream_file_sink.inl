@@ -31,16 +31,21 @@
 
 #include "stream_macros.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
-Stream_Module_FileWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
+Stream_Module_FileWriter_T<SynchStrategyType,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            SessionDataType>::Stream_Module_FileWriter_T ()
  : inherited ()
- , configuration_ (NULL)
  , fileName_ ()
  , isOpen_ (false)
  , previousError_ (0)
@@ -50,13 +55,19 @@ Stream_Module_FileWriter_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
-Stream_Module_FileWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
+Stream_Module_FileWriter_T<SynchStrategyType,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            SessionDataType>::~Stream_Module_FileWriter_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::~Stream_Module_FileWriter_T"));
@@ -72,15 +83,21 @@ Stream_Module_FileWriter_T<SessionMessageType,
   } // end IF
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Module_FileWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::handleDataMessage (MessageType*& message_inout,
+Stream_Module_FileWriter_T<SynchStrategyType,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionDataType>::handleDataMessage (DataMessageType*& message_inout,
                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::handleDataMessage"));
@@ -149,14 +166,20 @@ Stream_Module_FileWriter_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Module_FileWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
+Stream_Module_FileWriter_T<SynchStrategyType,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
                            SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                    bool& passMessageDownstream_out)
 {
@@ -401,20 +424,23 @@ continue_:
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataType>
 bool
-Stream_Module_FileWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
+Stream_Module_FileWriter_T<SynchStrategyType,
+                           TimePolicyType,
+                           ConfigurationType,
+                           ControlMessageType,
+                           DataMessageType,
+                           SessionMessageType,
+                           SessionDataType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::initialize"));
-
-  configuration_ =
-    &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
 
   int result =
     fileName_.set (ACE_TEXT (configuration_->targetFileName.c_str ()));
@@ -433,33 +459,34 @@ Stream_Module_FileWriter_T<SessionMessageType,
                 ACE_TEXT ("target file \"%s\" exists, continuing\n"),
                 ACE_TEXT (configuration_->targetFileName.c_str ())));
 
-  return true;
+  return inherited::initialize (configuration_in);
 }
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ModuleHandlerConfigurationType,
-          typename SessionDataType>
-const ModuleHandlerConfigurationType&
-Stream_Module_FileWriter_T<SessionMessageType,
-                           MessageType,
-                           ModuleHandlerConfigurationType,
-                           SessionDataType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::get"));
-
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
-
-  return *configuration_;
-}
+//template <typename SessionMessageType,
+//          typename MessageType,
+//          typename ModuleHandlerConfigurationType,
+//          typename SessionDataType>
+//const ModuleHandlerConfigurationType&
+//Stream_Module_FileWriter_T<SessionMessageType,
+//                           MessageType,
+//                           ModuleHandlerConfigurationType,
+//                           SessionDataType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::get"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
+//
+//  return *configuration_;
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename LockType,
           typename TaskSynchType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -468,18 +495,19 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Module_FileWriterH_T<LockType,
-                           TaskSynchType,
-                           TimePolicyType,
-                           SessionMessageType,
-                           ProtocolMessageType,
-                           ConfigurationType,
-                           StreamControlType,
-                           StreamNotificationType,
-                           StreamStateType,
-                           SessionDataType,
-                           SessionDataContainerType,
-                           StatisticContainerType>::Stream_Module_FileWriterH_T (LockType* lock_in,
-                                                                                 bool autoStart_in)
+                            TaskSynchType,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::Stream_Module_FileWriterH_T (LockType* lock_in,
+                                                                                  bool autoStart_in)
  : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
               true)         // generate sesssion messages ?
@@ -495,8 +523,9 @@ Stream_Module_FileWriterH_T<LockType,
 template <typename LockType,
           typename TaskSynchType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -507,8 +536,9 @@ template <typename LockType,
 Stream_Module_FileWriterH_T<LockType,
                             TaskSynchType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -533,8 +563,9 @@ Stream_Module_FileWriterH_T<LockType,
 template <typename LockType,
           typename TaskSynchType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -546,15 +577,16 @@ void
 Stream_Module_FileWriterH_T<LockType,
                             TaskSynchType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::handleDataMessage (ProtocolMessageType*& message_inout,
+                            StatisticContainerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                         bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriterH_T::handleDataMessage"));
@@ -625,8 +657,9 @@ Stream_Module_FileWriterH_T<LockType,
 template <typename LockType,
           typename TaskSynchType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -638,8 +671,9 @@ void
 Stream_Module_FileWriterH_T<LockType,
                             TaskSynchType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -817,8 +851,9 @@ continue_:
 template <typename LockType,
           typename TaskSynchType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -830,8 +865,9 @@ bool
 Stream_Module_FileWriterH_T<LockType,
                             TaskSynchType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -891,8 +927,9 @@ Stream_Module_FileWriterH_T<LockType,
 template <typename LockType,
           typename TaskSynchType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -904,8 +941,9 @@ const ConfigurationType&
 Stream_Module_FileWriterH_T<LockType,
                             TaskSynchType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,
@@ -925,8 +963,9 @@ Stream_Module_FileWriterH_T<LockType,
 template <typename LockType,
           typename TaskSynchType,
           typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -938,8 +977,9 @@ bool
 Stream_Module_FileWriterH_T<LockType,
                             TaskSynchType,
                             TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
                             SessionMessageType,
-                            ProtocolMessageType,
                             ConfigurationType,
                             StreamControlType,
                             StreamNotificationType,

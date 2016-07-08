@@ -33,50 +33,65 @@
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          ////////////////////////////////
           typename ConfigurationType,
-          typename SessionDataType>
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename SessionDataContainerType>
 class Stream_Decoder_ZIPDecoder_T
- : public Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType>
- , public Stream_IModuleHandler_T<ConfigurationType>
+ : public Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType>
+ //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
   Stream_Decoder_ZIPDecoder_T ();
   virtual ~Stream_Decoder_ZIPDecoder_T ();
 
-  // override (part of) Stream_IModuleHandler_T
+  //// override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&);
-  virtual const ConfigurationType& get () const;
+  //virtual const ConfigurationType& get () const;
 
   // implement (part of) Stream_ITaskBase
-  virtual void handleDataMessage (MessageType*&, // data message handle
-                                  bool&);        // return value: pass message downstream ?
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  ConfigurationType*             configuration_;
-  SessionDataType*               sessionData_;
+  typename SessionDataContainerType::DATA_T* sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<Common_TimePolicy_t,
-                                 SessionMessageType,
-                                 MessageType> inherited;
+  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+                                 TimePolicyType,
+                                 /////////
+                                 ConfigurationType,
+                                 /////////
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T (const Stream_Decoder_ZIPDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_ZIPDecoder_T& operator= (const Stream_Decoder_ZIPDecoder_T&))
 
   // helper methods
-  MessageType* allocateMessage (unsigned int); // requested size
+  DataMessageType* allocateMessage (unsigned int); // requested size
 
-  Stream_IAllocator*             allocator_;
-  ACE_Message_Block*             buffer_; // <-- continuation chain
-  bool                           crunchMessages_;
-  bool                           isInitialized_;
-  struct z_stream_s              stream_;
+  Stream_IAllocator*                         allocator_;
+  ACE_Message_Block*                         buffer_; // <-- continuation chain
+  bool                                       crunchMessages_;
+  bool                                       isInitialized_;
+  struct z_stream_s                          stream_;
 };
 
 // include template implementation

@@ -28,23 +28,30 @@
 #include "stream_macros.h"
 #include "stream_message_base.h"
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::Stream_Module_Statistic_WriterTask_T ()
  : inherited ()
+ , lock_ ()
+ , sessionData_ (NULL)
+ /////////////////////////////////////////
  , initialized_ (false)
  , resetTimeoutHandler_ (this)
  , resetTimeoutHandlerID_ (-1)
@@ -56,7 +63,6 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
  , reportingInterval_ (STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
  , printFinalReport_ (false)
  , pushStatisticMessages_ (false)
- , lock_ ()
  , inboundMessages_ (0)
  , outboundMessages_ (0)
  , sessionMessages_ (0)
@@ -68,27 +74,30 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
  , lastBytesPerSecondCount_ (0)
  , messageTypeStatistic_ ()
  , allocator_ (NULL)
- , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::Stream_Module_Statistic_WriterTask_T"));
 
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::~Stream_Module_Statistic_WriterTask_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::~Stream_Module_Statistic_WriterTask_T"));
@@ -102,26 +111,27 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     sessionData_->decrease ();
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 bool
-Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
-                                     SessionDataContainerType>::initialize (const ACE_Time_Value& reportingInterval_in,
-                                                                            bool pushStatisticMessages_in,
-                                                                            bool printFinalReport_in,
-                                                                            Stream_IAllocator* allocator_in)
+                                     SessionDataType,          // session data
+                                     SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::initialize"));
 
@@ -164,10 +174,10 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 
     initialized_ = false;
   } // end IF
-  reportingInterval_ = reportingInterval_in;
-  printFinalReport_ = printFinalReport_in;
-  pushStatisticMessages_ = pushStatisticMessages_in;
-  allocator_ = allocator_in;
+  reportingInterval_ = configuration_in.reportingInterval;
+  printFinalReport_ = configuration_in.printFinalReport;
+  pushStatisticMessages_ = configuration_in.pushStatisticMessages;
+  allocator_ = configuration_in.messageAllocator;
 
   if ((reportingInterval_ != ACE_Time_Value::zero) ||
       pushStatisticMessages_)
@@ -196,28 +206,63 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 //                resetTimeoutHandlerID_));
   } // end IF
 
-  initialized_ = true;
+  initialized_ = inherited::initialize (configuration_in);
 
-  return true;
+  return initialized_;
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
-                                     SessionDataContainerType>::handleDataMessage (ProtocolMessageType*& message_inout,
+                                     SessionDataType,          // session data
+                                     SessionDataContainerType>::handleControlMessage (ControlMessageType& message_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::handleControlMessage"));
+
+  ACE_UNUSED_ARG (message_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+template <typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ProtocolCommandType,
+          typename StatisticContainerType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
+void
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+                                     TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
+                                     SessionMessageType,
+                                     ProtocolCommandType,
+                                     StatisticContainerType,
+                                     SessionDataType,          // session data
+                                     SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                                    bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::handleDataMessage"));
@@ -238,27 +283,30 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 
     messageCounter_++;
 
-    // add message to statistic...
+    // add message to statistic
     messageTypeStatistic_[message_inout->command ()]++;
   } // end lock scope
 }
-
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                       bool& passMessageDownstream_out)
 {
@@ -272,8 +320,8 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
 
   ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-  // update counters...
-  // *NOTE*: currently, session messages travel only downstream...
+  // update counters
+  // *NOTE*: currently, session messages travel only downstream
   //inboundMessages_++;
   sessionMessages_++;
   //messageCounter_++;
@@ -374,22 +422,26 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   } // end SWITCH
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::reset ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::reset"));
@@ -440,22 +492,26 @@ continue_:
                   ACE_TEXT ("failed to Stream_Module_Statistic_WriterTask_T::putStatisticMessage(), continuing\n")));
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 bool
-Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::collect (StatisticContainerType& data_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::collect"));
@@ -478,22 +534,26 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   return true;
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::report"));
@@ -543,22 +603,26 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     } // end IF
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::finalReport () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::finalReport"));
@@ -595,7 +659,7 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
          iterator++)
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("\"%s\": %u --> %.2f %%\n"),
-                  ACE_TEXT (ProtocolMessageType::CommandType2String (iterator->first).c_str ()),
+                  ACE_TEXT (DataMessageType::CommandType2String (iterator->first).c_str ()),
                   iterator->second,
                   static_cast<double> (((iterator->second * 100.0) / (inboundMessages_ + outboundMessages_)))));
   } // end IF
@@ -614,22 +678,26 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
     } // end IF
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::finiTimers (bool cancelAllTimers_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::finiTimers"));
@@ -666,22 +734,26 @@ Stream_Module_Statistic_WriterTask_T<TaskSynchType,
   } // end IF
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 bool
-Stream_Module_Statistic_WriterTask_T<TaskSynchType,
+Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::putStatisticMessage ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::putStatisticMessage"));
@@ -803,21 +875,25 @@ allocate:
 
 // -----------------------------------------------------------------------------
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
+Stream_Module_Statistic_ReaderTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::Stream_Module_Statistic_ReaderTask_T ()
  : inherited ()
 {
@@ -826,43 +902,51 @@ Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
   inherited::flags_ |= ACE_Task_Flags::ACE_READER;
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
+Stream_Module_Statistic_ReaderTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::~Stream_Module_Statistic_ReaderTask_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_ReaderTask_T::~Stream_Module_Statistic_ReaderTask_T"));
 
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ProtocolCommandType,
           typename StatisticContainerType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType> // session message payload (reference counted)
 int
-Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
+Stream_Module_Statistic_ReaderTask_T<SynchStrategyType,
                                      TimePolicyType,
+                                     ConfigurationType,
+                                     ControlMessageType,
+                                     DataMessageType,
                                      SessionMessageType,
-                                     ProtocolMessageType,
                                      ProtocolCommandType,
                                      StatisticContainerType,
-                                     SessionDataType,
+                                     SessionDataType,          // session data
                                      SessionDataContainerType>::put (ACE_Message_Block* messageBlock_in,
                                                                      ACE_Time_Value* timeValue_in)
 {
@@ -883,12 +967,12 @@ Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
                 ACE_TEXT ("failed to dynamic_cast<Net_Module_Statistic_WriterTask_t>: \"%m\", aborting\n")));
     return -1;
   } // end IF
-  ProtocolMessageType* message_p =
-    dynamic_cast<ProtocolMessageType*> (messageBlock_in);
+  DataMessageType* message_p =
+    dynamic_cast<DataMessageType*> (messageBlock_in);
   if (!message_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<ProtocolMessageType>(%@), aborting\n"),
+                ACE_TEXT ("failed to dynamic_cast<DataMessageType>(%@), aborting\n"),
                 messageBlock_in));
     return -1;
   } // end IF
@@ -896,7 +980,7 @@ Stream_Module_Statistic_ReaderTask_T<TaskSynchType,
   {
     ACE_Guard<ACE_SYNCH_MUTEX> aGuard (writer_p->lock_);
 
-    // update counters...
+    // update counters
     writer_p->outboundMessages_++;
     writer_p->outboundBytes_ += messageBlock_in->total_length ();
 
