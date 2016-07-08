@@ -44,8 +44,6 @@ class Stream_CamSave_Module_EventHandler
                                          Stream_CamSave_Message,
                                          Stream_CamSave_SessionMessage,
 
-                                         Stream_CamSave_ModuleHandlerConfiguration,
-
                                          unsigned int,
                                          Stream_CamSave_SessionData_t>
 {
@@ -65,8 +63,6 @@ class Stream_CamSave_Module_EventHandler
                                          ACE_Message_Block,
                                          Stream_CamSave_Message,
                                          Stream_CamSave_SessionMessage,
-
-                                         Stream_CamSave_ModuleHandlerConfiguration,
 
                                          unsigned int,
                                          Stream_CamSave_SessionData_t> inherited;

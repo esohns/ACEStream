@@ -44,8 +44,6 @@ class Stream_Filecopy_Module_EventHandler
                                          Stream_Filecopy_Message,
                                          Stream_Filecopy_SessionMessage,
 
-                                         Stream_ModuleHandlerConfiguration,
-
                                          unsigned int,
                                          Stream_Filecopy_SessionData_t>
 {
@@ -65,8 +63,6 @@ class Stream_Filecopy_Module_EventHandler
                                          ACE_Message_Block,
                                          Stream_Filecopy_Message,
                                          Stream_Filecopy_SessionMessage,
-
-                                         Stream_ModuleHandlerConfiguration,
 
                                          unsigned int,
                                          Stream_Filecopy_SessionData_t> inherited;

@@ -30,7 +30,6 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ModuleHandlerConfigurationType,
           typename SessionIdType,
           typename SessionDataContainerType>
 Stream_Module_MessageHandler_T<SynchStrategyType,
@@ -39,7 +38,6 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               ModuleHandlerConfigurationType,
                                SessionIdType,
                                SessionDataContainerType>::Stream_Module_MessageHandler_T ()
  : inherited ()
@@ -58,7 +56,6 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ModuleHandlerConfigurationType,
           typename SessionIdType,
           typename SessionDataContainerType>
 Stream_Module_MessageHandler_T<SynchStrategyType,
@@ -67,7 +64,6 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               ModuleHandlerConfigurationType,
                                SessionIdType,
                                SessionDataContainerType>::~Stream_Module_MessageHandler_T ()
 {
@@ -87,7 +83,6 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ModuleHandlerConfigurationType,
           typename SessionIdType,
           typename SessionDataContainerType>
 void
@@ -97,10 +92,9 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               ModuleHandlerConfigurationType,
                                SessionIdType,
                                SessionDataContainerType>::initialize (SUBSCRIBERS_T* subscribers_in,
-                                                             ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
+                                                                      ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::initialize"));
 
@@ -164,7 +158,6 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ModuleHandlerConfigurationType,
           typename SessionIdType,
           typename SessionDataContainerType>
 void
@@ -174,10 +167,9 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               ModuleHandlerConfigurationType,
                                SessionIdType,
                                SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+                                                                             bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::handleDataMessage"));
 
@@ -187,12 +179,9 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
   // sanity check(s)
   ACE_ASSERT (lock_ && subscribers_);
 
-//   try
-//   {
+//   try {
 //     message_inout->getData ()->dump_state ();
-//   }
-//   catch (...)
-//   {
+//   } catch (...) {
 //     ACE_DEBUG ((LM_ERROR,
 //                 ACE_TEXT ("caught exception in Common_IDumpState::dump_state(), continuing\n")));
 //   }
@@ -230,7 +219,6 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ModuleHandlerConfigurationType,
           typename SessionIdType,
           typename SessionDataContainerType>
 void
@@ -240,7 +228,6 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               ModuleHandlerConfigurationType,
                                SessionIdType,
                                SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                 bool& passMessageDownstream_out)
@@ -261,7 +248,8 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
       ACE_ASSERT (!sessionData_);
 
       // forward the session data to any subscriber(s)
-      const SessionDataContainerType& session_data_container_r = message_inout->get ();
+      const SessionDataContainerType& session_data_container_r =
+        message_inout->get ();
       sessionData_ =
           &const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.get ());
 
@@ -420,7 +408,6 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ModuleHandlerConfigurationType,
           typename SessionIdType,
           typename SessionDataContainerType>
 void
@@ -430,7 +417,6 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               ModuleHandlerConfigurationType,
                                SessionIdType,
                                SessionDataContainerType>::subscribe (INOTIFY_T* interfaceHandle_in)
 {
@@ -459,7 +445,6 @@ template <typename SynchStrategyType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename ModuleHandlerConfigurationType,
           typename SessionIdType,
           typename SessionDataContainerType>
 void
@@ -469,7 +454,6 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               ModuleHandlerConfigurationType,
                                SessionIdType,
                                SessionDataContainerType>::unsubscribe (INOTIFY_T* interfaceHandle_in)
 {

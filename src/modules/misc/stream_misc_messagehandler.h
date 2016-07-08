@@ -44,8 +44,6 @@ template <typename SynchStrategyType,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename ModuleHandlerConfigurationType,
-          ////////////////////////////////
           typename SessionIdType,
           typename SessionDataContainerType>
 class Stream_Module_MessageHandler_T
@@ -74,8 +72,16 @@ class Stream_Module_MessageHandler_T
   Stream_Module_MessageHandler_T ();
   virtual ~Stream_Module_MessageHandler_T ();
 
-  void initialize (SUBSCRIBERS_T* = NULL,              // subscribers (handle)
-                   ACE_SYNCH_RECURSIVE_MUTEX* = NULL); // subscribers lock
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  using Stream_TaskBaseSynch_T<SynchStrategyType,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType>::initialize;
+#endif
+  virtual void initialize (SUBSCRIBERS_T* = NULL,              // subscribers (handle)
+                           ACE_SYNCH_RECURSIVE_MUTEX* = NULL); // subscribers lock
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -118,8 +124,6 @@ class Stream_Module_MessageHandler_T
                                          ControlMessageType,
                                          DataMessageType,
                                          SessionMessageType,
-
-                                         ModuleHandlerConfigurationType,
 
                                          SessionIdType,
                                          SessionDataContainerType> OWN_TYPE_T;

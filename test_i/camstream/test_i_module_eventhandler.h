@@ -45,8 +45,6 @@ class Test_I_Source_Stream_Module_EventHandler
                                          Test_I_Source_Stream_Message,
                                          Test_I_Source_Stream_SessionMessage,
 
-                                         Test_I_Source_Stream_ModuleHandlerConfiguration,
-
                                          unsigned int,
                                          Test_I_Source_Stream_SessionData_t>
 {
@@ -66,8 +64,6 @@ class Test_I_Source_Stream_Module_EventHandler
                                          ACE_Message_Block,
                                          Test_I_Source_Stream_Message,
                                          Test_I_Source_Stream_SessionMessage,
-
-                                         Test_I_Source_Stream_ModuleHandlerConfiguration,
 
                                          unsigned int,
                                          Test_I_Source_Stream_SessionData_t> inherited;
@@ -95,8 +91,6 @@ class Test_I_Target_Stream_Module_EventHandler
                                          Test_I_Target_Stream_Message,
                                          Test_I_Target_Stream_SessionMessage,
 
-                                         Test_I_Target_Stream_ModuleHandlerConfiguration,
-
                                          unsigned int,
                                          Test_I_Target_Stream_SessionData_t>
 {
@@ -116,8 +110,6 @@ class Test_I_Target_Stream_Module_EventHandler
                                          ACE_Message_Block,
                                          Test_I_Target_Stream_Message,
                                          Test_I_Target_Stream_SessionMessage,
-
-                                         Test_I_Target_Stream_ModuleHandlerConfiguration,
 
                                          unsigned int,
                                          Test_I_Target_Stream_SessionData_t> inherited;

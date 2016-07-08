@@ -44,8 +44,6 @@ class Test_I_Stream_Module_EventHandler
                                          Test_I_Stream_Message,
                                          Test_I_Stream_SessionMessage,
 
-                                         Test_I_Stream_ModuleHandlerConfiguration,
-
                                          unsigned int,
                                          Test_I_Stream_SessionData_t>
 {
@@ -65,8 +63,6 @@ class Test_I_Stream_Module_EventHandler
                                          ACE_Message_Block,
                                          Test_I_Stream_Message,
                                          Test_I_Stream_SessionMessage,
-
-                                         Test_I_Stream_ModuleHandlerConfiguration,
 
                                          unsigned int,
                                          Test_I_Stream_SessionData_t> inherited;
