@@ -160,6 +160,8 @@ Stream_Tools::messageType2String (Stream_MessageType messageType_in)
 
   switch (messageType_in)
   {
+  case STREAM_MESSAGE_CONTROL:
+    result = ACE_TEXT_ALWAYS_CHAR ("MESSAGE_CONTROL"); break;
     case STREAM_MESSAGE_SESSION:
       result = ACE_TEXT_ALWAYS_CHAR ("MESSAGE_SESSION"); break;
     case STREAM_MESSAGE_DATA:

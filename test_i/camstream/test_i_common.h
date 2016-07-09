@@ -286,11 +286,11 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , session (NULL)
 //   , topology (NULL)
 #endif
-   , window (NULL)
    , configuration (NULL)
    //, connection (NULL)
    //, connectionManager (NULL)
    , contextID (0)
+   , gdkWindow (NULL)
    , inbound (false)
    , printFinalReport (true)
    , printProgressDot (false)
@@ -308,14 +308,13 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   //IMFSourceReaderEx*                        sourceReader;
   IMFMediaSession*                          session;
 //  IMFTopology*                              topology;
-  HWND                                      window;
 #else
-  GdkWindow*                                window;
 #endif
   Test_I_Configuration*                     configuration;
   //Test_I_IConnection_t*                     connection; // TCP target/IO module
   //Test_I_Stream_InetConnectionManager_t*    connectionManager; // TCP IO module
   guint                                     contextID;
+  GdkWindow*                                gdkWindow;
   bool                                      inbound; // TCP IO module
   bool                                      printFinalReport;
   bool                                      printProgressDot; // file writer module

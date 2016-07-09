@@ -21,6 +21,8 @@
 
 #include "test_u_camsave_callbacks.h"
 
+#include <math.h>
+
 #include <limits>
 #include <map>
 #include <set>
@@ -1397,13 +1399,13 @@ stream_processing_function (void* arg_in)
 #endif
 
 error:
-  guint event_source_id = g_idle_add (idle_session_end_cb,
-                                      data_p->CBData);
-  if (event_source_id == 0)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
-  else
-    data_p->CBData->eventSourceIds.insert (event_source_id);
+  //guint event_source_id = g_idle_add (idle_session_end_cb,
+  //                                    data_p->CBData);
+  //if (event_source_id == 0)
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
+  //else
+  //  data_p->CBData->eventSourceIds.insert (event_source_id);
 
   { // synch access
     ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->CBData->lock);
@@ -1969,8 +1971,6 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   //-------------------------------------
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
   result_2 =
       g_signal_connect (G_OBJECT (drawing_area_p),
 //                        ACE_TEXT_ALWAYS_CHAR ("draw"),
@@ -1978,7 +1978,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                         G_CALLBACK (drawingarea_draw_cb),
                         userData_in);
   ACE_ASSERT (result_2);
-#endif
   result_2 =
 //    g_signal_connect (G_OBJECT (drawing_area_p),
 //                      ACE_TEXT_ALWAYS_CHAR ("configure-event"),
@@ -2052,16 +2051,15 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
-  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT (window_p);
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.window);
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.gdkWindow);
+  data_p->configuration->moduleHandlerConfiguration.gdkWindow =
+    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.gdkWindow);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-  data_p->configuration->moduleHandlerConfiguration.window =
-    //gdk_win32_window_get_impl_hwnd (window_p);
-    static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
-#else
-  data_p->configuration->moduleHandlerConfiguration.window = window_p;
+  //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
+  //data_p->configuration->moduleHandlerConfiguration.window =
+  //  //gdk_win32_window_get_impl_hwnd (window_p);
+  //  static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
@@ -2076,15 +2074,16 @@ idle_initialize_UI_cb (gpointer userData_in)
   data_p->configuration->moduleHandlerConfiguration.area.top = allocation.y;
 #else
   data_p->configuration->moduleHandlerConfiguration.area = allocation;
+#endif
 
   ACE_ASSERT (!data_p->pixelBuffer);
   data_p->pixelBuffer =
     gdk_pixbuf_get_from_drawable (NULL,
-                                  GDK_DRAWABLE (window_p),
+                                  GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
                                   NULL,
                                   0, 0,
                                   0, 0, allocation.width, allocation.height);
-  //      gdk_pixbuf_get_from_window (window_p,
+  //      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
   //                                  0, 0,
   //                                  allocation.width, allocation.height);
   if (!data_p->pixelBuffer)
@@ -2095,7 +2094,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   } // end IF
   data_p->configuration->moduleHandlerConfiguration.pixelBuffer =
     data_p->pixelBuffer;
-#endif
 
   // step11: select default capture source (if any)
   //         --> populate the options comboboxes
@@ -2185,7 +2183,18 @@ idle_session_end_cb (gpointer userData_in)
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
   ACE_ASSERT (frame_p);
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
+  GtkProgressBar* progressbar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progressbar_p);
+  // *NOTE*: this disables "activity mode" (in Gtk2)
+  gtk_progress_bar_set_fraction (progressbar_p, 0.0);
+  gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
 
+  // *IMPORTANT NOTE*: there are two major reasons for being here that are not
+  //                   mutually exclusive, so there could be a race:
+  //                   - user pressed stop
+  //                   - there was an asynchronous error on the stream
   GtkToggleAction* toggle_action_p =
     GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
@@ -2442,20 +2451,20 @@ idle_update_progress_cb (gpointer userData_in)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
                   thread_id));
-    else if (exit_status)
+    else
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_DEBUG ((LM_ERROR,
+      ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("thread %d has joined (status was: %d)...\n"),
                   thread_id,
                   exit_status));
 #else
-      ACE_DEBUG ((LM_ERROR,
+      ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("thread %u has joined (status was: %@)...\n"),
                   thread_id,
                   exit_status));
 #endif
-    } // end IF
+    } // end ELSE
 
     data_p->GTKState->eventSourceIds.erase (*iterator_3);
     data_p->pendingActions.erase (iterator_2);
@@ -2497,7 +2506,7 @@ idle_update_progress_cb (gpointer userData_in)
                                    : converter.str ().c_str ()));
   gtk_progress_bar_pulse (progress_bar_p);
 
-  // --> reschedule
+  // reschedule ?
   return (done ? G_SOURCE_REMOVE : G_SOURCE_CONTINUE);
 }
 
@@ -2511,9 +2520,6 @@ idle_update_video_display_cb (gpointer userData_in)
 
   // sanity check(s)
   ACE_ASSERT (data_p);
-
-  // synch access
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2589,15 +2595,19 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (iterator != data_p->builders.end ());
 
   // toggle record/stop ?
-  const Stream_StateMachine_ControlState& status_r =
+  Stream_StateMachine_ControlState stream_state =
     data_p->stream->status ();
-  if ((status_r == STREAM_STATE_RUNNING) ||
-      (status_r == STREAM_STATE_PAUSED)  ||
+  if ((stream_state == STREAM_STATE_RUNNING) ||
+      (stream_state == STREAM_STATE_PAUSED)  ||
       asynchronous_stream_error) // (asynch) stream error
   {
     data_p->stream->stop (false, true);
 
-    gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_RECORD);
+    gtk_action_set_stock_id (GTK_ACTION (toggleAction_in),
+                             GTK_STOCK_MEDIA_RECORD);
+    // *NOTE*: because control does not wait for the stream to stop, disable
+    //         the control until notification arrives (see:
+    //         idle_session_end_cb())
     gtk_action_set_sensitive (GTK_ACTION (toggleAction_in), false);
     GtkAction* action_p =
       GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
@@ -2610,26 +2620,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     ACE_ASSERT (action_p);
     gtk_action_set_sensitive (action_p, false);
 
-    // stop progress reporting
-    ACE_ASSERT (data_p->progressEventSourceID);
-    {
-      ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
-
-      if (!g_source_remove (data_p->progressEventSourceID))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-                    data_p->progressEventSourceID));
-      data_p->eventSourceIds.erase (data_p->progressEventSourceID);
-      data_p->progressEventSourceID = 0;
-    } // end lock scope
-    GtkProgressBar* progressbar_p =
-      GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-    ACE_ASSERT (progressbar_p);
-    // *NOTE*: this disables "activity mode" (in Gtk2)
-    gtk_progress_bar_set_fraction (progressbar_p, 0.0);
-    gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
-
+    data_p->progressEventSourceID = 0;
     if (asynchronous_stream_error)
       asynchronous_stream_error = false;
 
@@ -2831,10 +2822,10 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
 
     int result =
-      thread_manager_p->spawn (::stream_processing_function,    // function
-                               thread_data_p,                   // argument
-                               (THR_NEW_LWP |
-                                THR_JOINABLE |
+      thread_manager_p->spawn (::stream_processing_function,     // function
+                               thread_data_p,                    // argument
+                               (THR_NEW_LWP      |
+                                THR_JOINABLE     |
                                 THR_INHERIT_SCHED),              // flags
                                &thread_id,                       // thread id
                                &thread_handle,                   // thread handle
@@ -2854,6 +2845,15 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
       goto error;
     } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("spawned processing thread (id was: %d)...\n"),
+                thread_id));
+#else
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("spawned processing thread (id was: %@)...\n"),
+                thread_id));
+#endif
 
     // step3: start progress reporting
     ACE_ASSERT (!data_p->progressEventSourceID);
@@ -3947,8 +3947,6 @@ combobox_rate_changed_cb (GtkWidget* widget_in,
 #endif
 } // combobox_rate_changed_cb
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
 gboolean
 drawingarea_draw_cb (GtkWidget* widget_in,
                      cairo_t* context_in,
@@ -3979,6 +3977,10 @@ drawingarea_draw_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
     return FALSE;
   } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    // *NOTE*: media foundation capture frames are v-flipped bgr
+  cairo_rotate (context_p, 180.0 * M_PI / 180.0);
+#endif
   gdk_cairo_set_source_pixbuf (context_p,
                                data_p->pixelBuffer,
                                0.0, 0.0);
@@ -3994,7 +3996,6 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 
   return TRUE;
 }
-#endif
 
 //void
 //drawingarea_configure_event_cb (GtkWindow* window_in,
@@ -4068,37 +4069,40 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_size_allocate_cb"));
 
+  ACE_UNUSED_ARG (widget_in);
+
   Stream_CamSave_GTK_CBData* data_p =
     static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
 
   // sanity check(s)
+  ACE_ASSERT (allocation_in);
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
-    return;
+  //if (!data_p->configuration->moduleHandlerConfiguration.gdkWindow) // <-- window not realized yet ?
+  //  return;
 
-  Common_UI_GTKBuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  //Common_UI_GTKBuildersIterator_t iterator =
+  //  data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //// sanity check(s)
+  //ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkAllocation allocation;
-  ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
-  gtk_widget_get_allocation (GTK_WIDGET (widget_in),
-                             &allocation);
+  //GtkAllocation allocation;
+  //ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
+  //gtk_widget_get_allocation (widget_in,
+  //                           &allocation);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //// sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration->windowController);
 
   data_p->configuration->moduleHandlerConfiguration.area.bottom =
-    allocation.height;
+    allocation_in->height;
   data_p->configuration->moduleHandlerConfiguration.area.left =
-    allocation.x;
+    allocation_in->x;
   data_p->configuration->moduleHandlerConfiguration.area.right =
-    allocation.width;
+    allocation_in->width;
   data_p->configuration->moduleHandlerConfiguration.area.top =
-    allocation.y;
+    allocation_in->y;
 
   //HRESULT result =
   //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (data_p->configuration->moduleHandlerConfiguration.area.left,
@@ -4112,7 +4116,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   //              data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #else
-  data_p->configuration->moduleHandlerConfiguration.area = allocation;
+  data_p->configuration->moduleHandlerConfiguration.area = *allocation_in;
 #endif
 } // drawingarea_size_allocate_cb
 

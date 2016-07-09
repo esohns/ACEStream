@@ -83,8 +83,8 @@ class Stream_SessionMessageBase_T
   virtual void dump_state () const;
 
   // debug tools
-  static void MessageType2String (ACE_Message_Block::ACE_Message_Type, // message type
-                                  std::string&);                       // corresp. string
+  static void MessageType2String (Stream_SessionMessageType, // session message type
+                                  std::string&);             // corresp. string
 
  protected:
   // (copy) ctor to be used by duplicate()

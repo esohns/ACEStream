@@ -67,6 +67,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
               autoStart_in, // auto-start ?
               true)         // generate session messages ?
  , baseTimeStamp_ (0)
+ , hasFinished_ (false)
  , isFirst_ (true)
  , symbolicLink_ (NULL)
  , symbolicLinkSize_ (0)
@@ -115,7 +116,8 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   if (mediaSession_)
   {
     result = mediaSession_->Shutdown ();
-    if (FAILED (result))
+    if (FAILED (result) &&
+        (result != MF_E_SHUTDOWN)) // already shut down...
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
@@ -752,7 +754,7 @@ continue_:
         inherited::sessionData_ = NULL;
       } // end IF
 
-      inherited::shutdown ();
+      //inherited::shutdown ();
 
       break;
     }
@@ -1740,6 +1742,158 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //
 //  return E_FAIL;
 //}
+
+template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename StatisticContainerType>
+int
+Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+                                        ControlMessageType,
+                                        DataMessageType,
+                                        SessionMessageType,
+                                        ConfigurationType,
+                                        StreamControlType,
+                                        StreamNotificationType,
+                                        StreamStateType,
+                                        SessionDataType,
+                                        SessionDataContainerType,
+                                        StatisticContainerType>::svc (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::svc"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::initialized_);
+
+  int result = -1;
+  int result_2 = -1;
+  int error = 0;
+  ACE_Message_Block* message_block_p = NULL;
+  ACE_Time_Value sleep_interval (0,
+                                 STREAM_DEFAULT_MODULE_SOURCE_EVENT_POLL_INTERVAL * 1000);
+  ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  int message_type = -1;
+  bool stop_processing = false;
+  //  unsigned int queued, done = 0;
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+  const SessionDataType& session_data_r = inherited::sessionData_->get ();
+
+  // step1: start processing data...
+  //   ACE_DEBUG ((LM_DEBUG,
+  //               ACE_TEXT ("entering processing loop...\n")));
+  do
+  {
+    message_block_p = NULL;
+    result = inherited::getq (message_block_p,
+                              &no_wait);
+    if (result == 0)
+    {
+      ACE_ASSERT (message_block_p);
+      message_type = message_block_p->msg_type ();
+      switch (message_type)
+      {
+        case ACE_Message_Block::MB_STOP:
+        {
+          // clean up
+          message_block_p->release ();
+          message_block_p = NULL;
+
+          // *NOTE*: when close()d manually (i.e. user abort, ...),
+          //         'hasFinished_' will not have been set at this stage
+          if (!hasFinished_)
+          {
+            hasFinished_ = true;
+            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+            //         --> continue
+            inherited::finished ();
+            // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
+            //         --> done
+            if (inherited::thr_count_ == 0)
+              goto done; // finished processing
+
+            continue;
+          } // end IF
+
+done:
+          result_2 = 0;
+
+          goto continue_; // STREAM_SESSION_END has been processed
+        }
+        default:
+          break;
+      } // end SWITCH
+
+      // process
+      // *NOTE*: fire-and-forget message_block_p here
+      inherited::handleMessage (message_block_p,
+                                stop_processing);
+      if (stop_processing)
+      {
+        // *IMPORTANT NOTE*: message_block_p has already been released() !
+
+        hasFinished_ = true;
+        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+        //         --> continue
+        inherited::finished ();
+
+        continue;
+      } // end IF
+    } // end IF
+    else if (result == -1)
+    {
+      error = ACE_OS::last_error ();
+      if (error != EWOULDBLOCK) // Win32: 10035
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+
+        if (!hasFinished_)
+        {
+          hasFinished_ = true;
+          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+          //         --> continue
+          inherited::finished ();
+        } // end IF
+
+        break;
+      } // end IF
+    } // end IF
+
+      // session aborted ?
+    if (session_data_r.aborted)
+    {
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("session aborted...\n")));
+
+      hasFinished_ = true;
+      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+      //         --> continue
+      inherited::finished ();
+
+      continue;
+    } // end IF
+    else
+    {
+      result = ACE_OS::sleep (sleep_interval);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_OS::sleep(@#T): \"%m\", continuing\n"),
+                    &sleep_interval));
+    } // end ELSE
+  } while (true);
+
+continue_:
+  return result_2;
+}
 
 template <typename LockType,
           typename ControlMessageType,

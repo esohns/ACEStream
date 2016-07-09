@@ -65,6 +65,10 @@ class Stream_MessageBase_T
   // implement Common_IDumpState
   virtual void dump_state () const;
 
+  // debug tools
+  static void MessageType2String (Stream_MessageType, // message type
+                                  std::string&);      // corresp. string
+
   // reset atomic id generator
   static void resetMessageIDGenerator ();
 
@@ -88,6 +92,8 @@ class Stream_MessageBase_T
   // used for pre-allocated messages
   void initialize (ACE_Data_Block*             // data block to use
                    /*const ACE_Time_Value&*/); // scheduled execution time
+
+  Stream_MessageType type_;
 
  private:
   typedef ACE_Message_Block inherited;

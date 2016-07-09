@@ -400,7 +400,7 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
                   false);
   modules_out.push_front (module_p);
   module_p = NULL;
-  if (inherited::configuration_->moduleHandlerConfiguration->window)
+  if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
   {
     ACE_NEW_RETURN (module_p,
                     Test_I_Source_Stream_Module_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
@@ -480,7 +480,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
   // ******************* Display ************************
   // *TODO*: remove type inference
-  if (configuration_in.moduleHandlerConfiguration->window)
+  if (configuration_in.moduleHandlerConfiguration->gdkWindow)
   {
     //display_.initialize (*configuration_in.moduleConfiguration);
     //display_impl_p =

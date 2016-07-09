@@ -246,8 +246,12 @@ Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (const struct _GUI
   // Media Foundation
   //MFVideoFormat_RGB32
   //MFVideoFormat_ARGB32
+  // *NOTE*: the media foundation capture format decoding pipeline
+  //         looks like this mjpeg --> yuy2 --> v-flipped bgr (!)
+  // *TODO*: 
   else if (mediaSubType_in == MFVideoFormat_RGB24)
-    return AV_PIX_FMT_RGB24;
+    return AV_PIX_FMT_BGR24;
+    //return AV_PIX_FMT_RGB24;
   //MFVideoFormat_RGB555
   //MFVideoFormat_RGB565
   //MFVideoFormat_RGB8

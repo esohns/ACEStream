@@ -69,7 +69,8 @@ Stream_CamSave_Stream::~Stream_CamSave_Stream ()
   if (mediaSession_)
   {
     result = mediaSession_->Shutdown ();
-    if (FAILED (result))
+    if (FAILED (result) &&
+        (result != MF_E_SHUTDOWN)) // already shut down...
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
@@ -97,8 +98,6 @@ void
 Stream_CamSave_Stream::start ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::start"));
-
-  inherited::start ();
 
   // sanity check(s)
   ACE_ASSERT (mediaSession_);
@@ -130,6 +129,8 @@ Stream_CamSave_Stream::start ()
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
+
+  inherited::start ();
 }
 void
 Stream_CamSave_Stream::stop (bool waitForCompletion_in,

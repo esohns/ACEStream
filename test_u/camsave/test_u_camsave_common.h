@@ -231,7 +231,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #else
    , v4l2Window (NULL)
 #endif
-   , window (NULL)
+   , gdkWindow (NULL)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     //format =
@@ -280,11 +280,10 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   GdkPixbuf*                 pixelBuffer;
   std::string                targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                       window;
 #else
   struct v4l2_window*        v4l2Window;
-  GdkWindow*                 window;
 #endif
+  GdkWindow*                 gdkWindow;
 };
 
 struct Stream_CamSave_StreamConfiguration

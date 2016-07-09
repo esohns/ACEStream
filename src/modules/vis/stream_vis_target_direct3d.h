@@ -195,6 +195,8 @@ class Stream_Vis_Target_Direct3D_T
   STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T adapter_;
   IDirect3DDevice9Ex*                  IDirect3DDevice9Ex_;
   IDirect3DSwapChain9*                 IDirect3DSwapChain9_;
+
+  HWND                                 window_;
 };
 
 // include template implementation

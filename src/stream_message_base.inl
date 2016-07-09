@@ -36,7 +36,7 @@ template <typename AllocatorConfigurationType,
 Stream_MessageBase_T<AllocatorConfigurationType,
                      CommandType>::Stream_MessageBase_T ()
  : inherited (0,
-              STREAM_MESSAGE_OBJECT,
+              ACE_Message_Block::MB_DATA,
               NULL,
               NULL,
               NULL,
@@ -46,6 +46,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               ACE_Time_Value::max_time,
               NULL,
               NULL)
+ , type_ (STREAM_MESSAGE_DATA)
  , messageID_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
@@ -69,6 +70,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               ACE_Time_Value::max_time,
               NULL,
               NULL)
+ , type_ (STREAM_MESSAGE_DATA)
  , messageID_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
@@ -87,6 +89,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
                                                     // the data block
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
+ , type_ (message_in.type_)
  , messageID_ (message_in.messageID_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
@@ -105,6 +108,7 @@ Stream_MessageBase_T<AllocatorConfigurationType,
  : inherited (dataBlock_in,        // use (don't own (!) memory of-) data block
               0,                   // flags --> also "free" data block in dtor
               messageAllocator_in) // re-use the same allocator
+ , type_ (STREAM_MESSAGE_DATA)
 // , messageID_ (++currentID.value ())
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
@@ -113,8 +117,8 @@ Stream_MessageBase_T<AllocatorConfigurationType,
     ++currentID;
   messageID_ = currentID.value ();
 
-  // set correct message type
-  inherited::msg_type (STREAM_MESSAGE_DATA);
+  // reset message type
+  inherited::msg_type (ACE_Message_Block::MB_DATA);
 
   // reset read/write pointers
   inherited::reset ();
@@ -124,8 +128,9 @@ template <typename AllocatorConfigurationType,
           typename CommandType>
 Stream_MessageBase_T<AllocatorConfigurationType,
                      CommandType>::Stream_MessageBase_T (ACE_Allocator* messageAllocator_in)
-  : inherited (messageAllocator_in) // re-use the same allocator
-  , messageID_ (++currentID)
+ : inherited (messageAllocator_in) // re-use the same allocator
+ , type_ (STREAM_MESSAGE_DATA)
+ , messageID_ (++currentID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::Stream_MessageBase_T"));
 
@@ -146,6 +151,10 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   //              ACE_TEXT ("freeing message (ID: %d)...\n"),
   //              messageID_));
 
+  // reset message type
+  //inherited::msg_type (ACE_Message_Block::MB_DATA);
+  type_ = STREAM_MESSAGE_DATA;
+
   // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
   //                   (see e.g. stream_cachedmessageallocator.cpp:172)
   inherited::priority_ = std::numeric_limits<unsigned long>::max ();
@@ -163,8 +172,9 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   inherited::data_block (dataBlock_in);
 
   // set correct (?) message type
-  inherited::msg_type (STREAM_MESSAGE_DATA);
+  inherited::msg_type (ACE_Message_Block::MB_DATA);
 
+  type_ = STREAM_MESSAGE_DATA;
   // set scheduled execution time
   //msg_execution_time ();
 }
@@ -346,6 +356,50 @@ template <typename AllocatorConfigurationType,
           typename CommandType>
 void
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     CommandType>::MessageType2String (Stream_MessageType type_in,
+                                                       std::string& string_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::MessageType2String"));
+
+  // initialize return value(s)
+  string_out = ACE_TEXT_ALWAYS_CHAR ("INVALID_TYPE");
+
+  switch (type_in)
+  {
+    case STREAM_MESSAGE_CONTROL:
+    {
+      string_out = ACE_TEXT_ALWAYS_CHAR ("CONTROL");
+      break;
+    }
+    case STREAM_MESSAGE_SESSION:
+    {
+      string_out = ACE_TEXT_ALWAYS_CHAR ("SESSION");
+      break;
+    }
+    case STREAM_MESSAGE_DATA:
+    {
+      string_out = ACE_TEXT_ALWAYS_CHAR ("DATA");
+      break;
+    }
+    case STREAM_MESSAGE_OBJECT:
+    {
+      string_out = ACE_TEXT_ALWAYS_CHAR ("OBJECT");
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown message type (was: %d), aborting\n"),
+                  type_in));
+      break;
+    }
+  } // end SWITCH
+}
+
+template <typename AllocatorConfigurationType,
+          typename CommandType>
+void
+Stream_MessageBase_T<AllocatorConfigurationType,
                      CommandType>::resetMessageIDGenerator ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::resetIDGenerator"));
@@ -391,9 +445,9 @@ template <typename AllocatorConfigurationType,
 Stream_MessageBase_2<AllocatorConfigurationType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (ACE_Data_Block* dataBlock_in,
-                                                                 ACE_Allocator* messageAllocator_in)
+                                                         ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // use (don't own !) this data block
-              messageAllocator_in, // use this when destruction is imminent...
+              messageAllocator_in, // allocator
               true)                // increment the message ID ?
  , initialized_ (true)
 {

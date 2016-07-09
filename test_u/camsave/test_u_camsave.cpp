@@ -33,6 +33,11 @@
 #include "ace/Synch.h"
 #include "ace/Version.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "gdk/gdkwin32.h"
+#endif
+#include "gtk/gtk.h"
+
 #ifdef LIBACENETWORK_ENABLE_VALGRIND_SUPPORT
 #include "valgrind/valgrind.h"
 #endif
@@ -690,12 +695,21 @@ do_work (unsigned int bufferSize_in,
   CBData_in.configuration = &configuration;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //IAMBufferNegotiation* buffer_negotiation_p = NULL;
+  HWND window_handle = NULL;
+  if (configuration.moduleHandlerConfiguration.gdkWindow)
+  {
+    ACE_ASSERT (gdk_win32_window_is_win32 (configuration.moduleHandlerConfiguration.gdkWindow));
+    window_handle =
+      //gdk_win32_window_get_impl_hwnd (configuration.moduleHandlerConfiguration.gdkWindow);
+      //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.gdkWindow));
+      static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (configuration.moduleHandlerConfiguration.gdkWindow)));
+  } // end IF
   IMFMediaSession* media_session_p = NULL;
+  //IAMBufferNegotiation* buffer_negotiation_p = NULL;
   bool load_device = UIDefinitionFilename_in.empty ();
   bool initialize_COM = UIDefinitionFilename_in.empty ();
   if (!do_initialize_mediafoundation (configuration.moduleHandlerConfiguration.device,
-                                      configuration.moduleHandlerConfiguration.window,
+                                      window_handle,
                                       //configuration.moduleHandlerConfiguration.builder,
                                       media_session_p,
                                       //buffer_negotiation_p,
@@ -743,6 +757,9 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.hasHeader = true; // write AVI files
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *NOTE*: the media foundation capture source module does not use a worker
+  //         thread
+  configuration.moduleHandlerConfiguration.active = false;
   configuration.moduleHandlerConfiguration.session = media_session_p;
 #else
   configuration.moduleHandlerConfiguration.device = deviceFilename_in;

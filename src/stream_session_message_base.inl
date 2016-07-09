@@ -36,7 +36,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
                                                                         SessionDataType*& data_inout,
                                                                         UserDataType* userData_in)
  : inherited (0,                                  // size
-              STREAM_MESSAGE_SESSION,             // type
+              ACE_Message_Block::MB_USER,         // type
               NULL,                               // continuation
               NULL,                               // data
               NULL,                               // buffer allocator
@@ -76,7 +76,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 
   // set correct message type
   // *WARNING*: need to finalize initialization through initialize()
-  inherited::msg_type (STREAM_MESSAGE_SESSION);
+  inherited::msg_type (ACE_Message_Block::MB_USER);
 
   // reset read/write pointers
   inherited::reset ();
@@ -101,7 +101,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 
   // set correct message type
   // *WARNING*: need to finalize initialization through initialize()
-  inherited::msg_type (STREAM_MESSAGE_SESSION);
+  inherited::msg_type (ACE_Message_Block::MB_USER);
 
   // reset read/write pointers
   inherited::reset ();
@@ -130,7 +130,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   if (data_)
     data_->increase ();
 
-  inherited::msg_type (STREAM_MESSAGE_SESSION);
+  inherited::msg_type (ACE_Message_Block::MB_USER);
 
   // set read/write pointers
   inherited::rd_ptr (message_in.rd_ptr ());
@@ -156,7 +156,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   userData_ = NULL;
 
 //  // *WARNING*: cannot do that anymore (data block has already gone away)
-//  inherited::msg_type (STREAM_SESSION_MESSAGE_MAP);
+//  inherited::msg_type (ACE_Message_Block::MB_USER);
 
   // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
   //                   (see e.g. stream_cachedmessageallocator.cpp:172)
@@ -325,7 +325,7 @@ template <typename AllocatorConfigurationType,
 void
 Stream_SessionMessageBase_T<AllocatorConfigurationType,
                             SessionDataType,
-                            UserDataType>::MessageType2String (ACE_Message_Block::ACE_Message_Type type_in,
+                            UserDataType>::MessageType2String (Stream_SessionMessageType type_in,
                                                                std::string& string_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::MessageType2String"));
@@ -335,7 +335,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 
   switch (type_in)
   {
-    // *** control ***
+    // *** notifications ***
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       string_out = ACE_TEXT_ALWAYS_CHAR ("BEGIN");
@@ -365,7 +365,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown message type (was: %d), aborting\n"),
+                  ACE_TEXT ("invalid/unknown session message type (was: %d), aborting\n"),
                   type_in));
       break;
     }

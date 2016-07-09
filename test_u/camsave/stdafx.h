@@ -6,11 +6,13 @@
 #ifndef STDAFX_H
 #define STDAFX_H
 
-#if defined _MSC_VER
+#if defined (_MSC_VER)
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
 // *NOTE*: work around quirky MSVC...
 #define NOMINMAX
+
+#define _USE_MATH_DEFINES
 
 // Windows Header Files
 #include <windows.h>
@@ -40,7 +42,7 @@
 // Local Header Files
 #include "stream_macros.h"
 
-#if defined _MSC_VER
+#if defined (_MSC_VER)
 #include "targetver.h"
 #endif
 

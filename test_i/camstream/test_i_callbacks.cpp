@@ -1878,14 +1878,15 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
-  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT (window_p);
-  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.window);
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.gdkWindow);
+  data_p->configuration->moduleHandlerConfiguration.gdkWindow =
+    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.gdkWindow);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  data_p->configuration->moduleHandlerConfiguration.window =
-    gdk_win32_window_get_impl_hwnd (window_p);
-#else
-  data_p->configuration->moduleHandlerConfiguration.window = window_p;
+  //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
+  //data_p->configuration->moduleHandlerConfiguration.window =
+  //  //gdk_win32_window_get_impl_hwnd (window_p);
+  //  static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
@@ -1904,11 +1905,11 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (!data_p->pixelBuffer);
   data_p->pixelBuffer =
     gdk_pixbuf_get_from_drawable (NULL,
-                                  GDK_DRAWABLE (window_p),
+                                  GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
                                   NULL,
                                   0, 0,
                                   0, 0, allocation.width, allocation.height);
-  //      gdk_pixbuf_get_from_window (window_p,
+  //      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
   //                                  0, 0,
   //                                  allocation.width, allocation.height);
   if (!data_p->pixelBuffer)
@@ -4974,41 +4975,44 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_size_allocate_source_cb"));
 
+  ACE_UNUSED_ARG (widget_in);
+
   Test_I_Source_GTK_CBData* data_p =
     static_cast<Test_I_Source_GTK_CBData*> (userData_in);
 
   // sanity check(s)
+  ACE_ASSERT (allocation_in);
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
 
-  if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
-    return;
+  //if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
+  //  return;
 
-  Common_UI_GTKBuildersIterator_t iterator =
-    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
-  ACE_ASSERT (iterator != data_p->builders.end ());
+  //Common_UI_GTKBuildersIterator_t iterator =
+  //  data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  //// sanity check(s)
+  //ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkDrawingArea* drawing_area_p =
-    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DRAWINGAREA_NAME)));
-  ACE_ASSERT (drawing_area_p);
-  GtkAllocation allocation;
-  ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
-  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-                             &allocation);
+  //GtkDrawingArea* drawing_area_p =
+  //  GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+  //                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DRAWINGAREA_NAME)));
+  //ACE_ASSERT (drawing_area_p);
+  //GtkAllocation allocation;
+  //ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
+  //gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+  //                           &allocation);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //// sanity check(s)
   //ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration->windowController);
 
   data_p->configuration->moduleHandlerConfiguration.area.bottom =
-    allocation.height;
+    allocation_in->height;
   data_p->configuration->moduleHandlerConfiguration.area.left =
-    allocation.x;
+    allocation_in->x;
   data_p->configuration->moduleHandlerConfiguration.area.right =
-    allocation.width;
+    allocation_in->width;
   data_p->configuration->moduleHandlerConfiguration.area.top =
-    allocation.y;
+    allocation_in->y;
 
   //HRESULT result =
   //  data_p->configuration.moduleHandlerConfiguration->windowController->SetWindowPosition (data_p->configuration->moduleHandlerConfiguration.area.left,
@@ -5022,7 +5026,7 @@ drawingarea_size_allocate_source_cb (GtkWidget* widget_in,
   //              data_p->configuration->moduleHandlerConfiguration.area.right, data_p->configuration->moduleHandlerConfiguration.area.bottom,
   //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 #else
-  data_p->configuration->moduleHandlerConfiguration.area = allocation;
+  data_p->configuration->moduleHandlerConfiguration.area = *allocation_in;
 #endif
 } // drawingarea_configure_source_cb
 void

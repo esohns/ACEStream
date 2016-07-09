@@ -496,7 +496,11 @@ do_initialize_directshow (IMFMediaType*& mediaType_inout,
 
   // sanity check(s)
   //ACE_ASSERT (!IGraphBuilder_out);
-  ACE_ASSERT (!mediaType_inout);
+  if (mediaType_inout)
+  {
+    mediaType_inout->Release ();
+    mediaType_inout = NULL;
+  } // end IF
 
   if (!coInitialize_in)
     goto continue_;
@@ -506,11 +510,10 @@ do_initialize_directshow (IMFMediaType*& mediaType_inout,
                             COINIT_DISABLE_OLE1DDE  |
                             COINIT_SPEED_OVER_MEMORY));
   if (FAILED (result))
-  {
+  { // *NOTE*: most probable reason: RPC_E_CHANGED_MODE
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to CoInitializeEx(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
   } // end IF
 
   result = MFStartup (MF_VERSION,

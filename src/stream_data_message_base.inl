@@ -38,6 +38,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 }
 
 template <typename AllocatorConfigurationType,
@@ -52,6 +53,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 }
 
 template <typename AllocatorConfigurationType,
@@ -68,8 +70,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
-  // maintain the same message type
-  inherited::msg_type (message_in.msg_type ());
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 
 //  // ... and read/write pointers
 //  inherited::rd_ptr (message_in.rd_ptr ());
@@ -88,8 +89,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
-  // set correct message type
-  inherited::msg_type (STREAM_MESSAGE_OBJECT);
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 
   // reset read/write pointers
   this->reset ();
@@ -111,8 +111,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
-  // set correct message type
-  inherited::msg_type (STREAM_MESSAGE_OBJECT);
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 
   // reset read/write pointers
   this->reset ();
@@ -162,12 +161,8 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 
   // set data block (if any)
   if (dataBlock_in)
-  {
     inherited::initialize (dataBlock_in);
-
-    // (re)set correct message type
-    inherited::msg_type (STREAM_MESSAGE_OBJECT);
-  } // end IF
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 
   initialized_ = true;
 }
@@ -275,6 +270,7 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 }
 
 template <typename AllocatorConfigurationType,
@@ -288,6 +284,8 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
  , initialized_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
+
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 
   // set return values
   data_inout = NULL;
@@ -309,20 +307,16 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 
   if (data_)
   {
-    try
-    {
+    try {
       // *TODO*: remove type inference
       data_->increase ();
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Common_IReferenceCount::increase(), continuing\n")));
     }
   } // end IF
 
-  // maintain the same message type
-  inherited::msg_type (message_in.msg_type ());
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 
   // ... and read/write pointers
   inherited::rd_ptr (message_in.rd_ptr ());
@@ -341,8 +335,7 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
-  // set correct message type
-  inherited::msg_type (STREAM_MESSAGE_OBJECT);
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 
   // reset read/write pointers
   this->reset ();
@@ -364,8 +357,7 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::Stream_DataMessageBase_2"));
 
-  // set correct message type
-  inherited::msg_type (STREAM_MESSAGE_OBJECT);
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 
   // reset read/write pointers
   this->reset ();
@@ -389,13 +381,10 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
   // clean up
   if (data_)
   {
-    try
-    {
+    try {
       // *TODO*: remove type inference
       data_->decrease ();
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Common_IReferenceCount::decrease(), continuing\n")));
     }
@@ -436,13 +425,10 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
   {
     if (data_)
     {
-      try
-      {
+      try {
         // *TODO*: remove type inference
         data_->decrease ();
-      }
-      catch (...)
-      {
+      } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("caught exception in Common_IReferenceCount::decrease(), continuing\n")));
       }
@@ -460,12 +446,8 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
 
   // set data block (if any)
   if (dataBlock_in)
-  {
     inherited::initialize (dataBlock_in);
-
-    // (re)set correct message type
-    inherited::msg_type (STREAM_MESSAGE_OBJECT);
-  } // end IF
+  inherited::type_ = STREAM_MESSAGE_OBJECT;
 
   initialized_ = true;
 }
@@ -501,12 +483,9 @@ Stream_DataMessageBase_2<AllocatorConfigurationType,
   // dump data...
   if (data_)
   {
-    try
-    { // *TODO*: remove type inference
+    try { // *TODO*: remove type inference
       data_->dump_state ();
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Common_IDumpState::dump_state(), continuing\n")));
     }

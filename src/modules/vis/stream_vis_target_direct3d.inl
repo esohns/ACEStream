@@ -26,6 +26,11 @@
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "gdk/gdkwin32.h"
+#endif
+#include "gtk/gtk.h"
+
 #include "common_tools.h"
 
 #include "stream_macros.h"
@@ -112,6 +117,7 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
  , adapter_ (NULL)
  , IDirect3DDevice9Ex_ (NULL)
  , IDirect3DSwapChain9_ (NULL)
+ , window_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::Stream_Vis_Target_Direct3D_T"));
 
@@ -148,16 +154,12 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
     IDirect3DDevice9Ex_->Release ();
 
   if (inherited::configuration_)
-  {
     if (closeWindow_ &&
-        inherited::configuration_->window)
-    {
-      if (!::CloseWindow (inherited::configuration_->window))
+        (window_ != ACE_INVALID_HANDLE))
+      if (!::CloseWindow (window_))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CloseWindow(): \"%s\", continuing\n"),
                     ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
-    } // end IF
-  } // end IF
 }
 
 template <typename SynchStrategyType,
@@ -485,7 +487,7 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
       } // end IF
 
       //HWND parent_window_handle = configuration_->window;
-      if (!configuration_->window)
+      if (!window_)
       {
         DWORD window_style = (WS_BORDER      |
                               WS_CAPTION     |
@@ -493,7 +495,7 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
                               WS_MINIMIZEBOX |
                               WS_SYSMENU     |
                               WS_VISIBLE);
-        configuration_->window =
+        window_ =
           CreateWindowEx (0,                             // dwExStyle
                           NULL,                          // lpClassName
                           ACE_TEXT_ALWAYS_CHAR ("EDIT"), // lpWindowName
@@ -507,7 +509,7 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
                           NULL,                          // hMenu
                           GetModuleHandle (NULL),        // hInstance
                           NULL);                         // lpParam
-        if (!configuration_->window)
+        if (!window_)
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to CreateWindowEx(): \"%s\", aborting\n"),
@@ -518,7 +520,7 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
         //ACE_UNUSED_ARG (result_3);
         closeWindow_ = true;
       } // end IF
-      ACE_ASSERT (configuration_->window);
+      ACE_ASSERT (window_);
 
       //destinationRectangle_ = configuration_->area;
       SetRectEmpty (&destinationRectangle_);
@@ -527,7 +529,7 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
         session_data_r.direct3DDevice->AddRef ();
         IDirect3DDevice9Ex_ = session_data_r.direct3DDevice;
 
-        result_2 = initialize_Direct3DDevice (configuration_->window,
+        result_2 = initialize_Direct3DDevice (window_,
                                               media_type_p);
         if (FAILED (result_2))
         {
@@ -539,7 +541,7 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
       } // end IF
       else
       {
-        if (!initialize_Direct3D (configuration_->window,
+        if (!initialize_Direct3D (window_,
                                   media_type_p,
                                   IDirect3DDevice9Ex_,
                                   presentationParameters_,
@@ -570,11 +572,11 @@ error:
       if (closeWindow_)
       {
         closeWindow_ = false;
-        if (!::CloseWindow (configuration_->window))
+        if (!::CloseWindow (window_))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to CloseWindow(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
-        configuration_->window = NULL;
+        window_ = NULL;
       } // end IF
 
       session_data_r.aborted = true;
@@ -608,11 +610,11 @@ continue_:
       if (closeWindow_)
       {
         closeWindow_ = false;
-        if (!::CloseWindow (configuration_->window))
+        if (!::CloseWindow (window_))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to CloseWindow(): \"%s\", continuing\n"),
                       ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
-        configuration_->window = NULL;
+        window_ = NULL;
       } // end IF
 
       if (COM_initialized)
@@ -658,12 +660,24 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
     if (closeWindow_)
     {
       closeWindow_ = false;
-      if (!::CloseWindow (configuration_->window))
+
+      // sanity check(s)
+      ACE_ASSERT (window_);
+
+      if (!::CloseWindow (window_))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to CloseWindow(): \"%s\", continuing\n"),
                     ACE_TEXT (Common_Tools::error2String (::GetLastError ()).c_str ())));
-      configuration_->window = NULL;
+      window_ = NULL;
     } // end IF
+  } // end IF
+
+  if (configuration_in.gdkWindow)
+  {
+    window_ =
+      //gdk_win32_window_get_impl_hwnd (configuration_in.gdkWindow);
+      //gdk_win32_drawable_get_handle (GDK_DRAWABLE (configuration_in.gdkWindow));
+      static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (configuration_in.gdkWindow)));
   } // end IF
 
   isInitialized_ = inherited::initialize (configuration_in);
@@ -850,7 +864,7 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->window);
+  ACE_ASSERT (window_);
 
   if (!IDirect3DDevice9Ex_)
   {
@@ -858,7 +872,7 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
     ACE_ASSERT (sessionData_);
     ACE_ASSERT (sessionData_->format);
 
-    if (!this->initialize_Direct3D (configuration_->window,
+    if (!this->initialize_Direct3D (window_,
                                     sessionData_->format,
                                     IDirect3DDevice9Ex_,
                                     presentationParameters_,
@@ -885,7 +899,7 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
       return E_FAIL;
     } // end IF
 
-    result = create_swap_chains (configuration_->window,
+    result = create_swap_chains (window_,
                                  width_, height_,
                                  sub_type);
     if (FAILED (result))
@@ -1039,9 +1053,9 @@ Stream_Vis_Target_Direct3D_T<SynchStrategyType,
   if (IsRectEmpty (&destination_rectangle))
   {
     // sanity check(s)
-    ACE_ASSERT (configuration_->window);
+    ACE_ASSERT (window_);
 
-    if (!::GetClientRect (configuration_->window, &destination_rectangle))
+    if (!::GetClientRect (window_, &destination_rectangle))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to GetClientRect(): \"%s\", returning\n"),

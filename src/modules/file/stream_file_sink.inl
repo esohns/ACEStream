@@ -443,21 +443,21 @@ Stream_Module_FileWriter_T<SynchStrategyType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::initialize"));
 
   int result =
-    fileName_.set (ACE_TEXT (configuration_->targetFileName.c_str ()));
+    fileName_.set (ACE_TEXT (configuration_in.targetFileName.c_str ()));
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_FILE_Addr::set (\"%s\"): \"%m\", aborting\n"),
-                ACE_TEXT (configuration_->targetFileName.c_str ())));
+                ACE_TEXT (configuration_in.targetFileName.c_str ())));
     return false;
   } // end IF
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  if (Common_File_Tools::isReadable (configuration_->targetFileName))
+  if (Common_File_Tools::isReadable (configuration_in.targetFileName))
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("target file \"%s\" exists, continuing\n"),
-                ACE_TEXT (configuration_->targetFileName.c_str ())));
+                ACE_TEXT (configuration_in.targetFileName.c_str ())));
 
   return inherited::initialize (configuration_in);
 }

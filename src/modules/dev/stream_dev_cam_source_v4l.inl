@@ -772,7 +772,7 @@ done:
 //                queued, done));
 
     // *NOTE*: blocks until:
-    //         - a buffer is availbale
+    //         - a buffer is available
     //         - a frame has been written by the device
     result = v4l2_ioctl (captureFileDescriptor_,
                          VIDIOC_DQBUF,

@@ -83,10 +83,10 @@ class Stream_TaskBase_T
   void handleMessage (ACE_Message_Block*, // message handle
                       bool&);             // return value: stop processing ?
 
-  // default implementation to handle control messages
-  virtual void handleControlMessage (ACE_Message_Block*, // control message
-                                     bool&,              // return value: stop processing ?
-                                     bool&);             // return value: pass message downstream ?
+  // default implementation to handle user messages
+  virtual void handleUserMessage (ACE_Message_Block*, // control message
+                                  bool&,              // return value: stop processing ?
+                                  bool&);             // return value: pass message downstream ?
 
   ConfigurationType*  configuration_;
   //ACE_SYNCH_MUTEX     lock_;

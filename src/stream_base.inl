@@ -467,67 +467,67 @@ Stream_Base_T<LockType,
        iterator++)
     (*iterator)->next (NULL);
 
-  // step2: setup pipeline ?
-  if (setupPipeline_in)
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->moduleConfiguration);
+  ACE_ASSERT (configuration_->moduleHandlerConfiguration);
+
+  // step2: initialize modules
+  IMODULE_T* imodule_p = NULL;
+  Stream_Task_t* task_p = NULL;
+  MODULEHANDLER_IINITIALIZE_T* iinitialize_p = NULL;
+  for (Stream_ModuleListIterator_t iterator = modules_.begin ();
+       iterator != modules_.end ();
+       iterator++)
   {
-    // sanity check(s)
-    ACE_ASSERT (configuration_);
-    ACE_ASSERT (configuration_->moduleHandlerConfiguration);
-
-    IMODULE_T* imodule_p = NULL;
-    Stream_Task_t* task_p = NULL;
-    MODULEHANDLER_IINITIALIZE_T* iinitialize_p = NULL;
-    for (Stream_ModuleListIterator_t iterator = modules_.begin ();
-         iterator != modules_.end ();
-         iterator++)
+    imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
+    if (!imodule_p)
     {
-      imodule_p = dynamic_cast<IMODULE_T*> (*iterator);
-      if (!imodule_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, returning\n"),
-                    (*iterator)->name ()));
-        return;
-      } // end IF
-      if (!imodule_p->initialize (*configuration_->moduleConfiguration))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
-                    (*iterator)->name ()));
-        return;
-      } // end IF
-
-      task_p = (*iterator)->writer ();
-      ACE_ASSERT (task_p);
-      iinitialize_p = dynamic_cast<MODULEHANDLER_IINITIALIZE_T*> (task_p);
-      if (!iinitialize_p)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, returning\n"),
-                    (*iterator)->name ()));
-        return;
-      } // end IF
-      if (!iinitialize_p->initialize (*configuration_->moduleHandlerConfiguration))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
-                    (*iterator)->name ()));
-        return;
-      } // end IF
-
-      //// *TODO* fix ACE bug: modules should initialize their 'next_' member
-      //(*iterator)->next (NULL);
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, returning\n"),
+                  (*iterator)->name ()));
+      return;
+    } // end IF
+    if (!imodule_p->initialize (*configuration_->moduleConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
+                  (*iterator)->name ()));
+      return;
     } // end IF
 
+    task_p = (*iterator)->writer ();
+    ACE_ASSERT (task_p);
+    iinitialize_p = dynamic_cast<MODULEHANDLER_IINITIALIZE_T*> (task_p);
+    if (!iinitialize_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, returning\n"),
+                  (*iterator)->name ()));
+      return;
+    } // end IF
+    if (!iinitialize_p->initialize (*configuration_->moduleHandlerConfiguration))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
+                  (*iterator)->name ()));
+      return;
+    } // end IF
+
+    //// *TODO* fix ACE bug: modules should initialize their 'next_' member
+    //(*iterator)->next (NULL);
+  } // end FOR
+
+  // step3: setup pipeline ?
+  if (setupPipeline_in)
     if (!setup (NULL))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Base_T::setup(), returning\n")));
       return;
     } // end IF
-  } // end IF
 
-  //// step3: initialize state machine
+  //// step4: initialize state machine
   //// delegate to the head module
   //MODULE_T* module_p = NULL;
   //result = inherited::top (module_p);
@@ -615,6 +615,8 @@ Stream_Base_T<LockType,
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::close(M_DELETE_NONE): \"%m\", aborting\n")));
+
+  modules_.clear ();
 
   return (result == 0);
 }

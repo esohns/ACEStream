@@ -146,8 +146,8 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::handleDataMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
-  if (!configuration_->window)
+  ACE_ASSERT (inherited::configuration_);
+  if (!inherited::configuration_->gdkWindow)
     return; // done
 //  if (configuration_->hasHeader &&
 //      isFirst_)
@@ -223,7 +223,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
 #endif
 
   bool unlock = false;
-//  bool leave_gdk = false;
+  bool leave_gdk = false;
   int result = -1;
   int result_2 = -1;
 
@@ -239,8 +239,8 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
     unlock = true;
   } // end IF
 
-//  gdk_threads_enter ();
-//  leave_gdk = true;
+  //gdk_threads_enter ();
+  //leave_gdk = true;
 
   ACE_Message_Block* message_block_p = message_inout;
   unsigned int offset = 0;//, length = message_block_p->length ();
@@ -265,7 +265,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFGetStrideForBitmapInfoHeader(): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result_3).c_str ())));
-    return;
+    goto error;
   } // end IF
 #else
   int row_stride = session_data_r.format.fmt.pix.bytesperline;
@@ -703,7 +703,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to avcodec_find_decoder(AV_CODEC_ID_MJPEG): \"%m\", returning\n")));
-        return;
+        goto error;
       } // end IF
       AVFrame* frame_p = NULL;
 //      frame_p = av_frame_alloc ();
@@ -755,7 +755,9 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
       context_p->width = session_data_r.format.fmt.pix.width;
       context_p->height = session_data_r.format.fmt.pix.height;
 #endif
-      result = avcodec_open2 (context_p, codec_p, NULL);
+      result = avcodec_open2 (context_p,
+                              codec_p,
+                              NULL);
       if (result < 0)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -763,7 +765,11 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
         goto clean;
       } // end IF
 
-      result = avcodec_decode_video2 (context_p, frame_p, &got_picture, &packet);
+      result =
+        avcodec_decode_video2 (context_p,
+                               frame_p,
+                               &got_picture,
+                               &packet);
       if ((result < 0) || !got_picture)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -854,8 +860,7 @@ unlock:
   } // end IF
 
   if (result == -1)
-    return;
-    //goto error;
+    goto error;
 
 //  pixelBuffer_ =
 //      gdk_pixbuf_new_from_data (data_p,                               // data
@@ -922,9 +927,9 @@ unlock:
   //         --> schedule a refresh with gtk_widget_queue_draw_area() instead
   // *NOTE*: this does not work either... :-(
   //         --> let the downstream event handler queue an idle request
-//  gdk_window_invalidate_rect (configuration_->window,
-//                              NULL,
-//                              false);
+  //gdk_window_invalidate_rect (inherited::configuration_->gdkWindow,
+  //                            NULL,
+  //                            false);
 //  GtkWidget* widget_p = NULL;
 //  gdk_window_get_user_data (configuration_->window,
 //                            reinterpret_cast<gpointer*> (&widget_p));
@@ -937,9 +942,9 @@ unlock:
 //                              allocation.x, allocation.y,
 //                              allocation.width, allocation.height);
 
-//error:
-//  if (leave_gdk)
-//    gdk_threads_leave ();
+error:
+  if (leave_gdk)
+    gdk_threads_leave ();
 }
 
 template <typename SynchStrategyType,
@@ -980,7 +985,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
           const_cast<SessionDataType&> (sessionData_->get ());
 
       // sanity check(s)
-      if (!configuration_->window)
+      if (!configuration_->gdkWindow)
         break; // done
       ACE_ASSERT (pixelBuffer_);
 
@@ -1146,7 +1151,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
   if (!configuration_in.pixelBuffer)
   {
     // *TODO*: remove type inference
-    if (configuration_in.window)
+    if (configuration_in.gdkWindow)
     {
       gdk_threads_enter ();
 
@@ -1160,7 +1165,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
           //                                    0, 0,
           //                                    configuration_->area.width, configuration_->area.height);
           gdk_pixbuf_get_from_drawable (NULL,
-                                        GDK_DRAWABLE (configuration_in.window),
+                                        GDK_DRAWABLE (configuration_in.gdkWindow),
                                         NULL,
                                         0, 0,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

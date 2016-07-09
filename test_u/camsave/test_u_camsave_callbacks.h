@@ -102,11 +102,8 @@ G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_format_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_resolution_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_rate_changed_cb (GtkWidget*, gpointer);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-G_MODULE_EXPORT gboolean drawingarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
-#endif
 //G_MODULE_EXPORT void drawingarea_configure_event_cb (GtkWindow*, GdkEvent*, gpointer);
+G_MODULE_EXPORT gboolean drawingarea_draw_cb (GtkWidget*, cairo_t*, gpointer);
 G_MODULE_EXPORT void drawingarea_size_allocate_cb (GtkWidget*, GdkRectangle*, gpointer);
 G_MODULE_EXPORT void filechooserbutton_cb (GtkFileChooserButton*, gpointer);
 G_MODULE_EXPORT void filechooserdialog_cb (GtkFileChooser*, gpointer);
