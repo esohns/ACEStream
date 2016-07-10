@@ -3977,10 +3977,10 @@ drawingarea_draw_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
     return FALSE;
   } // end IF
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    // *NOTE*: media foundation capture frames are v-flipped bgr
-  cairo_rotate (context_p, 180.0 * M_PI / 180.0);
-#endif
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  // *NOTE*: media foundation capture frames are v-flipped bgr
+//  cairo_rotate (context_p, 180.0 * M_PI / 180.0);
+//#endif
   gdk_cairo_set_source_pixbuf (context_p,
                                data_p->pixelBuffer,
                                0.0, 0.0);

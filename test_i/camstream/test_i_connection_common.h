@@ -304,6 +304,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_AsynchTCPConnection_t,
                                      Test_I_Source_Configuration,
                                      Test_I_Source_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
+                                     /////
                                      Test_I_Source_NetStream_t,
                                      /////
                                      Test_I_Source_SocketHandlerConfiguration,
@@ -316,6 +317,7 @@ typedef Net_Client_Connector_T<Test_I_Source_TCPConnection_t,
                                Test_I_Source_Configuration,
                                Test_I_Source_ConnectionState,
                                Test_I_RuntimeStatistic_t,
+                               ///////////
                                Test_I_Source_NetStream_t,
                                ///////////
                                Test_I_Source_SocketHandlerConfiguration,
@@ -327,6 +329,7 @@ typedef Net_Client_AsynchConnector_T<Test_I_Source_AsynchUDPConnection_t,
                                      Test_I_Source_Configuration,
                                      Test_I_Source_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
+                                     /////
                                      Test_I_Source_NetStream_t,
                                      /////
                                      Test_I_Source_SocketHandlerConfiguration,
@@ -339,6 +342,7 @@ typedef Net_Client_Connector_T<Test_I_Source_UDPConnection_t,
                                Test_I_Source_Configuration,
                                Test_I_Source_ConnectionState,
                                Test_I_RuntimeStatistic_t,
+                               ///////////
                                Test_I_Source_NetStream_t,
                                ///////////
                                Test_I_Source_SocketHandlerConfiguration,

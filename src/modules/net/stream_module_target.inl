@@ -665,8 +665,8 @@ Stream_Module_Net_Target_T<SynchStrategyType,
 
   // sanity check(s)
   // *TODO*: remove type inferences
-  ACE_ASSERT (configuration_->socketConfiguration);
-  if (configuration_->socketConfiguration->address.is_any ())
+  ACE_ASSERT (configuration_in.socketConfiguration);
+  if (configuration_in.socketConfiguration->address.is_any ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid peer address (was: any), aborting\n")));

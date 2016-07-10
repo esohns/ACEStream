@@ -75,7 +75,7 @@ Stream_Base_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  int result = -1;
+  //int result = -1;
 
   // *TODO*: (for reasons yet unknown,) inherited::stream_head_::next_ and
   //         inherited::stream_tail_::next_ fail to initialize; i.e. the
@@ -96,7 +96,7 @@ Stream_Base_T<LockType,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", continuing\n")));
   // *TODO*: this really shouldn't be necessary
-  inherited::head ()->next (inherited::tail ());
+  //inherited::head ()->next (inherited::tail ());
 #endif
 }
 
@@ -488,6 +488,7 @@ Stream_Base_T<LockType,
                   (*iterator)->name ()));
       return;
     } // end IF
+    imodule_p->reset ();
     if (!imodule_p->initialize (*configuration_->moduleConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -616,7 +617,13 @@ Stream_Base_T<LockType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Stream::close(M_DELETE_NONE): \"%m\", aborting\n")));
 
-  modules_.clear ();
+  if (hasFinal_)
+  {
+    Stream_ModuleListIterator_t iterator = modules_.begin ();
+    modules_.erase (++iterator, modules_.end ());
+  } // end IF
+  else
+    modules_.clear ();
 
   return (result == 0);
 }

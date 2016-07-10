@@ -182,6 +182,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
     baseTimeStamp_ = 0;
 
+    hasFinished_ = false;
     isFirst_ = true;
 
     if (symbolicLinkSize_)
