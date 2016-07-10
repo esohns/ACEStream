@@ -3139,6 +3139,33 @@ idle_update_log_display_cb (gpointer userData_in)
   return G_SOURCE_CONTINUE;
 }
 
+gboolean
+idle_update_video_display_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_update_video_display_cb"));
+
+  Test_I_GTK_CBData* data_p =
+      static_cast<Test_I_GTK_CBData*> (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (data_p);
+
+  Common_UI_GTKBuildersIterator_t iterator =
+    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != data_p->builders.end ());
+
+  GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_DRAWINGAREA_NAME)));
+  ACE_ASSERT (drawing_area_p);
+
+  gdk_window_invalidate_rect (GTK_WIDGET (drawing_area_p)->window,
+                              NULL,
+                              false);
+
+  return G_SOURCE_REMOVE;
+}
+
 /////////////////////////////////////////
 
 #ifdef __cplusplus

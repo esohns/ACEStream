@@ -1068,21 +1068,27 @@ do_work (unsigned int bufferSize_in,
     stream_p->waitForCompletion ();
 
     // clean up
-    connection_manager_p->stop ();
-    Common_Tools::finalizeEventDispatch (useReactor_in,
-                                         !useReactor_in,
-                                         group_id);
-    connection_manager_p->wait ();
+//    connection_manager_p->stop ();
   } // end IF
   else
-    Common_Tools::dispatchEvents (useReactor_in,
-                                  group_id);
+  {
+    result = COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->wait ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task_Base::wait (): \"%m\", continuing\n")));
+
+//    connection_manager_p->abort ();
+  } // end ELSE
+  connection_manager_p->wait ();
+  Common_Tools::finalizeEventDispatch (useReactor_in,
+                                       !useReactor_in,
+                                       group_id);
 
   // step3: clean up
 clean:
-  if (!UIDefinitionFilename_in.empty ())
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
-  COMMON_TIMERMANAGER_SINGLETON::instance ()->stop ();
+//  if (!UIDefinitionFilename_in.empty ())
+//    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
+//  COMMON_TIMERMANAGER_SINGLETON::instance ()->stop ();
 
   //		{ // synch access
   //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);

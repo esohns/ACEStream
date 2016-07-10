@@ -111,12 +111,9 @@ Test_I_Source_SignalHandler::handleSignal (int signal_in)
   // print statistic ?
   if (statistic)
   {
-    try
-    {
+    try {
       //handle = configuration_.connector->connect (configuration_.peerAddress);
-    }
-    catch (...)
-    {
+    } catch (...) {
       //// *PORTABILITY*: tracing in a signal handler context is not portable
       //// *TODO*
       //ACE_DEBUG ((LM_ERROR,
@@ -145,14 +142,12 @@ Test_I_Source_SignalHandler::handleSignal (int signal_in)
         TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
     ACE_ASSERT (connection_manager_p);
     connection_manager_p->stop ();
-    connection_manager_p->abort ();
+//    connection_manager_p->abort ();
 
-    // step5: stop reactor (&& proactor, if applicable)
-    Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?
-                                         !inherited::configuration_->useReactor, // stop proactor ?
-                                         -1);                     // group ID (--> don't block)
-
-    // *IMPORTANT NOTE*: there is no real reason to wait here
+//    // step3: stop reactor (&& proactor, if applicable)
+//    Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?
+//                                         !inherited::configuration_->useReactor, // stop proactor ?
+//                                         -1);                                    // group ID (--> don't block)
   } // end IF
 
   return true;

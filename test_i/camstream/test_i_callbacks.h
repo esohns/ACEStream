@@ -95,6 +95,7 @@ gboolean idle_update_progress_target_cb (gpointer);
 
 gboolean idle_update_info_display_cb (gpointer);
 gboolean idle_update_log_display_cb (gpointer);
+gboolean idle_update_video_display_cb (gpointer);
 
 //------------------------------------------------------------------------------
 

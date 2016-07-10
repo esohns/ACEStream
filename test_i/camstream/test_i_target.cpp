@@ -1324,8 +1324,8 @@ do_work (unsigned int bufferSize_in,
 
   // *NOTE*: from this point on, clean up any remote connections !
 
-  Common_Tools::dispatchEvents (useReactor_in,
-                                group_id);
+//  Common_Tools::dispatchEvents (useReactor_in,
+//                                group_id);
 
   // clean up
 clean:
@@ -1345,13 +1345,18 @@ clean:
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task_Base::wait (): \"%m\", continuing\n")));
+
+//    connection_manager_p->abort ();
   } // end IF
   timer_manager_p->stop ();
 
   // wait for connection processing to complete
-  connection_manager_p->stop ();
-  connection_manager_p->abort ();
+//  connection_manager_p->stop ();
+//  connection_manager_p->abort ();
   connection_manager_p->wait ();
+  Common_Tools::finalizeEventDispatch (useReactor_in,
+                                       !useReactor_in,
+                                       group_id);
 
   result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
   if (result == -1)

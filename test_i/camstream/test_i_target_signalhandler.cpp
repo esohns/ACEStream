@@ -175,16 +175,15 @@ Stream_Target_SignalHandler::handleSignal (int signal_in)
       inherited::configuration_->statisticReportingTimerID = -1;
     } // end IF
 
-    // step4: stop/abort(/wait) for connections
+    // step4: stop/abort(/wait) for connection(s)
     connection_manager_p->stop ();
     connection_manager_p->abort ();
+//    connection_manager_p->wait ();
 
     // step5: stop reactor (&& proactor, if applicable)
     Common_Tools::finalizeEventDispatch (inherited::configuration_->useReactor,  // stop reactor ?
                                          !inherited::configuration_->useReactor, // stop proactor ?
                                          -1);                                    // group ID (--> don't block)
-
-    // *IMPORTANT NOTE*: there is no real reason to wait here
   } // end IF
 
   return true;

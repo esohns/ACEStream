@@ -165,7 +165,23 @@ Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
   ACE_ASSERT (message_inout->length () ==
               session_data_r.format.fmt.pix.sizeimage);
 
+  bool leave_gdk = false;
   int result = -1;
+
+  if (lock_)
+  {
+    result = lock_->acquire ();
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::acquire(): \"%m\", returning\n")));
+      return;
+    } // end IF
+  } // end IF
+
+  //gdk_threads_enter ();
+  //leave_gdk = true;
+
   ACE_Message_Block* message_block_p = message_inout;
   unsigned int offset = 0;//, length = message_block_p->length ();
   unsigned char* data_p =
@@ -581,9 +597,9 @@ unlock:
   } // end IF
 
   if (result == -1)
-    return; // error
+    goto error;
 
-  gdk_threads_enter ();
+//  gdk_threads_enter ();
 
 //  pixelBuffer_ =
 //      gdk_pixbuf_new_from_data (data_p,                               // data
@@ -627,9 +643,9 @@ unlock:
   //         --> schedule a refresh with gtk_widget_queue_draw_area() instead
   // *NOTE*: this does not work either... :-(
   //         --> let the downstream event handler queue an idle request
-  gdk_window_invalidate_rect (inherited::configuration_->gdkWindow,
-                              NULL,
-                              false);
+//  gdk_window_invalidate_rect (inherited::configuration_->gdkWindow,
+//                              NULL,
+//                              false);
 //  GtkWidget* widget_p = NULL;
 //  gdk_window_get_user_data (configuration_->window,
 //                            reinterpret_cast<gpointer*> (&widget_p));
@@ -642,7 +658,9 @@ unlock:
 //                              allocation.x, allocation.y,
 //                              allocation.width, allocation.height);
 
-  gdk_threads_leave ();
+error:
+  if (leave_gdk)
+    gdk_threads_leave ();
 }
 
 template <typename SynchStrategyType,

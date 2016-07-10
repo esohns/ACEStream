@@ -331,6 +331,7 @@ Stream_Module_SplitterH_T<LockType,
 continue_:
   // message_block_p points at the trailing fragment
 
+  unsigned int frame_size = 0;
   unsigned int total_length = buffer_->total_length ();
   // *TODO*: remove type inference
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -338,39 +339,32 @@ continue_:
   ACE_ASSERT (inherited::configuration_->format);
 
   //if (total_length < inherited::configuration_->format->lSampleSize)
-  UINT32 sample_size = 0;
   HRESULT result =
       inherited::configuration_->format->GetUINT32 (MF_MT_SAMPLE_SIZE,
-                                                    &sample_size);
+                                                    &frame_size);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_SAMPLE_SIZE,%u): \"%s\", returning\n"),
-                sample_size,
+                ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_SAMPLE_SIZE): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
 #else
-  if (total_length < inherited::configuration_->format.fmt.pix.sizeimage)
+  frame_size = inherited::configuration_->format.fmt.pix.sizeimage;
 #endif
+  if (total_length < frame_size)
     return; // done
 
   // received enough data --> (split and) forward
   ACE_Message_Block* message_block_2 = NULL;
-  unsigned int remainder = (total_length -
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            //configuration_->format->lSampleSize);
-                            sample_size);
-#else
-                            inherited::configuration_->format.fmt.pix.sizeimage);
-#endif
+  unsigned int remainder = (total_length - frame_size);
   if (remainder)
   {
     message_block_2 = message_block_p->duplicate ();
     if (!message_block_2)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
+                  ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
                   inherited::mod_->name ()));
       return;
     } // end IF
@@ -388,15 +382,8 @@ continue_:
     message_block_p = buffer_;
     buffer_ = NULL;
   } // end IF
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (message_block_p->total_length () ==
-              //configuration_->format->lSampleSize);
-              sample_size);
-#else
-  ACE_ASSERT (message_block_p->total_length () ==
-              inherited::configuration_->format.fmt.pix.sizeimage);
-#endif
+  total_length = message_block_p->total_length ();
+  ACE_ASSERT (total_length == frame_size);
 
   int result_2 = inherited::put_next (message_block_p, NULL);
   if (result_2 == -1)
@@ -410,12 +397,14 @@ continue_:
 
     return;
   } // end IF
-  message_block_p = buffer_;
 
   // *NOTE*: more than one frame may have been received
   //         --> split again ?
   if (buffer_)
+  {
+    message_block_p = buffer_;
     goto continue_;
+  } // end IF
 }
 
 template <typename LockType,
