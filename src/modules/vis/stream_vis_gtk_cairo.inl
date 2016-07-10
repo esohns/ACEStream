@@ -969,7 +969,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::handleSessionMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
 
   switch (message_inout->type ())
   {
@@ -985,7 +985,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
           const_cast<SessionDataType&> (sessionData_->get ());
 
       // sanity check(s)
-      if (!configuration_->gdkWindow)
+      if (!inherited::configuration_->gdkWindow)
         break; // done
       ACE_ASSERT (pixelBuffer_);
 

@@ -160,9 +160,6 @@ class Stream_Module_SplitterH_T
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   //virtual void report () const;
 
- protected:
-  ConfigurationType* configuration_;
-
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
                                       ////

@@ -72,14 +72,12 @@ class Stream_Module_MessageHandler_T
   Stream_Module_MessageHandler_T ();
   virtual ~Stream_Module_MessageHandler_T ();
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   using Stream_TaskBaseSynch_T<SynchStrategyType,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType>::initialize;
-#endif
   virtual void initialize (SUBSCRIBERS_T* = NULL,              // subscribers (handle)
                            ACE_SYNCH_RECURSIVE_MUTEX* = NULL); // subscribers lock
 

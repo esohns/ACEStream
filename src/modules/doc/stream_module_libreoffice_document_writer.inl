@@ -145,7 +145,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
 
   const typename SessionMessageType::DATA_T& session_data_container_r =
       message_inout->get ();
@@ -156,7 +156,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
-      ACE_ASSERT (configuration_->socketConfiguration);
+      ACE_ASSERT (inherited::configuration_->socketConfiguration);
 
       uno::Reference<uno::XInterface> interface_p;
       uno::Reference<lang::XMultiComponentFactory> multi_component_factory_p;
@@ -177,8 +177,8 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       ACE_TCHAR buffer[BUFSIZ];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
       result =
-        configuration_->socketConfiguration->address.addr_to_string (buffer,
-                                                                     sizeof (buffer));
+        inherited::configuration_->socketConfiguration->address.addr_to_string (buffer,
+                                                                                sizeof (buffer));
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -189,8 +189,8 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
       result_p =
-        configuration_->socketConfiguration->address.get_host_addr (host_address,
-                                                                    sizeof (host_address));
+        inherited::configuration_->socketConfiguration->address.get_host_addr (host_address,
+                                                                               sizeof (host_address));
       if (!result_p || (result_p != host_address))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -202,7 +202,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       connection_string += ACE_TEXT_ALWAYS_CHAR (host_address);
       connection_string += ACE_TEXT_ALWAYS_CHAR (",port=");
       converter <<
-        configuration_->socketConfiguration->address.get_port_number ();
+        inherited::configuration_->socketConfiguration->address.get_port_number ();
       connection_string += converter.str ();
       connection_string += ACE_TEXT_ALWAYS_CHAR (";urp;StarOffice.ServiceManager");
       connection_string_2 =
@@ -221,13 +221,10 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       result_4 = resolver_p.set (interface_p,
                                  uno::UNO_QUERY);
       ACE_ASSERT (result_4);
-      try
-      {
+      try {
         result_4 = interface_p.set (resolver_p->resolve (connection_string_2),
                                     uno::UNO_QUERY);
-      }
-      catch (uno::Exception& exception_in)
-      {
+      } catch (uno::Exception& exception_in) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to establish a connection (was: \"%s\"): \"%s\"\n"),
                     ACE_TEXT (::rtl::OUStringToOString (connection_string_2,
@@ -257,7 +254,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
 
       // generate document filename URL
       filename =
-        ::rtl::OUString::createFromAscii (configuration_->targetFileName.c_str ());
+        ::rtl::OUString::createFromAscii (inherited::configuration_->targetFileName.c_str ());
       result_2 = osl_getProcessWorkingDir (&working_directory.pData);
       ACE_ASSERT (result_2 == osl_Process_E_None);
       result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,

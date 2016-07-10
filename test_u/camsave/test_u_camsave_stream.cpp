@@ -908,14 +908,14 @@ Stream_CamSave_Stream::initialize (const Stream_CamSave_StreamConfiguration& con
   //media_filter_p = NULL;
 #endif
 
-  source_.initialize (*configuration_in.moduleConfiguration);
-  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                source_.name ()));
-    goto error;
-  } // end IF
+//  source_.initialize (*configuration_in.moduleConfiguration);
+//  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+//                source_.name ()));
+//    goto error;
+//  } // end IF
   if (!source_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,

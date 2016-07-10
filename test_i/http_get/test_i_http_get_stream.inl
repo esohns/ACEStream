@@ -212,55 +212,55 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   ACE_ASSERT (configuration_in.moduleConfiguration);
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
-  if (configuration_in.module)
-  {
-    // *TODO*: (at least part of) this procedure belongs in libACEStream
-    //         --> remove type inferences
-    inherited::IMODULE_T* imodule_p =
-        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
-    if (!imodule_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    imodule_p->reset ();
-    Stream_Task_t* task_p = configuration_in.module->writer ();
-    ACE_ASSERT (task_p);
-    inherited::MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
-      dynamic_cast<inherited::MODULEHANDLER_IINITIALIZE_T*> (task_p);
-    if (!iinitialize_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    inherited::modules_.push_front (configuration_in.module);
-  } // end IF
+//  if (configuration_in.module)
+//  {
+//    // *TODO*: (at least part of) this procedure belongs in libACEStream
+//    //         --> remove type inferences
+//    inherited::IMODULE_T* imodule_p =
+//        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
+//    if (!imodule_p)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+//    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+//    imodule_p->reset ();
+//    Stream_Task_t* task_p = configuration_in.module->writer ();
+//    ACE_ASSERT (task_p);
+//    inherited::MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
+//      dynamic_cast<inherited::MODULEHANDLER_IINITIALIZE_T*> (task_p);
+//    if (!iinitialize_p)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+//    if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+////    inherited::modules_.push_front (configuration_in.module);
+//  } // end IF
 
   // ---------------------------------------------------------------------------
 
   //Test_I_Stream_Module_HTMLWriter* HTMLWriter_impl_p = NULL;
-  Test_I_Stream_HTMLParser* HTMLParser_impl_p = NULL;
-  Test_I_Stream_HTTPGet* HTTPGet_impl_p = NULL;
-  Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
-  Test_I_Stream_HTTP_Parser* HTTPParser_impl_p = NULL;
+//  Test_I_Stream_HTMLParser* HTMLParser_impl_p = NULL;
+//  Test_I_Stream_HTTPGet* HTTPGet_impl_p = NULL;
+//  Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
+//  Test_I_Stream_HTTP_Parser* HTTPParser_impl_p = NULL;
   SOURCE_WRITER_T* netSource_impl_p = NULL;
 
   //// ******************* HTML Writer ************************

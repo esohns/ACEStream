@@ -119,8 +119,9 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_MUTEX,
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_SYNCH_MUTEX,
                                       ////
-                                      Test_I_Source_Stream_SessionMessage,
+                                      ACE_Message_Block,
                                       Test_I_Source_Stream_Message,
+                                      Test_I_Source_Stream_SessionMessage,
                                       ////
                                       Test_I_Source_Stream_ModuleHandlerConfiguration,
                                       ////
@@ -403,19 +404,25 @@ typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Test_I_Target_Stream_SessionData,
                                       Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
 #else
-typedef Stream_Module_Vis_GTK_Pixbuf_T<Test_I_Source_Stream_SessionMessage,
-                                       Test_I_Source_Stream_Message,
+typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
                                        ///
                                        Test_I_Source_Stream_ModuleHandlerConfiguration,
                                        ///
-                                       Test_I_Source_Stream_SessionData,
+                                       ACE_Message_Block,
+                                       Test_I_Source_Stream_Message,
+                                       Test_I_Source_Stream_SessionMessage,
+                                       ///
                                        Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
-typedef Stream_Module_Vis_GTK_Pixbuf_T<Test_I_Target_Stream_SessionMessage,
-                                       Test_I_Target_Stream_Message,
+typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
+                                       Common_TimePolicy_t,
                                        ///
                                        Test_I_Target_Stream_ModuleHandlerConfiguration,
                                        ///
-                                       Test_I_Target_Stream_SessionData,
+                                       ACE_Message_Block,
+                                       Test_I_Target_Stream_Message,
+                                       Test_I_Target_Stream_SessionMessage,
+                                       ///
                                        Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
 #endif
 DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type

@@ -387,7 +387,7 @@ Stream_Module_HTMLParser_T<SynchStrategyType,
   ACE_ASSERT (inherited::mod_);
 
   // *TODO*: remove type inferences
-  mode_ = configuration_->mode;
+  mode_ = configuration_in.mode;
   if (mode_ == STREAM_MODULE_HTMLPARSER_SAX)
   {
     //htmlDefaultSAXHandlerInit ();

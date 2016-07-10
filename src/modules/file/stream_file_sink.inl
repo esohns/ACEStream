@@ -108,7 +108,7 @@ Stream_Module_FileWriter_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
   if (!isOpen_)
   {
 //    ACE_DEBUG ((LM_ERROR,
@@ -158,7 +158,7 @@ Stream_Module_FileWriter_T<SynchStrategyType,
 
       // print progress dots ?
       // *TODO*: remove type inferences
-      if (configuration_->printProgressDot)
+      if (inherited::configuration_->printProgressDot)
         std::cout << '.';
 
       break;
@@ -191,7 +191,7 @@ Stream_Module_FileWriter_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
 
   switch (message_inout->type ())
   {

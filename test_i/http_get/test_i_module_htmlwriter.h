@@ -45,6 +45,7 @@ class Test_I_Stream_Module_HTMLWriter
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      /////
+                                     Test_I_Stream_SessionData_t,
                                      Test_I_Stream_SessionData>
 {
  public:
@@ -65,6 +66,7 @@ class Test_I_Stream_Module_HTMLWriter
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      /////
+                                     Test_I_Stream_SessionData_t,
                                      Test_I_Stream_SessionData> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_HTMLWriter (const Test_I_Stream_Module_HTMLWriter&))

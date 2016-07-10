@@ -227,14 +227,11 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::initialize"));
 
-  //int result = -1;
-
   if (isInitialized_)
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("re-initializing...\n")));
 
-    configuration_ = NULL;
     if (sessionData_)
     {
       sessionData_->decrease ();
@@ -244,6 +241,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
     isFirst_ = true;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
+    int result = -1;
     if (formatContext_)
     {
       if (formatContext_->streams)
@@ -395,17 +393,17 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
 #endif
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
   // *TODO*: remove type inference
   message_block_p =
-    allocateMessage (configuration_->streamConfiguration->bufferSize);
+    allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("allocateMessage(%d) failed: \"%m\", returning\n"),
-                configuration_->streamConfiguration->bufferSize));
+                inherited::configuration_->streamConfiguration->bufferSize));
     goto error;
   } // end IF
 
@@ -712,17 +710,17 @@ continue_:
         goto continue_2; // nothing to do
 
       // sanity check(s)
-      ACE_ASSERT (configuration_);
-      ACE_ASSERT (configuration_->streamConfiguration);
+      ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       // *TODO*: remove type inference
       message_block_p =
-        allocateMessage (configuration_->streamConfiguration->bufferSize);
+        allocateMessage (inherited::configuration_->streamConfiguration->bufferSize);
       if (!message_block_p)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("allocateMessage(%d) failed: \"%m\", continuing\n"),
-                    configuration_->streamConfiguration->bufferSize));
+                    inherited::configuration_->streamConfiguration->bufferSize));
         goto continue_2;
       } // end IF
       ACE_ASSERT (message_block_p);
@@ -794,18 +792,15 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
   DataMessageType* message_block_p = NULL;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
 
-  if (configuration_->messageAllocator)
+  if (inherited::configuration_->messageAllocator)
   {
 allocate:
-    try
-    {
+    try {
       message_block_p =
-        static_cast<DataMessageType*> (configuration_->messageAllocator->malloc (requestedSize_in));
-    }
-    catch (...)
-    {
+        static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (requestedSize_in));
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
                   requestedSize_in));
@@ -814,7 +809,7 @@ allocate:
 
     // keep retrying ?
     if (!message_block_p &&
-        !configuration_->messageAllocator->block ())
+        !inherited::configuration_->messageAllocator->block ())
       goto allocate;
   } // end IF
   else
@@ -822,9 +817,9 @@ allocate:
                       DataMessageType (requestedSize_in));
   if (!message_block_p)
   {
-    if (configuration_->messageAllocator)
+    if (inherited::configuration_->messageAllocator)
     {
-      if (configuration_->messageAllocator->block ())
+      if (inherited::configuration_->messageAllocator->block ())
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate data message: \"%m\", aborting\n")));
     } // end IF

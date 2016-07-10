@@ -8441,13 +8441,32 @@ Stream_Module_Device_Tools::setCaptureFormat (int fd_in,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::setCaptureFormat"));
 
+  int result = -1;
+
   // sanity check(s)
   ACE_ASSERT (fd_in != -1);
   ACE_ASSERT (format_in.type == V4L2_BUF_TYPE_VIDEO_CAPTURE);
 
-  int result = v4l2_ioctl (fd_in,
-                           VIDIOC_S_FMT,
-                           &format_in);
+  struct v4l2_format format_s;
+  ACE_OS::memset (&format_s, 0, sizeof (format_s));
+  format_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_G_FMT,
+                       &format_s);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
+                fd_in, ACE_TEXT ("VIDIOC_G_FMT")));
+    return false;
+  } // end IF
+  format_s.fmt.pix.pixelformat = format_in.fmt.pix.pixelformat;
+  format_s.fmt.pix.width = format_in.fmt.pix.width;
+  format_s.fmt.pix.height = format_in.fmt.pix.height;
+
+  result = v4l2_ioctl (fd_in,
+                       VIDIOC_S_FMT,
+                       &format_s);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -8547,9 +8566,11 @@ Stream_Module_Device_Tools::setFrameRate (int fd_in,
   // sanity check(s)
   if ((stream_parameters.parm.capture.capability & V4L2_CAP_TIMEPERFRAME) == 0)
     goto no_support;
+  if ((stream_parameters.parm.capture.timeperframe.numerator   == interval_in.numerator)  &&
+      (stream_parameters.parm.capture.timeperframe.denominator == interval_in.denominator))
+    return true; // nothing to do
 
   stream_parameters.parm.capture.timeperframe = interval_in;
-
   result = v4l2_ioctl (fd_in,
                        VIDIOC_S_PARM,
                        &stream_parameters);

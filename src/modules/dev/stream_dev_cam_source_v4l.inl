@@ -28,8 +28,9 @@
 #include "stream_dev_tools.h"
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -38,8 +39,9 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Module_CamSource_V4L_T<LockType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               ConfigurationType,
                               StreamControlType,
                               StreamNotificationType,
@@ -65,8 +67,9 @@ Stream_Module_CamSource_V4L_T<LockType,
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -75,8 +78,9 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 Stream_Module_CamSource_V4L_T<LockType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               ConfigurationType,
                               StreamControlType,
                               StreamNotificationType,
@@ -136,8 +140,9 @@ Stream_Module_CamSource_V4L_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -147,8 +152,9 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_Module_CamSource_V4L_T<LockType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               ConfigurationType,
                               StreamControlType,
                               StreamNotificationType,
@@ -193,11 +199,11 @@ Stream_Module_CamSource_V4L_T<LockType,
 
       // step1: fill buffer queue(s)
       if (captureFileDescriptor_ != -1)
-        if (!Stream_Module_Device_Tools::initializeBuffers<ProtocolMessageType> (captureFileDescriptor_,
-                                                                                 inherited::configuration_->method,
-                                                                                 inherited::configuration_->buffers,
-                                                                                 bufferMap_,
-                                                                                 inherited::configuration_->streamConfiguration->messageAllocator))
+        if (!Stream_Module_Device_Tools::initializeBuffers<DataMessageType> (captureFileDescriptor_,
+                                                                             inherited::configuration_->method,
+                                                                             inherited::configuration_->buffers,
+                                                                             bufferMap_,
+                                                                             inherited::configuration_->streamConfiguration->messageAllocator))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to Stream_Module_Device_Tools::initializeBuffers(%d): \"%m\", aborting\n"),
@@ -243,7 +249,6 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-
       int toggle = 0;
       bool shutdown = true;
 
@@ -265,9 +270,9 @@ error:
 
       // step1: empty buffer queue(s)
       if (captureFileDescriptor_ != -1)
-        Stream_Module_Device_Tools::finalizeBuffers<ProtocolMessageType> (captureFileDescriptor_,
-                                                                          inherited::configuration_->method,
-                                                                          bufferMap_);
+        Stream_Module_Device_Tools::finalizeBuffers<DataMessageType> (captureFileDescriptor_,
+                                                                      inherited::configuration_->method,
+                                                                      bufferMap_);
 
       // step2: stop stream
       if (overlayFileDescriptor_ != -1)
@@ -277,7 +282,7 @@ error:
                              &toggle);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to v4l2_ioctl(%d,%u): \"%m\", continuing\n"),
+                      ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
                       overlayFileDescriptor_, ACE_TEXT ("VIDIOC_OVERLAY")));
       } // end IF
       if (captureFileDescriptor_ != -1)
@@ -288,7 +293,7 @@ error:
                              &toggle);
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to v4l2_ioctl(%d,%u): \"%m\", continuing\n"),
+                      ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
                       captureFileDescriptor_, ACE_TEXT ("VIDIOC_STREAMOFF")));
       } // end IF
 
@@ -338,8 +343,9 @@ error:
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -349,8 +355,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Module_CamSource_V4L_T<LockType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               ConfigurationType,
                               StreamControlType,
                               StreamNotificationType,
@@ -386,7 +393,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -395,7 +402,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 //void
 //Stream_Module_CamSource_V4L_T<LockType,
 //                              SessionMessageType,
-//                              ProtocolMessageType,
+//                              DataMessageType,
 //                              ConfigurationType,
 //                              StreamStateType,
 //                              SessionDataType,
@@ -410,8 +417,9 @@ Stream_Module_CamSource_V4L_T<LockType,
 //}
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -421,8 +429,9 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_Module_CamSource_V4L_T<LockType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               ConfigurationType,
                               StreamControlType,
                               StreamNotificationType,
@@ -459,6 +468,7 @@ Stream_Module_CamSource_V4L_T<LockType,
     } // end IF
 
     debug_ = false;
+    hasFinished_ = false;
     isPassive_ = false;
   } // end IF
 
@@ -484,6 +494,10 @@ Stream_Module_CamSource_V4L_T<LockType,
                   ACE_TEXT (configuration_in.device.c_str ()), open_mode));
       return false;
     } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)...\n"),
+                ACE_TEXT (configuration_in.device.c_str ()),
+                captureFileDescriptor_));
   } // end ELSE
   ACE_ASSERT (captureFileDescriptor_ != -1);
 
@@ -500,11 +514,11 @@ Stream_Module_CamSource_V4L_T<LockType,
                   ACE_TEXT (configuration_in.device.c_str ()), open_mode));
       goto error;
     } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)...\n"),
+                ACE_TEXT (configuration_in.device.c_str ()),
+                captureFileDescriptor_));
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)...\n"),
-              ACE_TEXT (configuration_in.device.c_str ()),
-              captureFileDescriptor_));
 
   // *TODO*: remove type inference
   if (!Stream_Module_Device_Tools::setCaptureFormat (captureFileDescriptor_,
@@ -515,7 +529,6 @@ Stream_Module_CamSource_V4L_T<LockType,
                 captureFileDescriptor_));
     goto error;
   } // end IF
-
   // *TODO*: remove type inference
   if (!Stream_Module_Device_Tools::setFrameRate (captureFileDescriptor_,
                                                  configuration_in.frameRate))
@@ -583,8 +596,9 @@ error:
 }
 
 template <typename LockType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType,
-          typename ProtocolMessageType,
           typename ConfigurationType,
           typename StreamControlType,
           typename StreamNotificationType,
@@ -594,8 +608,9 @@ template <typename LockType,
           typename StatisticContainerType>
 int
 Stream_Module_CamSource_V4L_T<LockType,
+                              ControlMessageType,
+                              DataMessageType,
                               SessionMessageType,
-                              ProtocolMessageType,
                               ConfigurationType,
                               StreamControlType,
                               StreamNotificationType,
@@ -682,10 +697,13 @@ done:
       {
         // *IMPORTANT NOTE*: message_block_p has already been released() !
 
-        hasFinished_ = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
-        inherited::finished ();
+        if (!hasFinished_)
+        {
+          hasFinished_ = true;
+          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+          //         --> continue
+          inherited::finished ();
+        } // end IF
 
         continue;
       } // end IF

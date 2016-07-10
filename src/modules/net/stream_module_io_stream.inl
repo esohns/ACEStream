@@ -59,9 +59,9 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               AddressType,
                               ConnectionManagerType>::Stream_Module_Net_IO_Stream_T (const std::string& name_in)
  : inherited (name_in)
- , IO_ (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
-        NULL,
-        false)
+// , IO_ (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
+//        NULL,
+//        false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::Stream_Module_Net_IO_Stream_T"));
 
@@ -70,7 +70,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
   // *NOTE*: one problem is that all modules which have NOT enqueued onto the
   //         stream (e.g. because initialize() failed...) need to be explicitly
   //         close()d
-  inherited::modules_.push_front (&IO_);
+//  inherited::modules_.push_front (&IO_);
 
   // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
   //inherited::MODULE_T* module_p = NULL;
@@ -78,10 +78,10 @@ Stream_Module_Net_IO_Stream_T<LockType,
   //     iterator.next (module_p);
   //     iterator.advance ())
   //  module_p->next (NULL);
-  for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
-       iterator != inherited::modules_.end ();
-       iterator++)
-     (*iterator)->next (NULL);
+//  for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
+//       iterator != inherited::modules_.end ();
+//       iterator++)
+//     (*iterator)->next (NULL);
 }
 
 template <typename LockType,
@@ -144,7 +144,7 @@ template <typename LockType,
           typename SessionMessageType,
           typename AddressType,
           typename ConnectionManagerType>
-void
+bool
 Stream_Module_Net_IO_Stream_T<LockType,
                               SynchStrategyType,
                               TimePolicyType,
@@ -162,14 +162,31 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               DataMessageType,
                               SessionMessageType,
                               AddressType,
-                              ConnectionManagerType>::ping ()
+                              ConnectionManagerType>::load (Stream_ModuleList_t& modules_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::ping"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::load"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
+//  // initialize return value(s)
+//  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
+//       iterator != modules_out.end ();
+//       iterator++)
+//    delete *iterator;
+//  modules_out.clear ();
 
-  ACE_NOTREACHED (return;)
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  // *TODO*: remove type inference
+  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
+
+  Stream_Module_t* module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  IO_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetIO"),
+                               NULL,
+                               false),
+                  false);
+  modules_out.push_back (module_p);
+
+  return true;
 }
 
 template <typename LockType,
@@ -270,31 +287,40 @@ Stream_Module_Net_IO_Stream_T<LockType,
   ACE_ASSERT (configuration_in.moduleConfiguration);
 
   // ******************* IO ************************
-  IO_.initialize (*configuration_in.moduleConfiguration);
+  Stream_Module_t* module_p =
+    inherited::find (ACE_TEXT_ALWAYS_CHAR ("NetIO"));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("NetIO")));
+    return false;
+  } // end IF
+//  IO_.initialize (*configuration_in.moduleConfiguration);
   READER_T* IOReader_impl_p = NULL;
-  WRITER_T* IOWriter_impl_p = dynamic_cast<WRITER_T*> (IO_.writer ());
+  WRITER_T* IOWriter_impl_p = dynamic_cast<WRITER_T*> (module_p->writer ());
   if (!IOWriter_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_IOWriter_T> failed, aborting\n")));
     goto error;
   } // end IF
-  if (!IOWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOWriter_T, aborting\n"),
-                IO_.name ()));
-    goto error;
-  } // end IF
+//  if (!IOWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOWriter_T, aborting\n"),
+//                IO_.name ()));
+//    goto error;
+//  } // end IF
   if (!IOWriter_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOWriter_T, aborting\n"),
-                IO_.name ()));
+                module_p->name ()));
     goto error;
   } // end IF
 //  IOWriter_impl_p->reset ();
-  IOReader_impl_p = dynamic_cast<READER_T*> (IO_.reader ());
+  IOReader_impl_p = dynamic_cast<READER_T*> (module_p->reader ());
   if (!IOReader_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -305,7 +331,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to initialize Stream_Module_Net_IOReader_T, aborting\n"),
-                IO_.name ()));
+                module_p->name ()));
     goto error;
   } // end IF
   //if (!IOReader_impl_p->initialize (inherited::state_))
@@ -318,7 +344,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  IO_.arg (inherited::sessionData_);
+  module_p->arg (inherited::sessionData_);
 
   if (setupPipeline_in)
     if (!inherited::setup (configuration_in.notificationStrategy))
@@ -457,6 +483,52 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               ConnectionManagerType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::report"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+
+template <typename LockType,
+          typename SynchStrategyType,
+          typename TimePolicyType,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // (reference counted)
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename AddressType,
+          typename ConnectionManagerType>
+void
+Stream_Module_Net_IO_Stream_T<LockType,
+                              SynchStrategyType,
+                              TimePolicyType,
+                              ControlType,
+                              NotificationType,
+                              StatusType,
+                              StateType,
+                              ConfigurationType,
+                              StatisticContainerType,
+                              ModuleConfigurationType,
+                              HandlerConfigurationType,
+                              SessionDataType,
+                              SessionDataContainerType,
+                              ControlMessageType,
+                              DataMessageType,
+                              SessionMessageType,
+                              AddressType,
+                              ConnectionManagerType>::ping ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::ping"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP;

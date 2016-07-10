@@ -1954,7 +1954,7 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
 
-  Stream_Module_t* result = NULL;
+//  Stream_Module_t* result = NULL;
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
 
   // step1: search for the module on the stream

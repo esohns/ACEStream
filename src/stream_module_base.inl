@@ -23,13 +23,13 @@
 #include "stream_common.h"
 #include "stream_macros.h"
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
-Stream_Module_Base_T<TaskSynchType,
+Stream_Module_Base_T<SynchStrategyType,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -66,13 +66,13 @@ Stream_Module_Base_T<TaskSynchType,
   inherited::next (NULL);
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
-Stream_Module_Base_T<TaskSynchType,
+Stream_Module_Base_T<SynchStrategyType,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -86,14 +86,14 @@ Stream_Module_Base_T<TaskSynchType,
   //            --> close() module in advance so it doesn't happen here
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 const ConfigurationType&
-Stream_Module_Base_T<TaskSynchType,
+Stream_Module_Base_T<SynchStrategyType,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -105,14 +105,14 @@ Stream_Module_Base_T<TaskSynchType,
   return configuration_;
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 bool
-Stream_Module_Base_T<TaskSynchType,
+Stream_Module_Base_T<SynchStrategyType,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -126,14 +126,14 @@ Stream_Module_Base_T<TaskSynchType,
   return true;
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 const HandlerConfigurationType&
-Stream_Module_Base_T<TaskSynchType,
+Stream_Module_Base_T<SynchStrategyType,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -158,14 +158,14 @@ Stream_Module_Base_T<TaskSynchType,
   return iget_p->get ();
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 bool
-Stream_Module_Base_T<TaskSynchType,
+Stream_Module_Base_T<SynchStrategyType,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -177,14 +177,14 @@ Stream_Module_Base_T<TaskSynchType,
   return isFinal_;
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 void
-Stream_Module_Base_T<TaskSynchType,
+Stream_Module_Base_T<SynchStrategyType,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -204,15 +204,15 @@ Stream_Module_Base_T<TaskSynchType,
   inherited::next (NULL);
 }
 
-template <typename TaskSynchType,
+template <typename SynchStrategyType,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
-ACE_Module<TaskSynchType,
+ACE_Module<SynchStrategyType,
            TimePolicyType>*
-Stream_Module_Base_T<TaskSynchType,
+Stream_Module_Base_T<SynchStrategyType,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -235,12 +235,9 @@ Stream_Module_Base_T<TaskSynchType,
     return NULL;
   } // end IF
 
-  try
-  {
+  try {
     module_p = iclone_p->clone ();
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in Common_IClone_T::clone(), continuing\n"),
                 inherited::name ()));

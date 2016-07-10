@@ -97,7 +97,7 @@ Stream_Module_HTMLWriter_T<SynchStrategyType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::mod_);
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
 
   // *TODO*: remove type inferences
   const typename SessionMessageType::DATA_T& session_data_container_r =
@@ -131,14 +131,14 @@ Stream_Module_HTMLWriter_T<SynchStrategyType,
       // sanity check(s)
       if (!document_) break; // nothing to do
 
-      result = htmlSaveFile (configuration_->targetFileName.c_str (),
+      result = htmlSaveFile (inherited::configuration_->targetFileName.c_str (),
                              document_);
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to htmlSaveFile(\"%s\"), aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (configuration_->targetFileName.c_str ())));
+                    ACE_TEXT (inherited::configuration_->targetFileName.c_str ())));
 
         // *TODO*: remove type inference
         session_data_r.aborted = true;
@@ -148,7 +148,7 @@ Stream_Module_HTMLWriter_T<SynchStrategyType,
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: wrote \"%s\" (%d byte(s))\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (configuration_->targetFileName.c_str ()),
+                  ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
                   result));
 
       break;

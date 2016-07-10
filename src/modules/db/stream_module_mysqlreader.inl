@@ -217,7 +217,7 @@ Stream_Module_MySQLReader_T<LockType,
 }
 
 //template <typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -225,12 +225,12 @@ Stream_Module_MySQLReader_T<LockType,
 //          typename StatisticContainerType>
 //void
 //Stream_Module_MySQLReader_T<SessionMessageType,
-//                           ProtocolMessageType,
+//                           DataMessageType,
 //                           ConfigurationType,
 //                           StreamStateType,
 //                           SessionDataType,
 //                           SessionDataContainerType,
-//                           StatisticContainerType>::handleDataMessage (ProtocolMessageType*& message_inout,
+//                           StatisticContainerType>::handleDataMessage (DataMessageType*& message_inout,
 //                                                                       bool& passMessageDownstream_out)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLReader_T::handleDataMessage"));
@@ -508,7 +508,7 @@ Stream_Module_MySQLReader_T<LockType,
 
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -517,7 +517,7 @@ Stream_Module_MySQLReader_T<LockType,
 //void
 //Stream_Module_MySQLReader_T<LockType,
 //                           SessionMessageType,
-//                           ProtocolMessageType,
+//                           DataMessageType,
 //                           ConfigurationType,
 //                           StreamStateType,
 //                           SessionDataType,
@@ -563,7 +563,7 @@ Stream_Module_MySQLReader_T<LockType,
   ssize_t bytes_read = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
-  ProtocolMessageType* message_p = NULL;
+  DataMessageType* message_p = NULL;
   bool finished = false;
   bool stop_processing = false;
 
@@ -734,16 +734,16 @@ done:
 
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
-//ProtocolMessageType*
+//DataMessageType*
 //Stream_Module_MySQLReader_T<LockType,
 //                           SessionMessageType,
-//                           ProtocolMessageType,
+//                           DataMessageType,
 //                           ConfigurationType,
 //                           StreamStateType,
 //                           SessionDataType,
@@ -756,7 +756,7 @@ done:
 //  ACE_ASSERT (inherited::configuration_.streamConfiguration);
 //
 //  // initialize return value(s)
-//  ProtocolMessageType* message_out = NULL;
+//  DataMessageType* message_out = NULL;
 //
 //  if (inherited::configuration_.streamConfiguration->messageAllocator)
 //  {
@@ -764,7 +764,7 @@ done:
 //    {
 //      // *TODO*: remove type inference
 //      message_out =
-//          static_cast<ProtocolMessageType*> (inherited::configuration_.streamConfiguration->messageAllocator->malloc (requestedSize_in));
+//          static_cast<DataMessageType*> (inherited::configuration_.streamConfiguration->messageAllocator->malloc (requestedSize_in));
 //    }
 //    catch (...)
 //    {
@@ -777,7 +777,7 @@ done:
 //  else
 //  {
 //    ACE_NEW_NORETURN (message_out,
-//                      ProtocolMessageType (requestedSize_in));
+//                      DataMessageType (requestedSize_in));
 //  } // end ELSE
 //  if (!message_out)
 //  {
@@ -791,7 +791,7 @@ done:
 
 //template <typename LockType,
 //          typename SessionMessageType,
-//          typename ProtocolMessageType,
+//          typename DataMessageType,
 //          typename ConfigurationType,
 //          typename StreamStateType,
 //          typename SessionDataType,
@@ -800,7 +800,7 @@ done:
 //bool
 //Stream_Module_MySQLReader_T<LockType,
 //                           SessionMessageType,
-//                           ProtocolMessageType,
+//                           DataMessageType,
 //                           ConfigurationType,
 //                           StreamStateType,
 //                           SessionDataType,

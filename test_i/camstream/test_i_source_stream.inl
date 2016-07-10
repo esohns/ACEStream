@@ -366,12 +366,12 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::load"));
 
-  // initialize return value(s)
-  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
-       iterator != modules_out.end ();
-       iterator++)
-    delete *iterator;
-  modules_out.clear ();
+//  // initialize return value(s)
+//  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
+//       iterator != modules_out.end ();
+//       iterator++)
+//    delete *iterator;
+//  modules_out.clear ();
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -379,27 +379,6 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
   ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
 
   Stream_Module_t* module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_Module_CamSource_Module (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
-                                                         NULL,
-                                                         false),
-                  false);
-  modules_out.push_front (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Source_Stream_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                                       NULL,
-                                                                       false),
-                  false);
-  modules_out.push_front (module_p);
-  module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  TARGET_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
-                                   NULL,
-                                   false),
-                  false);
-  modules_out.push_front (module_p);
-  module_p = NULL;
   if (inherited::configuration_->moduleHandlerConfiguration->gdkWindow)
   {
     ACE_NEW_RETURN (module_p,
@@ -407,7 +386,7 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
                                                                 NULL,
                                                                 false),
                     false);
-    modules_out.push_front (module_p);
+    modules_out.push_back (module_p);
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //else
@@ -417,9 +396,30 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
   //                                                                  NULL,
   //                                                                  false),
   //                  false);
-  //  modules_out.push_front (module_p);
+  //  modules_out.push_back (module_p);
   //} // end ELSE
 #endif
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  TARGET_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
+                                   NULL,
+                                   false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_Stream_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
+                                                                       NULL,
+                                                                       false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Stream_Module_CamSource_Module (ACE_TEXT_ALWAYS_CHAR ("CamSource"),
+                                                         NULL,
+                                                         false),
+                  false);
+  modules_out.push_back (module_p);
 
   return true;
 }

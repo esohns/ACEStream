@@ -2455,12 +2455,12 @@ idle_update_progress_cb (gpointer userData_in)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %d has joined (status was: %d)...\n"),
+                  ACE_TEXT ("thread %d has joined (status was: %@)...\n"),
                   thread_id,
                   exit_status));
 #else
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %u has joined (status was: %@)...\n"),
+                  ACE_TEXT ("thread %u has joined (status was: %d)...\n"),
                   thread_id,
                   exit_status));
 #endif
@@ -2772,6 +2772,13 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setCaptureFormat(), aborting\n")));
     goto error;
   } // end IF
+  if (!Stream_Module_Device_Tools::setFrameRate (data_p->configuration->moduleHandlerConfiguration.fileDescriptor,
+                                                 data_p->configuration->moduleHandlerConfiguration.frameRate))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(), aborting\n")));
+    goto error;
+  } // end IF
 #endif
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  topology_p->Release ();
@@ -2847,11 +2854,11 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("spawned processing thread (id was: %d)...\n"),
+                ACE_TEXT ("spawned processing thread (id was: %@)...\n"),
                 thread_id));
 #else
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("spawned processing thread (id was: %@)...\n"),
+                ACE_TEXT ("spawned processing thread (id was: %u)...\n"),
                 thread_id));
 #endif
 
@@ -3306,6 +3313,9 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                   data_p->device));
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("closed v4l2 device (fd was: %d)...\n"),
+                data_p->device));
     data_p->device = -1;
   } // end IF
   ACE_ASSERT (data_p->device == -1);
@@ -3321,6 +3331,10 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT (device_path.c_str ()), open_mode));
     return;
   } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("opened v4l2 device \"%s\" (fd: %d)...\n"),
+              ACE_TEXT (device_path.c_str ()),
+              data_p->device));
 
   if (!load_formats (data_p->device,
 #endif

@@ -98,7 +98,6 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("re-initializing...\n")));
 
-    configuration_ = NULL;
     sessionData_ = NULL;
 
     allocator_ = NULL;
@@ -470,7 +469,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   const SessionDataContainerType& session_data_container_r =
     message_inout->get ();
   typename SessionDataContainerType::DATA_T& session_data_r =
-    const_cast<SessionDataContainerType::DATA_T&> (session_data_container_r.get ());
+    const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.get ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:

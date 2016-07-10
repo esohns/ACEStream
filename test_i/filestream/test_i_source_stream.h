@@ -64,7 +64,7 @@ class Test_I_Source_Stream_T
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
                         //////////////////
-                        Stream_ControlType,
+                        ACE_Message_Block,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage>
 {
@@ -106,7 +106,7 @@ class Test_I_Source_Stream_T
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
                         //////////////////
-                        Stream_ControlType,
+                        ACE_Message_Block,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage> inherited;
   typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
@@ -114,7 +114,7 @@ class Test_I_Source_Stream_T
                                      /////
                                      Test_I_Source_ModuleHandlerConfiguration,
                                      /////
-                                     int,
+                                     ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      /////

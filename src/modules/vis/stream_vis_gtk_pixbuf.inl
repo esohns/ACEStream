@@ -36,18 +36,21 @@ extern "C"
 
 #include "stream_vis_defines.h"
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
-                               MessageType,
+Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                SessionDataContainerType>::Stream_Module_Vis_GTK_Pixbuf_T ()
  : inherited ()
- , configuration_ (NULL)
  , sessionData_ (NULL)
  , lock_ (NULL)
  , pixelBuffer_ (NULL)
@@ -58,15 +61,19 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
 
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
-                               MessageType,
+Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                SessionDataContainerType>::~Stream_Module_Vis_GTK_Pixbuf_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::~Stream_Module_Vis_GTK_Pixbuf_T"));
@@ -78,16 +85,20 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
     sessionData_->decrease ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType>
 int
-Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
-                               MessageType,
+Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                SessionDataContainerType>::clamp (int value_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::clamp"));
@@ -96,24 +107,28 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
                            : ((value_in < 0) ? 0
                                              : value_in));
 }
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
-                               MessageType,
+Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
-                               SessionDataContainerType>::handleDataMessage (MessageType*& message_inout,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                              bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::handleDataMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
-  if (!configuration_->window)
+  ACE_ASSERT (inherited::configuration_);
+  if (!inherited::configuration_->gdkWindow)
     return; // done
 
 //  if (configuration_->hasHeader &&
@@ -132,7 +147,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
 //  } // end IF
   ACE_ASSERT (sessionData_);
   ACE_ASSERT (pixelBuffer_);
-  const SessionDataType& session_data_r = sessionData_->get ();
+  const typename SessionDataContainerType::DATA_T& session_data_r =
+      sessionData_->get ();
   unsigned int total_length = message_inout->total_length ();
   ACE_ASSERT (total_length ==
               session_data_r.format.fmt.pix.sizeimage);
@@ -611,7 +627,7 @@ unlock:
   //         --> schedule a refresh with gtk_widget_queue_draw_area() instead
   // *NOTE*: this does not work either... :-(
   //         --> let the downstream event handler queue an idle request
-  gdk_window_invalidate_rect (configuration_->window,
+  gdk_window_invalidate_rect (inherited::configuration_->gdkWindow,
                               NULL,
                               false);
 //  GtkWidget* widget_p = NULL;
@@ -629,23 +645,27 @@ unlock:
   gdk_threads_leave ();
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
-                               MessageType,
+Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::handleSessionMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
 
   switch (message_inout->type ())
   {
@@ -657,11 +677,11 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
       sessionData_ =
           &const_cast<SessionDataContainerType&> (message_inout->get ());
       sessionData_->increase ();
-      SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (sessionData_->get ());
+      typename SessionDataContainerType::DATA_T& session_data_r =
+          const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->get ());
 
       // sanity check(s)
-      if (!configuration_->window)
+      if (!inherited::configuration_->gdkWindow)
         break; // done
       ACE_ASSERT (pixelBuffer_);
 
@@ -700,24 +720,26 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
   } // end SWITCH
 }
 
-template <typename SessionMessageType,
-          typename MessageType,
+template <typename SynchStrategyType,
+          typename TimePolicyType,
           typename ConfigurationType,
-          typename SessionDataType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
           typename SessionDataContainerType>
 bool
-Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
-                               MessageType,
+Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+                               TimePolicyType,
                                ConfigurationType,
-                               SessionDataType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
                                SessionDataContainerType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::initialize"));
 
   if (isInitialized_)
   {
-    configuration_ = NULL;
-
     if (pixelBuffer_)
     {
       g_object_unref (pixelBuffer_);
@@ -735,30 +757,28 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
     isInitialized_ = false;
   } // end IF
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-
-  lock_ = configuration_->lock;
-  if (!configuration_->pixelBuffer)
+  lock_ = configuration_in.lock;
+  if (!configuration_in.pixelBuffer)
   {
     // *TODO*: remove type inference
-    if (configuration_->window)
+    if (configuration_in.gdkWindow)
     {
       gdk_threads_enter ();
 
       // sanity check(s)
       // *TODO*: remove type inference
-      ACE_ASSERT (!configuration_->pixelBuffer);
+      ACE_ASSERT (!configuration_in.pixelBuffer);
 
       // *TODO*: remove type inference
       pixelBuffer_ =
-          //        gdk_pixbuf_get_from_window (configuration_->window,
+          //        gdk_pixbuf_get_from_window (configuration_->gdkWindow,
           //                                    0, 0,
           //                                    configuration_->area.width, configuration_->area.height);
           gdk_pixbuf_get_from_drawable (NULL,
-                                        GDK_DRAWABLE (configuration_->window),
+                                        GDK_DRAWABLE (configuration_in.gdkWindow),
                                         NULL,
                                         0, 0,
-                                        0, 0, configuration_->area.width, configuration_->area.height);
+                                        0, 0, configuration_in.area.width, configuration_in.area.height);
       if (!pixelBuffer_)
       { // *NOTE*: most probable reason: window is not mapped
         ACE_DEBUG ((LM_ERROR,
@@ -774,8 +794,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
   } // end IF
   else
   {
-    g_object_ref (configuration_->pixelBuffer);
-    pixelBuffer_ = configuration_->pixelBuffer;
+    g_object_ref (configuration_in.pixelBuffer);
+    pixelBuffer_ = configuration_in.pixelBuffer;
   } // end ELSE
   if (!pixelBuffer_)
   {
@@ -784,26 +804,28 @@ Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
     return false;
   } // end IF
 
-  isInitialized_ = true;
+  isInitialized_ = inherited::initialize (configuration_in);
 
   return isInitialized_;
 }
-template <typename SessionMessageType,
-          typename MessageType,
-          typename ConfigurationType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
-const ConfigurationType&
-Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
-                               MessageType,
-                               ConfigurationType,
-                               SessionDataType,
-                               SessionDataContainerType>::get () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::get"));
+//template <typename SynchStrategyType,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionDataContainerType>
+//const ConfigurationType&
+//Stream_Module_Vis_GTK_Pixbuf_T<SessionMessageType,
+//                               MessageType,
+//                               ConfigurationType,
+//                               SessionDataType,
+//                               SessionDataContainerType>::get () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::get"));
 
-  // sanity check(s)
-  ACE_ASSERT (configuration_);
+//  // sanity check(s)
+//  ACE_ASSERT (configuration_);
 
-  return *configuration_;
-}
+//  return *configuration_;
+//}

@@ -51,7 +51,7 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
+  ACE_ASSERT (inherited::configuration_);
 
   const Test_I_Stream_SessionData_t& session_data_container_r =
     message_inout->get ();
@@ -78,8 +78,8 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       ACE_TCHAR buffer[BUFSIZ];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
       result =
-        inherited::configuration_.loginOptions.host.addr_to_string (buffer,
-                                                                    sizeof (buffer));
+        inherited::configuration_->loginOptions.host.addr_to_string (buffer,
+                                                                     sizeof (buffer));
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -92,8 +92,8 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       ACE_TCHAR host_address[BUFSIZ];
       ACE_OS::memset (host_address, 0, sizeof (host_address));
       const char* result_p =
-        inherited::configuration_.loginOptions.host.get_host_addr (host_address,
-                                                                   sizeof (host_address));
+        inherited::configuration_->loginOptions.host.get_host_addr (host_address,
+                                                                    sizeof (host_address));
       if (!result_p || (result_p != host_address))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -133,8 +133,8 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
          CLIENT_REMEMBER_OPTIONS);        // remember options specified by
                                           // calls to mysql_options()
       const char* host_p =
-        (inherited::configuration_.loginOptions.host.is_loopback () ? NULL // localhost ([Unix]socket file/[Win32]shared memory : TCP) : options file (?)
-                                                                    : ACE_TEXT_ALWAYS_CHAR (host_address));
+        (inherited::configuration_->loginOptions.host.is_loopback () ? NULL // localhost ([Unix]socket file/[Win32]shared memory : TCP) : options file (?)
+                                                                     : ACE_TEXT_ALWAYS_CHAR (host_address));
         //(inherited::configuration_.loginOptions.host.is_loopback () ? NULL // localhost ([Unix]socket file/[Win32]shared memory : TCP) : options file (?)
         //                                                            : ACE_TEXT_ALWAYS_CHAR (host_address));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -142,8 +142,8 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
         host_p = ACE_TEXT_ALWAYS_CHAR (".");
 #endif
       const char* user_name_string_p =
-        (inherited::configuration_.loginOptions.user.empty () ? NULL // current user (Unix) : options file (?)
-                                                              : inherited::configuration_.loginOptions.user.c_str ());
+        (inherited::configuration_->loginOptions.user.empty () ? NULL // current user (Unix) : options file (?)
+                                                               : inherited::configuration_->loginOptions.user.c_str ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       // *NOTE*: passing NULL for host crashes the program
       //         --> pass root instead
@@ -151,18 +151,18 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
         user_name_string_p = ACE_TEXT_ALWAYS_CHAR (MODULE_DB_MYSQL_DEFAULT_USER);
 #endif
       const char* password_string_p =
-        (inherited::configuration_.loginOptions.password.empty () ? NULL // (user table ?, options file (?))
-                                                                  : inherited::configuration_.loginOptions.password.c_str ());
+        (inherited::configuration_->loginOptions.password.empty () ? NULL // (user table ?, options file (?))
+                                                                   : inherited::configuration_->loginOptions.password.c_str ());
       const char* database_name_string_p =
-        (inherited::configuration_.loginOptions.database.empty () ? NULL // default database : options file (?)
-                                                                  : inherited::configuration_.loginOptions.database.c_str ());
+        (inherited::configuration_->loginOptions.database.empty () ? NULL // default database : options file (?)
+                                                                   : inherited::configuration_->loginOptions.database.c_str ());
       MYSQL* result_3 =
         mysql_real_connect (inherited::state_,      // state handle
                             host_p,                 // host name/address
                             user_name_string_p,     // db user
                             password_string_p,      // db password (non-encrypted)
                             database_name_string_p, // db database
-                            inherited::configuration_.loginOptions.host.get_port_number (), // port
+                            inherited::configuration_->loginOptions.host.get_port_number (), // port
                             NULL,                   // (UNIX) socket
                             client_flags);          // client flags
       if (result_3 != inherited::state_)
@@ -246,7 +246,7 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
       } // end IF
 
       std::string query_string = ACE_TEXT_ALWAYS_CHAR ("INSERT INTO ");
-      query_string += inherited::configuration_.dataBaseTable;
+      query_string += inherited::configuration_->dataBaseTable;
       query_string += ACE_TEXT_ALWAYS_CHAR (" VALUES (");
       std::string timestamp_string;
       char buffer[BUFSIZ];

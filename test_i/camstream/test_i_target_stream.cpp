@@ -63,12 +63,12 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::load"));
 
-  // initialize return value(s)
-  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
-       iterator != modules_out.end ();
-       iterator++)
-    delete *iterator;
-  modules_out.clear ();
+//  // initialize return value(s)
+//  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
+//       iterator != modules_out.end ();
+//       iterator++)
+//    delete *iterator;
+//  modules_out.clear ();
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -76,14 +76,20 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out)
   ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
 
   Stream_Module_t* module_p = NULL;
-  //Test_I_Target_Stream_Module_Net_IO_Module                source_;
-  //Test_I_Target_Stream_Module_AVIDecoder_Module            decoder_;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_Stream_Module_Splitter_Module (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
-                                                               NULL,
-                                                               false),
+                  Test_I_Target_Stream_Module_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                                                              NULL,
+                                                              false),
                   false);
-  modules_out.push_front (module_p);
+  modules_out.push_back (module_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  ACE_NEW_RETURN (module_p,
+//                  Test_I_Target_Stream_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+//                                                                  NULL,
+//                                                                  false),
+//                  false);
+//  modules_out.push_back (module_p);
+#endif
   module_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //Test_I_Target_Stream_Module_DirectShowSource_Module directShowSource_;
@@ -94,22 +100,23 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out)
                                                                        NULL,
                                                                        false),
                   false);
-  modules_out.push_front (module_p);
+  modules_out.push_back (module_p);
   module_p = NULL;
-  ACE_NEW_RETURN (module_p,
-                  Test_I_Target_Stream_Module_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                              NULL,
-                                                              false),
+ ACE_NEW_RETURN (module_p,
+                  Test_I_Target_Stream_Module_Splitter_Module (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
+                                                               NULL,
+                                                               false),
                   false);
-  modules_out.push_front (module_p);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  ACE_NEW_RETURN (module_p,
-//                  Test_I_Target_Stream_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-//                                                                  NULL,
-//                                                                  false),
-//                  false);
-//  modules_out.push_front (module_p);
-#endif
+  modules_out.push_back (module_p);
+  //Test_I_Target_Stream_Module_AVIDecoder_Module            decoder_;
+  //Test_I_Target_Stream_Module_Net_IO_Module                source_;
+
+  if (!inherited::load (modules_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::load(), aborting\n")));
+    return false;
+  } // end IF
 
   return true;
 }
@@ -167,7 +174,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   //Test_I_Target_Stream_Module_DisplayNull* displayNull_impl_p = NULL;
 #endif
   //Test_I_Target_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-    NULL;
+//    NULL;
   Test_I_Target_Stream_Module_Splitter* splitter_impl_p = NULL;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -526,12 +533,13 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 #endif
 
   // ************************ Splitter *****************************
-  Stream_Module_t* module_p = inherited::find (ACE_TEXT_ALWAYS_CHAR ("CamSource"));
+  Stream_Module_t* module_p =
+      inherited::find (ACE_TEXT_ALWAYS_CHAR ("Splitter"));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("CamSource")));
+                ACE_TEXT ("Splitter")));
     goto error;
   } // end IF
   splitter_impl_p =

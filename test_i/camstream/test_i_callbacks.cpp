@@ -2662,12 +2662,15 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   // step10: retrieve canvas coordinates, window handle and pixel buffer
-  GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  ACE_ASSERT (!data_p->configuration->moduleHandlerConfiguration.gdkWindow);
+  data_p->configuration->moduleHandlerConfiguration.gdkWindow =
+    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.gdkWindow);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  data_p->configuration->moduleHandlerConfiguration.window =
-    gdk_win32_window_get_impl_hwnd (window_p);
-#else
-  data_p->configuration->moduleHandlerConfiguration.window = window_p;
+  //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
+  //data_p->configuration->moduleHandlerConfiguration.window =
+  //  //gdk_win32_window_get_impl_hwnd (window_p);
+  //  static_cast<HWND> (GDK_WINDOW_HWND (GDK_DRAWABLE (window_p)));
 #endif
   GtkAllocation allocation;
   ACE_OS::memset (&allocation, 0, sizeof (allocation));
@@ -2686,11 +2689,11 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   data_p->configuration->moduleHandlerConfiguration.area = allocation;
 
   data_p->pixelBuffer =
-    //      gdk_pixbuf_get_from_window (window_p,
+    //      gdk_pixbuf_get_from_window (data_p->configuration->moduleHandlerConfiguration.gdkWindow,
     //                                  0, 0,
     //                                  allocation.width, allocation.height);
     gdk_pixbuf_get_from_drawable (NULL,
-                                  GDK_DRAWABLE (window_p),
+                                  GDK_DRAWABLE (data_p->configuration->moduleHandlerConfiguration.gdkWindow),
                                   NULL,
                                   0, 0,
                                   0, 0, allocation.width, allocation.height);

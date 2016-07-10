@@ -1519,12 +1519,12 @@ Stream_HeadModuleTaskBase_T<LockType,
     {
       // *NOTE*: the task has a dedicated worker thread
 
-//      ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (inherited2::lock_);
-//      {
-//        ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX> > aGuard_2 (reverse_lock);
+      ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (inherited2::lock_);
+      {
+        ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX> > aGuard_2 (reverse_lock);
 
         result = inherited2::wait ();
-//      } // end lock scope
+      } // end lock scope
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Task_Base::wait(): \"%m\", continuing\n")));

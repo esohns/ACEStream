@@ -129,7 +129,7 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::mod_);
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (sessionData_);
 
   HTTP_Record* record_p = NULL;
@@ -198,7 +198,7 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
       // *TODO*: remove type inference
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("\"%s\" has been redirected to \"%s\" (status was: %d)\n"),
-                  ACE_TEXT (configuration_->URL.c_str ()),
+                  ACE_TEXT (inherited::configuration_->URL.c_str ()),
                   ACE_TEXT ((*iterator).second.c_str ()),
                   record_p->status));
 
@@ -214,8 +214,8 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
 
       // step2: send request
       if (!sendRequest (uri_string,
-                        configuration_->HTTPHeaders,
-                        configuration_->HTTPForm))
+                        inherited::configuration_->HTTPHeaders,
+                        inherited::configuration_->HTTPForm))
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
@@ -285,7 +285,7 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::mod_);
-      ACE_ASSERT (configuration_);
+      ACE_ASSERT (inherited::configuration_);
       ACE_ASSERT (!sessionData_);
 
       // *TODO*: remove type inferences
@@ -294,15 +294,15 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
       sessionData_->increase ();
 
       // send HTTP request
-      if (!sendRequest (configuration_->URL,
-                        configuration_->HTTPHeaders,
-                        configuration_->HTTPForm))
+      if (!sendRequest (inherited::configuration_->URL,
+                        inherited::configuration_->HTTPHeaders,
+                        inherited::configuration_->HTTPForm))
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to send HTTP request \"%s\", returning\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (configuration_->URL.c_str ())));
+                    ACE_TEXT (inherited::configuration_->URL.c_str ())));
         return;
       } // end IF
 
@@ -343,15 +343,15 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
   DataMessageType* message_out = NULL;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
-  if (configuration_->streamConfiguration->messageAllocator)
+  if (inherited::configuration_->streamConfiguration->messageAllocator)
   {
     try {
       // *TODO*: remove type inference
       message_out =
-        static_cast<DataMessageType*> (configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
+        static_cast<DataMessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
@@ -393,8 +393,8 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::makeRequest"));
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->socketHandlerConfiguration);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->socketHandlerConfiguration);
 
   // step1: allocate message
   typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
@@ -422,7 +422,7 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
   typename DataMessageType::DATA_T* message_data_container_p = NULL;
   ACE_NEW_NORETURN (message_data_container_p,
                     typename DataMessageType::DATA_T (message_data_p,
-                                                          true));
+                                                      true));
   if (!message_data_container_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -431,12 +431,12 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
   } // end IF
   // *TODO*: remove type inference
   DataMessageType* message_out =
-    allocateMessage (configuration_->socketHandlerConfiguration->PDUSize);
+    allocateMessage (inherited::configuration_->socketHandlerConfiguration->PDUSize);
   if (!message_out)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Net_Source_HTTP_Get_T::allocateMessage(%u), aborting\n"),
-                configuration_->socketHandlerConfiguration->PDUSize));
+                inherited::configuration_->socketHandlerConfiguration->PDUSize));
     return NULL;
   } // end IF
   // *IMPORTANT NOTE*: fire-and-forget API (message_data_container_p)
@@ -536,7 +536,7 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::mod_);
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
 
   // (try to) retrieve status code
   std::stringstream converter;
@@ -666,13 +666,13 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
       // *TODO*: remove type inference
       ACE_DEBUG ((LM_INFO,
                   ACE_TEXT ("\"%s\" has been redirected to \"%s\" (status was: %d)\n"),
-                  ACE_TEXT (configuration_->URL.c_str ()), ACE_TEXT (location.c_str ()),
+                  ACE_TEXT (inherited::configuration_->URL.c_str ()), ACE_TEXT (location.c_str ()),
                   result_p->status));
 
       // step2: send request
       if (!sendRequest (location,
-                        configuration_->HTTPHeaders,
-                        configuration_->HTTPForm))
+                        inherited::configuration_->HTTPHeaders,
+                        inherited::configuration_->HTTPForm))
       {
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,

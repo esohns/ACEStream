@@ -31,7 +31,6 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //#include "stream_dev_cam_source_directshow.h"
 #include "stream_dev_cam_source_mediafoundation.h"
-#include "stream_vis_gtk_cairo.h"
 //#include "stream_vis_target_directshow.h"
 #include "stream_vis_target_mediafoundation.h"
 #include "stream_vis_target_direct3d.h"
@@ -41,6 +40,7 @@
 #include "stream_dec_avi_encoder.h"
 #include "stream_file_sink.h"
 #include "stream_misc_runtimestatistic.h"
+#include "stream_vis_gtk_cairo.h"
 
 #include "test_u_camsave_common.h"
 #include "test_u_camsave_message.h"
@@ -80,8 +80,9 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_MUTEX,
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_SYNCH_MUTEX,
                                       ////
-                                      Stream_CamSave_SessionMessage,
+                                      ACE_Message_Block,
                                       Stream_CamSave_Message,
+                                      Stream_CamSave_SessionMessage,
                                       ////
                                       Stream_CamSave_ModuleHandlerConfiguration,
                                       ////

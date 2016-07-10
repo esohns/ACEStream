@@ -192,27 +192,27 @@ Stream_Module_Net_Target_T<SynchStrategyType,
   int result = -1;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
-      ACE_ASSERT (configuration_->streamConfiguration);
+      ACE_ASSERT (inherited::configuration_->streamConfiguration);
       ACE_ASSERT (!connection_);
       ACE_ASSERT (!sessionData_);
 
       sessionData_ =
-          &const_cast<typename SessionDataContainerType&> (message_inout->get ());
+          &const_cast<SessionDataContainerType&> (message_inout->get ());
       sessionData_->increase ();
       typename SessionDataContainerType::DATA_T& session_data_r =
           const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->get ());
 
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
-        (configuration_->connectionManager ? configuration_->connectionManager
-                                           : NULL);
+        (inherited::configuration_->connectionManager ? inherited::configuration_->connectionManager
+                                                      : NULL);
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
@@ -220,9 +220,9 @@ Stream_Module_Net_Target_T<SynchStrategyType,
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
       Net_Connection_Status status = NET_CONNECTION_STATUS_INVALID;
 
-      if (configuration_->connection)
+      if (inherited::configuration_->connection)
       {
-        connection_ = configuration_->connection;
+        connection_ = inherited::configuration_->connection;
         connection_->increase ();
         isPassive_ = true;
 
@@ -273,8 +273,8 @@ Stream_Module_Net_Target_T<SynchStrategyType,
       //                                             user_data_p);
 
       // sanity check(s)
-      ACE_ASSERT (configuration_->socketHandlerConfiguration);
-      ACE_ASSERT (configuration_->streamConfiguration);
+      ACE_ASSERT (inherited::configuration_->socketHandlerConfiguration);
+      ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       // step2: initialize connector
       // *NOTE*: the stream configuration may contain a module handle that is
@@ -284,14 +284,16 @@ Stream_Module_Net_Target_T<SynchStrategyType,
       //         --> temporarily 'hide' the module handle, if any
       // *TODO*: remove this ASAP
       bool clone_module, delete_module;
-      clone_module = configuration_->streamConfiguration->cloneModule;
-      delete_module = configuration_->streamConfiguration->deleteModule;
-      module_p = configuration_->streamConfiguration->module;
-      configuration_->streamConfiguration->cloneModule = false;
-      configuration_->streamConfiguration->deleteModule = false;
-      configuration_->streamConfiguration->module = NULL;
+      clone_module =
+          inherited::configuration_->streamConfiguration->cloneModule;
+      delete_module =
+          inherited::configuration_->streamConfiguration->deleteModule;
+      module_p = inherited::configuration_->streamConfiguration->module;
+      inherited::configuration_->streamConfiguration->cloneModule = false;
+      inherited::configuration_->streamConfiguration->deleteModule = false;
+      inherited::configuration_->streamConfiguration->module = NULL;
 
-      if (!iconnector_p->initialize (*configuration_->socketHandlerConfiguration))
+      if (!iconnector_p->initialize (*inherited::configuration_->socketHandlerConfiguration))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to initialize connector: \"%m\", aborting\n")));
@@ -299,14 +301,14 @@ Stream_Module_Net_Target_T<SynchStrategyType,
       } // end IF
 
       // sanity check(s)
-      ACE_ASSERT (configuration_->socketConfiguration);
+      ACE_ASSERT (inherited::configuration_->socketConfiguration);
 
       ACE_TCHAR buffer[BUFSIZ];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
       result =
-        configuration_->socketConfiguration->address.addr_to_string (buffer,
-                                                                     sizeof (buffer),
-                                                                     1);
+        inherited::configuration_->socketConfiguration->address.addr_to_string (buffer,
+                                                                                sizeof (buffer),
+                                                                                1);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
@@ -315,7 +317,7 @@ Stream_Module_Net_Target_T<SynchStrategyType,
       // *TODO*: support single-thread operation (e.g. by scheduling a signal
       //         and manually running the dispatch loop for a limited period)
       handle =
-         iconnector_p->connect (configuration_->socketConfiguration->address);
+         iconnector_p->connect (inherited::configuration_->socketConfiguration->address);
       if (iconnector_p->useReactor ())
         connection_ = iconnection_manager_p->get (handle);
       else
@@ -326,7 +328,7 @@ Stream_Module_Net_Target_T<SynchStrategyType,
         do
         {
           connection_ =
-            iconnection_manager_p->get (configuration_->socketConfiguration->address);
+            iconnection_manager_p->get (inherited::configuration_->socketConfiguration->address);
           // *TODO*: avoid tight loop here
           if (connection_)
             break;
@@ -403,9 +405,11 @@ Stream_Module_Net_Target_T<SynchStrategyType,
                   buffer));
 
 reset:
-      configuration_->streamConfiguration->cloneModule = clone_module;
-      configuration_->streamConfiguration->deleteModule = delete_module;
-      configuration_->streamConfiguration->module = module_p;
+      inherited::configuration_->streamConfiguration->cloneModule =
+          clone_module;
+      inherited::configuration_->streamConfiguration->deleteModule =
+          delete_module;
+      inherited::configuration_->streamConfiguration->module = module_p;
 
       if (!connection_)
         goto error;
@@ -420,7 +424,7 @@ link:
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to dynamic_cast<Net_ISocketConnection_T>(0x%@): \"%m\", aborting\n"),
-                      configuration_->connection));
+                      inherited::configuration_->connection));
           goto error;
         } // end IF
 
@@ -439,20 +443,20 @@ link:
 
       stream_p =
         &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
-      ACE_ASSERT (configuration_->stream);
-      result = stream_p->link (*configuration_->stream);
+      ACE_ASSERT (inherited::configuration_->stream);
+      result = stream_p->link (*inherited::configuration_->stream);
       if (result == -1)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("\"%s\": failed to Stream_Base_T::link(\"%s\"): \"%m\", aborting\n"),
                     ACE_TEXT (stream_p->name ().c_str ()),
-                    ACE_TEXT (configuration_->stream->name ().c_str ())));
+                    ACE_TEXT (inherited::configuration_->stream->name ().c_str ())));
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("linked i/o streams\n")));
       isLinked_ = true;
-      configuration_->stream->dump_state ();
+      inherited::configuration_->stream->dump_state ();
 
       goto done;
 

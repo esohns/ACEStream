@@ -109,91 +109,91 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_Stream_Co
   ACE_ASSERT (configuration_in.moduleConfiguration);
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
-  if (configuration_in.module)
-  {
-    // *TODO*: (at least part of) this procedure belongs in libACEStream
-    //         --> remove type inferences
-    inherited::IMODULE_T* imodule_p =
-        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
-    if (!imodule_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    imodule_p->reset ();
-    Stream_Task_t* task_p = configuration_in.module->writer ();
-    ACE_ASSERT (task_p);
-    inherited::MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
-      dynamic_cast<inherited::MODULEHANDLER_IINITIALIZE_T*> (task_p);
-    if (!iinitialize_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-    if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
-                  configuration_in.module->name ()));
-      return false;
-    } // end IF
-//    inherited::modules_.push_front (configuration_in.module);
-  } // end IF
+//  if (configuration_in.module)
+//  {
+//    // *TODO*: (at least part of) this procedure belongs in libACEStream
+//    //         --> remove type inferences
+//    inherited::IMODULE_T* imodule_p =
+//        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
+//    if (!imodule_p)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+//    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+//    imodule_p->reset ();
+//    Stream_Task_t* task_p = configuration_in.module->writer ();
+//    ACE_ASSERT (task_p);
+//    inherited::MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
+//      dynamic_cast<inherited::MODULEHANDLER_IINITIALIZE_T*> (task_p);
+//    if (!iinitialize_p)
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+//    if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
+//                  configuration_in.module->name ()));
+//      return false;
+//    } // end IF
+////    inherited::modules_.push_front (configuration_in.module);
+//  } // end IF
 
   // ---------------------------------------------------------------------------
 
-  WRITER_T* netTarget_impl_p = NULL;
-  Test_I_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
+//  WRITER_T* netTarget_impl_p = NULL;
+//  Test_I_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Module_FileReader* fileReader_impl_p = NULL;
   Test_I_Stream_SessionData* session_data_p = NULL;
 
   // ******************* Net Target ************************
-  netTarget_.initialize (*configuration_in.moduleConfiguration);
-  netTarget_impl_p = dynamic_cast<WRITER_T*> (netTarget_.writer ());
-  if (!netTarget_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Net_Target_T> failed, aborting\n")));
-    goto failed;
-  } // end IF
-  if (!netTarget_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                netTarget_.name ()));
-    goto failed;
-  } // end IF
+//  netTarget_.initialize (*configuration_in.moduleConfiguration);
+//  netTarget_impl_p = dynamic_cast<WRITER_T*> (netTarget_.writer ());
+//  if (!netTarget_impl_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Net_Target_T> failed, aborting\n")));
+//    goto failed;
+//  } // end IF
+//  if (!netTarget_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+//                netTarget_.name ()));
+//    goto failed;
+//  } // end IF
 
   // ******************* Runtime Statistics ************************
-  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  runtimeStatistic_impl_p =
-      dynamic_cast<Test_I_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  if (!runtimeStatistic_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Module_RuntimeStatistic> failed, aborting\n")));
-    goto failed;
-  } // end IF
-  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-                                            configuration_in.printFinalReport,           // print final report ?
-                                            configuration_in.messageAllocator))          // message allocator handle
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                runtimeStatistic_.name ()));
-    goto failed;
-  } // end IF
+//  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
+//  runtimeStatistic_impl_p =
+//      dynamic_cast<Test_I_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+//  if (!runtimeStatistic_impl_p)
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("dynamic_cast<Test_I_Module_RuntimeStatistic> failed, aborting\n")));
+//    goto failed;
+//  } // end IF
+//  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
+//                                            configuration_in.printFinalReport,           // print final report ?
+//                                            configuration_in.messageAllocator))          // message allocator handle
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+//                runtimeStatistic_.name ()));
+//    goto failed;
+//  } // end IF
 
   // ******************* File Reader ************************
   fileReader_.initialize (*configuration_in.moduleConfiguration);

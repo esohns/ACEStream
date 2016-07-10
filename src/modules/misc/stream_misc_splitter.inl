@@ -86,14 +86,14 @@ Stream_Module_Splitter_T<SynchStrategyType,
   passMessageDownstream_out = false;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
 
   if (!buffer_)
     buffer_ = message_inout;
   else
     buffer_->cont (message_inout);
 
-  if (buffer_->total_length () < configuration_->frameSize)
+  if (buffer_->total_length () < inherited::configuration_->frameSize)
     return; // done
 
   // got enough data --> split and forward
@@ -104,7 +104,7 @@ Stream_Module_Splitter_T<SynchStrategyType,
     count += message_block_p->length ();
     message_block_p = message_block_p->cont ();
 
-    if (count >= configuration_->frameSize)
+    if (count >= inherited::configuration_->frameSize)
       break;
   } while (true);
   ACE_ASSERT (message_block_p);
@@ -118,10 +118,10 @@ Stream_Module_Splitter_T<SynchStrategyType,
     return;
   } // end IF
   buffer_->cont (NULL);
-  buffer_->rd_ptr (count - configuration_->frameSize);
+  buffer_->rd_ptr (count - inherited::configuration_->frameSize);
 
   message_block_p->reset ();
-  message_block_p->wr_ptr (count - configuration_->frameSize);
+  message_block_p->wr_ptr (count - inherited::configuration_->frameSize);
   int result = inherited::put_next (message_block_p, NULL);
   if (result == -1)
   {
@@ -310,7 +310,7 @@ Stream_Module_SplitterH_T<LockType,
   passMessageDownstream_out = false;
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
+  ACE_ASSERT (inherited::configuration_);
 
   ACE_Message_Block* message_block_p = NULL;
   if (!buffer_)
@@ -335,12 +335,13 @@ continue_:
   // *TODO*: remove type inference
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
-  ACE_ASSERT (configuration_->format);
+  ACE_ASSERT (inherited::configuration_->format);
 
-  //if (total_length < configuration_->format->lSampleSize)
+  //if (total_length < inherited::configuration_->format->lSampleSize)
   UINT32 sample_size = 0;
-  HRESULT result = configuration_->format->GetUINT32 (MF_MT_SAMPLE_SIZE,
-                                                      &sample_size);
+  HRESULT result =
+      inherited::configuration_->format->GetUINT32 (MF_MT_SAMPLE_SIZE,
+                                                    &sample_size);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -350,7 +351,7 @@ continue_:
     return;
   } // end IF
 #else
-  if (total_length < configuration_->format.fmt.pix.sizeimage)
+  if (total_length < inherited::configuration_->format.fmt.pix.sizeimage)
 #endif
     return; // done
 
@@ -361,7 +362,7 @@ continue_:
                             //configuration_->format->lSampleSize);
                             sample_size);
 #else
-                            configuration_->format.fmt.pix.sizeimage);
+                            inherited::configuration_->format.fmt.pix.sizeimage);
 #endif
   if (remainder)
   {
@@ -394,7 +395,7 @@ continue_:
               sample_size);
 #else
   ACE_ASSERT (message_block_p->total_length () ==
-              configuration_->format.fmt.pix.sizeimage);
+              inherited::configuration_->format.fmt.pix.sizeimage);
 #endif
 
   int result_2 = inherited::put_next (message_block_p, NULL);
@@ -574,17 +575,12 @@ Stream_Module_SplitterH_T<LockType,
 
   if (inherited::initialized_)
   {
-    configuration_ = NULL;
-
     if (buffer_)
     {
       buffer_->release ();
       buffer_ = NULL;
     } // end IF
   } // end IF
-
-  configuration_ =
-    &const_cast<ConfigurationType&> (configuration_in);
 
   result = inherited::initialize (configuration_in);
   if (!result)

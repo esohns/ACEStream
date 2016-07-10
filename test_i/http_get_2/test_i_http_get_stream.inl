@@ -147,12 +147,12 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
 
   // ---------------------------------------------------------------------------
 
-  Test_I_Stream_SpreadsheetWriter* spreadsheetWriter_impl_p = NULL;
-  Test_I_Stream_HTMLParser* HTMLParser_impl_p = NULL;
-  Test_I_Stream_Decompressor* decompressor_impl_p = NULL;
-  Test_I_Stream_HTTPGet* HTTPGet_impl_p = NULL;
-  Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
-  Test_I_Stream_HTTP_Parser* HTTPParser_impl_p = NULL;
+//  Test_I_Stream_SpreadsheetWriter* spreadsheetWriter_impl_p = NULL;
+//  Test_I_Stream_HTMLParser* HTMLParser_impl_p = NULL;
+//  Test_I_Stream_Decompressor* decompressor_impl_p = NULL;
+//  Test_I_Stream_HTTPGet* HTTPGet_impl_p = NULL;
+//  Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
+//  Test_I_Stream_HTTP_Parser* HTTPParser_impl_p = NULL;
   SOURCE_WRITER_T* netSource_impl_p = NULL;
 
   // ******************* Spreadsheet Writer ************************
@@ -269,7 +269,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
   //} // end IF
 
   // ******************* Net Source ************************
-  netSource_.initialize (*configuration_in.moduleConfiguration);
+//  netSource_.initialize (*configuration_in.moduleConfiguration);
   netSource_impl_p = dynamic_cast<SOURCE_WRITER_T*> (netSource_.writer ());
   if (!netSource_impl_p)
   {
@@ -277,13 +277,13 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configur
                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Net_Source_T> failed, aborting\n")));
     goto failed;
   } // end IF
-  if (!netSource_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                netSource_.name ()));
-    goto failed;
-  } // end IF
+//  if (!netSource_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+//                netSource_.name ()));
+//    goto failed;
+//  } // end IF
   if (!netSource_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,

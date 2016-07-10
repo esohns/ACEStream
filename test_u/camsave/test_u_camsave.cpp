@@ -384,6 +384,9 @@ do_initializeSignals (bool allowUserRuntimeConnect_in,
                 ACE_TEXT ("failed to ACE_Sig_Set::fill_set(): \"%m\", returning\n")));
     return;
   } // end IF
+#if defined (DEBUG_DEBUGGER)
+  signals_out.sig_del (SIGTRAP);           // 5       /* Trace trap (POSIX) */
+#endif
   // *NOTE*: cannot handle some signals --> registration fails for these...
   signals_out.sig_del (SIGKILL);           // 9       /* Kill signal */
   signals_out.sig_del (SIGSTOP);           // 19      /* Stop process */
