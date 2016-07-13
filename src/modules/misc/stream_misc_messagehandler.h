@@ -35,7 +35,7 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -47,7 +47,7 @@ template <typename SynchStrategyType,
           typename SessionIdType,
           typename SessionDataContainerType>
 class Stream_Module_MessageHandler_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  /////////
                                  ConfigurationType,
@@ -72,7 +72,7 @@ class Stream_Module_MessageHandler_T
   Stream_Module_MessageHandler_T ();
   virtual ~Stream_Module_MessageHandler_T ();
 
-  using Stream_TaskBaseSynch_T<SynchStrategyType,
+  using Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -105,7 +105,7 @@ class Stream_Module_MessageHandler_T
   typename SessionDataContainerType::DATA_T* sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  /////////
                                  ConfigurationType,
@@ -114,7 +114,7 @@ class Stream_Module_MessageHandler_T
                                  DataMessageType,
                                  SessionMessageType> inherited;
 
-  typedef Stream_Module_MessageHandler_T<SynchStrategyType,
+  typedef Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                          TimePolicyType,
 
                                          ConfigurationType,

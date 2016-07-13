@@ -18,6 +18,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 ############## next target ################
 set (${PROJECT_NAME}_Decoder_LIB_SRCS
+     stdafx.cpp
+     stdafx.h
      stream_dec_avi_decoder.cpp
      stream_dec_avi_decoder.h
      stream_dec_avi_decoder.inl
@@ -37,9 +39,7 @@ set (${PROJECT_NAME}_Decoder_LIB_SRCS
      stream_dec_riff_scanner.cpp
      stream_dec_riff_scanner.h
      stream_dec_tools.cpp
-     stream_dec_tools.h
-     stdafx.cpp
-     stdafx.h)
+     stream_dec_tools.h)
 set (${PROJECT_NAME}_Decoder_LIB_SCRIPTS
      scripts/scanner.l
      scripts/parser.y)
@@ -71,6 +71,10 @@ endif ()
 
 set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES DEFINE_SYMBOL STREAM_DEC_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+
+# add PCH
+set_target_properties (${PROJECT_NAME}_Decoder PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${PROJECT_NAME}_Decoder)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Decoder

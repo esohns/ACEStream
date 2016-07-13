@@ -30,7 +30,7 @@
 class ACE_Message_Block;
 class ACE_Time_Value;
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -40,7 +40,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType>
 class Stream_TaskBaseSynch_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case
- : public Stream_TaskBase_T<SynchStrategyType,
+ : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -64,7 +64,7 @@ class Stream_TaskBaseSynch_T
   Stream_TaskBaseSynch_T ();
 
  private:
-  typedef Stream_TaskBase_T<SynchStrategyType,
+  typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             //////////////
                             ConfigurationType,

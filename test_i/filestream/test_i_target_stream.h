@@ -69,6 +69,9 @@ class Test_I_Target_Stream
   Test_I_Target_Stream (const std::string&); // name
   virtual ~Test_I_Target_Stream ();
 
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&); // return value: module list
+
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Stream_Configuration&, // configuration
                            bool = true,                        // setup pipeline ?

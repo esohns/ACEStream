@@ -23,13 +23,13 @@
 #include "stream_common.h"
 #include "stream_macros.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
-Stream_Module_Base_T<SynchStrategyType,
+Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -66,13 +66,13 @@ Stream_Module_Base_T<SynchStrategyType,
   inherited::next (NULL);
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
-Stream_Module_Base_T<SynchStrategyType,
+Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -86,14 +86,14 @@ Stream_Module_Base_T<SynchStrategyType,
   //            --> close() module in advance so it doesn't happen here
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 const ConfigurationType&
-Stream_Module_Base_T<SynchStrategyType,
+Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -105,14 +105,14 @@ Stream_Module_Base_T<SynchStrategyType,
   return configuration_;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 bool
-Stream_Module_Base_T<SynchStrategyType,
+Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -126,14 +126,14 @@ Stream_Module_Base_T<SynchStrategyType,
   return true;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 const HandlerConfigurationType&
-Stream_Module_Base_T<SynchStrategyType,
+Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -158,14 +158,14 @@ Stream_Module_Base_T<SynchStrategyType,
   return iget_p->get ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 bool
-Stream_Module_Base_T<SynchStrategyType,
+Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -177,14 +177,14 @@ Stream_Module_Base_T<SynchStrategyType,
   return isFinal_;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 void
-Stream_Module_Base_T<SynchStrategyType,
+Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,
@@ -204,15 +204,15 @@ Stream_Module_Base_T<SynchStrategyType,
   inherited::next (NULL);
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
-ACE_Module<SynchStrategyType,
+ACE_Module<ACE_SYNCH_USE,
            TimePolicyType>*
-Stream_Module_Base_T<SynchStrategyType,
+Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      HandlerConfigurationType,

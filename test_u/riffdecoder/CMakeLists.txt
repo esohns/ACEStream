@@ -120,6 +120,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 ############## next target ################
 set (riffdecoder_EXE_SRCS
+     stdafx.cpp
+     stdafx.h
      targetver.h
      test_u_riffdecoder.cpp
      test_u_riffdecoder_common.h
@@ -130,9 +132,7 @@ set (riffdecoder_EXE_SRCS
      test_u_riffdecoder_session_message.cpp
      test_u_riffdecoder_session_message.h
      test_u_riffdecoder_stream.cpp
-     test_u_riffdecoder_stream.h
-     stdafx.cpp
-     stdafx.h)
+     test_u_riffdecoder_stream.h)
 
 set (EXECUTABLE riffdecoder)
 add_executable (${EXECUTABLE} ${riffdecoder_EXE_SRCS})
@@ -149,6 +149,10 @@ endif ()
 target_link_libraries (${EXECUTABLE} Common)
 target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
+
+# add PCH
+set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${EXECUTABLE})
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets

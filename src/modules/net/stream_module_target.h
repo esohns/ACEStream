@@ -27,7 +27,7 @@
 
 #include "stream_task_base_synch.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -40,7 +40,7 @@ template <typename SynchStrategyType,
           typename ConnectionManagerType,
           typename ConnectorType>
 class Stream_Module_Net_Target_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  /////////
                                  ConfigurationType,
@@ -74,7 +74,7 @@ class Stream_Module_Net_Target_T
   SessionDataContainerType*                      sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  /////////
                                  ConfigurationType,

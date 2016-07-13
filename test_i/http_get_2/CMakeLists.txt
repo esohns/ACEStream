@@ -95,13 +95,21 @@ if (UNIX)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../zlib-1.2.8)
 
+ if (DEFINED ENV{OO_SDK_HOME})
+  set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
+ elseif (DEFINED ENV{UNO_HOME})
+   set (OO_SDK_DIRECTORY $ENV{UNO_PATH}\..\sdk)
+ else ()
+  message (FATAL_ERROR "%OO_SDK_HOME%/%UNO_PATH% not set, aborting")
+ endif ()
 # *NOTE*: workaround
- set(_PF86 "ProgramFiles(x86)")
- set (LIBREOFFICE_SDK_DIRECTORY
+# set(_PF86 "ProgramFiles(x86)")
+# set (OO_SDK_DIRECTORY
 #      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
 #      "$ENV{${_PF86}}/LibreOffice_5.1_SDK/sdk"
-       "C:/LibreOffice_5.1_SDK_installer/sdk")
-# message (STATUS "LibreOffice SDK directory: \"${LIBREOFFICE_SDK_DIRECTORY}\"")
+#       "C:/LibreOffice_5.1_SDK_installer/sdk")
+ message (STATUS "LibreOffice SDK directory: \"${OO_SDK_DIRECTORY}\"")
+ include_directories (${OO_SDK_DIRECTORY}/include)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
@@ -192,6 +200,8 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
 set (http_get_2_EXE_SRCS
+     stdafx.cpp
+     stdafx.h
      test_i_common.h
      test_i_common_modules.h
      test_i_connection_common.h
@@ -213,10 +223,8 @@ set (http_get_2_EXE_SRCS
      test_i_http_get_signalhandler.h
      test_i_http_get_stream.cpp
      test_i_http_get_stream.h
-     test_i_http_get_stream.inl
+     test_i_http_get_stream.inl)
 #  test_i_template_instantiations.cpp
-     stdafx.cpp
-     stdafx.h)
 
 set (EXECUTABLE http_get_2)
 add_executable (${EXECUTABLE} ${http_get_2_EXE_SRCS})
@@ -255,10 +263,10 @@ elseif (WIN32)
  #target_link_libraries (http_get ${LIBXML2_LIBRARY})
  target_link_libraries (${EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../../libxml2-2.9.4/win32/lib/libxml2.lib)
 
- target_link_libraries (${EXECUTABLE} ${LIBREOFFICE_SDK_DIRECTORY}/lib/isal.lib)
+ target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/isal.lib)
 
- target_link_libraries (${EXECUTABLE} ${LIBREOFFICE_SDK_DIRECTORY}/lib/icppu.lib)
- target_link_libraries (${EXECUTABLE} ${LIBREOFFICE_SDK_DIRECTORY}/lib/icppuhelper.lib)
+ target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/icppu.lib)
+ target_link_libraries (${EXECUTABLE} ${OO_SDK_DIRECTORY}/lib/icppuhelper.lib)
 endif ()
 #target_link_libraries (${EXECUTABLE} ${MYSQL_LIBRARY})
 target_link_libraries (${EXECUTABLE} Common)
@@ -269,6 +277,10 @@ target_link_libraries (${EXECUTABLE} ACEStream_HTML)
 target_link_libraries (${EXECUTABLE} ACENetwork)
 target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
 #target_link_libraries (${EXECUTABLE} ACENetwork_Client)
+
+# add PCH
+set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${EXECUTABLE})
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets

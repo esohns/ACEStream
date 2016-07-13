@@ -138,7 +138,7 @@ Test_I_Stream_DataBaseWriter::handleSessionMessage (Test_I_Stream_SessionMessage
         //(inherited::configuration_.loginOptions.host.is_loopback () ? NULL // localhost ([Unix]socket file/[Win32]shared memory : TCP) : options file (?)
         //                                                            : ACE_TEXT_ALWAYS_CHAR (host_address));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (inherited::configuration_.loginOptions.useNamedPipe)
+      if (inherited::configuration_->loginOptions.useNamedPipe)
         host_p = ACE_TEXT_ALWAYS_CHAR (".");
 #endif
       const char* user_name_string_p =

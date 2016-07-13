@@ -15,6 +15,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 ############## next target ################
 set (${PROJECT_NAME}_HTML_LIB_SRCS
+     stdafx.cpp
+     stdafx.h
      stream_module_htmlparser.cpp
      stream_module_htmlparser.h
      stream_module_htmlparser.inl
@@ -26,9 +28,7 @@ set (${PROJECT_NAME}_HTML_LIB_SRCS
      stream_module_xpathquery.inl
      stream_html_exports.h
      stream_html_tools.cpp
-     stream_html_tools.h
-     stdafx.cpp
-     stdafx.h)
+     stream_html_tools.h)
 
 add_library (${PROJECT_NAME}_HTML SHARED ${ACEStream_HTML_LIB_SRCS})
 
@@ -41,6 +41,10 @@ endif ()
 
 set_target_properties (${PROJECT_NAME}_HTML PROPERTIES DEFINE_SYMBOL STREAM_HTML_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_HTML PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+
+# add PCH
+set_target_properties (${PROJECT_NAME}_HTML PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${PROJECT_NAME}_HTML)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_HTML

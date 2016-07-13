@@ -27,7 +27,7 @@
 #include "stream_session_message_base.h"
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -43,7 +43,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -71,37 +71,47 @@ Stream_Base_T<LockType,
  /////////////////////////////////////////
  , hasFinal_ (false)
  , name_ (name_in)
+ //, headReaderTask_ ()
+ //, headWriterTask_ ()
+ //, head_ ()
+ //, tailReaderTask_ ()
+ //, tailWriterTask_ ()
+ //, tail_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   //int result = -1;
 
-  // *TODO*: (for reasons yet unknown,) inherited::stream_head_::next_ and
-  //         inherited::stream_tail_::next_ fail to initialize; i.e. the
-  //         memory address contains 0xcdcdcdcd on debug builds and ignores
-  //         subsequent assignment (MSVC 2015 update 2)
-  //         --> re-initialize
-  // *NOTE*: cannot close() for reasons above
   //result = inherited::close (inherited::M_DELETE);
   //if (result == -1)
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to ACE_Stream::close(): \"%m\", continuing\n")));
 
-  // *TODO*: Note that this leaks memory (cannot close(), see above)
-  //result = inherited::open (NULL,  // argument to module open()
-  //                          NULL,  // allocate head module
-  //                          NULL); // allocate tail module
+  //result = head_.open (ACE_TEXT ("ACE_Stream_Head"),
+  //                     &headWriterTask_, &headReaderTask_,
+  //                     NULL,
+  //                     ACE_Module_Base::M_DELETE_NONE);
   //if (result == -1)
   //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", continuing\n")));
-  // *TODO*: this really shouldn't be necessary
-  //inherited::head ()->next (inherited::tail ());
-#endif
+  //              ACE_TEXT ("failed to ACE_Module::open(): \"%m\", continuing\n")));
+  //result = tail_.open (ACE_TEXT ("ACE_Stream_Tail"),
+  //                     &tailWriterTask_, &tailReaderTask_,
+  //                     NULL,
+  //                     ACE_Module_Base::M_DELETE_NONE);
+  //if (result == -1)
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to ACE_Module::open(): \"%m\", continuing\n")));
+
+  //result = inherited::open (NULL,    // argument to module open()
+  //                          &head_,  // head module handle
+  //                          &tail_); // tail module handle
+  //if (result == -1)
+  //  ACE_DEBUG ((LM_ERROR,
+  //                 ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", continuing\n")));
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -117,7 +127,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -159,7 +169,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -176,7 +186,7 @@ template <typename LockType,
           typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -210,7 +220,7 @@ Stream_Base_T<LockType,
   return result;
 }
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -227,7 +237,7 @@ template <typename LockType,
           typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -319,7 +329,7 @@ Stream_Base_T<LockType,
 }
 
 //template <typename LockType,
-//          typename SynchStrategyType,
+//          ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename StatusType,
 //          typename StateType,
@@ -333,7 +343,7 @@ Stream_Base_T<LockType,
 //          typename ProtocolMessageType>
 //bool
 //Stream_Base_T<LockType,
-//              SynchStrategyType,
+//              ACE_SYNCH_USE,
 //              TimePolicyType,
 //              StatusType,
 //              StateType,
@@ -381,7 +391,7 @@ Stream_Base_T<LockType,
 //}
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -398,7 +408,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -461,11 +471,11 @@ Stream_Base_T<LockType,
                 ACE_TEXT ("failed to Stream_IStreamControlBase::load(), returning\n")));
     return;
   } // end IF
-  // *TODO* fix ACE bug: modules should initialize their 'next_' member
-  for (Stream_ModuleListIterator_t iterator = modules_.begin ();
-       iterator != modules_.end ();
-       iterator++)
-    (*iterator)->next (NULL);
+  //// *TODO* fix ACE bug: modules should initialize their 'next_' member
+  //for (Stream_ModuleListIterator_t iterator = modules_.begin ();
+  //     iterator != modules_.end ();
+  //     iterator++)
+  //  (*iterator)->next (NULL);
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
@@ -562,7 +572,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -579,7 +589,7 @@ template <typename LockType,
           typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -629,7 +639,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -646,7 +656,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -707,7 +717,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -724,7 +734,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -834,7 +844,7 @@ wait:
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -851,7 +861,7 @@ template <typename LockType,
           typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -904,7 +914,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -921,7 +931,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1009,7 +1019,7 @@ Stream_Base_T<LockType,
   } // end IF
 }
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1026,7 +1036,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1098,7 +1108,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1115,7 +1125,7 @@ template <typename LockType,
           typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1142,7 +1152,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1159,7 +1169,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1307,7 +1317,7 @@ continue_:
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1324,7 +1334,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1378,7 +1388,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1395,7 +1405,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1455,7 +1465,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1472,7 +1482,7 @@ template <typename LockType,
           typename SessionMessageType>
 StatusType
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1532,7 +1542,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1549,7 +1559,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1731,7 +1741,7 @@ Stream_Base_T<LockType,
 }
 
 //template <typename LockType,
-//          typename SynchStrategyType,
+//          ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename StatusType,
 //          typename StateType,
@@ -1745,7 +1755,7 @@ Stream_Base_T<LockType,
 //          typename ProtocolMessageType>
 //void
 //Stream_Base_T<LockType,
-//              SynchStrategyType,
+//              ACE_SYNCH_USE,
 //              TimePolicyType,
 //              StatusType,
 //              StateType,
@@ -1919,7 +1929,7 @@ Stream_Base_T<LockType,
 //}
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1934,9 +1944,9 @@ template <typename LockType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_Module_t*
+const Stream_Module_t*
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -1954,14 +1964,15 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
 
-//  Stream_Module_t* result = NULL;
-  OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
+  inherited* base_p = const_cast<OWN_TYPE_T*> (this);
 
   // step1: search for the module on the stream
   const ACE_TCHAR* name_p = ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ());
-  for (Stream_Module_t* module_p = this_p->head ();
-       module_p;
-       module_p = module_p->next ())
+  const Stream_Module_t* module_p = NULL;
+  ITERATOR_T iterator (*base_p);
+  for (iterator.next (module_p);
+       iterator.done () == 0;
+       iterator.advance (), iterator.next (module_p))
     if (ACE_OS::strcmp (module_p->name (), name_p) == 0)
       return module_p;
   //result = this_p->inherited::find (name_p);
@@ -1981,7 +1992,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -1998,7 +2009,7 @@ template <typename LockType,
           typename SessionMessageType>
 std::string
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2020,7 +2031,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2037,7 +2048,7 @@ template <typename LockType,
           typename SessionMessageType>
 const StateType&
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2059,7 +2070,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2076,7 +2087,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2100,7 +2111,7 @@ Stream_Base_T<LockType,
   upStream_ = upStream_in;
 }
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2117,7 +2128,7 @@ template <typename LockType,
           typename SessionMessageType>
 Stream_Base_t*
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2139,7 +2150,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2156,7 +2167,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2199,7 +2210,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2216,7 +2227,7 @@ template <typename LockType,
           typename SessionMessageType>
 const SessionDataContainerType*
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2237,7 +2248,7 @@ Stream_Base_T<LockType,
   return sessionData_;
 }
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2254,7 +2265,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2280,7 +2291,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2297,7 +2308,7 @@ template <typename LockType,
           typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2465,31 +2476,31 @@ Stream_Base_T<LockType,
     modules_.push_front (state_.module);
     hasFinal_ = true;
 
-    if (!imodule_p->initialize (*configuration_inout.moduleConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-                  state_.module->name ()));
-      return false;
-    } // end IF
-    Stream_Task_t* task_p = state_.module->writer ();
-    ACE_ASSERT (task_p);
-    MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
-        dynamic_cast<MODULEHANDLER_IINITIALIZE_T*> (task_p);
-    if (!iinitialize_p)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-                  state_.module->name ()));
-      return false;
-    } // end IF
-    if (!iinitialize_p->initialize (*configuration_inout.moduleHandlerConfiguration))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
-                  state_.module->name ()));
-      return false;
-    } // end IF
+    //if (!imodule_p->initialize (*configuration_inout.moduleConfiguration))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to initialize module, aborting\n"),
+    //              state_.module->name ()));
+    //  return false;
+    //} // end IF
+    //Stream_Task_t* task_p = state_.module->writer ();
+    //ACE_ASSERT (task_p);
+    //MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
+    //    dynamic_cast<MODULEHANDLER_IINITIALIZE_T*> (task_p);
+    //if (!iinitialize_p)
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
+    //              state_.module->name ()));
+    //  return false;
+    //} // end IF
+    //if (!iinitialize_p->initialize (*configuration_inout.moduleHandlerConfiguration))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
+    //              state_.module->name ()));
+    //  return false;
+    //} // end IF
   } // end IF
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_inout);
@@ -2505,7 +2516,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2522,7 +2533,7 @@ template <typename LockType,
           typename SessionMessageType>
 int
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2546,7 +2557,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2563,7 +2574,7 @@ template <typename LockType,
           typename SessionMessageType>
 int
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2591,7 +2602,7 @@ Stream_Base_T<LockType,
     upstream_name_string = istreamcontrol_p->name ();
 
   // sanity check(s)
-  ACE_Module<SynchStrategyType, TimePolicyType>* upstream_tailing_module_p =
+  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* upstream_tailing_module_p =
     upStream_in.head ();
   if (!upstream_tailing_module_p)
   {
@@ -2602,7 +2613,7 @@ Stream_Base_T<LockType,
   } // end IF
 
   // locate the module just above the upstreams' tail
-  ACE_Module<SynchStrategyType, TimePolicyType>* upstream_tail_module_p =
+  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* upstream_tail_module_p =
       upStream_in.tail ();
   if (!upstream_tail_module_p)
   {
@@ -2615,7 +2626,7 @@ Stream_Base_T<LockType,
     upstream_tailing_module_p = upstream_tailing_module_p->next ();
 
   //int result = inherited::link (upStream_in);
-  ACE_Module<SynchStrategyType, TimePolicyType>* head_module_p =
+  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* head_module_p =
       inherited::head ();
   if (!head_module_p)
   {
@@ -2624,7 +2635,7 @@ Stream_Base_T<LockType,
                 ACE_TEXT (name_.c_str ())));
     return -1;
   } // end IF
-  ACE_Module<SynchStrategyType, TimePolicyType>* heading_module_p =
+  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* heading_module_p =
       head_module_p->next ();
   if (!heading_module_p)
   {
@@ -2677,7 +2688,7 @@ done:
   return 0;
 }
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2694,7 +2705,7 @@ template <typename LockType,
           typename SessionMessageType>
 int
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2729,7 +2740,7 @@ Stream_Base_T<LockType,
                 ACE_TEXT (name_.c_str ())));
     return -1;
   } // end IF
-  ACE_Module<SynchStrategyType, TimePolicyType>* upstream_tailing_module_p =
+  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* upstream_tailing_module_p =
     upStream_->head ();
   if (!upstream_tailing_module_p)
   {
@@ -2740,8 +2751,8 @@ Stream_Base_T<LockType,
   } // end IF
 
   // locate the module just above the upstreams' tail
-  ACE_Module<SynchStrategyType, TimePolicyType>* module_p = NULL;
-  ACE_Module<SynchStrategyType, TimePolicyType>* head_module_p = inherited::head ();
+  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* module_p = NULL;
+  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* head_module_p = inherited::head ();
   if (!head_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2749,7 +2760,7 @@ Stream_Base_T<LockType,
                 ACE_TEXT (name_.c_str ())));
     return -1;
   } // end IF
-  ACE_Module<SynchStrategyType, TimePolicyType>* heading_module_p =
+  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* heading_module_p =
       head_module_p->next ();
   if (!heading_module_p)
   {
@@ -2780,7 +2791,7 @@ Stream_Base_T<LockType,
 
   //int result = inherited::link (upStream_in);
   heading_module_p->reader ()->next (head_module_p->reader ());
-  ACE_Module<SynchStrategyType, TimePolicyType>* upstream_tail_module_p =
+  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* upstream_tail_module_p =
       upStream_->tail ();
   if (!upstream_tail_module_p)
   {
@@ -2802,7 +2813,7 @@ Stream_Base_T<LockType,
   return 0;
 }
 
-//template <typename SynchStrategyType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename StateType,
 //          typename ConfigurationType,
@@ -2814,7 +2825,7 @@ Stream_Base_T<LockType,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType>
 //int
-//Stream_Base_T<SynchStrategyType,
+//Stream_Base_T<ACE_SYNCH_USE,
 //              TimePolicyType,
 //              StateType,
 //              ConfigurationType,
@@ -2883,7 +2894,7 @@ Stream_Base_T<LockType,
 //}
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2900,7 +2911,7 @@ template <typename LockType,
           typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -2976,7 +2987,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -2993,7 +3004,7 @@ template <typename LockType,
           typename SessionMessageType>
 bool
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3015,7 +3026,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3032,7 +3043,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3119,7 +3130,7 @@ _continue:
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3136,7 +3147,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3239,7 +3250,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3256,7 +3267,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,
@@ -3341,7 +3352,7 @@ Stream_Base_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlType,
           typename NotificationType,
@@ -3358,7 +3369,7 @@ template <typename LockType,
           typename SessionMessageType>
 void
 Stream_Base_T<LockType,
-              SynchStrategyType,
+              ACE_SYNCH_USE,
               TimePolicyType,
               ControlType,
               NotificationType,

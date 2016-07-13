@@ -37,20 +37,26 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Test_I_Source_Stream_T"));
 
-  // remember the 'owned' ones
-  // *TODO*: clean this up
-  // *NOTE*: one problem is that all modules which have NOT enqueued onto the
-  //         stream (e.g. because initialize() failed...) need to be explicitly
-  //         close()d
-  inherited::modules_.push_front (&fileReader_);
-  inherited::modules_.push_front (&runtimeStatistic_);
-  inherited::modules_.push_front (&netTarget_);
+  //// remember the 'owned' ones
+  //// *TODO*: clean this up
+  //// *NOTE*: one problem is that all modules which have NOT enqueued onto the
+  ////         stream (e.g. because initialize() failed...) need to be explicitly
+  ////         close()d
+  //inherited::modules_.push_front (&fileReader_);
+  //inherited::modules_.push_front (&runtimeStatistic_);
+  //inherited::modules_.push_front (&netTarget_);
 
-  // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
-  for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
-       iterator != inherited::modules_.end ();
-       iterator++)
-     (*iterator)->next (NULL);
+  //// *TODO* fix ACE bug: modules should initialize their "next" member to NULL
+  //for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
+  //     iterator != inherited::modules_.end ();
+  //     iterator++)
+  //   (*iterator)->next (NULL);
+
+  //// *TODO*: these really shouldn't be necessary
+  //inherited::head ()->next (inherited::tail ());
+  //ACE_ASSERT (inherited::head ()->next () == inherited::tail ());
+  //inherited::tail ()->next (NULL);
+  //ACE_ASSERT (inherited::tail ()->next () == NULL);
 }
 
 template <typename ConnectorType>
@@ -71,6 +77,26 @@ Test_I_Source_Stream_T<ConnectorType>::ping ()
   ACE_ASSERT (false);
   ACE_NOTSUP;
   ACE_NOTREACHED (return;)
+}
+
+template <typename ConnectorType>
+bool
+Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::load"));
+
+  //  // initialize return value(s)
+  //  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
+  //       iterator != modules_out.end ();
+  //       iterator++)
+  //    delete *iterator;
+  //  modules_out.clear ();
+
+  modules_out.push_back (&netTarget_);
+  modules_out.push_back (&runtimeStatistic_);
+  modules_out.push_back (&fileReader_);
+
+  return true;
 }
 
 template <typename ConnectorType>
@@ -196,7 +222,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_Stream_Co
 //  } // end IF
 
   // ******************* File Reader ************************
-  fileReader_.initialize (*configuration_in.moduleConfiguration);
+  //fileReader_.initialize (*configuration_in.moduleConfiguration);
   fileReader_impl_p =
     dynamic_cast<Test_I_Module_FileReader*> (fileReader_.writer ());
   if (!fileReader_impl_p)
@@ -205,13 +231,13 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_Stream_Co
                 ACE_TEXT ("dynamic_cast<Test_I_Module_FileReader> failed, aborting\n")));
     goto failed;
   } // end IF
-  if (!fileReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                fileReader_.name ()));
-    goto failed;
-  } // end IF
+  //if (!fileReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              fileReader_.name ()));
+  //  goto failed;
+  //} // end IF
   if (!fileReader_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -270,12 +296,12 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   Test_I_Stream_SessionData& session_data_r =
       const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
-  Test_I_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Test_I_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+  Test_I_Source_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
+    dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
   if (!runtimeStatistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Module_Statistic_WriterTask_t> failed, aborting\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t> failed, aborting\n")));
     return false;
   } // end IF
 
@@ -295,12 +321,9 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
 
   // delegate to the statistics module...
   bool result_2 = false;
-  try
-  {
+  try {
     result_2 = runtimeStatistic_impl->collect (data_out);
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
   }

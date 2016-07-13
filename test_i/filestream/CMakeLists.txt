@@ -112,6 +112,8 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
 set (filesource_EXE_SRCS
+     stdafx.cpp
+     stdafx.h
      test_i_callbacks.cpp
      test_i_callbacks.h
      test_i_common.h
@@ -123,6 +125,7 @@ set (filesource_EXE_SRCS
      test_i_message.h
      test_i_module_eventhandler.cpp
      test_i_module_eventhandler.h
+     test_i_module_eventhandler.inl
      test_i_session_message.cpp
      test_i_session_message.h
      test_i_source.cpp
@@ -135,10 +138,8 @@ set (filesource_EXE_SRCS
      test_i_source_stream.h
      test_i_source_stream.inl
      test_i_target_stream.cpp
-     test_i_target_stream.h
+     test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
-     stdafx.cpp
-     stdafx.h)
 
 set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
 
@@ -176,6 +177,11 @@ target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACENetwork)
 #target_link_libraries (${EXECUTABLE} ACENetwork_Client)
 
+# add PCH
+set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+#cotire (${EXECUTABLE})
+
 set (RESOURCE_FILES
      etc/resources.rc
      etc/source.glade
@@ -202,7 +208,7 @@ if (UNIX)
                          ARGS "-f ~/Downloads/keyvalue-0.3.tgz -g -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../gtk3/bin
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
@@ -216,10 +222,11 @@ elseif (WIN32)
                          ARGS "-g.\\\\..\\\\..\\\\..\\\\test_i\\\\filestream\\\\etc\\\\source.glade -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../gtk3/bin
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
@@ -238,6 +245,8 @@ set_tests_properties (filestream_source
 
 ############## next target ################
 set (filetarget_EXE_SRCS
+     stdafx.cpp
+     stdafx.h
      test_i_callbacks.cpp
      test_i_callbacks.h
      test_i_common.h
@@ -249,6 +258,7 @@ set (filetarget_EXE_SRCS
      test_i_message.h
      test_i_module_eventhandler.cpp
      test_i_module_eventhandler.h
+     test_i_module_eventhandler.inl
      test_i_session_message.cpp
      test_i_session_message.h
      test_i_source_stream.cpp
@@ -262,10 +272,8 @@ set (filetarget_EXE_SRCS
      test_i_target_signalhandler.cpp
      test_i_target_signalhandler.h
      test_i_target_stream.cpp
-     test_i_target_stream.h
+     test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
-     stdafx.cpp
-     stdafx.h)
 
 set (EXECUTABLE filetarget)
 add_executable (${EXECUTABLE} ${filetarget_EXE_SRCS} etc/resources.rc etc/target.glade)
@@ -301,6 +309,11 @@ target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACENetwork)
 #target_link_libraries (${EXECUTABLE} ACENetwork_Client)
 
+# add PCH
+set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
+cotire (${EXECUTABLE})
+
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
@@ -319,7 +332,7 @@ if (UNIX)
                          ARGS "-g./../../../test_i/filestream/etc/target.glade -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../gtk3/bin
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
@@ -333,10 +346,11 @@ elseif (WIN32)
                          ARGS "-g.\\\\..\\\\..\\\\..\\\\test_i\\\\filestream\\\\etc\\\\target.glade -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
-                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../gtk3/bin
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
                                               G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug

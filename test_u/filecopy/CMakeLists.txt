@@ -111,6 +111,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 ############## next target ################
 set (filecopy_EXE_SRCS
+     stdafx.cpp
+     stdafx.h
      ../test_u_common.h
      ../test_u_defines.h
      targetver.h
@@ -131,9 +133,7 @@ set (filecopy_EXE_SRCS
      test_u_filecopy_signalhandler.cpp
      test_u_filecopy_signalhandler.h
      test_u_filecopy_stream.cpp
-     test_u_filecopy_stream.h
-     stdafx.cpp
-     stdafx.h)
+     test_u_filecopy_stream.h)
 
 set (EXECUTABLE filecopy)
 add_executable (${EXECUTABLE} ${filecopy_EXE_SRCS} etc/filecopy.glade)
@@ -171,6 +171,10 @@ if (WIN32)
 endif ()
 target_link_libraries (${EXECUTABLE} CommonUI)
 target_link_libraries (${EXECUTABLE} ACEStream)
+
+# add PCH
+set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${EXECUTABLE})
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets

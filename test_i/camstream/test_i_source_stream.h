@@ -28,16 +28,17 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "mfidl.h"
+#include "mfobjects.h"
 #endif
 
 #include "common_time_common.h"
 
 #include "stream_base.h"
 #include "stream_common.h"
+#include "stream_streammodule_base.h"
 
 #include "stream_module_target.h"
 
-#include "test_i_common.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 #include "test_i_source_common.h"
@@ -86,13 +87,13 @@ class Test_I_Source_Stream_T
                      bool = true); // locked access ?
 
   // implement IMFAsyncCallback
-  STDMETHODIMP STDMETHODCALLTYPE QueryInterface (const IID&,
-                                                 void**);
-  virtual ULONG STDMETHODCALLTYPE AddRef ();
-  virtual ULONG STDMETHODCALLTYPE Release ();
-  STDMETHODIMP GetParameters (DWORD*,  // return value: flags
-                              DWORD*); // return value: queue handle
-  STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
+  virtual STDMETHODIMP QueryInterface (const IID&,
+                                       void**);
+  virtual STDMETHODIMP_ (ULONG) AddRef ();
+  virtual STDMETHODIMP_ (ULONG) Release ();
+  virtual STDMETHODIMP GetParameters (DWORD*,  // return value: flags
+                                      DWORD*); // return value: queue handle
+  virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 #endif
 
   // implement (part of) Stream_IStreamControlBase
@@ -159,6 +160,13 @@ class Test_I_Source_Stream_T
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
 
+  //typename inherited::HEAD_T   headReaderTask_;
+  //typename inherited::HEAD_T   headWriterTask_;
+  //typename inherited::MODULE_T head_;
+  //typename inherited::TAIL_T   tailReaderTask_;
+  //typename inherited::TAIL_T   tailWriterTask_;
+  //typename inherited::MODULE_T tail_;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // media session
   IMFMediaSession* mediaSession_;
@@ -169,7 +177,7 @@ class Test_I_Source_Stream_T
 // include template implementation
 #include "test_i_source_stream.inl"
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 typedef Test_I_Source_Stream_T<Test_I_Source_TCPConnector_t> Test_I_Source_TCPStream_t;
 typedef Test_I_Source_Stream_T<Test_I_Source_TCPAsynchConnector_t> Test_I_Source_AsynchTCPStream_t;

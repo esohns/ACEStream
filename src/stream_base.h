@@ -43,7 +43,7 @@ class Stream_IAllocator;
 
 template <typename LockType,
           ////////////////////////////////
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ControlType,
@@ -65,7 +65,7 @@ template <typename LockType,
           typename DataMessageType,
           typename SessionMessageType>
 class Stream_Base_T
- : public ACE_Stream<SynchStrategyType,
+ : public ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType>
  , public Stream_IStreamControl_T<ControlType,
                                   NotificationType,
@@ -78,15 +78,15 @@ class Stream_Base_T
 {
  public:
   // convenient types
-  typedef ACE_Module<SynchStrategyType,
+  typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
-  typedef Stream_IModule_T<SynchStrategyType,
+  typedef Stream_IModule_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ModuleConfigurationType,
                            HandlerConfigurationType> IMODULE_T;
-  typedef ACE_Stream<SynchStrategyType,
+  typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> STREAM_T;
-  typedef ACE_Stream_Iterator<SynchStrategyType,
+  typedef ACE_Stream_Iterator<ACE_SYNCH_USE,
                               TimePolicyType> ITERATOR_T;
   typedef Stream_IStreamControl_T<ControlType,
                                   NotificationType,
@@ -125,7 +125,7 @@ class Stream_Base_T
                                   bool = false); // wait for upstream (if any) ?
   //virtual void waitForIdleState (bool = false) const; // wait for upstream (if any) ?
 
-  virtual Stream_Module_t* find (const std::string&) const; // module name
+  virtual const Stream_Module_t* find (const std::string&) const; // module name
   virtual std::string name () const;
 
   virtual void upStream (Stream_Base_t*);
@@ -198,9 +198,13 @@ class Stream_Base_T
 
  protected:
   // convenient types
-  typedef ACE_Task<SynchStrategyType,
+   typedef ACE_Stream_Head<ACE_SYNCH_USE,
+                           TimePolicyType> HEAD_T;
+   typedef ACE_Stream_Tail<ACE_SYNCH_USE,
+                           TimePolicyType> TAIL_T;
+  typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
-  typedef ACE_Message_Queue<SynchStrategyType,
+  typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType> QUEUE_T;
   typedef Common_IInitialize_T<HandlerConfigurationType> MODULEHANDLER_IINITIALIZE_T;
   typedef Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
@@ -239,13 +243,13 @@ class Stream_Base_T
   STREAM_T*                 upStream_;
 
  private:
-  typedef ACE_Stream<SynchStrategyType,
+  typedef ACE_Stream<ACE_SYNCH_USE,
                      TimePolicyType> inherited;
 
   // convenient types
   typedef Stream_Base_T<LockType,
                         //////////////////
-                        SynchStrategyType,
+                        ACE_SYNCH_USE,
                         TimePolicyType,
                         //////////////////
                         ControlType,
@@ -285,6 +289,13 @@ class Stream_Base_T
 
   bool                      hasFinal_;
   std::string               name_;
+
+  //HEAD_T                    headReaderTask_;
+  //HEAD_T                    headWriterTask_;
+  //MODULE_T                  head_;
+  //TAIL_T                    tailReaderTask_;
+  //TAIL_T                    tailWriterTask_;
+  //MODULE_T                  tail_;
 };
 
 // include template implementation

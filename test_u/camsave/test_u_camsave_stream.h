@@ -76,7 +76,7 @@ class Stream_CamSave_Stream
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // override (part of) Stream_IStreamControl_T
-  virtual Stream_Module_t* find (const std::string&) const; // module name
+  virtual const Stream_Module_t* find (const std::string&) const; // module name
   virtual void start ();
   virtual void stop (bool = true,  // wait for completion ?
                      bool = true); // locked access ?

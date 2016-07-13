@@ -61,7 +61,7 @@ class Stream_IStreamControlBase
   //// *NOTE*: wait for all worker threads to join
   //virtual void waitForIdleState (bool = false) const = 0; // wait for upstream (if any) ?
 
-  virtual Stream_Module_t* find (const std::string&) const = 0; // module name
+  virtual const Stream_Module_t* find (const std::string&) const = 0; // module name
   virtual std::string name () const = 0;
 
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_ from child classes

@@ -28,10 +28,10 @@
 
 #include "stream_imessagequeue.h"
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 class Stream_MessageQueueBase_T
- : public ACE_Message_Queue<TaskSynchType,
+ : public ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType>,
    public Stream_IMessageQueue,
    public Common_IDumpState
@@ -46,11 +46,11 @@ class Stream_MessageQueueBase_T
 
  protected:
   // convenient types
-  typedef ACE_Message_Queue<TaskSynchType,
+  typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType> MESSAGE_QUEUE_T;
-  typedef ACE_Message_Queue_Iterator<TaskSynchType,
+  typedef ACE_Message_Queue_Iterator<ACE_SYNCH_USE,
                                      TimePolicyType> MESSAGE_QUEUE_ITERATOR_T;
-  typedef Stream_MessageQueueBase_T<TaskSynchType,
+  typedef Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                                     TimePolicyType> OWN_TYPE_T;
 
   // *IMPORTANT NOTE*: override, so that the queue considers the number of
@@ -59,7 +59,7 @@ class Stream_MessageQueueBase_T
   virtual bool is_full_i (void);
 
  private:
-  typedef ACE_Message_Queue<TaskSynchType,
+  typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T ())

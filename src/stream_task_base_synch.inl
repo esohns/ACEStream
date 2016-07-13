@@ -23,13 +23,13 @@
 
 #include "stream_macros.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_TaskBaseSynch_T<SynchStrategyType,
+Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
@@ -41,13 +41,13 @@ Stream_TaskBaseSynch_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_TaskBaseSynch_T<SynchStrategyType,
+Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
@@ -58,14 +58,14 @@ Stream_TaskBaseSynch_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_TaskBaseSynch_T<SynchStrategyType,
+Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
@@ -86,14 +86,14 @@ Stream_TaskBaseSynch_T<SynchStrategyType,
   return 0;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_TaskBaseSynch_T<SynchStrategyType,
+Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
@@ -120,14 +120,14 @@ Stream_TaskBaseSynch_T<SynchStrategyType,
   return 0;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_TaskBaseSynch_T<SynchStrategyType,
+Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
@@ -143,14 +143,14 @@ Stream_TaskBaseSynch_T<SynchStrategyType,
   return 0;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_TaskBaseSynch_T<SynchStrategyType,
+Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
@@ -165,14 +165,14 @@ Stream_TaskBaseSynch_T<SynchStrategyType,
   return 0;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_TaskBaseSynch_T<SynchStrategyType,
+Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,

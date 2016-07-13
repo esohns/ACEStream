@@ -40,6 +40,11 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::Test_I_Target_Stream"));
 
+  // *TODO*: these really shouldn't be necessary
+  inherited::head ()->next (inherited::tail ());
+  ACE_ASSERT (inherited::head ()->next () == inherited::tail ());
+  inherited::tail ()->next (NULL);
+  ACE_ASSERT (inherited::tail ()->next () == NULL);
 }
 
 Test_I_Target_Stream::~Test_I_Target_Stream ()
@@ -534,7 +539,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
 
   // ************************ Splitter *****************************
   Stream_Module_t* module_p =
-      inherited::find (ACE_TEXT_ALWAYS_CHAR ("Splitter"));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("Splitter")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -697,9 +702,9 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
 
   int result = -1;
   Test_I_Target_Stream_SessionData& session_data_r =
-        const_cast<Test_I_Target_Stream_SessionData&> (inherited::sessionData_->get ());
+    const_cast<Test_I_Target_Stream_SessionData&> (inherited::sessionData_->get ());
   Stream_Module_t* module_p =
-    inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,

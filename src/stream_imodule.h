@@ -40,13 +40,13 @@ class ACE_Module;
 //  inline virtual ~Stream_IModuleHandler_T () {};
 //};
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           ///////////////////////////////
           typename HandlerConfigurationType>
 class Stream_IModule_T
- : public Common_IClone_T<ACE_Module<TaskSynchType,
+ : public Common_IClone_T<ACE_Module<ACE_SYNCH_USE,
                                      TimePolicyType> >
  , public Common_IGet_T<ConfigurationType>
  , public Common_IInitialize_T<ConfigurationType>
@@ -67,7 +67,7 @@ class Stream_IModule_T
   inline virtual ~Stream_IModule_T () {};
 
   // convenient types
-  typedef ACE_Module<TaskSynchType,
+  typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
   typedef Common_IClone_T<MODULE_T> ICLONE_T;
 

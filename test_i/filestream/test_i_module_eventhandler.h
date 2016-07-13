@@ -34,11 +34,13 @@
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
-class Test_I_Stream_Module_EventHandler
+template <typename ModuleConfigurationType,
+          typename ConfigurationType>
+class Test_I_Stream_Module_EventHandler_T
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
 
-                                         Test_I_Stream_ModuleHandlerConfiguration,
+                                         ConfigurationType,
 
                                          ACE_Message_Block,
                                          Test_I_Stream_Message,
@@ -48,8 +50,8 @@ class Test_I_Stream_Module_EventHandler
                                          Test_I_Stream_SessionData_t>
 {
  public:
-  Test_I_Stream_Module_EventHandler ();
-  virtual ~Test_I_Stream_Module_EventHandler ();
+  Test_I_Stream_Module_EventHandler_T ();
+  virtual ~Test_I_Stream_Module_EventHandler_T ();
 
   // implement Common_IClone_T
   virtual Stream_Module_t* clone ();
@@ -58,7 +60,7 @@ class Test_I_Stream_Module_EventHandler
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
 
-                                         Test_I_Stream_ModuleHandlerConfiguration,
+                                         ConfigurationType,
 
                                          ACE_Message_Block,
                                          Test_I_Stream_Message,
@@ -67,15 +69,20 @@ class Test_I_Stream_Module_EventHandler
                                          unsigned int,
                                          Test_I_Stream_SessionData_t> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler (const Test_I_Stream_Module_EventHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler& operator= (const Test_I_Stream_Module_EventHandler&))
+  // convenient types
+  typedef Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
+                                              ConfigurationType> OWN_TYPE_T;
+  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,
+                                         Common_TimePolicy_t,
+                                         ModuleConfigurationType,
+                                         ConfigurationType,
+                                         OWN_TYPE_T> MODULE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler_T (const Test_I_Stream_Module_EventHandler_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler_T& operator= (const Test_I_Stream_Module_EventHandler_T&))
 };
 
-// declare module
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
-                              Common_TimePolicy_t,                      // time policy
-                              Stream_ModuleConfiguration,               // module configuration type
-                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_Stream_Module_EventHandler);       // writer type
+// include template definition
+#include "test_i_module_eventhandler.inl"
 
 #endif

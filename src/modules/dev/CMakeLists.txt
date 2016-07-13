@@ -27,6 +27,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
 ############## next target ################
 if (WIN32)
 set (${PROJECT_NAME}_Device_LIB_SRCS
+     stdafx.cpp
+     stdafx.h
      stream_dev_exports.h
      stream_dev_common.h
      stream_dev_defines.h
@@ -38,9 +40,7 @@ set (${PROJECT_NAME}_Device_LIB_SRCS
      stream_dev_cam_source_directshow.inl
      stream_dev_cam_source_mediafoundation.cpp
      stream_dev_cam_source_mediafoundation.h
-     stream_dev_cam_source_mediafoundation.inl
-     stdafx.cpp
-     stdafx.h)
+     stream_dev_cam_source_mediafoundation.inl)
 elseif (UNIX)
 set (${PROJECT_NAME}_Device_LIB_SRCS
      stream_dev_exports.h
@@ -87,6 +87,10 @@ endif ()
 
 set_target_properties (${PROJECT_NAME}_Device PROPERTIES DEFINE_SYMBOL STREAM_DEV_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Device PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+
+# add PCH
+set_target_properties (${PROJECT_NAME}_Device PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${PROJECT_NAME}_Device)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Device

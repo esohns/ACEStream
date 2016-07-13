@@ -120,10 +120,10 @@ class Stream_Dev_Cam_Source_DirectShow_T
                                  long);  // BufferLen
   virtual STDMETHODIMP SampleCB (double,         // SampleTime
                                  IMediaSample*); // Sample
-  virtual HRESULT STDMETHODCALLTYPE QueryInterface (const IID&,
-                                                    void**);
-  virtual ULONG STDMETHODCALLTYPE AddRef ();
-  virtual ULONG STDMETHODCALLTYPE Release ();
+  virtual STDMETHODIMP QueryInterface (const IID&,
+                                       void**);
+  virtual STDMETHODIMP_ (ULONG) AddRef ();
+  virtual STDMETHODIMP_ (ULONG) Release ();
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,

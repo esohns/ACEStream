@@ -30,7 +30,7 @@
 #include "stream_macros.h"
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -43,7 +43,7 @@ template <typename LockType,
           typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -87,7 +87,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -100,7 +100,7 @@ template <typename LockType,
           typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -148,7 +148,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -162,7 +162,7 @@ template <typename LockType,
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -201,7 +201,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -215,7 +215,7 @@ template <typename LockType,
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -287,7 +287,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -301,7 +301,7 @@ template <typename LockType,
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -362,7 +362,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -376,7 +376,7 @@ template <typename LockType,
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -423,7 +423,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -437,7 +437,7 @@ template <typename LockType,
           typename StatisticContainerType>
 int
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -550,7 +550,7 @@ continue_:
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -564,7 +564,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -589,7 +589,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -603,7 +603,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -711,7 +711,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -725,7 +725,7 @@ template <typename LockType,
           typename StatisticContainerType>
 const ConfigurationType&
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -746,7 +746,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   return *configuration_;
 }
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -760,7 +760,7 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -821,7 +821,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -835,7 +835,7 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -858,7 +858,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -872,7 +872,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -893,7 +893,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -907,7 +907,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -956,7 +956,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   } // end SWITCH
 }
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -970,7 +970,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1001,7 +1001,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1015,7 +1015,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1043,7 +1043,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1057,7 +1057,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1083,7 +1083,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1097,7 +1097,7 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1118,7 +1118,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1132,7 +1132,7 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1155,7 +1155,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_NOTREACHED (return false;)
 }
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1169,7 +1169,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1195,7 +1195,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1209,7 +1209,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1229,7 +1229,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1243,7 +1243,7 @@ template <typename LockType,
           typename StatisticContainerType>
 DataMessageType*
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1307,7 +1307,7 @@ allocate:
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1321,7 +1321,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1342,7 +1342,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1356,7 +1356,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1378,7 +1378,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_NOTREACHED (return;)
 }
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1392,7 +1392,7 @@ template <typename LockType,
           typename StatisticContainerType>
 Stream_Base_t*
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1413,7 +1413,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1427,7 +1427,7 @@ template <typename LockType,
           typename StatisticContainerType>
 Stream_StateMachine_ControlState
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1448,7 +1448,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1462,7 +1462,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1569,7 +1569,7 @@ continue_:
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1581,9 +1581,9 @@ template <typename LockType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
-Stream_Module_t*
+const Stream_Module_t*
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1605,7 +1605,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_NOTREACHED (return NULL;)
 }
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1619,7 +1619,7 @@ template <typename LockType,
           typename StatisticContainerType>
 std::string
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1638,7 +1638,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   return result;
 }
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1652,7 +1652,7 @@ template <typename LockType,
           typename StatisticContainerType>
 const StreamStateType&
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1673,7 +1673,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1687,7 +1687,7 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1711,7 +1711,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1725,7 +1725,7 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -1775,7 +1775,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -1789,7 +1789,7 @@ template <typename LockType,
           typename StatisticContainerType>
 void
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,
@@ -2174,7 +2174,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 }
 
 template <typename LockType,
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -2188,7 +2188,7 @@ template <typename LockType,
           typename StatisticContainerType>
 bool
 Stream_HeadModuleTaskBase_T<LockType,
-                            SynchStrategyType,
+                            ACE_SYNCH_USE,
                             TimePolicyType,
                             ControlMessageType,
                             DataMessageType,

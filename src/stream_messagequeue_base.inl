@@ -20,9 +20,9 @@
 
 #include "stream_macros.h"
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType>
-Stream_MessageQueueBase_T<TaskSynchType,
+Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                           TimePolicyType>::Stream_MessageQueueBase_T (unsigned int maxMessages_in)
  : inherited (maxMessages_in, // high water mark
               maxMessages_in, // low water mark
@@ -32,19 +32,19 @@ Stream_MessageQueueBase_T<TaskSynchType,
 
 }
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType>
-Stream_MessageQueueBase_T<TaskSynchType,
+Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                           TimePolicyType>::~Stream_MessageQueueBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::~Stream_MessageQueueBase_T"));
 
 }
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 bool
-Stream_MessageQueueBase_T<TaskSynchType,
+Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                           TimePolicyType>::is_full_i (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::is_full_i"));
@@ -52,10 +52,10 @@ Stream_MessageQueueBase_T<TaskSynchType,
   return (inherited::cur_count_ >= inherited::high_water_mark_);
 }
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType>
 void
-Stream_MessageQueueBase_T<TaskSynchType,
+Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                           TimePolicyType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::dump_state"));

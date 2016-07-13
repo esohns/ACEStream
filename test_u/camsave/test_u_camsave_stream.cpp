@@ -83,7 +83,7 @@ Stream_CamSave_Stream::~Stream_CamSave_Stream ()
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-Stream_Module_t*
+const Stream_Module_t*
 Stream_CamSave_Stream::find (const std::string& name_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::find"));

@@ -31,7 +31,7 @@
 
 #include "stream_module_net_common.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -40,7 +40,7 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Stream_Module_Net_Target_T<SynchStrategyType,
+Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -63,7 +63,7 @@ Stream_Module_Net_Target_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -72,7 +72,7 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename ConnectionManagerType,
           typename ConnectorType>
-Stream_Module_Net_Target_T<SynchStrategyType,
+Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -139,7 +139,7 @@ close:
     sessionData_->decrease ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -149,7 +149,7 @@ template <typename SynchStrategyType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
-Stream_Module_Net_Target_T<SynchStrategyType,
+Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -166,7 +166,7 @@ Stream_Module_Net_Target_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -176,7 +176,7 @@ template <typename SynchStrategyType,
           typename ConnectionManagerType,
           typename ConnectorType>
 void
-Stream_Module_Net_Target_T<SynchStrategyType,
+Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -641,7 +641,7 @@ close:
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -651,7 +651,7 @@ template <typename SynchStrategyType,
           typename ConnectionManagerType,
           typename ConnectorType>
 bool
-Stream_Module_Net_Target_T<SynchStrategyType,
+Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,

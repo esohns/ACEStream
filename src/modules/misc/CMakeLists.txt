@@ -13,6 +13,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 ############## next target ################
 if (WIN32)
  set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
+      stdafx.cpp
+      stdafx.h
       stream_misc_common.h
       stream_misc_defines.h
       stream_misc_directshow_allocator.cpp
@@ -54,9 +56,7 @@ if (WIN32)
       stream_misc_runtimestatistic.inl
       stream_misc_splitter.cpp
       stream_misc_splitter.h
-      stream_misc_splitter.inl
-      stdafx.cpp
-      stdafx.h)
+      stream_misc_splitter.inl)
 elseif (UNIX)
  set (${PROJECT_NAME}_Miscellaneous_LIB_SRCS
       stream_misc_common.h
@@ -100,6 +100,10 @@ endif ()
 
 set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES DEFINE_SYMBOL STREAM_MISC_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+
+# add PCH
+set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${PROJECT_NAME}_Miscellaneous)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Miscellaneous

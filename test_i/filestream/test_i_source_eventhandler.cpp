@@ -112,9 +112,15 @@ Test_I_Stream_Source_EventHandler::notify (unsigned int sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  Stream_GTK_Event event =
-    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? STREAM_GTKEVENT_STATISTIC
-                                                                     : STREAM_GKTEVENT_INVALID);
+  Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
+  switch (sessionMessage_in.type ())
+  {
+    case STREAM_SESSION_MESSAGE_STATISTIC:
+      event = STREAM_GTKEVENT_STATISTIC; break;
+    default:
+      return;
+  } // end SWITCH
+
   {
     ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
 

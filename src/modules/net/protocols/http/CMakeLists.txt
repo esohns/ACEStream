@@ -11,13 +11,13 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../dec)
 
 ############## next target ################
 set (${PROJECT_NAME}_Network_Protocol_HTTPGet_LIB_SRCS
+     stdafx.cpp
+     stdafx.h
      stream_module_source_http_get.cpp
      stream_module_source_http_get.h
      stream_module_source_http_get.inl
      stream_net_http_defines.h
-     stream_net_http_exports.h
-     stdafx.cpp
-     stdafx.h)
+     stream_net_http_exports.h)
 
 add_library (${PROJECT_NAME}_Network_Protocol_HTTPGet SHARED ${ACEStream_Network_Protocol_HTTPGet_LIB_SRCS})
 
@@ -31,6 +31,10 @@ endif ()
 
 set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES DEFINE_SYMBOL STREAM_NET_HTTP_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+
+# add PCH
+set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${PROJECT_NAME}_Network_Protocol_HTTPGet)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Network_Protocol_HTTPGet

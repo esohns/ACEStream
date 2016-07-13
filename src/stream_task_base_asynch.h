@@ -32,7 +32,7 @@ class ACE_Time_Value;
 
 // *IMPORTANT NOTE*: the message queue needs to be synchronized so that shutdown
 //                   can be asynchronous
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -42,7 +42,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType>
 class Stream_TaskBaseAsynch_T
 // *TODO*: figure out whether it is possible to use ACE_NULL_SYNCH in this case
- : public Stream_TaskBase_T<SynchStrategyType,
+ : public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -73,7 +73,7 @@ class Stream_TaskBaseAsynch_T
   ACE_Thread_ID threadID_;
 
  private:
-  typedef Stream_TaskBase_T<SynchStrategyType,
+  typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,

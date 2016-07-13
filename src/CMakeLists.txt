@@ -78,6 +78,8 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/..)
 
 ############## next target ################
 set (${PROJECT_NAME}_LIB_SRCS
+     stdafx.cpp
+     stdafx.h
      stream_allocatorbase.cpp
      stream_allocatorbase.h
      stream_allocatorbase.inl
@@ -168,9 +170,7 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_task_base_synch.h
      stream_task_base_synch.inl
      stream_tools.cpp
-     stream_tools.h
-     stdafx.cpp
-     stdafx.h)
+     stream_tools.h)
 
 add_library (${PROJECT_NAME} SHARED ${ACEStream_LIB_SRCS})
 
@@ -189,6 +189,10 @@ if (WIN32)
  target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
  target_link_libraries (${PROJECT_NAME} Common)
 endif ()
+
+# add PCH
+set_target_properties (${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${PROJECT_NAME})
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}

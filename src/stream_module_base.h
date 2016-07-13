@@ -32,7 +32,7 @@ template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
 class Common_IRefCount;
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ///////////////////////////////
           typename ConfigurationType,
@@ -41,9 +41,9 @@ template <typename SynchStrategyType,
           typename ReaderTaskType,
           typename WriterTaskType>
 class Stream_Module_Base_T
- : public ACE_Module<SynchStrategyType,
+ : public ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType>,
-   public Stream_IModule_T<SynchStrategyType,
+   public Stream_IModule_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            HandlerConfigurationType>
@@ -53,7 +53,7 @@ class Stream_Module_Base_T
   typedef ConfigurationType CONFIGURATION_T;
   //  typedef ReaderTaskType READER_TASK_T;
   //  typedef WriterTaskType WRITER_TASK_T;
-  typedef Stream_IModule_T<SynchStrategyType,
+  typedef Stream_IModule_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            HandlerConfigurationType> IMODULE_T;
@@ -79,11 +79,11 @@ class Stream_Module_Base_T
   ConfigurationType configuration_;
 
  private:
-  typedef ACE_Module<SynchStrategyType,
+  typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> inherited;
 
   // convenient types
-  typedef ACE_Module<SynchStrategyType,
+  typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
   //typedef Stream_IModuleHandler_T<HandlerConfigurationType> IMODULE_HANDLER_T;
   typedef Common_IGet_T<HandlerConfigurationType> IGET_T;

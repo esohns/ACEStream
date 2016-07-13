@@ -41,7 +41,7 @@ class Stream_IAllocator;
 
 template <typename LockType,
           ////////////////////////////////
-          typename SynchStrategyType,
+          ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ControlMessageType,
           typename DataMessageType,
@@ -59,7 +59,7 @@ template <typename LockType,
           typename StatisticContainerType>
 class Stream_HeadModuleTaskBase_T
  : public Stream_StateMachine_Control_T<LockType>
- , public Stream_TaskBase_T<SynchStrategyType,
+ , public Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -106,7 +106,6 @@ class Stream_HeadModuleTaskBase_T
 
 
   // *NOTE*: just a stub
-  virtual Stream_Module_t* find (const std::string&) const; // module name
   virtual std::string name () const;
 
   virtual void control (StreamControlType, // control type
@@ -132,7 +131,7 @@ class Stream_HeadModuleTaskBase_T
                                bool = true);     // generate session messages ?
 
   // convenient types
-  typedef Stream_TaskBase_T<SynchStrategyType,
+  typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -178,7 +177,7 @@ class Stream_HeadModuleTaskBase_T
 
  private:
   typedef Stream_StateMachine_Control_T<LockType> inherited;
-  typedef Stream_TaskBase_T<SynchStrategyType,
+  typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -188,7 +187,7 @@ class Stream_HeadModuleTaskBase_T
   // convenient types
   typedef Stream_HeadModuleTaskBase_T<LockType,
                                       ////
-                                      SynchStrategyType,
+                                      ACE_SYNCH_USE,
                                       TimePolicyType,
                                       ControlMessageType,
                                       DataMessageType,
@@ -214,6 +213,7 @@ class Stream_HeadModuleTaskBase_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement (part of) Stream_IStreamControl_T
+  virtual const Stream_Module_t* find (const std::string&) const; // module name
   virtual bool load (Stream_ModuleList_t&); // return value: module list
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false); // flush upstream (if any) ?

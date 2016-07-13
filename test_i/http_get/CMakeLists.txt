@@ -202,6 +202,8 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
 set (http_get_EXE_SRCS
+     stdafx.cpp
+     stdafx.h
      test_i_common.h
      test_i_common_modules.h
      test_i_connection_common.h
@@ -223,10 +225,8 @@ set (http_get_EXE_SRCS
      test_i_http_get_signalhandler.h
      test_i_http_get_stream.cpp
      test_i_http_get_stream.h
-     test_i_http_get_stream.inl
+     test_i_http_get_stream.inl)
 #  test_i_template_instantiations.cpp
-     stdafx.cpp
-     stdafx.h)
 
 set (EXECUTABLE http_get)
 add_executable (${EXECUTABLE} ${http_get_EXE_SRCS})
@@ -255,6 +255,10 @@ target_link_libraries (${EXECUTABLE} ACEStream_HTML)
 target_link_libraries (${EXECUTABLE} ACENetwork)
 target_link_libraries (${EXECUTABLE} ACENetwork_Protocol_HTTP)
 #target_link_libraries (${EXECUTABLE} ACENetwork_Client)
+
+# add PCH
+set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${EXECUTABLE})
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets

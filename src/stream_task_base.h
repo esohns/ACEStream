@@ -35,7 +35,7 @@
 class ACE_Message_Block;
 class ACE_Time_Value;
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -44,7 +44,7 @@ template <typename SynchStrategyType,
           typename DataMessageType,
           typename SessionMessageType>
 class Stream_TaskBase_T
- : public Common_TaskBase_T<SynchStrategyType,
+ : public Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType>
  , public Common_IGet_T<ConfigurationType>
  , public Common_IInitialize_T<ConfigurationType>
@@ -93,7 +93,7 @@ class Stream_TaskBase_T
   Stream_MessageQueue queue_;
 
  private:
-  typedef Common_TaskBase_T<SynchStrategyType,
+  typedef Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType> inherited;
   typedef Stream_ITask_T<ControlMessageType,
                          DataMessageType,

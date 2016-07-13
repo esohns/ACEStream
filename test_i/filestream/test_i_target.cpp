@@ -495,15 +495,15 @@ do_work (unsigned int bufferSize_in,
 //  Stream_GTK_CBData* cb_data_base_p = &CBData_in;
 //  cb_data_base_p->configuration = &configuration;
   Test_I_Stream_Target_EventHandler ui_event_handler (&CBData_in);
-  Test_I_Stream_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+  Test_I_Target_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                           NULL,
                                                           true);
-  Test_I_Stream_Module_EventHandler* event_handler_p =
-    dynamic_cast<Test_I_Stream_Module_EventHandler*> (event_handler.writer ());
+  Test_I_Target_Module_EventHandler* event_handler_p =
+    dynamic_cast<Test_I_Target_Module_EventHandler*> (event_handler.writer ());
   if (!event_handler_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_EventHandler> failed, returning\n")));
+                ACE_TEXT ("dynamic_cast<Test_I_Target_Module_EventHandler> failed, returning\n")));
     return;
   } // end IF
   event_handler_p->initialize (&CBData_in.subscribers,

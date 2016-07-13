@@ -38,6 +38,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../misc)
 ############## next target ################
 if (WIN32)
  set (${PROJECT_NAME}_Visualization_LIB_SRCS
+      stdafx.cpp
+      stdafx.h
       stream_vis_common.h
       stream_vis_defines.h
       stream_vis_exports.h
@@ -54,9 +56,7 @@ if (WIN32)
       stream_vis_target_mediafoundation.h
       stream_vis_target_mediafoundation.inl
       stream_vis_tools.cpp
-      stream_vis_tools.h
-      stdafx.cpp
-      stdafx.h)
+      stream_vis_tools.h)
 else ()
  set (${PROJECT_NAME}_Visualization_LIB_SRCS
       stream_vis_common.h
@@ -92,6 +92,10 @@ endif ()
 
 set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES DEFINE_SYMBOL STREAM_VIS_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+
+# add PCH
+set_target_properties (${PROJECT_NAME}_Visualization PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${PROJECT_NAME}_Visualization)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Visualization

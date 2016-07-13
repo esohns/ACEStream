@@ -39,6 +39,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 ############## next target ################
 set (${PROJECT_NAME}_Database_LIB_SRCS
+     stdafx.cpp
+     stdafx.h
      stream_db_exports.h
      stream_module_db_common.h
      stream_module_db_defines.h
@@ -49,9 +51,7 @@ set (${PROJECT_NAME}_Database_LIB_SRCS
      stream_module_mysqlreader.inl
      stream_module_mysqlwriter.cpp
      stream_module_mysqlwriter.h
-     stream_module_mysqlwriter.inl
-     stdafx.cpp
-     stdafx.h)
+     stream_module_mysqlwriter.inl)
 
 add_library (${PROJECT_NAME}_Database SHARED ${ACEStream_Database_LIB_SRCS})
 
@@ -70,6 +70,10 @@ endif ()
 
 set_target_properties (${PROJECT_NAME}_Database PROPERTIES DEFINE_SYMBOL STREAM_DB_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Database PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+
+# add PCH
+set_target_properties (${PROJECT_NAME}_Database PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${PROJECT_NAME}_Database)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Database

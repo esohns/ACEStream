@@ -44,3 +44,8 @@
 // *TODO*: remove this define and add platform/compiler-specific #ifdefs to
 //         IOStream.h
 #define ACE_LACKS_SIGNED_CHAR
+
+// *NOTE*: when using MSVC CRT heap debug functions (_CRTDBG_MAP_ALLOC), tempnam
+//         and other functions are renamed with '_dbg' variants, wreaking havoc
+#define ACE_DISABLE_TEMPNAM
+

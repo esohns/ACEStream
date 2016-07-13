@@ -24,7 +24,7 @@
 
 #include "stream_macros.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -32,7 +32,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionIdType,
           typename SessionDataContainerType>
-Stream_Module_MessageHandler_T<SynchStrategyType,
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -50,7 +50,7 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -58,7 +58,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionIdType,
           typename SessionDataContainerType>
-Stream_Module_MessageHandler_T<SynchStrategyType,
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -77,7 +77,7 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
   } // end IF
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -86,7 +86,7 @@ template <typename SynchStrategyType,
           typename SessionIdType,
           typename SessionDataContainerType>
 void
-Stream_Module_MessageHandler_T<SynchStrategyType,
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -152,7 +152,7 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
   sessionData_ = NULL;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -161,7 +161,7 @@ template <typename SynchStrategyType,
           typename SessionIdType,
           typename SessionDataContainerType>
 void
-Stream_Module_MessageHandler_T<SynchStrategyType,
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -213,7 +213,7 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
   } // end lock scope
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -222,7 +222,7 @@ template <typename SynchStrategyType,
           typename SessionIdType,
           typename SessionDataContainerType>
 void
-Stream_Module_MessageHandler_T<SynchStrategyType,
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -347,7 +347,7 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
   } // end SWITCH
 }
 
-//template <typename SynchStrategyType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename ConfigurationType,
 //          typename ControlMessageType,
@@ -357,7 +357,7 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
 //          typename SessionIdType,
 //          typename SessionDataContainerType>
 //bool
-//Stream_Module_MessageHandler_T<SynchStrategyType,
+//Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 //                               TimePolicyType,
 //                               ConfigurationType,
 //                               ControlMessageType,
@@ -374,7 +374,7 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
 //
 //  return true;
 //}
-//template <typename SynchStrategyType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename ConfigurationType,
 //          typename ControlMessageType,
@@ -384,7 +384,7 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
 //          typename SessionIdType,
 //          typename SessionDataContainerType>
 //const ModuleHandlerConfigurationType&
-//Stream_Module_MessageHandler_T<SynchStrategyType,
+//Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 //                               TimePolicyType,
 //                               ConfigurationType,
 //                               ControlMessageType,
@@ -402,7 +402,7 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
 //  return *configuration_;
 //}
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -411,7 +411,7 @@ template <typename SynchStrategyType,
           typename SessionIdType,
           typename SessionDataContainerType>
 void
-Stream_Module_MessageHandler_T<SynchStrategyType,
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -439,7 +439,7 @@ Stream_Module_MessageHandler_T<SynchStrategyType,
   subscribers_->push_back (interfaceHandle_in);
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -448,7 +448,7 @@ template <typename SynchStrategyType,
           typename SessionIdType,
           typename SessionDataContainerType>
 void
-Stream_Module_MessageHandler_T<SynchStrategyType,
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,

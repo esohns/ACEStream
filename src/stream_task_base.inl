@@ -29,13 +29,13 @@
 #include "stream_session_message_base.h"
 #include "stream_tools.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
@@ -58,13 +58,13 @@ Stream_TaskBase_T<SynchStrategyType,
   inherited::msg_queue (&queue_);
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
@@ -105,14 +105,14 @@ Stream_TaskBase_T<SynchStrategyType,
   inherited::msg_queue (NULL);
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 const ConfigurationType&
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
@@ -126,14 +126,14 @@ Stream_TaskBase_T<SynchStrategyType,
 
   return *configuration_;
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
@@ -147,14 +147,14 @@ Stream_TaskBase_T<SynchStrategyType,
   return true;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
@@ -168,14 +168,14 @@ Stream_TaskBase_T<SynchStrategyType,
   // *NOTE*: a stub
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
@@ -191,14 +191,14 @@ Stream_TaskBase_T<SynchStrategyType,
   // *NOTE*: a stub
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
@@ -253,14 +253,14 @@ Stream_TaskBase_T<SynchStrategyType,
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
@@ -280,14 +280,14 @@ Stream_TaskBase_T<SynchStrategyType,
                 messageBlock_in));
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
@@ -305,14 +305,14 @@ Stream_TaskBase_T<SynchStrategyType,
 //                 ACE_TEXT ("dump_state() API not implemented\n")));
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
@@ -487,14 +487,14 @@ Stream_TaskBase_T<SynchStrategyType,
   } // end IF
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
@@ -574,14 +574,14 @@ Stream_TaskBase_T<SynchStrategyType,
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 int
-Stream_TaskBase_T<SynchStrategyType,
+Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,

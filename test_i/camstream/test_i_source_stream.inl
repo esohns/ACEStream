@@ -27,6 +27,12 @@
 template <typename ConnectorType>
 Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string& name_in)
  : inherited (name_in)
+ //, headReaderTask_ ()
+ //, headWriterTask_ ()
+ //, head_ ()
+ //, tailReaderTask_ ()
+ //, tailWriterTask_ ()
+ //, tail_ ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaSession_ (NULL)
  , referenceCount_ (1)
@@ -34,6 +40,66 @@ Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Test_I_Source_Stream_T"));
 
+  //int result = -1;
+
+  //inherited::TASK_T* reader_p, *writer_p = NULL;
+  //ACE_NEW_NORETURN (reader_p,
+  //                  inherited::HEAD_T ());
+  //ACE_NEW_NORETURN (writer_p,
+  //                  inherited::HEAD_T ());
+  //inherited::MODULE_T* head_p, *tail_p = NULL;
+  //ACE_NEW_NORETURN (head_p,
+  //                  inherited::MODULE_T ());
+  //result = head_p->open (ACE_TEXT ("ACE_Stream_Head"),
+  //                       writer_p, reader_p,
+  //                       NULL,
+  //                       ACE_Module_Base::M_DELETE);
+  //if (result == -1)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to ACE_Module::open(): \"%m\", continuing\n")));
+  //  delete head_p;
+  //} // end IF
+  //reader_p = writer_p = NULL;
+  //ACE_NEW_NORETURN (reader_p,
+  //                  inherited::TAIL_T ());
+  //ACE_NEW_NORETURN (writer_p,
+  //                  inherited::TAIL_T ());
+  //ACE_NEW_NORETURN (tail_p,
+  //                  inherited::MODULE_T ());
+  //result = tail_p->open (ACE_TEXT ("ACE_Stream_Tail"),
+  //                       writer_p, reader_p,
+  //                       NULL,
+  //                       ACE_Module_Base::M_DELETE);
+  //if (result == -1)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to ACE_Module::open(): \"%m\", continuing\n")));
+  //  delete head_p;
+  //  delete tail_p;
+  //} // end IF
+
+  ////result = inherited::close ();
+  ////if (result == -1)
+  ////  ACE_DEBUG ((LM_ERROR,
+  ////              ACE_TEXT ("failed to ACE_Stream::close(): \"%m\", continuing\n")));
+
+  //result = inherited::open (NULL,    // argument to module open()
+  //                          head_p,  // head module handle
+  //                          tail_p); // tail module handle
+  //if (result == -1)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", continuing\n")));
+  //  delete head_p;
+  //  delete tail_p;
+  //} // end IF
+
+  // *TODO*: these really shouldn't be necessary
+  inherited::head ()->next (inherited::tail ());
+  ACE_ASSERT (inherited::head ()->next () == inherited::tail ());
+  inherited::tail ()->next (NULL);
+  ACE_ASSERT (inherited::tail ()->next () == NULL);
 }
 
 template <typename ConnectorType>
@@ -112,7 +178,8 @@ Test_I_Source_Stream_T<ConnectorType>::start ()
   } // end IF
   PropVariantClear (&property_s);
 
-  result = mediaSession_->BeginGetEvent (this, NULL);
+  IMFAsyncCallback* callback_p = this;
+  result = mediaSession_->BeginGetEvent (callback_p, NULL);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -562,7 +629,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
   // ******************* Camera Source ************************
   Stream_Module_t* module_p =
-    inherited::find (ACE_TEXT_ALWAYS_CHAR ("CamSource"));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("CamSource")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -852,7 +919,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_Source_Stream_StatisticDa
   Test_I_Source_Stream_SessionData& session_data_r =
       const_cast<Test_I_Source_Stream_SessionData&> (inherited::sessionData_->get ());
   Stream_Module_t* module_p =
-    inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,

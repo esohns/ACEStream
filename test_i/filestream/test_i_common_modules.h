@@ -39,6 +39,7 @@
 
 #include "test_i_connection_common.h"
 #include "test_i_message.h"
+#include "test_i_module_eventhandler.h"
 #include "test_i_session_message.h"
 #include "test_i_source_common.h"
 #include "test_i_target_common.h"
@@ -75,7 +76,7 @@ typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Stream_CommandType_t,
                                              Test_I_RuntimeStatistic_t,
                                              Test_I_Stream_SessionData,
-                                             Test_I_Stream_SessionData_t> Test_I_Module_Statistic_ReaderTask_t;
+                                             Test_I_Stream_SessionData_t> Test_I_Source_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
                                              Test_I_Source_ModuleHandlerConfiguration,
@@ -85,14 +86,14 @@ typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Stream_CommandType_t,
                                              Test_I_RuntimeStatistic_t,
                                              Test_I_Stream_SessionData,
-                                             Test_I_Stream_SessionData_t> Test_I_Module_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task synch type
-                          Common_TimePolicy_t,                      // time policy type
-                          Stream_ModuleConfiguration,               // module configuration type
-                          Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
-                          Test_I_Module_Statistic_ReaderTask_t,     // reader type
-                          Test_I_Module_Statistic_WriterTask_t,     // writer type
-                          Test_I_Source_Module_RuntimeStatistic);   // name
+                                             Test_I_Stream_SessionData_t> Test_I_Source_Module_Statistic_WriterTask_t;
+DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                // task synch type
+                          Common_TimePolicy_t,                         // time policy type
+                          Stream_ModuleConfiguration,                  // module configuration type
+                          Test_I_Source_ModuleHandlerConfiguration,    // module handler configuration type
+                          Test_I_Source_Module_Statistic_ReaderTask_t, // reader type
+                          Test_I_Source_Module_Statistic_WriterTask_t, // writer type
+                          Test_I_Source_Module_RuntimeStatistic);      // name
 
 // inbound
 typedef Stream_Module_Net_IOWriter_T<ACE_SYNCH_MUTEX,
@@ -136,13 +137,33 @@ DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task sync
                           Test_I_Stream_Module_Net_Writer_t,        // writer type
                           Test_I_Module_Net_IO);                    // name
 
-DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                             // task synch type
-                          Common_TimePolicy_t,                      // time policy type
-                          Stream_ModuleConfiguration,               // module configuration type
-                          Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                          Test_I_Module_Statistic_ReaderTask_t,     // reader type
-                          Test_I_Module_Statistic_WriterTask_t,     // writer type
-                          Test_I_Target_Module_RuntimeStatistic);   // name
+typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
+                                             Common_TimePolicy_t,
+                                             Test_I_Stream_ModuleHandlerConfiguration,
+                                             ACE_Message_Block,
+                                             Test_I_Stream_Message,
+                                             Test_I_Stream_SessionMessage,
+                                             Stream_CommandType_t,
+                                             Test_I_RuntimeStatistic_t,
+                                             Test_I_Stream_SessionData,
+                                             Test_I_Stream_SessionData_t> Test_I_Target_Module_Statistic_ReaderTask_t;
+typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
+                                             Common_TimePolicy_t,
+                                             Test_I_Stream_ModuleHandlerConfiguration,
+                                             ACE_Message_Block,
+                                             Test_I_Stream_Message,
+                                             Test_I_Stream_SessionMessage,
+                                             Stream_CommandType_t,
+                                             Test_I_RuntimeStatistic_t,
+                                             Test_I_Stream_SessionData,
+                                             Test_I_Stream_SessionData_t> Test_I_Target_Module_Statistic_WriterTask_t;
+DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                // task synch type
+                          Common_TimePolicy_t,                         // time policy type
+                          Stream_ModuleConfiguration,                  // module configuration type
+                          Test_I_Stream_ModuleHandlerConfiguration,    // module handler configuration type
+                          Test_I_Target_Module_Statistic_ReaderTask_t, // reader type
+                          Test_I_Target_Module_Statistic_WriterTask_t, // writer type
+                          Test_I_Target_Module_RuntimeStatistic);      // name
 
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
@@ -159,5 +180,20 @@ DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task 
                               Stream_ModuleConfiguration,               // module configuration type
                               Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_Module_FileWriter);                // writer type
+
+typedef Test_I_Stream_Module_EventHandler_T<Stream_ModuleConfiguration,
+                                            Test_I_Source_ModuleHandlerConfiguration> Test_I_Source_Module_EventHandler;
+typedef Test_I_Stream_Module_EventHandler_T<Stream_ModuleConfiguration,
+                                            Test_I_Stream_ModuleHandlerConfiguration> Test_I_Target_Module_EventHandler;
+DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
+                              Common_TimePolicy_t,                      // time policy
+                              Stream_ModuleConfiguration,               // module configuration type
+                              Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Source_Module_EventHandler);       // writer type
+DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
+                              Common_TimePolicy_t,                      // time policy
+                              Stream_ModuleConfiguration,               // module configuration type
+                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Target_Module_EventHandler);       // writer type
 
 #endif

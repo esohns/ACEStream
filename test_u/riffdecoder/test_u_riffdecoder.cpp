@@ -240,7 +240,7 @@ do_work (bool debug_in,
 //    } // end IF
   stream.waitForCompletion (true, false);
 
-  module_p = stream.find (ACE_TEXT ("Decoder"));
+  module_p = const_cast<Stream_Module_t*> (stream.find (ACE_TEXT ("Decoder")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,

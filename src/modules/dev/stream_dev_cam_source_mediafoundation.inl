@@ -755,7 +755,7 @@ continue_:
         inherited::sessionData_ = NULL;
       } // end IF
 
-      //inherited::shutdown ();
+      inherited::shutdown ();
 
       break;
     }

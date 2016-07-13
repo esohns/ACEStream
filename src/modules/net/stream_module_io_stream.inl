@@ -288,7 +288,7 @@ Stream_Module_Net_IO_Stream_T<LockType,
 
   // ******************* IO ************************
   Stream_Module_t* module_p =
-    inherited::find (ACE_TEXT_ALWAYS_CHAR ("NetIO"));
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("NetIO")));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,

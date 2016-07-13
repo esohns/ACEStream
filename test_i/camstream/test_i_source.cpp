@@ -767,30 +767,32 @@ do_work (unsigned int bufferSize_in,
   std::string stream_name = ACE_TEXT_ALWAYS_CHAR ("SourceStream");
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
-  if (useReactor_in)
-    ACE_NEW_NORETURN (CBData_in.stream,
-                      Test_I_Source_TCPStream_t (stream_name));
-  else
-    ACE_NEW_NORETURN (CBData_in.stream,
-                      Test_I_Source_AsynchTCPStream_t (stream_name));
-  if (useReactor_in)
-    ACE_NEW_NORETURN (CBData_in.UDPStream,
-                      Test_I_Source_UDPStream_t (stream_name));
-  else
-    ACE_NEW_NORETURN (CBData_in.UDPStream,
-                      Test_I_Source_AsynchUDPStream_t (stream_name));
-  if (!CBData_in.stream || !CBData_in.UDPStream)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory, returning\n")));
-    return;
-  } // end IF
   configuration.userData.configuration = &configuration;
   configuration.userData.streamConfiguration =
     &configuration.streamConfiguration;
   configuration.useReactor = useReactor_in;
 
   CBData_in.configuration = &configuration;
+  if (useReactor_in)
+  {
+    ACE_NEW_NORETURN (CBData_in.stream,
+                      Test_I_Source_TCPStream_t (stream_name));
+    ACE_NEW_NORETURN (CBData_in.UDPStream,
+                      Test_I_Source_UDPStream_t (stream_name));
+  } // end IF
+  else
+  {
+    ACE_NEW_NORETURN (CBData_in.stream,
+                      Test_I_Source_AsynchTCPStream_t (stream_name));
+    ACE_NEW_NORETURN (CBData_in.UDPStream,
+                      Test_I_Source_AsynchUDPStream_t (stream_name));
+  } // end ELSE
+  if (!CBData_in.stream || !CBData_in.UDPStream)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate memory, returning\n")));
+    return;
+  } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: in UI mode, COM has already been initialized for this thread (where

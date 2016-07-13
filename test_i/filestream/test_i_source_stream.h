@@ -34,10 +34,10 @@
 
 #include "stream_module_target.h"
 
-#include "test_i_source_common.h"
 #include "test_i_common_modules.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
+#include "test_i_source_common.h"
 
 // forward declarations
 class Stream_IAllocator;
@@ -71,6 +71,9 @@ class Test_I_Source_Stream_T
  public:
   Test_I_Source_Stream_T (const std::string&); // name
   virtual ~Test_I_Source_Stream_T ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&); // return value: module list
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Source_Stream_Configuration&, // configuration

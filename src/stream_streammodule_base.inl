@@ -23,13 +23,13 @@
 
 #include "stream_macros.h"
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
-Stream_StreamModule_T<TaskSynchType,
+Stream_StreamModule_T<ACE_SYNCH_USE,
                       TimePolicyType,
                       ConfigurationType,
                       HandlerConfigurationType,
@@ -53,13 +53,13 @@ Stream_StreamModule_T<TaskSynchType,
   //reader_.flags_ |= ACE_Task_Flags::ACE_READER;
 }
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename ReaderTaskType,
           typename WriterTaskType>
-Stream_StreamModule_T<TaskSynchType,
+Stream_StreamModule_T<ACE_SYNCH_USE,
                       TimePolicyType,
                       ConfigurationType,
                       HandlerConfigurationType,
@@ -96,20 +96,20 @@ Stream_StreamModule_T<TaskSynchType,
   //} // end IF
 }
 
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename TaskType>
-Stream_StreamModuleInputOnly_T<TaskSynchType,
+Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                HandlerConfigurationType,
-                               TaskType>::Stream_StreamModuleInputOnly_T(const std::string& name_in,
-                                                                         Common_IRefCount* refCount_in,
-                                                                         bool finalModule_in)
+                               TaskType>::Stream_StreamModuleInputOnly_T (const std::string& name_in,
+                                                                          Common_IRefCount* refCount_in,
+                                                                          bool finalModule_in)
  : inherited (name_in,
               refCount_in,    // arg passed to task open()
               finalModule_in) // final module ?
@@ -118,12 +118,12 @@ Stream_StreamModuleInputOnly_T<TaskSynchType,
 
 }
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
           typename TaskType>
-Stream_StreamModuleInputOnly_T<TaskSynchType,
+Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                HandlerConfigurationType,

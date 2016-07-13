@@ -165,8 +165,23 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 #  set_property (SOURCE PROPERTY COMPILE_DEFINITIONS _GNU_SOURCE)
 endif ()
 if (MSVC)  
- set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")  
+ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+
+ set (MSVC_INCREMENTAL_YES_FLAG "/INCREMENTAL:NO")
+ foreach (FLAG_TYPE EXE MODULE SHARED STATIC)
+  string (REGEX REPLACE "/INCREMENTAL* " "/INCREMENTAL:NO " CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "${CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG}")
+#  message (STATUS "flag: ${FLAG_TYPE}: ${CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG}")
+  string (REPLACE "/EDITANDCONTINUE"     ""                 CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "${CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG}")
+  set (CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "${CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG}"
+       CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
+  mark_as_advanced (CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG)
+ endforeach ()
 endif (MSVC)
+
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cotire/CMAKE")
+#list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+include (cotire)
+set_directory_properties (PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
 
 #if (WIN32)
 # set (CMAKE_GENERATOR_TOOLSET "LLVM-vs2014" CACHE STRING "Platform Toolset" FORCE) 
@@ -202,11 +217,19 @@ endif ()
 #                    VERBATIM)
 
 # build a CPack driven installer package
+include (InstallRequiredSystemLibraries)
+set (CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
+set (CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
+set (CPACK_PACKAGE_VERSION_PATCH ${VERSION_MICRO})
+set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
+set (CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README)
+
+# build a CPack driven installer package
 include (CPack)
 
 ################################################################################
 
-list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake-modules")
 include (UseBackportedModules)
 cmake_policy (SET CMP0026 OLD)
 if (WIN32)
@@ -215,8 +238,8 @@ endif ()
 include (CreateLaunchers)
 
 # enable (unit/integration) tests
+#include (CTest)
 enable_testing ()
-include (CTest)
 
 ################################################################################
 

@@ -23,6 +23,8 @@ endif ()
 
 ############## next target ################
 set (${PROJECT_NAME}_Network_LIB_SRCS
+     stdafx.cpp
+     stdafx.h
      stream_module_io.cpp
      stream_module_io.h
      stream_module_io.inl
@@ -36,9 +38,7 @@ set (${PROJECT_NAME}_Network_LIB_SRCS
      stream_module_target.cpp
      stream_module_target.h
      stream_module_target.inl
-     stream_net_exports.h
-     stdafx.cpp
-     stdafx.h)
+     stream_net_exports.h)
 
 add_library (${PROJECT_NAME}_Network SHARED ${ACEStream_Network_LIB_SRCS})
 
@@ -51,6 +51,10 @@ endif ()
 
 set_target_properties (${PROJECT_NAME}_Network PROPERTIES DEFINE_SYMBOL STREAM_NET_BUILD_DLL)
 set_target_properties (${PROJECT_NAME}_Network PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
+
+# add PCH
+set_target_properties (${PROJECT_NAME}_Network PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${PROJECT_NAME}_Network)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Network

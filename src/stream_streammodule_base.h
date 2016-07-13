@@ -34,19 +34,19 @@ class Common_IRefCount;
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Thru_Task;
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ReaderTaskType,
           typename WriterTaskType>
 class Stream_StreamModule_T
- : public Stream_Module_Base_T<TaskSynchType,
+ : public Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                HandlerConfigurationType,
-                               //////////
+                               ///////////
                                ReaderTaskType,
                                WriterTaskType>
 {
@@ -66,11 +66,11 @@ class Stream_StreamModule_T
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModule_T& operator= (const Stream_StreamModule_T&))
 
  private:
-  typedef Stream_Module_Base_T<TaskSynchType,
+  typedef Stream_Module_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                HandlerConfigurationType,
-                               //////////
+                               ///////////
                                ReaderTaskType,
                                WriterTaskType> inherited;
 
@@ -78,19 +78,19 @@ class Stream_StreamModule_T
   WriterTaskType writer_;
 };
 
-template <typename TaskSynchType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename TaskType>
 class Stream_StreamModuleInputOnly_T
- : public Stream_StreamModule_T<TaskSynchType,
+ : public Stream_StreamModule_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 HandlerConfigurationType,
-                                /////////
-                                ACE_Thru_Task<TaskSynchType,
+                                //////////
+                                ACE_Thru_Task<ACE_SYNCH_USE,
                                               TimePolicyType>,
                                 TaskType>
 {
@@ -106,12 +106,12 @@ class Stream_StreamModuleInputOnly_T
   ACE_UNIMPLEMENTED_FUNC (Stream_StreamModuleInputOnly_T& operator= (const Stream_StreamModuleInputOnly_T&))
 
  private:
-  typedef Stream_StreamModule_T<TaskSynchType,
+  typedef Stream_StreamModule_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 HandlerConfigurationType,
-                                /////////
-                                ACE_Thru_Task<TaskSynchType,
+                                //////////
+                                ACE_Thru_Task<ACE_SYNCH_USE,
                                               TimePolicyType>,
                                 TaskType> inherited;
 };

@@ -118,6 +118,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 ############## next target ################
 set (EXECUTABLE camsave)
 set (${EXECUTABLE}_EXE_SRCS
+     stdafx.cpp
+     stdafx.h
      ../test_u_common.h
      ../test_u_defines.h
      targetver.h
@@ -138,9 +140,7 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_camsave_signalhandler.cpp
      test_u_camsave_signalhandler.h
      test_u_camsave_stream.cpp
-     test_u_camsave_stream.h
-     stdafx.cpp
-     stdafx.h)
+     test_u_camsave_stream.h)
 
 add_executable (${EXECUTABLE} ${camsave_EXE_SRCS} etc/${EXECUTABLE}.glade)
 
@@ -187,6 +187,10 @@ target_link_libraries (${EXECUTABLE} ACEStream)
 target_link_libraries (${EXECUTABLE} ACEStream_Decoder)
 target_link_libraries (${EXECUTABLE} ACEStream_Device)
 target_link_libraries (${EXECUTABLE} ACEStream_Visualization)
+
+# add PCH
+set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
+cotire (${EXECUTABLE})
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets

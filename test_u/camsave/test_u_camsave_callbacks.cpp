@@ -3216,7 +3216,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 
   std::string module_name =
     ACE_TEXT_ALWAYS_CHAR (MODULE_VIS_NULL_RENDERER_MODULE_NAME);
-  Stream_Module_t* module_p = data_p->stream->find (module_name);
+  Stream_Module_t* module_p =
+    const_cast<Stream_Module_t*> (data_p->stream->find (module_name));
   if (!module_p)
   {
     ACE_DEBUG ((LM_ERROR,
