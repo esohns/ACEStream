@@ -54,13 +54,14 @@ Stream_HeadModuleTaskBase_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::Stream_HeadModuleTaskBase_T (LockType* lock_in,
+                            StatisticContainerType>::Stream_HeadModuleTaskBase_T (typename LockType::MUTEX* lock_in,
                                                                                   bool autoStart_in,
                                                                                   bool generateSessionMessages_in)
  : inherited (lock_in)
  , inherited2 ()
  , configuration_ (NULL)
- , initialized_ (false)
+ , isInitialized_ (false)
+ , allowConcurrency_ (false)
  , runSvcOnStart_ (false)
  , sessionData_ (NULL)
  , streamState_ (NULL)
@@ -180,8 +181,9 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   int result = -1;
 
-  // if active, simply drop the message into the queue
-  if (inherited2::thr_count_)
+  // use the queue, if in use
+  if (inherited2::thr_count_ ||
+      runSvcOnStart_)
   {
     result = inherited2::putq (messageBlock_in, timeout_in);
     if (result == -1)
@@ -191,10 +193,38 @@ Stream_HeadModuleTaskBase_T<LockType,
     return result;
   } // end IF
 
-  // otherwise, process manually
+  // otherwise, process 'in-line'
+  bool release_lock = false;
+  if (!allowConcurrency_)
+  {
+    result = inherited2::queue_.lock ().acquire ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n"),
+                  inherited2::name ()));
+    else
+      release_lock = true;
+  } // end IF
+  else
+  {
+    // *NOTE*: check the status first to intercept (primarily data) messages
+    //         arriving while the session is ending. Note that this cannot
+    //         prevent race conditions, primarily between the 'session end'
+    //         message and data message processing
+  } // end ELSE
+
   bool stop_processing = false;
   inherited2::handleMessage (messageBlock_in,
                              stop_processing);
+
+  if (release_lock)
+  {
+    result = inherited2::queue_.lock ().release ();
+    if (result == -1)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
+                  inherited2::name ()));
+  } // end IF
 
   //return (stop_processing ? -1 : 0);
   return 0;
@@ -410,7 +440,8 @@ Stream_HeadModuleTaskBase_T<LockType,
     //         remove_handler --> remove_reference --> delete this
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("stream still active in module_closed() --> check implementation !, continuing\n")));
-    stop ();
+    stop (true,  // wait for completion ?
+          true); // locked access ?
   } // end IF
 
   if (sessionData_)
@@ -495,7 +526,7 @@ Stream_HeadModuleTaskBase_T<LockType,
           if (inherited2::thr_count_ == 0)
             goto done; // finished processing
 
-          continue;
+          continue; // process STREAM_SESSION_END
         } // end IF
 
 done:
@@ -524,18 +555,25 @@ done:
     } // end IF
 
     // session aborted ?
-    if (session_data_r.aborted)
+    // sanity check(s)
+    // *TODO*: remove type inferences
+    ACE_ASSERT (session_data_r.lock);
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("session aborted...\n")));
+      ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, -1);
 
-      finished = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::finished ();
+      if (session_data_r.aborted)
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("session aborted...\n")));
 
-      continue;
-    } // end IF
+        finished = true;
+        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+        //         --> continue
+        inherited::finished ();
+
+        continue;
+      } // end IF
+    } // end lock scope
 
     // clean up
     message_block_p = NULL;
@@ -629,8 +667,8 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_ASSERT (configuration_);
   ACE_ASSERT (sessionData_);
 
-  //SessionDataType& session_data_r =
-  //  const_cast<SessionDataType&> (sessionData_->get ());
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (sessionData_->get ());
 
   switch (message_inout->type ())
   {
@@ -674,6 +712,10 @@ Stream_HeadModuleTaskBase_T<LockType,
     //         upstream session data --> retain a reference
     case STREAM_SESSION_MESSAGE_LINK:
     {
+      // *NOTE*: relax the concurrency policy in this case
+      // *TODO*: this isn't very reliable
+      allowConcurrency_ = true;
+
       SessionDataContainerType& session_data_container_r =
         const_cast<SessionDataContainerType&> (message_inout->get ());
       session_data_container_r.increase ();
@@ -775,39 +817,40 @@ Stream_HeadModuleTaskBase_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::initialize"));
 
-  bool result = false;
-  int result_2 = -1;
+  int result = -1;
 
   // sanity check(s)
   // *TODO*: remove type inference
   ACE_ASSERT (configuration_in.stateMachineLock);
 
-  if (initialized_)
+  if (isInitialized_)
   {
     if (timerID_ != -1)
     {
       const void* act_p = NULL;
-      result_2 =
+      result =
         COMMON_TIMERMANAGER_SINGLETON::instance ()->cancel_timer (timerID_,
                                                                   &act_p);
-      if (result_2 == -1)
+      if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to cancel timer (ID: %d): \"%m\", continuing\n"),
                     timerID_));
     } // end IF
     timerID_ = -1;
 
-    initialized_ = false;
+    isInitialized_ = false;
   } // end IF
 
-  // *TODO*: remove type inference
-  active_ = configuration_in.active;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+  // *TODO*: remove type inferences
+  active_ = configuration_in.active;
+  allowConcurrency_ = configuration_in.concurrent;
   runSvcOnStart_ = !active_;
 
   // *TODO*: remove type inference
-  result = inherited::initialize (*configuration_->stateMachineLock);
-  if (!result)
+  //configuration_->ilock = this;
+  isInitialized_ = inherited::initialize (*configuration_->stateMachineLock);
+  if (!isInitialized_)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_StateMachine_Base_T::initialize(), aborting\n")));
@@ -815,9 +858,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   } // end IF
   inherited::change (STREAM_STATE_INITIALIZED);
 
-  initialized_ = true;
-
-  return result;
+  return true;
 }
 
 template <typename LockType,
@@ -854,6 +895,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (false);
+
   ACE_NOTREACHED (return false;)
 }
 
@@ -889,6 +931,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
+
   ACE_NOTREACHED (return;)
 }
 
@@ -931,6 +974,16 @@ Stream_HeadModuleTaskBase_T<LockType,
   enum Stream_SessionMessageType message_type = STREAM_SESSION_MESSAGE_STEP;
   switch (control_in)
   {
+    case STREAM_CONTROL_FLUSH:
+    {
+      if (!putControlMessage (STREAM_CONTROL_FLUSH,
+                              configuration_->streamConfiguration->messageAllocator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putControlMessage(%d), returning\n"),
+                    inherited2::name (),
+                    control_in));
+      break;
+    }
     case STREAM_CONTROL_LINK:
       message_type = STREAM_SESSION_MESSAGE_LINK;
     case STREAM_CONTROL_STEP:
@@ -991,13 +1044,59 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_ASSERT (configuration_->streamConfiguration);
   ACE_ASSERT (sessionData_);
 
-  if (!putSessionMessage (static_cast<Stream_SessionMessageType> (notification_in),
-                          *sessionData_,
-                          configuration_->streamConfiguration->messageAllocator))
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(%d), returning\n"),
-                inherited2::name (),
-                notification_in));
+  SessionDataType& session_data_r =
+    const_cast<SessionDataType&> (sessionData_->get ());
+
+  switch (notification_in)
+  {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      {
+        // *TODO*: remove type inferences
+        ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
+
+        session_data_r.aborted = true;
+      } // end lock scope
+
+      // *IMPORTANT NOTE*: in concurrent scenarios, (session) message processing
+      //                   happens out of order. Control cannot be maintained
+      //                   effectively without state machine- (or similar)
+      //                   framework
+      // *NOTE*: when the session is aborted asynchronously, no further
+      //         (session) messages should be processed after the 'session end'
+      //         message generated by stop()
+      //         --> grab the stream lock, run stop(), and flush any queued
+      //             messages
+      // *NOTE*: that the implied policy cannot be really enforced like this, as
+      //         other threads may be processing messages at this point
+      //         --> more synchronization is needed (i.e. wait for all stream
+      //             processing queues and active worker threads to idle first)
+      lock ();
+
+      stop (false, // wait for completion ?
+            true); // locked access ?
+
+      flush (true,   // flush inbound data ?      [N/A]
+             false,  // flush session messages ?  [N/A]
+             false); // flush upstream (if any) ? [N/A]
+
+      unlock ();
+
+      break;
+    }
+    default:
+    {
+      if (!putSessionMessage (static_cast<Stream_SessionMessageType> (notification_in),
+                              *sessionData_,
+                              configuration_->streamConfiguration->messageAllocator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(%d), returning\n"),
+                    inherited2::name (),
+                    notification_in));
+  
+      break;
+    }
+  } // end SWITCH
 }
 
 template <typename LockType,
@@ -1180,18 +1279,99 @@ Stream_HeadModuleTaskBase_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::flush (bool flushInbound_in,
-                                                            bool flushUpStream_in)
+                            StatisticContainerType>::flush (bool /* flushInbound_in */,
+                                                            bool /* flushSessionMessages_in */,
+                                                            bool /* flushUpStream_in */)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::flush"));
 
-  ACE_UNUSED_ARG (flushInbound_in);
-  ACE_UNUSED_ARG (flushUpStream_in);
+  //ACE_UNUSED_ARG (flushInbound_in);
+  //ACE_UNUSED_ARG (flushSessionMessages_in);
+  //ACE_UNUSED_ARG (flushUpStream_in);
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
+  int result = -1;
 
-  ACE_NOTREACHED (return;)
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->streamConfiguration);
+  ACE_ASSERT (configuration_->streamConfiguration->messageAllocator);
+
+  // create control message
+  ACE_Message_Block* message_block_p = NULL;
+  if (configuration_->streamConfiguration->messageAllocator)
+  {
+allocate:
+    try {
+      ACE_NEW_MALLOC_NORETURN (message_block_p,
+                               static_cast<ACE_Message_Block*> (configuration_->streamConfiguration->messageAllocator->calloc ()),
+                               ACE_Message_Block (0,
+                                                  ACE_Message_Block::MB_FLUSH,
+                                                  NULL,
+                                                  NULL,
+                                                  NULL,
+                                                  NULL,
+                                                  ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
+                                                  ACE_Time_Value::zero,
+                                                  ACE_Time_Value::max_time,
+                                                  NULL,
+                                                  NULL));
+    }
+    catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IAllocator::calloc(), returning\n")));
+      return;
+    }
+
+    // keep retrying ?
+    if (!message_block_p &&
+        !configuration_->streamConfiguration->messageAllocator->block ())
+      goto allocate;
+  } // end IF
+  else
+    ACE_NEW_NORETURN (message_block_p,
+                      ACE_Message_Block (0,
+                                         ACE_Message_Block::MB_FLUSH,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
+                                         ACE_Time_Value::zero,
+                                         ACE_Time_Value::max_time,
+                                         NULL,
+                                         NULL));
+  if (!message_block_p)
+  {
+    if (configuration_->streamConfiguration->messageAllocator)
+    {
+      if (configuration_->streamConfiguration->messageAllocator->block ())
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", continuing\n")));
+    } // end IF
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", returning\n")));
+    return;
+  } // end IF
+
+  // enqueue the message at the stream head
+  typename inherited2::TASK_T*
+      stream_head_p = inherited2::sibling ()->next ()-> sibling ();
+  result = stream_head_p->put (message_block_p,
+                               NULL);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Task::put(): \"%m\", returning\n")));
+
+    // clean up
+    message_block_p->release ();
+
+    return;
+  } // end IF
+
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("enqueued control message...\n")));
 }
 
 template <typename LockType,
@@ -1338,6 +1518,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
+
   ACE_NOTREACHED (return;)
 }
 
@@ -1375,6 +1556,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
+
   ACE_NOTREACHED (return;)
 }
 template <typename LockType,
@@ -1409,6 +1591,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (NULL);
+
   ACE_NOTREACHED (return NULL;)
 }
 
@@ -1473,6 +1656,111 @@ Stream_HeadModuleTaskBase_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
+                            StatisticContainerType>::lock ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::lock"));
+
+  int result = inherited2::queue_.lock ().acquire ();
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_SYNCH_MUTX::acquire(): \"%m\", continuing\n"),
+                inherited2::name ()));
+}
+template <typename LockType,
+          ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
+          typename StatisticContainerType>
+void
+Stream_HeadModuleTaskBase_T<LockType,
+                            ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::unlock ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::unlock"));
+
+  int result = inherited2::queue_.lock ().release ();
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_SYNCH_MUTX::release(): \"%m\", continuing\n"),
+                inherited2::name ()));
+}
+template <typename LockType,
+          ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
+          typename StatisticContainerType>
+ACE_SYNCH_MUTEX_T&
+Stream_HeadModuleTaskBase_T<LockType,
+                            ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::getLock ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::getLock"));
+
+  return inherited2::queue_.lock ();
+}
+
+template <typename LockType,
+          ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
+          typename StatisticContainerType>
+void
+Stream_HeadModuleTaskBase_T<LockType,
+                            ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
                             StatisticContainerType>::waitForCompletion (bool waitForThreads_in,
                                                                         bool waitForUpStream_in)
 {
@@ -1492,6 +1780,15 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   int result = -1;
 
+  // *NOTE*: in certain 'non-concurrent' scenarios (see above), the lock has to
+  //         be released to prevent deadlocks
+  bool acquire_lock = false;
+  ACE_ASSERT (configuration_->ilock);
+  //ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (configuration_->ilock->getLock ());
+  //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard, reverse_lock);
+  configuration_->ilock->unlock ();
+  acquire_lock = true;
+
   // step1: wait for final state
   inherited::wait (STREAM_STATE_FINISHED,
                    NULL); // <-- block
@@ -1499,11 +1796,10 @@ Stream_HeadModuleTaskBase_T<LockType,
   // step2: wait for worker(s) to join ?
   if (waitForThreads_in)
   {
-    ACE_thread_t thread_id = ACE_Thread::self ();
-
     // *NOTE*: pthread_join() returns EDEADLK when the calling thread IS the
-    //         the thread to join
+    //         thread to join
     //         --> prevent this by comparing thread ids
+    ACE_thread_t thread_id = ACE_Thread::self ();
     if (ACE_OS::thr_equal (thread_id,
                            threadID_.id ()))
       goto continue_;
@@ -1564,6 +1860,8 @@ Stream_HeadModuleTaskBase_T<LockType,
   } // end IF
 
 continue_:
+  if (acquire_lock)
+    configuration_->ilock->lock ();
 
   return;
 }
@@ -1602,6 +1900,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (NULL);
+
   ACE_NOTREACHED (return NULL;)
 }
 template <typename LockType,
@@ -1669,6 +1968,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (StreamStateType ());
+
   ACE_NOTREACHED (return StreamStateType ());
 }
 
@@ -1811,7 +2111,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_ASSERT (configuration_->streamConfiguration);
 
   int result = -1;
-  ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (*inherited::stateLock_);
+  ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (*inherited::stateLock_);
 
   switch (newState_in)
   {
@@ -1847,7 +2147,7 @@ Stream_HeadModuleTaskBase_T<LockType,
       // *NOTE*: implement tape-recorder logic:
       //         transition PAUSED --> PAUSED is mapped to PAUSED --> RUNNING
       //         --> check for this condition before doing anything else...
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*inherited::stateLock_);
+      ACE_Guard<ACE_SYNCH_MUTEX_T> aGuard (*inherited::stateLock_);
 
       if (inherited::state_ == STREAM_STATE_PAUSED)
       {
@@ -1988,7 +2288,7 @@ Stream_HeadModuleTaskBase_T<LockType,
         //  ACE_DEBUG ((LM_ERROR,
         //              ACE_TEXT ("failed to ACE_Task_Base::svc(): \"%m\", continuing\n")));
 
-//        // send initial session message downstream...
+//        // send initial session message downstream
 //        if (!putSessionMessage (STREAM_SESSION_END,
 //                                sessionData_,
 //                                false))
@@ -2012,8 +2312,13 @@ Stream_HeadModuleTaskBase_T<LockType,
         // *TODO*: remove type inferences
         SessionDataType& session_data_r =
             const_cast<SessionDataType&> (sessionData_->get ());
-        if (session_data_r.aborted)
-          this->finished ();
+
+        {
+          ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+
+          if (session_data_r.aborted)
+            this->finished ();
+        } // end lock scope
       } // end IF
 
       break;
@@ -2053,7 +2358,7 @@ Stream_HeadModuleTaskBase_T<LockType,
       size_t number_of_threads = inherited2::thr_count_;
 
       {
-        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*inherited::stateLock_);
+        ACE_Guard<ACE_SYNCH_MUTEX_T> aGuard (*inherited::stateLock_);
 
         if (inherited::state_ == STREAM_STATE_PAUSED)
         {
@@ -2117,7 +2422,7 @@ Stream_HeadModuleTaskBase_T<LockType,
     case STREAM_STATE_FINISHED:
     {
       {
-        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*inherited::stateLock_);
+        ACE_Guard<ACE_SYNCH_MUTEX_T> aGuard (*inherited::stateLock_);
 
         // *NOTE*: modules processing the final session message (see below) may
         //         (indirectly) invoke waitForCompletion() on the stream,
@@ -2173,6 +2478,116 @@ Stream_HeadModuleTaskBase_T<LockType,
   } // end SWITCH
 }
 
+template <typename LockType,
+          ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
+          typename StatisticContainerType>
+bool
+Stream_HeadModuleTaskBase_T<LockType,
+                            ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::putControlMessage (StreamControlType messageType_in,
+                                                                        Stream_IAllocator* allocator_in) const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putControlMessage"));
+
+  int result = -1;
+
+  // create control message
+  ACE_Message_Block* message_block_p = NULL;
+  if (allocator_in)
+  {
+allocate:
+    try {
+      ACE_NEW_MALLOC_NORETURN (message_block_p,
+                               static_cast<ACE_Message_Block*> (allocator_in->calloc ()),
+                               ACE_Message_Block (0,
+                                                  messageType_in,
+                                                  NULL,
+                                                  NULL,
+                                                  NULL,
+                                                  NULL,
+                                                  ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
+                                                  ACE_Time_Value::zero,
+                                                  ACE_Time_Value::max_time,
+                                                  NULL,
+                                                  NULL));
+    }
+    catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("caught exception in Stream_IAllocator::calloc(), aborting\n")));
+      return false;
+    }
+
+    // keep retrying ?
+    if (!message_block_p &&
+        !allocator_in->block ())
+      goto allocate;
+  } // end IF
+  else
+    ACE_NEW_NORETURN (message_block_p,
+                      ACE_Message_Block (0,
+                                         messageType_in,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
+                                         ACE_Time_Value::zero,
+                                         ACE_Time_Value::max_time,
+                                         NULL,
+                                         NULL));
+  if (!message_block_p)
+  {
+    if (allocator_in)
+    {
+      if (allocator_in->block ())
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
+    } // end IF
+    else
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
+    return false;
+  } // end IF
+
+  // pass message downstream
+  result = const_cast<OWN_TYPE_T*> (this)->put (message_block_p,
+                                                NULL);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Task::put(): \"%m\", aborting\n")));
+
+    // clean up
+    message_block_p->release ();
+
+    return false;
+  } // end IF
+
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("enqueued control message...\n")));
+
+  return true;
+}
 template <typename LockType,
           ACE_SYNCH_DECL,
           typename TimePolicyType,

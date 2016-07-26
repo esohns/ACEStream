@@ -32,14 +32,14 @@
 // forward declarations
 class ACE_Time_Value;
 
-template <typename LockType>
+template <ACE_SYNCH_DECL>
 class Stream_StateMachine_Control_T
- : public Common_StateMachine_Base_T<LockType,
+ : public Common_StateMachine_Base_T<ACE_SYNCH_USE,
                                      Stream_StateMachine_ControlState>
  , public Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState>
 {
  public:
-  Stream_StateMachine_Control_T (LockType*); // lock handle
+  Stream_StateMachine_Control_T (ACE_SYNCH_MUTEX_T*); // lock handle
   virtual ~Stream_StateMachine_Control_T ();
 
   // implement (part of) Common_IStateMachine_T
@@ -59,7 +59,7 @@ class Stream_StateMachine_Control_T
 
  protected:
   // convenient types
-  typedef Common_StateMachine_Base_T<LockType,
+  typedef Common_StateMachine_Base_T<ACE_SYNCH_USE,
                                      Stream_StateMachine_ControlState> COMMON_STATEMACHINE_T;
   using COMMON_STATEMACHINE_T::initialize;
 
@@ -70,7 +70,7 @@ class Stream_StateMachine_Control_T
   virtual bool change (Stream_StateMachine_ControlState); // new state
 
  private:
-  typedef Common_StateMachine_Base_T<LockType,
+  typedef Common_StateMachine_Base_T<ACE_SYNCH_USE,
                                      Stream_StateMachine_ControlState> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control_T ())
@@ -78,7 +78,7 @@ class Stream_StateMachine_Control_T
   ACE_UNIMPLEMENTED_FUNC (Stream_StateMachine_Control_T& operator= (const Stream_StateMachine_Control_T&))
 };
 
-// include template implementation
+// include template definition
 #include "stream_statemachine_control.inl"
 
 #endif

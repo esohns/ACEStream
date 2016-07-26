@@ -21,14 +21,18 @@
 #ifndef TEST_I_SOURCE_COMMON_H
 #define TEST_I_SOURCE_COMMON_H
 
+#include "stream_control_message.h"
+
 #include "test_i_common.h"
+//#include "test_i_message.h"
+//#include "test_i_session_message.h"
 
 struct Test_I_Source_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
 {
   inline Test_I_Source_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
-   ////////////////////////////////////
+   ///////////////////////////////////////
    , connectionManager (NULL)
    , userData (NULL)
   {};
@@ -40,26 +44,19 @@ struct Test_I_Source_SocketHandlerConfiguration
 
 struct Test_I_Source_Stream_Configuration;
 struct Test_I_Source_ModuleHandlerConfiguration;
-typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                      ////////////////////
+typedef Stream_Base_T<ACE_MT_SYNCH,
                       ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      ////////////////////
                       int,
-                      int,
+                      Stream_SessionMessageType,
                       Stream_StateMachine_ControlState,
                       Test_I_Stream_State,
-                      ////////////////////
                       Test_I_Source_Stream_Configuration,
-                      ////////////////////
                       Test_I_RuntimeStatistic_t,
-                      ////////////////////
                       Stream_ModuleConfiguration,
                       Test_I_Source_ModuleHandlerConfiguration,
-                      ////////////////////
                       Test_I_Stream_SessionData,   // session data
                       Test_I_Stream_SessionData_t, // session data container (reference counted)
-                      ////////////////////
                       ACE_Message_Block,
                       Test_I_Stream_Message,
                       Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
@@ -171,5 +168,15 @@ struct Test_I_Source_ThreadData
   Test_I_Source_GTK_CBData* CBData;
   guint                     eventSourceID;
 };
+
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Stream_AllocatorConfiguration,
+                                Test_I_Stream_Message,
+                                Test_I_Stream_SessionMessage> Test_I_ControlMessage_t;
+
+typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+                                          Test_I_ControlMessage_t,
+                                          Test_I_Stream_Message,
+                                          Test_I_Stream_SessionMessage> Stream_MessageAllocator_t;
 
 #endif

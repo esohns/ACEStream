@@ -27,30 +27,34 @@
 #include "stream_common.h"
 #include "stream_session_message_base.h"
 
-#include "test_i_common.h"
+#include "test_i_http_get_common.h"
 
 // forward declaration(s)
 class ACE_Allocator;
 class Test_I_Stream_Message;
 template <typename AllocatorConfigurationType,
-          typename MessageType,
-          typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Stream_SessionMessage
  : public Stream_SessionMessageBase_T<Test_I_AllocatorConfiguration,
-                                      ///
+                                      Stream_SessionMessageType,
                                       Test_I_Stream_SessionData_t,
-                                      Test_I_UserData>
+                                      Test_I_UserData,
+                                      Test_I_ControlMessage_t,
+                                      Test_I_Stream_Message>
 {
-  // grant access to specific private ctors...
+  // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Test_I_AllocatorConfiguration,
-
+                                                 Test_I_ControlMessage_t,
                                                  Test_I_Stream_Message,
                                                  Test_I_Stream_SessionMessage>;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
-  // *TODO*: (using gcc) cannot pass reference to pointer for some reason...
+  // *TODO*: (using gcc) cannot pass reference to pointer for some reason
   Test_I_Stream_SessionMessage (Stream_SessionMessageType,     // session message type
                                 Test_I_Stream_SessionData_t*&, // session data container handle
                                 Test_I_UserData*);             // user data handle
@@ -61,15 +65,17 @@ class Test_I_Stream_SessionMessage
 
  private:
   typedef Stream_SessionMessageBase_T<Test_I_AllocatorConfiguration,
-                                      ///
+                                      Stream_SessionMessageType,
                                       Test_I_Stream_SessionData_t,
-                                      Test_I_UserData> inherited;
+                                      Test_I_UserData,
+                                      Test_I_ControlMessage_t,
+                                      Test_I_Stream_Message> inherited;
 
   // copy ctor to be used by duplicate()
   Test_I_Stream_SessionMessage (const Test_I_Stream_SessionMessage&);
 
-  // *NOTE*: these may be used by message allocators...
-  // *WARNING*: these ctors are NOT threadsafe...
+  // *NOTE*: these may be used by message allocators
+  // *WARNING*: these ctors are NOT threadsafe
   Test_I_Stream_SessionMessage (ACE_Allocator*); // message allocator
   Test_I_Stream_SessionMessage (ACE_Data_Block*, // data block
                                 ACE_Allocator*); // message allocator

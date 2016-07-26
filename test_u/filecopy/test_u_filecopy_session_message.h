@@ -27,32 +27,33 @@
 #include "stream_common.h"
 #include "stream_session_message_base.h"
 
-//#include "test_u_common.h"
-
 #include "test_u_filecopy_common.h"
 
 // forward declaratation(s)
 class ACE_Allocator;
 class Stream_Filecopy_Message;
 template <typename AllocatorConfigurationType,
-          typename MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_Filecopy_SessionMessage
  : public Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
-                                      ///
+                                      Stream_SessionMessageType,
                                       Stream_Filecopy_SessionData_t,
-                                      Stream_UserData>
+                                      Stream_UserData,
+                                      Test_U_ControlMessage_t,
+                                      Stream_Filecopy_Message>
 {
-  // grant access to specific private ctors...
+  // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-
+                                                 Test_U_ControlMessage_t,
                                                  Stream_Filecopy_Message,
                                                  Stream_Filecopy_SessionMessage>;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
-  // *TODO*: (using gcc) cannot pass reference to pointer for some reason...
+  // *TODO*: (using gcc) cannot pass reference to pointer for some reason
   Stream_Filecopy_SessionMessage (Stream_SessionMessageType,       // session message type
                                   Stream_Filecopy_SessionData_t*&, // session data container handle
                                   Stream_UserData*);               // user data handle
@@ -63,15 +64,17 @@ class Stream_Filecopy_SessionMessage
 
  private:
   typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
-                                      ///
+                                      Stream_SessionMessageType,
                                       Stream_Filecopy_SessionData_t,
-                                      Stream_UserData> inherited;
+                                      Stream_UserData,
+                                      Test_U_ControlMessage_t,
+                                      Stream_Filecopy_Message> inherited;
 
   // copy ctor to be used by duplicate()
   Stream_Filecopy_SessionMessage (const Stream_Filecopy_SessionMessage&);
 
-  // *NOTE*: these may be used by message allocators...
-  // *WARNING*: these ctors are NOT threadsafe...
+  // *NOTE*: these may be used by message allocators
+  // *WARNING*: these ctors are NOT threadsafe
   Stream_Filecopy_SessionMessage (ACE_Allocator*); // message allocator
   Stream_Filecopy_SessionMessage (ACE_Data_Block*, // data block
                                   ACE_Allocator*); // message allocator

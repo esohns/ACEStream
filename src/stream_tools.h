@@ -37,7 +37,8 @@ enum Stream_MessageType : int;
 // *NOTE*: '\0' doesn't count: 4 + 2 + 2 + 2 + 2 + 2 + 5 whitespaces
 #define STREAM_TOOLS_STRFTIME_SIZE   19
 
-class Stream_Export Stream_Tools
+//class Stream_Export Stream_Tools
+class Stream_Tools
 {
  public:
   static void dump (const ACE_Message_Block*, // data buffer(s)

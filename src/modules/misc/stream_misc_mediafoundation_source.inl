@@ -31,7 +31,7 @@
 
 #include "stream_misc_defines.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -40,7 +40,7 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename SessionDataType,
           typename MediaType>
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -52,7 +52,6 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
  : inherited ()
  , sessionData_ (NULL)
  , isFirst_ (false)
- , isInitialized_ (false)
  , baseTimeStamp_ (0)
  , mediaSession_ (NULL)
  , referenceCount_ (1)
@@ -61,7 +60,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -70,7 +69,7 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename SessionDataType,
           typename MediaType>
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -95,7 +94,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
   } // end IF
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -105,7 +104,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 bool
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -139,14 +138,13 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
     COM_initialized = true;
   } // end IF
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
 
     inherited::queue_.waitForIdleState ();
 
-    configuration_ = NULL;
     if (sessionData_)
     {
       sessionData_->decrease ();
@@ -166,14 +164,12 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
       mediaSession_ = NULL;
     } // end IF
 
-    isInitialized_ = false;
+    inherited::isInitialized_ = false;
   } // end IF
 
   //mediaType_ = &configuration_->mediaType;
 
-  isInitialized_ = inherited::initialize (configuration_in);;
-
-  return true;
+  return inherited::initialize (configuration_in);;
 }
 //template <typename SessionMessageType,
 //          typename MessageType,
@@ -195,7 +191,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
 //  return *configuration_;
 //}
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -205,7 +201,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -230,7 +226,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
                    IID_in,
                    interface_out);
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -240,7 +236,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 ULONG
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -254,7 +250,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
 
   return InterlockedIncrement (&referenceCount_);
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -264,7 +260,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 ULONG
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -443,7 +439,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
 //
 //  return S_OK;
 //}
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -453,7 +449,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -473,7 +469,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
   ACE_NOTSUP_RETURN (S_OK);
   ACE_NOTREACHED (return S_OK;)
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -483,7 +479,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -501,7 +497,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
   ACE_NOTSUP_RETURN (S_OK);
   ACE_NOTREACHED (return S_OK;)
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -511,7 +507,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -529,7 +525,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
   ACE_NOTSUP_RETURN (S_OK);
   ACE_NOTREACHED (return S_OK;)
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -539,7 +535,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -557,7 +553,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
   ACE_NOTSUP_RETURN (S_OK);
   ACE_NOTREACHED (return S_OK;)
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -567,7 +563,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -587,7 +583,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
   ACE_NOTSUP_RETURN (S_OK);
   ACE_NOTREACHED (return S_OK;)
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -597,7 +593,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -623,7 +619,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
                             bufferSize_in,
                             attributes_p);
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -633,7 +629,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -710,7 +706,7 @@ error:
 
   return E_FAIL;
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -720,7 +716,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -744,7 +740,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
 
   return S_OK;
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -754,7 +750,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 HRESULT
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -771,7 +767,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
   ACE_NOTREACHED (return E_FAIL;)
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -781,7 +777,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 void
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -817,7 +813,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
   } // end IF
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -827,7 +823,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 void
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -847,8 +843,8 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   switch (message_inout->type ())
   {
@@ -857,7 +853,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
       // sanity check(s)
       ACE_ASSERT (!sessionData_);
       // *TODO*: remove type inference
-      ACE_ASSERT (configuration_->streamConfiguration);
+      ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       sessionData_ =
         &const_cast<SessionDataType&> (message_inout->get ());
@@ -896,7 +892,7 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
       // *TODO*: remove type inferences
       IDirect3DDeviceManager9* direct3D_manager_p = NULL;
       struct _D3DPRESENT_PARAMETERS_ d3d_presentation_parameters;
-      if (!Stream_Module_Device_Tools::getDirect3DDevice (configuration_->window,
+      if (!Stream_Module_Device_Tools::getDirect3DDevice (inherited::configuration_->window,
                                                           session_data_r.format,
                                                           session_data_r.direct3DDevice,
                                                           d3d_presentation_parameters,
@@ -914,10 +910,10 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
       ACE_ASSERT (!mediaSession_);
 
       ULONG reference_count = 0;
-      if (configuration_->session)
+      if (inherited::configuration_->session)
       {
-        reference_count = configuration_->session->AddRef ();
-        mediaSession_ = configuration_->session;
+        reference_count = inherited::configuration_->session->AddRef ();
+        mediaSession_ = inherited::configuration_->session;
         reference_count = mediaSession_->AddRef ();
         session_data_r.session = mediaSession_;
       } // end IF
@@ -929,9 +925,9 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
       WCHAR* symbolic_link_p = NULL;
       UINT32 symbolic_link_size = 0;
       TOPOID node_id = 0;
-      if (!initialize_MediaFoundation (configuration_->window,
+      if (!initialize_MediaFoundation (inherited::configuration_->window,
                                        session_data_r.format,
-                                       configuration_->mediaSource,
+                                       inherited::configuration_->mediaSource,
                                        symbolic_link_p,
                                        symbolic_link_size,
                                        direct3D_manager_p,
@@ -1006,7 +1002,7 @@ error:
       COM_initialized = true;
 
 //continue_:
-      finalize_MediaFoundation (); // stop 'streaming thread'
+      finalize_MediaFoundation ();
 
       if (sessionData_)
       {
@@ -1028,6 +1024,8 @@ error:
       if (COM_initialized)
         CoUninitialize ();
 
+      inherited::shutdown ();
+
       break;
     }
     default:
@@ -1035,7 +1033,7 @@ error:
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -1045,7 +1043,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 DataMessageType*
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -1058,20 +1056,20 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::allocateMessage"));
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
-  ACE_ASSERT (configuration_->streamConfiguration);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
   // initialize return value(s)
   MessageType* message_p = NULL;
 
   // *TODO*: remove type inference
-  if (configuration_->streamConfiguration->messageAllocator)
+  if (inherited::configuration_->streamConfiguration->messageAllocator)
   {
 allocate:
     try {
       // *TODO*: remove type inference
       message_p =
-        static_cast<MessageType*> (configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
+        static_cast<MessageType*> (inherited::configuration_->streamConfiguration->messageAllocator->malloc (requestedSize_in));
     } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
@@ -1081,7 +1079,7 @@ allocate:
 
     // keep retrying ?
     if (!message_p &&
-        !configuration_->streamConfiguration->messageAllocator->block ())
+        !inherited::configuration_->streamConfiguration->messageAllocator->block ())
       goto allocate;
   } // end IF
   else
@@ -1089,9 +1087,9 @@ allocate:
                       MessageType (requestedSize_in));
   if (!message_p)
   {
-    if (configuration_->streamConfiguration->messageAllocator)
+    if (inherited::configuration_->streamConfiguration->messageAllocator)
     {
-      if (configuration_->streamConfiguration->messageAllocator->block ())
+      if (inherited::configuration_->streamConfiguration->messageAllocator->block ())
         ACE_DEBUG ((LM_CRITICAL,
                     ACE_TEXT ("failed to allocate MessageType(%u): \"%m\", aborting\n"),
                     requestedSize_in));
@@ -1105,7 +1103,7 @@ allocate:
   return message_p;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -1115,7 +1113,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 bool
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -1268,7 +1266,7 @@ error:
 
   return false;
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -1278,7 +1276,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 void
-Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -1290,5 +1288,4 @@ Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Source_T::finalize_MediaFoundation"));
 
-  inherited::shutdown ();
 }

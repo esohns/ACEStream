@@ -46,7 +46,7 @@ Stream_Filecopy_Module_EventHandler::clone ()
 
   ACE_NEW_NORETURN (module_p,
                     Stream_Filecopy_Module_EventHandler_Module (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),
-                    NULL));
+                                                                NULL));
   if (!module_p)
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
@@ -58,7 +58,7 @@ Stream_Filecopy_Module_EventHandler::clone ()
     if (!eventHandler_impl_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_EventHandler> failed, aborting\n")));
+                  ACE_TEXT ("dynamic_cast<Stream_Module_Filecopy_EventHandler> failed, aborting\n")));
 
       // clean up
       delete module_p;

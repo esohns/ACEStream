@@ -30,7 +30,7 @@
 
 #include "stream_vis_defines.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -38,7 +38,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -47,7 +47,6 @@ Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
                                     SessionDataType,
                                     SessionDataContainerType>::Stream_Vis_Target_MediaFoundation_T ()
  : inherited ()
- , isInitialized_ (false)
  , device_ (NULL)
  , mediaSession_ (NULL)
  , streamSink_ (NULL)
@@ -58,7 +57,7 @@ Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -66,7 +65,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -96,7 +95,7 @@ Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
     device_->Release ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -105,7 +104,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -202,7 +201,7 @@ Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
   //sample_p->Release ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -211,7 +210,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -540,7 +539,7 @@ continue_:
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -549,7 +548,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 bool
-Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -560,10 +559,8 @@ Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_MediaFoundation_T::initialize"));
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
-    isInitialized_ = false;
-
     //if (videoSampleAllocator_)
     //{
     //  videoSampleAllocator_->Release ();
@@ -594,12 +591,11 @@ Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
       device_->Release ();
       device_ = NULL;
     } // end IF
+
+    inherited::isInitialized_ = false;
   } // end IF
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-  isInitialized_ = true;
-
-  return true;
+  return inherited::initialize (configuration_in);
 }
 //template <typename SessionMessageType,
 //          typename MessageType,
@@ -621,7 +617,7 @@ Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
 //  return *configuration_;
 //}
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -630,7 +626,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 bool
-Stream_Vis_Target_MediaFoundation_T<SynchStrategyType,
+Stream_Vis_Target_MediaFoundation_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -1117,7 +1113,7 @@ continue_3:
 
 //////////////////////////////////////////
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -1125,7 +1121,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
+Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -1139,7 +1135,7 @@ Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -1147,7 +1143,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
+Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -1160,7 +1156,7 @@ Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -1169,7 +1165,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
+Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -1266,7 +1262,7 @@ Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
   //sample_p->Release ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -1275,7 +1271,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
+Stream_Vis_Target_MediaFoundation_2<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -1352,7 +1348,7 @@ Stream_Vis_Target_MediaFoundation_2<SynchStrategyType,
   } // end SWITCH
 }
 
-//template <typename SynchStrategyType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename ConfigurationType,
 //          typename ControlMessageType,

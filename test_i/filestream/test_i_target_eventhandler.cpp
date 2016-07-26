@@ -48,7 +48,7 @@ Test_I_Stream_Target_EventHandler::~Test_I_Stream_Target_EventHandler ()
 }
 
 void
-Test_I_Stream_Target_EventHandler::start (unsigned int sessionID_in,
+Test_I_Stream_Target_EventHandler::start (Stream_SessionId_t sessionID_in,
                                           const Test_I_Stream_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::start"));
@@ -78,7 +78,50 @@ Test_I_Stream_Target_EventHandler::start (unsigned int sessionID_in,
 }
 
 void
-Test_I_Stream_Target_EventHandler::notify (unsigned int sessionID_in,
+Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
+                                           const Stream_SessionMessageType& sessionEvent_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::notify"));
+
+  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionEvent_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+
+void
+Test_I_Stream_Target_EventHandler::end (Stream_SessionId_t sessionID_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::end"));
+
+  ACE_UNUSED_ARG (sessionID_in);
+
+  // sanity check(s)
+  ACE_ASSERT (CBData_);
+
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+
+  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+
+  guint event_source_id = g_idle_add (idle_end_target_UI_cb,
+                                      CBData_);
+  if (event_source_id == 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_idle_add(idle_end_target_UI_cb): \"%m\", returning\n")));
+    return;
+  } // end IF
+  CBData_->eventSourceIds.insert (event_source_id);
+
+  if (sessionData_)
+    sessionData_ = NULL;
+}
+
+void
+Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
                                            const Test_I_Stream_Message& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::notify"));
@@ -94,7 +137,7 @@ Test_I_Stream_Target_EventHandler::notify (unsigned int sessionID_in,
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
 }
 void
-Test_I_Stream_Target_EventHandler::notify (unsigned int sessionID_in,
+Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
                                            const Test_I_Stream_SessionMessage& sessionMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::notify"));
@@ -146,32 +189,4 @@ continue_:
     }
   } // end SWITCH
   CBData_->eventStack.push_back (event);
-}
-
-void
-Test_I_Stream_Target_EventHandler::end (unsigned int sessionID_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::end"));
-
-  ACE_UNUSED_ARG (sessionID_in);
-
-  // sanity check(s)
-  ACE_ASSERT (CBData_);
-
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
-
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
-
-  guint event_source_id = g_idle_add (idle_end_target_UI_cb,
-                                      CBData_);
-  if (event_source_id == 0)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to g_idle_add(idle_end_target_UI_cb): \"%m\", returning\n")));
-    return;
-  } // end IF
-  CBData_->eventSourceIds.insert (event_source_id);
-
-  if (sessionData_)
-    sessionData_ = NULL;
 }

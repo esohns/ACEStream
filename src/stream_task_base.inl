@@ -34,28 +34,33 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::Stream_TaskBase_T ()
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::Stream_TaskBase_T ()
  : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME), // thread name
               STREAM_MODULE_TASK_GROUP_ID,                                   // group id
               1,                                                             // # thread(s)
               false,                                                         // auto-start ?
               ////////////////////////////
-              NULL)                                                          // queue handle
-              // *TODO*: this looks dodgy, but seems to work...
-              //&queue_)                                                       // queue handle
+              //NULL)                                                          // queue handle
+              // *TODO*: this looks dodgy, but seems to work nonetheless...
+              &queue_)                                                       // queue handle
  , configuration_ (NULL)
+ , isInitialized_ (false)
  //, lock_ ()
  , queue_ (STREAM_QUEUE_MAX_SLOTS)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
 
-  inherited::msg_queue (&queue_);
+  //inherited::msg_queue (&queue_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -63,13 +68,17 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::~Stream_TaskBase_T ()
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::~Stream_TaskBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::~Stream_TaskBase_T"));
 
@@ -102,7 +111,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   result));
   } // end ELSE IF
 
-  inherited::msg_queue (NULL);
+  //inherited::msg_queue (NULL);
 }
 
 template <ACE_SYNCH_DECL,
@@ -110,14 +119,18 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 const ConfigurationType&
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::get () const
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::get"));
 
@@ -131,18 +144,23 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 bool
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::initialize (const ConfigurationType& configuration_in)
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::initialize"));
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+  isInitialized_ = true;
 
   return true;
 }
@@ -152,14 +170,18 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::handleControlMessage (ControlMessageType& message_in)
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::handleControlMessage (ControlMessageType& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleControlMessage"));
 
@@ -173,15 +195,19 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::handleDataMessage (DataMessageType*& message_inout,
-                                                          bool& passMessageDownstream_out)
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::handleDataMessage (DataMessageType*& message_inout,
+                                                        bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleDataMessage"));
 
@@ -196,15 +222,19 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                             bool& passMessageDownstream_out)
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                           bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleSessionMessage"));
 
@@ -224,16 +254,13 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       break;
     case STREAM_SESSION_MESSAGE_END:
     {
-      try
-      {
+      try {
         dump_state ();
-      }
-      catch (...)
-      {
+      } catch (...) {
         if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": caught exception in dump_state(), continuing\n"),
-                      inherited::name ()));
+                      inherited::mod_->name ()));
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught exception in dump_state(), continuing\n")));
@@ -258,21 +285,25 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::handleProcessingError (const ACE_Message_Block* const messageBlock_in)
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::handleProcessingError (const ACE_Message_Block* const messageBlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleProcessingError"));
 
   if (inherited::mod_)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("module: \"%s\": failed to process message %@, continuing\n"),
-                inherited::name (),
+                inherited::mod_->name (),
                 messageBlock_in));
   else
     ACE_DEBUG ((LM_ERROR,
@@ -285,21 +316,25 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::dump_state () const
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::dump_state"));
 
-//   if (inherited::module ())
+//   if (inherited::mod_)
 //     ACE_DEBUG ((LM_WARNING,
 //                 ACE_TEXT (" ***** MODULE: \"%s\" has not implemented the dump_state() API *****\n"),
-//                 inherited::name ()));
+//                 inherited::mod_->name ()));
 //   else
 //     ACE_DEBUG ((LM_WARNING,
 //                 ACE_TEXT ("dump_state() API not implemented\n")));
@@ -310,15 +345,19 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::handleMessage (ACE_Message_Block* messageBlock_in,
-                                                      bool& stopProcessing_out)
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::handleMessage (ACE_Message_Block* messageBlock_in,
+                                                    bool& stopProcessing_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleMessage"));
 
@@ -332,7 +371,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   // *NOTE*: the default behavior is to pass EVERYTHING downstream
   bool passMessageDownstream = true;
-  Stream_Module_t* module_p = inherited::module ();
   switch (messageBlock_in->msg_type ())
   {
     case ACE_Message_Block::MB_DATA:
@@ -343,10 +381,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       {
         std::string type_string =
           Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
-        if (module_p)
+        if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: dynamic_cast<DataMessageType*>(%@) failed (type was: \"%s\"), returning\n"),
-                      module_p->name (),
+                      inherited::mod_->name (),
                       messageBlock_in,
                       ACE_TEXT (type_string.c_str ())));
         else
@@ -366,10 +404,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         this->handleDataMessage (message_p,
                                  passMessageDownstream);
       } catch (...) {
-        if (module_p)
+        if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": caught an exception in handleDataMessage() (ID was: %u), continuing\n"),
-                      module_p->name (),
+                      inherited::mod_->name (),
                       message_p->getID ()));
         else
           ACE_DEBUG ((LM_ERROR,
@@ -387,10 +425,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       {
         std::string type_string =
           Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
-        if (module_p)
+        if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: dynamic_cast<ControlMessageType>(%@) failed (type was: \"%s\"), returning\n"),
-                      module_p->name (),
+                      inherited::mod_->name (),
                       messageBlock_in,
                       ACE_TEXT (type_string.c_str ())));
         else
@@ -410,10 +448,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         handleControlMessage (*control_message_p);
       }
       catch (...) {
-        if (module_p)
+        if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: caught an exception in handleControlMessage(), continuing\n"),
-                      module_p->name ()));
+                      inherited::mod_->name ()));
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught an exception in handleControlMessage(), continuing\n")));
@@ -430,10 +468,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       } catch (...) {
         std::string type_string =
           Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
-        if (module_p)
+        if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("module \"%s\": caught an exception in handleUserMessage() (type was: \"%s\"), continuing\n"),
-                      module_p->name (),
+                      inherited::mod_->name (),
                       ACE_TEXT (type_string.c_str ())));
         else
           ACE_DEBUG ((LM_ERROR,
@@ -445,10 +483,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     }
     default:
     {
-      if (module_p)
+      if (inherited::mod_)
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("module \"%s\": received an unknown message (type was: %d), continuing\n"),
-                    module_p->name (),
+                    inherited::mod_->name (),
                     messageBlock_in->msg_type ()));
       else
         ACE_DEBUG ((LM_WARNING,
@@ -462,7 +500,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   if (passMessageDownstream)
   {
     // *NOTE*: tasks that are not part of a stream have no notion of the concept
-    if (!module_p)
+    if (!inherited::mod_)
     {
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("cannot put_next(): not a module, continuing\n")));
@@ -492,16 +530,20 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 void
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::handleUserMessage (ACE_Message_Block* messageBlock_in,
-                                                          bool& stopProcessing_out,
-                                                          bool& passMessageDownstream_out)
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::handleUserMessage (ACE_Message_Block* messageBlock_in,
+                                                        bool& stopProcessing_out,
+                                                        bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleUserMessage"));
 
@@ -517,10 +559,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       session_message_p = dynamic_cast<SessionMessageType*> (messageBlock_in);
       if (!session_message_p)
       {
-        if (inherited::module ())
+        if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: dynamic_cast<SessionMessageType>(%@) failed (type was: %d), aborting\n"),
-                      inherited::name (),
+                      inherited::mod_->name (),
                       messageBlock_in,
                       messageBlock_in->msg_type ()));
         else
@@ -543,10 +585,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         handleSessionMessage (session_message_p,
                               passMessageDownstream_out);
       } catch (...) {
-        if (inherited::module ())
+        if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: caught an exception in handleSessionMessage(), continuing\n"),
-                      inherited::name ()));
+                      inherited::mod_->name ()));
         else
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught an exception in handleSessionMessage(), continuing\n")));
@@ -560,10 +602,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     }
     default:
     {
-      if (inherited::module ())
+      if (inherited::mod_)
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("module \"%s\": received an unknown user message (type was: %d), continuing\n"),
-                    inherited::name (),
+                    inherited::mod_->name (),
                     messageBlock_in->msg_type ()));
       else
         ACE_DEBUG ((LM_WARNING,
@@ -573,21 +615,64 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     }
   } // end SWITCH
 }
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
+void
+Stream_TaskBase_T<ACE_SYNCH_USE,
+                  TimePolicyType,
+                  ConfigurationType,
+                  ControlMessageType,
+                  DataMessageType,
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::notify (SessionEventType sessionEvent_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::notify"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::mod_);
+
+  INOTIFY_T* inotify_p = dynamic_cast<INOTIFY_T*> (inherited::mod_);
+  if (!inotify_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: dynamic_cast<Stream_ISessionNotify_T*>(%@) failed, returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+  try { // *TODO*: retrieve session id
+    inotify_p->notify (-1,
+                       sessionEvent_in);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("module \"%s\": caught exception in Stream_ISessionNotify_T::notify(), continuing\n"),
+                inherited::mod_->name ()));
+  }
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 int
 Stream_TaskBase_T<ACE_SYNCH_USE,
                   TimePolicyType,
                   ConfigurationType,
                   ControlMessageType,
                   DataMessageType,
-                  SessionMessageType>::put (ACE_Message_Block* messageBlock_in,
-                                            ACE_Time_Value* timeValue_in)
+                  SessionMessageType,
+                  SessionIdType,
+                  SessionEventType>::put (ACE_Message_Block* messageBlock_in,
+                                          ACE_Time_Value* timeValue_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::put"));
 

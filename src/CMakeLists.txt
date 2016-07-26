@@ -103,6 +103,9 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_cachedallocatorheap.h
      stream_cachedallocatorheap.inl
      stream_common.h
+     stream_control_message.cpp
+     stream_control_message.h
+     stream_control_message.inl
      stream_data_base.cpp
      stream_data_base.h
      stream_data_base.inl
@@ -120,6 +123,9 @@ set (${PROJECT_NAME}_LIB_SRCS
 #     stream_directshow_message_base.h
 #     stream_directshow_message_base.inl
      stream_exports.h
+     stream_head_task.cpp
+     stream_head_task.h
+     stream_head_task.inl
      stream_headmoduletask_base.cpp
      stream_headmoduletask_base.h
      stream_headmoduletask_base.inl
@@ -127,6 +133,8 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_idatamessage.h
      stream_imessagequeue.h
      stream_imodule.h
+     stream_inotify.h
+     stream_isessionnotify.h
      stream_istreamcontrol.h
      stream_itask.h
      stream_macros.h
@@ -138,6 +146,7 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_messageallocatorheap_base.inl
      stream_messagequeue.cpp
      stream_messagequeue.h
+     stream_messagequeue.inl
      stream_messagequeue_base.cpp
      stream_messagequeue_base.h
      stream_messagequeue_base.inl
@@ -154,6 +163,7 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_session_message_base.inl
      stream_statemachine_control.cpp
      stream_statemachine_control.h
+     stream_statemachine_control.inl
      stream_statistichandler.cpp
      stream_statistichandler.h
      stream_statistichandler.inl
@@ -172,7 +182,7 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_tools.cpp
      stream_tools.h)
 
-add_library (${PROJECT_NAME} SHARED ${ACEStream_LIB_SRCS})
+add_library (${PROJECT_NAME} STATIC ${ACEStream_LIB_SRCS})
 
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 add_dependencies (${PROJECT_NAME} Common)
@@ -192,7 +202,7 @@ endif ()
 
 # add PCH
 set_target_properties (${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-cotire (${PROJECT_NAME})
+#cotire (${PROJECT_NAME})
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}
@@ -215,6 +225,8 @@ install (FILES
          stream_cachedallocatorheap.h
          stream_cachedallocatorheap.inl
          stream_common.h
+         stream_control_message.h
+         stream_control_message.inl
          stream_data_base.h
          stream_data_base.inl
          stream_data_message_base.h
@@ -227,12 +239,16 @@ install (FILES
 #         stream_directshow_message_base.h
 #         stream_directshow_message_base.inl
          stream_exports.h
+         stream_head_task.h
+         stream_head_task.inl
          stream_headmoduletask_base.h
          stream_headmoduletask_base.inl
          stream_iallocator.h
          stream_idatamessage.h
          stream_imessagequeue.h
          stream_imodule.h
+         stream_inotify.h
+         stream_isessionnotify.h
          stream_istreamcontrol.h
          stream_itask.h
          stream_macros.h
@@ -241,6 +257,7 @@ install (FILES
          stream_messageallocatorheap_base.h
          stream_messageallocatorheap_base.inl
          stream_messagequeue.h
+         stream_messagequeue.inl
          stream_messagequeue_base.h
          stream_messagequeue_base.inl
          stream_module_base.h
@@ -251,6 +268,7 @@ install (FILES
          stream_session_message_base.h
          stream_session_message_base.inl
          stream_statemachine_control.h
+         stream_statemachine_control.inl
          stream_statistichandler.h
          stream_statistichandler.inl
          stream_streammodule_base.h

@@ -133,27 +133,31 @@ set (camsource_EXE_SRCS
      test_i_connection_common.h
      test_i_connection_manager_common.h
      test_i_defines.h
-     test_i_message.cpp
-     test_i_message.h
-     test_i_module_eventhandler.cpp
-     test_i_module_eventhandler.h
-     test_i_session_message.cpp
-     test_i_session_message.h
      test_i_source.cpp
      test_i_source_common.h
      test_i_source_eventhandler.cpp
      test_i_source_eventhandler.h
+     test_i_source_message.cpp
+     test_i_source_message.h
+     test_i_source_module_eventhandler.cpp
+     test_i_source_module_eventhandler.h
+     test_i_source_session_message.cpp
+     test_i_source_session_message.h
      test_i_source_signalhandler.cpp
      test_i_source_signalhandler.h
      test_i_source_stream.cpp
      test_i_source_stream.h
      test_i_source_stream.inl
+     test_i_target_message.cpp
+     test_i_target_message.h
+     test_i_target_session_message.cpp
+     test_i_target_session_message.h
      test_i_target_stream.cpp
      test_i_target_stream.h)
 #  test_i_template_instantiations.cpp
 
 set (EXECUTABLE_SOURCE camsource)
-add_executable (${EXECUTABLE_SOURCE} ${camsource_EXE_SRCS})
+add_executable (${EXECUTABLE_SOURCE} ${camsource_EXE_SRCS} etc/resources.rc etc/source.glade)
 
 #add_dependencies (${EXECUTABLE_SOURCE} ACE)
 add_dependencies (${EXECUTABLE_SOURCE} Common)
@@ -163,6 +167,7 @@ add_dependencies (${EXECUTABLE_SOURCE} ACENetwork)
 target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE_SOURCE} ${ACE_LIBRARY})
 if (UNIX)
+ target_link_libraries (${EXECUTABLE_SOURCE} rt)
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_CAP_LIBRARIES})
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE_SOURCE} ${PKG_AVCODEC_LIBRARIES})
@@ -403,12 +408,6 @@ set (camtarget_EXE_SRCS
      test_i_connection_common.h
      test_i_connection_manager_common.h
      test_i_defines.h
-     test_i_message.cpp
-     test_i_message.h
-     test_i_module_eventhandler.cpp
-     test_i_module_eventhandler.h
-     test_i_session_message.cpp
-     test_i_session_message.h
      test_i_source_stream.cpp
      test_i_source_stream.h
      test_i_source_stream.inl
@@ -417,6 +416,12 @@ set (camtarget_EXE_SRCS
      test_i_target_eventhandler.cpp
      test_i_target_eventhandler.h
      test_i_target_listener_common.h
+     test_i_target_message.cpp
+     test_i_target_message.h
+     test_i_target_module_eventhandler.cpp
+     test_i_target_module_eventhandler.h
+     test_i_target_session_message.cpp
+     test_i_target_session_message.h
      test_i_target_signalhandler.cpp
      test_i_target_signalhandler.h
      test_i_target_stream.cpp
@@ -434,6 +439,7 @@ add_dependencies (${EXECUTABLE_TARGET} ACENetwork)
 target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE_TARGET} ${ACE_LIBRARY})
 if (UNIX)
+ target_link_libraries (${EXECUTABLE_TARGET} rt)
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_CAP_LIBRARIES})
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_V4L2_LIBRARIES})
  target_link_libraries (${EXECUTABLE_TARGET} ${PKG_AVCODEC_LIBRARIES})

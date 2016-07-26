@@ -43,25 +43,6 @@ Stream_RIFFDecoder_Stream::Stream_RIFFDecoder_Stream ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Stream::Stream_RIFFDecoder_Stream"));
 
-  // remember the "owned" ones...
-  // *TODO*: clean this up
-  // *NOTE*: one problem is that all modules which have NOT enqueued onto the
-  //         stream (e.g. because initialize() failed...) need to be explicitly
-  //         close()d
-  inherited::modules_.push_front (&source_);
-  inherited::modules_.push_front (&decoder_);
-  inherited::modules_.push_front (&runtimeStatistic_);
-
-  // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
-  //inherited::MODULE_T* module_p = NULL;
-  //for (ACE_DLList_Iterator<inherited::MODULE_T> iterator (inherited::availableModules_);
-  //     iterator.next (module_p);
-  //     iterator.advance ())
-  //  module_p->next (NULL);
-  for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
-       iterator != inherited::modules_.end ();
-       iterator++)
-     (*iterator)->next (NULL);
 }
 
 Stream_RIFFDecoder_Stream::~Stream_RIFFDecoder_Stream ()
@@ -70,6 +51,18 @@ Stream_RIFFDecoder_Stream::~Stream_RIFFDecoder_Stream ()
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();
+}
+
+bool
+Stream_RIFFDecoder_Stream::load (Stream_ModuleList_t& modules_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Stream::load"));
+
+  modules_out.push_back (&runtimeStatistic_);
+  modules_out.push_back (&decoder_);
+  modules_out.push_back (&source_);
+
+  return true;
 }
 
 bool

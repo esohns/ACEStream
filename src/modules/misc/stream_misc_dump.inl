@@ -22,14 +22,14 @@
 
 #include "stream_macros.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType>
-Stream_Module_Dump_T<SynchStrategyType,
+Stream_Module_Dump_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      ControlMessageType,
@@ -42,14 +42,14 @@ Stream_Module_Dump_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType>
-Stream_Module_Dump_T<SynchStrategyType,
+Stream_Module_Dump_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      ControlMessageType,
@@ -61,7 +61,7 @@ Stream_Module_Dump_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -69,7 +69,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType>
 void
-Stream_Module_Dump_T<SynchStrategyType,
+Stream_Module_Dump_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      ControlMessageType,
@@ -86,7 +86,7 @@ Stream_Module_Dump_T<SynchStrategyType,
   message_inout->dump_state ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -94,7 +94,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType>
 void
-Stream_Module_Dump_T<SynchStrategyType,
+Stream_Module_Dump_T<ACE_SYNCH_USE,
                      TimePolicyType,
                      ConfigurationType,
                      ControlMessageType,
@@ -128,7 +128,7 @@ Stream_Module_Dump_T<SynchStrategyType,
   } // end SWITCH
 }
 
-//template <typename SynchStrategyType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename ConfigurationType,
 //          typename ControlMessageType,
@@ -136,7 +136,7 @@ Stream_Module_Dump_T<SynchStrategyType,
 //          typename SessionMessageType,
 //          typename SessionDataContainerType>
 //bool
-//Stream_Module_Dump_T<SynchStrategyType,
+//Stream_Module_Dump_T<ACE_SYNCH_USE,
 //                     TimePolicyType,
 //                     ConfigurationType,
 //                     ControlMessageType,

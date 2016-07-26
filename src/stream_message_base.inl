@@ -26,14 +26,22 @@
 
 // initialize statics
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long>
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::currentID = 0;
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::Stream_MessageBase_T ()
  : inherited (0,
               ACE_Message_Block::MB_DATA,
@@ -56,8 +64,12 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::Stream_MessageBase_T (unsigned int requestedSize_in)
  : inherited (requestedSize_in,
               ACE_Message_Block::MB_DATA,
@@ -81,9 +93,15 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 
 // *NOTE*: implicitly invoked by duplicate()
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::Stream_MessageBase_T (const Stream_MessageBase_T<AllocatorConfigurationType,
+                                                                                    ControlMessageType,
+                                                                                    SessionMessageType,
                                                                                     CommandType>& message_in)
  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of
                                                     // the data block
@@ -100,8 +118,12 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::Stream_MessageBase_T (ACE_Data_Block* dataBlock_in,
                                                          ACE_Allocator* messageAllocator_in,
                                                          bool incrementMessageCounter_in)
@@ -125,8 +147,12 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::Stream_MessageBase_T (ACE_Allocator* messageAllocator_in)
  : inherited (messageAllocator_in) // re-use the same allocator
  , type_ (STREAM_MESSAGE_DATA)
@@ -139,8 +165,12 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::~Stream_MessageBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::~Stream_MessageBase_T"));
@@ -161,9 +191,13 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 void
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::initialize (ACE_Data_Block* dataBlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::initialize"));
@@ -180,9 +214,13 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 CommandType
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::command () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::command"));
@@ -190,9 +228,13 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   return static_cast<CommandType> (ACE_Message_Block::MB_DATA);
 }
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 int
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::crunch (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::crunch"));
@@ -257,9 +299,13 @@ Stream_MessageBase_T<AllocatorConfigurationType,
   return true;
 }
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 unsigned int
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::getID () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::getID"));
@@ -268,9 +314,13 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 std::string
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::CommandType2String (CommandType type_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::CommandType2String"));
@@ -281,9 +331,13 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 ACE_Message_Block*
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::duplicate (void) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::duplicate"));
@@ -340,9 +394,13 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 void
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::dump_state () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::dump_state"));
@@ -353,9 +411,13 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 void
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::MessageType2String (Stream_MessageType type_in,
                                                        std::string& string_out)
 {
@@ -397,9 +459,13 @@ Stream_MessageBase_T<AllocatorConfigurationType,
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType>
 void
 Stream_MessageBase_T<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      CommandType>::resetMessageIDGenerator ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::resetIDGenerator"));
@@ -410,55 +476,71 @@ Stream_MessageBase_T<AllocatorConfigurationType,
               ACE_TEXT ("reset message IDs...\n")));
 }
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename HeaderType,
           typename CommandType>
 Stream_MessageBase_2<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (unsigned int requestedSize_in)
  : inherited (requestedSize_in)
- , initialized_ (true)
+ , isInitialized_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
 }
 
-// *NOTE*: this is implicitly invoked by duplicate() as well...
+// *NOTE*: this is implicitly invoked by duplicate() as well
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename HeaderType,
           typename CommandType>
 Stream_MessageBase_2<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (const Stream_MessageBase_2& message_in)
  : inherited (message_in)
- , initialized_ (message_in.initialized_)
+ , isInitialized_ (message_in.isInitialized_)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename HeaderType,
           typename CommandType>
 Stream_MessageBase_2<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      HeaderType,
                      CommandType>::Stream_MessageBase_2 (ACE_Data_Block* dataBlock_in,
                                                          ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // use (don't own !) this data block
               messageAllocator_in, // allocator
               true)                // increment the message ID ?
- , initialized_ (true)
+ , isInitialized_ (true)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::Stream_MessageBase_2"));
 
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename HeaderType,
           typename CommandType>
 Stream_MessageBase_2<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      HeaderType,
                      CommandType>::~Stream_MessageBase_2 ()
 {
@@ -471,33 +553,41 @@ Stream_MessageBase_2<AllocatorConfigurationType,
   inherited::priority_ = std::numeric_limits<unsigned long>::max ();
 
   // clean up
-  initialized_ = false;
+  isInitialized_ = false;
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename HeaderType,
           typename CommandType>
 void
 Stream_MessageBase_2<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      HeaderType,
                      CommandType>::initialize (ACE_Data_Block* dataBlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_2::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (!initialized_);
+  ACE_ASSERT (!isInitialized_);
 
   // initialize base class
   inherited::initialize (dataBlock_in);
 
-  initialized_ = true;
+  isInitialized_ = true;
 }
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename HeaderType,
           typename CommandType>
 HeaderType
 Stream_MessageBase_2<AllocatorConfigurationType,
+                     ControlMessageType,
+                     SessionMessageType,
                      HeaderType,
                      CommandType>::get () const
 {

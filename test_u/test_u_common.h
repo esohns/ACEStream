@@ -18,8 +18,8 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_U_STREAM_COMMON_H
-#define TEST_U_STREAM_COMMON_H
+#ifndef TEST_U_COMMON_H
+#define TEST_U_COMMON_H
 
 #include <deque>
 #include <string>
@@ -76,8 +76,6 @@ typedef Stream_GTK_Events_t::const_iterator Stream_GTK_EventsIterator_t;
 
 typedef int Stream_HeaderType_t;
 typedef int Stream_CommandType_t;
-
-//typedef Stream_SessionDataBase_T<Stream_Test_U_SessionData> Stream_Test_U_SessionData_t;
 
 struct Stream_Test_U_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration

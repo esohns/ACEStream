@@ -50,8 +50,6 @@ class Stream_MessageQueueBase_T
                             TimePolicyType> MESSAGE_QUEUE_T;
   typedef ACE_Message_Queue_Iterator<ACE_SYNCH_USE,
                                      TimePolicyType> MESSAGE_QUEUE_ITERATOR_T;
-  typedef Stream_MessageQueueBase_T<ACE_SYNCH_USE,
-                                    TimePolicyType> OWN_TYPE_T;
 
   // *IMPORTANT NOTE*: override, so that the queue considers the number of
   //                   enqueued items (instead of the amount of enqueued bytes)
@@ -61,6 +59,10 @@ class Stream_MessageQueueBase_T
  private:
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
                             TimePolicyType> inherited;
+
+  // convenient types
+  typedef Stream_MessageQueueBase_T<ACE_SYNCH_USE,
+                                    TimePolicyType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueueBase_T (const Stream_MessageQueueBase_T&))

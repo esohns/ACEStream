@@ -90,7 +90,7 @@ class Stream_Dec_Export Stream_Decoder_AVIParserDriver
   void scan_end ();
 
   // context
-  bool                        trace_;
+  //bool                        trace_;
 
   // scanner
   yyscan_t                    scannerState_;

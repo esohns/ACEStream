@@ -21,6 +21,7 @@
 #include <limits>
 
 #include "ace/Log_Msg.h"
+#include "ace/Message_Block.h"
 
 #include "stream_macros.h"
 
@@ -52,9 +53,8 @@ Stream_AllocatorHeap_T<ConfigurationType>::calloc (size_t bytes_in,
   void* result = inherited2::calloc (bytes_in,
                                      initialValue_in);
 
-  // update allocation counter ?
-  if (result)
-    poolSize_ += bytes_in;
+  // update allocation counter
+  if (result) poolSize_ += bytes_in;
 
   return result;
 }
@@ -72,9 +72,8 @@ Stream_AllocatorHeap_T<ConfigurationType>::calloc (size_t numberOfElements_in,
                                      sizePerElement_in,
                                      initialValue_in);
 
-  // update allocation counter ?
-  if (result)
-    poolSize_ += (numberOfElements_in * sizePerElement_in);
+  // update allocation counter
+  if (result) poolSize_ += (numberOfElements_in * sizePerElement_in);
 
   return result;
 }
@@ -90,6 +89,22 @@ Stream_AllocatorHeap_T<ConfigurationType>::block ()
 
 template <typename ConfigurationType>
 void*
+Stream_AllocatorHeap_T<ConfigurationType>::calloc ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::calloc"));
+
+  // delegate to base class
+  void* result = inherited2::calloc (1,
+                                     sizeof (ACE_Message_Block),
+                                     '\0');
+
+  // update allocation counter
+  if (result) poolSize_ += sizeof (ACE_Message_Block);
+
+  return result;
+}
+template <typename ConfigurationType>
+void*
 Stream_AllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::malloc"));
@@ -97,9 +112,8 @@ Stream_AllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
   // delegate to base class
   void* result = inherited2::malloc (bytes_in);
 
-  // update allocation counter ?
-  if (result)
-    poolSize_ += bytes_in;
+  // update allocation counter
+  if (result) poolSize_ += bytes_in;
 
   return result;
 }

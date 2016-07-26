@@ -116,7 +116,7 @@ Test_I_Stream_Message::duplicate (void) const
     } // end IF
   } // end IF
 
-  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)
 
   return message_p;
 }
@@ -127,7 +127,7 @@ Test_I_Stream_Message::command () const
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Message::command"));
 
   // sanity check(s)
-  if (!inherited::initialized_)
+  if (!inherited::isInitialized_)
     return HTTP_Codes::HTTP_METHOD_INVALID;
   ACE_ASSERT (inherited::data_);
 

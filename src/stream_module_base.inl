@@ -25,14 +25,22 @@
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::Stream_Module_Base_T (const std::string& name_in,
                                                             WriterTaskType* writerTask_in,
@@ -44,106 +52,240 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
               readerTask_in,                             // initialize reader side task
               refCount_in,                               // argument passed to task open()
               inherited::M_DELETE_NONE)                  // don't "delete" ANYTHING during close()
- , configuration_ ()
+ , configuration_ (NULL)
+ , notify_ (NULL)
+ /////////////////////////////////////////
  , isFinal_ (isFinal_in)
  , reader_ (readerTask_in)
  , writer_ (writerTask_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::Stream_Module_Base_T"));
 
-  // *WARNING*: apparently, "this" is not valid at this stage
-  //            --> derived classes must do this
-//   // set module links in the tasks
-//   // *NOTE*: essential to enable dereferencing (name-lookups, controlled
-  //shutdown, etc)
-//   myWriter->mod_ = this;
-//   myReader->mod_ = this;
-
-  // *IMPORTANT NOTE*: when using this ACE_Module ctor, the next_ member isn't
-  //                   initialized properly; this causes mayhem in a corner
-  //                   case, so do it here
-  // *TODO*: notify the ACE people to correct this in the library
-  inherited::next (NULL);
 }
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::~Stream_Module_Base_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::~Stream_Module_Base_T"));
 
-  // *WARNING*: the ACE_Module dtor calls module_closed() on each task. However,
-  //            the (member) tasks have been destroyed by the time that happens
+  // *WARNING*: the ACE_Module dtor calls module_closed() on each task. Note how
+  //            the (member) task instances have been freed by the time that
+  //            happens
   //            --> close() module in advance so it doesn't happen here
 }
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
+          typename ReaderTaskType,
+          typename WriterTaskType>
+void
+Stream_Module_Base_T<ACE_SYNCH_USE,
+                     TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
+                     ConfigurationType,
+                     HandlerConfigurationType,
+                     NotificationType,
+                     ReaderTaskType,
+                     WriterTaskType>::start (SessionIdType sessionID_in,
+                                             const SessionDataType& sessionData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::start"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename NotificationType,
+          typename ReaderTaskType,
+          typename WriterTaskType>
+void
+Stream_Module_Base_T<ACE_SYNCH_USE,
+                     TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
+                     ConfigurationType,
+                     HandlerConfigurationType,
+                     NotificationType,
+                     ReaderTaskType,
+                     WriterTaskType>::notify (SessionIdType sessionId_in,
+                                              const SessionEventType& sessionEvent_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::notify"));
+
+  ACE_UNUSED_ARG (sessionId_in);
+
+  // sanity check(s)
+  ACE_ASSERT (notify_);
+
+  // *IMPORTANT NOTE*: note how the session event type is translated to the
+  //                   stream notification type
+  // *TODO*: these should be distinct types with a (partial) mapping
+  // *TODO*: notifications simply generating session messages should not be
+  //         forwarded to linked streams to avoid duplicates. As the
+  //         implementation of this interface may be third-party, this might
+  //         actually not be enforcable
+  try {
+    notify_->notify (sessionEvent_in,
+                     true); // forward upstream ?
+  }
+  catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Stream_INotify_T::notify(%d), continuing\n"),
+                inherited::name (),
+                sessionEvent_in));
+  }
+}
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename NotificationType,
+          typename ReaderTaskType,
+          typename WriterTaskType>
+void
+Stream_Module_Base_T<ACE_SYNCH_USE,
+                     TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
+                     ConfigurationType,
+                     HandlerConfigurationType,
+                     NotificationType,
+                     ReaderTaskType,
+                     WriterTaskType>::end (SessionIdType sessionId_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::end"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 const ConfigurationType&
 Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::get () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::get"));
 
-  return configuration_;
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+
+  return *configuration_;
 }
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 bool
 Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::initialize"));
 
-  configuration_ = configuration_in;
+  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+  // *TODO*: remove type inference
+  notify_ = configuration_->notify;
 
   return true;
 }
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 const HandlerConfigurationType&
 Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::getHandlerConfiguration () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::get"));
 
-  // need a downcast...
-  Stream_Task_t* task_p = writer_;
+  TASK_T* task_p = writer_;
   ACE_ASSERT (task_p);
   IGET_T* iget_p = dynamic_cast<IGET_T*> (task_p);
   if (!iget_p)
@@ -160,15 +302,23 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 bool
 Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::isFinal () const
 {
@@ -179,15 +329,23 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 void
 Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::reset ()
 {
@@ -206,16 +364,24 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 ACE_Module<ACE_SYNCH_USE,
            TimePolicyType>*
 Stream_Module_Base_T<ACE_SYNCH_USE,
                      TimePolicyType,
+                     SessionIdType,
+                     SessionDataType,
+                     SessionEventType,
                      ConfigurationType,
                      HandlerConfigurationType,
+                     NotificationType,
                      ReaderTaskType,
                      WriterTaskType>::clone ()
 {
@@ -224,7 +390,6 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   // initialize return value(s)
   MODULE_T* module_p = NULL;
 
-  // need a downcast...
   typename IMODULE_T::ICLONE_T* iclone_p =
       dynamic_cast<typename IMODULE_T::ICLONE_T*> (writer_);
   if (!iclone_p)

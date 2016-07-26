@@ -159,9 +159,9 @@ do_printUsage (const std::string& programName_in)
             << TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-z [VALUE]  : loop [")
-            << 0
-            << ACE_TEXT_ALWAYS_CHAR ("] {-1: forever}")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-z          : debug parser [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 }
 
@@ -183,7 +183,7 @@ do_processArguments (int argc_in,
                      std::string& URI_out,
                      bool& printVersionAndExit_out,
                      unsigned int& numberOfDispatchThreads_out,
-                     size_t& loop_out)
+                     bool& debugParser_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -228,11 +228,11 @@ do_processArguments (int argc_in,
   printVersionAndExit_out = false;
   numberOfDispatchThreads_out =
     TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
-  loop_out = 0;
+  debugParser_out = 0;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:c:de:f:lors:tu:vx:z:"),
+                              ACE_TEXT ("b:c:de:f:lop:rs:tu:vx:z"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -282,6 +282,14 @@ do_processArguments (int argc_in,
       case 'o':
       {
         useThreadPool_out = true;
+        break;
+      }
+      case 'p':
+      {
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argumentParser.opt_arg ();
+        converter >> port_out;
         break;
       }
       case 'r':
@@ -403,10 +411,7 @@ do_processArguments (int argc_in,
       }
       case 'z':
       {
-        converter.clear ();
-        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
-        converter << argumentParser.opt_arg ();
-        converter >> loop_out;
+        debugParser_out = true;
         break;
       }
       // error handling
@@ -528,6 +533,7 @@ do_work (unsigned int bufferSize_in,
          unsigned int statisticReportingInterval_in,
          const std::string& URL_in,
          unsigned int numberOfDispatchThreads_in,
+         bool debugParser_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -629,6 +635,8 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
+  configuration.moduleHandlerConfiguration.traceParsing = debugParser_in;
+  configuration.moduleHandlerConfiguration.traceScanning = debugParser_in;
   configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;
@@ -783,8 +791,6 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
 
-  unsigned int counter = 0;
-loop:
   if (!stream_p->initialize (configuration.streamConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -814,16 +820,6 @@ loop:
   //      return;
   //    } // end IF
   stream_p->waitForCompletion ();
-  if (false)
-  {
-    ++counter;
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("iteration #%u complete...\n"),
-                counter));
-    if ((static_cast<int> (false) == -1) ||
-        (counter != false))
-      goto loop;
-  } // end IF
 
   // clean up
   connection_manager_p->stop ();
@@ -982,7 +978,7 @@ ACE_TMAIN (int argc_in,
   bool print_version_and_exit = false;
   unsigned int number_of_dispatch_threads =
     TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS;
-  size_t loop = 0;
+  bool debug_parser = false;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -1002,9 +998,8 @@ ACE_TMAIN (int argc_in,
                             URL,
                             print_version_and_exit,
                             number_of_dispatch_threads,
-                            loop))
+                            debug_parser))
   {
-    // make 'em learn...
     do_printUsage (ACE::basename (argv_in[0]));
 
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -1191,6 +1186,7 @@ ACE_TMAIN (int argc_in,
            statistic_reporting_interval,
            URL,
            number_of_dispatch_threads,
+           debug_parser,
            signal_set,
            ignored_signal_set,
            previous_signal_actions,

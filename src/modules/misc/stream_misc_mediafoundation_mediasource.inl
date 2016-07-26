@@ -214,7 +214,7 @@ Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::Release"));
 
   ULONG count = InterlockedDecrement (&referenceCount_);
-  if (count == 0);
+  //if (count == 0)
   //delete this;
 
   return count;

@@ -54,12 +54,12 @@ stream_decoder_aviencoder_libav_write_cb (void*,    // act
                                           int);     // buffer size
 #endif
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 class Stream_Decoder_AVIEncoder_ReaderTask_T
- : public ACE_Thru_Task<SynchStrategyType,
+ : public ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType>
 {
  public:
@@ -70,7 +70,7 @@ class Stream_Decoder_AVIEncoder_ReaderTask_T
                    ACE_Time_Value* = NULL); // time
 
  private:
-  typedef ACE_Thru_Task<SynchStrategyType,
+  typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_ReaderTask_T (const Stream_Decoder_AVIEncoder_ReaderTask_T&))
@@ -82,7 +82,7 @@ class Stream_Decoder_AVIEncoder_ReaderTask_T
 
 //////////////////////////////////////////
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -94,14 +94,14 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 class Stream_Decoder_AVIEncoder_WriterTask_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
@@ -122,14 +122,14 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   SessionDataContainerType* sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T (const Stream_Decoder_AVIEncoder_WriterTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIEncoder_WriterTask_T& operator= (const Stream_Decoder_AVIEncoder_WriterTask_T&))
@@ -156,7 +156,6 @@ class Stream_Decoder_AVIEncoder_WriterTask_T
   //         upstream by trailing modules of the processing stream (i.e. reader-
   //         side processing)
   bool                      isFirst_;
-  bool                      isInitialized_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   AVFormatContext*          formatContext_;

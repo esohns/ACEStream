@@ -30,29 +30,26 @@
 
 #include "test_i_connection_common.h"
 
-#include "test_i_target_common.h"
+//#include "test_i_target_common.h"
 #include "test_i_target_stream.h"
 
+// forward declarations
+struct Test_I_Target_ListenerConfiguration;
+
 typedef Net_Server_AsynchListener_T<Test_I_Target_AsynchTCPConnection_t,
-                                    /////
                                     ACE_INET_Addr,
                                     Test_I_Target_ListenerConfiguration,
                                     Test_I_Target_ConnectionState,
                                     Test_I_Target_Stream,
-                                    /////
                                     Test_I_Target_SocketHandlerConfiguration,
-                                    /////
                                     Test_I_Target_UserData> Test_I_Target_AsynchListener_t;
 typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
                               Net_SOCK_Acceptor,
-                              ///////////
                               ACE_INET_Addr,
                               Test_I_Target_ListenerConfiguration,
                               Test_I_Target_ConnectionState,
                               Test_I_Target_Stream,
-                              ///////////
                               Test_I_Target_SocketHandlerConfiguration,
-                              ///////////
                               Test_I_Target_UserData> Test_I_Target_Listener_t;
 
 typedef ACE_Singleton<Test_I_Target_AsynchListener_t,

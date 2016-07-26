@@ -41,7 +41,7 @@
 // forward declaration(s)
 class ACE_Message_Block;
 class Stream_IAllocator;
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -55,7 +55,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType> class Stream_Module_Statistic_WriterTask_T; // session message payload (reference counted)
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -69,7 +69,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_Module_Statistic_ReaderTask_T
- : public ACE_Thru_Task<SynchStrategyType,
+ : public ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType>
 {
  public:
@@ -80,9 +80,9 @@ class Stream_Module_Statistic_ReaderTask_T
                    ACE_Time_Value* = NULL); // time
 
  private:
-  typedef ACE_Thru_Task<SynchStrategyType,
+  typedef ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType> inherited;
-  typedef Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+  typedef Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                                TimePolicyType,
 
                                                ConfigurationType,
@@ -102,7 +102,7 @@ class Stream_Module_Statistic_ReaderTask_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_ReaderTask_T& operator= (const Stream_Module_Statistic_ReaderTask_T&))
 };
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -116,18 +116,18 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_Module_Statistic_WriterTask_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType, 
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  , public Common_ICounter
  , public Common_IStatistic_T<StatisticContainerType>
 {
- friend class Stream_Module_Statistic_ReaderTask_T<SynchStrategyType,
+ friend class Stream_Module_Statistic_ReaderTask_T<ACE_SYNCH_USE,
                                                    TimePolicyType,
                                                    ConfigurationType,
                                                    ControlMessageType,
@@ -170,17 +170,17 @@ class Stream_Module_Statistic_WriterTask_T
   SessionDataContainerType*  sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType, 
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   // convenient types
-  typedef Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+  typedef Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                                TimePolicyType,
 
                                                ConfigurationType,

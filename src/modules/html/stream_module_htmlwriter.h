@@ -30,7 +30,7 @@
 #include "stream_imodule.h"
 #include "stream_task_base_synch.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -42,14 +42,14 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 class Stream_Module_HTMLWriter_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
@@ -69,19 +69,20 @@ class Stream_Module_HTMLWriter_T
   struct _xmlDoc* document_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLWriter_T (const Stream_Module_HTMLWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLWriter_T& operator= (const Stream_Module_HTMLWriter_T&))
 };
 
+// include template definition
 #include "stream_module_htmlwriter.inl"
 
 #endif

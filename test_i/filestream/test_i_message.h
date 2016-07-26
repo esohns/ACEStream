@@ -25,7 +25,7 @@
 
 #include "stream_message_base.h"
 
-#include "test_i_common.h"
+#include "test_i_source_common.h"
 
 // forward declaration(s)
 class ACE_Allocator;
@@ -33,15 +33,20 @@ class ACE_Data_Block;
 class ACE_Message_Block;
 class Test_I_Stream_SessionMessage;
 template <typename AllocatorConfigurationType,
-          typename MessageType,
-          typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Stream_Message
- : public Stream_MessageBase_T<Stream_AllocatorConfiguration>
+ : public Stream_MessageBase_T<Stream_AllocatorConfiguration,
+                               Test_I_ControlMessage_t,
+                               Test_I_Stream_SessionMessage,
+                               int>
 {
-  // grant access to specific private ctors...
+  // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-
+                                                 Test_I_ControlMessage_t,
                                                  Test_I_Stream_Message,
                                                  Test_I_Stream_SessionMessage>;
 
@@ -65,10 +70,13 @@ class Test_I_Stream_Message
   Test_I_Stream_Message (const Test_I_Stream_Message&);
 
  private:
-  typedef Stream_MessageBase_T<Stream_AllocatorConfiguration> inherited;
+  typedef Stream_MessageBase_T<Stream_AllocatorConfiguration,
+                               Test_I_ControlMessage_t,
+                               Test_I_Stream_SessionMessage,
+                               int> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message ())
-  // *NOTE*: to be used by message allocators...
+  // *NOTE*: to be used by message allocators
   Test_I_Stream_Message (ACE_Data_Block*, // data block
                          ACE_Allocator*,  // message allocator
                          bool = true);    // increment running message counter ?

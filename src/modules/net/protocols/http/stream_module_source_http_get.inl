@@ -33,35 +33,34 @@
 #include "http_defines.h"
 #include "http_tools.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
                                     SessionMessageType>::Stream_Module_Net_Source_HTTP_Get_T ()
  : inherited ()
- , responseParsed_ (false)
- , responseReceived_ (false)
+ , parsed_ (false)
+ , received_ (false)
  , sessionData_ (NULL)
- , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::Stream_Module_Net_Source_HTTP_Get_T"));
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -74,14 +73,14 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
     sessionData_->decrease ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -90,34 +89,32 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::initialize"));
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
-    isInitialized_ = false;
-
     if (sessionData_)
     {
       sessionData_->decrease ();
       sessionData_ = NULL;
     } // end IF
+
+    inherited::isInitialized_ = false;
   } // end IF
 
-  responseParsed_ = false;
-  responseReceived_ = false;
+  parsed_ = false;
+  received_ = false;
 
   // *TODO*: validate URI
-  isInitialized_ = inherited::initialize (configuration_in);
-
-  return isInitialized_;
+  return inherited::initialize (configuration_in);
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -140,7 +137,7 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
 
-  if (responseReceived_)
+  if (received_)
     return; // done
 
   passMessageDownstream_out = false;
@@ -157,7 +154,7 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
   } // end IF
   else
   {
-    record_p = parseResponse (*message_inout);
+    record_p = parse (*message_inout);
     delete_record = true;
   } // end IF
   if (!record_p)
@@ -172,7 +169,7 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
   {
     case HTTP_Codes::HTTP_STATUS_OK:
     {
-      responseReceived_ = true;
+      received_ = true;
 
       passMessageDownstream_out = true;
 
@@ -213,11 +210,10 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
       } // end IF
 
       // step2: send request
-      if (!sendRequest (uri_string,
-                        inherited::configuration_->HTTPHeaders,
-                        inherited::configuration_->HTTPForm))
+      if (!send (uri_string,
+                 inherited::configuration_->HTTPHeaders,
+                 inherited::configuration_->HTTPForm))
       {
-        ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to send HTTP request \"%s\", aborting\n"),
                     inherited::mod_->name (),
@@ -240,8 +236,7 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
   goto continue_;
 
 error:
-  session_data_r.aborted = true;
-  // *TODO*: close the connection as well
+  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
 continue_:
   if (delete_record)
@@ -259,14 +254,14 @@ continue_:
   } // end IF
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 void
-Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -294,11 +289,10 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
       sessionData_->increase ();
 
       // send HTTP request
-      if (!sendRequest (inherited::configuration_->URL,
-                        inherited::configuration_->HTTPHeaders,
-                        inherited::configuration_->HTTPForm))
+      if (!send (inherited::configuration_->URL,
+                 inherited::configuration_->HTTPHeaders,
+                 inherited::configuration_->HTTPForm))
       {
-        ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to send HTTP request \"%s\", returning\n"),
                     inherited::mod_->name (),
@@ -323,14 +317,14 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 DataMessageType*
-Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -374,14 +368,14 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
   return message_out;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 DataMessageType*
-Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
@@ -459,23 +453,23 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
   return message_out;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 bool
-Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
-                                    SessionMessageType>::sendRequest (const std::string& URI_in,
-                                                                      const HTTP_Headers_t& headers_in,
-                                                                      const HTTP_Form_t& form_in)
+                                    SessionMessageType>::send (const std::string& URI_in,
+                                                               const HTTP_Headers_t& headers_in,
+                                                               const HTTP_Form_t& form_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::sendRequest"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::send"));
 
   int result = -1;
 
@@ -507,29 +501,29 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
 
     return false;
   } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: dispatched HTTP request (URI was: \"%s\")\n"),
-              inherited::mod_->name (),
-              ACE_TEXT (URI_in.c_str ())));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%s: dispatched HTTP request (URI was: \"%s\")\n"),
+  //            inherited::mod_->name (),
+  //            ACE_TEXT (URI_in.c_str ())));
 
   return true;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 HTTP_Record*
-Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
+Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                                     TimePolicyType,
                                     ConfigurationType,
                                     ControlMessageType,
                                     DataMessageType,
-                                    SessionMessageType>::parseResponse (DataMessageType& message_in)
+                                    SessionMessageType>::parse (DataMessageType& message_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::parseResponse"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::parse"));
 
   // initialize return value(s)
   HTTP_Record* result_p = NULL;
@@ -626,7 +620,7 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
       } // end WHILE
       message_in.rd_ptr (offset);
 
-      responseReceived_ = true;
+      received_ = true;
 
       break;
     }
@@ -670,11 +664,10 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
                   result_p->status));
 
       // step2: send request
-      if (!sendRequest (location,
-                        inherited::configuration_->HTTPHeaders,
-                        inherited::configuration_->HTTPForm))
+      if (!send (location,
+                 inherited::configuration_->HTTPHeaders,
+                 inherited::configuration_->HTTPForm))
       {
-        ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to send HTTP request \"%s\", continuing\n"),
                     inherited::mod_->name (),
@@ -693,7 +686,7 @@ Stream_Module_Net_Source_HTTP_Get_T<SynchStrategyType,
     }
   } // end SWITCH
 
-  responseParsed_ = true;
+  parsed_ = true;
 
   return result_p;
 

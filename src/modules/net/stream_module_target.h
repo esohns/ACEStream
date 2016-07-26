@@ -37,18 +37,18 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           ////////////////////////////////
           typename SessionDataContainerType,
+          ////////////////////////////////
           typename ConnectionManagerType,
           typename ConnectorType>
 class Stream_Module_Net_Target_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
- //, public Stream_IModuleHandler_T<ConfigurationType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
 {
  public:
   // *NOTE*: this module has two modes of operation:
@@ -65,9 +65,6 @@ class Stream_Module_Net_Target_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual const ConfigurationType& get () const;
-
  protected:
   typename ConnectionManagerType::ICONNECTION_T* connection_;
   ConnectorType                                  connector_;
@@ -76,19 +73,16 @@ class Stream_Module_Net_Target_T
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T (const Stream_Module_Net_Target_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T& operator= (const Stream_Module_Net_Target_T&))
 
-  // *NOTE*: facilitate asynchronous connects
-  //typename ConnectorType::ICONNECTOR_T* iconnector_;
-  bool                                           isInitialized_;
   bool                                           isLinked_;
   bool                                           isPassive_;
   // *NOTE*: this lock prevents races during (ordered) shutdown
@@ -96,7 +90,7 @@ class Stream_Module_Net_Target_T
   ACE_SYNCH_MUTEX                                lock_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_module_target.inl"
 
 #endif

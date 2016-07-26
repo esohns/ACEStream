@@ -24,6 +24,7 @@
 #include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
 #include "ace/Malloc_T.h"
+#include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
 #include "stream_allocatorbase.h"
@@ -39,22 +40,30 @@ class Stream_CachedAllocatorHeap_T
   virtual ~Stream_CachedAllocatorHeap_T ();
 
   // implement Stream_IAllocator
-  virtual bool block (); // return value: block when full ?
-
+  inline virtual bool block ()
+  {
+    return true;
+  };
+  inline virtual void* calloc ()
+  {
+    return inherited2::calloc (sizeof (ACE_Message_Block), '\0');
+  };
   // *IMPORTANT NOTE*: need to implement these as ACE_Dynamic_Cached_Allocator
   // doesn't implement them as virtual (BUG)
   inline virtual void* malloc (size_t bytes_in)
   {
+    // sanity check(s)
+    ACE_ASSERT (inherited::configuration_);
+
     // *TODO*: remove type inference
-    size_t number_of_bytes = bytes_in + inherited::configuration_.buffer;
-    return inherited2::malloc (number_of_bytes);
+    return inherited2::malloc (bytes_in + inherited::configuration_->buffer);
   };
-  inline virtual void free (void* pointer_in)
+  inline virtual void free (void* address_in)
   {
-    return inherited2::free (pointer_in);
+    inherited2::free (address_in);
   };
 
-  // *NOTE*: these return the amount of allocated (heap) memory...
+  // *NOTE*: these return the amount of allocated (heap) memory
   virtual size_t cache_depth () const;
   virtual size_t cache_size () const;
 
@@ -74,7 +83,7 @@ class Stream_CachedAllocatorHeap_T
   ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_cachedallocatorheap.inl"
 
 #endif

@@ -25,24 +25,34 @@
 
 //#include "ace/Malloc_Base.h"
 
-// *NOTE*: cannot inherited from ACE_Allocator directly, as it is not
+class Stream_IAllocatorStatistic
+{
+ public:
+  virtual ~Stream_IAllocatorStatistic () {}
+
+  // *NOTE*: informational: total size (memory/chunk/...) of the cache (i.e. when empty)
+  virtual size_t cache_depth () const = 0;
+  // *NOTE*: informational: current size (memory/chunk/...) of the cache
+  virtual size_t cache_size () const = 0;
+};
+
+// *NOTE*: this cannot inherit from ACE_Allocator directly, as it is not
 //         consistenly virtually-inherited in all implementations
 //         --> use dynamic "sidecasts"
 class Stream_IAllocator
  //: virtual public ACE_Allocator
+ : public Stream_IAllocatorStatistic
 {
  public:
   virtual ~Stream_IAllocator () {}
 
   virtual bool block () = 0; // return value: block when full ?
 
-  virtual void* malloc (size_t) = 0; // bytes
+  // allocate control message
+  virtual void* calloc () = 0; // bytes
+  // allocate data/session message
+  virtual void* malloc (size_t) = 0; // bytes (? data- : session message)
   virtual void free (void*) = 0; // handle
-
-  // *NOTE*: informational: total size (memory/chunk/...) of the cache (i.e. when empty)
-  virtual size_t cache_depth () const = 0;
-  // *NOTE*: informational: current size (memory/chunk/...) of the cache
-  virtual size_t cache_size () const = 0;
 };
 
 #endif

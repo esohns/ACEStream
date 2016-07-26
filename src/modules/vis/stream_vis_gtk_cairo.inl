@@ -40,7 +40,7 @@ extern "C"
 #include "stream_vis_defines.h"
 #include "stream_vis_tools.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -48,7 +48,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ConfigurationType,
                               ControlMessageType,
@@ -63,13 +63,12 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
  , lock_ (NULL)
  , pixelBuffer_ (NULL)
  , isFirst_ (true)
- , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::Stream_Module_Vis_GTK_Cairo_T"));
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -77,7 +76,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ConfigurationType,
                               ControlMessageType,
@@ -100,7 +99,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
     sessionData_->decrease ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -109,7 +108,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 int
-Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ConfigurationType,
                               ControlMessageType,
@@ -124,7 +123,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
                            : ((value_in < 0) ? 0
                                              : value_in));
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -133,7 +132,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ConfigurationType,
                               ControlMessageType,
@@ -947,7 +946,7 @@ error:
     gdk_threads_leave ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -956,7 +955,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ConfigurationType,
                               ControlMessageType,
@@ -1034,7 +1033,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
 ////                    cairoFormat_,
 ////                    session_data_r.format.fmt.pix.width, session_data_r.format.fmt.pix.height,
 ////                    ACE_TEXT (cairo_status_to_string (result))));
-////        return;
+////        goto error;
 ////      } // end IF
 ////      cairo_set_source_surface (cairoContext_, // context
 ////                                cairoSurface_, // surface
@@ -1064,8 +1063,10 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
 
       break;
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 error:
-      session_data_r.aborted = true;
+#endif
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -1096,7 +1097,7 @@ error:
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -1105,7 +1106,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 bool
-Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
                               ConfigurationType,
                               ControlMessageType,
@@ -1116,7 +1117,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::initialize"));
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
 //    if (cairoSurface_)
 //    {
@@ -1144,7 +1145,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
 
     isFirst_ = true;
 
-    isInitialized_ = false;
+    inherited::isInitialized_ = false;
   } // end IF
 
   lock_ = configuration_in.lock;
@@ -1217,9 +1218,7 @@ Stream_Module_Vis_GTK_Cairo_T<SynchStrategyType,
 //                                 0.0, 0.0);
 //  } // end IF
 
-  isInitialized_ = inherited::initialize (configuration_in);
-
-  return isInitialized_;
+  return inherited::initialize (configuration_in);
 }
 //template <typename SessionMessageType,
 //          typename MessageType,

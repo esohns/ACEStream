@@ -54,7 +54,9 @@
 #ifdef HAVE_CONFIG_H
 #include "libACEStream_config.h"
 #endif
+
 #include "stream_allocatorheap.h"
+#include "stream_control_message.h"
 #include "stream_macros.h"
 
 #include "stream_dev_defines.h"

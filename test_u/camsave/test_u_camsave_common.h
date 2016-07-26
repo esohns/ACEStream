@@ -25,6 +25,8 @@
 #include <map>
 #include <string>
 
+#include "ace/config-lite.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "d3d9.h"
 #include "evr.h"
@@ -38,11 +40,13 @@
 #include "gtk/gtk.h"
 #endif
 
-#include "common_inotify.h"
 #include "common_isubscribe.h"
 #include "common_tools.h"
 
 #include "stream_common.h"
+#include "stream_control_message.h"
+#include "stream_inotify.h"
+#include "stream_isessionnotify.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_messageallocatorheap_base.h"
 #else
@@ -316,30 +320,62 @@ struct Stream_CamSave_Configuration
   Stream_UserData                           streamUserData;
 };
 
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Stream_AllocatorConfiguration,
+                                Stream_CamSave_Message,
+                                Stream_CamSave_SessionMessage> Test_U_ControlMessage_t;
+
+//template <typename AllocatorConfigurationType,
+//          typename CommandType,
+//          typename ControlMessageType,
+//          typename SessionMessageType>
+//class Stream_MessageBase_T;
+//typedef Stream_MessageBase_T<Stream_AllocatorConfiguration,
+//                             int,
+//                             Test_U_ControlMessage_t,
+//                             Test_U_SessionMessage_t> Test_U_Message_t;
+
+//typedef Stream_SessionData_T<Stream_SessionData> Test_U_SessionData_t;
+//template <typename AllocatorConfigurationType,
+//          typename SessionMessageType,
+//          typename SessionDataType,
+//          typename UserDataType,
+//          typename ControlMessageType,
+//          typename DataMessageType>
+//class Stream_SessionMessageBase_T;
+//typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+//                                    Stream_SessionMessageType,
+//                                    Test_U_SessionData_t,
+//                                    Stream_UserData,
+//                                    Test_U_ControlMessage_t,
+//                                    Test_U_Message_t> Test_U_SessionMessage_t;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Stream_DirectShowAllocatorBase_T<Stream_AllocatorConfiguration,
-//
+//                                         Test_U_ControlMessage_t,
 //                                         Stream_CamSave_Message,
 //                                         Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
 typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-
+                                          Test_U_ControlMessage_t,
                                           Stream_CamSave_Message,
                                           Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
 #else
 typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-
+                                          Test_U_ControlMessage_t,
                                           Stream_CamSave_Message,
                                           Stream_CamSave_SessionMessage> Stream_CamSave_MessageAllocator_t;
 #endif
 
-typedef Common_INotify_T<unsigned int,
-                         Stream_CamSave_SessionData,
-                         Stream_CamSave_Message,
-                         Stream_CamSave_SessionMessage> Stream_CamSave_IStreamNotify_t;
-typedef std::list<Stream_CamSave_IStreamNotify_t*> Stream_CamSave_Subscribers_t;
+typedef Stream_INotify_T<Stream_SessionMessageType> Stream_CamSave_IStreamNotify_t;
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    Stream_CamSave_SessionData,
+                                    Stream_SessionMessageType,
+                                    Stream_CamSave_Message,
+                                    Stream_CamSave_SessionMessage> Stream_CamSave_ISessionNotify_t;
+typedef std::list<Stream_CamSave_ISessionNotify_t*> Stream_CamSave_Subscribers_t;
 typedef Stream_CamSave_Subscribers_t::iterator Stream_CamSave_SubscribersIterator_t;
 
-typedef Common_ISubscribe_T<Stream_CamSave_IStreamNotify_t> Stream_CamSave_ISubscribe_t;
+typedef Common_ISubscribe_T<Stream_CamSave_ISessionNotify_t> Stream_CamSave_ISubscribe_t;
 
 typedef std::map<guint, ACE_Thread_ID> Stream_CamSave_PendingActions_t;
 typedef Stream_CamSave_PendingActions_t::iterator Stream_CamSave_PendingActionsIterator_t;

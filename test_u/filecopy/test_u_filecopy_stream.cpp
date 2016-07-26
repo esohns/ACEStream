@@ -43,25 +43,6 @@ Stream_Filecopy_Stream::Stream_Filecopy_Stream ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::Stream_Filecopy_Stream"));
 
-  // remember the "owned" ones...
-  // *TODO*: clean this up
-  // *NOTE*: one problem is that all modules which have NOT enqueued onto the
-  //         stream (e.g. because initialize() failed...) need to be explicitly
-  //         close()d
-  inherited::modules_.push_front (&fileReader_);
-  inherited::modules_.push_front (&runtimeStatistic_);
-  inherited::modules_.push_front (&fileWriter_);
-
-  // *TODO* fix ACE bug: modules should initialize their "next" member to NULL
-  //inherited::MODULE_T* module_p = NULL;
-  //for (ACE_DLList_Iterator<inherited::MODULE_T> iterator (inherited::availableModules_);
-  //     iterator.next (module_p);
-  //     iterator.advance ())
-  //  module_p->next (NULL);
-  for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
-       iterator != inherited::modules_.end ();
-       iterator++)
-     (*iterator)->next (NULL);
 }
 
 Stream_Filecopy_Stream::~Stream_Filecopy_Stream ()
@@ -77,12 +58,12 @@ Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::load"));
 
-  // initialize return value(s)
-  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
-       iterator != modules_out.end ();
-       iterator++)
-    delete *iterator;
-  modules_out.clear ();
+  //// initialize return value(s)
+  //for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
+  //     iterator != modules_out.end ();
+  //     iterator++)
+  //  delete *iterator;
+  //modules_out.clear ();
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -91,25 +72,25 @@ Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out)
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Stream_Filecopy_Module_FileWriter_Module (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
+                  Stream_Filecopy_Module_FileReader_Module (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
                                                             NULL,
                                                             false),
                   false);
-  modules_out.push_front (module_p);
+  modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   Stream_Filecopy_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
                                                                   NULL,
                                                                   false),
                   false);
-  modules_out.push_front (module_p);
+  modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Stream_Filecopy_Module_FileReader_Module (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
+                  Stream_Filecopy_Module_FileWriter_Module (ACE_TEXT_ALWAYS_CHAR ("FileWriter"),
                                                             NULL,
                                                             false),
                   false);
-  modules_out.push_front (module_p);
+  modules_out.push_back (module_p);
 
   return true;
 }

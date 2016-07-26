@@ -33,7 +33,7 @@
 
 #include "stream_task_base_asynch.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -44,14 +44,14 @@ template <typename SynchStrategyType,
           ////////////////////////////////
           typename SessionDataType>
 class Stream_Module_MySQLWriter_T
- : public Stream_TaskBaseAsynch_T<SynchStrategyType,
+ : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
-                                  ////////
                                   ConfigurationType,
-                                  ////////
                                   ControlMessageType,
                                   DataMessageType,
-                                  SessionMessageType>
+                                  SessionMessageType,
+                                  Stream_SessionId_t,
+                                  Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
@@ -74,19 +74,18 @@ class Stream_Module_MySQLWriter_T
   MYSQL* state_;
 
  private:
-  typedef Stream_TaskBaseAsynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
-                                  ////////
                                   ConfigurationType,
-                                  ////////
                                   ControlMessageType,
                                   DataMessageType,
-                                  SessionMessageType> inherited;
+                                  SessionMessageType,
+                                  Stream_SessionId_t,
+                                  Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLWriter_T (const Stream_Module_MySQLWriter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_MySQLWriter_T& operator= (const Stream_Module_MySQLWriter_T&))
 
-  bool   isInitialized_;
   bool   manageLibrary_;
 };
 

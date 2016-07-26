@@ -26,13 +26,13 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_inotify.h"
 #include "common_isubscribe.h"
 #include "common_iclone.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
 #include "stream_imodule.h"
+#include "stream_isessionnotify.h"
 #include "stream_task_base_synch.h"
 
 template <ACE_SYNCH_DECL,
@@ -49,24 +49,26 @@ template <ACE_SYNCH_DECL,
 class Stream_Module_MessageHandler_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
- , public Common_ISubscribe_T<Common_INotify_T<SessionIdType,
-                                               typename SessionDataContainerType::DATA_T,
-                                               DataMessageType,
-                                               SessionMessageType> >
+ , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionIdType,
+                                                          typename SessionDataContainerType::DATA_T,
+                                                          Stream_SessionMessageType,
+                                                          DataMessageType,
+                                                          SessionMessageType> >
  , public Common_IClone_T<Stream_Module_t>
 {
  public:
-  typedef Common_INotify_T<SessionIdType,
-                           typename SessionDataContainerType::DATA_T,
-                           DataMessageType,
-                           SessionMessageType> INOTIFY_T;
+  typedef Stream_ISessionDataNotify_T<SessionIdType,
+                                      typename SessionDataContainerType::DATA_T,
+                                      Stream_SessionMessageType,
+                                      DataMessageType,
+                                      SessionMessageType> INOTIFY_T;
   typedef std::list<INOTIFY_T*> SUBSCRIBERS_T;
 
   Stream_Module_MessageHandler_T ();
@@ -77,7 +79,9 @@ class Stream_Module_MessageHandler_T
                                ConfigurationType,
                                ControlMessageType,
                                DataMessageType,
-                               SessionMessageType>::initialize;
+                               SessionMessageType,
+                               Stream_SessionId_t,
+                               Stream_SessionMessageType>::initialize;
   virtual void initialize (SUBSCRIBERS_T* = NULL,              // subscribers (handle)
                            ACE_SYNCH_RECURSIVE_MUTEX* = NULL); // subscribers lock
 
@@ -107,22 +111,19 @@ class Stream_Module_MessageHandler_T
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   typedef Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                          TimePolicyType,
-
                                          ConfigurationType,
-
                                          ControlMessageType,
                                          DataMessageType,
                                          SessionMessageType,
-
                                          SessionIdType,
                                          SessionDataContainerType> OWN_TYPE_T;
   typedef typename SUBSCRIBERS_T::iterator SUBSCRIBERS_ITERATOR_T;

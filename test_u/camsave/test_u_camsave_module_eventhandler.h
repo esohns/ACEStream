@@ -37,14 +37,11 @@
 class Stream_CamSave_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-
                                          Stream_CamSave_ModuleHandlerConfiguration,
- 
                                          ACE_Message_Block,
                                          Stream_CamSave_Message,
                                          Stream_CamSave_SessionMessage,
-
-                                         unsigned int,
+                                         Stream_SessionId_t,
                                          Stream_CamSave_SessionData_t>
 {
  public:
@@ -57,14 +54,11 @@ class Stream_CamSave_Module_EventHandler
  private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-
                                          Stream_CamSave_ModuleHandlerConfiguration,
- 
                                          ACE_Message_Block,
                                          Stream_CamSave_Message,
                                          Stream_CamSave_SessionMessage,
-
-                                         unsigned int,
+                                         Stream_SessionId_t,
                                          Stream_CamSave_SessionData_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Module_EventHandler (const Stream_CamSave_Module_EventHandler&))
@@ -72,10 +66,10 @@ class Stream_CamSave_Module_EventHandler
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                              // task synch type
-                              Common_TimePolicy_t,                       // time policy
-                              Stream_ModuleConfiguration,                // module configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_SessionData,                // session data type
+                              Stream_SessionMessageType,                 // session event type
                               Stream_CamSave_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_CamSave_IStreamNotify_t,            // stream notification interface type
                               Stream_CamSave_Module_EventHandler);       // writer type
 
 #endif

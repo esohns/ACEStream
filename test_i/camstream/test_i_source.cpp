@@ -52,6 +52,7 @@
 #include "common_ui_gtk_manager.h"
 
 #include "stream_allocatorheap.h"
+#include "stream_control_message.h"
 #include "stream_macros.h"
 
 #ifdef HAVE_CONFIG_H
@@ -61,10 +62,10 @@
 #include "test_i_callbacks.h"
 #include "test_i_common.h"
 #include "test_i_defines.h"
-#include "test_i_module_eventhandler.h"
 
 #include "test_i_source_common.h"
 #include "test_i_source_eventhandler.h"
+#include "test_i_source_module_eventhandler.h"
 #include "test_i_source_signalhandler.h"
 #include "test_i_source_stream.h"
 

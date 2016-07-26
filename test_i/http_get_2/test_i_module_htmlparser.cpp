@@ -98,7 +98,8 @@ Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_ino
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (sessionData_);
+  ACE_ASSERT (inherited::mod_);
+  ACE_ASSERT (inherited::sessionData_);
 
   //std::string filename = Common_File_Tools::getTempDirectory ();
   //filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -107,6 +108,10 @@ Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_ino
   //                    filename);
 
   // insert target record
+  Test_I_Stream_SessionData& session_data_r =
+    const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+
+  // sanity check(s)
   const Test_I_MessageData_t& message_data_container_r =
     message_inout->get ();
   Test_I_MessageData& message_data_r =
@@ -114,17 +119,19 @@ Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_ino
   Test_I_StockItemsIterator_t iterator =
     inherited::configuration_->stockItems.find (message_data_r.stockItem);
   ACE_ASSERT (iterator != inherited::configuration_->stockItems.end ());
+  ACE_ASSERT (!inherited::parserContext_.data);
+
   Test_I_StockRecord stock_record;
   stock_record.item = &const_cast<Test_I_StockItem&> (*iterator);
-  sessionData_->data.push_back (stock_record);
+  session_data_r.data.push_back (stock_record);
 
-  Test_I_StockRecordsIterator_t iterator_2 = sessionData_->data.begin ();
+  Test_I_StockRecordsIterator_t iterator_2 = session_data_r.data.begin ();
   for (;
-       iterator_2 != sessionData_->data.end ();
+       iterator_2 != session_data_r.data.end ();
        ++iterator_2)
     if ((*iterator_2).item->ISIN == message_data_r.stockItem.ISIN)
       break;
-  ACE_ASSERT (iterator_2 != sessionData_->data.end ());
+  ACE_ASSERT (iterator_2 != session_data_r.data.end ());
   inherited::parserContext_.data =
     &const_cast<Test_I_StockRecord&> (*iterator_2);
 
@@ -134,9 +141,12 @@ Test_I_Stream_HTMLParser::handleDataMessage (Test_I_Stream_Message*& message_ino
   if (inherited::complete_)
   {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: parsed HTML document...\n"),
-                inherited::mod_->name ()));
+                ACE_TEXT ("%s: parsed HTML document (symbol: \"%s\")\n"),
+                inherited::mod_->name (),
+                ACE_TEXT ((*iterator_2).item->symbol.c_str ())));
+
     inherited::complete_ = false;
+    inherited::parserContext_.data = NULL;
   } // end IF
 }
 
@@ -152,20 +162,22 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
-  // *TODO*: remove type inferences
-  const Test_I_Stream_SessionData_t& session_data_container_r =
-    message_inout->get ();
-
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // sanity check(s)
+      ACE_ASSERT (!inherited::parserContext_.sessionData);
+
 //      if (parserContext_)
 //        htmlCtxtReset (parserContext_);
 
-      // *TODO*: remove type inferences
-      sessionData_ =
-        &const_cast<Test_I_Stream_SessionData&> (session_data_container_r.get ());
+      // *TODO*: remove type inference
+      inherited::sessionData_ =
+        &const_cast<Test_I_Stream_SessionData_t&> (message_inout->get ());
+      inherited::sessionData_->increase ();
+      inherited::parserContext_.sessionData =
+        &const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
       break;
     }
@@ -183,7 +195,12 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      sessionData_ = NULL;
+      if (inherited::sessionData_)
+      {
+        inherited::sessionData_->decrease ();
+        inherited::sessionData_ = NULL;
+      } // end IF
+      inherited::parserContext_.sessionData = NULL;
 
       break;
     }
@@ -193,27 +210,18 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 }
 
 bool
-Test_I_Stream_HTMLParser::initialize (const Test_I_Stream_ModuleHandlerConfiguration& configuration_in)
+Test_I_Stream_HTMLParser::initialize (const Test_I_HTTPGet_ModuleHandlerConfiguration& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (configuration_in.mode == STREAM_MODULE_HTMLPARSER_SAX);
-
-  if (!inherited::initialize (configuration_in))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_HTMLParser_T::initialize(): \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
 
 //  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::errorCallback);
 //  xmlSetGenericErrorFunc (inherited::parserContext_, &::errorCallback);
 //  xmlSetStructuredErrorFunc (inherited::parserContext_, &::structuredErrorCallback);
 
-  return true;
+  return inherited::initialize (configuration_in);
 }
 
 bool

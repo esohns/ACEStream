@@ -32,7 +32,7 @@
 
 #include "stream_module_net_common.h"
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -45,7 +45,7 @@ template <typename LockType,
           typename StatisticContainerType,
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IOWriter_T<LockType,
+Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              ControlMessageType,
                              DataMessageType,
                              SessionMessageType,
@@ -57,7 +57,7 @@ Stream_Module_Net_IOWriter_T<LockType,
                              SessionDataContainerType,
                              StatisticContainerType,
                              AddressType,
-                             ConnectionManagerType>::Stream_Module_Net_IOWriter_T (LockType* lock_in)
+                             ConnectionManagerType>::Stream_Module_Net_IOWriter_T (ACE_SYNCH_MUTEX_T* lock_in)
  : inherited (lock_in, // lock handle
               false,   // auto-start ?
               true)    // generate session messages ?
@@ -68,7 +68,7 @@ Stream_Module_Net_IOWriter_T<LockType,
 
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -81,7 +81,7 @@ template <typename LockType,
           typename StatisticContainerType,
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IOWriter_T<LockType,
+Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              ControlMessageType,
                              DataMessageType,
                              SessionMessageType,
@@ -138,7 +138,7 @@ Stream_Module_Net_IOWriter_T<LockType,
   } // end IF
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -152,7 +152,7 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
-Stream_Module_Net_IOWriter_T<LockType,
+Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              ControlMessageType,
                              DataMessageType,
                              SessionMessageType,
@@ -170,7 +170,7 @@ Stream_Module_Net_IOWriter_T<LockType,
 
   bool result = false;
 
-  if (inherited::initialized_)
+  if (inherited::isInitialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
@@ -180,6 +180,8 @@ Stream_Module_Net_IOWriter_T<LockType,
       connection_->decrease ();
       connection_ = NULL;
     } // end IF
+
+    inherited::isInitialized_ = false;
   } // end IF
 
   result = inherited::initialize (configuration_in);
@@ -189,14 +191,14 @@ Stream_Module_Net_IOWriter_T<LockType,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
     return false;
   } // end IF
-  // *NOTE*: data is fed into the stream from outside, as it arrives
+  // *NOTE*: data is delivered to the stream by event dispatcher thread(s)
   //         --> do not run svc() on start()
   inherited::runSvcOnStart_ = false;
 
   return result;
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -210,7 +212,7 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IOWriter_T<LockType,
+Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              ControlMessageType,
                              DataMessageType,
                              SessionMessageType,
@@ -268,7 +270,7 @@ Stream_Module_Net_IOWriter_T<LockType,
   } // end IF
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -282,7 +284,7 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IOWriter_T<LockType,
+Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              ControlMessageType,
                              DataMessageType,
                              SessionMessageType,
@@ -308,9 +310,10 @@ Stream_Module_Net_IOWriter_T<LockType,
   ACE_ASSERT (inherited::configuration_);
   // *TODO*: remove type inference
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
+  ACE_ASSERT (inherited::mod_);
 
-  Stream_Module_t* module_p = NULL;
+  //Stream_Module_t* module_p = NULL;
   Stream_Task_t* task_p = NULL;
   Stream_Queue_t* queue_p = NULL;
   switch (message_inout->type ())
@@ -400,16 +403,14 @@ Stream_Module_Net_IOWriter_T<LockType,
       //typename ConnectorType::STREAM_T& stream_r =
       //  const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
       //Stream_Module_t* module_p = stream_r.head ();
-      module_p = inherited::module ();
-      ACE_ASSERT (module_p);
-      task_p = module_p->reader ();
+      task_p = inherited::mod_->reader ();
       ACE_ASSERT (task_p);
-      while (ACE_OS::strcmp (module_p->name (),
+      while (ACE_OS::strcmp (task_p->module ()->name (),
                              ACE_TEXT ("ACE_Stream_Head")) != 0)
       {
         task_p = task_p->next ();
         if (!task_p) break;
-        module_p = task_p->module ();
+        //module_p = task_p->module ();
       } // end WHILE
       //if (!module_p)
       //{
@@ -437,7 +438,7 @@ Stream_Module_Net_IOWriter_T<LockType,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+      //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
 
       if (inherited::timerID_ != -1)
       {
@@ -454,18 +455,16 @@ Stream_Module_Net_IOWriter_T<LockType,
 
       if (connection_)
       {
-        // *NOTE*: deactivate the stream head queue so it does not fill up
-        //         (otherwise the generator module could block in some cases)
-        module_p = inherited::module ();
-        ACE_ASSERT (module_p);
-        task_p = module_p->reader ();
+        // *NOTE*: deactivate the stream head queue so it does not accept new
+        //         data
+        task_p = inherited::mod_->reader ();
         ACE_ASSERT (task_p);
-        while (ACE_OS::strcmp (module_p->name (),
+        while (ACE_OS::strcmp (task_p->module ()->name (),
                                ACE_TEXT ("ACE_Stream_Head")) != 0)
         {
           task_p = task_p->next ();
           if (!task_p) break;
-          module_p = task_p->module ();
+          //module_p = task_p->module ();
         } // end WHILE
         //if (!module_p)
         //{
@@ -526,24 +525,28 @@ Stream_Module_Net_IOWriter_T<LockType,
         //  &const_cast<typename ConnectorType::STREAM_T&> (socket_connection_p->stream ());
         //stream_p->finished ();
 
-        // *NOTE*: there is a subtle race condition here. When the connection
-        //         aborts, the pro/reactor finished() the connections' stream
-        //         (through handle_close(), which eventually lands here (state
-        //         switch). waitForCompletion() will wait for upstream, which
-        //         could deadlock when upstream blocks on the mutex above
-        //         --> release the mutex while waiting for upstream; grab a
-        //             reference to the connection so it does not go away early;
-        //             recheck/release the connection_ handle on return
-        ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (lock_);
-        typename ConnectionManagerType::CONNECTION_T* connection_p =
-            connection_;
-        connection_p->increase ();
-        {
-          ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX> > aGuard_2 (reverse_lock);
+        //// *NOTE*: there is a subtle race condition here. When the connection
+        ////         aborts, the pro/reactor finished() the connections' stream
+        ////         (through handle_close(), which eventually lands here (state
+        ////         switch). waitForCompletion() will wait for upstream, which
+        ////         could deadlock when upstream blocks on the mutex above
+        ////         --> release the mutex while waiting for upstream; grab a
+        ////             reference to the connection so it does not go away early;
+        ////             recheck/release the connection_ handle on return
+        //ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (lock_);
+        //typename ConnectionManagerType::CONNECTION_T* connection_p =
+        //    connection_;
+        //connection_p->increase ();
+        //{
+          //ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX> > aGuard_2 (reverse_lock);
 
-          connection_p->waitForCompletion (true); // wait for threads ?
-        } // end lock scope
-        connection_p->decrease ();
+          // *NOTE*: there is no need to wait for the network stream processing
+          //         thread(s) here; the source/target module, the connection
+          //         manager (if any) and/or the application itself ought to do
+          //         that
+          connection_->waitForCompletion (false); // wait for threads ?
+        //} // end lock scope
+        //connection_p->decrease ();
 
         if (connection_)
         {
@@ -553,16 +556,15 @@ Stream_Module_Net_IOWriter_T<LockType,
       } // end IF
 
       // reset reactor/proactor notification
-      module_p = inherited::module ();
-      ACE_ASSERT (module_p);
-      task_p = module_p->reader ();
+      ACE_ASSERT (inherited::mod_);
+      task_p = inherited::mod_->reader ();
       ACE_ASSERT (task_p);
-      while (ACE_OS::strcmp (module_p->name (),
+      while (ACE_OS::strcmp (task_p->module ()->name (),
                              ACE_TEXT ("ACE_Stream_Head")) != 0)
       {
         task_p = task_p->next ();
         if (!task_p) break;
-        module_p = task_p->module ();
+        //module_p = task_p->module ();
       } // end WHILE
       //if (!module_p)
       //{
@@ -595,7 +597,7 @@ Stream_Module_Net_IOWriter_T<LockType,
   } // end SWITCH
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -609,7 +611,7 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 bool
-Stream_Module_Net_IOWriter_T<LockType,
+Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
                              ControlMessageType,
                              DataMessageType,
                              SessionMessageType,
@@ -626,7 +628,7 @@ Stream_Module_Net_IOWriter_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IOWriter_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   // step0: initialize container
   //  data_out.dataMessages = 0;
@@ -648,7 +650,7 @@ Stream_Module_Net_IOWriter_T<LockType,
   return true;
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -659,7 +661,7 @@ Stream_Module_Net_IOWriter_T<LockType,
 //          typename AddressType,
 //          typename ConnectionManagerType>
 //void
-//Stream_Module_Net_IOWriter_T<LockType,
+//Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 //                             SessionMessageType,
 //                             ProtocolMessageType,
 //                             ConfigurationType,
@@ -742,7 +744,7 @@ Stream_Module_Net_IOWriter_T<LockType,
 //  return result;
 //}
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -753,7 +755,7 @@ Stream_Module_Net_IOWriter_T<LockType,
 //          typename AddressType,
 //          typename ConnectionManagerType>
 //ProtocolMessageType*
-//Stream_Module_Net_IOWriter_T<LockType,
+//Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 //                             SessionMessageType,
 //                             ProtocolMessageType,
 //                             ConfigurationType,
@@ -803,7 +805,7 @@ Stream_Module_Net_IOWriter_T<LockType,
 //  return message_out;
 //}
 //
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename ProtocolMessageType,
 //          typename ConfigurationType,
@@ -814,7 +816,7 @@ Stream_Module_Net_IOWriter_T<LockType,
 //          typename AddressType,
 //          typename ConnectionManagerType>
 //bool
-//Stream_Module_Net_IOWriter_T<LockType,
+//Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
 //                             SessionMessageType,
 //                             ProtocolMessageType,
 //                             ConfigurationType,
@@ -863,7 +865,7 @@ Stream_Module_Net_IOWriter_T<LockType,
 
 /////////////////////////////////////////
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -873,7 +875,7 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType, // session message payload (reference counted)
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IOReader_T<SynchStrategyType,
+Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              TimePolicyType,
                              ConfigurationType,
                              ControlMessageType,
@@ -891,7 +893,7 @@ Stream_Module_Net_IOReader_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -901,7 +903,7 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType, // session message payload (reference counted)
           typename AddressType,
           typename ConnectionManagerType>
-Stream_Module_Net_IOReader_T<SynchStrategyType,
+Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              TimePolicyType,
                              ConfigurationType,
                              ControlMessageType,
@@ -964,7 +966,7 @@ Stream_Module_Net_IOReader_T<SynchStrategyType,
 //  ACE_UNUSED_ARG (passMessageDownstream_out);
 //}
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -975,7 +977,7 @@ template <typename SynchStrategyType,
           typename AddressType,
           typename ConnectionManagerType>
 void
-Stream_Module_Net_IOReader_T<SynchStrategyType,
+Stream_Module_Net_IOReader_T<ACE_SYNCH_USE,
                              TimePolicyType,
                              ConfigurationType,
                              ControlMessageType,
@@ -1052,7 +1054,7 @@ Stream_Module_Net_IOReader_T<SynchStrategyType,
   } // end SWITCH
 }
 
-//template <typename SynchStrategyType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename ConfigurationType,
 //          typename ControlMessageType,

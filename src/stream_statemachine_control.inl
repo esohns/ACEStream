@@ -25,8 +25,8 @@
 
 #include "stream_macros.h"
 
-template <typename LockType>
-Stream_StateMachine_Control_T<LockType>::Stream_StateMachine_Control_T (LockType* lock_in)
+template <ACE_SYNCH_DECL>
+Stream_StateMachine_Control_T<ACE_SYNCH_USE>::Stream_StateMachine_Control_T (ACE_SYNCH_MUTEX_T* lock_in)
  : inherited (lock_in,
               STREAM_STATE_INVALID)
 {
@@ -34,16 +34,16 @@ Stream_StateMachine_Control_T<LockType>::Stream_StateMachine_Control_T (LockType
 
 }
 
-template <typename LockType>
-Stream_StateMachine_Control_T<LockType>::~Stream_StateMachine_Control_T ()
+template <ACE_SYNCH_DECL>
+Stream_StateMachine_Control_T<ACE_SYNCH_USE>::~Stream_StateMachine_Control_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::~Stream_StateMachine_Control_T"));
 
 }
 
-template <typename LockType>
+template <ACE_SYNCH_DECL>
 void
-Stream_StateMachine_Control_T<LockType>::initialize ()
+Stream_StateMachine_Control_T<ACE_SYNCH_USE>::initialize ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::initialize"));
 
@@ -52,19 +52,19 @@ Stream_StateMachine_Control_T<LockType>::initialize ()
                 ACE_TEXT ("failed to Stream_StateMachine_Control_T::change(STREAM_STATE_INITIALIZED), continuing\n")));
 }
 
-template <typename LockType>
+template <ACE_SYNCH_DECL>
 void
-Stream_StateMachine_Control_T<LockType>::reset ()
+Stream_StateMachine_Control_T<ACE_SYNCH_USE>::reset ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::reset"));
 
   initialize ();
 }
 
-template <typename LockType>
+template <ACE_SYNCH_DECL>
 bool
-Stream_StateMachine_Control_T<LockType>::wait (Stream_StateMachine_ControlState state_in,
-                                               const ACE_Time_Value* timeout_in)
+Stream_StateMachine_Control_T<ACE_SYNCH_USE>::wait (Stream_StateMachine_ControlState state_in,
+                                                    const ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::wait"));
 
@@ -81,7 +81,7 @@ Stream_StateMachine_Control_T<LockType>::wait (Stream_StateMachine_ControlState 
     if (result_2 == -1)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to LockType::acquire(): \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to ACE_SYNCH_USE::acquire(): \"%m\", aborting\n")));
       return false;
     } // end IF
   } // end IF
@@ -120,22 +120,22 @@ unlock:
     result_2 = inherited::stateLock_->release ();
     if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to LockType::release(): \"%m\", continuing\n")));
+                  ACE_TEXT ("failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n")));
   } // end IF
 
   return result;
 }
 
-template <typename LockType>
+template <ACE_SYNCH_DECL>
 bool
-Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlState newState_in)
+Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_ControlState newState_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::change"));
 
   bool result = false;
 
   int result_2 = -1;
-  ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
+  ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (*inherited::stateLock_);
 
   if (inherited::stateLock_)
   {
@@ -143,7 +143,7 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
     if (result_2 == -1)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to LockType::acquire(): \"%m\", aborting\n")));
+                  ACE_TEXT ("failed to ACE_SYNCH_USE::acquire(): \"%m\", aborting\n")));
       return false;
     } // end IF
   } // end IF
@@ -164,7 +164,7 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
             inherited::change (newState_in);
           else
           {
-            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
             inherited::change (newState_in);
           } // end ELSE
 
@@ -198,7 +198,7 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
             inherited::change (newState_in);
           else
           {
-            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
             inherited::change (newState_in);
           } // end ELSE
 
@@ -230,7 +230,7 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
             inherited::change (newState_in);
           else
           {
-            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
 
             //// *IMPORTANT NOTE*: make sure the transition RUNNING --> FINISHED
             ////                   is actually RUNNING --> STOPPED --> FINISHED
@@ -279,7 +279,7 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
             inherited::change (newState_in);
           else
           {
-            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
 
             // *IMPORTANT NOTE*: the transition PAUSED --> [STOPPED/]FINISHED
             //                   is actually PAUSED --> RUNNING [--> STOPPED]
@@ -317,7 +317,7 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
             inherited::change (newState_in);
           else
           {
-            ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+            ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
             inherited::change (newState_in);
           } // end ELSE
 
@@ -356,9 +356,9 @@ Stream_StateMachine_Control_T<LockType>::change (Stream_StateMachine_ControlStat
             inherited::change (newState_in);
           else
           {
-            ACE_Reverse_Lock<LockType> reverse_lock (*inherited::stateLock_);
+            ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (*inherited::stateLock_);
             {
-              ACE_Guard<ACE_Reverse_Lock<LockType> > aGuard_2 (reverse_lock);
+              ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
               inherited::change (newState_in);
             } // end lock scope
           } // end ELSE
@@ -393,24 +393,24 @@ unlock:
     result_2 = inherited::stateLock_->release ();
     if (result_2 == -1)
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to LockType::release(): \"%m\", continuing\n")));
+                  ACE_TEXT ("failed to ACE_SYNCH_USE::release(): \"%m\", continuing\n")));
   } // end IF
 
   return result;
 }
 
-template <typename LockType>
+template <ACE_SYNCH_DECL>
 void
-Stream_StateMachine_Control_T<LockType>::finished ()
+Stream_StateMachine_Control_T<ACE_SYNCH_USE>::finished ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::finished"));
 
   change (STREAM_STATE_FINISHED);
 }
 
-template <typename LockType>
+template <ACE_SYNCH_DECL>
 std::string
-Stream_StateMachine_Control_T<LockType>::state2String (Stream_StateMachine_ControlState state_in) const
+Stream_StateMachine_Control_T<ACE_SYNCH_USE>::state2String (Stream_StateMachine_ControlState state_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StateMachine_Control_T::state2String"));
 

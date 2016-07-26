@@ -27,79 +27,28 @@
 template <typename ConnectorType>
 Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string& name_in)
  : inherited (name_in)
- //, headReaderTask_ ()
- //, headWriterTask_ ()
- //, head_ ()
- //, tailReaderTask_ ()
- //, tailWriterTask_ ()
- //, tail_ ()
+ //, camSource_ (ACE_TEXT_ALWAYS_CHAR ("CameraSource"),
+ //              NULL,
+ //              false)
+ //, runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
+ //                     NULL,
+ //                     false)
+ //, netTarget_ (ACE_TEXT_ALWAYS_CHAR ("NetworkTarget"),
+ //              NULL,
+ //              false)
+ //, display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
+ //            NULL,
+ //            false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+ //, displayNull_ (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+ //                NULL,
+ //                false)
  , mediaSession_ (NULL)
  , referenceCount_ (1)
 #endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Test_I_Source_Stream_T"));
 
-  //int result = -1;
-
-  //inherited::TASK_T* reader_p, *writer_p = NULL;
-  //ACE_NEW_NORETURN (reader_p,
-  //                  inherited::HEAD_T ());
-  //ACE_NEW_NORETURN (writer_p,
-  //                  inherited::HEAD_T ());
-  //inherited::MODULE_T* head_p, *tail_p = NULL;
-  //ACE_NEW_NORETURN (head_p,
-  //                  inherited::MODULE_T ());
-  //result = head_p->open (ACE_TEXT ("ACE_Stream_Head"),
-  //                       writer_p, reader_p,
-  //                       NULL,
-  //                       ACE_Module_Base::M_DELETE);
-  //if (result == -1)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ACE_Module::open(): \"%m\", continuing\n")));
-  //  delete head_p;
-  //} // end IF
-  //reader_p = writer_p = NULL;
-  //ACE_NEW_NORETURN (reader_p,
-  //                  inherited::TAIL_T ());
-  //ACE_NEW_NORETURN (writer_p,
-  //                  inherited::TAIL_T ());
-  //ACE_NEW_NORETURN (tail_p,
-  //                  inherited::MODULE_T ());
-  //result = tail_p->open (ACE_TEXT ("ACE_Stream_Tail"),
-  //                       writer_p, reader_p,
-  //                       NULL,
-  //                       ACE_Module_Base::M_DELETE);
-  //if (result == -1)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ACE_Module::open(): \"%m\", continuing\n")));
-  //  delete head_p;
-  //  delete tail_p;
-  //} // end IF
-
-  ////result = inherited::close ();
-  ////if (result == -1)
-  ////  ACE_DEBUG ((LM_ERROR,
-  ////              ACE_TEXT ("failed to ACE_Stream::close(): \"%m\", continuing\n")));
-
-  //result = inherited::open (NULL,    // argument to module open()
-  //                          head_p,  // head module handle
-  //                          tail_p); // tail module handle
-  //if (result == -1)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //                  ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", continuing\n")));
-  //  delete head_p;
-  //  delete tail_p;
-  //} // end IF
-
-  // *TODO*: these really shouldn't be necessary
-  inherited::head ()->next (inherited::tail ());
-  ACE_ASSERT (inherited::head ()->next () == inherited::tail ());
-  inherited::tail ()->next (NULL);
-  ACE_ASSERT (inherited::tail ()->next () == NULL);
 }
 
 template <typename ConnectorType>
@@ -205,7 +154,7 @@ Test_I_Source_Stream_T<ConnectorType>::stop (bool waitForCompletion_in,
   } // end IF
 
   inherited::stop (waitForCompletion_in,
-    lockedAccess_in);
+                   lockedAccess_in);
 }
 
 template <typename ConnectorType>
@@ -278,8 +227,8 @@ Test_I_Source_Stream_T<ConnectorType>::Invoke (IMFAsyncResult* result_in)
   ACE_ASSERT (mediaSession_);
   ACE_ASSERT (inherited::sessionData_);
 
-  Test_I_Source_Stream_SessionData& session_data_r =
-    const_cast<Test_I_Source_Stream_SessionData&> (inherited::sessionData_->get ());
+  //Test_I_Source_Stream_SessionData& session_data_r =
+  //  const_cast<Test_I_Source_Stream_SessionData&> (inherited::sessionData_->get ());
 
   result = mediaSession_->EndGetEvent (result_in, &media_event_p);
   if (FAILED (result))
@@ -544,88 +493,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   //Test_I_Source_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Stream_Module_CamSource* source_impl_p = NULL;
   //Test_I_Source_Stream_SessionData* session_data_p = NULL;
-
-  // ******************* Display ************************
-  // *TODO*: remove type inference
-  if (configuration_in.moduleHandlerConfiguration->gdkWindow)
-  {
-    //display_.initialize (*configuration_in.moduleConfiguration);
-    //display_impl_p =
-    //    dynamic_cast<Test_I_Source_Stream_Module_Display*> (display_.writer ());
-    //if (!display_impl_p)
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_Display> failed, aborting\n")));
-    //  return false;
-    //} // end IF
-    //if (!display_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-    //              display_.name ()));
-    //  return false;
-    //} // end IF
-  } // end IF
-  else
-  {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    //displayNull_.initialize (*configuration_in.moduleConfiguration);
-    //displayNull_impl_p =
-    //    dynamic_cast<Test_I_Source_Stream_Module_DisplayNull*> (displayNull_.writer ());
-    //if (!displayNull_impl_p)
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_DisplayNull> failed, aborting\n")));
-    //  return false;
-    //} // end IF
-    //if (!displayNull_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-    //              displayNull_.name ()));
-    //  return false;
-    //} // end IF
-    //inherited::modules_.push_front (&displayNull_);
-#endif
-  } // end ELSE
-
-  // ******************* Net Target ************************
-  //netTarget_.initialize (*configuration_in.moduleConfiguration);
-  //netTarget_impl_p = dynamic_cast<WRITER_T*> (netTarget_.writer ());
-  //if (!netTarget_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Net_Target_T> failed, aborting\n")));
-  //  return false;
-  //} // end IF
-  //if (!netTarget_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-  //              netTarget_.name ()));
-  //  return false;
-  //} // end IF
-
-  // ******************* Runtime Statistic ************************
-  //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  //runtimeStatistic_impl_p =
-  //    dynamic_cast<Test_I_Source_Stream_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  //if (!runtimeStatistic_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Test_I_Source_Stream_Module_RuntimeStatistic> failed, aborting\n")));
-  //  return false;
-  //} // end IF
-  //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-  //                                          true,                                        // push 1-second interval statistic messages downstream ?
-  //                                          configuration_in.printFinalReport,           // print final report ?
-  //                                          configuration_in.messageAllocator))          // message allocator handle
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-  //              runtimeStatistic_.name ()));
-  //  return false;
-  //} // end IF
 
   // ******************* Camera Source ************************
   Stream_Module_t* module_p =

@@ -45,14 +45,15 @@ class Stream_DataBlockAllocatorHeap_T
   //         be modified concurrently by multiple threads
   typedef ACE_Lock_Adapter<ACE_SYNCH_MUTEX> DATABLOCK_LOCK_T;
 
-  Stream_DataBlockAllocatorHeap_T (HEAP_ALLOCATOR_T*); // (heap) memory allocator...
+  Stream_DataBlockAllocatorHeap_T (HEAP_ALLOCATOR_T*); // (heap) memory allocator
   virtual ~Stream_DataBlockAllocatorHeap_T ();
 
   // implement Stream_IAllocator
   virtual bool block (); // return value: block when full ?
-  // *NOTE*: returns a pointer to ACE_Data_Block...
+  virtual void* calloc ();
+  // *NOTE*: returns a pointer to ACE_Data_Block
   virtual void* malloc (size_t); // bytes
-  // *NOTE*: frees an ACE_Data_Block...
+  // *NOTE*: frees an ACE_Data_Block
   virtual void free (void*); // element handle
   virtual size_t cache_depth () const; // return value: #bytes allocated
   virtual size_t cache_size () const;  // return value: #inflight ACE_Data_Blocks
@@ -112,7 +113,7 @@ class Stream_DataBlockAllocatorHeap_T
   ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_datablockallocatorheap.inl"
 
 #endif

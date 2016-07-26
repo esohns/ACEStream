@@ -32,7 +32,7 @@
 // definitions
 #define STREAM_MODULE_XPATHQUERY_QUERY_STRING "/html/body/div[@id=\"container\"]/div[@id=\"container_content\"]/div[@id=\"mitte\"]/div[@id=\"mitte_links\"]/div[@id=\"archiv_woche\"]/ul/li/a"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -44,14 +44,14 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 class Stream_Module_XPathQuery_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
@@ -71,14 +71,14 @@ class Stream_Module_XPathQuery_T
   //virtual const ModuleHandlerConfigurationType& get () const;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_XPathQuery_T (const Stream_Module_XPathQuery_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_XPathQuery_T& operator= (const Stream_Module_XPathQuery_T&))

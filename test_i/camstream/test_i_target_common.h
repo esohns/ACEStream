@@ -41,6 +41,8 @@
 #include "gtk/gtk.h"
 #endif
 
+#include "stream_control_message.h"
+
 #include "stream_dec_defines.h"
 
 #include "stream_dev_defines.h"
@@ -52,6 +54,7 @@
 #include "net_ilistener.h"
 
 #include "test_i_common.h"
+#include "test_i_connection_common.h"
 #include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
 
@@ -432,19 +435,26 @@ struct Test_I_Target_AllocatorConfiguration
     buffer = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
   };
 };
-typedef Stream_MessageAllocatorHeapBase_T<Test_I_Target_AllocatorConfiguration,
 
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Test_I_Target_AllocatorConfiguration,
+                                Test_I_Target_Stream_Message,
+                                Test_I_Target_Stream_SessionMessage> Test_I_Target_ControlMessage_t;
+
+typedef Stream_MessageAllocatorHeapBase_T<Test_I_Target_AllocatorConfiguration,
+                                          Test_I_Target_ControlMessage_t,
                                           Test_I_Target_Stream_Message,
                                           Test_I_Target_Stream_SessionMessage> Test_I_Target_MessageAllocator_t;
 
-typedef Common_INotify_T<unsigned int,
-                         Test_I_Target_Stream_SessionData,
-                         Test_I_Target_Stream_Message,
-                         Test_I_Target_Stream_SessionMessage> Test_I_Target_IStreamNotify_t;
-typedef std::list<Test_I_Target_IStreamNotify_t*> Test_I_Target_Subscribers_t;
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    Test_I_Target_Stream_SessionData,
+                                    Stream_SessionMessageType,
+                                    Test_I_Target_Stream_Message,
+                                    Test_I_Target_Stream_SessionMessage> Test_I_Target_ISessionNotify_t;
+typedef std::list<Test_I_Target_ISessionNotify_t*> Test_I_Target_Subscribers_t;
 typedef Test_I_Target_Subscribers_t::iterator Test_I_Target_SubscribersIterator_t;
 
-typedef Common_ISubscribe_T<Test_I_Target_IStreamNotify_t> Test_I_Target_ISubscribe_t;
+typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubscribe_t;
 
 struct Test_I_Target_GTK_CBData
  : Test_I_GTK_CBData

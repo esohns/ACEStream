@@ -68,7 +68,7 @@ SAXDefaultStructuredErrorCallback (void*,        // user data
 enum Stream_Module_HTMLParser_Mode
 {
   STREAM_MODULE_HTMLPARSER_INVALID = -1,
-  /////////////////////////////////////
+  ////////////////////////////////////////
   STREAM_MODULE_HTMLPARSER_DOM = 0,
   STREAM_MODULE_HTMLPARSER_SAX
 };
@@ -77,12 +77,14 @@ struct Stream_Module_HTMLParser_SAXParserContextBase
 {
   inline Stream_Module_HTMLParser_SAXParserContextBase ()
    : parserContext (NULL)
+   , sessionData (NULL)
   {};
 
-  htmlParserCtxtPtr parserContext;
+  htmlParserCtxtPtr   parserContext;
+  Stream_SessionData* sessionData;
 };
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -91,18 +93,19 @@ template <typename SynchStrategyType,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
+          typename SessionDataContainerType,
           typename SessionDataType,
           ////////////////////////////////
           typename ParserContextType>
 class Stream_Module_HTMLParser_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
@@ -125,18 +128,18 @@ class Stream_Module_HTMLParser_T
 
   bool                          complete_;
   ParserContextType             parserContext_;
-  SessionDataType*              sessionData_;
   htmlSAXHandler                SAXHandler_;
+  SessionDataContainerType*     sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T (const Stream_Module_HTMLParser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T& operator= (const Stream_Module_HTMLParser_T&))
@@ -144,10 +147,10 @@ class Stream_Module_HTMLParser_T
   // helper methods
   bool resetParser ();
 
-  bool                          initialized_;
   Stream_Module_HTMLParser_Mode mode_;
 };
 
+// include template definition
 #include "stream_module_htmlparser.inl"
 
 #endif

@@ -40,7 +40,7 @@
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -51,7 +51,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -61,7 +61,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
                                         StreamStateType,
                                         SessionDataType,
                                         SessionDataContainerType,
-                                        StatisticContainerType>::Stream_Dev_Cam_Source_MediaFoundation_T (LockType* lock_in,
+                                        StatisticContainerType>::Stream_Dev_Cam_Source_MediaFoundation_T (ACE_SYNCH_MUTEX_T* lock_in,
                                                                                                           bool autoStart_in)
  : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
@@ -80,7 +80,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -91,7 +91,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -125,7 +125,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   } // end IF
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -137,7 +137,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -175,7 +175,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
     COM_initialized = true;
   } // end IF
 
-  if (inherited::initialized_)
+  if (inherited::isInitialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
@@ -215,6 +215,8 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
       inherited::sessionData_->decrease ();
       inherited::sessionData_ = NULL;
     } // end IF
+
+    inherited::isInitialized_ = false;
   } // end IF
 
   result = inherited::initialize (configuration_in);
@@ -228,7 +230,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
   return result;
 }
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -237,7 +239,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //void
-//Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+//Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //                                        SessionMessageType,
 //                                        DataMessageType,
 //                                        ConfigurationType,
@@ -262,7 +264,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //  //  } // end IF
 //  //} // end IF
 //}
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -271,7 +273,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //void
-//Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+//Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //                                        SessionMessageType,
 //                                        DataMessageType,
 //                                        ConfigurationType,
@@ -315,7 +317,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //  ACE_ASSERT (isInitialized_);
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -327,7 +329,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 void
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -349,7 +351,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::sessionData_);
 
   SessionDataType& session_data_r =
@@ -764,7 +766,7 @@ continue_:
   } // end SWITCH
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -776,7 +778,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -791,7 +793,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   // step0: initialize container
   data_out.timeStamp = COMMON_TIME_NOW;
@@ -809,7 +811,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   return true;
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -818,7 +820,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //void
-//Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+//Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //                                   SessionMessageType,
 //                                   DataMessageType,
 //                                   ConfigurationType,
@@ -834,7 +836,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //  ACE_NOTREACHED (return;)
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -846,7 +848,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -873,7 +875,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
                    IID_in,
                    interface_out);
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -885,7 +887,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 ULONG
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -901,7 +903,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
   return InterlockedIncrement (&referenceCount_);
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -913,7 +915,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 ULONG
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -933,7 +935,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
   return count;
 }
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -942,7 +944,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //HRESULT
-//Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+//Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //                                        SessionMessageType,
 //                                        DataMessageType,
 //                                        ConfigurationType,
@@ -961,7 +963,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //  ACE_NOTSUP_RETURN (S_OK);
 //  ACE_NOTREACHED (return S_OK;)
 //}
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -970,7 +972,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //HRESULT
-//Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+//Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //                                        SessionMessageType,
 //                                        DataMessageType,
 //                                        ConfigurationType,
@@ -987,7 +989,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //  ACE_NOTSUP_RETURN (S_OK);
 //  ACE_NOTREACHED (return S_OK;)
 //}
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -996,7 +998,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //HRESULT
-//Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+//Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //                                        SessionMessageType,
 //                                        DataMessageType,
 //                                        ConfigurationType,
@@ -1207,7 +1209,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //continue_3:
 //  return S_OK;
 //}
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1219,7 +1221,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -1241,7 +1243,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   ACE_NOTSUP_RETURN (S_OK);
   ACE_NOTREACHED (return S_OK;)
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1253,7 +1255,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -1271,7 +1273,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
   return S_OK;
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1283,7 +1285,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -1303,7 +1305,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   ACE_NOTSUP_RETURN (S_OK);
   ACE_NOTREACHED (return S_OK;)
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1315,7 +1317,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -1335,7 +1337,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   ACE_NOTSUP_RETURN (S_OK);
   ACE_NOTREACHED (return S_OK;)
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1347,7 +1349,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -1369,7 +1371,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   ACE_NOTSUP_RETURN (S_OK);
   ACE_NOTREACHED (return S_OK;)
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1381,7 +1383,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -1410,7 +1412,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
                             bufferSize_in,
                             attributes_p);
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1422,7 +1424,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -1507,7 +1509,7 @@ error:
 
   return E_FAIL;
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1519,7 +1521,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -1549,7 +1551,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
   return S_OK;
 }
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1561,7 +1563,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 HRESULT
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -1577,7 +1579,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 
   return S_OK;
 }
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -1586,7 +1588,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //HRESULT
-//Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+//Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //                                        SessionMessageType,
 //                                        DataMessageType,
 //                                        ConfigurationType,
@@ -1605,7 +1607,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //  //         E_NOTIMPL. ..."
 //  return E_NOTIMPL;
 //}
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -1614,7 +1616,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //HRESULT
-//Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+//Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 //                                        SessionMessageType,
 //                                        DataMessageType,
 //                                        ConfigurationType,
@@ -1744,7 +1746,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
 //  return E_FAIL;
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1756,7 +1758,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 int
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,
@@ -1771,7 +1773,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::svc"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   int result = -1;
   int result_2 = -1;
@@ -1896,7 +1898,7 @@ continue_:
   return result_2;
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -1908,7 +1910,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Dev_Cam_Source_MediaFoundation_T<LockType,
+Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                         ControlMessageType,
                                         DataMessageType,
                                         SessionMessageType,

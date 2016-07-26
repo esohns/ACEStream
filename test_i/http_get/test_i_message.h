@@ -27,7 +27,7 @@
 
 #include "http_codes.h"
 
-#include "test_i_common.h"
+#include "test_i_http_get_common.h"
 
 // forward declaration(s)
 class ACE_Allocator;
@@ -35,18 +35,20 @@ class ACE_Data_Block;
 class ACE_Message_Block;
 class Test_I_Stream_SessionMessage;
 template <typename AllocatorConfigurationType,
-          typename MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Stream_Message
  : public Stream_DataMessageBase_2<Test_I_AllocatorConfiguration,
-                                   //////
+                                   Test_I_ControlMessage_t,
+                                   Test_I_Stream_SessionMessage,
                                    Test_I_MessageData_t,
                                    HTTP_Method_t>
 {
-  // grant access to specific private ctors...
+  // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Test_I_AllocatorConfiguration,
-
+                                                 Test_I_ControlMessage_t,
                                                  Test_I_Stream_Message,
                                                  Test_I_Stream_SessionMessage>;
 
@@ -71,12 +73,13 @@ class Test_I_Stream_Message
 
  private:
   typedef Stream_DataMessageBase_2<Test_I_AllocatorConfiguration,
-                                   //////
+                                   Test_I_ControlMessage_t,
+                                   Test_I_Stream_SessionMessage,
                                    Test_I_MessageData_t,
                                    HTTP_Method_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message ())
-  // *NOTE*: to be used by message allocators...
+  // *NOTE*: to be used by message allocators
   Test_I_Stream_Message (ACE_Data_Block*, // data block
                          ACE_Allocator*,  // message allocator
                          bool = true);    // increment running message counter ?

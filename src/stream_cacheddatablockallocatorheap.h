@@ -31,25 +31,26 @@
 #include "stream_exports.h"
 #include "stream_iallocator.h"
 
-class Stream_Export Stream_CachedDataBlockAllocatorHeap
+//class Stream_Export Stream_CachedDataBlockAllocatorHeap
+class Stream_CachedDataBlockAllocatorHeap
  : public ACE_Cached_Allocator<ACE_Data_Block, ACE_SYNCH_MUTEX>
  , public Stream_IAllocator
 {
  public:
   Stream_CachedDataBlockAllocatorHeap (unsigned int,    // number of chunks
-                                       ACE_Allocator*); // (heap) memory allocator...
+                                       ACE_Allocator*); // (heap) memory allocator
   virtual ~Stream_CachedDataBlockAllocatorHeap ();
 
-  // implement Stream_IAllocator
+  // implement (part of) Stream_IAllocator
   virtual bool block (); // return value: block when full ?
-  // *NOTE*: returns a pointer to ACE_Data_Block...
+  // *NOTE*: returns a pointer to ACE_Data_Block
   virtual void* malloc (size_t); // bytes
-  // *NOTE*: frees an ACE_Data_Block...
+  // *NOTE*: frees an ACE_Data_Block
   virtual void free (void*); // element handle
   virtual size_t cache_depth () const; // return value: #bytes allocated
   virtual size_t cache_size () const;  // return value: #in-flight data blocks
 
-  // *NOTE*: returns a pointer to ACE_Data_Block...
+  // *NOTE*: returns a pointer to ACE_Data_Block
   virtual void* calloc (size_t,       // bytes
                         char = '\0'); // initial value
 
@@ -69,6 +70,9 @@ class Stream_Export Stream_CachedDataBlockAllocatorHeap
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap (const Stream_CachedDataBlockAllocatorHeap&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap& operator= (const Stream_CachedDataBlockAllocatorHeap&))
+
+  // implement (part of) Stream_IAllocator
+  virtual void* calloc ();
 
   ACE_Allocator*             heapAllocator_;
   unsigned int               poolSize_;

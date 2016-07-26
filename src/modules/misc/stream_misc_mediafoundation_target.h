@@ -35,7 +35,7 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -47,14 +47,14 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 class Stream_Misc_MediaFoundation_Target_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType, 
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ConfigurationType>
  , public IMFSampleGrabberSinkCallback2
 {
@@ -77,10 +77,10 @@ class Stream_Misc_MediaFoundation_Target_T
   //virtual const ConfigurationType& get () const;
 
   // implement IMFSampleGrabberSinkCallback2
-  STDMETHODIMP QueryInterface (const IID&,
-                               void**);
-  virtual ULONG STDMETHODCALLTYPE AddRef ();
-  virtual ULONG STDMETHODCALLTYPE Release ();
+  virtual STDMETHODIMP QueryInterface (const IID&,
+                                       void**);
+  virtual STDMETHODIMP_ (ULONG) AddRef ();
+  virtual STDMETHODIMP_ (ULONG) Release ();
   //STDMETHODIMP OnEvent (DWORD,           // stream index
   //                      IMFMediaEvent*); // event handle
   //STDMETHODIMP OnFlush (DWORD); // stream index
@@ -89,44 +89,44 @@ class Stream_Misc_MediaFoundation_Target_T
   //                           DWORD,       // stream flags
   //                           LONGLONG,    // timestamp
   //                           IMFSample*); // sample handle
-  STDMETHODIMP OnClockStart (MFTIME,    // (system) clock start time
-                             LONGLONG); // clock start offset
-  STDMETHODIMP OnClockStop (MFTIME); // (system) clock start time
-  STDMETHODIMP OnClockPause (MFTIME); // (system) clock pause time
-  STDMETHODIMP OnClockRestart (MFTIME); // (system) clock restart time
-  STDMETHODIMP OnClockSetRate (MFTIME, // (system) clock rate set time
-                               float); // new playback rate
-  STDMETHODIMP OnProcessSample (const struct _GUID&, // major media type
-                                DWORD,               // flags
-                                LONGLONG,            // timestamp
-                                LONGLONG,            // duration
-                                const BYTE*,         // buffer
-                                DWORD);              // buffer size
-  STDMETHODIMP OnProcessSampleEx (const struct _GUID&, // major media type
-                                  DWORD,               // flags
-                                  LONGLONG,            // timestamp
-                                  LONGLONG,            // duration
-                                  const BYTE*,         // buffer
-                                  DWORD,               // buffer size
-                                  IMFAttributes*);     // media sample attributes
-  STDMETHODIMP OnSetPresentationClock (IMFPresentationClock*); // presentation clock handle
-  STDMETHODIMP OnShutdown ();
+  virtual STDMETHODIMP OnClockStart (MFTIME,    // (system) clock start time
+                                     LONGLONG); // clock start offset
+  virtual STDMETHODIMP OnClockStop (MFTIME); // (system) clock start time
+  virtual STDMETHODIMP OnClockPause (MFTIME); // (system) clock pause time
+  virtual STDMETHODIMP OnClockRestart (MFTIME); // (system) clock restart time
+  virtual STDMETHODIMP OnClockSetRate (MFTIME, // (system) clock rate set time
+                                       float); // new playback rate
+  virtual STDMETHODIMP OnProcessSample (const struct _GUID&, // major media type
+                                        DWORD,               // flags
+                                        LONGLONG,            // timestamp
+                                        LONGLONG,            // duration
+                                        const BYTE*,         // buffer
+                                        DWORD);              // buffer size
+  virtual STDMETHODIMP OnProcessSampleEx (const struct _GUID&, // major media type
+                                          DWORD,               // flags
+                                          LONGLONG,            // timestamp
+                                          LONGLONG,            // duration
+                                          const BYTE*,         // buffer
+                                          DWORD,               // buffer size
+                                          IMFAttributes*);     // media sample attributes
+  virtual STDMETHODIMP OnSetPresentationClock (IMFPresentationClock*); // presentation clock handle
+  virtual STDMETHODIMP OnShutdown ();
 
  protected:
   SessionDataContainerType* sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType, 
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   // convenient types
-  typedef Stream_Misc_MediaFoundation_Target_T<SynchStrategyType,
+  typedef Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                                TimePolicyType,
 
                                                ConfigurationType,
@@ -151,7 +151,6 @@ class Stream_Misc_MediaFoundation_Target_T
   void finalize_MediaFoundation ();
 
   bool                      isFirst_;
-  bool                      isInitialized_;
 
   LONGLONG                  baseTimeStamp_;
   IMFMediaSession*          mediaSession_;

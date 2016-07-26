@@ -28,7 +28,7 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -39,7 +39,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_FileReader_T<LockType,
+Stream_Module_FileReader_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
@@ -49,7 +49,7 @@ Stream_Module_FileReader_T<LockType,
                            StreamStateType,
                            SessionDataType,
                            SessionDataContainerType,
-                           StatisticContainerType>::Stream_Module_FileReader_T (LockType* lock_in,
+                           StatisticContainerType>::Stream_Module_FileReader_T (ACE_SYNCH_MUTEX_T* lock_in,
                                                                                 bool autoStart_in)
  : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
@@ -61,7 +61,7 @@ Stream_Module_FileReader_T<LockType,
 
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -72,7 +72,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_FileReader_T<LockType,
+Stream_Module_FileReader_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
@@ -97,7 +97,7 @@ Stream_Module_FileReader_T<LockType,
   } // end IF
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -109,7 +109,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_FileReader_T<LockType,
+Stream_Module_FileReader_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
@@ -123,31 +123,27 @@ Stream_Module_FileReader_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::initialize"));
 
-  bool result = false;
-  int result_2 = -1;
+  int result = -1;
 
-  if (inherited::initialized_)
+  if (inherited::isInitialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
 
     if (isOpen_)
     {
-      result_2 = stream_.close ();
-      if (result_2 == -1)
+      result = stream_.close ();
+      if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_File_Stream::close(): \"%m\", continuing\n")));
 
       isOpen_ = false;
     } // end IF
+
+    inherited::isInitialized_ = false;
   } // end IF
 
-  result = inherited::initialize (configuration_in);
-  if (!result)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
-
-  return result;
+  return inherited::initialize (configuration_in);
 }
 
 //template <typename SessionMessageType,
@@ -236,7 +232,7 @@ Stream_Module_FileReader_T<LockType,
 //  } // end SWITCH
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -248,7 +244,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_FileReader_T<LockType,
+Stream_Module_FileReader_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
@@ -263,7 +259,7 @@ Stream_Module_FileReader_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileReader_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   // step0: initialize container
 //  data_out.dataMessages = 0;
@@ -285,7 +281,7 @@ Stream_Module_FileReader_T<LockType,
   return true;
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -294,7 +290,7 @@ Stream_Module_FileReader_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //void
-//Stream_Module_FileReader_T<LockType,
+//Stream_Module_FileReader_T<ACE_SYNCH_USE,
 //                           SessionMessageType,
 //                           DataMessageType,
 //                           ConfigurationType,
@@ -310,7 +306,7 @@ Stream_Module_FileReader_T<LockType,
 //  ACE_NOTREACHED (return;)
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -322,7 +318,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 int
-Stream_Module_FileReader_T<LockType,
+Stream_Module_FileReader_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
@@ -586,7 +582,7 @@ continue_:
 }
 
 //
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -595,7 +591,7 @@ continue_:
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //bool
-//Stream_Module_FileReader_T<LockType,
+//Stream_Module_FileReader_T<ACE_SYNCH_USE,
 //                           SessionMessageType,
 //                           DataMessageType,
 //                           ConfigurationType,

@@ -54,7 +54,6 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
  , connector_ (NULL,
                ACE_Time_Value::zero)
  , sessionData_ (NULL)
- , isInitialized_ (false)
  , isLinked_ (false)
  , isPassive_ (false)
  , lock_ ()
@@ -617,7 +616,7 @@ close:
 
       break;
     }
-    case NET_STREAM_SESSION_MESSAGE_CLOSE:
+    case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
       typename SessionDataContainerType::DATA_T& session_data_r =
           const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->get ());
@@ -684,7 +683,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
@@ -747,12 +746,10 @@ close:
       sessionData_ = NULL;
     } // end IF
 
-    isInitialized_ = false;
+    inherited::isInitialized_ = false;
   } // end IF
 
-  isInitialized_ = inherited::initialize (configuration_in);
-
-  return true;
+  return inherited::initialize (configuration_in);
 }
 //template <typename SessionMessageType,
 //          typename MessageType,

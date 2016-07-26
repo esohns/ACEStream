@@ -36,14 +36,14 @@ extern "C"
 
 #include "stream_vis_defines.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -55,20 +55,19 @@ Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
  , lock_ (NULL)
  , pixelBuffer_ (NULL)
  , isFirst_ (true)
- , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::Stream_Module_Vis_GTK_Pixbuf_T"));
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataContainerType>
-Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -85,7 +84,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
     sessionData_->decrease ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -93,7 +92,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType>
 int
-Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -107,7 +106,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
                            : ((value_in < 0) ? 0
                                              : value_in));
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -115,7 +114,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -523,7 +522,8 @@ Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
         goto clean;
       } // end IF
 
-      result = avcodec_decode_video2 (context_p, frame_p, &got_picture, &packet);
+      result =
+          avcodec_decode_video2 (context_p, frame_p, &got_picture, &packet);
       if ((result < 0) || !got_picture)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -663,7 +663,7 @@ error:
     gdk_threads_leave ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -671,7 +671,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType>
 void
-Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -738,7 +738,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -746,7 +746,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType>
 bool
-Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
+Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -756,7 +756,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Pixbuf_T::initialize"));
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
     if (pixelBuffer_)
     {
@@ -772,7 +772,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
 
     isFirst_ = true;
 
-    isInitialized_ = false;
+    inherited::isInitialized_ = false;
   } // end IF
 
   lock_ = configuration_in.lock;
@@ -822,11 +822,9 @@ Stream_Module_Vis_GTK_Pixbuf_T<SynchStrategyType,
     return false;
   } // end IF
 
-  isInitialized_ = inherited::initialize (configuration_in);
-
-  return isInitialized_;
+  return inherited::initialize (configuration_in);
 }
-//template <typename SynchStrategyType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename ConfigurationType,
 //          typename ControlMessageType,

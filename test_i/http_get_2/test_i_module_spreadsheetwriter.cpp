@@ -35,8 +35,11 @@
 #include "com/sun/star/table/XCellRange.hpp"
 
 #include "common_file_tools.h"
+#include "common_tools.h"
 
 #include "stream_macros.h"
+
+#include "stream_document_defines.h"
 
 Test_I_Stream_DocumentHandler::Test_I_Stream_DocumentHandler ()
  : inherited ()
@@ -184,7 +187,8 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       document_properties[1].Value = makeAny (handler_p);
       document_properties[2].Name =
         ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_MACROEXECCUTIONMODE));
-      document_properties[2].Value <<= document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
+      document_properties[2].Value <<=
+        document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
 
       result_2 = osl_getProcessWorkingDir (&working_directory.pData);
       ACE_ASSERT (result_2 == osl_Process_E_None);
@@ -360,7 +364,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                                                                         target_frame_name,     // target frame name
                                                                         search_flags,          // search flags
                                                                         document_properties),  // properties
-                                               uno::UNO_QUERY);
+                                       uno::UNO_QUERY);
       } catch (uno::Exception& exception_in) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in XComponentLoader::loadComponentFromURL(\"%s\"): \"%s\", aborting\n"),
@@ -405,7 +409,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       break;
 
 error:
-      session_data_r.aborted = true;
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       return;
     }

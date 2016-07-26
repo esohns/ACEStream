@@ -33,7 +33,7 @@
 
 using namespace ::com::sun::star;
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -48,14 +48,14 @@ template <typename SynchStrategyType,
           ////////////////////////////////
           typename DocumentType>
 class Stream_Module_LibreOffice_Document_Writer_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
-                                 ConfigurationType,
-                                 /////////
+                                 ModuleHandlerConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
@@ -63,7 +63,7 @@ class Stream_Module_LibreOffice_Document_Writer_T
   virtual ~Stream_Module_LibreOffice_Document_Writer_T ();
 
   //// implement Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ModuleHandlerConfigurationType&);
 
   // implement (part of) Stream_ITaskBase_T
   //virtual void handleDataMessage (MessageType*&, // data message handle
@@ -79,17 +79,15 @@ class Stream_Module_LibreOffice_Document_Writer_T
   uno::Reference<lang::XComponent>       component_;
   uno::Reference<uno::XComponentContext> context_;
 
-  bool                                   isInitialized_;
-
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
-                                 ConfigurationType,
-                                 /////////
+                                 ModuleHandlerConfigurationType,
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T (const Stream_Module_LibreOffice_Document_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T& operator= (const Stream_Module_LibreOffice_Document_Writer_T&))

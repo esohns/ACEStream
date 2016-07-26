@@ -21,6 +21,7 @@
 
 #include "test_u_camsave_module_eventhandler.h"
 
+#include "stream_control_message.h"
 #include "stream_macros.h"
 
 Stream_CamSave_Module_EventHandler::Stream_CamSave_Module_EventHandler ()

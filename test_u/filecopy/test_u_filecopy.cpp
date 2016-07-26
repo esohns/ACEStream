@@ -47,6 +47,7 @@
 #include "common_ui_gtk_manager.h"
 
 #include "stream_allocatorheap.h"
+//#include "stream_control_message.h"
 #include "stream_macros.h"
 
 #ifdef HAVE_CONFIG_H

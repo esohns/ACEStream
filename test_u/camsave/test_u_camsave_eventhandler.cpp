@@ -46,7 +46,7 @@ Stream_CamSave_EventHandler::~Stream_CamSave_EventHandler ()
 }
 
 void
-Stream_CamSave_EventHandler::start (unsigned int sessionID_in,
+Stream_CamSave_EventHandler::start (Stream_SessionId_t sessionID_in,
                                     const Stream_CamSave_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::start"));
@@ -63,7 +63,50 @@ Stream_CamSave_EventHandler::start (unsigned int sessionID_in,
 }
 
 void
-Stream_CamSave_EventHandler::notify (unsigned int sessionID_in,
+Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
+                                     const Stream_SessionMessageType& sessionEvent_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::notify"));
+
+  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionEvent_in);
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
+  ACE_NOTREACHED (return;)
+}
+
+void
+Stream_CamSave_EventHandler::end (Stream_SessionId_t sessionID_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::end"));
+
+  ACE_UNUSED_ARG (sessionID_in);
+
+  // sanity check(s)
+  ACE_ASSERT (CBData_);
+
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+
+  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+
+  guint event_source_id = g_idle_add (idle_session_end_cb,
+                                      CBData_);
+  if (event_source_id == 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", returning\n")));
+    return;
+  } // end IF
+  CBData_->eventSourceIds.insert (event_source_id);
+
+  if (sessionData_)
+    sessionData_ = NULL;
+}
+
+void
+Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
                                      const Stream_CamSave_Message& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::notify"));
@@ -89,7 +132,7 @@ Stream_CamSave_EventHandler::notify (unsigned int sessionID_in,
 //  CBData_->eventSourceIds.insert (event_source_id);
 }
 void
-Stream_CamSave_EventHandler::notify (unsigned int sessionID_in,
+Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
                                      const Stream_CamSave_SessionMessage& sessionMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::notify"));
@@ -144,32 +187,4 @@ continue_:
   } // end SWITCH
 
   CBData_->eventStack.push_back (event);
-}
-
-void
-Stream_CamSave_EventHandler::end (unsigned int sessionID_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CamSave_EventHandler::end"));
-
-  ACE_UNUSED_ARG (sessionID_in);
-
-  // sanity check(s)
-  ACE_ASSERT (CBData_);
-
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
-
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
-
-  guint event_source_id = g_idle_add (idle_session_end_cb,
-                                      CBData_);
-  if (event_source_id == 0)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", returning\n")));
-    return;
-  } // end IF
-  CBData_->eventSourceIds.insert (event_source_id);
-
-  if (sessionData_)
-    sessionData_ = NULL;
 }

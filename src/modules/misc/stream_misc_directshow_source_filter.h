@@ -125,7 +125,7 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
 
   // implement/overload (part of) CBaseOutputPin
   virtual HRESULT DecideAllocator (IMemInputPin*,
-                                   IMemAllocator**);
+                                        IMemAllocator**);
   virtual HRESULT DecideBufferSize (IMemAllocator*,
                                     struct _AllocatorProperties*);
 
@@ -135,8 +135,8 @@ class Stream_Misc_DirectShow_Source_Filter_OutputPin_T
   virtual HRESULT OnThreadDestroy ();
 
   // implement (part of) IQualityControl
-  STDMETHODIMP Notify (IBaseFilter*,
-                       Quality);
+  virtual STDMETHODIMP Notify (IBaseFilter*,
+                               Quality);
 
  protected:
   bool                    isInitialized_;        // initialized

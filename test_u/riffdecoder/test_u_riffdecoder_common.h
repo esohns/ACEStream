@@ -24,6 +24,8 @@
 #include <string>
 
 #include "stream_common.h"
+#include "stream_control_message.h"
+#include "stream_inotify.h"
 #include "stream_messageallocatorheap_base.h"
 
 #include "stream_dec_defines.h"
@@ -97,9 +99,41 @@ struct Stream_RIFFDecoder_Configuration
   Stream_UserData                               streamUserData;
 };
 
-typedef Stream_MessageAllocatorHeapBase_T<Test_U_AllocatorConfiguration,
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Test_U_AllocatorConfiguration,
+                                Stream_RIFFDecoder_Message,
+                                Stream_RIFFDecoder_SessionMessage> Test_U_ControlMessage_t;
 
+//template <typename AllocatorConfigurationType,
+//          typename CommandType,
+//          typename ControlMessageType,
+//          typename SessionMessageType>
+//class Stream_MessageBase_T;
+//typedef Stream_MessageBase_T<Stream_AllocatorConfiguration,
+//                             int,
+//                             Test_U_ControlMessage_t,
+//                             Test_U_SessionMessage_t> Test_U_Message_t;
+
+//typedef Stream_SessionData_T<Stream_SessionData> Test_U_SessionData_t;
+//template <typename AllocatorConfigurationType,
+//          typename SessionMessageType,
+//          typename SessionDataType,
+//          typename UserDataType,
+//          typename ControlMessageType,
+//          typename DataMessageType>
+//class Stream_SessionMessageBase_T;
+//typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+//                                    Stream_SessionMessageType,
+//                                    Test_U_SessionData_t,
+//                                    Stream_UserData,
+//                                    Test_U_ControlMessage_t,
+//                                    Test_U_Message_t> Test_U_SessionMessage_t;
+
+typedef Stream_MessageAllocatorHeapBase_T<Test_U_AllocatorConfiguration,
+                                          Test_U_ControlMessage_t,
                                           Stream_RIFFDecoder_Message,
                                           Stream_RIFFDecoder_SessionMessage> Stream_RIFFDecoder_MessageAllocator_t;
+
+typedef Stream_INotify_T<Stream_SessionMessageType> Stream_RIFFDecoder_IStreamNotify_t;
 
 #endif

@@ -30,7 +30,8 @@
 // forward declaration(s)
 class Common_ICounter;
 
-class Stream_Export Stream_ResetCounterHandler
+//class Stream_Export Stream_ResetCounterHandler
+class Stream_ResetCounterHandler
  : public ACE_Event_Handler
 {
  public:

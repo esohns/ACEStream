@@ -32,20 +32,22 @@
 #include "test_i_session_message.h"
 
 class Test_I_Stream_Target_EventHandler
- : public Stream_IStreamNotify_t
+ : public Stream_ISessionNotify_t
 {
  public:
   Test_I_Stream_Target_EventHandler (Stream_GTK_CBData*); // GTK state
   virtual ~Test_I_Stream_Target_EventHandler ();
 
-  // implement Common_INotify_T
-  virtual void start (unsigned int,
+  // implement Stream_ISessionDataNotify_T
+  virtual void start (Stream_SessionId_t,
                       const Test_I_Stream_SessionData&);
-  virtual void notify (unsigned int,
+  virtual void notify (Stream_SessionId_t,
+                       const Stream_SessionMessageType&);
+  virtual void end (Stream_SessionId_t);
+  virtual void notify (Stream_SessionId_t,
                        const Test_I_Stream_Message&);
-  virtual void notify (unsigned int,
+  virtual void notify (Stream_SessionId_t,
                        const Test_I_Stream_SessionMessage&);
-  virtual void end (unsigned int);
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler ())

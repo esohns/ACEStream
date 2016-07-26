@@ -39,7 +39,7 @@ Stream_Decoder_AVIParserDriver::Stream_Decoder_AVIParserDriver (bool traceScanni
  , fragment_ (NULL)
  , offset_ (0)
  , frameSize_ (NULL)
- , trace_ (traceParsing_in)
+ //, trace_ (traceParsing_in)
  , scannerState_ (NULL)
  , bufferState_ (NULL)
  , messageQueue_ (NULL)

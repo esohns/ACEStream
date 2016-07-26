@@ -43,26 +43,19 @@
 class Stream_IAllocator;
 
 class Stream_CamSave_Stream
- : public Stream_Base_T<ACE_SYNCH_MUTEX,
-                        //////////////////
+ : public Stream_Base_T<ACE_MT_SYNCH,
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        //////////////////
                         int,
-                        int,
+                        Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
                         Stream_State,
-                        //////////////////
                         Stream_CamSave_StreamConfiguration,
-                        //////////////////
                         Stream_CamSave_StatisticData,
-                        //////////////////
                         Stream_ModuleConfiguration,
                         Stream_CamSave_ModuleHandlerConfiguration,
-                        //////////////////
                         Stream_CamSave_SessionData,   // session data
                         Stream_CamSave_SessionData_t, // session data container (reference counted)
-                        //////////////////
                         ACE_Message_Block,
                         Stream_CamSave_Message,
                         Stream_CamSave_SessionMessage>
@@ -82,13 +75,13 @@ class Stream_CamSave_Stream
                      bool = true); // locked access ?
 
   // implement IMFAsyncCallback
-  STDMETHODIMP STDMETHODCALLTYPE QueryInterface (const IID&,
-                                                 void**);
-  virtual ULONG STDMETHODCALLTYPE AddRef ();
-  virtual ULONG STDMETHODCALLTYPE Release ();
-  STDMETHODIMP GetParameters (DWORD*,  // return value: flags
-                              DWORD*); // return value: queue handle
-  STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
+  virtual STDMETHODIMP QueryInterface (const IID&,
+                                       void**);
+  virtual STDMETHODIMP_ (ULONG) AddRef ();
+  virtual STDMETHODIMP_ (ULONG) Release ();
+  virtual STDMETHODIMP GetParameters (DWORD*,  // return value: flags
+                                      DWORD*); // return value: queue handle
+  virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 #endif
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ModuleList_t&); // return value: module list
@@ -104,26 +97,19 @@ class Stream_CamSave_Stream
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                        //////////////////
+  typedef Stream_Base_T<ACE_MT_SYNCH,
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        //////////////////
                         int,
-                        int,
+                        Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
                         Stream_State,
-                        //////////////////
                         Stream_CamSave_StreamConfiguration,
-                        //////////////////
                         Stream_CamSave_StatisticData,
-                        //////////////////
                         Stream_ModuleConfiguration,
                         Stream_CamSave_ModuleHandlerConfiguration,
-                        //////////////////
                         Stream_CamSave_SessionData,   // session data
                         Stream_CamSave_SessionData_t, // session data container (reference counted)
-                        //////////////////
                         ACE_Message_Block,
                         Stream_CamSave_Message,
                         Stream_CamSave_SessionMessage> inherited;

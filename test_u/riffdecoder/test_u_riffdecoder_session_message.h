@@ -39,24 +39,27 @@
 class ACE_Allocator;
 class Stream_RIFFDecoder_Message;
 template <typename AllocatorConfigurationType,
-          typename MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_RIFFDecoder_SessionMessage
  : public Stream_SessionMessageBase_T<Test_U_AllocatorConfiguration,
-                                      ///
+                                      Stream_SessionMessageType,
                                       Stream_RIFFDecoder_SessionData_t,
-                                      Stream_UserData>
+                                      Stream_UserData,
+                                      Test_U_ControlMessage_t,
+                                      Stream_RIFFDecoder_Message>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Test_U_AllocatorConfiguration,
-
+                                                 Test_U_ControlMessage_t,
                                                  Stream_RIFFDecoder_Message,
                                                  Stream_RIFFDecoder_SessionMessage>;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
-  // *TODO*: (using gcc) cannot pass reference to pointer for some reason...
+  // *TODO*: (using gcc) cannot pass reference to pointer for some reason
   Stream_RIFFDecoder_SessionMessage (Stream_SessionMessageType,          // session message type
                                      Stream_RIFFDecoder_SessionData_t*&, // session data container handle
                                      Stream_UserData*);                  // user data handle
@@ -67,15 +70,17 @@ class Stream_RIFFDecoder_SessionMessage
 
  private:
   typedef Stream_SessionMessageBase_T<Test_U_AllocatorConfiguration,
-                                      ///
+                                      Stream_SessionMessageType,
                                       Stream_RIFFDecoder_SessionData_t,
-                                      Stream_UserData> inherited;
+                                      Stream_UserData,
+                                      Test_U_ControlMessage_t,
+                                      Stream_RIFFDecoder_Message> inherited;
 
   // copy ctor to be used by duplicate()
   Stream_RIFFDecoder_SessionMessage (const Stream_RIFFDecoder_SessionMessage&);
 
-  // *NOTE*: these may be used by message allocators...
-  // *WARNING*: these ctors are NOT threadsafe...
+  // *NOTE*: these may be used by message allocators
+  // *WARNING*: these ctors are NOT threadsafe
   Stream_RIFFDecoder_SessionMessage (ACE_Allocator*); // message allocator
   Stream_RIFFDecoder_SessionMessage (ACE_Data_Block*, // data block
                                      ACE_Allocator*); // message allocator

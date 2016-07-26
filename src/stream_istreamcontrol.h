@@ -32,6 +32,7 @@
 #include "common_time_common.h"
 
 #include "stream_common.h"
+#include "stream_inotify.h"
 
 // forward declarations
 typedef ACE_Module<ACE_MT_SYNCH,
@@ -45,6 +46,9 @@ class Stream_IStreamControlBase
  public:
   inline virtual ~Stream_IStreamControlBase () {};
 
+  // *IMPORTANT NOTE*: the module list is currently a stack
+  //                   --> push_back() the modules in 'back-to-front' sequence
+  //                       (i.e. trailing module first)
   virtual bool load (Stream_ModuleList_t&) = 0; // return value: module list
 
   // *NOTE*: flush the pipeline, releasing any data
@@ -52,6 +56,7 @@ class Stream_IStreamControlBase
   //         Stream_IMessageQueue
   // *TODO*: this last bit shouldn't be necessary
   virtual void flush (bool = true,       // flush inbound data ?
+                      bool = false,      // flush session messages ?
                       bool = false) = 0; // flush upstream (if any) ?
   virtual void pause () = 0;
   virtual void rewind () = 0;
@@ -76,6 +81,7 @@ template <typename ControlType,
           typename StateType>
 class Stream_IStreamControl_T
  : public Stream_IStreamControlBase
+ , public Stream_INotify_T<NotificationType>
 // , public Common_IGet_T<StateType>
 {
  public:
@@ -84,9 +90,6 @@ class Stream_IStreamControl_T
   // *NOTE*: enqeues a control message
   virtual void control (ControlType,       // control type
                         bool = false) = 0; // forward upstream ?
-  // *NOTE*: enqeues a session message
-  virtual void notify (NotificationType,  // session message type
-                       bool = false) = 0; // forward upstream ?
 
   virtual const StateType& state () const = 0;
 

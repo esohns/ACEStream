@@ -34,7 +34,7 @@
 // forward declarations
 class ACE_Message_Block;
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -45,14 +45,14 @@ template <typename SynchStrategyType,
           ////////////////////////////////
           typename SessionDataType>
 class Stream_Module_Splitter_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
@@ -71,14 +71,14 @@ class Stream_Module_Splitter_T
   //virtual const ConfigurationType& get () const;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T (const Stream_Module_Splitter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T& operator= (const Stream_Module_Splitter_T&))
@@ -106,28 +106,23 @@ template <typename LockType,
           typename StatisticContainerType>
 class Stream_Module_SplitterH_T
  : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_SplitterH_T (LockType* = NULL, // lock handle (state machine)
+  Stream_Module_SplitterH_T (typename LockType::MUTEX* = NULL, // lock handle (state machine)
                              /////////////
-                             bool = false);    // auto-start ?
+                             bool = false);                    // auto-start ?
   virtual ~Stream_Module_SplitterH_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
@@ -162,22 +157,17 @@ class Stream_Module_SplitterH_T
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_SplitterH_T (const Stream_Module_SplitterH_T&))
@@ -191,7 +181,7 @@ class Stream_Module_SplitterH_T
   ACE_Message_Block* buffer_;
 };
 
-// include template defintion
+// include template definition
 #include "stream_misc_splitter.inl"
 
 #endif

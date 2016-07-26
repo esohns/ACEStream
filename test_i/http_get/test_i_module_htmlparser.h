@@ -24,7 +24,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include <libxml/xmlerror.h>
+#include "libxml/xmlerror.h"
 
 #include "common_time_common.h"
 
@@ -62,15 +62,12 @@ structuredErrorCallback (void*,        // user data
 class Test_I_Stream_HTMLParser
  : public Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
-                                     /////
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
-                                     /////
+                                     Test_I_Stream_SessionData_t,
                                      Test_I_Stream_SessionData,
-                                     /////
                                      Test_I_SAXParserContext>
 {
  public:
@@ -89,15 +86,12 @@ class Test_I_Stream_HTMLParser
  private:
   typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
-                                     /////
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
-                                     /////
+                                     Test_I_Stream_SessionData_t,
                                      Test_I_Stream_SessionData,
-                                     /////
                                      Test_I_SAXParserContext> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTMLParser (const Test_I_Stream_HTMLParser&))
@@ -108,10 +102,10 @@ class Test_I_Stream_HTMLParser
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
-                              Common_TimePolicy_t,                      // time policy
-                              Stream_ModuleConfiguration,               // module configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Stream_SessionData,                // session data type
+                              Stream_SessionMessageType,                // session event type
                               Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_IStreamNotify_t,                   // stream notification interface type
                               Test_I_Stream_HTMLParser);                // writer type
 
 #endif

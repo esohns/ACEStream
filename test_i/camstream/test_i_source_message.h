@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_MESSAGE_H
-#define TEST_I_MESSAGE_H
+#ifndef TEST_I_SOURCE_MESSAGE_H
+#define TEST_I_SOURCE_MESSAGE_H
 
 #include "ace/Global_Macros.h"
 
@@ -30,9 +30,7 @@
 #include "common_referencecounter_base.h"
 #endif
 
-#include "test_i_common.h"
-
-#include "test_i_target_common.h"
+#include "test_i_source_common.h"
 
 // forward declaration(s)
 class ACE_Allocator;
@@ -42,12 +40,15 @@ class Test_I_Source_Stream_SessionMessage;
 struct Test_I_Target_AllocatorConfiguration;
 class Test_I_Target_Stream_SessionMessage;
 template <typename AllocatorConfigurationType,
-          typename MessageType,
-          typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Source_Stream_Message
  : public Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
-                                   //////
+                                   Test_I_ControlMessage_t,
+                                   Test_I_Source_Stream_SessionMessage,
                                    Test_I_Source_MessageData,
                                    Test_I_CommandType_t>
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -57,7 +58,7 @@ class Test_I_Source_Stream_Message
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-
+                                                 Test_I_ControlMessage_t,
                                                  Test_I_Source_Stream_Message,
                                                  Test_I_Source_Stream_SessionMessage>;
 
@@ -83,7 +84,8 @@ class Test_I_Source_Stream_Message
 
  private:
   typedef Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
-                                   //////
+                                   Test_I_ControlMessage_t,
+                                   Test_I_Source_Stream_SessionMessage,
                                    Test_I_Source_MessageData,
                                    int> inherited;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -92,69 +94,12 @@ class Test_I_Source_Stream_Message
 #endif
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_Message ())
-  // *NOTE*: to be used by message allocators...
+  // *NOTE*: to be used by message allocators
   Test_I_Source_Stream_Message (ACE_Data_Block*, // data block
                                 ACE_Allocator*,  // message allocator
                                 bool = true);    // increment running message counter ?
   Test_I_Source_Stream_Message (ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_Message& operator= (const Test_I_Source_Stream_Message&))
-};
-
-//////////////////////////////////////////
-
-class Test_I_Target_Stream_Message
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//: public Stream_DirectShowMessageBase_T<Test_I_Target_AllocatorConfiguration>
- : public Stream_MediaFoundationMessageBase_T<Test_I_Target_AllocatorConfiguration,
-                                              Test_I_Target_MessageData>
-#else
- : public Stream_MessageBase_T<Test_I_Target_AllocatorConfiguration,
-                               Test_I_CommandType_t>
-#endif
-{
-  // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Test_I_Target_AllocatorConfiguration,
-
-                                                 Test_I_Target_Stream_Message,
-                                                 Test_I_Target_Stream_SessionMessage>;
-
- public:
-  Test_I_Target_Stream_Message (unsigned int); // size
-  virtual ~Test_I_Target_Stream_Message ();
-
-  // overrides from ACE_Message_Block
-  // --> create a "shallow" copy of ourselves that references the same packet
-  // *NOTE*: this uses our allocator (if any) to create a new message
-  virtual ACE_Message_Block* duplicate (void) const;
-  virtual ACE_Message_Block* release (void);
-
-  // implement Stream_MessageBase_T
-  virtual Test_I_CommandType_t command () const; // return value: message type
-
-  static std::string CommandType2String (Test_I_CommandType_t);
-
-  protected:
-  // copy ctor to be used by duplicate() and child classes
-  // --> uses an (incremented refcount of) the same datablock ("shallow copy")
-  Test_I_Target_Stream_Message (const Test_I_Target_Stream_Message&);
-
- private:
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //typedef Stream_DirectShowMessageBase_T<Test_I_Target_AllocatorConfiguration> inherited;
-  typedef Stream_MediaFoundationMessageBase_T<Test_I_Target_AllocatorConfiguration,
-                                              Test_I_Target_MessageData> inherited;
-#else
-  typedef Stream_MessageBase_T<Test_I_Target_AllocatorConfiguration,
-                               int> inherited;
-#endif
-
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream_Message ())
-  // *NOTE*: to be used by message allocators...
-  Test_I_Target_Stream_Message (ACE_Data_Block*, // data block
-                                ACE_Allocator*,  // message allocator
-                                bool = true);    // increment running message counter ?
-  Test_I_Target_Stream_Message (ACE_Allocator*); // message allocator
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream_Message& operator= (const Test_I_Target_Stream_Message&))
 };
 
 #endif

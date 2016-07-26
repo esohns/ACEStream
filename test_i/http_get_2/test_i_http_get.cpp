@@ -59,6 +59,7 @@
 #include "http_defines.h"
 
 #include "test_i_common.h"
+#include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
 
 #include "test_i_module_spreadsheetwriter.h"
@@ -156,7 +157,9 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u [STRING] : stock index value URL")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u [STRING] : stock index value URL [")
+            << TEST_I_DEFAULT_URL
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-v          : print version information and exit [")
             << false
@@ -608,27 +611,31 @@ do_work (const std::string& bootstrapFileName_in,
   int result = -1;
   Test_I_StreamBase_t* stream_p = NULL;
   Test_I_StockItem stock_item;
+  Test_I_HTTPGet_Configuration configuration;
+  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
+    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (connection_manager_p);
+  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
+                                                       connection_manager_p,
+                                                       false);
+  Common_Timer_Manager_t* timer_manager_p = NULL;
+  Common_TimerConfiguration timer_configuration;
+  struct Common_DispatchThreadData thread_data;
 
   Stream_AllocatorHeap_T<Test_I_AllocatorConfiguration> heap_allocator;
+  ACE_ASSERT (heap_allocator.initialize (configuration.allocatorConfiguration));
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to Stream_AllocatorHeap_T::initialize, returning\n")));
+  //  goto error;
+  //} // end IF
   Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
 
-  Common_Timer_Manager_t* timer_manager_p = NULL;
-  Common_TimerConfiguration timer_configuration;
-
-  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
-    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (connection_manager_p);
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max ());
-  Test_I_Configuration configuration;
   connection_manager_p->set (configuration,
                              &configuration.userData);
-  Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
-                                                       connection_manager_p,
-                                                       false);
-
-  struct Common_DispatchThreadData thread_data;
 
   // step0a: initialize configuration and stream
   if (useReactor_in)
@@ -766,8 +773,7 @@ do_work (const std::string& bootstrapFileName_in,
                              &configuration.userData);
 
   // step0d: initialize regular (global) statistic reporting
-  timer_manager_p =
-    COMMON_TIMERMANAGER_SINGLETON::instance ();
+  timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (timer_configuration);
   timer_manager_p->start ();

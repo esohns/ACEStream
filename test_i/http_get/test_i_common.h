@@ -172,14 +172,15 @@ struct Test_I_SAXParserContext
 {
   inline Test_I_SAXParserContext ()
    : Stream_Module_HTMLParser_SAXParserContextBase ()
-   , dataItem ()
    , sessionData (NULL)
+   , dataItem ()
    , state (SAXPARSER_STATE_INVALID)
    , timeStamp ()
   {};
 
-  Test_I_DataItem            dataItem;
   Test_I_Stream_SessionData* sessionData;
+
+  Test_I_DataItem            dataItem;
   Test_I_SAXParserState      state;
   ACE_Time_Value             timeStamp;
 };
@@ -252,26 +253,19 @@ struct Test_I_Stream_SocketHandlerConfiguration
 
 // forward declarations
 struct Test_I_Configuration;
-typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                      ////////////////////
+typedef Stream_Base_T<ACE_MT_SYNCH,
                       ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      ////////////////////
                       int,
-                      int,
+                      Stream_SessionMessageType,
                       Stream_StateMachine_ControlState,
                       Test_I_Stream_State,
-                      ////////////////////
                       Test_I_Stream_Configuration,
-                      ////////////////////
                       Test_I_RuntimeStatistic_t,
-                      ////////////////////
                       Stream_ModuleConfiguration,
                       Test_I_Stream_ModuleHandlerConfiguration,
-                      ////////////////////
                       Test_I_Stream_SessionData,   // session data
                       Test_I_Stream_SessionData_t, // session data container (reference counted)
-                      ////////////////////
                       ACE_Message_Block,
                       Test_I_Stream_Message,
                       Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
@@ -394,10 +388,6 @@ struct Test_I_Configuration
   bool                                     useReactor;
 };
 
-//typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
-typedef Stream_MessageAllocatorHeapBase_T<Test_I_AllocatorConfiguration,
-
-                                          Test_I_Stream_Message,
-                                          Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;
+typedef Stream_INotify_T<Stream_SessionMessageType> Stream_IStreamNotify_t;
 
 #endif

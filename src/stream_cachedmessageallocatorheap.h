@@ -29,28 +29,29 @@
 #include "stream_cacheddatablockallocatorheap.h"
 
 class Stream_CachedMessageAllocatorHeap
- : public ACE_Cached_Allocator<ACE_Message_Block, ACE_SYNCH_MUTEX>,
-   public Stream_IAllocator
+ : public ACE_Cached_Allocator<ACE_Message_Block, ACE_SYNCH_MUTEX>
+ , public Stream_IAllocator
 {
  public:
   Stream_CachedMessageAllocatorHeap (unsigned int,    // total number of chunks
-                                     ACE_Allocator*); // (heap) memory allocator...
+                                     ACE_Allocator*); // (heap) memory allocator
   virtual ~Stream_CachedMessageAllocatorHeap ();
 
-  // overload ACE_Allocator
-  // *NOTE*: returns a pointer to ACE_Message_Block...
+  // implement Stream_IAllocator
+  virtual bool block (); // return value: block when full ?
+  virtual void* calloc ();
+  // *NOTE*: returns a pointer to ACE_Message_Block
   virtual void* malloc (size_t); // bytes
-
-  // *NOTE*: returns a pointer to RPG_Stream_MessageBase...
-  virtual void* calloc (size_t,       // bytes
-                        char = '\0'); // initial value
-
-  // *NOTE*: frees an ACE_Message_Block...
+  // *NOTE*: frees an ACE_Message_Block
   virtual void free (void*); // element handle
-
-  // *NOTE*: these return the # of online ACE_Message_Blocks...
+  // *NOTE*: these return the # of online ACE_Message_Blocks
   virtual size_t cache_depth () const;
   virtual size_t cache_size () const;
+
+  // overload ACE_Allocator
+  // *NOTE*: returns a pointer to ACE_Message_Block
+  virtual void* calloc (size_t,       // bytes
+                        char = '\0'); // initial value
 
  private:
   typedef ACE_Cached_Allocator<ACE_Message_Block, ACE_SYNCH_MUTEX> inherited;

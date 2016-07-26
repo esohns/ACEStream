@@ -45,7 +45,6 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
  , allocator_ (NULL)
  , buffer_ (NULL)
  , crunchMessages_ (STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES)
- , isInitialized_ (false)
  , stream_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::Stream_Decoder_ZIPDecoder_T"));
@@ -93,7 +92,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::initialize"));
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("re-initializing...\n")));
@@ -106,7 +105,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
     buffer_ = NULL;
     crunchMessages_ = STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES;
 
-    isInitialized_ = false;
+    inherited::isInitialized_ = false;
   } // end IF
 
   // *TODO*: remove type dependencies
@@ -117,9 +116,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   stream_.zfree = Z_NULL;
   stream_.opaque = (voidpf)NULL;
 
-  isInitialized_ = inherited::initialize (configuration_in);
-
-  return isInitialized_;
+  return inherited::initialize (configuration_in);
 }
 //template <typename SessionMessageType,
 //          typename MessageType,
@@ -159,9 +156,10 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_ZIPDecoder_T::handleDataMessage"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (sessionData_);
-  ACE_ASSERT (isInitialized_);
+
   switch (sessionData_->format)
   {
     case STREAM_COMPRESSION_FORMAT_GZIP:
@@ -463,8 +461,7 @@ Stream_Decoder_ZIPDecoder_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   const SessionDataContainerType& session_data_container_r =
     message_inout->get ();

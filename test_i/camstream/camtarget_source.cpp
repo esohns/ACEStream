@@ -109,10 +109,12 @@ const struct REGFILTERPINS sudOutputPin =
 
 const struct REGFILTER2 sudFilterReg =
 {
-  1,            // Registration format. (*NOTE*: 2 --> REGFILTERPINS2)
-  MERIT_NORMAL, // Merit.
-  1,            // Number of pins
-  &sudOutputPin // Pointer to pin information.
+  1,              // Registration format. (*NOTE*: 2 --> REGFILTERPINS2)
+  MERIT_NORMAL,   // Merit.
+  {
+    1,            // Number of pins
+    &sudOutputPin // Pointer to pin information.
+  }
   //// *TODO*: cannot do this in C++ yet
   //{
   //  .cPins2 = 1,             // Number of pins

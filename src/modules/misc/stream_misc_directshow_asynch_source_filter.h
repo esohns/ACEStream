@@ -147,7 +147,7 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
 
   // implement/overload IUnknown
   DECLARE_IUNKNOWN
-  STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
+  STDMETHODIMP NonDelegatingQueryInterface (REFIID, __deref_out void**);
 
   // ------------------------------------
 
@@ -161,15 +161,12 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
 
   // override / implement (part of) CBasePin
   virtual HRESULT CheckMediaType (const CMediaType*);
-  virtual HRESULT GetMediaType (int, CMediaType*);
+  virtual HRESULT GetMediaType (int, __inout CMediaType*);
   virtual HRESULT SetMediaType (const CMediaType*);
 
-  // Clear the flag so we see if IAsyncReader is queried for
-  HRESULT CheckConnect (IPin*);
-  // See if it was asked for
-  HRESULT CompleteConnect (IPin*);
-  //  Remove our connection status
-  HRESULT BreakConnect ();
+  virtual HRESULT CheckConnect (IPin*);
+  virtual HRESULT BreakConnect ();
+  virtual HRESULT CompleteConnect (IPin*);
 
   // ------------------------------------
 
@@ -179,9 +176,9 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
   // on returned allocator to learn alignment and prefix etc chosen.
   // this allocator will be not be committed and decommitted by
   // the async reader, only by the consumer.
-  STDMETHODIMP RequestAllocator (IMemAllocator*,               // preferrred allocator
-                                 struct _AllocatorProperties*, // preferred properties
-                                 IMemAllocator**);             // return value: allocator handle
+  virtual STDMETHODIMP RequestAllocator (IMemAllocator*,               // preferrred allocator
+                                         struct _AllocatorProperties*, // preferred properties
+                                         IMemAllocator**);             // return value: allocator handle
 
   // queue a request for data.
   // media sample start and stop times contain the requested absolute
@@ -190,42 +187,42 @@ class Stream_Misc_DirectShow_Source_Filter_AsynchOutputPin_T
   // may fail if start/stop position does not match agreed alignment.
   // samples allocated from source pin's allocator may fail
   // GetPointer until after returning from WaitForNext.
-  STDMETHODIMP Request (IMediaSample*, // media sample handle
-                        DWORD_PTR);    // user context
+  virtual STDMETHODIMP Request (IMediaSample*, // media sample handle
+                                DWORD_PTR);    // user context
 
   // block until the next sample is completed or the timeout occurs.
   // timeout (millisecs) may be 0 or INFINITE. Samples may not
   // be delivered in order. If there is a read error of any sort, a
   // notification will already have been sent by the source filter,
   // and STDMETHODIMP will be an error.
-  STDMETHODIMP WaitForNext (DWORD,          // timeout (ms)
-                            IMediaSample**, // return value: completed sample
-                            DWORD_PTR*);    // user context
+  virtual STDMETHODIMP WaitForNext (DWORD,          // timeout (ms)
+                                    IMediaSample**, // return value: completed sample
+                                    DWORD_PTR*);    // user context
 
   // sync read of data. Sample passed in must have been acquired from
   // the agreed allocator. Start and stop position must be aligned.
   // equivalent to a Request/WaitForNext pair, but may avoid the
   // need for a thread on the source filter.
-  STDMETHODIMP SyncReadAligned (IMediaSample*); // media sample handle
+  virtual STDMETHODIMP SyncReadAligned (IMediaSample*); // media sample handle
 
   // sync read. works in stopped state as well as run state.
   // need not be aligned. Will fail if read is beyond actual total
   // length.
-  STDMETHODIMP SyncRead (LONGLONG, // absolute file position
-                         LONG,     // nr bytes required
-                         BYTE*);   // write data here
+  virtual STDMETHODIMP SyncRead (LONGLONG, // absolute file position
+                                 LONG,     // nr bytes required
+                                 BYTE*);   // write data here
 
   // return total length of stream, and currently available length.
   // reads for beyond the available length but within the total length will
   // normally succeed but may block for a long period.
-  STDMETHODIMP Length (LONGLONG*,  // total nr bytes
-                       LONGLONG*); // available nr bytes
+  virtual STDMETHODIMP Length (LONGLONG*,  // total nr bytes
+                               LONGLONG*); // available nr bytes
 
   // cause all outstanding reads to return, possibly with a failure code
   // (VFW_E_TIMEOUT) indicating they were cancelled.
   // these are defined on IAsyncReader and IPin
-  STDMETHODIMP BeginFlush (void);
-  STDMETHODIMP EndFlush (void);
+  virtual STDMETHODIMP BeginFlush (void);
+  virtual STDMETHODIMP EndFlush (void);
 
   // ------------------------------------
 

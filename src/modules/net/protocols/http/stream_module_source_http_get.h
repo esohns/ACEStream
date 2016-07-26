@@ -35,7 +35,7 @@
 struct HTTP_Record;
 class Stream_IAllocator;
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -44,14 +44,14 @@ template <typename SynchStrategyType,
           typename DataMessageType,
           typename SessionMessageType>
 class Stream_Module_Net_Source_HTTP_Get_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
 {
  public:
   Stream_Module_Net_Source_HTTP_Get_T ();
@@ -69,26 +69,26 @@ class Stream_Module_Net_Source_HTTP_Get_T
  protected:
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // (requested) size
-  bool sendRequest (const std::string&,    // URI
-                    const HTTP_Headers_t&, // headers
-                    const HTTP_Form_t&);   // form
+  bool send (const std::string&,    // URI
+             const HTTP_Headers_t&, // headers
+             const HTTP_Form_t&);   // form
   // *NOTE*: (if possible,) this advances the read pointer to skip over the HTTP
   //         entity head
-  HTTP_Record* parseResponse (DataMessageType&);
+  HTTP_Record* parse (DataMessageType&);
 
-  bool                                 responseParsed_;
-  bool                                 responseReceived_;
+  bool                                 parsed_;
+  bool                                 received_;
   typename SessionMessageType::DATA_T* sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T (const Stream_Module_Net_Source_HTTP_Get_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T& operator= (const Stream_Module_Net_Source_HTTP_Get_T&))
@@ -97,10 +97,9 @@ class Stream_Module_Net_Source_HTTP_Get_T
   DataMessageType* makeRequest (const std::string&,    // URI
                                 const HTTP_Headers_t&, // headers
                                 const HTTP_Form_t&);   // form
-
-  bool                                 isInitialized_;
 };
 
+// include template definition
 #include "stream_module_source_http_get.inl"
 
 #endif

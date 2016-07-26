@@ -24,7 +24,7 @@
 
 template <typename ConfigurationType>
 Stream_AllocatorBase_T<ConfigurationType>::Stream_AllocatorBase_T ()
- : configuration_ ()
+ : configuration_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorBase_T::Stream_AllocatorBase_T"));
 
@@ -43,7 +43,7 @@ Stream_AllocatorBase_T<ConfigurationType>::initialize (const ConfigurationType& 
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorBase_T::initialize"));
 
-  configuration_ = configuration_in;
+  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
 
   return true;
 }

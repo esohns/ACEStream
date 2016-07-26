@@ -22,14 +22,14 @@
 
 #include "stream_macros.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType>
-Stream_Module_Splitter_T<SynchStrategyType,
+Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          TimePolicyType,
                          ConfigurationType,
                          ControlMessageType,
@@ -43,14 +43,14 @@ Stream_Module_Splitter_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType>
-Stream_Module_Splitter_T<SynchStrategyType,
+Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          TimePolicyType,
                          ConfigurationType,
                          ControlMessageType,
@@ -64,7 +64,7 @@ Stream_Module_Splitter_T<SynchStrategyType,
     buffer_->release ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -72,7 +72,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Module_Splitter_T<SynchStrategyType,
+Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          TimePolicyType,
                          ConfigurationType,
                          ControlMessageType,
@@ -136,7 +136,7 @@ Stream_Module_Splitter_T<SynchStrategyType,
   } // end IF
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -144,7 +144,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Module_Splitter_T<SynchStrategyType,
+Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          TimePolicyType,
                          ConfigurationType,
                          ControlMessageType,
@@ -178,7 +178,7 @@ Stream_Module_Splitter_T<SynchStrategyType,
   } // end SWITCH
 }
 
-//template <typename SynchStrategyType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename ConfigurationType,
 //          typename ControlMessageType,
@@ -239,7 +239,7 @@ Stream_Module_SplitterH_T<LockType,
                           StreamStateType,
                           SessionDataType,
                           SessionDataContainerType,
-                          StatisticContainerType>::Stream_Module_SplitterH_T (LockType* lock_in,
+                          StatisticContainerType>::Stream_Module_SplitterH_T (typename LockType::MUTEX* lock_in,
                                                                               bool autoStart_in)
  : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
@@ -487,7 +487,7 @@ Stream_Module_SplitterH_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   // step0: initialize container
 //  data_out.dataMessages = 0;
@@ -560,26 +560,18 @@ Stream_Module_SplitterH_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::initialize"));
 
-  bool result = false;
-
-  if (inherited::initialized_)
+  if (inherited::isInitialized_)
   {
     if (buffer_)
     {
       buffer_->release ();
       buffer_ = NULL;
     } // end IF
+
+    inherited::isInitialized_ = false;
   } // end IF
 
-  result = inherited::initialize (configuration_in);
-  if (!result)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
-    return false;
-  } // end IF
-
-  return result;
+  return inherited::initialize (configuration_in);
 }
 
 //template <typename LockType,

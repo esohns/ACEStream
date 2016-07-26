@@ -644,9 +644,9 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
 
   // *NOTE*: see also https://msdn.microsoft.com/en-us/library/windows/desktop/dd319039(v=vs.85).aspx
 
+  HRESULT result = E_FAIL;
   struct _AllocatorProperties properties;
   ACE_OS::memset (&properties, 0, sizeof (struct _AllocatorProperties));
-  HRESULT result = E_FAIL;
 
   result = inputPin_in->GetAllocator (allocator_out);
   if (SUCCEEDED (result))
@@ -669,8 +669,9 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
     if (properties.cBuffers == 0)
     {
       IPin* pin_p = NULL;
-      result = inputPin_in->QueryInterface (IID_IPin,
-                                            (void**)&pin_p);
+      IBaseFilter* filter_p = NULL;
+
+      result = inputPin_in->QueryInterface (IID_PPV_ARGS (&pin_p));
       if (FAILED (result))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -679,7 +680,7 @@ Stream_Misc_DirectShow_Source_Filter_OutputPin_T<ConfigurationType,
         goto error_;
       } // end IF
       ACE_ASSERT (pin_p);
-      IBaseFilter* filter_p = Stream_Module_Device_Tools::pin2Filter (pin_p);
+      filter_p = Stream_Module_Device_Tools::pin2Filter (pin_p);
       if (!filter_p)
       {
         ACE_DEBUG ((LM_ERROR,

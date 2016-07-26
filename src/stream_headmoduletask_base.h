@@ -39,7 +39,7 @@ class ACE_Message_Block;
 class ACE_Time_Value;
 class Stream_IAllocator;
 
-template <typename LockType,
+template <typename LockType,                 // state machine
           ////////////////////////////////
           ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -64,12 +64,15 @@ class Stream_HeadModuleTaskBase_T
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType>
+                            SessionMessageType,
+                            Stream_SessionId_t,
+                            StreamNotificationType>
  //, public Stream_IModuleHandler_T<ConfigurationType>
  , public Stream_IStreamControl_T<StreamControlType,
                                   StreamNotificationType,
                                   Stream_StateMachine_ControlState,
                                   StreamStateType>
+ , public Stream_ILock_t
  , public Common_IInitialize_T<StreamStateType>
  , public Common_IStatistic_T<StatisticContainerType>
 {
@@ -104,17 +107,26 @@ class Stream_HeadModuleTaskBase_T
                                                  // thread(s) ?
                                   bool = false); // N/A
 
-
   // *NOTE*: just a stub
   virtual std::string name () const;
 
   virtual void control (StreamControlType, // control type
                         bool = false);     // N/A
+  // *WARNING*: currently, the default stream implementation forwards all
+  //            notifications to the head module. This implementation generates
+  //            session messages for all events except 'abort'
+  //            --> make sure there are no session message 'loops'
   virtual void notify (StreamNotificationType, // notification type
                        bool = false);          // N/A
     // *NOTE*: just a stub
   virtual const StreamStateType& state () const;
   virtual Stream_StateMachine_ControlState status () const;
+
+  // implement Stream_ILock_t
+  // *WARNING*: handle with care
+  virtual void lock ();
+  virtual void unlock ();
+  virtual ACE_SYNCH_MUTEX_T& getLock ();
 
   // implement Common_IInitialize_T
   virtual bool initialize (const StreamStateType&);
@@ -125,10 +137,9 @@ class Stream_HeadModuleTaskBase_T
   virtual void report () const;
 
  protected:
-  Stream_HeadModuleTaskBase_T (LockType* = NULL, // lock handle (state machine)
-                               //////////
-                               bool = false,     // auto-start ?
-                               bool = true);     // generate session messages ?
+  Stream_HeadModuleTaskBase_T (typename LockType::MUTEX* = NULL, // lock handle (state machine)
+                               bool = false,                     // auto-start ?
+                               bool = true);                     // generate session messages ?
 
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
@@ -136,19 +147,18 @@ class Stream_HeadModuleTaskBase_T
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType> TASK_BASE_T;
+                            SessionMessageType,
+                            Stream_SessionId_t,
+                            StreamNotificationType> TASK_BASE_T;
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> COLLECTION_HANDLER_T;
 
   using TASK_BASE_T::shutdown;
 
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // (requested) size
-  // *TODO*: clean this API
   // convenience methods to send (session-specific) notifications downstream
-  // *WARNING*: - handle with care -
-//  bool putSessionMessage (Stream_SessionMessageType, // session message type
-//                          SessionDataType*,          // session data
-//                          bool = false) const;       // delete session data ?
+  bool putControlMessage (StreamControlType,                // control type
+                          Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
   // *NOTE*: message assumes responsibility for the payload data container
   //         --> "fire-and-forget" SessionDataContainerType
   bool putSessionMessage (Stream_SessionMessageType,        // session message type
@@ -161,12 +171,24 @@ class Stream_HeadModuleTaskBase_T
   virtual void onChange (Stream_StateType_t); // new state
 
   ConfigurationType*        configuration_;
-  bool                      initialized_;
-  // *NOTE*: default behaviour is true for '!active' modules (i.e. modules that
-  //         have no dedicated worker thread), which instructs the thread
-  //         calling start() to do the processing. However, this behaviour may
-  //         not be intended for passive modules that don't do their processing
-  //         via start(), but are 'fed' from outside (e.g. network modules)
+  bool                      isInitialized_;
+
+  // *NOTE*: applies only to 'passive' modules that do not run svc() on start
+  //         (see below). Enforces that all messages pass through the stream
+  //         strictly sequentially; this setting is necessary for streams with
+  //         'non-reentrant' modules (i.e. most modules that maintain some kind
+  //         of internal state), or streams that react to asynchronous events,
+  //         such as connection resets, user aborts, etc
+  // *TODO*: find a way to by-pass the overhead if 'true'
+  bool                      allowConcurrency_;
+  // *NOTE*: default behaviour for '!active' modules (i.e. modules that have no
+  //         dedicated worker thread), which 'borrows' the thread calling
+  //         start() to do the processing. [Note that in this case, stream
+  //         processing is already finished once the thread returns from
+  //         start(), i.e. there is no point in calling waitForCompletion().]
+  //         However, this behaviour may not be intended for passive modules
+  //         that don't do their processing via start(), but are 'supplied'
+  //         externally (e.g. network source modules)
   bool                      runSvcOnStart_;
   SessionDataContainerType* sessionData_;
   StreamStateType*          streamState_;
@@ -182,26 +204,23 @@ class Stream_HeadModuleTaskBase_T
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType> inherited2;
+                            SessionMessageType,
+                            Stream_SessionId_t,
+                            StreamNotificationType> inherited2;
 
   // convenient types
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
                                       ACE_SYNCH_USE,
                                       TimePolicyType,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_HeadModuleTaskBase_T ())
@@ -216,6 +235,7 @@ class Stream_HeadModuleTaskBase_T
   virtual const Stream_Module_t* find (const std::string&) const; // module name
   virtual bool load (Stream_ModuleList_t&); // return value: module list
   virtual void flush (bool = true,   // flush inbound data ?
+                      bool = false,  // flush session messages ?
                       bool = false); // flush upstream (if any) ?
   virtual void rewind ();
   virtual void upStream (Stream_Base_t*);
@@ -229,7 +249,7 @@ class Stream_HeadModuleTaskBase_T
   ACE_Thread_ID             threadID_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_headmoduletask_base.inl"
 
 #endif

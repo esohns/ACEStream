@@ -45,7 +45,6 @@
 #endif
 
 #include "common.h"
-#include "common_inotify.h"
 #include "common_istatistic.h"
 #include "common_isubscribe.h"
 #include "common_time_common.h"
@@ -55,7 +54,7 @@
 #include "stream_base.h"
 #include "stream_common.h"
 #include "stream_data_base.h"
-#include "stream_messageallocatorheap_base.h"
+#include "stream_inotify.h"
 #include "stream_session_data.h"
 #include "stream_statemachine_control.h"
 
@@ -79,6 +78,8 @@ struct IGraphBuilder;
 struct IVideoWindow;
 #endif
 class Stream_IAllocator;
+//template <typename ControlMessageType>
+//class Stream_ControlMessage_T;
 class Test_I_Source_Stream_Message;
 class Test_I_Source_Stream_SessionMessage;
 struct Test_I_ConnectionState;
@@ -390,19 +391,7 @@ struct Test_I_Configuration
   bool                                     useReactor;
 };
 
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-
-                                          Test_I_Source_Stream_Message,
-                                          Test_I_Source_Stream_SessionMessage> Test_I_MessageAllocator_t;
-
-typedef Common_INotify_T<unsigned int,
-                         Test_I_Stream_SessionData,
-                         Test_I_Source_Stream_Message,
-                         Test_I_Source_Stream_SessionMessage> Test_I_IStreamNotify_t;
-typedef std::list<Test_I_IStreamNotify_t*> Test_I_Subscribers_t;
-typedef Test_I_Subscribers_t::iterator Test_I_SubscribersIterator_t;
-
-typedef Common_ISubscribe_T<Test_I_IStreamNotify_t> Test_I_ISubscribe_t;
+typedef Stream_INotify_T<Stream_SessionMessageType> Test_I_IStreamNotify_t;
 
 typedef std::map<guint, ACE_Thread_ID> Test_I_PendingActions_t;
 typedef Test_I_PendingActions_t::iterator Test_I_PendingActionsIterator_t;
@@ -439,7 +428,6 @@ struct Test_I_GTK_CBData
    , pixelBuffer (NULL)
    , progressData ()
    , progressEventSourceID (0)
-   , subscribers ()
   {};
 
   Test_I_Configuration*   configuration;
@@ -447,7 +435,6 @@ struct Test_I_GTK_CBData
   GdkPixbuf*              pixelBuffer;
   Test_I_GTK_ProgressData progressData;
   guint                   progressEventSourceID;
-  Test_I_Subscribers_t    subscribers;
 };
 
 #endif

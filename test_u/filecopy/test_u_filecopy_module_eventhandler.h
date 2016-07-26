@@ -31,20 +31,18 @@
 
 #include "stream_misc_messagehandler.h"
 
+#include "test_u_filecopy_common.h"
 #include "test_u_filecopy_message.h"
 #include "test_u_filecopy_session_message.h"
 
 class Stream_Filecopy_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-
                                          Stream_ModuleHandlerConfiguration,
-
                                          ACE_Message_Block,
                                          Stream_Filecopy_Message,
                                          Stream_Filecopy_SessionMessage,
-
-                                         unsigned int,
+                                         Stream_SessionId_t,
                                          Stream_Filecopy_SessionData_t>
 {
  public:
@@ -57,14 +55,11 @@ class Stream_Filecopy_Module_EventHandler
  private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-
                                          Stream_ModuleHandlerConfiguration,
-
                                          ACE_Message_Block,
                                          Stream_Filecopy_Message,
                                          Stream_Filecopy_SessionMessage,
-
-                                         unsigned int,
+                                         Stream_SessionId_t,
                                          Stream_Filecopy_SessionData_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_Module_EventHandler (const Stream_Filecopy_Module_EventHandler&))
@@ -72,10 +67,10 @@ class Stream_Filecopy_Module_EventHandler
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                         // task synch type
-                              Common_TimePolicy_t,                  // time policy
-                              Stream_ModuleConfiguration,           // module configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_Filecopy_SessionData,          // session data type
+                              Stream_SessionMessageType,            // session event type
                               Stream_ModuleHandlerConfiguration,    // module handler configuration type
+                              Stream_Filecopy_IStreamNotify_t,      // stream notification interface type
                               Stream_Filecopy_Module_EventHandler); // writer type
 
 #endif

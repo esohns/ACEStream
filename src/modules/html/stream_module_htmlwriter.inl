@@ -22,7 +22,7 @@
 
 #include "stream_macros.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -30,7 +30,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType>
-Stream_Module_HTMLWriter_T<SynchStrategyType,
+Stream_Module_HTMLWriter_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -45,7 +45,7 @@ Stream_Module_HTMLWriter_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -53,7 +53,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType>
-Stream_Module_HTMLWriter_T<SynchStrategyType,
+Stream_Module_HTMLWriter_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -69,7 +69,7 @@ Stream_Module_HTMLWriter_T<SynchStrategyType,
     xmlFreeDoc (document_);
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -78,7 +78,7 @@ template <typename SynchStrategyType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType>
 void
-Stream_Module_HTMLWriter_T<SynchStrategyType,
+Stream_Module_HTMLWriter_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -175,7 +175,7 @@ Stream_Module_HTMLWriter_T<SynchStrategyType,
 //
 //  return *configuration_;
 //}
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -184,7 +184,7 @@ template <typename SynchStrategyType,
           typename ModuleHandlerConfigurationType,
           typename SessionDataType>
 bool
-Stream_Module_HTMLWriter_T<SynchStrategyType,
+Stream_Module_HTMLWriter_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,

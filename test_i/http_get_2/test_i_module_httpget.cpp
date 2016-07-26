@@ -25,6 +25,8 @@
 
 #include "stream_macros.h"
 
+#include "test_i_connection_common.h"
+
 Test_I_Stream_HTTPGet::Test_I_Stream_HTTPGet ()
  : inherited ()
  , iterator_ ()
@@ -53,10 +55,10 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // handle redirects
-  inherited::responseReceived_ = false;
+  inherited::received_ = false;
   inherited::handleDataMessage (message_inout,
                                 passMessageDownstream_out);
-  if (!inherited::responseReceived_)
+  if (!inherited::received_)
   {
     // probable reason: re-sent request
     // --> wait for response
@@ -89,15 +91,14 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
   //                      ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)),
   //                      (*iterator_).ISIN.c_str ());
   HTTP_Form_t form_data;
-  form_data.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (TEST_I_FORM_KEY_SEARCH_STRING),
+  form_data.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FORM_KEY_SEARCH_STRING),
                                     (*iterator_).ISIN));
 
   // send HTTP POST request
-  if (!inherited::sendRequest (inherited::configuration_->URL,
-                               inherited::configuration_->HTTPHeaders,
-                               form_data))
+  if (!inherited::send (inherited::configuration_->URL,
+                        inherited::configuration_->HTTPHeaders,
+                        form_data))
   {
-    ACE_ASSERT (inherited::mod_);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to send HTTP request \"%s\", returning\n"),
                 inherited::mod_->name (),
@@ -125,90 +126,90 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
 
   switch (message_inout->type ())
   {
-  case STREAM_SESSION_MESSAGE_BEGIN:
-  {
-    // sanity check(s)
-    ACE_ASSERT (!inherited::sessionData_);
-
-    // *TODO*: remove type inferences
-    inherited::sessionData_ =
-      &const_cast<Test_I_Stream_SessionData_t&> (message_inout->get ());
-    inherited::sessionData_->increase ();
-
-    iterator_ = inherited::configuration_->stockItems.begin ();
-    do
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // sanity check(s)
+      ACE_ASSERT (!inherited::sessionData_);
+
+      // *TODO*: remove type inferences
+      inherited::sessionData_ =
+        &const_cast<Test_I_Stream_SessionData_t&> (message_inout->get ());
+      inherited::sessionData_->increase ();
+
+      iterator_ = inherited::configuration_->stockItems.begin ();
+      do
+      {
+        if (iterator_ == inherited::configuration_->stockItems.end ())
+          return; // done
+
+        if (!(*iterator_).ISIN.empty ())
+          break;
+
+        ++iterator_;
+      } while (true);
+
+      // sanity check(s)
       if (iterator_ == inherited::configuration_->stockItems.end ())
-        return; // done
+        return;
 
-      if (!(*iterator_).ISIN.empty ())
-        break;
+      const Test_I_Stream_SessionData_t& sesion_data_container_r =
+        message_inout->get ();
+      const Test_I_Stream_SessionData& session_data_r =
+        sesion_data_container_r.get ();
 
-      ++iterator_;
-    } while (true);
+      // sanity check(s)
+      ACE_ASSERT (session_data_r.connectionState);
+      if (session_data_r.connectionState->status != NET_CONNECTION_STATUS_OK)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: no connection, returning\n"),
+                    inherited::mod_->name ()));
+        return;
+      } // end IF
 
-    // sanity check(s)
-    if (iterator_ == inherited::configuration_->stockItems.end ())
-      return;
+      //std::string url_string = inherited::configuration_->URL;
+      //std::string::size_type position =
+      //  url_string.find (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER),
+      //                   0,
+      //                   ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)));
+      //ACE_ASSERT (position != std::string::npos);
+      //url_string =
+      //  url_string.replace (position,
+      //                      ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)),
+      //                      (*iterator_).ISIN.c_str ());
+      HTTP_Form_t form_data;
+      form_data.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FORM_KEY_SEARCH_STRING),
+                                        (*iterator_).ISIN));
 
-    const Test_I_Stream_SessionData_t& sesion_data_container_r =
-      message_inout->get ();
-    const Test_I_Stream_SessionData& session_data_r =
-      sesion_data_container_r.get ();
-
-    // sanity check(s)
-    ACE_ASSERT (session_data_r.connectionState);
-    if (session_data_r.connectionState->status != NET_CONNECTION_STATUS_OK)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: no connection, returning\n"),
-                  inherited::mod_->name ()));
-      return;
-    } // end IF
-
-    //std::string url_string = inherited::configuration_->URL;
-    //std::string::size_type position =
-    //  url_string.find (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER),
-    //                   0,
-    //                   ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)));
-    //ACE_ASSERT (position != std::string::npos);
-    //url_string =
-    //  url_string.replace (position,
-    //                      ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)),
-    //                      (*iterator_).ISIN.c_str ());
-    HTTP_Form_t form_data;
-    form_data.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (TEST_I_FORM_KEY_SEARCH_STRING),
-                                      (*iterator_).ISIN));
-
-    // send first HTTP POST request
-    if (!inherited::sendRequest (inherited::configuration_->URL,
-                                 inherited::configuration_->HTTPHeaders,
-                                 form_data))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to send HTTP request \"%s\", returning\n"),
+      // send first HTTP POST request
+      if (!inherited::send (inherited::configuration_->URL,
+                            inherited::configuration_->HTTPHeaders,
+                            form_data))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to send HTTP request \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (inherited::configuration_->URL.c_str ())));
+        return;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: fetching \"%s\"...\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (inherited::configuration_->URL.c_str ())));
-      return;
-    } // end IF
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: fetching \"%s\"...\n"),
-                inherited::mod_->name (),
-                ACE_TEXT ((*iterator_).symbol.c_str ())));
+                  ACE_TEXT ((*iterator_).symbol.c_str ())));
 
-    break;
-  }
-  case STREAM_SESSION_MESSAGE_END:
-  {
-    if (inherited::sessionData_)
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_END:
     {
-      inherited::sessionData_->decrease ();
-      inherited::sessionData_ = NULL;
-    } // end IF
+      if (inherited::sessionData_)
+      {
+        inherited::sessionData_->decrease ();
+        inherited::sessionData_ = NULL;
+      } // end IF
 
-    break;
-  }
-  default:
-    break;
+      break;
+    }
+    default:
+      break;
   } // end SWITCH
 }

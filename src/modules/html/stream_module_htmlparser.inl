@@ -27,55 +27,57 @@
 
 #include "stream_html_tools.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename SessionDataContainerType,
           typename SessionDataType,
           typename ParserContextType>
-Stream_Module_HTMLParser_T<SynchStrategyType,
+Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
+                           SessionDataContainerType,
                            SessionDataType,
                            ParserContextType>::Stream_Module_HTMLParser_T ()
  : inherited ()
  , complete_ (false)
  , parserContext_ ()
- , sessionData_ (NULL)
  , SAXHandler_ ()
- , initialized_ (false)
+ , sessionData_ (NULL)
  , mode_ (STREAM_MODULE_HTMLPARSER_DEFAULT_MODE)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::Stream_Module_HTMLParser_T"));
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename SessionDataContainerType,
           typename SessionDataType,
           typename ParserContextType>
-Stream_Module_HTMLParser_T<SynchStrategyType,
+Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
+                           SessionDataContainerType,
                            SessionDataType,
                            ParserContextType>::~Stream_Module_HTMLParser_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::~Stream_Module_HTMLParser_T"));
 
-  // clean up
-  if (initialized_)
+  if (inherited::isInitialized_)
   {
     if (parserContext_.parserContext)
     {
@@ -87,23 +89,28 @@ Stream_Module_HTMLParser_T<SynchStrategyType,
 
     xmlCleanupParser ();
   } // end IF
+
+  if (sessionData_)
+    sessionData_->decrease ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename SessionDataContainerType,
           typename SessionDataType,
           typename ParserContextType>
 void
-Stream_Module_HTMLParser_T<SynchStrategyType,
+Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
+                           SessionDataContainerType,
                            SessionDataType,
                            ParserContextType>::handleDataMessage (DataMessageType*& message_inout,
                                                                   bool& passMessageDownstream_out)
@@ -119,7 +126,7 @@ Stream_Module_HTMLParser_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
+  ACE_ASSERT (inherited::mod_);
   ACE_ASSERT (parserContext_.parserContext);
 
   do
@@ -245,21 +252,23 @@ continue_:
   return;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename SessionDataContainerType,
           typename SessionDataType,
           typename ParserContextType>
 void
-Stream_Module_HTMLParser_T<SynchStrategyType,
+Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
+                           SessionDataContainerType,
                            SessionDataType,
                            ParserContextType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                      bool& passMessageDownstream_out)
@@ -269,22 +278,22 @@ Stream_Module_HTMLParser_T<SynchStrategyType,
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (message_inout);
-
-  // *TODO*: remove type inferences
-  const typename SessionMessageType::DATA_T& session_data_container_r =
-    message_inout->get ();
-
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // sanity check(s)
+      ACE_ASSERT (!parserContext_.sessionData);
+
 //      if (parserContext_)
 //        htmlCtxtReset (parserContext_);
 
+      // *TODO*: remove type inference
       sessionData_ =
-        &const_cast<SessionDataType&> (session_data_container_r.get ());
+        &const_cast<SessionDataContainerType&> (message_inout->get ());
+      sessionData_->increase ();
+      parserContext_.sessionData =
+        &const_cast<SessionDataType&> (sessionData_->get ());
 
       break;
     }
@@ -297,7 +306,12 @@ Stream_Module_HTMLParser_T<SynchStrategyType,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      sessionData_ = NULL;
+      if (sessionData_)
+      {
+        sessionData_->decrease ();
+        sessionData_ = NULL;
+      } // end IF
+      parserContext_.sessionData = NULL;
 
       break;
     }
@@ -309,13 +323,13 @@ Stream_Module_HTMLParser_T<SynchStrategyType,
 //template <typename SessionMessageType,
 //          typename MessageType,
 //          typename ModuleHandlerConfigurationType,
-//          typename SessionDataType,
+//          typename SessionDataContainerType,
 //          typename ParserContextType>
 //const ModuleHandlerConfigurationType&
 //Stream_Module_HTMLParser_T<SessionMessageType,
 //                           MessageType,
 //                           ModuleHandlerConfigurationType,
-//                           SessionDataType,
+//                           SessionDataContainerType,
 //                           ParserContextType>::get () const
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::get"));
@@ -325,21 +339,23 @@ Stream_Module_HTMLParser_T<SynchStrategyType,
 //
 //  return *configuration_;
 //}
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename SessionDataContainerType,
           typename SessionDataType,
           typename ParserContextType>
 bool
-Stream_Module_HTMLParser_T<SynchStrategyType,
+Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
+                           SessionDataContainerType,
                            SessionDataType,
                            ParserContextType>::initialize (const ConfigurationType& configuration_in)
 {
@@ -353,7 +369,7 @@ Stream_Module_HTMLParser_T<SynchStrategyType,
     is_first_run = false;
   } // end IF
 
-  if (initialized_)
+  if (inherited::isInitialized_)
   {
     complete_ = false;
 
@@ -371,9 +387,7 @@ Stream_Module_HTMLParser_T<SynchStrategyType,
 
     xmlCleanupParser ();
 
-    sessionData_ = NULL;
-
-    initialized_ = false;
+    inherited::isInitialized_ = false;
   } // end IF
 
   xmlInitParser ();
@@ -411,26 +425,26 @@ Stream_Module_HTMLParser_T<SynchStrategyType,
     return false;
   } // end IF
 
-  initialized_ = inherited::initialize (configuration_in);
-
-  return initialized_;
+  return inherited::initialize (configuration_in);
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename SessionDataContainerType,
           typename SessionDataType,
           typename ParserContextType>
 bool
-Stream_Module_HTMLParser_T<SynchStrategyType,
+Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
+                           SessionDataContainerType,
                            SessionDataType,
                            ParserContextType>::initializeSAXParser ()
 {
@@ -442,21 +456,23 @@ Stream_Module_HTMLParser_T<SynchStrategyType,
   ACE_NOTREACHED (return false;)
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
+          typename SessionDataContainerType,
           typename SessionDataType,
           typename ParserContextType>
 bool
-Stream_Module_HTMLParser_T<SynchStrategyType,
+Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
+                           SessionDataContainerType,
                            SessionDataType,
                            ParserContextType>::resetParser ()
 {

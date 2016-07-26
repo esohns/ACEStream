@@ -39,10 +39,8 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::Stream_DataBlockAllocatorHea
 
   // *NOTE*: NULL --> use heap (== default allocator !)
   if (!heapAllocator_)
-  {
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("using default (== heap) message buffer allocation strategy...\n")));
-  } // end IF
+                ACE_TEXT ("using default (== heap) message buffer allocation strategy\n")));
 }
 
 template <typename ConfigurationType>
@@ -63,20 +61,59 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::block ()
 
 template <typename ConfigurationType>
 void*
+Stream_DataBlockAllocatorHeap_T<ConfigurationType>::calloc ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::calloc"));
+
+  ACE_Data_Block* data_block_p = NULL;
+  try {
+    ACE_NEW_MALLOC_NORETURN (data_block_p,
+                             static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
+                             ACE_Data_Block (0,
+                                             ACE_Message_Block::MB_USER,
+                                             NULL,
+                                             NULL,
+                                             NULL,
+                                             0,
+                                             this));
+  } catch (...) {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)), continuing\n")));
+  }
+  if (!data_block_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate ACE_Data_Block, aborting\n")));
+    return NULL;
+  } // end IF
+
+  // increment running counter
+  //   poolSize_ += data_block->capacity ();
+  poolSize_++;
+
+  return data_block_p;
+}
+template <typename ConfigurationType>
+void*
 Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::malloc"));
 
   int result = -1;
 
+  // sanity check(s)
+  if (heapAllocator_)
+  {
+    ACE_ASSERT (heapAllocator_->configuration_);
+  } // end IF
+
   ACE_Data_Block* data_block_p = NULL;
   // *TODO*: remove type inference
   size_t number_of_bytes =
-    (bytes_in ? (heapAllocator_ ? bytes_in + heapAllocator_->configuration_.buffer
+    (bytes_in ? (heapAllocator_ ? bytes_in + heapAllocator_->configuration_->buffer
                                 : bytes_in)
               : 0);
-  try
-  {
+  try {
     // - delegate allocation to base class and...
     // - use placement new by invoking a ctor on the allocated space and...
     // - perform necessary initialization
@@ -91,13 +128,10 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
                                              &OWN_TYPE_T::referenceCountLock_,         // reference count lock
                                              0,                                        // flags: release (heap) memory in dtor
                                              this));                                   // data block allocator
-  }
-  catch (...)
-  {
-    ACE_DEBUG ((LM_ERROR,
+  } catch (...) {
+    ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)), continuing\n"),
                 bytes_in));
-    data_block_p = NULL;
   }
   if (!data_block_p)
   {
@@ -122,7 +156,7 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
     } // end IF
   } // end IF
 
-  // increment running counter...
+  // increment running counter
 //   poolSize_ += data_block->capacity ();
   poolSize_++;
 

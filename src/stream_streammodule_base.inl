@@ -25,14 +25,22 @@
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_StreamModule_T<ACE_SYNCH_USE,
                       TimePolicyType,
+                      SessionIdType,
+                      SessionDataType,
+                      SessionEventType,
                       ConfigurationType,
                       HandlerConfigurationType,
+                      NotificationType,
                       ReaderTaskType,
                       WriterTaskType>::Stream_StreamModule_T (const std::string& name_in,
                                                               Common_IRefCount* refCount_in,
@@ -42,6 +50,8 @@ Stream_StreamModule_T<ACE_SYNCH_USE,
               &reader_,       // initialize reader side task
               refCount_in,    // argument passed to task open()
               finalModule_in) // final module ?
+ , reader_ ()
+ , writer_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModule_T::Stream_StreamModule_T"));
 
@@ -55,14 +65,22 @@ Stream_StreamModule_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
           typename ReaderTaskType,
           typename WriterTaskType>
 Stream_StreamModule_T<ACE_SYNCH_USE,
                       TimePolicyType,
+                      SessionIdType,
+                      SessionDataType,
+                      SessionEventType,
                       ConfigurationType,
                       HandlerConfigurationType,
+                      NotificationType,
                       ReaderTaskType,
                       WriterTaskType>::~Stream_StreamModule_T ()
 {
@@ -100,13 +118,21 @@ Stream_StreamModule_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
           typename TaskType>
 Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
                                TimePolicyType,
+                               SessionIdType,
+                               SessionDataType,
+                               SessionEventType,
                                ConfigurationType,
                                HandlerConfigurationType,
+                               NotificationType,
                                TaskType>::Stream_StreamModuleInputOnly_T (const std::string& name_in,
                                                                           Common_IRefCount* refCount_in,
                                                                           bool finalModule_in)
@@ -120,13 +146,21 @@ Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
+          typename NotificationType,
           typename TaskType>
 Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
                                TimePolicyType,
+                               SessionIdType,
+                               SessionDataType,
+                               SessionEventType,
                                ConfigurationType,
                                HandlerConfigurationType,
+                               NotificationType,
                                TaskType>::~Stream_StreamModuleInputOnly_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_StreamModuleInputOnly_T::~Stream_StreamModuleInputOnly_T"));
@@ -137,8 +171,7 @@ Stream_StreamModuleInputOnly_T<ACE_SYNCH_USE,
   //            --> close() module in advance so it doesn't happen here !
 
   // sanity check: on the stream ?
-  Stream_Module_t* module_p = inherited::next ();
-  if (!module_p)
+  if (inherited::next () == NULL)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("manually closing module: \"%s\"\n"),

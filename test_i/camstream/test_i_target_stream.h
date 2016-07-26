@@ -36,9 +36,6 @@
 
 #include "net_connection_manager.h"
 
-#include "test_i_common.h"
-#include "test_i_message.h"
-#include "test_i_session_message.h"
 #include "test_i_target_common.h"
 
 // forward declarations
@@ -47,34 +44,27 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  Test_I_Target_Configuration,
                                  Test_I_Target_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 /////////
                                  Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
+class Test_I_Target_Stream_Message;
+class Test_I_Target_Stream_SessionMessage;
 
 class Test_I_Target_Stream
- : public Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
-                                        //
+ : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
-                                        //
                                         int,
-                                        int,
+                                        Stream_SessionMessageType,
                                         Stream_StateMachine_ControlState,
                                         Test_I_Target_StreamState,
-                                        //
                                         Test_I_Target_StreamConfiguration,
-                                        //
                                         Test_I_RuntimeStatistic_t,
-                                        //
                                         Stream_ModuleConfiguration,
                                         Test_I_Target_Stream_ModuleHandlerConfiguration,
-                                        //
                                         Test_I_Target_Stream_SessionData,   // session data
                                         Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
-                                        //
                                         ACE_Message_Block,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_Stream_SessionMessage,
-                                        //
                                         ACE_INET_Addr,
                                         Test_I_Target_InetConnectionManager_t>
 {
@@ -99,30 +89,22 @@ class Test_I_Target_Stream
   virtual void report () const;
 
  private:
-  typedef Stream_Module_Net_IO_Stream_T<ACE_SYNCH_MUTEX,
-                                        //
+  typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
-                                        //
                                         int,
-                                        int,
+                                        Stream_SessionMessageType,
                                         Stream_StateMachine_ControlState,
                                         Test_I_Target_StreamState,
-                                        //
                                         Test_I_Target_StreamConfiguration,
-                                        //
                                         Test_I_RuntimeStatistic_t,
-                                        //
                                         Stream_ModuleConfiguration,
                                         Test_I_Target_Stream_ModuleHandlerConfiguration,
-                                        //
                                         Test_I_Target_Stream_SessionData,   // session data
                                         Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
-                                        //
                                         ACE_Message_Block,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_Stream_SessionMessage,
-                                        //
                                         ACE_INET_Addr,
                                         Test_I_Target_InetConnectionManager_t> inherited;
 

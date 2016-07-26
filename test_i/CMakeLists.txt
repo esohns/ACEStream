@@ -8,6 +8,12 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
  endif ()
 endif ()
 
+set (${PROJECT_NAME}_Test_I_SRCS
+     test_u_common.h)
+#install (FILES
+#         ${PROJECT_NAME}_Test_I_SRCS
+#         DESTINATION include)
+
 add_subdirectory (camstream)
 add_subdirectory (filestream)
 add_subdirectory (http_get)

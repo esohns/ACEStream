@@ -30,6 +30,7 @@
 #include "linux/videodev2.h"
 #endif
 
+#include "stream_control_message.h"
 #include "stream_macros.h"
 
 Stream_CamSave_Message::Stream_CamSave_Message (unsigned int size_in)

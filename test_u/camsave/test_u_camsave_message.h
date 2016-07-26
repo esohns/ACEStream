@@ -33,18 +33,20 @@ class ACE_Data_Block;
 class ACE_Message_Block;
 class Stream_CamSave_SessionMessage;
 template <typename AllocatorConfigurationType,
-          typename MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_CamSave_Message
  : public Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
-                                   //////
+                                   Test_U_ControlMessage_t,
+                                   Stream_CamSave_SessionMessage,
                                    Stream_CamSave_MessageData,
                                    int>
 {
-  // grant access to specific private ctors...
+  // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-
+                                                 Test_U_ControlMessage_t,
                                                  Stream_CamSave_Message,
                                                  Stream_CamSave_SessionMessage>;
 
@@ -73,12 +75,13 @@ class Stream_CamSave_Message
 
  private:
   typedef Stream_DataMessageBase_T<Stream_AllocatorConfiguration,
-                                   //////
+                                   Test_U_ControlMessage_t,
+                                   Stream_CamSave_SessionMessage,
                                    Stream_CamSave_MessageData,
                                    int> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_Message ())
-  // *NOTE*: to be used by message allocators...
+  // *NOTE*: to be used by message allocators
   Stream_CamSave_Message (ACE_Data_Block*, // data block
                           ACE_Allocator*,  // message allocator
                           bool = true);    // increment running message counter ?

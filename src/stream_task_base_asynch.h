@@ -34,12 +34,12 @@ class ACE_Time_Value;
 //                   can be asynchronous
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          ////////////////////////////////
           typename ConfigurationType,
-          ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 class Stream_TaskBaseAsynch_T
 // *TODO*: figure out whether it is possible to use ACE_NULL_SYNCH in this case
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
@@ -47,7 +47,9 @@ class Stream_TaskBaseAsynch_T
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType>
+                            SessionMessageType,
+                            SessionIdType,
+                            SessionEventType>
 {
  public:
   virtual ~Stream_TaskBaseAsynch_T ();
@@ -78,13 +80,15 @@ class Stream_TaskBaseAsynch_T
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType> inherited;
+                            SessionMessageType,
+                            SessionIdType,
+                            SessionEventType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T (const Stream_TaskBaseAsynch_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseAsynch_T& operator= (const Stream_TaskBaseAsynch_T&))
 };
 
-// include template implementation
+// include template definition
 #include "stream_task_base_asynch.inl"
 
 #endif

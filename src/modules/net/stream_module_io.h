@@ -30,7 +30,7 @@
 #include "stream_headmoduletask_base.h"
 #include "stream_task_base_synch.h"
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,                 // state machine
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
@@ -50,33 +50,28 @@ template <typename LockType,
           typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IOWriter_T // --> output
- : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
+ : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_Net_IOWriter_T (LockType* = NULL); // lock handle (state machine)
+  Stream_Module_Net_IOWriter_T (ACE_SYNCH_MUTEX_T* = NULL); // lock handle (state machine)
   virtual ~Stream_Module_Net_IOWriter_T ();
 
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<LockType,
+  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                     ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     ControlMessageType,
@@ -112,23 +107,18 @@ class Stream_Module_Net_IOWriter_T // --> output
   //virtual Stream_Base_t* upStream () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType> inherited;
   typedef ACE_Message_Queue<ACE_MT_SYNCH,
                             Common_TimePolicy_t> MESSAGEQUEUE_T;
@@ -155,7 +145,7 @@ class Stream_Module_Net_IOWriter_T // --> output
 
 //////////////////////////////////////////
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -170,41 +160,41 @@ template <typename SynchStrategyType,
           typename AddressType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IOReader_T // --> input
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
 {
  public:
-   Stream_Module_Net_IOReader_T ();
-   virtual ~Stream_Module_Net_IOReader_T ();
+  Stream_Module_Net_IOReader_T ();
+  virtual ~Stream_Module_Net_IOReader_T ();
 
-   //virtual bool initialize (const ConfigurationType&);
+  //virtual bool initialize (const ConfigurationType&);
 
-   // override some task-based members
-   // implement (part of) Stream_ITaskBase_T
+  // override some task-based members
+  // implement (part of) Stream_ITaskBase_T
 //   virtual void handleDataMessage (MessageType*&, // data message handle
 //                                   bool&);        // return value: pass message downstream ?
-   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                      bool&);               // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
 
-   //// implement Stream_IModuleHandler_T
-   //virtual const ModuleHandlerConfigurationType& get () const;
+  //// implement Stream_IModuleHandler_T
+  //virtual const ModuleHandlerConfigurationType& get () const;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T (const Stream_Module_Net_IOReader_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_IOReader_T& operator= (const Stream_Module_Net_IOReader_T&))
@@ -213,6 +203,7 @@ class Stream_Module_Net_IOReader_T // --> input
   bool                                          initialized_;
 };
 
+// include template definition
 #include "stream_module_io.inl"
 
 #endif

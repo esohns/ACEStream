@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_MODULE_EVENTHANDLER_H
-#define TEST_I_MODULE_EVENTHANDLER_H
+#ifndef TEST_I_TARGET_MODULE_EVENTHANDLER_H
+#define TEST_I_TARGET_MODULE_EVENTHANDLER_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -30,68 +30,20 @@
 #include "stream_streammodule_base.h"
 #include "stream_misc_messagehandler.h"
 
-#include "test_i_message.h"
-#include "test_i_session_message.h"
-#include "test_i_source_common.h"
 #include "test_i_target_common.h"
 
-class Test_I_Source_Stream_Module_EventHandler
- : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
-                                         Common_TimePolicy_t,
-
-                                         Test_I_Source_Stream_ModuleHandlerConfiguration,
-
-                                         ACE_Message_Block,
-                                         Test_I_Source_Stream_Message,
-                                         Test_I_Source_Stream_SessionMessage,
-
-                                         unsigned int,
-                                         Test_I_Source_Stream_SessionData_t>
-{
- public:
-  Test_I_Source_Stream_Module_EventHandler ();
-  virtual ~Test_I_Source_Stream_Module_EventHandler ();
-
-  // implement Common_IClone_T
-  virtual Stream_Module_t* clone ();
-
- private:
-  typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
-                                         Common_TimePolicy_t,
-
-                                         Test_I_Source_Stream_ModuleHandlerConfiguration,
-
-                                         ACE_Message_Block,
-                                         Test_I_Source_Stream_Message,
-                                         Test_I_Source_Stream_SessionMessage,
-
-                                         unsigned int,
-                                         Test_I_Source_Stream_SessionData_t> inherited;
-
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_Module_EventHandler (const Test_I_Source_Stream_Module_EventHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_Module_EventHandler& operator= (const Test_I_Source_Stream_Module_EventHandler&))
-};
-
-// declare module
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
-                              Common_TimePolicy_t,                             // time policy
-                              Stream_ModuleConfiguration,                      // module configuration type
-                              Test_I_Source_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_Source_Stream_Module_EventHandler);       // writer type
-
-////////////////////////////////////////////////////////////////////////////////
+// forward declarations
+class Test_I_Target_Stream_Message;
+class Test_I_Target_Stream_SessionMessage;
 
 class Test_I_Target_Stream_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-
                                          Test_I_Target_Stream_ModuleHandlerConfiguration,
-
                                          ACE_Message_Block,
                                          Test_I_Target_Stream_Message,
                                          Test_I_Target_Stream_SessionMessage,
-
-                                         unsigned int,
+                                         Stream_SessionId_t,
                                          Test_I_Target_Stream_SessionData_t>
 {
   public:
@@ -104,14 +56,11 @@ class Test_I_Target_Stream_Module_EventHandler
   private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-
                                          Test_I_Target_Stream_ModuleHandlerConfiguration,
-
                                          ACE_Message_Block,
                                          Test_I_Target_Stream_Message,
                                          Test_I_Target_Stream_SessionMessage,
-
-                                         unsigned int,
+                                         Stream_SessionId_t,
                                          Test_I_Target_Stream_SessionData_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream_Module_EventHandler (const Test_I_Target_Stream_Module_EventHandler&))
@@ -119,11 +68,10 @@ class Test_I_Target_Stream_Module_EventHandler
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
-                              Common_TimePolicy_t,                             // time policy
-                              Stream_ModuleConfiguration,                      // module configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_Stream_SessionData,                // session data type
+                              Stream_SessionMessageType,                       // session event type
                               Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_IStreamNotify_t,                          // stream notification interface type
                               Test_I_Target_Stream_Module_EventHandler);       // writer type
-
 
 #endif

@@ -28,7 +28,7 @@
 #include "stream_macros.h"
 #include "stream_message_base.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -38,7 +38,7 @@ template <typename SynchStrategyType,
           typename StatisticContainerType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -79,7 +79,7 @@ Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -89,7 +89,7 @@ template <typename SynchStrategyType,
           typename StatisticContainerType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -111,7 +111,7 @@ Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
     sessionData_->decrease ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -122,7 +122,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 bool
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -211,7 +211,7 @@ Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
   return initialized_;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -222,7 +222,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -242,7 +242,7 @@ Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
 
   ACE_NOTREACHED (return;)
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -253,7 +253,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -287,7 +287,7 @@ Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
     messageTypeStatistic_[message_inout->command ()]++;
   } // end lock scope
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -298,7 +298,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -422,7 +422,7 @@ Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -433,7 +433,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -492,7 +492,7 @@ continue_:
                   ACE_TEXT ("failed to Stream_Module_Statistic_WriterTask_T::putStatisticMessage(), continuing\n")));
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -503,7 +503,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 bool
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -534,7 +534,7 @@ Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
   return true;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -545,7 +545,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -603,7 +603,7 @@ Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
     } // end IF
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -614,7 +614,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -678,7 +678,7 @@ Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
     } // end IF
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -689,7 +689,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 void
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -734,7 +734,7 @@ Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
   } // end IF
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -745,7 +745,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 bool
-Stream_Module_Statistic_WriterTask_T<SynchStrategyType,
+Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -875,7 +875,7 @@ allocate:
 
 // -----------------------------------------------------------------------------
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -885,7 +885,7 @@ template <typename SynchStrategyType,
           typename StatisticContainerType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
-Stream_Module_Statistic_ReaderTask_T<SynchStrategyType,
+Stream_Module_Statistic_ReaderTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -902,7 +902,7 @@ Stream_Module_Statistic_ReaderTask_T<SynchStrategyType,
   inherited::flags_ |= ACE_Task_Flags::ACE_READER;
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -912,7 +912,7 @@ template <typename SynchStrategyType,
           typename StatisticContainerType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
-Stream_Module_Statistic_ReaderTask_T<SynchStrategyType,
+Stream_Module_Statistic_ReaderTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,
@@ -927,7 +927,7 @@ Stream_Module_Statistic_ReaderTask_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -938,7 +938,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType> // session message payload (reference counted)
 int
-Stream_Module_Statistic_ReaderTask_T<SynchStrategyType,
+Stream_Module_Statistic_ReaderTask_T<ACE_SYNCH_USE,
                                      TimePolicyType,
                                      ConfigurationType,
                                      ControlMessageType,

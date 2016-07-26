@@ -30,7 +30,7 @@
 
 #include "stream_dev_common.h"
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
@@ -47,34 +47,29 @@ template <typename LockType,
           ////////////////////////////////
           typename StatisticContainerType>
 class Stream_Module_CamSource_V4L_T
- : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
+ : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType>
 {
  public:
-  Stream_Module_CamSource_V4L_T (LockType* = NULL, // lock handle (state machine)
+  Stream_Module_CamSource_V4L_T (typename ACE_SYNCH_USE::MUTEX* = NULL, // lock handle (state machine)
                                  /////////
-                                 bool = false);    // auto-start ?
+                                 bool = false);                // auto-start ?
   virtual ~Stream_Module_CamSource_V4L_T ();
 
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)
-  using Stream_HeadModuleTaskBase_T<LockType,
+  using Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                     ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     ControlMessageType,
@@ -103,23 +98,18 @@ class Stream_Module_CamSource_V4L_T
 //  virtual void report () const;
 
  private:
-  typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
+  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_CamSource_V4L_T (const Stream_Module_CamSource_V4L_T&))
@@ -142,6 +132,7 @@ class Stream_Module_CamSource_V4L_T
   bool                             isPassive_; // foreign device descriptor ?
 };
 
+// include template definition
 #include "stream_dev_cam_source_v4l.inl"
 
 #endif

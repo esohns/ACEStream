@@ -27,7 +27,7 @@
 
 #include "stream_macros.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -35,7 +35,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
-Stream_Module_XPathQuery_T<SynchStrategyType,
+Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -49,7 +49,7 @@ Stream_Module_XPathQuery_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -57,7 +57,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
-Stream_Module_XPathQuery_T<SynchStrategyType,
+Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            ControlMessageType,
@@ -88,7 +88,7 @@ Stream_Module_XPathQuery_T<SynchStrategyType,
 //  ACE_UNUSED_ARG (message_inout);
 //}
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -97,7 +97,7 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 void
-Stream_Module_XPathQuery_T<SynchStrategyType,
+Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
                                        TimePolicyType,
                                        ConfigurationType,
                                        ControlMessageType,
@@ -222,7 +222,7 @@ Stream_Module_XPathQuery_T<SynchStrategyType,
 //
 //  return configuration_;
 //}
-//template <typename SynchStrategyType,
+//template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename ConfigurationType,
 //          typename ControlMessageType,

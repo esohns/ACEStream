@@ -25,7 +25,6 @@
 
 #include "ace/Atomic_Op.h"
 #include "ace/Global_Macros.h"
-#include "ace/Malloc_Base.h"
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
@@ -34,9 +33,13 @@
 #include "stream_common.h"
 #include "stream_idatamessage.h"
 #include "stream_messageallocatorheap_base.h"
-#include "stream_session_message_base.h"
+
+// forward declarations
+class ACE_Allocator;
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename CommandType = int>
 class Stream_MessageBase_T
  : public ACE_Message_Block
@@ -45,13 +48,12 @@ class Stream_MessageBase_T
 {
   // grant access to specific ctors
   friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
-
+                                                 ControlMessageType,
                                                  Stream_MessageBase_T<AllocatorConfigurationType,
-                                                                      int>,
-                                                 Stream_SessionMessageBase_T<AllocatorConfigurationType,
-
-                                                                             Stream_SessionData,
-                                                                             Stream_UserData> >;
+                                                                      CommandType,
+                                                                      ControlMessageType,
+                                                                      SessionMessageType>,
+                                                 SessionMessageType>;
 
  public:
   virtual ~Stream_MessageBase_T ();
@@ -73,15 +75,19 @@ class Stream_MessageBase_T
   static void resetMessageIDGenerator ();
 
  protected:
+  // convenient types
   typedef ACE_Message_Block MESSAGE_BLOCK_T;
+  typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               ControlMessageType,
+                               SessionMessageType,
+                               CommandType> OWN_TYPE_T;
 
   // ctor(s) for STREAM_MESSAGE_OBJECT
   Stream_MessageBase_T ();
   // ctor(s) for MB_STREAM_DATA
   Stream_MessageBase_T (unsigned int); // size
   // copy ctor, to be used by derivates
-  Stream_MessageBase_T (const Stream_MessageBase_T<AllocatorConfigurationType,
-                                                   CommandType>&);
+  Stream_MessageBase_T (const OWN_TYPE_T&);
 
   // *NOTE*: to be used by message allocators
   Stream_MessageBase_T (ACE_Data_Block*, // data block
@@ -100,10 +106,6 @@ class Stream_MessageBase_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_T& operator= (const Stream_MessageBase_T&))
 
-  // convenient types
-  typedef Stream_MessageBase_T<AllocatorConfigurationType,
-                               CommandType> OWN_TYPE_T;
-
   // overrides from ACE_Message_Block
   // *IMPORTANT NOTE*: children ALWAYS need to override this too !
   virtual ACE_Message_Block* duplicate (void) const;
@@ -111,34 +113,36 @@ class Stream_MessageBase_T
   // atomic ID generator
   static ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> currentID;
 
-  unsigned int messageID_;
+  unsigned int       messageID_;
 };
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 #include "common_iget.h"
 
 template <typename AllocatorConfigurationType,
-          ///////////////////////////////
+          typename ControlMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename HeaderType,
-          typename CommandType>
+          typename CommandType = int>
 class Stream_MessageBase_2
  : public Stream_MessageBase_T<AllocatorConfigurationType,
+                               ControlMessageType,
+                               SessionMessageType,
                                CommandType>
 // , public Common_IGet_T<HeaderType>
 // , public Common_IGet_T<ProtocolCommandType>
 {
   // grant access to specific ctors
   friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
-
+                                                 ControlMessageType,
                                                  Stream_MessageBase_2<AllocatorConfigurationType,
-
+                                                                      ControlMessageType,
+                                                                      SessionMessageType,
                                                                       HeaderType,
                                                                       CommandType>,
-                                                 Stream_SessionMessageBase_T<AllocatorConfigurationType,
-
-                                                                             Stream_SessionData,
-                                                                             Stream_UserData> >;
+                                                 SessionMessageType>;
 
  public:
   virtual ~Stream_MessageBase_2 ();
@@ -160,16 +164,19 @@ class Stream_MessageBase_2
   Stream_MessageBase_2 (ACE_Data_Block*, // data block to use
                         ACE_Allocator*); // message allocator
 
-  bool initialized_;
+  bool isInitialized_;
 
  private:
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               ControlMessageType,
+                               SessionMessageType,
                                CommandType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_2 ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageBase_2& operator= (const Stream_MessageBase_2&))
 };
 
+// include template definition
 #include "stream_message_base.inl"
 
 #endif

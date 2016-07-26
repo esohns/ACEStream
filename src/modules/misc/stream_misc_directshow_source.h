@@ -36,7 +36,7 @@
 #include "stream_misc_directshow_asynch_source_filter.h"
 #include "stream_misc_directshow_source_filter.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -51,14 +51,14 @@ template <typename SynchStrategyType,
           typename PinConfigurationType,
           typename MediaType>
 class Stream_Misc_DirectShow_Source_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ConfigurationType>
 {
   //typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
@@ -99,14 +99,14 @@ class Stream_Misc_DirectShow_Source_T
   SessionDataType*     sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   //ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T (const Stream_Misc_DirectShow_Source_T&))
@@ -120,7 +120,6 @@ class Stream_Misc_DirectShow_Source_T
                               IGraphBuilder*&);               // return value: (capture) graph builder handle
   void finalize_DirectShow ();
 
-  bool                 isInitialized_;
   bool                 push_; // push/pull strategy
 
   IGraphBuilder*       IGraphBuilder_;

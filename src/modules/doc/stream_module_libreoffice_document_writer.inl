@@ -55,7 +55,6 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
  : inherited ()
  , component_ ()
  , context_ ()
- , isInitialized_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::Stream_Module_LibreOffice_Document_Writer_T"));
 
@@ -316,11 +315,11 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                             SessionMessageType,
                                             ModuleHandlerConfigurationType,
                                             SessionDataType,
-                                            DocumentType>::initialize (const ConfigurationType& configuration_in)
+                                            DocumentType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::initialize"));
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
     // *TODO*: ::lang::XComponent::dispose crashes the application
     if (component_.is ())
@@ -328,16 +327,10 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
     if (context_.is ())
       uno::Reference<lang::XComponent>::query (context_)->dispose ();
 
-    isInitialized_ = false;
+    inherited::isInitialized_ = false;
   } // end IF
 
-  isInitialized_ = inherited::initialize (configuration_in);
-  if (!isInitialized_)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
-                ACE_TEXT (inherited::name ())));
-
-  return isInitialized_;
+  return inherited::initialize (configuration_in);
 }
 //template <typename SynchStrategyType,
 //          typename TimePolicyType,

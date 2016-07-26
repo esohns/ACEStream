@@ -57,7 +57,8 @@ Stream_Base_T<LockType,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::Stream_Base_T (const std::string& name_in)
+              SessionMessageType>::Stream_Base_T (const std::string& name_in,
+                                                  bool supportLinking_in)
  : inherited (NULL, // argument to module open()
               NULL, // allocate head module
               NULL) // allocate tail module
@@ -71,43 +72,71 @@ Stream_Base_T<LockType,
  /////////////////////////////////////////
  , hasFinal_ (false)
  , name_ (name_in)
- //, headReaderTask_ ()
- //, headWriterTask_ ()
- //, head_ ()
- //, tailReaderTask_ ()
- //, tailWriterTask_ ()
- //, tail_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
-  //int result = -1;
+  // *NOTE*: this enforces use of upstream (if any) session data for all session
+  //         messages
+  if (supportLinking_in)
+  {
+    int result = -1;
 
-  //result = inherited::close (inherited::M_DELETE);
-  //if (result == -1)
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ACE_Stream::close(): \"%m\", continuing\n")));
+    HEAD_T* writer_p = NULL;
+    ACE_NEW_NORETURN (writer_p,
+                      HEAD_T ());
+    HEAD_BASE_T* reader_p = NULL;
+    ACE_NEW_NORETURN (reader_p,
+                      HEAD_BASE_T ());
+    if (!writer_p || !reader_p)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
+      return;
+    } // end IF
+    MODULE_T* module_p = NULL;
+    ACE_NEW_NORETURN (module_p,
+                      MODULE_T (ACE_TEXT ("StreamHead"),
+                                writer_p, reader_p,
+                                NULL,
+                                ACE_Module_Base::M_DELETE));
+    if (!module_p)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory: \"%m\", returning\n")));
 
-  //result = head_.open (ACE_TEXT ("ACE_Stream_Head"),
-  //                     &headWriterTask_, &headReaderTask_,
-  //                     NULL,
-  //                     ACE_Module_Base::M_DELETE_NONE);
-  //if (result == -1)
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ACE_Module::open(): \"%m\", continuing\n")));
-  //result = tail_.open (ACE_TEXT ("ACE_Stream_Tail"),
-  //                     &tailWriterTask_, &tailReaderTask_,
-  //                     NULL,
-  //                     ACE_Module_Base::M_DELETE_NONE);
-  //if (result == -1)
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ACE_Module::open(): \"%m\", continuing\n")));
+      // clean up
+      delete writer_p;
+      delete reader_p;
 
-  //result = inherited::open (NULL,    // argument to module open()
-  //                          &head_,  // head module handle
-  //                          &tail_); // tail module handle
-  //if (result == -1)
-  //  ACE_DEBUG ((LM_ERROR,
-  //                 ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", continuing\n")));
+      return;
+    } // end IF
+
+    result = inherited::close ();
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Stream::close(): \"%m\", returning\n")));
+
+      // clean up
+      delete module_p;
+
+      return;
+    } // end IF
+
+    result = inherited::open (NULL,
+                              module_p,
+                              NULL);
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Stream::open(): \"%m\", returning\n")));
+
+      // clean up
+      delete module_p;
+
+      return;
+    } // end IF
+  } // end IF
 }
 
 template <typename LockType,
@@ -762,7 +791,7 @@ Stream_Base_T<LockType,
   {
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("%s: stopping upstream...\n"),
-    //            ACE_TEXT (name ().c_str ())));
+    //            ACE_TEXT (name_.c_str ())));
 
     // delegate to the head module, skip over ACE_Stream_Head...
     result = upStream_->top (module_p);
@@ -773,10 +802,10 @@ Stream_Base_T<LockType,
       return;
     } // end IF
 
-      // *WARNING*: cannot flush(), as this deactivates() the queue as well, which
-      //            causes mayhem for any (blocked) worker(s)
-      // *TODO*: consider optimizing this
-      //module->writer ()->flush ();
+    // *WARNING*: cannot flush(), as this deactivates() the queue as well, which
+    //            causes mayhem for any (blocked) worker(s)
+    // *TODO*: consider optimizing this
+    //module->writer ()->flush ();
     control_impl_p =
       dynamic_cast<ISTREAM_CONTROL_T*> (module_p->writer ());
     if (!control_impl_p)
@@ -799,7 +828,7 @@ Stream_Base_T<LockType,
 
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("%s: stopping upstream...done\n"),
-    //            ACE_TEXT (name ().c_str ())));
+    //            ACE_TEXT (name_.c_str ())));
   } // end IF
 
   if (!isRunning ())
@@ -1066,21 +1095,51 @@ Stream_Base_T<LockType,
     if (!istream_control_p)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
+                  ACE_TEXT ("%s: failed to dynamic_cast<Stream_IStreamControl_T>(0x%@), returning\n"),
+                  ACE_TEXT (name_.c_str ()),
                   upStream_));
       return;
     } // end IF
-    istream_control_p->notify (notification_in,
-                               forwardUpstream_in);
+    try {
+      istream_control_p->notify (notification_in,
+                                 forwardUpstream_in);
+    }
+    catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: caught exception in Stream_IStreamControl::notify(%d), continuing\n"),
+                  ACE_TEXT (name_.c_str ()),
+                  notification_in));
+    }
     return;
   } // end IF
+
+  // send control ?
+  // *TODO*: this is strategy and has be traited ASAP
+//  bool send_control = false;
+  ControlType control_type = STREAM_CONTROL_INVALID;
+  switch (notification_in)
+  {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      control_type = STREAM_CONTROL_FLUSH;
+
+      break;
+    }
+    default:
+    {
+
+      break;
+    }
+  } // end SWITCH
+  ACE_UNUSED_ARG (control_type);
 
   MODULE_T* module_p = NULL;
   result = inherited::top (module_p);
   if ((result == -1) || !module_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Stream::top(): \"%m\", returning\n")));
+                ACE_TEXT ("%s: failed to ACE_Stream::top(): \"%m\", returning\n"),
+                ACE_TEXT (name_.c_str ())));
     return;
   } // end IF
   ACE_ASSERT (module_p);
@@ -1090,7 +1149,8 @@ Stream_Base_T<LockType,
   if (!istream_control_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: dynamic_cast<Stream_IStreamControl> failed, returning\n"),
+                ACE_TEXT ("%s: module \"%s\": dynamic_cast<Stream_IStreamControl> failed, returning\n"),
+                ACE_TEXT (name_.c_str ()),
                 module_p->name ()));
     return;
   } // end IF
@@ -1100,7 +1160,8 @@ Stream_Base_T<LockType,
                                false);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: caught exception in Stream_IStreamControl::notify(%d), returning\n"),
+                ACE_TEXT ("%s: caught exception in module \"%s\" Stream_IStreamControl::notify(%d), returning\n"),
+                ACE_TEXT (name_.c_str ()),
                 module_p->name (),
                 notification_in));
     return;
@@ -1184,13 +1245,12 @@ Stream_Base_T<LockType,
               ControlMessageType,
               DataMessageType,
               SessionMessageType>::flush (bool flushInbound_in,
+                                          bool flushSessionMessages_in,
                                           bool flushUpStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::flush"));
 
   int result = -1;
-
-  // *WARNING*: make sure not to flush any control/session messages !
 
   // *IMPORTANT NOTE*: if this stream has been linked (e.g. connection is part
   //                   of another stream), flush the whole pipeline ?
@@ -1206,6 +1266,7 @@ Stream_Base_T<LockType,
       return;
     } // end IF
     istream_control_p->flush (flushInbound_in,
+                              flushSessionMessages_in,
                               flushUpStream_in);
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("flushed upstream \"%s\"...\n"),
@@ -1213,17 +1274,19 @@ Stream_Base_T<LockType,
   } // end IF
 
   Stream_ModuleList_t modules;
-  const MODULE_T* head_p = inherited::head ();
-  const MODULE_T* tail_p = inherited::tail ();
+//  const MODULE_T* head_p = inherited::head ();
+//  const MODULE_T* tail_p = inherited::tail ();
   const MODULE_T* module_p = NULL;
-  Stream_Task_t* task_p = NULL;
-  Stream_Queue_t* queue_p = NULL;
+  TASK_T* task_p = NULL;
+  QUEUE_T* queue_p = NULL;
   Stream_IMessageQueue* iqueue_p = NULL;
   //  unsigned int number_of_messages = 0;
-  const MODULE_T* top_module_p =
-    (upStream_ ? NULL
-               : const_cast<MODULE_T*> (head_p)->next ());
+//  const MODULE_T* top_module_p =
+//    (upStream_ ? NULL
+//               : const_cast<MODULE_T*> (head_p)->next ());
 
+  // *TODO*: implement a control message and move the implementation into the
+  //         task itself
   if (!flushInbound_in)
     goto continue_;
 
@@ -1232,13 +1295,8 @@ Stream_Base_T<LockType,
        (iterator.next (module_p) != 0);
        iterator.advance ())
   {
-    // skip stream head/tail
-    if ((module_p == head_p)       ||
-        (module_p == top_module_p) || // <-- stream generator
-        (module_p == tail_p))
-      continue;
-
     modules.push_front (const_cast<MODULE_T*> (module_p));
+
     task_p = const_cast<MODULE_T*> (module_p)->writer ();
     if (!task_p) // close()d already ?
       continue;
@@ -1248,29 +1306,28 @@ Stream_Base_T<LockType,
     if (!iqueue_p)
     {
       // *NOTE*: most probable cause: module is (upstream) head
-      // *TODO*: control/session messages are flushed here, this must not
-      //         happen
+      // *TODO*: all messages are flushed here, this must not happen
       result = queue_p->flush ();
     } // end IF
     else
-      result = static_cast<int> (iqueue_p->flushData ());
+      result = static_cast<int> (iqueue_p->flush (flushSessionMessages_in));
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("\"%s\":\"%s\" writer: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
-                  ACE_TEXT (name ().c_str ()), module_p->name ()));
+                  ACE_TEXT (name_.c_str ()), module_p->name ()));
     } // end IF
     else if (result)
     {
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("\"%s\":\"%s\" writer: flushed %d message(s)...\n"),
-                  ACE_TEXT (name ().c_str ()), module_p->name (),
+                  ACE_TEXT ("\"%s\":\"%s\" writer: flushed %d message(s)\n"),
+                  ACE_TEXT (name_.c_str ()), module_p->name (),
                   result));
     } // end IF
 
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("\"%s\":\"%s\" writer: flushed...\n"),
-    //            ACE_TEXT (name ().c_str ()), module_p->name ()));
+    //            ACE_TEXT (name_.c_str ()), module_p->name ()));
 
     module_p = NULL;
   } // end FOR
@@ -1290,29 +1347,28 @@ continue_:
     if (!iqueue_p)
     {
       // *NOTE*: most probable cause: module is (upstream) head
-      // *TODO*: control/session messages are flushed here, this must not
-      //         happen
+      // *TODO*: all messages are flushed here, this must not happen
       result = queue_p->flush ();
     } // end IF
     else
-      result = static_cast<int> (iqueue_p->flushData ());
+      result = static_cast<int> (iqueue_p->flush (flushSessionMessages_in));
     if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("\"%s\":\"%s\" reader: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
-                  ACE_TEXT (name ().c_str ()), (*iterator)->name ()));
+                  ACE_TEXT (name_.c_str ()), (*iterator)->name ()));
     } // end IF
     else if (result)
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("\"%s\":\"%s\" reader: flushed %d message(s)...\n"),
-                  ACE_TEXT (name ().c_str ()), (*iterator)->name (),
+                  ACE_TEXT (name_.c_str ()), (*iterator)->name (),
                   result));
     } // end IF
 
     //ACE_DEBUG ((LM_DEBUG,
     //            ACE_TEXT ("\"%s\":\"%s\" reader: flushed...\n"),
-    //            ACE_TEXT (name ().c_str ()), (*iterator)->name ()));
+    //            ACE_TEXT (name_.c_str ()), (*iterator)->name ()));
   } // end FOR
 }
 
@@ -1612,7 +1668,8 @@ Stream_Base_T<LockType,
   if (result == 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no head module found, returning\n")));
+                ACE_TEXT ("%s: no head module found, returning\n"),
+                ACE_TEXT (name_.c_str ())));
     return;
   } // end IF
   const MODULE_T* module_p = NULL;
@@ -1620,7 +1677,8 @@ Stream_Base_T<LockType,
   if (result == 0)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("no head module found, returning\n")));
+                ACE_TEXT ("%s: no head module found, returning\n"),
+                ACE_TEXT (name_.c_str ())));
     return;
   } // end IF
 
@@ -1656,8 +1714,8 @@ Stream_Base_T<LockType,
   }
 
   // step1b: wait for (inbound) processing pipeline to flush
-  Stream_Task_t* task_p = NULL;
-  Stream_Queue_t* queue_p = NULL;
+  TASK_T* task_p = NULL;
+  QUEUE_T* queue_p = NULL;
   ACE_Time_Value one_second (1, 0);
   size_t message_count = 0;
   for (iterator.advance ();
@@ -1818,8 +1876,8 @@ Stream_Base_T<LockType,
 //  // step1b: wait for (inbound) processing pipeline to flush
 //  ITASK_T* itask_p = NULL;
 //  MODULE_T* tail_module_p = const_cast<OWN_TYPE_T*> (this)->tail ();
-//  Stream_Task_t* task_p = NULL;
-//  Stream_Queue_t* queue_p = NULL;
+//  TASK_T* task_p = NULL;
+//  QUEUE_T* queue_p = NULL;
 //  ACE_Time_Value one_second (1, 0);
 //  size_t message_count = 0;
 //  for (;
@@ -1944,7 +2002,8 @@ template <typename LockType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-const Stream_Module_t*
+const ACE_Module<ACE_SYNCH_USE,
+                 TimePolicyType>*
 Stream_Base_T<LockType,
               ACE_SYNCH_USE,
               TimePolicyType,
@@ -1968,11 +2027,10 @@ Stream_Base_T<LockType,
 
   // step1: search for the module on the stream
   const ACE_TCHAR* name_p = ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ());
-  const Stream_Module_t* module_p = NULL;
-  ITERATOR_T iterator (*base_p);
-  for (iterator.next (module_p);
-       iterator.done () == 0;
-       iterator.advance (), iterator.next (module_p))
+  const MODULE_T* module_p = NULL;
+  for (ITERATOR_T iterator (*base_p);
+       iterator.next (module_p);
+       iterator.advance ())
     if (ACE_OS::strcmp (module_p->name (), name_p) == 0)
       return module_p;
   //result = this_p->inherited::find (name_p);
@@ -2101,7 +2159,312 @@ Stream_Base_T<LockType,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::upStream (Stream_Base_t* upStream_in)
+              SessionMessageType>::lock ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::lock"));
+
+  int result = -1;
+  MODULE_T* module_p = NULL;
+  TASK_T* task_p = NULL;
+  Stream_ILock_t* ilock_p = NULL;
+
+  if (upStream_)
+  {
+    result = upStream_->top (module_p);
+    if ((result == -1) || !module_p)
+    {
+      //ACE_DEBUG ((LM_ERROR,
+      //            ACE_TEXT ("%s: no head module found: \"%m\", continuing\n"),
+      //            ACE_TEXT (upStream_->name ().c_str ())));
+      goto _continue;
+    } // end IF
+    task_p = module_p->writer ();
+    ACE_ASSERT (task_p);
+
+    ilock_p = dynamic_cast<Stream_ILock_t*> (task_p);
+    if (!ilock_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to dynamic_cast<Stream_ILock_t*>(%@), continuing\n"),
+                  module_p->name (),
+                  task_p));
+      goto _continue;
+    } // end IF
+    try {
+      ilock_p->lock ();
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: caught exception in Stream_ILock_t::lock(), continuing\n"),
+                  module_p->name ()));
+      goto _continue;
+    }
+  } // end IF
+
+_continue:
+  module_p = NULL;
+  result = inherited::top (module_p);
+  if ((result == -1) || !module_p)
+  {
+    //ACE_DEBUG ((LM_ERROR,
+    //            ACE_TEXT ("%s: no head module found: \"%m\", continuing\n"),
+    //            ACE_TEXT (name_.c_str ())));
+    return;
+  } // end IF
+  task_p = module_p->writer ();
+  ACE_ASSERT (task_p);
+
+  ilock_p = NULL;
+  ilock_p = dynamic_cast<Stream_ILock_t*> (task_p);
+  if (!ilock_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to dynamic_cast<Stream_ILock_t*>(%@), returning\n"),
+                module_p->name (),
+                task_p));
+    return;
+  } // end IF
+  try {
+    ilock_p->lock ();
+  }
+  catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Stream_ILock_t::lock(), returning\n"),
+                module_p->name ()));
+    return;
+  }
+}
+template <typename LockType,
+          ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_Base_T<LockType,
+              ACE_SYNCH_USE,
+              TimePolicyType,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::unlock ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::unlock"));
+
+  int result = -1;
+  MODULE_T* module_p = NULL;
+  TASK_T* task_p = NULL;
+  Stream_ILock_t* ilock_p = NULL;
+
+  if (upStream_)
+  {
+    result = upStream_->top (module_p);
+    if ((result == -1) || !module_p)
+    {
+      //ACE_DEBUG ((LM_ERROR,
+      //            ACE_TEXT ("%s: no head module found: \"%m\", continuing\n"),
+      //            ACE_TEXT (upStream_->name ().c_str ())));
+      goto _continue;
+    } // end IF
+    task_p = module_p->writer ();
+    ACE_ASSERT (task_p);
+
+    ilock_p = dynamic_cast<Stream_ILock_t*> (task_p);
+    if (!ilock_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to dynamic_cast<Stream_ILock_t*>(%@), continuing\n"),
+                  module_p->name (),
+                  task_p));
+      goto _continue;
+    } // end IF
+    try {
+      ilock_p->unlock ();
+    }
+    catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: caught exception in Stream_ILock_t::unlock(), continuing\n"),
+                  module_p->name ()));
+      goto _continue;
+    }
+  } // end IF
+
+_continue:
+  module_p = NULL;
+  result = inherited::top (module_p);
+  if ((result == -1) || !module_p)
+  {
+    //ACE_DEBUG ((LM_ERROR,
+    //            ACE_TEXT ("%s: no head module found: \"%m\", continuing\n"),
+    //            ACE_TEXT (name_.c_str ())));
+    return;
+  } // end IF
+  task_p = module_p->writer ();
+  ACE_ASSERT (task_p);
+
+  ilock_p = NULL;
+  ilock_p = dynamic_cast<Stream_ILock_t*> (task_p);
+  if (!ilock_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to dynamic_cast<Stream_ILock_t*>(%@), continuing\n"),
+                module_p->name (),
+                task_p));
+    return;
+  } // end IF
+  try {
+    ilock_p->unlock ();
+  }
+  catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in Stream_ILock_t::unlock(), continuing\n"),
+                module_p->name ()));
+    return;
+  }
+}
+template <typename LockType,
+          ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+ACE_SYNCH_MUTEX_T&
+Stream_Base_T<LockType,
+              ACE_SYNCH_USE,
+              TimePolicyType,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::getLock ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getLock"));
+
+  int result = -1;
+  ACE_SYNCH_MUTEX_T result_2;
+  MODULE_T* module_p = NULL;
+  TASK_T* task_p = NULL;
+  Stream_ILock_t* ilock_p = NULL;
+
+  if (upStream_)
+  {
+    result = upStream_->top (module_p);
+    if ((result == -1) || !module_p)
+    {
+      //ACE_DEBUG ((LM_ERROR,
+      //            ACE_TEXT ("%s: no head module found: \"%m\", continuing\n"),
+      //            ACE_TEXT (upStream_->name ().c_str ())));
+      return result_2;
+    } // end IF
+    task_p = module_p->writer ();
+    ACE_ASSERT (task_p);
+
+    ilock_p = dynamic_cast<Stream_ILock_t*> (task_p);
+    if (!ilock_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to dynamic_cast<Stream_ILock_t*>(%@), continuing\n"),
+                  module_p->name (),
+                  task_p));
+      return result_2;
+    } // end IF
+    return ilock_p->getLock ();
+  } // end IF
+
+  module_p = NULL;
+  result = inherited::top (module_p);
+  if ((result == -1) || !module_p)
+  {
+    //ACE_DEBUG ((LM_ERROR,
+    //            ACE_TEXT ("%s: no head module found: \"%m\", continuing\n"),
+    //            ACE_TEXT (name_.c_str ())));
+    return result_2;
+  } // end IF
+  task_p = module_p->writer ();
+  ACE_ASSERT (task_p);
+
+  ilock_p = NULL;
+  ilock_p = dynamic_cast<Stream_ILock_t*> (task_p);
+  if (!ilock_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to dynamic_cast<Stream_ILock_t*>(%@), continuing\n"),
+                module_p->name (),
+                task_p));
+    return result_2;
+  } // end IF
+  return ilock_p->getLock ();
+}
+
+template <typename LockType,
+          ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlType,
+          typename NotificationType,
+          typename StatusType,
+          typename StateType,
+          typename ConfigurationType,
+          typename StatisticContainerType,
+          typename ModuleConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_Base_T<LockType,
+              ACE_SYNCH_USE,
+              TimePolicyType,
+              ControlType,
+              NotificationType,
+              StatusType,
+              StateType,
+              ConfigurationType,
+              StatisticContainerType,
+              ModuleConfigurationType,
+              HandlerConfigurationType,
+              SessionDataType,
+              SessionDataContainerType,
+              ControlMessageType,
+              DataMessageType,
+              SessionMessageType>::upStream (STREAM_T* upStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::upStream"));
 
@@ -2126,7 +2489,8 @@ template <typename LockType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-Stream_Base_t*
+ACE_Stream<ACE_SYNCH_USE,
+           TimePolicyType>*
 Stream_Base_T<LockType,
               ACE_SYNCH_USE,
               TimePolicyType,
@@ -2191,7 +2555,7 @@ Stream_Base_T<LockType,
   const MODULE_T* tail_p = const_cast<OWN_TYPE_T*> (this)->tail ();
   ACE_ASSERT (tail_p);
   for (ITERATOR_T iterator (*this);
-       (iterator.next (module_p) != 0);
+       iterator.next (module_p);
        iterator.advance ())
   {
     stream_layout.append (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
@@ -2505,7 +2869,11 @@ Stream_Base_T<LockType,
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_inout);
   // sanity check(s)
+  // *TODO*: remove type inferences
+  ACE_ASSERT (configuration_->moduleConfiguration);
+  configuration_->moduleConfiguration->notify = this;
   ACE_ASSERT (configuration_->moduleHandlerConfiguration);
+  configuration_->moduleHandlerConfiguration->ilock = this;
   configuration_->moduleHandlerConfiguration->stateMachineLock =
     &state_.stateMachineLock;
 
@@ -2588,7 +2956,7 @@ Stream_Base_T<LockType,
               SessionDataContainerType,
               ControlMessageType,
               DataMessageType,
-              SessionMessageType>::link (Stream_Base_t& upStream_in)
+              SessionMessageType>::link (STREAM_T& upStream_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::link"));
 
@@ -2602,8 +2970,7 @@ Stream_Base_T<LockType,
     upstream_name_string = istreamcontrol_p->name ();
 
   // sanity check(s)
-  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* upstream_tailing_module_p =
-    upStream_in.head ();
+  MODULE_T* upstream_tailing_module_p = upStream_in.head ();
   if (!upstream_tailing_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2613,8 +2980,7 @@ Stream_Base_T<LockType,
   } // end IF
 
   // locate the module just above the upstreams' tail
-  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* upstream_tail_module_p =
-      upStream_in.tail ();
+  MODULE_T* upstream_tail_module_p = upStream_in.tail ();
   if (!upstream_tail_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2626,8 +2992,7 @@ Stream_Base_T<LockType,
     upstream_tailing_module_p = upstream_tailing_module_p->next ();
 
   //int result = inherited::link (upStream_in);
-  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* head_module_p =
-      inherited::head ();
+  MODULE_T* head_module_p = inherited::head ();
   if (!head_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2635,8 +3000,7 @@ Stream_Base_T<LockType,
                 ACE_TEXT (name_.c_str ())));
     return -1;
   } // end IF
-  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* heading_module_p =
-      head_module_p->next ();
+  MODULE_T* heading_module_p = head_module_p->next ();
   if (!heading_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2649,7 +3013,7 @@ Stream_Base_T<LockType,
   upstream_tailing_module_p->next (heading_module_p);
   upstream_tailing_module_p->writer ()->next (heading_module_p->writer ());
 
-  ///////////////////////////////////////
+  ////////////////////////////////////////
 
   // merge upstream session data
   OWN_TYPE_T* stream_p = dynamic_cast<OWN_TYPE_T*> (&upStream_in);
@@ -2740,8 +3104,7 @@ Stream_Base_T<LockType,
                 ACE_TEXT (name_.c_str ())));
     return -1;
   } // end IF
-  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* upstream_tailing_module_p =
-    upStream_->head ();
+  MODULE_T* upstream_tailing_module_p = upStream_->head ();
   if (!upstream_tailing_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2751,8 +3114,8 @@ Stream_Base_T<LockType,
   } // end IF
 
   // locate the module just above the upstreams' tail
-  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* module_p = NULL;
-  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* head_module_p = inherited::head ();
+  MODULE_T* module_p = NULL;
+  MODULE_T* head_module_p = inherited::head ();
   if (!head_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2760,8 +3123,7 @@ Stream_Base_T<LockType,
                 ACE_TEXT (name_.c_str ())));
     return -1;
   } // end IF
-  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* heading_module_p =
-      head_module_p->next ();
+  MODULE_T* heading_module_p = head_module_p->next ();
   if (!heading_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2791,8 +3153,7 @@ Stream_Base_T<LockType,
 
   //int result = inherited::link (upStream_in);
   heading_module_p->reader ()->next (head_module_p->reader ());
-  ACE_Module<ACE_SYNCH_USE, TimePolicyType>* upstream_tail_module_p =
-      upStream_->tail ();
+  MODULE_T* upstream_tail_module_p = upStream_->tail ();
   if (!upstream_tail_module_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -3165,7 +3526,7 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::shutdown"));
 
-  int result = -1;
+//  int result = -1;
 
   // step0: if not properly initialized, this needs to deactivate any hitherto
   // enqueued ACTIVE modules, or the stream will wait forever during closure...
@@ -3198,36 +3559,31 @@ Stream_Base_T<LockType,
   //   ACE_DEBUG ((LM_DEBUG,
   //               ACE_TEXT ("deactivating offline module(s)...\n")));
 
-  //for (ACE_DLList_Iterator<MODULE_T> iterator (availableModules_);
-  //     (iterator.next (module_p) != 0);
-  //     iterator.advance ())
-  for (Stream_ModuleListIterator_t iterator = modules_.begin ();
-       iterator != modules_.end ();
-       iterator++)
-  {
-    // sanity check: on the stream ?
-    //if (module_p->next () == NULL)
-    if ((*iterator)->next () == NULL)
-    {
-      //ACE_DEBUG ((LM_WARNING,
-      //            ACE_TEXT ("closing module: \"%s\"\n"),
-      //            module->name ()));
+  //for (Stream_ModuleListIterator_t iterator = modules_.begin ();
+  //     iterator != modules_.end ();
+  //     iterator++)
+  //{
+  //  // sanity check: on the stream ?
+  //  if ((*iterator)->next () == NULL)
+  //  {
+  //    //ACE_DEBUG ((LM_WARNING,
+  //    //            ACE_TEXT ("closing module: \"%s\"\n"),
+  //    //            module->name ()));
 
-      try {
-        //module_p->close (ACE_Module_Base::M_DELETE_NONE);
-        result = (*iterator)->close (ACE_Module_Base::M_DELETE_NONE);
-      } catch (...) {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
-                    (*iterator)->name ()));
-        result = -1;
-      }
-      if (result == -1)
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", continuing\n"),
-                    (*iterator)->name ()));
-    } // end IF
-  } // end FOR
+  //    try {
+  //      result = (*iterator)->close (ACE_Module_Base::M_DELETE_NONE);
+  //    } catch (...) {
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("%s: caught exception in ACE_Module::close(M_DELETE_NONE), continuing\n"),
+  //                  (*iterator)->name ()));
+  //      result = -1;
+  //    }
+  //    if (result == -1)
+  //      ACE_DEBUG ((LM_ERROR,
+  //                  ACE_TEXT ("%s: failed to ACE_Module::close(M_DELETE_NONE): \"%m\", continuing\n"),
+  //                  (*iterator)->name ()));
+  //  } // end IF
+  //} // end FOR
 
   //   ACE_DEBUG ((LM_DEBUG,
   //               ACE_TEXT ("deactivating offline module(s)...DONE\n")));
@@ -3299,7 +3655,8 @@ Stream_Base_T<LockType,
   if (configuration_->messageAllocator)
   {
     try { // *NOTE*: 0 --> session message
-      message_p = static_cast<SessionMessageType*> (configuration_->messageAllocator->malloc (0));
+      message_p =
+        static_cast<SessionMessageType*> (configuration_->messageAllocator->malloc (0));
     } catch (...) {
       ACE_DEBUG ((LM_CRITICAL,
                  ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), returning\n")));

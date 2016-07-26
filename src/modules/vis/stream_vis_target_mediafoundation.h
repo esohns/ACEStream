@@ -33,7 +33,7 @@
 
 #include "stream_misc_mediafoundation_target.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -45,14 +45,14 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 class Stream_Vis_Target_MediaFoundation_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
@@ -71,14 +71,14 @@ class Stream_Vis_Target_MediaFoundation_T
   //virtual const ConfigurationType& get () const;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T (const Stream_Vis_Target_MediaFoundation_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_MediaFoundation_T& operator= (const Stream_Vis_Target_MediaFoundation_T&))
@@ -93,7 +93,6 @@ class Stream_Vis_Target_MediaFoundation_T
                                    //IMFVideoSampleAllocator*&, // return value: video sample allocator handle
                                    IMFMediaSession*);         // media session handle
 
-  bool                     isInitialized_;
   IDirect3DDevice9Ex*      device_;
   IMFMediaSession*         mediaSession_;
   IMFStreamSink*           streamSink_;
@@ -103,7 +102,7 @@ class Stream_Vis_Target_MediaFoundation_T
 
 //////////////////////////////////////////
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -115,7 +114,7 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename SessionDataContainerType>
 class Stream_Vis_Target_MediaFoundation_2
- : public Stream_Misc_MediaFoundation_Target_T<SynchStrategyType,
+ : public Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                                TimePolicyType,
                                                ConfigurationType,
                                                ControlMessageType,
@@ -149,7 +148,7 @@ class Stream_Vis_Target_MediaFoundation_2
   //                                IMFAttributes*);     // media sample attributes
 
  private:
-  typedef Stream_Misc_MediaFoundation_Target_T<SynchStrategyType,
+  typedef Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                                TimePolicyType,
                                                ConfigurationType,
                                                ControlMessageType,

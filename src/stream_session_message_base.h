@@ -29,32 +29,35 @@
 #include "common_idumpstate.h"
 #include "common_iget.h"
 
-#include "stream_common.h"
 #include "stream_messageallocatorheap_base.h"
 
 // forward declarations
 class ACE_Allocator;
 class ACE_Data_Block;
-class Stream_MessageBase;
 
 template <typename AllocatorConfigurationType,
-          ///////////////////////////////
+          typename SessionMessageType,
           typename SessionDataType, // implements Common_IReferenceCount !
-          typename UserDataType>
+          typename UserDataType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType>
 class Stream_SessionMessageBase_T
  : public ACE_Message_Block
- , public Common_IDumpState
  , public Common_IGet_T<SessionDataType>
-    // , public Common_IGet_T<UserDataType>
+// , public Common_IGet_T<UserDataType>
+ , public Common_IDumpState
 {
   // grant access to specific ctors
   friend class Stream_MessageAllocatorHeapBase_T<AllocatorConfigurationType,
-
-                                                 Stream_MessageBase,
+                                                 ControlMessageType,
+                                                 DataMessageType,
                                                  Stream_SessionMessageBase_T<AllocatorConfigurationType,
-
+                                                                             SessionMessageType,
                                                                              SessionDataType,
-                                                                             UserDataType> >;
+                                                                             UserDataType,
+                                                                             ControlMessageType,
+                                                                             DataMessageType> >;
 
  public:
   // convenience types
@@ -62,19 +65,20 @@ class Stream_SessionMessageBase_T
   typedef UserDataType USER_DATA_T;
 
   // *IMPORTANT NOTE*: fire-and-forget API (second argument)
-  Stream_SessionMessageBase_T (Stream_SessionMessageType,
+  Stream_SessionMessageBase_T (SessionMessageType,
                                SessionDataType*&, // in/out
                                UserDataType*);
   virtual ~Stream_SessionMessageBase_T ();
 
   // initialization-after-construction
   // *IMPORTANT NOTE*: fire-and-forget API (second argument)
-  void initialize (Stream_SessionMessageType,
+  //                   --> caller increase()s the argument, if applicable
+  void initialize (SessionMessageType,
                    SessionDataType*&, // in/out
                    UserDataType*);
 
   // info
-  Stream_SessionMessageType type () const;
+  SessionMessageType type () const;
   // implement Common_IGet_T
   virtual const SessionDataType& get () const;
   const UserDataType& data () const;
@@ -83,44 +87,48 @@ class Stream_SessionMessageBase_T
   virtual void dump_state () const;
 
   // debug tools
-  static void MessageType2String (Stream_SessionMessageType, // session message type
-                                  std::string&);             // corresp. string
+  static void MessageType2String (SessionMessageType, // session message type
+                                  std::string&);      // corresp. string
 
  protected:
   // (copy) ctor to be used by duplicate()
-   Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<AllocatorConfigurationType,
+  Stream_SessionMessageBase_T (const Stream_SessionMessageBase_T<AllocatorConfigurationType,
+                                                                 SessionMessageType,
+                                                                 SessionDataType,
+                                                                 UserDataType,
+                                                                 ControlMessageType,
+                                                                 DataMessageType>&);
 
-                                                                  SessionDataType,
-                                                                  UserDataType>&);
-
-  // *NOTE*: to be used by message allocators...
+  // *NOTE*: to be used by message allocators
   Stream_SessionMessageBase_T (ACE_Allocator*); // message allocator
   Stream_SessionMessageBase_T (ACE_Data_Block*, // data block
                                ACE_Allocator*); // message allocator
 
-  SessionDataType*          data_;
-  bool                      initialized_;
-  Stream_SessionMessageType type_;
-  UserDataType*             userData_;
+  SessionDataType*   data_;
+  bool               isInitialized_;
+  SessionMessageType type_;
+  UserDataType*      userData_;
 
  private:
   typedef ACE_Message_Block inherited;
 
   // convenient types
   typedef Stream_SessionMessageBase_T<AllocatorConfigurationType,
-                                      ///
+                                      SessionMessageType,
                                       SessionDataType,
-                                      UserDataType> OWN_TYPE_T;
+                                      UserDataType,
+                                      ControlMessageType,
+                                      DataMessageType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_SessionMessageBase_T& operator= (const Stream_SessionMessageBase_T&))
 
-  // override from ACE_Message_Block
-  // *WARNING*: any derived classes need to override this !
+  // overload from ACE_Message_Block
+  // *WARNING*: derived classes need to overload this
   virtual ACE_Message_Block* duplicate (void) const;
 };
 
-// include template implementation
+// include template definition
 #include "stream_session_message_base.inl"
 
 #endif

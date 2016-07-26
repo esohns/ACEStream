@@ -29,21 +29,30 @@
 
 // forward declaration(s)
 template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Task;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
 class Common_IRefCount;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
           typename ConfigurationType,
           typename HandlerConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
+          typename NotificationType, // *NOTE*: stream notification interface
           typename ReaderTaskType,
           typename WriterTaskType>
 class Stream_Module_Base_T
  : public ACE_Module<ACE_SYNCH_USE,
-                     TimePolicyType>,
-   public Stream_IModule_T<ACE_SYNCH_USE,
+                     TimePolicyType>
+ , public Stream_IModule_T<SessionIdType,
+                           SessionDataType,
+                           SessionEventType,
+                           ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            HandlerConfigurationType>
@@ -53,7 +62,10 @@ class Stream_Module_Base_T
   typedef ConfigurationType CONFIGURATION_T;
   //  typedef ReaderTaskType READER_TASK_T;
   //  typedef WriterTaskType WRITER_TASK_T;
-  typedef Stream_IModule_T<ACE_SYNCH_USE,
+  typedef Stream_IModule_T<SessionIdType,
+                           SessionDataType,
+                           SessionEventType,
+                           ACE_SYNCH_USE,
                            TimePolicyType,
                            ConfigurationType,
                            HandlerConfigurationType> IMODULE_T;
@@ -61,6 +73,13 @@ class Stream_Module_Base_T
   virtual ~Stream_Module_Base_T ();
 
   // implement (part of) Stream_IModule_T
+  // *IMPORTANT NOTE*: the default implementation simply forwards all module
+  //                   events to the processing stream instance...
+  virtual void start (SessionIdType,             // session id
+                      const SessionDataType&);   // session data
+  virtual void notify (SessionIdType,            // session id
+                       const SessionEventType&); // event (state/status change, ...)
+  virtual void end (SessionIdType);              // session id
   virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&);
   virtual const HandlerConfigurationType& getHandlerConfiguration () const;
@@ -74,15 +93,16 @@ class Stream_Module_Base_T
                         Common_IRefCount*,  // object counter
                         bool = false);      // final module ?
 
-  // *TODO*: consider moving this to the stream, and have the modules refer to
-  //         a single instance...
-  ConfigurationType configuration_;
+  ConfigurationType* configuration_;
+  NotificationType*  notify_;
 
  private:
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> inherited;
 
   // convenient types
+  typedef ACE_Task<ACE_SYNCH_USE,
+                   TimePolicyType> TASK_T;
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
   //typedef Stream_IModuleHandler_T<HandlerConfigurationType> IMODULE_HANDLER_T;
@@ -95,11 +115,12 @@ class Stream_Module_Base_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T (const Stream_Module_Base_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Base_T& operator= (const Stream_Module_Base_T&))
 
-  bool              isFinal_;
-  ReaderTaskType*   reader_;
-  WriterTaskType*   writer_;
+  bool               isFinal_;
+  ReaderTaskType*    reader_;
+  WriterTaskType*    writer_;
 };
 
+// include template definition
 #include "stream_module_base.inl"
 
 #endif

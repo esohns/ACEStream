@@ -46,7 +46,7 @@ class Test_I_Stream_Module_EventHandler_T
                                          Test_I_Stream_Message,
                                          Test_I_Stream_SessionMessage,
 
-                                         unsigned int,
+                                         Stream_SessionId_t,
                                          Test_I_Stream_SessionData_t>
 {
  public:
@@ -66,7 +66,7 @@ class Test_I_Stream_Module_EventHandler_T
                                          Test_I_Stream_Message,
                                          Test_I_Stream_SessionMessage,
 
-                                         unsigned int,
+                                         Stream_SessionId_t,
                                          Test_I_Stream_SessionData_t> inherited;
 
   // convenient types
@@ -74,8 +74,12 @@ class Test_I_Stream_Module_EventHandler_T
                                               ConfigurationType> OWN_TYPE_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
+                                         Stream_SessionId_t,
+                                         Test_I_Stream_SessionData,
+                                         Stream_SessionMessageType,
                                          ModuleConfigurationType,
                                          ConfigurationType,
+                                         Stream_IStreamNotify_t,
                                          OWN_TYPE_T> MODULE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler_T (const Test_I_Stream_Module_EventHandler_T&))

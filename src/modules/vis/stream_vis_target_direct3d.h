@@ -82,12 +82,12 @@ template <typename SynchStrategyType,
 class Stream_Vis_Target_Direct3D_T
  : public Stream_TaskBaseSynch_T<SynchStrategyType,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
@@ -111,12 +111,12 @@ class Stream_Vis_Target_Direct3D_T
  private:
   typedef Stream_TaskBaseSynch_T<SynchStrategyType,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T (const Stream_Vis_Target_Direct3D_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T& operator= (const Stream_Vis_Target_Direct3D_T&))
@@ -176,7 +176,6 @@ class Stream_Vis_Target_Direct3D_T
                             const struct tagRECT&); // destination rectangle
 
   bool                                 closeWindow_;
-  bool                                 isInitialized_;
 
   // format information
   LONG                                 defaultStride_;

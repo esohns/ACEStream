@@ -38,7 +38,7 @@
 //#include "stream_misc_directshow_asynch_source_filter.h"
 //#include "stream_misc_directshow_source_filter.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -51,14 +51,14 @@ template <typename SynchStrategyType,
           typename SessionDataType,
           typename MediaType>
 class Stream_Misc_MediaFoundation_Source_T
- : public Stream_TaskBaseSynch_T<SynchStrategyType,
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ConfigurationType>
  , public IMFSampleGrabberSinkCallback2
 {
@@ -98,8 +98,8 @@ class Stream_Misc_MediaFoundation_Source_T
   // implement IMFSampleGrabberSinkCallback2
   STDMETHODIMP QueryInterface (const IID&,
                                void**);
-  virtual ULONG STDMETHODCALLTYPE AddRef ();
-  virtual ULONG STDMETHODCALLTYPE Release ();
+  virtual STDMETHODIMP_ (ULONG) AddRef ();
+  virtual STDMETHODIMP_ (ULONG) Release ();
   //STDMETHODIMP OnEvent (DWORD,           // stream index
   //                      IMFMediaEvent*); // event handle
   //STDMETHODIMP OnFlush (DWORD); // stream index
@@ -135,17 +135,17 @@ class Stream_Misc_MediaFoundation_Source_T
   SessionDataType*      sessionData_;
 
  private:
-  typedef Stream_TaskBaseSynch_T<SynchStrategyType,
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   // convenient types
-  typedef Stream_Misc_MediaFoundation_Source_T<SynchStrategyType,
+  typedef Stream_Misc_MediaFoundation_Source_T<ACE_SYNCH_USE,
                                                TimePolicyType,
 
                                                ConfigurationType,
@@ -177,7 +177,6 @@ class Stream_Misc_MediaFoundation_Source_T
   void finalize_MediaFoundation ();
 
   bool                  isFirst_;
-  bool                  isInitialized_;
 
   LONGLONG              baseTimeStamp_;
   IMFMediaSession*      mediaSession_;

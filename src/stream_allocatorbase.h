@@ -42,7 +42,7 @@ class Stream_AllocatorBase_T
   // implement Common_IInitialize_T
   virtual bool initialize (const ConfigurationType&);
 
-  ConfigurationType configuration_;
+  ConfigurationType* configuration_;
 
  protected:
   Stream_AllocatorBase_T ();
@@ -78,7 +78,7 @@ class Stream_AllocatorBase_T
   virtual void dump (void) const;
 };
 
-// include template implementation
+// include template definition
 #include "stream_allocatorbase.inl"
 
 #endif

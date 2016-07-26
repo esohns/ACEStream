@@ -32,7 +32,7 @@
 //#include "stream_misc_common.h"
 #include "stream_misc_defines.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -42,7 +42,7 @@ template <typename SynchStrategyType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
-Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -55,7 +55,6 @@ Stream_Misc_DirectShow_Source_T<SynchStrategyType,
  : inherited ()
  //, mediaType_  (NULL)
  , sessionData_ (NULL)
- , isInitialized_ (false)
  , push_ (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
  , IGraphBuilder_ (NULL)
 //, IMemAllocator_ (NULL)
@@ -68,7 +67,7 @@ Stream_Misc_DirectShow_Source_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -78,7 +77,7 @@ template <typename SynchStrategyType,
           typename FilterConfigurationType,
           typename PinConfigurationType,
           typename MediaType>
-Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -144,7 +143,7 @@ continue_:
     IGraphBuilder_->Release ();
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -155,7 +154,7 @@ template <typename SynchStrategyType,
           typename PinConfigurationType,
           typename MediaType>
 bool
-Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -192,7 +191,7 @@ Stream_Misc_DirectShow_Source_T<SynchStrategyType,
     COM_initialized = true;
   } // end IF
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
@@ -267,20 +266,17 @@ continue_:
       sessionData_ = NULL;
     } // end IF
 
-    isInitialized_ = false;
+    inherited::isInitialized_ = false;
   } // end IF
 
-  configuration_ = &const_cast<ConfigurationType&> (configuration_in);
   //mediaType_ = &configuration_->mediaType;
   // *TODO*: remove type inference
   push_ = configuration_->push;
-  configuration_->filterConfiguration->module = inherited::mod_;
-  configuration_->filterConfiguration->pinConfiguration->queue =
+  configuration_in.filterConfiguration->module = inherited::mod_;
+  configuration_in.filterConfiguration->pinConfiguration->queue =
     &(inherited::queue_);
 
-  isInitialized_ = inherited::initialize (configuration_in);
-
-  return isInitialized_;
+  return inherited::initialize (configuration_in);
 }
 //template <typename SessionMessageType,
 //          typename MessageType,
@@ -306,7 +302,7 @@ continue_:
 //  return *configuration_;
 //}
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -317,7 +313,7 @@ template <typename SynchStrategyType,
           typename PinConfigurationType,
           typename MediaType>
 void
-Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -416,7 +412,7 @@ Stream_Misc_DirectShow_Source_T<SynchStrategyType,
   ////} while (remaining);
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -427,7 +423,7 @@ template <typename SynchStrategyType,
           typename PinConfigurationType,
           typename MediaType>
 void
-Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -448,8 +444,8 @@ Stream_Misc_DirectShow_Source_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (configuration_);
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   switch (message_inout->type ())
   {
@@ -458,7 +454,7 @@ Stream_Misc_DirectShow_Source_T<SynchStrategyType,
       // sanity check(s)
       ACE_ASSERT (!sessionData_);
       // *TODO*: remove type inference
-      ACE_ASSERT (configuration_->streamConfiguration);
+      ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
       sessionData_ =
         &const_cast<SessionDataType&> (message_inout->get ());
@@ -480,8 +476,8 @@ Stream_Misc_DirectShow_Source_T<SynchStrategyType,
       } // end IF
       COM_initialized = true;
 
-      IGraphBuilder* builder_p = configuration_->builder;
-      if (configuration_->builder)
+      IGraphBuilder* builder_p = inherited::configuration_->builder;
+      if (inherited::configuration_->builder)
       {
         // sanity check(s)
         ACE_ASSERT (!IMediaControl_);
@@ -489,13 +485,11 @@ Stream_Misc_DirectShow_Source_T<SynchStrategyType,
 
         // retrieve interfaces for media control and the video window
         result_2 =
-          configuration_->builder->QueryInterface (IID_IMediaControl,
-                                                   (void**)&IMediaControl_);
+          inherited::configuration_->builder->QueryInterface (IID_PPV_ARGS (&IMediaControl_));
         if (FAILED (result_2))
           goto error_2;
         result_2 =
-            configuration_->builder->QueryInterface (IID_IMediaEventEx,
-                                                     (void**)&IMediaEventEx_);
+          inherited::configuration_->builder->QueryInterface (IID_PPV_ARGS (&IMediaEventEx_));
         if (FAILED (result_2))
           goto error_2;
 
@@ -510,12 +504,12 @@ error_2:
 
       // sanity check(s)
       // *TODO*: remove type inferences
-      ACE_ASSERT (configuration_->filterConfiguration);
+      ACE_ASSERT (inherited::configuration_->filterConfiguration);
 
-      if (!initialize_DirectShow (configuration_->filterCLSID,
-                                  *configuration_->filterConfiguration,
-                                  *configuration_->filterConfiguration->format,
-                                  configuration_->window,
+      if (!initialize_DirectShow (inherited::configuration_->filterCLSID,
+                                  *inherited::configuration_->filterConfiguration,
+                                  *inherited::configuration_->filterConfiguration->format,
+                                  inherited::configuration_->window,
                                   IGraphBuilder_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -702,8 +696,8 @@ continue_:
       } // end IF
 
       IGraphBuilder* builder_p =
-        (configuration_->builder ? configuration_->builder
-                                 : IGraphBuilder_);
+        (inherited::configuration_->builder ? inherited::configuration_->builder
+                                            : IGraphBuilder_);
       ACE_ASSERT (builder_p);
       if (!Stream_Module_Device_Tools::disconnect (builder_p))
         ACE_DEBUG ((LM_ERROR,
@@ -731,7 +725,7 @@ continue_:
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -742,7 +736,7 @@ template <typename SynchStrategyType,
           typename PinConfigurationType,
           typename MediaType>
 bool
-Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,
@@ -885,12 +879,10 @@ Stream_Misc_DirectShow_Source_T<SynchStrategyType,
 
   // retrieve interfaces for media control and the video window
   result =
-    IGraphBuilder_out->QueryInterface (IID_IMediaControl,
-                                       (void**)&IMediaControl_);
+    IGraphBuilder_out->QueryInterface (IID_PPV_ARGS (&IMediaControl_));
   if (FAILED (result))
     goto error;
-  result = IGraphBuilder_out->QueryInterface (IID_IMediaEventEx,
-                                              (void**)&IMediaEventEx_);
+  result = IGraphBuilder_out->QueryInterface (IID_PPV_ARGS (&IMediaEventEx_));
   if (FAILED (result))
     goto error;
 
@@ -987,8 +979,7 @@ continue_:
     return false;
   } // end IF
 
-  //result = pin_p->QueryInterface (IID_IMemInputPin,
-  //                                (void**)&IMemInputPin_);
+  //result = pin_p->QueryInterface (IID_PPV_ARGS (&IMemInputPin_));
   //if (FAILED (result))
   //{
   //  ACE_DEBUG ((LM_ERROR,
@@ -1020,7 +1011,7 @@ continue_:
 
   return true;
 }
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -1031,7 +1022,7 @@ template <typename SynchStrategyType,
           typename PinConfigurationType,
           typename MediaType>
 void
-Stream_Misc_DirectShow_Source_T<SynchStrategyType,
+Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 TimePolicyType,
                                 ConfigurationType,
                                 ControlMessageType,

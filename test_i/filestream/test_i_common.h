@@ -33,7 +33,6 @@
 #include "gtk/gtk.h"
 
 #include "common.h"
-#include "common_inotify.h"
 #include "common_istatistic.h"
 #include "common_isubscribe.h"
 #include "common_time_common.h"
@@ -42,6 +41,8 @@
 
 #include "stream_base.h"
 #include "stream_common.h"
+#include "stream_inotify.h"
+#include "stream_isessionnotify.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 #include "stream_statemachine_control.h"
@@ -54,13 +55,9 @@
 #include "test_i_connection_common.h"
 #include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
-//#include "test_i_message.h"
-//#include "test_i_session_message.h"
 
 // forward declarations
 class Stream_IAllocator;
-class Test_I_Stream_Message;
-class Test_I_Stream_SessionMessage;
 struct Test_I_ConnectionState;
 
 enum Stream_GTK_Event
@@ -269,19 +266,16 @@ struct Test_I_Configuration
   bool                                     useReactor;
 };
 
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-
-                                          Test_I_Stream_Message,
-                                          Test_I_Stream_SessionMessage> Stream_MessageAllocator_t;
-
-typedef Common_INotify_T<unsigned int,
-                         Test_I_Stream_SessionData,
-                         Test_I_Stream_Message,
-                         Test_I_Stream_SessionMessage> Stream_IStreamNotify_t;
-typedef std::list<Stream_IStreamNotify_t*> Stream_Subscribers_t;
+typedef Stream_INotify_T<Stream_SessionMessageType> Stream_IStreamNotify_t;
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    Test_I_Stream_SessionData,
+                                    Stream_SessionMessageType,
+                                    Test_I_Stream_Message,
+                                    Test_I_Stream_SessionMessage> Stream_ISessionNotify_t;
+typedef std::list<Stream_ISessionNotify_t*> Stream_Subscribers_t;
 typedef Stream_Subscribers_t::iterator Stream_SubscribersIterator_t;
 
-typedef Common_ISubscribe_T<Stream_IStreamNotify_t> Stream_ISubscribe_t;
+typedef Common_ISubscribe_T<Stream_ISessionNotify_t> Stream_ISubscribe_t;
 
 typedef std::map<guint, ACE_Thread_ID> Stream_PendingActions_t;
 typedef Stream_PendingActions_t::iterator Stream_PendingActionsIterator_t;

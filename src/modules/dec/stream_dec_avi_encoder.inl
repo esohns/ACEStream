@@ -154,7 +154,6 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
  : inherited ()
  , sessionData_ (NULL)
  , isFirst_ (true)
- , isInitialized_ (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
  , formatContext_ (NULL)
@@ -227,7 +226,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_AVIEncoder_WriterTask_T::initialize"));
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("re-initializing...\n")));
@@ -260,7 +259,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
     } // end IF
 #endif
 
-    isInitialized_ = false;
+    inherited::isInitialized_ = false;
   } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -303,9 +302,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
   ACE_ASSERT (formatContext_->oformat);
 #endif
 
-  isInitialized_ = inherited::initialize (configuration_in);
-
-  return isInitialized_;
+  return inherited::initialize (configuration_in);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -492,7 +489,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   switch (message_inout->type ())
   {

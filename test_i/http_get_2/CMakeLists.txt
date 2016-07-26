@@ -97,7 +97,7 @@ elseif (WIN32)
 
  if (DEFINED ENV{OO_SDK_HOME})
   set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
- elseif (DEFINED ENV{UNO_HOME})
+ elseif (DEFINED ENV{UNO_PATH})
    set (OO_SDK_DIRECTORY $ENV{UNO_PATH}\..\sdk)
  else ()
   message (FATAL_ERROR "%OO_SDK_HOME%/%UNO_PATH% not set, aborting")
@@ -110,6 +110,14 @@ elseif (WIN32)
 #       "C:/LibreOffice_5.1_SDK_installer/sdk")
  message (STATUS "LibreOffice SDK directory: \"${OO_SDK_DIRECTORY}\"")
  include_directories (${OO_SDK_DIRECTORY}/include)
+
+ if (DEFINED ENV{UNO_PATH})
+  string (REGEX REPLACE "\\\\" "/" OO_APP_DIRECTORY $ENV{UNO_PATH})
+#  set (OO_APP_DIRECTORY $ENV{UNO_PATH})
+ else ()
+  message (FATAL_ERROR "%UNO_PATH% not set, aborting")
+ endif ()
+ message (STATUS "LibreOffice directory: \"${OO_APP_DIRECTORY}\"")
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
@@ -186,8 +194,6 @@ else ()
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
-
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/doc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
@@ -196,13 +202,15 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net/protocols/http)
 
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
+
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
 set (http_get_2_EXE_SRCS
      stdafx.cpp
      stdafx.h
-     test_i_common.h
      test_i_common_modules.h
      test_i_connection_common.h
      test_i_connection_manager_common.h
@@ -227,9 +235,12 @@ set (http_get_2_EXE_SRCS
 #  test_i_template_instantiations.cpp
 
 set (EXECUTABLE http_get_2)
-add_executable (${EXECUTABLE} ${http_get_2_EXE_SRCS})
+add_executable (${EXECUTABLE} ${http_get_2_EXE_SRCS} etc/soffice.ini etc/sofficerc etc/symbols.ini etc/table.ods)
 
-target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
+if (UNIX)
+ target_link_libraries (${EXECUTABLE} rt)
+ target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
+endif ()
 if (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
@@ -285,3 +296,38 @@ cotire (${EXECUTABLE})
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
+
+if (UNIX)
+ create_target_launcher (${EXECUTABLE}
+                         ARGS "-c./../../../test_i/http_get_2/etc/soffice.ini -f./../../../test_i/http_get_2/etc/symbols.ini -h localhost -l -o ./output.ods -p 2083 -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_uebersicht.htn"
+#                         FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../gtk/bin
+                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dev/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/vis/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/http_get_2
+                         ENVIRONMENT foo=bar)
+elseif (WIN32)
+ create_target_launcher (${EXECUTABLE}
+                         ARGS "-c.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\soffice.ini -f.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\symbols.ini -h localhost -l -o .\\\\output.ods -p 2083 -r -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_uebersicht.htn"
+#                        FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/doc/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/html/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/protocol/http/Debug
+                                              \"${OO_APP_DIRECTORY}\"
+                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/http_get_2
+                         ENVIRONMENT foo=bar)
+endif ()

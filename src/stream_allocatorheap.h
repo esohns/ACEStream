@@ -46,7 +46,8 @@ class Stream_AllocatorHeap_T
 
   // implement Stream_IAllocator
   virtual bool block (); // return value: block when full ?
-  virtual void* malloc (size_t); // bytes
+  virtual void* calloc ();
+  virtual void* malloc (size_t); // bytes (? data- : session message)
   virtual void free (void*); // element handle
   virtual size_t cache_depth () const; // dummy
   virtual size_t cache_size () const; // return value: #bytes allocated
@@ -64,7 +65,7 @@ class Stream_AllocatorHeap_T
   ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_allocatorheap.inl"
 
 #endif

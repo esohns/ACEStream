@@ -31,7 +31,8 @@
 #define TEST_I_DEFAULT_OUTPUT_FILE                           "output.tmp"
 #define TEST_I_THREAD_NAME                                   "stream processor"
 
-#define TEST_I_DEFAULT_BUFFER_SIZE                           32768 // bytes
+//#define TEST_I_DEFAULT_BUFFER_SIZE                           32768 // bytes
+#define TEST_I_DEFAULT_BUFFER_SIZE                           65536 // bytes
 #define TEST_I_MAX_MESSAGES                                  0 // 0 --> no limits
 
 #define TEST_I_DEFAULT_TARGET_HOSTNAME                       ACE_LOCALHOST

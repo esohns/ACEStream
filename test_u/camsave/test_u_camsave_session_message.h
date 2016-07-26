@@ -39,37 +39,41 @@
 class ACE_Allocator;
 class Stream_CamSave_Message;
 template <typename AllocatorConfigurationType,
-          typename MessageType,
-          typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+class Stream_MessageAllocatorHeapBase_T;
 
 class Stream_CamSave_SessionMessage
  : public Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
-                                      ///
+                                      Stream_SessionMessageType,
                                       Stream_CamSave_SessionData_t,
-                                      Stream_UserData>
+                                      Stream_UserData,
+                                      Test_U_ControlMessage_t,
+                                      Stream_CamSave_Message>
 {
   // grant access to specific private ctors
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //friend class Stream_DirectShowAllocatorBase_T<Stream_AllocatorConfiguration,
-
+  //                                              Test_U_ControlMessage_t,
   //                                              Stream_CamSave_Message,
   //                                              Stream_CamSave_SessionMessage>;
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-
+                                                 Test_U_ControlMessage_t,
                                                  Stream_CamSave_Message,
                                                  Stream_CamSave_SessionMessage>;
 #else
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-
+                                                 Test_U_ControlMessage_t,
                                                  Stream_CamSave_Message,
                                                  Stream_CamSave_SessionMessage>;
 #endif
  public:
   // *NOTE*: assumes responsibility for the second argument !
-  // *TODO*: (using gcc) cannot pass reference to pointer for some reason...
-  Stream_CamSave_SessionMessage (Stream_SessionMessageType,       // session message type
-                                  Stream_CamSave_SessionData_t*&, // session data container handle
-                                  Stream_UserData*);               // user data handle
+  // *TODO*: (using gcc) cannot pass reference to pointer for some reason
+  Stream_CamSave_SessionMessage (Stream_SessionMessageType,      // session message type
+                                 Stream_CamSave_SessionData_t*&, // session data container handle
+                                 Stream_UserData*);              // user data handle
   virtual ~Stream_CamSave_SessionMessage ();
 
   // overloaded from ACE_Message_Block
@@ -77,18 +81,20 @@ class Stream_CamSave_SessionMessage
 
  private:
   typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
-                                      ///
+                                      Stream_SessionMessageType,
                                       Stream_CamSave_SessionData_t,
-                                      Stream_UserData> inherited;
+                                      Stream_UserData,
+                                      Test_U_ControlMessage_t,
+                                      Stream_CamSave_Message> inherited;
 
   // copy ctor to be used by duplicate()
   Stream_CamSave_SessionMessage (const Stream_CamSave_SessionMessage&);
 
-  // *NOTE*: these may be used by message allocators...
-  // *WARNING*: these ctors are NOT threadsafe...
+  // *NOTE*: these may be used by message allocators
+  // *WARNING*: these ctors are NOT threadsafe
   Stream_CamSave_SessionMessage (ACE_Allocator*); // message allocator
   Stream_CamSave_SessionMessage (ACE_Data_Block*, // data block
-                                  ACE_Allocator*); // message allocator
+                                 ACE_Allocator*); // message allocator
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_SessionMessage ())
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_SessionMessage& operator= (const Stream_CamSave_SessionMessage&))

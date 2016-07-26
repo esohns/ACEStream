@@ -8,6 +8,12 @@ endif ()
 
 set (ACE_LIB_FILE libACE.so)
 if (UNIX)
+ set (AIO_LIB_FILE libaio.a)
+ find_library (AIO_LIBRARY ${AIO_LIB_FILE}
+               PATHS /lib /usr/lib
+               PATH_SUFFIXES x86_64-linux-gnu
+               DOC "searching for ${AIO_LIB_FILE}")
+
  if (DEFINED ENV{ACE_ROOT})
   find_library (ACE_LIBRARY ${ACE_LIB_FILE}
                 PATHS ENV ACE_ROOT
@@ -143,6 +149,8 @@ add_executable (${EXECUTABLE} ${riffdecoder_EXE_SRCS})
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 if (UNIX)
+ target_link_libraries (${EXECUTABLE} rt)
+ target_link_libraries (${EXECUTABLE} ${AIO_LIBRARY})
  target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
  target_link_libraries (${EXECUTABLE} ${PKG_LIBAVUTIL_LIBRARIES})
 endif ()

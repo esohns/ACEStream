@@ -26,7 +26,7 @@
 #include "dshow.h"
 #include "mfobjects.h"
 
-#include "stream_common.h"
+//#include "stream_common.h"
 #include "stream_data_message_base.h"
 #include "stream_directshow_allocator_base.h"
 #include "stream_message_base.h"
@@ -37,21 +37,36 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
-template <typename AllocatorConfigurationType>
+template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType>
 class Stream_DirectShowMessageBase_T
  : public Stream_MessageBase_T<AllocatorConfigurationType,
+                               ControlMessageType,
+                               SessionMessageType,
                                int>
  , public IMediaSample
 {
   // grant access to specific ctors
   friend class Stream_DirectShowAllocatorBase_T<AllocatorConfigurationType,
-
-                                                Stream_DirectShowMessageBase_T<AllocatorConfigurationType>,
+                                                Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
+                                                                               ControlMessageType,
+                                                                               SessionMessageType>,
                                                 Stream_SessionMessageBase_T<AllocatorConfigurationType,
-
+                                                                            Stream_SessionMessageType,
                                                                             Stream_SessionData,
-                                                                            Stream_UserData> >;
+                                                                            Stream_UserData,
+                                                                            ControlMessageType,
+                                                                            Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
+                                                                                                           ControlMessageType,
+                                                                                                           SessionMessageType> > >;
+
  public:
+  // convenient types
+  typedef Stream_DirectShowMessageBase_T<AllocatorConfigurationType,
+                                         ControlMessageType,
+                                         SessionMessageType> OWN_TYPE_T;
+
   virtual ~Stream_DirectShowMessageBase_T ();
 
   // implement IMediaSample
@@ -87,7 +102,7 @@ class Stream_DirectShowMessageBase_T
  protected:
   Stream_DirectShowMessageBase_T (unsigned int); // size
   // copy ctor, to be used by derivates
-  Stream_DirectShowMessageBase_T (const Stream_DirectShowMessageBase_T<AllocatorConfigurationType>&);
+  Stream_DirectShowMessageBase_T (const OWN_TYPE_T&);
 
   // *NOTE*: to be used by message allocators
   Stream_DirectShowMessageBase_T (ACE_Data_Block*, // data block
@@ -97,10 +112,9 @@ class Stream_DirectShowMessageBase_T
 
  private:
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               ControlMessageType,
+                               SessionMessageType,
                                int> inherited;
-
-  // convenient types
-  typedef Stream_DirectShowMessageBase_T<AllocatorConfigurationType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_DirectShowMessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_DirectShowMessageBase_T& operator= (const Stream_DirectShowMessageBase_T&))
@@ -114,15 +128,23 @@ class Stream_DirectShowMessageBase_T
 //////////////////////////////////////////
 
 template <typename AllocatorConfigurationType,
+          typename ControlMessageType,
+          typename SessionMessageType,
           typename DataType>
 class Stream_MediaFoundationMessageBase_T
  : public Stream_DataMessageBase_T<AllocatorConfigurationType,
+                                   ControlMessageType,
+                                   SessionMessageType,
                                    DataType,
                                    int>
  //, public IMFSample
 {
  public:
   // convenient types
+  typedef Stream_MediaFoundationMessageBase_T<AllocatorConfigurationType,
+                                              ControlMessageType,
+                                              SessionMessageType,
+                                              DataType> OWN_TYPE_T;
   typedef DataType DATA_T;
 
   virtual ~Stream_MediaFoundationMessageBase_T ();
@@ -221,8 +243,7 @@ class Stream_MediaFoundationMessageBase_T
  protected:
   Stream_MediaFoundationMessageBase_T (unsigned int); // size
   // copy ctor, to be used by derivates
-  Stream_MediaFoundationMessageBase_T (const Stream_MediaFoundationMessageBase_T<AllocatorConfigurationType,
-                                                                                 DataType>&);
+  Stream_MediaFoundationMessageBase_T (const OWN_TYPE_T&);
   // *NOTE*: to be used by message allocators
   Stream_MediaFoundationMessageBase_T (ACE_Data_Block*, // data block
                                        ACE_Allocator*,  // message allocator
@@ -231,12 +252,10 @@ class Stream_MediaFoundationMessageBase_T
 
  private:
   typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
+                                   ControlMessageType,
+                                   SessionMessageType,
                                    DataType,
                                    int> inherited;
-
-  // convenient types
-  typedef Stream_MediaFoundationMessageBase_T<AllocatorConfigurationType,
-                                              DataType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFoundationMessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFoundationMessageBase_T& operator= (const Stream_MediaFoundationMessageBase_T&))
@@ -245,7 +264,7 @@ class Stream_MediaFoundationMessageBase_T
   virtual ACE_Message_Block* duplicate (void) const;
 };
 
-// include template implementation
+// include template definition
 #include "stream_directshow_message_base.inl"
 
 #endif

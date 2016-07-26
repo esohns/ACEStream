@@ -33,16 +33,25 @@ class ACE_Data_Block;
 class ACE_Message_Block;
 
 template <typename AllocatorConfigurationType,
-          ///////////////////////////////
+          typename ControlMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename DataType,
           typename CommandType>
 class Stream_DataMessageBase_T
  : public Stream_MessageBase_T<AllocatorConfigurationType,
+                               ControlMessageType,
+                               SessionMessageType,
                                CommandType>
  , public Common_IGet_T<DataType>
 {
  public:
-  // convenient types
+  // convenient typedefs
+  typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
+                                   ControlMessageType,
+                                   SessionMessageType,
+                                   DataType,
+                                   CommandType> OWN_TYPE_T;
   typedef DataType DATA_T;
 
   // initialization-after-construction
@@ -66,10 +75,7 @@ class Stream_DataMessageBase_T
   // *WARNING*: while the clone inherits a "shallow copy" of the referenced
   //            data block, it will NOT inherit the attached data
   //            --> use initialize()
-  Stream_DataMessageBase_T (const Stream_DataMessageBase_T<AllocatorConfigurationType,
-
-                                                           DataType,
-                                                           CommandType>&);
+  Stream_DataMessageBase_T (const OWN_TYPE_T&);
 
   // *NOTE*: to be used by message allocators
   // *TODO*: these ctors are NOT thread-safe
@@ -81,16 +87,13 @@ class Stream_DataMessageBase_T
   virtual ~Stream_DataMessageBase_T ();
 
   DataType data_;
-  bool     initialized_;
+  bool     isInitialized_;
 
  private:
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               ControlMessageType,
+                               SessionMessageType,
                                CommandType> inherited;
-
-  // convenient typedefs
-  typedef Stream_DataMessageBase_T<AllocatorConfigurationType,
-                                   DataType,
-                                   CommandType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_T& operator= (const Stream_DataMessageBase_T&))
@@ -103,16 +106,25 @@ class Stream_DataMessageBase_T
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename AllocatorConfigurationType,
-          ///////////////////////////////
+          typename ControlMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
           typename DataType, // *NOTE*: implements Common_IReferenceCount !
           typename CommandType>
 class Stream_DataMessageBase_2
  : public Stream_MessageBase_T<AllocatorConfigurationType,
+                               ControlMessageType,
+                               SessionMessageType,
                                CommandType>
  , public Common_IGet_T<DataType>
 {
  public:
   // convenient types
+  typedef Stream_DataMessageBase_2<AllocatorConfigurationType,
+                                   ControlMessageType,
+                                   SessionMessageType,
+                                   DataType,
+                                   CommandType> OWN_TYPE_T;
   typedef DataType DATA_T;
 
   // initialization-after-construction
@@ -136,10 +148,7 @@ class Stream_DataMessageBase_2
   // *WARNING*: while the clone inherits a "shallow copy" of the referenced
   //            data block, it will NOT inherit the attached data
   //            --> use initialize()
-  Stream_DataMessageBase_2 (const Stream_DataMessageBase_2<AllocatorConfigurationType,
-
-                                                           DataType,
-                                                           CommandType>&);
+  Stream_DataMessageBase_2 (const OWN_TYPE_T&);
 
   // *NOTE*: to be used by message allocators
   // *TODO*: these ctors are NOT thread-safe
@@ -151,16 +160,13 @@ class Stream_DataMessageBase_2
   virtual ~Stream_DataMessageBase_2 ();
 
   DataType* data_;
-  bool      initialized_;
+  bool      isInitialized_;
 
  private:
   typedef Stream_MessageBase_T<AllocatorConfigurationType,
+                               ControlMessageType,
+                               SessionMessageType,
                                CommandType> inherited;
-
-  // convenient types
-  typedef Stream_DataMessageBase_2<AllocatorConfigurationType,
-                                   DataType,
-                                   CommandType> OWN_TYPE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_2 ())
   ACE_UNIMPLEMENTED_FUNC (Stream_DataMessageBase_2& operator= (const Stream_DataMessageBase_2&))
@@ -170,7 +176,7 @@ class Stream_DataMessageBase_2
   virtual ACE_Message_Block* duplicate (void) const;
 };
 
-// include template implementation
+// include template definition
 #include "stream_data_message_base.inl"
 
 #endif

@@ -26,7 +26,7 @@
 #include "stream_macros.h"
 #include "stream_session_message_base.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -34,7 +34,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
-Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -43,7 +43,6 @@ Stream_Vis_Target_DirectShow_T<SynchStrategyType,
                                SessionDataContainerType,
                                SessionDataType>::Stream_Vis_Target_DirectShow_T ()
  : inherited ()
- , isInitialized_ (false)
  //, IVideoWindow_ (NULL)
  , IMFVideoRenderer_ (NULL)
  , IMFVideoDisplayControl_ (NULL)
@@ -52,7 +51,7 @@ Stream_Vis_Target_DirectShow_T<SynchStrategyType,
 
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -60,7 +59,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename SessionDataType>
-Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -108,7 +107,7 @@ Stream_Vis_Target_DirectShow_T<SynchStrategyType,
   } // end IF
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -117,7 +116,7 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 void
-Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -133,7 +132,7 @@ Stream_Vis_Target_DirectShow_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -142,7 +141,7 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 void
-Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -305,7 +304,7 @@ continue_:
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -314,7 +313,7 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 bool
-Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
@@ -327,10 +326,8 @@ Stream_Vis_Target_DirectShow_T<SynchStrategyType,
 
   //HRESULT result = E_FAIL;
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
-    isInitialized_ = false;
-
     //if (IVideoWindow_)
     if (IMFVideoDisplayControl_)
     {
@@ -356,11 +353,11 @@ Stream_Vis_Target_DirectShow_T<SynchStrategyType,
       IMFVideoRenderer_->Release ();
       IMFVideoRenderer_ = NULL;
     } // end IF
+
+    inherited::isInitialized_ = false;
   } // end IF
 
-  isInitialized_ = inherited::initialize (configuration_in);
-
-  return isInitialized_;
+  return inherited::initialize (configuration_in);
 }
 //template <typename SessionMessageType,
 //          typename MessageType,
@@ -382,7 +379,7 @@ Stream_Vis_Target_DirectShow_T<SynchStrategyType,
 //  return *configuration_;
 //}
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -391,7 +388,7 @@ template <typename SynchStrategyType,
           typename SessionDataContainerType,
           typename SessionDataType>
 bool
-Stream_Vis_Target_DirectShow_T<SynchStrategyType,
+Stream_Vis_Target_DirectShow_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,

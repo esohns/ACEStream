@@ -27,7 +27,7 @@
 
 #include "stream_dev_tools.h"
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -38,7 +38,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_CamSource_V4L_T<LockType,
+Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
@@ -48,7 +48,7 @@ Stream_Module_CamSource_V4L_T<LockType,
                               StreamStateType,
                               SessionDataType,
                               SessionDataContainerType,
-                              StatisticContainerType>::Stream_Module_CamSource_V4L_T (LockType* lock_in,
+                              StatisticContainerType>::Stream_Module_CamSource_V4L_T (typename ACE_SYNCH_USE::MUTEX* lock_in,
                                                                                       bool autoStart_in)
  : inherited (lock_in,      // lock handle
               autoStart_in, // auto-start ?
@@ -66,7 +66,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -77,7 +77,7 @@ template <typename LockType,
           typename SessionDataType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
-Stream_Module_CamSource_V4L_T<LockType,
+Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
@@ -139,7 +139,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 //  } // end IF
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -151,7 +151,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 void
-Stream_Module_CamSource_V4L_T<LockType,
+Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
@@ -173,7 +173,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   switch (message_inout->type ())
   {
@@ -242,8 +242,7 @@ Stream_Module_CamSource_V4L_T<LockType,
       break;
 
 error:
-      // *TODO*: remove type inference
-      session_data_r.aborted = true;
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       return;
     }
@@ -342,7 +341,7 @@ error:
   } // end SWITCH
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -354,7 +353,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_CamSource_V4L_T<LockType,
+Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
@@ -369,7 +368,7 @@ Stream_Module_CamSource_V4L_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   // step0: initialize container
 //  data_out.dataMessages = 0;
@@ -391,7 +390,7 @@ Stream_Module_CamSource_V4L_T<LockType,
   return true;
 }
 
-//template <typename LockType,
+//template <ACE_SYNCH_DECL,
 //          typename SessionMessageType,
 //          typename DataMessageType,
 //          typename ConfigurationType,
@@ -400,7 +399,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 //          typename SessionDataContainerType,
 //          typename StatisticContainerType>
 //void
-//Stream_Module_CamSource_V4L_T<LockType,
+//Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 //                              SessionMessageType,
 //                              DataMessageType,
 //                              ConfigurationType,
@@ -416,7 +415,7 @@ Stream_Module_CamSource_V4L_T<LockType,
 //  ACE_NOTREACHED (return;)
 //}
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -428,7 +427,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 bool
-Stream_Module_CamSource_V4L_T<LockType,
+Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
@@ -442,16 +441,15 @@ Stream_Module_CamSource_V4L_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::initialize"));
 
-  bool result = false;
-  int result_2 = -1;
+  int result = -1;
 
-  if (inherited::initialized_)
+  if (inherited::isInitialized_)
   {
     if (!isPassive_)
       if (captureFileDescriptor_ != -1)
       {
-        result_2 = v4l2_close (captureFileDescriptor_);
-        if (result_2 == -1)
+        result = v4l2_close (captureFileDescriptor_);
+        if (result == -1)
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                       captureFileDescriptor_));
@@ -459,8 +457,8 @@ Stream_Module_CamSource_V4L_T<LockType,
       } // end IF
     if (overlayFileDescriptor_ != -1)
     {
-      result_2 = v4l2_close (overlayFileDescriptor_);
-      if (result_2 == -1)
+      result = v4l2_close (overlayFileDescriptor_);
+      if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                     overlayFileDescriptor_));
@@ -470,6 +468,8 @@ Stream_Module_CamSource_V4L_T<LockType,
     debug_ = false;
     hasFinished_ = false;
     isPassive_ = false;
+
+    inherited::isInitialized_ = false;
   } // end IF
 
   // *NOTE*: use O_NONBLOCK with a reactor (v4l2_select()) or proactor
@@ -562,21 +562,13 @@ Stream_Module_CamSource_V4L_T<LockType,
     } // end IF
   } // end IF
 
-  result = inherited::initialize (configuration_in);
-  if (!result)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
-    goto error;
-  } // end IF
-
-  return result;
+  return inherited::initialize (configuration_in);
 
 error:
   if (captureFileDescriptor_ != -1)
   {
-    result_2 = v4l2_close (captureFileDescriptor_);
-    if (result_2 == -1)
+    result = v4l2_close (captureFileDescriptor_);
+    if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                   captureFileDescriptor_));
@@ -584,8 +576,8 @@ error:
   } // end IF
   if (overlayFileDescriptor_ != -1)
   {
-    result_2 = v4l2_close (overlayFileDescriptor_);
-    if (result_2 == -1)
+    result = v4l2_close (overlayFileDescriptor_);
+    if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_close(%d): \"%m\", continuing\n"),
                   overlayFileDescriptor_));
@@ -595,7 +587,7 @@ error:
   return false;
 }
 
-template <typename LockType,
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -607,7 +599,7 @@ template <typename LockType,
           typename SessionDataContainerType,
           typename StatisticContainerType>
 int
-Stream_Module_CamSource_V4L_T<LockType,
+Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                               ControlMessageType,
                               DataMessageType,
                               SessionMessageType,
@@ -622,7 +614,7 @@ Stream_Module_CamSource_V4L_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_V4L_T::svc"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   int result = -1;
   int result_2 = -1;

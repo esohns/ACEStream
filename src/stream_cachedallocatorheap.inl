@@ -20,6 +20,8 @@
 
 #include <limits>
 
+#include "ace/Log_Msg.h"
+
 #include "stream_defines.h"
 #include "stream_macros.h"
 
@@ -47,15 +49,6 @@ Stream_CachedAllocatorHeap_T<ConfigurationType>::~Stream_CachedAllocatorHeap_T (
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedAllocatorHeap_T::~Stream_CachedAllocatorHeap_T"));
 
-}
-
-template <typename ConfigurationType>
-bool
-Stream_CachedAllocatorHeap_T<ConfigurationType>::block ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedAllocatorHeap_T::block"));
-
-  return true;
 }
 
 template <typename ConfigurationType>

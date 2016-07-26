@@ -45,7 +45,7 @@ Stream_Filecopy_EventHandler::~Stream_Filecopy_EventHandler ()
 }
 
 void
-Stream_Filecopy_EventHandler::start (unsigned int sessionID_in,
+Stream_Filecopy_EventHandler::start (Stream_SessionId_t sessionID_in,
                                      const Stream_Filecopy_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::start"));
@@ -96,46 +96,22 @@ Stream_Filecopy_EventHandler::start (unsigned int sessionID_in,
 }
 
 void
-Stream_Filecopy_EventHandler::notify (unsigned int sessionID_in,
-                                      const Stream_Filecopy_Message& message_in)
+Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionID_in,
+                                      const Stream_SessionMessageType& sessionEvent_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::notify"));
 
   ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionEvent_in);
 
-  // sanity check(s)
-  ACE_ASSERT (CBData_);
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
-
-  CBData_->progressData.copied += message_in.total_length ();
-
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
-}
-void
-Stream_Filecopy_EventHandler::notify (unsigned int sessionID_in,
-                                      const Stream_Filecopy_SessionMessage& sessionMessage_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::notify"));
-
-  ACE_UNUSED_ARG (sessionID_in);
-
-  // sanity check(s)
-  ACE_ASSERT (CBData_);
-
-  Stream_GTK_Event event =
-    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? STREAM_GTKEVENT_STATISTIC
-                                                                     : STREAM_GKTEVENT_INVALID);
-
-  {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
-
-    CBData_->eventStack.push_back (event);
-  } // end lock scope
+  ACE_NOTREACHED (return;)
 }
 
 void
-Stream_Filecopy_EventHandler::end (unsigned int sessionID_in)
+Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionID_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::end"));
 
@@ -178,4 +154,43 @@ Stream_Filecopy_EventHandler::end (unsigned int sessionID_in)
 
   if (sessionData_)
     sessionData_ = NULL;
+}
+
+void
+Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionID_in,
+                                      const Stream_Filecopy_Message& message_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::notify"));
+
+  ACE_UNUSED_ARG (sessionID_in);
+
+  // sanity check(s)
+  ACE_ASSERT (CBData_);
+
+  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+
+  CBData_->progressData.copied += message_in.total_length ();
+
+  CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
+}
+void
+Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionID_in,
+                                      const Stream_Filecopy_SessionMessage& sessionMessage_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_EventHandler::notify"));
+
+  ACE_UNUSED_ARG (sessionID_in);
+
+  // sanity check(s)
+  ACE_ASSERT (CBData_);
+
+  Stream_GTK_Event event =
+    ((sessionMessage_in.type () == STREAM_SESSION_MESSAGE_STATISTIC) ? STREAM_GTKEVENT_STATISTIC
+      : STREAM_GKTEVENT_INVALID);
+
+  {
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+
+    CBData_->eventStack.push_back (event);
+  } // end lock scope
 }

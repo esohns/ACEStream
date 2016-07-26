@@ -35,12 +35,12 @@
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 
+#include "test_i_http_get_common.h"
+
 class Test_I_Stream_HTTPGet
  : public Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
                                               Common_TimePolicy_t,
- 
-                                              Test_I_Stream_ModuleHandlerConfiguration,
- 
+                                              Test_I_HTTPGet_ModuleHandlerConfiguration,
                                               ACE_Message_Block,
                                               Test_I_Stream_Message,
                                               Test_I_Stream_SessionMessage>
@@ -58,9 +58,7 @@ class Test_I_Stream_HTTPGet
  private:
   typedef Stream_Module_Net_Source_HTTP_Get_T<ACE_MT_SYNCH,
                                               Common_TimePolicy_t,
- 
-                                              Test_I_Stream_ModuleHandlerConfiguration,
- 
+                                              Test_I_HTTPGet_ModuleHandlerConfiguration,
                                               ACE_Message_Block,
                                               Test_I_Stream_Message,
                                               Test_I_Stream_SessionMessage> inherited;
@@ -72,10 +70,10 @@ class Test_I_Stream_HTTPGet
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
-                              Common_TimePolicy_t,                      // time policy
-                              Stream_ModuleConfiguration,               // module configuration type
-                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_Stream_HTTPGet);                   // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Stream_SessionData,                 // session data type
+                              Stream_SessionMessageType,                 // session event type
+                              Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_IStreamNotify_t,                    // stream notification interface type
+                              Test_I_Stream_HTTPGet);                    // writer type
 
 #endif

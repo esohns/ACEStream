@@ -111,22 +111,17 @@ Stream_Module_QueueReader_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::initialize"));
 
-  bool result = false;
-
   if (inherited::isInitialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
 
     queue_ = NULL;
+
+    inherited::isInitialized_ = false;
   } // end IF
 
-  result = inherited::initialize (configuration_in);
-  if (!result)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
-
-  return result;
+  return inherited::initialize (configuration_in);
 }
 
 //template <typename SessionMessageType,
@@ -243,7 +238,7 @@ Stream_Module_QueueReader_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_QueueReader_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   // step0: initialize container
 //  data_out.dataMessages = 0;
@@ -255,7 +250,7 @@ Stream_Module_QueueReader_T<LockType,
   //         (and propagate it downstream ?)
 
   // step1: send the container downstream
-  if (!inherited::putStatisticsMessage (data_out)) // data container
+  if (!inherited::putStatisticMessage (data_out)) // data container
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to putSessionMessage(SESSION_STATISTICS), aborting\n")));

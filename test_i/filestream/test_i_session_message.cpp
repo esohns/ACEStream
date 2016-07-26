@@ -23,6 +23,7 @@
 
 #include "ace/Malloc_Base.h"
 
+#include "stream_control_message.h"
 #include "stream_macros.h"
 
 Test_I_Stream_SessionMessage::Test_I_Stream_SessionMessage (Stream_SessionMessageType messageType_in,
@@ -74,7 +75,7 @@ Test_I_Stream_SessionMessage::duplicate (void) const
 
   // create a new <Test_I_Stream_SessionMessage> that contains unique copies of
   // the message block fields, but a reference counted duplicate of
-  // the <ACE_Data_Block>.
+  // the <ACE_Data_Block>
 
   // if there is no allocator, use the standard new and delete calls.
   if (inherited::message_block_allocator_ == NULL)
@@ -83,7 +84,7 @@ Test_I_Stream_SessionMessage::duplicate (void) const
                     NULL);
 
   // *WARNING*: the allocator returns a Test_I_Stream_SessionMessageBase<ConfigurationType>
-  //            when passing 0 as argument to malloc()...
+  //            when passing 0 as argument to malloc()
   ACE_NEW_MALLOC_RETURN (message_p,
                          static_cast<Test_I_Stream_SessionMessage*> (inherited::message_block_allocator_->malloc (0)),
                          Test_I_Stream_SessionMessage (*this),
@@ -102,7 +103,7 @@ Test_I_Stream_SessionMessage::duplicate (void) const
     } // end IF
   } // end IF
 
-  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
+  // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)
 
   return message_p;
 }

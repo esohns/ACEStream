@@ -25,23 +25,28 @@
 
 #include "stream_message_base.h"
 
+#include "test_u_riffdecoder_common.h"
+
 // forward declaration(s)
 class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 class Stream_RIFFDecoder_SessionMessage;
 template <typename AllocatorConfigurationType,
-          typename MessageType,
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 struct Test_U_AllocatorConfiguration;
 
 class Stream_RIFFDecoder_Message
  : public Stream_MessageBase_T<Test_U_AllocatorConfiguration,
+                               Test_U_ControlMessage_t,
+                               Stream_RIFFDecoder_SessionMessage,
                                int>
 {
-  // grant access to specific private ctors...
+  // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Test_U_AllocatorConfiguration,
-                                                 
+                                                 Test_U_ControlMessage_t,
                                                  Stream_RIFFDecoder_Message,
                                                  Stream_RIFFDecoder_SessionMessage>;
 
@@ -66,13 +71,15 @@ class Stream_RIFFDecoder_Message
 
  private:
   typedef Stream_MessageBase_T<Test_U_AllocatorConfiguration,
+                               Test_U_ControlMessage_t,
+                               Stream_RIFFDecoder_SessionMessage,
                                int> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_RIFFDecoder_Message ())
-  // *NOTE*: to be used by message allocators...
+  // *NOTE*: to be used by message allocators
   Stream_RIFFDecoder_Message (ACE_Data_Block*, // data block
-                          ACE_Allocator*,  // message allocator
-                          bool = true);    // increment running message counter ?
+                              ACE_Allocator*,  // message allocator
+                              bool = true);    // increment running message counter ?
   Stream_RIFFDecoder_Message (ACE_Allocator*); // message allocator
   ACE_UNIMPLEMENTED_FUNC (Stream_RIFFDecoder_Message& operator= (const Stream_RIFFDecoder_Message&))
 };

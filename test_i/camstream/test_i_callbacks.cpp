@@ -57,12 +57,11 @@
 
 #include "stream_file_defines.h"
 
-#include "test_i_common.h"
 #include "test_i_defines.h"
-#include "test_i_message.h"
-#include "test_i_session_message.h"
 
+#include "test_i_target_message.h"
 #include "test_i_source_common.h"
+#include "test_i_target_common.h"
 #include "test_i_target_listener_common.h"
 
 // initialize statics
@@ -105,6 +104,8 @@ load_capture_devices (GtkListStore* listStore_in)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   HRESULT result_2 = E_FAIL;
+  IMFActivate** devices_pp = NULL;
+
   //ICreateDevEnum* enumerator_p = NULL;
   //result_2 =
   //  CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
@@ -194,7 +195,6 @@ load_capture_devices (GtkListStore* listStore_in)
     goto error;
   } // end IF
 
-  IMFActivate** devices_pp = NULL;
   UINT32 count = 0;
   result_2 = MFEnumDeviceSources (attributes_p,
                                   &devices_pp,

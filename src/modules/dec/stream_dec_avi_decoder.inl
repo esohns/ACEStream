@@ -44,7 +44,6 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
  , allocator_ (NULL)
  , buffer_ (NULL)
  , crunchMessages_ (STREAM_DECODER_DEFAULT_CRUNCH_MESSAGES)
- , isInitialized_ (false)
  , sessionData_ (NULL)
  , debugScanner_ (STREAM_DECODER_DEFAULT_LEX_TRACE)
  , debugParser_ (STREAM_DECODER_DEFAULT_YACC_TRACE)
@@ -97,7 +96,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
   // sanity check(s)
   ACE_ASSERT (configuration_in.streamConfiguration);
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("re-initializing...\n")));
@@ -113,7 +112,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
     debugParser_ = STREAM_DECODER_DEFAULT_YACC_TRACE;
     isDriverInitialized_ = false;
 
-    isInitialized_ = false;
+    inherited::isInitialized_ = false;
   } // end IF
 
   allocator_ = configuration_in.streamConfiguration->messageAllocator;
@@ -122,9 +121,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
   debugScanner_ = configuration_in.traceScanning;
   debugParser_ = configuration_in.traceParsing;
 
-  isInitialized_ = inherited::initialize (configuration_in);
-
-  return isInitialized_;
+  return inherited::initialize (configuration_in);
 }
 //template <typename SynchStrategyType,
 //          typename TimePolicyType,
@@ -181,9 +178,8 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
   passMessageDownstream_out = false;
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
+  ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (sessionData_);
-  ACE_ASSERT (isInitialized_);
 
   // append the "\0\0"-sequence, as required by flex
   ACE_ASSERT ((message_inout->capacity () - message_inout->length ()) >= STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE);
@@ -350,8 +346,7 @@ Stream_Decoder_AVIDecoder_T<SynchStrategyType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (message_inout);
-  ACE_ASSERT (isInitialized_);
+  ACE_ASSERT (inherited::isInitialized_);
 
   const typename SessionMessageType::DATA_T& session_data_container_r =
     message_inout->get ();

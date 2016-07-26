@@ -34,13 +34,17 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ConfigurationType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>::Stream_TaskBaseAsynch_T ()
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionEventType>::Stream_TaskBaseAsynch_T ()
  : inherited ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , threadID_ (std::numeric_limits<DWORD>::max (), ACE_INVALID_HANDLE)
@@ -62,13 +66,17 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ConfigurationType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>::~Stream_TaskBaseAsynch_T ()
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionEventType>::~Stream_TaskBaseAsynch_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::~Stream_TaskBaseAsynch_T"));
 
@@ -88,14 +96,18 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 int
 Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ConfigurationType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>::open (void* args_in)
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionEventType>::open (void* args_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::open"));
 
@@ -175,14 +187,18 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 int
 Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ConfigurationType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>::close (u_long arg_in)
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionEventType>::close (u_long arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::close"));
 
@@ -198,17 +214,13 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     // called from ACE_Task_Base on clean-up
     case 0:
     {
-//       if (inherited::module ())
-//       {
+//       if (inherited::mod_)
 //         ACE_DEBUG ((LM_DEBUG,
-//                     ACE_TEXT ("\"%s\" worker thread (ID: %t) leaving...\n"),
-//                     inherited::mode_->name ()));
-//       } // end IF
+//                     ACE_TEXT ("\"%s\": worker thread (ID: %t) leaving...\n"),
+//                     inherited::mod_->name ()));
 //       else
-//       {
 //         ACE_DEBUG ((LM_DEBUG,
 //                     ACE_TEXT ("worker thread (ID: %t) leaving...\n")));
-//       } // end ELSE
 
       if (inherited::thr_count_ == 0) // last thread ?
       {
@@ -228,7 +240,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
         //              result));
       } // end IF
 
-      // don't (need to) do anything...
+      // don't (need to) do anything
       break;
     }
     case 1:
@@ -255,14 +267,18 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 int
 Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ConfigurationType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>::module_closed (void)
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionEventType>::module_closed (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::module_closed"));
 
@@ -287,17 +303,52 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 int
 Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ConfigurationType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>::put (ACE_Message_Block* messageBlock_in,
-                                                  ACE_Time_Value* timeout_in)
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionEventType>::put (ACE_Message_Block* messageBlock_in,
+                                                ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::put"));
+
+  if (messageBlock_in->msg_type () == ACE_Message_Block::MB_FLUSH)
+  {
+    // *TODO*: support selective flushing via ControlMessageType
+    int result = inherited::msg_queue_->flush ();
+    if (result == -1)
+    {
+      if (inherited::mod_)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue_T::flush(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Message_Queue_T::flush(): \"%m\", aborting\n")));
+    } // end IF
+    else if (result > 0)
+    {
+      if (inherited::mod_)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: flushed %d messages\n"),
+                    inherited::mod_->name ()));
+      else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("flushed %d messages\n")));
+    } // end ELSE IF
+
+    // clean up
+    messageBlock_in->release ();
+  
+    return (result > 0 ? 0 : result);
+  } // end IF
 
   // drop the message into the queue
   return inherited::putq (messageBlock_in, timeout_in);
@@ -308,14 +359,18 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 int
 Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ConfigurationType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>::svc (void)
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionEventType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::svc"));
 
@@ -348,7 +403,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
           message_block_p->release ();
         } // end IF
 
-        goto done; // closing...
+        goto done; // closing
       } // end IF
 
       // clean up
@@ -378,14 +433,18 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 void
 Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ConfigurationType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>::waitForIdleState () const
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionEventType>::waitForIdleState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::waitForIdleState"));
 
@@ -403,15 +462,19 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 void
 Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                         TimePolicyType,
                         ConfigurationType,
                         ControlMessageType,
                         DataMessageType,
-                        SessionMessageType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                   bool& passMessageDownstream_out)
+                        SessionMessageType,
+                        SessionIdType,
+                        SessionEventType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::handleSessionMessage"));
 

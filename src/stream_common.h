@@ -30,12 +30,13 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
+#include "common_ilock.h"
 #include "common_istatemachine.h"
 #include "common_time_common.h"
 
 #include "stream_defines.h"
 #include "stream_iallocator.h"
-#include "stream_imodule.h"
+#include "stream_inotify.h"
 #include "stream_session_data.h"
 #include "stream_statistichandler.h"
 #include "stream_statemachine_control.h"
@@ -51,20 +52,37 @@ enum Stream_MessageType : int
   // *** data ***
   STREAM_MESSAGE_DATA,                                      // data (raw)
   STREAM_MESSAGE_OBJECT,                                    // data (dynamic type)
-  // *** data - END ***
   STREAM_MESSAGE_PROTCOL_MASK = 0x800,                      // protocol
   ////////////////////////////////////////
   STREAM_MESSAGE_MAX,
   STREAM_MESSAGE_INVALID
 };
 
+enum Stream_ControlType : int
+{
+  STREAM_CONTROL_CONNECT    = 0,
+  STREAM_CONTROL_DISCONNECT = ACE_Message_Block::MB_HANGUP,
+  STREAM_CONTROL_FLUSH      = ACE_Message_Block::MB_FLUSH,
+  STREAM_CONTROL_LINK,
+  STREAM_CONTROL_STEP,
+  STREAM_CONTROL_UNLINK     = ACE_Message_Block::MB_BREAK,
+  ////////////////////////////////////////
+  STREAM_CONTROL_USER_MASK  = 0x200, // user-defined message mask
+  ////////////////////////////////////////
+  STREAM_CONTROL_MAX,
+  STREAM_CONTROL_INVALID
+};
 enum Stream_ControlMessageType : int
 {
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
   STREAM_CONTROL_MESSAGE_MASK      = ACE_Message_Block::MB_USER, // == 0x200
   // *** control ***
+  STREAM_CONTROL_MESSAGE_CONNECT,
+  STREAM_CONTROL_MESSAGE_DISCONNECT,
   STREAM_CONTROL_MESSAGE_FLUSH,
-  // *** control - END ***
+  STREAM_CONTROL_MESSAGE_LINK,
+  STREAM_CONTROL_MESSAGE_STEP,
+  STREAM_CONTROL_MESSAGE_UNLINK,
   ////////////////////////////////////////
   STREAM_CONTROL_MESSAGE_USER_MASK = 0x400, // user-defined message mask
   ////////////////////////////////////////
@@ -77,31 +95,22 @@ enum Stream_SessionMessageType : int
   // *NOTE*: see "ace/Message_Block.h" and "stream_message_base.h" for details
   STREAM_SESSION_MESSAGE_MASK      = ACE_Message_Block::MB_USER, // == 0x200
   // *** notification ***
-  STREAM_SESSION_MESSAGE_BEGIN,
+  STREAM_SESSION_MESSAGE_ABORT,
+  STREAM_SESSION_MESSAGE_CONNECT,
+  STREAM_SESSION_MESSAGE_DISCONNECT,
   STREAM_SESSION_MESSAGE_LINK,
-  STREAM_SESSION_MESSAGE_STEP,
+  STREAM_SESSION_MESSAGE_UNLINK,
+  // *** control ***
+  STREAM_SESSION_MESSAGE_BEGIN,
   STREAM_SESSION_MESSAGE_END,
-  // *** notification - END ***
+  STREAM_SESSION_MESSAGE_STEP,
   // *** data ***
   STREAM_SESSION_MESSAGE_STATISTIC,
-  // *** data - END ***
   ////////////////////////////////////////
   STREAM_SESSION_MESSAGE_USER_MASK = 0x400, // user-defined message mask
   ////////////////////////////////////////
   STREAM_SESSION_MESSAGE_MAX,
   STREAM_SESSION_MESSAGE_INVALID
-};
-
-enum Stream_ControlType : int
-{
-  STREAM_CONTROL_LINK = 0,
-  STREAM_CONTROL_STEP,
-  STREAM_CONTROL_UNLINK,
-  ////////////////////////////////////////
-  STREAM_CONTROL_USER_MASK = 0x200, // user-defined message mask
-  ////////////////////////////////////////
-  STREAM_CONTROL_MAX,
-  STREAM_CONTROL_INVALID
 };
 
 struct Stream_Statistic
@@ -146,6 +155,8 @@ struct Stream_UserData
   void* userData;
 };
 
+typedef unsigned int Stream_SessionId_t;
+
 struct Stream_SessionData
 {
   inline Stream_SessionData ()
@@ -154,9 +165,9 @@ struct Stream_SessionData
    , lastCollectionTimeStamp (ACE_Time_Value::zero)
    , lock (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , sessionID (reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE))
+   , sessionID (reinterpret_cast<Stream_SessionId_t> (ACE_INVALID_HANDLE))
 #else
-   , sessionID (static_cast<unsigned int> (ACE_INVALID_HANDLE))
+   , sessionID (static_cast<Stream_SessionId_t> (ACE_INVALID_HANDLE))
 #endif
    , startOfSession (ACE_Time_Value::zero)
    , userData (NULL)
@@ -175,12 +186,12 @@ struct Stream_SessionData
     //lock = (lock ? lock : rhs_in.lock);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     sessionID =
-        ((sessionID == reinterpret_cast<unsigned int> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
-                                                                            : sessionID);
+        ((sessionID == reinterpret_cast<Stream_SessionId_t> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
+                                                                                  : sessionID);
 #else
     sessionID =
-        ((sessionID == static_cast<unsigned int> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
-                                                                       : sessionID);
+        ((sessionID == static_cast<Stream_SessionId_t> (ACE_INVALID_HANDLE)) ? rhs_in.sessionID
+                                                                             : sessionID);
 #endif
     startOfSession =
         (startOfSession > rhs_in.startOfSession ? startOfSession
@@ -190,19 +201,19 @@ struct Stream_SessionData
     return *this;
   }
 
-  // *NOTE*: modules can set this to signal (internal) processing errors.
-  //         The (stream / process) control logic may (or may not) then react to
-  //         abort processing early
-  bool             aborted;
+  // *NOTE*: this will be set when/if modules notify initialization/processing
+  //         errors and/or when the stream processing ends early (i.e. user
+  //         abort, connection reset, etc...)
+  bool               aborted;
 
-  Stream_Statistic currentStatistic;
-  ACE_Time_Value   lastCollectionTimeStamp;
-  ACE_SYNCH_MUTEX* lock;
+  Stream_Statistic   currentStatistic;
+  ACE_Time_Value     lastCollectionTimeStamp;
+  ACE_SYNCH_MUTEX*   lock;
 
-  unsigned int     sessionID; // (== socket handle !)
-  ACE_Time_Value   startOfSession;
+  Stream_SessionId_t sessionID; // (== socket handle !)
+  ACE_Time_Value     startOfSession;
 
-  Stream_UserData* userData;
+  Stream_UserData*   userData;
 };
 
 // forward declarations
@@ -230,10 +241,7 @@ typedef Stream_ModuleList_t::const_iterator Stream_ModuleListIterator_t;
 
 struct Stream_ModuleConfiguration;
 struct Stream_ModuleHandlerConfiguration;
-typedef Stream_IModule_T<ACE_MT_SYNCH,
-                         Common_TimePolicy_t,
-                         Stream_ModuleConfiguration,
-                         Stream_ModuleHandlerConfiguration> Stream_IModule_t;
+typedef Stream_INotify_T<Stream_SessionMessageType> Stream_INotify_t;
 typedef Common_IStateMachine_T<Stream_StateMachine_ControlState> Stream_IStateMachine_t;
 
 struct Stream_State
@@ -309,38 +317,48 @@ struct Stream_Configuration
 struct Stream_ModuleConfiguration
 {
   inline Stream_ModuleConfiguration ()
-   : streamConfiguration (NULL)
+   : notify (NULL)
+   , streamConfiguration (NULL)
   {};
 
-//  // *TODO*: consider moving this somewhere else
-//  Stream_State* streamState;
+  Stream_INotify_t*     notify;
+  // *TODO*: remove this ASAP
   Stream_Configuration* streamConfiguration;
 };
+
+typedef Common_ILock_T<ACE_MT_SYNCH> Stream_ILock_t;
 
 struct Stream_ModuleHandlerConfiguration
 {
   inline Stream_ModuleHandlerConfiguration ()
    : active (false)
+   , concurrent (false)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
    , hasHeader (false)
+   , ilock (NULL)
    , messageAllocator (NULL)
    , passive (true)
    , reportingInterval (0)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , stateMachineLock (NULL)
-   //, socketConfiguration (NULL)
+//, socketConfiguration (NULL)
    , streamConfiguration (NULL)
    , traceParsing (STREAM_DEFAULT_YACC_TRACE)
    , traceScanning (STREAM_DEFAULT_LEX_TRACE)
   {};
 
-  bool                     active; // *NOTE*: head module(s)
+  bool                     active; // head module(s)
+  bool                     concurrent; // head module(s)
   // *NOTE*: this option may be useful for (downstream) modules that only work
   //         on CONTIGUOUS buffers (i.e. cannot parse chained message blocks)
   bool                     crunchMessages;
   bool                     hasHeader;
+  // *NOTE*: modules can use this to temporarily relinquish the stream lock
+  //         while they wait on some condition, in order to avoid deadlocks
+  //         --> use in non-concurrent scenarios
+  Stream_ILock_t*          ilock;
   Stream_IAllocator*       messageAllocator;
-  bool                     passive; // *NOTE*: network/device/... module(s)
+  bool                     passive; // network/device/... module(s)
 
   unsigned int             reportingInterval; // (statistic) reporting interval (second(s)) [0: off]
   ACE_Time_Value           statisticCollectionInterval;
@@ -354,8 +372,6 @@ struct Stream_ModuleHandlerConfiguration
   bool                     traceParsing;  // debug yacc (bison) ?
   bool                     traceScanning; // debug (f)lex ?
 };
-
-typedef Stream_SessionData_T<Stream_SessionData> Stream_SessionData_t;
 
 typedef Stream_StatisticHandler_Reactor_T<Stream_Statistic> Stream_StatisticHandler_Reactor_t;
 typedef Stream_StatisticHandler_Proactor_T<Stream_Statistic> Stream_StatisticHandler_Proactor_t;

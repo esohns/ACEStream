@@ -29,25 +29,30 @@
 #include "stream_exports.h"
 #include "stream_messagequeue_base.h"
 
-class Stream_Export Stream_MessageQueue
+//class Stream_Export Stream_MessageQueue
+template <typename SessionMessageType>
+class Stream_MessageQueue_T
  : public Stream_MessageQueueBase_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t>
 {
  public:
-  Stream_MessageQueue (unsigned int); // maximum number of queued buffers
-  virtual ~Stream_MessageQueue ();
+  Stream_MessageQueue_T (unsigned int); // maximum number of queued buffers
+  virtual ~Stream_MessageQueue_T ();
 
   // implement Stream_IMessageQueue
-  virtual unsigned int flushData ();
+  virtual unsigned int flush (bool = false);
   virtual void waitForIdleState () const;
 
  private:
   typedef Stream_MessageQueueBase_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue (const Stream_MessageQueue&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue& operator= (const Stream_MessageQueue&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T (const Stream_MessageQueue_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_MessageQueue_T& operator= (const Stream_MessageQueue_T&))
 };
+
+// include template definition
+#include "stream_messagequeue.inl"
 
 #endif

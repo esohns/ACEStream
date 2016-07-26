@@ -32,12 +32,12 @@ class ACE_Time_Value;
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
-          ////////////////////////////////
           typename ConfigurationType,
-          ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 class Stream_TaskBaseSynch_T
 // *TODO*: figure out how to use ACE_NULL_SYNCH in this case
  : public Stream_TaskBase_T<ACE_SYNCH_USE,
@@ -45,7 +45,9 @@ class Stream_TaskBaseSynch_T
                             ConfigurationType,
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType>
+                            SessionMessageType,
+                            SessionIdType,
+                            SessionEventType>
 {
  public:
   virtual ~Stream_TaskBaseSynch_T ();
@@ -66,18 +68,18 @@ class Stream_TaskBaseSynch_T
  private:
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
-                            //////////////
                             ConfigurationType,
-                            //////////////
                             ControlMessageType,
                             DataMessageType,
-                            SessionMessageType> inherited;
+                            SessionMessageType,
+                            SessionIdType,
+                            SessionEventType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T (const Stream_TaskBaseSynch_T&))
-//   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T& operator= (const Stream_TaskBaseSynch_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_TaskBaseSynch_T& operator= (const Stream_TaskBaseSynch_T&))
 };
 
-// include template implementation
+// include template definition
 #include "stream_task_base_synch.inl"
 
 #endif

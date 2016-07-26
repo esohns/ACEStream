@@ -232,7 +232,9 @@ set (EXECUTABLE http_get)
 add_executable (${EXECUTABLE} ${http_get_EXE_SRCS})
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
-if (WIN32)
+if (UNIX)
+ target_link_libraries (${EXECUTABLE} rt)
+elseif (WIN32)
  # *WARNING*: linking CommonUI requires "/FORCE:MULTIPLE"
  set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /FORCE:MULTIPLE)
 endif ()
@@ -265,3 +267,39 @@ install (TARGETS ${EXECUTABLE}
          RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
 
 #set_tests_properties (${EXECUTABLE} PROPERTIES ENVIRONMENT "PATH=%PATH%;$(ACE_ROOT)\\lib;D:\\projects\\libiconv-1.9.2\\bin;D:\\projects\\libxml2-2.9.4\\win32\\bin;$(ProgramFiles)\\LibreOffice 5\\program;$(ProjectDir)..\\..\\..\\..\\libCommon\\cmake\\src\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\libCommon\\cmake\\src\\err\\$(Configuration);$(ProjectDir)..\\..\\src\\$(Configuration);$(ProjectDir)..\\..\\src\\modules\\dec\\$(Configuration);$(ProjectDir)..\\..\\src\\modules\\html\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\libACENetwork\\cmake\\src\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\libACENetwork\\cmake\\src\\protocol\\http\\$(Configuration)")
+
+if (UNIX)
+ create_target_launcher (${EXECUTABLE}
+                         ARGS "-c.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get\\\\etc\\\\options.cnf -d news -e articles -f output.txt -l -p 80 -t -u http://www.heise.de/newsticker.html"
+#                         FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.4/.libs
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/db/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/html/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/protocol/http/Debug
+                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
+                         ENVIRONMENT foo=bar)
+elseif (WIN32)
+ create_target_launcher (${EXECUTABLE}
+                         ARGS "-c.\\\\etc\\\\options.cnf -f output.txt -l -p 80 -r -t -u http://www.heise.de/newsticker.html"
+#                        FORWARD_ARGS
+                         RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
+                                              ${PROJECT_SOURCE_DIR}/../libiconv-1.9.2/bin
+                                              ${PROJECT_SOURCE_DIR}/../libxml2-2.9.4/win32/bin
+                                              ${PROJECT_SOURCE_DIR}/../libmysql_2/cmake/libmysql/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/db/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/dec/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/html/Debug
+                                              ${PROJECT_SOURCE_DIR}/cmake/src/modules/net/protocols/http/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/Debug
+                                              ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/protocol/http/Debug
+                         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/http_get
+                         ENVIRONMENT foo=bar)
+endif ()

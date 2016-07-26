@@ -65,10 +65,10 @@
 #include "test_i_common.h"
 #include "test_i_defines.h"
 
-#include "test_i_module_eventhandler.h"
 #include "test_i_target_common.h"
 #include "test_i_target_eventhandler.h"
 #include "test_i_target_listener_common.h"
+#include "test_i_target_module_eventhandler.h"
 #include "test_i_target_signalhandler.h"
 
 void

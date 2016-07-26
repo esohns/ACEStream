@@ -25,7 +25,8 @@
 #include "stream_macros.h"
 
 // initialize statics
-Stream_CachedDataBlockAllocatorHeap::DATABLOCK_LOCK_TYPE Stream_CachedDataBlockAllocatorHeap::referenceCountLock_;
+Stream_CachedDataBlockAllocatorHeap::DATABLOCK_LOCK_TYPE
+Stream_CachedDataBlockAllocatorHeap::referenceCountLock_;
 
 Stream_CachedDataBlockAllocatorHeap::Stream_CachedDataBlockAllocatorHeap (unsigned int chunks_in,
                                                                           ACE_Allocator* allocator_in)
@@ -62,13 +63,23 @@ Stream_CachedDataBlockAllocatorHeap::block ()
 }
 
 void*
+Stream_CachedDataBlockAllocatorHeap::calloc ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::calloc"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (NULL);
+
+  ACE_NOTREACHED (return NULL;)
+}
+
+void*
 Stream_CachedDataBlockAllocatorHeap::malloc (size_t bytes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::malloc"));
 
   ACE_Data_Block* data_block_p = NULL;
-  try
-  {
+  try {
     // delegate allocation to the base class and:
     // - use placement new to invoke a ctor on the allocated space
     // - perform necessary initialization...
@@ -82,13 +93,10 @@ Stream_CachedDataBlockAllocatorHeap::malloc (size_t bytes_in)
                                              &Stream_CachedDataBlockAllocatorHeap::referenceCountLock_, // reference count lock
                                              0,                                                         // flags: release (heap) memory in dtor
                                              this));                                                    // data block allocator
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)), aborting\n"),
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)), continuing\n"),
                 bytes_in));
-    return NULL;
   }
   if (!data_block_p)
   {

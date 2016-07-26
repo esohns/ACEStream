@@ -47,12 +47,12 @@ template <typename SynchStrategyType,
 class Stream_Decoder_AVIDecoder_T
  : public Stream_TaskBaseSynch_T<SynchStrategyType,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType>
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType>
  //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
@@ -74,12 +74,12 @@ class Stream_Decoder_AVIDecoder_T
  private:
   typedef Stream_TaskBaseSynch_T<SynchStrategyType,
                                  TimePolicyType,
-                                 /////////
                                  ConfigurationType,
-                                 /////////
                                  ControlMessageType,
                                  DataMessageType,
-                                 SessionMessageType> inherited;
+                                 SessionMessageType,
+                                 Stream_SessionId_t,
+                                 Stream_SessionMessageType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T (const Stream_Decoder_AVIDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_AVIDecoder_T& operator= (const Stream_Decoder_AVIDecoder_T&))
@@ -90,7 +90,6 @@ class Stream_Decoder_AVIDecoder_T
   Stream_IAllocator*             allocator_;
   ACE_Message_Block*             buffer_; // <-- continuation chain
   bool                           crunchMessages_;
-  bool                           isInitialized_;
   SessionDataContainerType*      sessionData_;
 
   // driver

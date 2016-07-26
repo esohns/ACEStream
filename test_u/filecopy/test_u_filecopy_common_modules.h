@@ -37,76 +37,62 @@
 #include "test_u_filecopy_session_message.h"
 
 // declare module(s)
-typedef Stream_Module_FileReader_T<ACE_SYNCH_MUTEX,
-                                   ///////
+typedef Stream_Module_FileReader_T<ACE_MT_SYNCH,
                                    ACE_Message_Block,
                                    Stream_Filecopy_Message,
                                    Stream_Filecopy_SessionMessage,
-                                   ///////
                                    Stream_Filecopy_ModuleHandlerConfiguration,
-                                   ///////
                                    int,
-                                   int,
+                                   Stream_SessionMessageType,
                                    Stream_State,
-                                   ///////
                                    Stream_Filecopy_SessionData,
                                    Stream_Filecopy_SessionData_t,
-                                   ///////
                                    Stream_Statistic> Stream_Filecopy_Module_FileReader;
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                               // task synch type
-                              Common_TimePolicy_t,                        // time policy
-                              Stream_ModuleConfiguration,                 // module configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_Filecopy_SessionData,                // session data type
+                              Stream_SessionMessageType,                  // session event type
                               Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_Filecopy_IStreamNotify_t,            // stream notification interface type
                               Stream_Filecopy_Module_FileReader);         // writer type
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-
                                              Stream_Filecopy_ModuleHandlerConfiguration,
-
                                              ACE_Message_Block,
                                              Stream_Filecopy_Message,
                                              Stream_Filecopy_SessionMessage,
-
                                              Stream_CommandType_t,
                                              Stream_Statistic,
                                              Stream_Filecopy_SessionData,
                                              Stream_Filecopy_SessionData_t> Stream_Filecopy_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-
                                              Stream_Filecopy_ModuleHandlerConfiguration,
-
                                              ACE_Message_Block,
                                              Stream_Filecopy_Message,
                                              Stream_Filecopy_SessionMessage,
-
                                              Stream_CommandType_t,
                                              Stream_Statistic,
                                              Stream_Filecopy_SessionData,
                                              Stream_Filecopy_SessionData_t> Stream_Filecopy_Module_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                  // task synch type
-                          Common_TimePolicy_t,                           // time policy type
-                          Stream_ModuleConfiguration,                    // module configuration type
+DATASTREAM_MODULE_DUPLEX (Stream_Filecopy_SessionData,                   // session data type
+                          Stream_SessionMessageType,                     // session event type
                           Stream_Filecopy_ModuleHandlerConfiguration,    // module handler configuration type
+                          Stream_Filecopy_IStreamNotify_t,               // stream notification interface type
                           Stream_Filecopy_Module_Statistic_ReaderTask_t, // reader type
                           Stream_Filecopy_Module_Statistic_WriterTask_t, // writer type
                           Stream_Filecopy_Module_RuntimeStatistic);      // name
 
 typedef Stream_Module_FileWriter_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
-                                   ///////
                                    Stream_Filecopy_ModuleHandlerConfiguration,
-                                   ///////
                                    ACE_Message_Block,
                                    Stream_Filecopy_Message,
                                    Stream_Filecopy_SessionMessage,
-                                   ///////
                                    Stream_Filecopy_SessionData> Stream_Filecopy_Module_FileWriter;
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                               // task synch type
-                              Common_TimePolicy_t,                        // time policy
-                              Stream_ModuleConfiguration,                 // module configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_Filecopy_SessionData,                // session data type
+                              Stream_SessionMessageType,                  // session event type
                               Stream_Filecopy_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_Filecopy_IStreamNotify_t,            // stream notification interface type
                               Stream_Filecopy_Module_FileWriter);         // writer type
 
 #endif

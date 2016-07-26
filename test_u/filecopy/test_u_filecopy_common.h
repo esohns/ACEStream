@@ -18,8 +18,8 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_U_STREAM_FILECOPY_COMMON_H
-#define TEST_U_STREAM_FILECOPY_COMMON_H
+#ifndef TEST_U_FILECOPY_COMMON_H
+#define TEST_U_FILECOPY_COMMON_H
 
 #include <list>
 #include <map>
@@ -27,21 +27,22 @@
 
 #include "gtk/gtk.h"
 
-#include "common_inotify.h"
 #include "common_isubscribe.h"
 
 #include "stream_common.h"
+#include "stream_control_message.h"
+#include "stream_inotify.h"
+#include "stream_isessionnotify.h"
 #include "stream_messageallocatorheap_base.h"
 #include "stream_session_data.h"
 
 #include "test_u_common.h"
 
-#include "test_u_filecopy_message.h"
-
 // forward declarations
 class Stream_IAllocator;
 class Stream_Filecopy_Stream;
-class Stream_Filecopy_Session_Message;
+class Stream_Filecopy_Message;
+class Stream_Filecopy_SessionMessage;
 
 struct Stream_Filecopy_ModuleHandlerConfiguration
  : Stream_Test_U_ModuleHandlerConfiguration
@@ -113,19 +114,51 @@ struct Stream_Filecopy_Configuration
   Stream_UserData                            streamUserData;
 };
 
-typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Stream_AllocatorConfiguration,
+                                Stream_Filecopy_Message,
+                                Stream_Filecopy_SessionMessage> Test_U_ControlMessage_t;
 
+//template <typename AllocatorConfigurationType,
+//          typename CommandType,
+//          typename ControlMessageType,
+//          typename SessionMessageType>
+//class Stream_MessageBase_T;
+//typedef Stream_MessageBase_T<Stream_AllocatorConfiguration,
+//                             int,
+//                             Test_U_ControlMessage_t,
+//                             Test_U_SessionMessage_t> Test_U_Message_t;
+
+//typedef Stream_SessionData_T<Stream_SessionData> Test_U_SessionData_t;
+//template <typename AllocatorConfigurationType,
+//          typename SessionMessageType,
+//          typename SessionDataType,
+//          typename UserDataType,
+//          typename ControlMessageType,
+//          typename DataMessageType>
+//class Stream_SessionMessageBase_T;
+//typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+//                                    Stream_SessionMessageType,
+//                                    Test_U_SessionData_t,
+//                                    Stream_UserData,
+//                                    Test_U_ControlMessage_t,
+//                                    Test_U_Message_t> Test_U_SessionMessage_t;
+
+typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+                                          Test_U_ControlMessage_t,
                                           Stream_Filecopy_Message,
                                           Stream_Filecopy_SessionMessage> Stream_Filecopy_MessageAllocator_t;
 
-typedef Common_INotify_T<unsigned int,
-                         Stream_Filecopy_SessionData,
-                         Stream_Filecopy_Message,
-                         Stream_Filecopy_SessionMessage> Stream_Filecopy_IStreamNotify_t;
-typedef std::list<Stream_Filecopy_IStreamNotify_t*> Stream_Filecopy_Subscribers_t;
-typedef Stream_Filecopy_Subscribers_t::iterator Stream_Filecopy_SubscribersIterator_t;
+typedef Stream_INotify_T<Stream_SessionMessageType> Stream_Filecopy_IStreamNotify_t;
 
-typedef Common_ISubscribe_T<Stream_Filecopy_IStreamNotify_t> Stream_Filecopy_ISubscribe_t;
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    Stream_Filecopy_SessionData,
+                                    Stream_SessionMessageType,
+                                    Stream_Filecopy_Message,
+                                    Stream_Filecopy_SessionMessage> Stream_Filecopy_ISessionNotify_t;
+typedef std::list<Stream_Filecopy_ISessionNotify_t*> Stream_Filecopy_Subscribers_t;
+typedef Stream_Filecopy_Subscribers_t::iterator Stream_Filecopy_SubscribersIterator_t;
+typedef Common_ISubscribe_T<Stream_Filecopy_ISessionNotify_t> Stream_Filecopy_ISubscribe_t;
 
 typedef std::map<ACE_thread_t, guint> Stream_Filecopy_PendingActions_t;
 typedef Stream_Filecopy_PendingActions_t::iterator Stream_Filecopy_PendingActionsIterator_t;

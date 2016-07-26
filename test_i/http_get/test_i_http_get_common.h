@@ -18,9 +18,24 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef TEST_I_SOURCE_COMMON_H
-#define TEST_I_SOURCE_COMMON_H
+#ifndef TEST_I_HTTP_GET_COMMON_H
+#define TEST_I_HTTP_GET_COMMON_H
+
+#include "stream_control_message.h"
 
 #include "test_i_common.h"
+//#include "test_i_message.h"
+//#include "test_i_session_message.h"
+
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Test_I_AllocatorConfiguration,
+                                Test_I_Stream_Message,
+                                Test_I_Stream_SessionMessage> Test_I_ControlMessage_t;
+
+//typedef Stream_IModuleHandler_T<Test_I_Stream_ModuleHandlerConfiguration> Test_I_IModuleHandler_t;
+typedef Stream_MessageAllocatorHeapBase_T<Test_I_AllocatorConfiguration,
+                                          Test_I_ControlMessage_t,
+                                          Test_I_Stream_Message,
+                                          Test_I_Stream_SessionMessage> Test_I_MessageAllocator_t;
 
 #endif

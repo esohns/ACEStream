@@ -182,35 +182,27 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  // sanity check(s)
-  ACE_ASSERT (message_inout);
-
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // sanity check(s)
+      ACE_ASSERT (!inherited::parserContext_.sessionData);
+
       // *TODO*: remove type inferences
-        const Test_I_Stream_SessionData_t& session_data_container_r =
-          message_inout->get ();
-        const Test_I_Stream_SessionData& session_data_r =
-          session_data_container_r.get ();
+      inherited::sessionData_ =
+        &const_cast<Test_I_Stream_SessionData_t&> (message_inout->get ());
+      inherited::sessionData_->increase ();
+      const Test_I_Stream_SessionData& session_data_r =
+        inherited::sessionData_->get ();
 
 //      if (parserContext_)
 //        htmlCtxtReset (parserContext_);
 
-      // *TODO*: the upstream session data may not be the same as the downstream
-      //         one...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (session_data_r.sessionID != reinterpret_cast<size_t> (ACE_INVALID_HANDLE))
-#else
-      if (session_data_r.sessionID != static_cast<size_t> (ACE_INVALID_HANDLE))
-#endif
-      {
-        const_cast<Test_I_Stream_SessionData&> (session_data_r).parserContext =
-            &(inherited::parserContext_);
-        inherited::parserContext_.sessionData =
-            &const_cast<Test_I_Stream_SessionData&> (session_data_r);
-      } // end IF
+      const_cast<Test_I_Stream_SessionData&> (session_data_r).parserContext =
+          &(inherited::parserContext_);
+      inherited::parserContext_.sessionData =
+          &const_cast<Test_I_Stream_SessionData&> (session_data_r);
 
       break;
     }
@@ -223,12 +215,12 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-//      // *TODO*: the upstream session data may not be the same as the downstream
-//      //         one...
-//      const_cast<Test_I_Stream_SessionData*> (session_data_p)->parserContext =
-//          &(inherited::parserContext_);
-//      inherited::parserContext_.sessionData =
-//          const_cast<Test_I_Stream_SessionData*> (session_data_p);
+      if (inherited::sessionData_)
+      {
+        inherited::sessionData_->decrease ();
+        inherited::sessionData_ = NULL;
+      } // end IF
+      inherited::parserContext_.sessionData = NULL;
 
       break;
     }
@@ -245,19 +237,11 @@ Test_I_Stream_HTMLParser::initialize (const Test_I_Stream_ModuleHandlerConfigura
   // sanity check(s)
   ACE_ASSERT (configuration_in.mode == STREAM_MODULE_HTMLPARSER_SAX);
 
-  if (!inherited::initialize (configuration_in))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Module_HTMLParser_T::initialize(): \"%m\", aborting\n"),
-                inherited::mod_->name ()));
-    return false;
-  } // end IF
-
 //  initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::errorCallback);
 //  xmlSetGenericErrorFunc (inherited::parserContext_, &::errorCallback);
 //  xmlSetStructuredErrorFunc (inherited::parserContext_, &::structuredErrorCallback);
 
-  return true;
+  return inherited::initialize (configuration_in);
 }
 
 bool

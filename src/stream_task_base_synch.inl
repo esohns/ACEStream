@@ -28,13 +28,17 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
                        DataMessageType,
-                       SessionMessageType>::Stream_TaskBaseSynch_T ()
+                       SessionMessageType,
+                       SessionIdType,
+                       SessionEventType>::Stream_TaskBaseSynch_T ()
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::Stream_TaskBaseSynch_T"));
@@ -46,13 +50,17 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
                        DataMessageType,
-                       SessionMessageType>::~Stream_TaskBaseSynch_T ()
+                       SessionMessageType,
+                       SessionIdType,
+                       SessionEventType>::~Stream_TaskBaseSynch_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::~Stream_TaskBaseSynch_T"));
 
@@ -63,15 +71,19 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 int
 Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
                        DataMessageType,
-                       SessionMessageType>::put (ACE_Message_Block* messageBlock_in,
-                                                 ACE_Time_Value* timeout_in)
+                       SessionMessageType,
+                       SessionIdType,
+                       SessionEventType>::put (ACE_Message_Block* messageBlock_in,
+                                               ACE_Time_Value* timeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::put"));
 
@@ -91,14 +103,18 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 int
 Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
                        DataMessageType,
-                       SessionMessageType>::open (void* arg_in)
+                       SessionMessageType,
+                       SessionIdType,
+                       SessionEventType>::open (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::open"));
 
@@ -125,14 +141,18 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 int
 Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
                        DataMessageType,
-                       SessionMessageType>::close (u_long arg_in)
+                       SessionMessageType,
+                       SessionIdType,
+                       SessionEventType>::close (u_long arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::close"));
 
@@ -148,14 +168,18 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 int
 Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
                        DataMessageType,
-                       SessionMessageType>::module_closed (void)
+                       SessionMessageType,
+                       SessionIdType,
+                       SessionEventType>::module_closed (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::module_closed"));
 
@@ -170,14 +194,18 @@ template <ACE_SYNCH_DECL,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionEventType>
 void
 Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                        TimePolicyType,
                        ConfigurationType,
                        ControlMessageType,
                        DataMessageType,
-                       SessionMessageType>::waitForIdleState () const
+                       SessionMessageType,
+                       SessionIdType,
+                       SessionEventType>::waitForIdleState () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseSynch_T::waitForIdleState"));
 

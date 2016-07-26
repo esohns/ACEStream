@@ -41,26 +41,19 @@
 class Stream_IAllocator;
 
 class Test_I_Target_Stream
- : public Stream_Base_T<ACE_SYNCH_MUTEX,
-                        //////////////////
+ : public Stream_Base_T<ACE_MT_SYNCH,
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        //////////////////
                         int,
-                        int,
+                        Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
-                        //////////////////
                         Test_I_Stream_Configuration,
-                        //////////////////
                         Test_I_RuntimeStatistic_t,
-                        //////////////////
                         Stream_ModuleConfiguration,
                         Test_I_Stream_ModuleHandlerConfiguration,
-                        //////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        //////////////////
                         ACE_Message_Block,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage>
@@ -86,26 +79,19 @@ class Test_I_Target_Stream
   virtual void report () const;
 
  private:
-  typedef Stream_Base_T<ACE_SYNCH_MUTEX,
-                        //////////////////
+  typedef Stream_Base_T<ACE_MT_SYNCH,
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        //////////////////
                         int,
-                        int,
+                        Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
-                        //////////////////
                         Test_I_Stream_Configuration,
-                        //////////////////
                         Test_I_RuntimeStatistic_t,
-                        //////////////////
                         Stream_ModuleConfiguration,
                         Test_I_Stream_ModuleHandlerConfiguration,
-                        //////////////////
                         Test_I_Stream_SessionData,   // session data
                         Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        //////////////////
                         ACE_Message_Block,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage> inherited;

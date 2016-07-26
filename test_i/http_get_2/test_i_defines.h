@@ -57,7 +57,8 @@
 #define TEST_I_DEFAULT_PORT                          STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_PORT
 
 //#define TEST_I_URL_SYMBOL_PLACEHOLDER                "%s"
-#define TEST_I_FORM_KEY_SEARCH_STRING                "suchbegriff"
+#define TEST_I_DEFAULT_URL                           "http://kurse.boerse.ard.de/ard/kurse_einzelkurs_uebersicht.htn"
+#define TEST_I_DEFAULT_FORM_KEY_SEARCH_STRING        "suchbegriff"
 
 #define TEST_I_MAX_MESSAGES                          0 // 0 --> no limits
 #define TEST_I_THREAD_NAME                           "stream processor"

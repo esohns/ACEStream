@@ -19,11 +19,9 @@
  ***************************************************************************/
 
 #ifndef TEST_U_FILECOPY_EVENTHANDLER_H
-#define STREAM_EVENTHANDLER_H
+#define TEST_U_FILECOPY_EVENTHANDLER_H
 
 #include "ace/Global_Macros.h"
-
-#include "common_inotify.h"
 
 #include "stream_common.h"
 
@@ -32,20 +30,22 @@
 #include "test_u_filecopy_session_message.h"
 
 class Stream_Filecopy_EventHandler
- : public Stream_Filecopy_IStreamNotify_t
+ : public Stream_Filecopy_ISessionNotify_t
 {
  public:
   Stream_Filecopy_EventHandler (Stream_Filecopy_GTK_CBData*); // GTK state
   virtual ~Stream_Filecopy_EventHandler ();
 
-  // implement Common_INotify_T
-  virtual void start (unsigned int,
+  // implement Stream_ISessionDataNotify_T
+  virtual void start (Stream_SessionId_t,
                       const Stream_Filecopy_SessionData&);
-  virtual void notify (unsigned int,
+  virtual void notify (Stream_SessionId_t,
+                       const Stream_SessionMessageType&);
+  virtual void end (Stream_SessionId_t);
+  virtual void notify (Stream_SessionId_t,
                        const Stream_Filecopy_Message&);
-  virtual void notify (unsigned int,
+  virtual void notify (Stream_SessionId_t,
                        const Stream_Filecopy_SessionMessage&);
-  virtual void end (unsigned int);
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Filecopy_EventHandler ())

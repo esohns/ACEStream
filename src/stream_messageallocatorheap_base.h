@@ -31,14 +31,16 @@
 #include "common_idumpstate.h"
 
 #include "stream_datablockallocatorheap.h"
+#include "stream_iallocator.h"
 
 // forward declarations
 template <typename AllocatorConfigurationType>
 class Stream_AllocatorHeap_T;
 
 template <typename ConfigurationType,
-          ///////////////////////////////
-          typename MessageType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType>
 class Stream_MessageAllocatorHeapBase_T
  : public ACE_New_Allocator
@@ -57,6 +59,7 @@ class Stream_MessageAllocatorHeapBase_T
 
   // implement Stream_IAllocator
   virtual bool block (); // return value: block when pool is empty ?
+  virtual void* calloc ();
   // *NOTE*: if argument is > 0, this returns a (pointer to) <MessageType>, and
   //         a (pointer to) <SessionMessageType> otherwise
   virtual void* malloc (size_t); // bytes
@@ -118,7 +121,7 @@ class Stream_MessageAllocatorHeapBase_T
   ACE_Atomic_Op<ACE_SYNCH_MUTEX, unsigned long> poolSize_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_messageallocatorheap_base.inl"
 
 #endif

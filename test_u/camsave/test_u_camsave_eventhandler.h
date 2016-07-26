@@ -23,8 +23,6 @@
 
 #include "ace/Global_Macros.h"
 
-#include "common_inotify.h"
-
 #include "stream_common.h"
 
 #include "test_u_camsave_common.h"
@@ -32,20 +30,22 @@
 #include "test_u_camsave_session_message.h"
 
 class Stream_CamSave_EventHandler
- : public Stream_CamSave_IStreamNotify_t
+ : public Stream_CamSave_ISessionNotify_t
 {
  public:
   Stream_CamSave_EventHandler (Stream_CamSave_GTK_CBData*); // GTK state
   virtual ~Stream_CamSave_EventHandler ();
 
-  // implement Common_INotify_T
-  virtual void start (unsigned int,
+  // implement Stream_ISessionDataNotify_T
+  virtual void start (Stream_SessionId_t,
                       const Stream_CamSave_SessionData&);
-  virtual void notify (unsigned int,
+  virtual void notify (Stream_SessionId_t,
+                       const Stream_SessionMessageType&);
+  virtual void end (Stream_SessionId_t);
+  virtual void notify (Stream_SessionId_t,
                        const Stream_CamSave_Message&);
-  virtual void notify (unsigned int,
+  virtual void notify (Stream_SessionId_t,
                        const Stream_CamSave_SessionMessage&);
-  virtual void end (unsigned int);
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_EventHandler ())

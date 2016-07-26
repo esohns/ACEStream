@@ -22,12 +22,12 @@
 #define STREAM_TASK_BASE_H
 
 #include "ace/Global_Macros.h"
-//#include "ace/Synch_Traits.h"
 
 #include "common_iget.h"
 #include "common_iinitialize.h"
 #include "common_task_base.h"
 
+#include "stream_isessionnotify.h"
 #include "stream_itask.h"
 #include "stream_messagequeue.h"
 
@@ -42,7 +42,10 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
-          typename SessionMessageType>
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename SessionIdType,
+          typename SessionEventType>
 class Stream_TaskBase_T
  : public Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType>
@@ -87,10 +90,12 @@ class Stream_TaskBase_T
   virtual void handleUserMessage (ACE_Message_Block*, // control message
                                   bool&,              // return value: stop processing ?
                                   bool&);             // return value: pass message downstream ?
+  virtual void notify (SessionEventType); // session event
 
-  ConfigurationType*  configuration_;
-  //ACE_SYNCH_MUTEX     lock_;
-  Stream_MessageQueue queue_;
+  ConfigurationType*                        configuration_;
+  bool                                      isInitialized_;
+  // *TODO*: synchronous tasks don't need this
+  Stream_MessageQueue_T<SessionMessageType> queue_;
 
  private:
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
@@ -98,6 +103,11 @@ class Stream_TaskBase_T
   typedef Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType> inherited2;
+
+  // convenient types
+  typedef Stream_ISessionNotify_T<SessionIdType,
+                                  typename SessionMessageType::DATA_T::DATA_T,
+                                  SessionEventType> INOTIFY_T;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T (const Stream_TaskBase_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_TaskBase_T& operator= (const Stream_TaskBase_T&))
@@ -107,7 +117,7 @@ class Stream_TaskBase_T
                    ACE_Time_Value*);
 };
 
-// include template implementation
+// include template definition
 #include "stream_task_base.inl"
 
 #endif

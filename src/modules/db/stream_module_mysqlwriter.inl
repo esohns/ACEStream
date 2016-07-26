@@ -28,14 +28,14 @@
 
 #include "stream_module_db_defines.h"
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType>
-Stream_Module_MySQLWriter_T<SynchStrategyType,
+Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -44,7 +44,6 @@ Stream_Module_MySQLWriter_T<SynchStrategyType,
                             SessionDataType>::Stream_Module_MySQLWriter_T ()
  : inherited ()
  , state_ (NULL)
- , isInitialized_ (false)
  , manageLibrary_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MySQLWriter_T::Stream_Module_MySQLWriter_T"));
@@ -63,14 +62,14 @@ Stream_Module_MySQLWriter_T<SynchStrategyType,
   //  } // end IF
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType>
-Stream_Module_MySQLWriter_T<SynchStrategyType,
+Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -114,7 +113,7 @@ Stream_Module_MySQLWriter_T<SynchStrategyType,
 //  } // end IF
 //}
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -122,7 +121,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataType>
 void
-Stream_Module_MySQLWriter_T<SynchStrategyType,
+Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -351,7 +350,7 @@ close:
   } // end SWITCH
 }
 
-template <typename SynchStrategyType,
+template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
           typename ControlMessageType,
@@ -359,7 +358,7 @@ template <typename SynchStrategyType,
           typename SessionMessageType,
           typename SessionDataType>
 bool
-Stream_Module_MySQLWriter_T<SynchStrategyType,
+Stream_Module_MySQLWriter_T<ACE_SYNCH_USE,
                             TimePolicyType,
                             ConfigurationType,
                             ControlMessageType,
@@ -388,13 +387,13 @@ Stream_Module_MySQLWriter_T<SynchStrategyType,
     first_run = false;
   } // end IF
 
-  if (isInitialized_)
+  if (inherited::isInitialized_)
   {
     if (state_)
       mysql_close (state_);
     state_ = NULL;
 
-    isInitialized_ = false;
+    inherited::isInitialized_ = false;
   } // end IF
   ACE_ASSERT (!state_);
 
@@ -472,12 +471,7 @@ Stream_Module_MySQLWriter_T<SynchStrategyType,
     if (result) goto error;
   } // end IF
 
-  isInitialized_ = inherited::initialize (configuration_in);
-  if (!isInitialized_)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_TaskBaseAsynch_T::initialize(): \"%s\", aborting\n")));
-
-  return isInitialized_;
+  return inherited::initialize (configuration_in);
 
 error:
   ACE_DEBUG ((LM_DEBUG,

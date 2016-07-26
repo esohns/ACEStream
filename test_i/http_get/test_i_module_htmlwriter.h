@@ -38,13 +38,10 @@
 class Test_I_Stream_Module_HTMLWriter
  : public Stream_Module_HTMLWriter_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
-                                     /////
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
-                                     /////
                                      Test_I_Stream_SessionData_t,
                                      Test_I_Stream_SessionData>
 {
@@ -59,13 +56,10 @@ class Test_I_Stream_Module_HTMLWriter
  private:
   typedef Stream_Module_HTMLWriter_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     /////
                                      Test_I_Stream_ModuleHandlerConfiguration,
-                                     /////
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
-                                     /////
                                      Test_I_Stream_SessionData_t,
                                      Test_I_Stream_SessionData> inherited;
 
@@ -76,10 +70,10 @@ class Test_I_Stream_Module_HTMLWriter
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                             // task synch type
-                              Common_TimePolicy_t,                      // time policy
-                              Stream_ModuleConfiguration,               // module configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Stream_SessionData,                // session data type
+                              Stream_SessionMessageType,                // session event type
                               Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_IStreamNotify_t,                   // stream notification interface type
                               Test_I_Stream_Module_HTMLWriter);         // writer type
 
 #endif

@@ -33,6 +33,7 @@
 #include "common_istatistic.h"
 
 #include "stream_common.h"
+#include "stream_head_task.h"
 #include "stream_istreamcontrol.h"
 #include "stream_streammodule_base.h"
 #include "stream_itask.h"
@@ -48,7 +49,7 @@ template <typename LockType,
           ////////////////////////////////
           typename ControlType,
           typename NotificationType,
-          typename StatusType, // (state machine) status
+          typename StatusType,               // (state machine) status
           typename StateType,
           ////////////////////////////////
           typename ConfigurationType,
@@ -71,16 +72,20 @@ class Stream_Base_T
                                   NotificationType,
                                   StatusType,
                                   StateType>
- , public Common_IDumpState
+ , public Common_ILock_T<ACE_SYNCH_USE>
+ , public Common_IStatistic_T<StatisticContainerType>
 // , public Common_IGetSet_T<SessionDataType>
 // , public Common_IInitialize_T<ConfigurationType>
- , public Common_IStatistic_T<StatisticContainerType>
+ , public Common_IDumpState
 {
  public:
   // convenient types
   typedef ACE_Module<ACE_SYNCH_USE,
                      TimePolicyType> MODULE_T;
-  typedef Stream_IModule_T<ACE_SYNCH_USE,
+  typedef Stream_IModule_T<Stream_SessionId_t,
+                           SessionDataType,
+                           Stream_SessionMessageType,
+                           ACE_SYNCH_USE,
                            TimePolicyType,
                            ModuleConfigurationType,
                            HandlerConfigurationType> IMODULE_T;
@@ -118,6 +123,7 @@ class Stream_Base_T
 
   virtual bool load (Stream_ModuleList_t&);
   virtual void flush (bool = true,   // flush inbound data ?
+                      bool = false,  // flush session messages ?
                       bool = false); // flush upstream (if any) ?
   virtual void pause ();
   virtual void rewind ();
@@ -125,18 +131,25 @@ class Stream_Base_T
                                   bool = false); // wait for upstream (if any) ?
   //virtual void waitForIdleState (bool = false) const; // wait for upstream (if any) ?
 
-  virtual const Stream_Module_t* find (const std::string&) const; // module name
+  virtual const MODULE_T* find (const std::string&) const; // module name
   virtual std::string name () const;
 
-  virtual void upStream (Stream_Base_t*);
-  virtual Stream_Base_t* upStream () const;
+  virtual void upStream (STREAM_T*);
+  virtual STREAM_T* upStream () const;
 
   virtual void control (ControlType,   // control type
                         bool = false); // forward upstream ?
+  // *NOTE*: the default implementation forwards calls to the head module
   virtual void notify (NotificationType, // notification type
                        bool = false);    // forward upstream ?
   virtual StatusType status () const;
   virtual const StateType& state () const;
+
+  // implement Stream_ILock_t
+  // *WARNING*: handle with care
+  virtual void lock ();
+  virtual void unlock ();
+  virtual ACE_SYNCH_MUTEX_T& getLock ();
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -178,7 +191,7 @@ class Stream_Base_T
   // *TODO*: note that for linked streams, the session data passed downstream
   //         is always the upstream instances'. Inconsistencies arise when
   //         modules cache and update session data passed at session start
-  virtual int link (Stream_Base_t&);
+  virtual int link (STREAM_T&);
   virtual int unlink (void);
 
   //// *NOTE*: the default implementation close(s) the removed module. This is not
@@ -199,7 +212,15 @@ class Stream_Base_T
  protected:
   // convenient types
    typedef ACE_Stream_Head<ACE_SYNCH_USE,
-                           TimePolicyType> HEAD_T;
+                           TimePolicyType> HEAD_BASE_T;
+   typedef Stream_HeadTask_T<ACE_SYNCH_USE,
+                             TimePolicyType,
+                             ModuleConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
+                             Stream_SessionId_t,
+                             Stream_SessionMessageType> HEAD_T;
    typedef ACE_Stream_Tail<ACE_SYNCH_USE,
                            TimePolicyType> TAIL_T;
   typedef ACE_Task<ACE_SYNCH_USE,
@@ -209,7 +230,8 @@ class Stream_Base_T
   typedef Common_IInitialize_T<HandlerConfigurationType> MODULEHANDLER_IINITIALIZE_T;
   typedef Stream_StateMachine_IControl_T<Stream_StateMachine_ControlState> STATEMACHINE_ICONTROL_T;
 
-  Stream_Base_T (const std::string&); // name
+  Stream_Base_T (const std::string&, // name
+                 bool = false);      // support (upstream) linking ?
 
   bool finalize ();
   // *NOTE*: derived classes should call this prior to module reinitialization
@@ -234,7 +256,7 @@ class Stream_Base_T
   //         otherwise, the dtor will NOT stop all worker threads before
   //         close()ing the modules
   bool                      isInitialized_;
-  ACE_SYNCH_MUTEX           lock_;
+  ACE_SYNCH_MUTEX_T         lock_;
   Stream_ModuleList_t       modules_;
   SessionDataContainerType* sessionData_;
   StateType                 state_;
@@ -248,25 +270,18 @@ class Stream_Base_T
 
   // convenient types
   typedef Stream_Base_T<LockType,
-                        //////////////////
                         ACE_SYNCH_USE,
                         TimePolicyType,
-                        //////////////////
                         ControlType,
                         NotificationType,
                         StatusType,
                         StateType,
-                        //////////////////
                         ConfigurationType,
-                        //////////////////
                         StatisticContainerType,
-                        //////////////////
                         ModuleConfigurationType,
                         HandlerConfigurationType,
-                        //////////////////
                         SessionDataType,
                         SessionDataContainerType,
-                        //////////////////
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType> OWN_TYPE_T;
@@ -289,16 +304,9 @@ class Stream_Base_T
 
   bool                      hasFinal_;
   std::string               name_;
-
-  //HEAD_T                    headReaderTask_;
-  //HEAD_T                    headWriterTask_;
-  //MODULE_T                  head_;
-  //TAIL_T                    tailReaderTask_;
-  //TAIL_T                    tailWriterTask_;
-  //MODULE_T                  tail_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_base.inl"
 
 #endif

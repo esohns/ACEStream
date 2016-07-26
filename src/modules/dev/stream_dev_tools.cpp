@@ -932,7 +932,7 @@ Stream_Module_Device_Tools::pin (IBaseFilter* filter_in,
   ACE_ASSERT (enumerator_p);
 
   //IKsPropertySet* property_set_p = NULL;
-  struct _GUID GUID_s = GUID_NULL;
+  //struct _GUID GUID_s = GUID_NULL;
   enum _PinDirection pin_direction;
   while (S_OK == enumerator_p->Next (1, &result, NULL))
   {
@@ -1329,6 +1329,8 @@ Stream_Module_Device_Tools::getMediaSource (const std::string& deviceName_in,
   } // end IF
 
   IMFAttributes* attributes_p = NULL;
+  UINT32 count = 0;
+
   HRESULT result_2 = MFCreateAttributes (&attributes_p, 1);
   if (FAILED (result_2))
   {
@@ -1350,7 +1352,6 @@ Stream_Module_Device_Tools::getMediaSource (const std::string& deviceName_in,
   } // end IF
 
   IMFActivate** devices_pp = NULL;
-  UINT32 count = 0;
   result_2 = MFEnumDeviceSources (attributes_p,
                                   &devices_pp,
                                   &count);
@@ -2181,7 +2182,12 @@ Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in
     IMFTopology_out = NULL;
   } // end IF
 
+  IMFTopologyNode* topology_node_p = NULL;
+  IMFTopologyNode* topology_node_2 = NULL;
   TOPOID node_id = 0;
+  IMFPresentationDescriptor* presentation_descriptor_p = NULL;
+  IMFStreamDescriptor* stream_descriptor_p = NULL;
+
   HRESULT result = MFCreateTopology (&IMFTopology_out);
   if (FAILED (result))
   {
@@ -2206,7 +2212,6 @@ Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in
                                        FALSE);
   ACE_ASSERT (SUCCEEDED (result));
 
-  IMFTopologyNode* topology_node_p = NULL;
   result = MFCreateTopologyNode (MF_TOPOLOGY_SOURCESTREAM_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -2240,7 +2245,6 @@ Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in
   result = topology_node_p->SetUnknown (MF_TOPONODE_SOURCE,
                                         IMFMediaSource_inout);
   ACE_ASSERT (SUCCEEDED (result));
-  IMFPresentationDescriptor* presentation_descriptor_p = NULL;
   result =
     IMFMediaSource_inout->CreatePresentationDescriptor (&presentation_descriptor_p);
   if (FAILED (result))
@@ -2254,7 +2258,6 @@ Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in
     topology_node_p->SetUnknown (MF_TOPONODE_PRESENTATION_DESCRIPTOR,
                                  presentation_descriptor_p);
   ACE_ASSERT (SUCCEEDED (result));
-  IMFStreamDescriptor* stream_descriptor_p = NULL;
   BOOL is_selected = FALSE;
   result =
     presentation_descriptor_p->GetStreamDescriptorByIndex (0,
@@ -2274,6 +2277,7 @@ Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in
                                         stream_descriptor_p);
   ACE_ASSERT (SUCCEEDED (result));
   stream_descriptor_p->Release ();
+  stream_descriptor_p = NULL;
 
   result = IMFTopology_out->AddNode (topology_node_p);
   if (FAILED (result))
@@ -2333,7 +2337,6 @@ Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in
   ACE_ASSERT (SUCCEEDED (result));
   media_sink_p->Release ();
 
-  IMFTopologyNode* topology_node_2 = NULL;
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_2);
   if (FAILED (result))
@@ -2378,14 +2381,18 @@ Stream_Module_Device_Tools::loadDeviceTopology (const std::string& deviceName_in
     goto error;
   } // end IF
   topology_node_2->Release ();
+  topology_node_2 = NULL;
 continue_:
   topology_node_p->Release ();
+  topology_node_p = NULL;
 
   return true;
 
 error:
   if (topology_node_p)
     topology_node_p->Release ();
+  if (topology_node_2)
+    topology_node_2->Release ();
   if (presentation_descriptor_p)
     presentation_descriptor_p->Release ();
   if (stream_descriptor_p)
@@ -2484,6 +2491,10 @@ Stream_Module_Device_Tools::loadRendererGraph (const struct _AMMediaType& mediaT
     return false;
   } // end IF
   ACE_ASSERT (filter_p);
+
+  IBaseFilter* filter_2 = NULL;
+  IBaseFilter* filter_3 = NULL;
+
   result = IGraphBuilder_in->AddFilter (filter_p,
                                         converter_name.c_str ());
   if (FAILED (result))
@@ -2497,7 +2508,6 @@ Stream_Module_Device_Tools::loadRendererGraph (const struct _AMMediaType& mediaT
               ACE_TEXT ("added \"%s\"...\n"),
               ACE_TEXT_WCHAR_TO_TCHAR (converter_name.c_str ())));
 
-  IBaseFilter* filter_2 = NULL;
   result = CoCreateInstance (CLSID_SampleGrabber, NULL,
                              CLSCTX_INPROC_SERVER, IID_IBaseFilter,
                              (void**)&filter_2);
@@ -2528,7 +2538,6 @@ Stream_Module_Device_Tools::loadRendererGraph (const struct _AMMediaType& mediaT
               ACE_TEXT_WCHAR_TO_TCHAR (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB)));
 
   // render to a window (GtkDrawingArea) ?
-  IBaseFilter* filter_3 = NULL;
   result = CoCreateInstance ((windowHandle_in ? CLSID_VideoRenderer
                                               : CLSID_NullRenderer), NULL,
                              CLSCTX_INPROC_SERVER, IID_IBaseFilter,
@@ -2908,6 +2917,8 @@ Stream_Module_Device_Tools::addRenderer (const HWND windowHandle_in,
   // initialize return value(s)
   rendererNodeId_out = 0;
 
+  IMFTopologyNode* topology_node_p = NULL;
+
   // step1: create (EVR) renderer
   IMFActivate* activate_p = NULL;
   HRESULT result = MFCreateVideoRendererActivate (windowHandle_in,
@@ -3034,7 +3045,6 @@ Stream_Module_Device_Tools::addRenderer (const HWND windowHandle_in,
   //} // end IF
 
   // step2: add node to topology
-  IMFTopologyNode* topology_node_p = NULL;
   result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
                                  &topology_node_p);
   if (FAILED (result))
@@ -3134,6 +3144,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   IMFActivate* activate_p = NULL;
   IMFTopologyNode* topology_node_p = NULL;
   std::string module_string;
+  IMFTopologyNode* source_node_p = NULL;
 
   // initialize return value(s)
   sampleGrabberSinkNodeId_out = 0;
@@ -3162,7 +3173,6 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   ACE_ASSERT (media_source_p);
 
   // step1: retrieve source node
-  IMFTopologyNode* source_node_p = NULL;
   IMFCollection* collection_p = NULL;
   HRESULT result = IMFTopology_inout->GetSourceNodeCollection (&collection_p);
   ACE_ASSERT (SUCCEEDED (result));
@@ -3871,6 +3881,9 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadTargetRendererGraph"));
 
   HRESULT result = E_FAIL;
+  IBaseFilter* filter_p = NULL;
+  IBaseFilter* filter_2 = NULL;
+  IBaseFilter* filter_3 = NULL;
 
   // initialize return value(s)
   pipeline_out.clear ();
@@ -3903,7 +3916,6 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
 
   //// split
   OLECHAR GUID_string[CHARS_IN_GUID];
-  IBaseFilter* filter_p = NULL;
   //result =
   //  IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_SPLIT_AVI,
   //                                       &filter_p);
@@ -3947,7 +3959,6 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
   //ACE_ASSERT (filter_p);
 
   // convert RGB
-  IBaseFilter* filter_2 = NULL;
   result =
     IGraphBuilder_out->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_CONVERT_RGB,
                                          &filter_2);
@@ -3998,7 +4009,6 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
   ACE_ASSERT (filter_2);
 
   // render to a window (GtkDrawingArea) ?
-  IBaseFilter* filter_3 = NULL;
   result =
     IGraphBuilder_out->FindFilterByName ((windowHandle_in ? MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_VIDEO
                                                           : MODULE_DEV_CAM_WIN32_FILTER_NAME_RENDER_NULL),
@@ -6391,6 +6401,9 @@ Stream_Module_Device_Tools::getCaptureFormat (IMFMediaSource* IMFMediaSource_in,
   } // end IF
 
   IMFPresentationDescriptor* presentation_descriptor_p = NULL;
+  IMFStreamDescriptor* stream_descriptor_p = NULL;
+  IMFMediaTypeHandler* media_type_handler_p = NULL;
+
   HRESULT result =
     IMFMediaSource_in->CreatePresentationDescriptor (&presentation_descriptor_p);
   if (FAILED (result))
@@ -6400,7 +6413,6 @@ Stream_Module_Device_Tools::getCaptureFormat (IMFMediaSource* IMFMediaSource_in,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-  IMFStreamDescriptor* stream_descriptor_p = NULL;
   BOOL is_selected = FALSE;
   result =
     presentation_descriptor_p->GetStreamDescriptorByIndex (0,
@@ -6416,7 +6428,6 @@ Stream_Module_Device_Tools::getCaptureFormat (IMFMediaSource* IMFMediaSource_in,
   ACE_ASSERT (is_selected);
   presentation_descriptor_p->Release ();
   presentation_descriptor_p = NULL;
-  IMFMediaTypeHandler* media_type_handler_p = NULL;
   result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
   if (FAILED (result))
   {
@@ -6472,6 +6483,8 @@ Stream_Module_Device_Tools::getOutputFormat (IMFTransform* IMFTransform_in,
   HRESULT result = S_OK;
   DWORD number_of_input_streams = 0;
   DWORD number_of_output_streams = 0;
+  DWORD* input_stream_ids_p = NULL;
+  DWORD* output_stream_ids_p = NULL;
   result = IMFTransform_in->GetStreamCount (&number_of_input_streams,
                                             &number_of_output_streams);
   if (FAILED (result))
@@ -6481,10 +6494,8 @@ Stream_Module_Device_Tools::getOutputFormat (IMFTransform* IMFTransform_in,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-  DWORD* input_stream_ids_p = NULL;
   ACE_NEW_NORETURN (input_stream_ids_p,
                     DWORD[number_of_input_streams]);
-  DWORD* output_stream_ids_p = NULL;
   ACE_NEW_NORETURN (output_stream_ids_p,
                     DWORD[number_of_output_streams]);
   if (!input_stream_ids_p || !output_stream_ids_p)
@@ -6517,7 +6528,7 @@ Stream_Module_Device_Tools::getOutputFormat (IMFTransform* IMFTransform_in,
          ++i)
       output_stream_ids_p[i] = i;
   } // end IF
-  delete[] input_stream_ids_p;
+  delete [] input_stream_ids_p;
   input_stream_ids_p = NULL;
 
   result = IMFTransform_in->GetOutputAvailableType (output_stream_ids_p[0],
@@ -6530,15 +6541,15 @@ Stream_Module_Device_Tools::getOutputFormat (IMFTransform* IMFTransform_in,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-  delete[] output_stream_ids_p;
+  delete [] output_stream_ids_p;
 
   return true;
 
 error:
   if (input_stream_ids_p)
-    delete[] input_stream_ids_p;
+    delete [] input_stream_ids_p;
   if (output_stream_ids_p)
-    delete[] output_stream_ids_p;
+    delete [] output_stream_ids_p;
   if (IMFMediaType_out)
   {
     IMFMediaType_out->Release ();
@@ -7172,6 +7183,9 @@ Stream_Module_Device_Tools::setCaptureFormat (IMFMediaSource* IMFMediaSource_in,
   ACE_ASSERT (IMFMediaType_in);
 
   IMFPresentationDescriptor* presentation_descriptor_p = NULL;
+  IMFStreamDescriptor* stream_descriptor_p = NULL;
+  IMFMediaTypeHandler* media_type_handler_p = NULL;
+
   HRESULT result =
     IMFMediaSource_in->CreatePresentationDescriptor (&presentation_descriptor_p);
   if (FAILED (result))
@@ -7181,7 +7195,6 @@ Stream_Module_Device_Tools::setCaptureFormat (IMFMediaSource* IMFMediaSource_in,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     goto error;
   } // end IF
-  IMFStreamDescriptor* stream_descriptor_p = NULL;
   BOOL is_selected = FALSE;
   result =
     presentation_descriptor_p->GetStreamDescriptorByIndex (0,
@@ -7197,7 +7210,6 @@ Stream_Module_Device_Tools::setCaptureFormat (IMFMediaSource* IMFMediaSource_in,
   ACE_ASSERT (is_selected);
   presentation_descriptor_p->Release ();
   presentation_descriptor_p = NULL;
-  IMFMediaTypeHandler* media_type_handler_p = NULL;
   result = stream_descriptor_p->GetMediaTypeHandler (&media_type_handler_p);
   if (FAILED (result))
   {
@@ -7414,6 +7426,8 @@ Stream_Module_Device_Tools::getOutputFormat (IGraphBuilder* builder_in,
   ACE_OS::memset (mediaType_out, 0, sizeof (struct _AMMediaType));
 
   IBaseFilter* filter_p = NULL;
+  ISampleGrabber* isample_grabber_p = NULL;
+
   HRESULT result =
     builder_in->FindFilterByName (MODULE_DEV_CAM_WIN32_FILTER_NAME_GRAB,
                                   &filter_p);
@@ -7427,7 +7441,6 @@ Stream_Module_Device_Tools::getOutputFormat (IGraphBuilder* builder_in,
   } // end IF
   ACE_ASSERT (filter_p);
 
-  ISampleGrabber* isample_grabber_p = NULL;
   result = filter_p->QueryInterface (IID_ISampleGrabber,
                                      (void**)&isample_grabber_p);
   if (FAILED (result))
