@@ -366,9 +366,14 @@ error:
 #endif
 
 bool
-Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out)
+Stream_CamSave_Stream::load (Stream_ModuleList_t& modules_out,
+                             bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CamSave_Stream::load"));
+
+  // initialize return value(s)
+  modules_out.clear ();
+  delete_out = false;
 
   // *NOTE*: one problem is that any module that was NOT enqueued onto the
   //         stream (e.g. because initialize() failed) needs to be explicitly

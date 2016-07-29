@@ -34,7 +34,6 @@
 
 #include "stream_module_target.h"
 
-#include "test_i_common_modules.h"
 #include "test_i_message.h"
 #include "test_i_session_message.h"
 #include "test_i_source_common.h"
@@ -66,7 +65,8 @@ class Test_I_Source_Stream_T
   virtual ~Test_I_Source_Stream_T ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&); // return value: module list
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Source_Stream_Configuration&, // configuration
@@ -120,11 +120,6 @@ class Test_I_Source_Stream_T
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
-
-  // modules
-  Test_I_Module_FileReader_Module              fileReader_;
-  Test_I_Source_Module_RuntimeStatistic_Module runtimeStatistic_;
-  TARGET_MODULE_T                              netTarget_;
 };
 
 // include template definition

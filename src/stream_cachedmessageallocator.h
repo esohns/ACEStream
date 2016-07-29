@@ -49,6 +49,7 @@ class Stream_CachedMessageAllocator_T
   // *TODO*: the way message IDs are implemented, they can be truly unique
   //         only IF allocation is synchronized
   virtual void* malloc (size_t); // bytes
+  virtual void free (void*); // handle
   virtual size_t cache_depth () const; // return value: #bytes allocated
   virtual size_t cache_size  () const; // return value: #inflight ACE_Message_Blocks
 
@@ -65,7 +66,6 @@ class Stream_CachedMessageAllocator_T
                         size_t,
                         char = '\0');
   // *NOTE*: frees an <MessageType>/<SessionMessageType>
-  virtual void free (void*); // element handle
   virtual int remove (void);
 
   virtual int bind (const char*, void*, int = 0);

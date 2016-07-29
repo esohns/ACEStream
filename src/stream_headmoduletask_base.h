@@ -28,6 +28,7 @@
 #include "common_iinitialize.h"
 #include "common_istatistic.h"
 
+#include "stream_ilock.h"
 #include "stream_imodule.h"
 #include "stream_istreamcontrol.h"
 #include "stream_session_message_base.h"
@@ -72,7 +73,7 @@ class Stream_HeadModuleTaskBase_T
                                   StreamNotificationType,
                                   Stream_StateMachine_ControlState,
                                   StreamStateType>
- , public Stream_ILock_t
+ , public Stream_ILock_T<ACE_SYNCH_USE>
  , public Common_IInitialize_T<StreamStateType>
  , public Common_IStatistic_T<StatisticContainerType>
 {
@@ -103,9 +104,9 @@ class Stream_HeadModuleTaskBase_T
   virtual bool isRunning () const;
 
   virtual void pause ();
-  virtual void waitForCompletion (bool = true,   // wait for any worker
-                                                 // thread(s) ?
-                                  bool = false); // N/A
+  virtual void wait (bool = true,   // wait for any worker thread(s) ?
+                     bool = false,  // N/A
+                     bool = false); // N/A
 
   // *NOTE*: just a stub
   virtual std::string name () const;
@@ -122,11 +123,16 @@ class Stream_HeadModuleTaskBase_T
   virtual const StreamStateType& state () const;
   virtual Stream_StateMachine_ControlState status () const;
 
-  // implement Stream_ILock_t
-  // *WARNING*: handle with care
-  virtual void lock ();
-  virtual void unlock ();
-  virtual ACE_SYNCH_MUTEX_T& getLock ();
+  // implement Stream_ILock_T
+  // *IMPORTANT NOTE*: on Windows, 'critical sections' (such as this) are
+  //                   recursive, and lock increases the count, so unlock may
+  //                   need to be called several times. Note how lock/unlock
+  //                   does not keep track of the recursion counter
+  //                   --> handle with care !
+  virtual bool lock (bool = true); // block ?
+  virtual int unlock (bool = false); // unlock ?
+  virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock ();
+  virtual bool hasLock ();
 
   // implement Common_IInitialize_T
   virtual bool initialize (const StreamStateType&);
@@ -170,17 +176,19 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: this method is threadsafe
   virtual void onChange (Stream_StateType_t); // new state
 
+  // *NOTE*: applies only to '!active' modules that do not run svc() on start
+  //         (see below). This enforces that all messages pass through the
+  //         stream strictly sequentially, which may be necessary for
+  //         asynchronously-supplied (i.e. 'concurrent') scenarios with
+  //         non-reentrant module (i.e. most modules that maintain some kind of
+  //         internal state, such as push-parsers) configurations, or streams
+  //         that react to asynchronous events (such as connection resets, user
+  //         aborts, signals, etc)
+  // *TODO*: find a way to by-pass this additional overhead if 'true'
+  bool                      concurrent_;
   ConfigurationType*        configuration_;
   bool                      isInitialized_;
 
-  // *NOTE*: applies only to 'passive' modules that do not run svc() on start
-  //         (see below). Enforces that all messages pass through the stream
-  //         strictly sequentially; this setting is necessary for streams with
-  //         'non-reentrant' modules (i.e. most modules that maintain some kind
-  //         of internal state), or streams that react to asynchronous events,
-  //         such as connection resets, user aborts, etc
-  // *TODO*: find a way to by-pass the overhead if 'true'
-  bool                      allowConcurrency_;
   // *NOTE*: default behaviour for '!active' modules (i.e. modules that have no
   //         dedicated worker thread), which 'borrows' the thread calling
   //         start() to do the processing. [Note that in this case, stream
@@ -190,7 +198,7 @@ class Stream_HeadModuleTaskBase_T
   //         that don't do their processing via start(), but are 'supplied'
   //         externally (e.g. network source modules)
   bool                      runSvcOnStart_;
-  SessionDataContainerType* sessionData_;
+  bool                      sessionEndProcessed_;
   StreamStateType*          streamState_;
 
   // timer
@@ -233,7 +241,8 @@ class Stream_HeadModuleTaskBase_T
 
   // implement (part of) Stream_IStreamControl_T
   virtual const Stream_Module_t* find (const std::string&) const; // module name
-  virtual bool load (Stream_ModuleList_t&); // return value: module list
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false,  // flush session messages ?
                       bool = false); // flush upstream (if any) ?

@@ -54,21 +54,14 @@ Stream_Filecopy_Stream::~Stream_Filecopy_Stream ()
 }
 
 bool
-Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out)
+Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out,
+                              bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Filecopy_Stream::load"));
 
-  //// initialize return value(s)
-  //for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
-  //     iterator != modules_out.end ();
-  //     iterator++)
-  //  delete *iterator;
-  //modules_out.clear ();
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
+  // initialize return value(s)
+  modules_out.clear ();
+  delete_out = false;
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -91,6 +84,8 @@ Stream_Filecopy_Stream::load (Stream_ModuleList_t& modules_out)
                                                             false),
                   false);
   modules_out.push_back (module_p);
+
+  delete_out = true;
 
   return true;
 }
@@ -218,45 +213,6 @@ Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& c
 
   // ---------------------------------------------------------------------------
 
-  // ******************* File Writer ************************
-  //fileWriter_.initialize (*configuration_in.moduleConfiguration);
-  //Stream_Filecopy_Module_FileWriter* fileWriter_impl_p =
-  //  dynamic_cast<Stream_Filecopy_Module_FileWriter*> (fileWriter_.writer ());
-  //if (!fileWriter_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_FileWriter> failed, aborting\n")));
-  //  return false;
-  //} // end IF
-  //if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              fileWriter_.name ()));
-  //  return false;
-  //} // end IF
-
-  // ******************* Runtime Statistic ************************
-  //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  //Stream_Filecopy_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-  //    dynamic_cast<Stream_Filecopy_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  //if (!runtimeStatistic_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Stream_Filecopy_Module_RuntimeStatistic> failed, aborting\n")));
-  //  return false;
-  //} // end IF
-  //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-  //                                          true,                                        // push statistic messages downstream ?
-  //                                          configuration_in.printFinalReport,           // print final report ?
-  //                                          configuration_in.messageAllocator))          // message allocator handle
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              runtimeStatistic_.name ()));
-  //  return false;
-  //} // end IF
-
   // ******************* File Reader ************************
   //fileReader_.initialize (*configuration_in.moduleConfiguration);
   Stream_Filecopy_Module_FileReader* fileReader_impl_p =
@@ -267,13 +223,13 @@ Stream_Filecopy_Stream::initialize (const Stream_Filecopy_StreamConfiguration& c
                 ACE_TEXT ("dynamic_cast<Strean_Filecopy_Module_FileReader> failed, aborting\n")));
     return false;
   } // end IF
-  if (!fileReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                fileReader_.name ()));
-    return false;
-  } // end IF
+  //if (!fileReader_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              fileReader_.name ()));
+  //  return false;
+  //} // end IF
   if (!fileReader_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,

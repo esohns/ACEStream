@@ -174,7 +174,7 @@ Stream_HeadTask_T<ACE_SYNCH_USE,
     {
       if (inherited::mod_)
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("module \"%s\": received an unknown message (type was: %d), continuing\n"),
+                    ACE_TEXT ("%s: received an unknown message (type was: %d), continuing\n"),
                     inherited::mod_->name (),
                     messageBlock_in->msg_type ()));
       else

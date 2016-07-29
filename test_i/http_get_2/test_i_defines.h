@@ -53,6 +53,7 @@
 //                   the dispatch set is changed (*TODO*: to be verified)
 #define TEST_I_DEFAULT_NUMBER_OF_DISPATCHING_THREADS 2
 #endif
+#define TEST_I_DEFAULT_INPUT_FILE                    "table.ods"
 #define TEST_I_DEFAULT_OUTPUT_FILE                   "output.ods"
 #define TEST_I_DEFAULT_PORT                          STREAM_DOCUMENT_DEFAULT_LIBREOFFICE_SERVER_PORT
 

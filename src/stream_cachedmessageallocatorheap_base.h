@@ -28,10 +28,11 @@
 #include "stream_iallocator.h"
 #include "stream_cacheddatablockallocatorheap.h"
 
-template <typename MessageType,
+template <typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType>
 class Stream_CachedMessageAllocatorHeapBase_T
- : public ACE_Cached_Allocator<MessageType,
+ : public ACE_Cached_Allocator<DataMessageType,
                                ACE_SYNCH_MUTEX>
  , public Stream_IAllocator
 {
@@ -47,6 +48,7 @@ class Stream_CachedMessageAllocatorHeapBase_T
   // *TODO*: the way message IDs are implemented, they can be truly unique
   // only IF allocation is synchronized
   virtual void* malloc (size_t); // bytes
+  virtual void free (void*); // handle
   virtual size_t cache_depth () const; // return value: #bytes allocated
   virtual size_t cache_size  () const; // return value: #inflight ACE_Message_Blocks
 
@@ -56,7 +58,7 @@ class Stream_CachedMessageAllocatorHeapBase_T
   //                      char = '\0'); // initial value
 
  private:
-  typedef ACE_Cached_Allocator<MessageType,
+  typedef ACE_Cached_Allocator<DataMessageType,
                                ACE_SYNCH_MUTEX> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeapBase_T (const Stream_CachedMessageAllocatorHeapBase_T&));
@@ -92,6 +94,8 @@ class Stream_CachedMessageAllocatorHeapBase_T
 
   ACE_Cached_Allocator<ACE_Data_Block,
                        ACE_SYNCH_MUTEX> dataBlockAllocator_;
+  ACE_Cached_Allocator<ControlMessageType,
+                       ACE_SYNCH_MUTEX> controlMessageAllocator_;
   ACE_Cached_Allocator<SessionMessageType,
                        ACE_SYNCH_MUTEX> sessionMessageAllocator_;
 };

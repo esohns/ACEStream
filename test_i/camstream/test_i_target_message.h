@@ -49,7 +49,7 @@ class Test_I_Target_Stream_Message
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //: public Stream_DirectShowMessageBase_T<Test_I_Target_AllocatorConfiguration>
  : public Stream_MediaFoundationMessageBase_T<Test_I_Target_AllocatorConfiguration,
-                                              Test_I_ControlMessage_t,
+                                              Test_I_Target_ControlMessage_t,
                                               Test_I_Target_Stream_SessionMessage,
                                               Test_I_Target_MessageData>
 #else
@@ -89,7 +89,7 @@ class Test_I_Target_Stream_Message
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //typedef Stream_DirectShowMessageBase_T<Test_I_Target_AllocatorConfiguration> inherited;
   typedef Stream_MediaFoundationMessageBase_T<Test_I_Target_AllocatorConfiguration,
-                                              Test_I_ControlMessage_t,
+                                              Test_I_Target_ControlMessage_t,
                                               Test_I_Target_Stream_SessionMessage,
                                               Test_I_Target_MessageData> inherited;
 #else

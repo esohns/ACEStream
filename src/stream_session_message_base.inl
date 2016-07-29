@@ -86,9 +86,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
-  // set correct message type
   // *WARNING*: need to finalize initialization through initialize()
-  inherited::msg_type (ACE_Message_Block::MB_USER);
 
   // reset read/write pointers
   inherited::reset ();
@@ -117,9 +115,7 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionMessageBase_T::Stream_SessionMessageBase_T"));
 
-  // set correct message type
   // *WARNING*: need to finalize initialization through initialize()
-  inherited::msg_type (ACE_Message_Block::MB_USER);
 
   // reset read/write pointers
   inherited::reset ();
@@ -157,8 +153,6 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   if (data_)
     data_->increase ();
 
-  inherited::msg_type (ACE_Message_Block::MB_USER);
-
   // set read/write pointers
   inherited::rd_ptr (message_in.rd_ptr ());
   inherited::wr_ptr (message_in.wr_ptr ());
@@ -188,10 +182,9 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   type_ = STREAM_SESSION_MESSAGE_INVALID;
   userData_ = NULL;
 
-//  // *WARNING*: cannot do that anymore (data block has already gone away)
+  // *WARNING*: cannot reset the message type (data block has already gone)
 //  inherited::msg_type (ACE_Message_Block::MB_USER);
-
-  // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
+  // *IMPORTANT NOTE*: this is an ugly hack to support message allocators
   //                   (see e.g. stream_cachedmessageallocator.cpp:172)
   inherited::priority_ = std::numeric_limits<unsigned long>::min ();
 }

@@ -37,6 +37,7 @@
 #include "net_connection_manager.h"
 
 #include "test_i_target_common.h"
+#include "test_i_target_session_message.h"
 
 // forward declarations
 class Stream_IAllocator;
@@ -46,7 +47,7 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  Test_I_RuntimeStatistic_t,
                                  Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
 class Test_I_Target_Stream_Message;
-class Test_I_Target_Stream_SessionMessage;
+//class Test_I_Target_Stream_SessionMessage;
 
 class Test_I_Target_Stream
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
@@ -73,7 +74,8 @@ class Test_I_Target_Stream
   virtual ~Test_I_Target_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&); // return value: module list
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Target_StreamConfiguration&, // configuration

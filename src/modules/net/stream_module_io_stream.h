@@ -58,25 +58,18 @@ template <typename LockType,
           typename ConnectionManagerType>
 class Stream_Module_Net_IO_Stream_T
  : public Stream_Base_T<LockType,
-                        //////////////////
                         ACE_SYNCH_USE,
                         TimePolicyType,
-                        //////////////////
                         ControlType,
                         NotificationType,
                         StatusType,
                         StateType,
-                        //////////////////
                         ConfigurationType,
-                        //////////////////
                         StatisticContainerType,
-                        //////////////////
                         ModuleConfigurationType,
                         HandlerConfigurationType,
-                        //////////////////
                         SessionDataType,          // session data
                         SessionDataContainerType, // session data container (reference counted)
-                        //////////////////
                         ControlMessageType,
                         DataMessageType,
                         SessionMessageType>
@@ -86,7 +79,8 @@ class Stream_Module_Net_IO_Stream_T
   virtual ~Stream_Module_Net_IO_Stream_T ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&); // return value: module list
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const ConfigurationType&, // configuration

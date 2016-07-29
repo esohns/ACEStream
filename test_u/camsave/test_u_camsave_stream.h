@@ -84,7 +84,8 @@ class Stream_CamSave_Stream
   virtual STDMETHODIMP Invoke (IMFAsyncResult*); // asynchronous result handle
 #endif
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&); // return value: module list
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Stream_CamSave_StreamConfiguration&, // configuration

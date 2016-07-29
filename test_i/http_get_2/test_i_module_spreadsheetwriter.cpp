@@ -343,10 +343,10 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       handler_.initialize (inherited::context_);
 
       // generate document filename URL
-      if (Common_File_Tools::isReadable (inherited::configuration_->targetFileName))
+      if (Common_File_Tools::isReadable (inherited::configuration_->fileName))
       {
         filename =
-          ::rtl::OUString::createFromAscii (inherited::configuration_->targetFileName.c_str ());
+          ::rtl::OUString::createFromAscii (inherited::configuration_->fileName.c_str ());
         result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
                                                               filename_url);
         ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);

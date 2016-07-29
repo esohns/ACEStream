@@ -62,21 +62,14 @@ Test_I_Target_Stream::~Test_I_Target_Stream ()
 }
 
 bool
-Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out)
+Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
+                            bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::load"));
 
-//  // initialize return value(s)
-//  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
-//       iterator != modules_out.end ();
-//       iterator++)
-//    delete *iterator;
-//  modules_out.clear ();
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
+  // initialize return value(s)
+  modules_out.clear ();
+  delete_out = false;
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -114,12 +107,16 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out)
   //Test_I_Target_Stream_Module_AVIDecoder_Module            decoder_;
   //Test_I_Target_Stream_Module_Net_IO_Module                source_;
 
-  if (!inherited::load (modules_out))
+  if (!inherited::load (modules_out,
+                        delete_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Module_Net_IO_Stream_T::load(), aborting\n")));
     return false;
   } // end IF
+  ACE_ASSERT (delete_out);
+
+  delete_out = true;
 
   return true;
 }
@@ -150,7 +147,7 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
   Test_I_Target_Stream_SessionData& session_data_r =
     const_cast<Test_I_Target_Stream_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
-  session_data_r.lock = &(inherited::lock_);
+  session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.currentSessionData = &session_data_r;
   // *TODO*: remove type inferences
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);

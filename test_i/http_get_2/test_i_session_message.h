@@ -41,7 +41,7 @@ class Test_I_Stream_SessionMessage
  : public Stream_SessionMessageBase_T<Test_I_AllocatorConfiguration,
                                       Stream_SessionMessageType,
                                       Test_I_Stream_SessionData_t,
-                                      Test_I_UserData,
+                                      Test_I_HTTPGet_UserData,
                                       Test_I_ControlMessage_t,
                                       Test_I_Stream_Message>
 {
@@ -56,7 +56,7 @@ class Test_I_Stream_SessionMessage
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
   Test_I_Stream_SessionMessage (Stream_SessionMessageType,     // session message type
                                 Test_I_Stream_SessionData_t*&, // session data container handle
-                                Test_I_UserData*);             // user data handle
+                                Test_I_HTTPGet_UserData*);     // user data handle
   virtual ~Test_I_Stream_SessionMessage ();
 
   // overloaded from ACE_Message_Block
@@ -66,7 +66,7 @@ class Test_I_Stream_SessionMessage
   typedef Stream_SessionMessageBase_T<Test_I_AllocatorConfiguration,
                                       Stream_SessionMessageType,
                                       Test_I_Stream_SessionData_t,
-                                      Test_I_UserData,
+                                      Test_I_HTTPGet_UserData,
                                       Test_I_ControlMessage_t,
                                       Test_I_Stream_Message> inherited;
 

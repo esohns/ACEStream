@@ -27,22 +27,7 @@
 template <typename ConnectorType>
 Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string& name_in)
  : inherited (name_in)
- //, camSource_ (ACE_TEXT_ALWAYS_CHAR ("CameraSource"),
- //              NULL,
- //              false)
- //, runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
- //                     NULL,
- //                     false)
- //, netTarget_ (ACE_TEXT_ALWAYS_CHAR ("NetworkTarget"),
- //              NULL,
- //              false)
- //, display_ (ACE_TEXT_ALWAYS_CHAR ("Display"),
- //            NULL,
- //            false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
- //, displayNull_ (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
- //                NULL,
- //                false)
  , mediaSession_ (NULL)
  , referenceCount_ (1)
 #endif
@@ -378,16 +363,14 @@ error:
 
 template <typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
+Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
+                                             bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::load"));
 
-//  // initialize return value(s)
-//  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
-//       iterator != modules_out.end ();
-//       iterator++)
-//    delete *iterator;
-//  modules_out.clear ();
+  // initialize return value(s)
+  modules_out.clear ();
+  delete_out = false;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -437,6 +420,8 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
                   false);
   modules_out.push_back (module_p);
 
+  delete_out = true;
+
   return true;
 }
 
@@ -485,14 +470,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 
   // ---------------------------------------------------------------------------
 
-  //Test_I_Source_Stream_Module_Display* display_impl_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Test_I_Source_Stream_Module_DisplayNull* displayNull_impl_p = NULL;
-#endif
-  //WRITER_T* netTarget_impl_p = NULL;
-  //Test_I_Source_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Stream_Module_CamSource* source_impl_p = NULL;
-  //Test_I_Source_Stream_SessionData* session_data_p = NULL;
 
   // ******************* Camera Source ************************
   Stream_Module_t* module_p =
@@ -520,9 +498,9 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   IMFTopology* topology_p = NULL;
 
   result = CoInitializeEx (NULL,
-                            (COINIT_MULTITHREADED    |
-                            COINIT_DISABLE_OLE1DDE   |
-                            COINIT_SPEED_OVER_MEMORY));
+                            (COINIT_MULTITHREADED     |
+                             COINIT_DISABLE_OLE1DDE   |
+                             COINIT_SPEED_OVER_MEMORY));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,

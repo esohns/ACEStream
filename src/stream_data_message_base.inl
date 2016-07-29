@@ -152,7 +152,7 @@ Stream_DataMessageBase_T<AllocatorConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::~Stream_DataMessageBase_T"));
 
-  // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
+  // *IMPORTANT NOTE*: this is an ugly hack to support some allocators
   //                   (see e.g. stream_cachedmessageallocator.cpp:172)
   inherited::priority_ = std::numeric_limits<unsigned long>::max ();
 

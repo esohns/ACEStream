@@ -131,6 +131,7 @@ set (${PROJECT_NAME}_LIB_SRCS
      stream_headmoduletask_base.inl
      stream_iallocator.h
      stream_idatamessage.h
+     stream_ilock.h
      stream_imessagequeue.h
      stream_imodule.h
      stream_inotify.h
@@ -245,6 +246,7 @@ install (FILES
          stream_headmoduletask_base.inl
          stream_iallocator.h
          stream_idatamessage.h
+         stream_ilock.h
          stream_imessagequeue.h
          stream_imodule.h
          stream_inotify.h

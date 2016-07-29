@@ -70,6 +70,7 @@
 #include "test_i_target_listener_common.h"
 #include "test_i_target_module_eventhandler.h"
 #include "test_i_target_signalhandler.h"
+#include "test_i_target_stream.h"
 
 void
 do_printUsage (const std::string& programName_in)

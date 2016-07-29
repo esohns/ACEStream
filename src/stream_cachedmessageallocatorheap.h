@@ -29,7 +29,8 @@
 #include "stream_cacheddatablockallocatorheap.h"
 
 class Stream_CachedMessageAllocatorHeap
- : public ACE_Cached_Allocator<ACE_Message_Block, ACE_SYNCH_MUTEX>
+ : public ACE_Cached_Allocator<ACE_Message_Block,
+                               ACE_SYNCH_MUTEX>
  , public Stream_IAllocator
 {
  public:
@@ -43,7 +44,7 @@ class Stream_CachedMessageAllocatorHeap
   // *NOTE*: returns a pointer to ACE_Message_Block
   virtual void* malloc (size_t); // bytes
   // *NOTE*: frees an ACE_Message_Block
-  virtual void free (void*); // element handle
+  virtual void free (void*); // handle
   // *NOTE*: these return the # of online ACE_Message_Blocks
   virtual size_t cache_depth () const;
   virtual size_t cache_size () const;
@@ -54,7 +55,8 @@ class Stream_CachedMessageAllocatorHeap
                         char = '\0'); // initial value
 
  private:
-  typedef ACE_Cached_Allocator<ACE_Message_Block, ACE_SYNCH_MUTEX> inherited;
+  typedef ACE_Cached_Allocator<ACE_Message_Block,
+                               ACE_SYNCH_MUTEX> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeap (const Stream_CachedMessageAllocatorHeap&));
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedMessageAllocatorHeap& operator= (const Stream_CachedMessageAllocatorHeap&));

@@ -35,6 +35,7 @@
 #include "stream_common.h"
 #include "stream_head_task.h"
 #include "stream_istreamcontrol.h"
+#include "stream_ilock.h"
 #include "stream_streammodule_base.h"
 #include "stream_itask.h"
 
@@ -72,7 +73,7 @@ class Stream_Base_T
                                   NotificationType,
                                   StatusType,
                                   StateType>
- , public Common_ILock_T<ACE_SYNCH_USE>
+ , public Stream_ILock_T<ACE_SYNCH_USE>
  , public Common_IStatistic_T<StatisticContainerType>
 // , public Common_IGetSet_T<SessionDataType>
 // , public Common_IInitialize_T<ConfigurationType>
@@ -97,6 +98,7 @@ class Stream_Base_T
                                   NotificationType,
                                   StatusType,
                                   StateType> ISTREAM_CONTROL_T;
+  typedef Stream_ILock_T<ACE_SYNCH_USE> ILOCK_T;
   typedef ConfigurationType CONFIGURATION_T;
   typedef StateType STATE_T;
   typedef SessionDataContainerType SESSION_DATA_CONTAINER_T;
@@ -121,15 +123,17 @@ class Stream_Base_T
                      bool = true); // locked access ?
   virtual bool isRunning () const;
 
-  virtual bool load (Stream_ModuleList_t&);
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
   virtual void flush (bool = true,   // flush inbound data ?
                       bool = false,  // flush session messages ?
                       bool = false); // flush upstream (if any) ?
   virtual void pause ();
   virtual void rewind ();
-  virtual void waitForCompletion (bool = true,   // wait for any worker thread(s) ?
-                                  bool = false); // wait for upstream (if any) ?
-  //virtual void waitForIdleState (bool = false) const; // wait for upstream (if any) ?
+  virtual void wait (bool = true,   // wait for any worker thread(s) ?
+                     bool = false,  // wait for upstream (if any) ?
+                     bool = false); // wait for downstream (if any) ?
+  //virtual void idle (bool = false) const; // wait for upstream (if any) ?
 
   virtual const MODULE_T* find (const std::string&) const; // module name
   virtual std::string name () const;
@@ -145,11 +149,12 @@ class Stream_Base_T
   virtual StatusType status () const;
   virtual const StateType& state () const;
 
-  // implement Stream_ILock_t
+  // implement Stream_ILock_T
   // *WARNING*: handle with care
-  virtual void lock ();
-  virtual void unlock ();
-  virtual ACE_SYNCH_MUTEX_T& getLock ();
+  virtual bool lock (bool = true); // block ?
+  virtual int unlock (bool = false); // unblock ?
+  virtual ACE_SYNCH_RECURSIVE_MUTEX& getLock ();
+  virtual bool hasLock ();
 
   // implement Common_IDumpState
   virtual void dump_state () const;
@@ -211,18 +216,18 @@ class Stream_Base_T
 
  protected:
   // convenient types
-   typedef ACE_Stream_Head<ACE_SYNCH_USE,
-                           TimePolicyType> HEAD_BASE_T;
-   typedef Stream_HeadTask_T<ACE_SYNCH_USE,
-                             TimePolicyType,
-                             ModuleConfigurationType,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             Stream_SessionId_t,
-                             Stream_SessionMessageType> HEAD_T;
-   typedef ACE_Stream_Tail<ACE_SYNCH_USE,
-                           TimePolicyType> TAIL_T;
+  typedef ACE_Stream_Head<ACE_SYNCH_USE,
+                          TimePolicyType> HEAD_BASE_T;
+  typedef Stream_HeadTask_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ModuleConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            Stream_SessionId_t,
+                            Stream_SessionMessageType> HEAD_T;
+  typedef ACE_Stream_Tail<ACE_SYNCH_USE,
+                          TimePolicyType> TAIL_T;
   typedef ACE_Task<ACE_SYNCH_USE,
                    TimePolicyType> TASK_T;
   typedef ACE_Message_Queue<ACE_SYNCH_USE,
@@ -252,13 +257,14 @@ class Stream_Base_T
   void shutdown ();
 
   ConfigurationType*        configuration_;
+  bool                      delete_;
   // *NOTE*: derived classes set this IF their initialization succeeded;
   //         otherwise, the dtor will NOT stop all worker threads before
   //         close()ing the modules
   bool                      isInitialized_;
-  ACE_SYNCH_MUTEX_T         lock_;
   Stream_ModuleList_t       modules_;
   SessionDataContainerType* sessionData_;
+  ACE_SYNCH_MUTEX_T         sessionDataLock_;
   StateType                 state_;
   // *NOTE*: cannot currently reach ACE_Stream::linked_us_
   //         --> use this instead
@@ -289,6 +295,10 @@ class Stream_Base_T
                          DataMessageType,
                          SessionMessageType> ITASK_T;
 
+  // make friends between ourselves; instances need to access the session data
+  // lock during (un)link() calls
+  friend class OWN_TYPE_T;
+
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T& operator= (const Stream_Base_T&))
@@ -302,7 +312,9 @@ class Stream_Base_T
   void deactivateModules ();
   void unlinkModules ();
 
+  // *TODO*: replace with state_.module ASAP
   bool                      hasFinal_;
+  ACE_SYNCH_RECURSIVE_MUTEX lock_;
   std::string               name_;
 };
 

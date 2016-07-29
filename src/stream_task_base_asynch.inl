@@ -214,13 +214,13 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     // called from ACE_Task_Base on clean-up
     case 0:
     {
-//       if (inherited::mod_)
-//         ACE_DEBUG ((LM_DEBUG,
-//                     ACE_TEXT ("\"%s\": worker thread (ID: %t) leaving...\n"),
-//                     inherited::mod_->name ()));
-//       else
-//         ACE_DEBUG ((LM_DEBUG,
-//                     ACE_TEXT ("worker thread (ID: %t) leaving...\n")));
+       if (inherited::mod_)
+         ACE_DEBUG ((LM_DEBUG,
+                     ACE_TEXT ("\"%s\": worker thread (ID: %t) leaving...\n"),
+                     inherited::mod_->name ()));
+       else
+         ACE_DEBUG ((LM_DEBUG,
+                     ACE_TEXT ("worker thread (ID: %t) leaving...\n")));
 
       if (inherited::thr_count_ == 0) // last thread ?
       {
@@ -374,8 +374,13 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::svc"));
 
-  //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("(%t) worker starting...\n")));
+  if (inherited::mod_)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("\"%s\": worker thread (ID: %t) starting...\n"),
+                inherited::mod_->name ()));
+  else
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("worker thread (ID: %t) starting...\n")));
 
   ACE_Message_Block* message_block_p = NULL;
   ACE_Message_Block::ACE_Message_Type message_type;

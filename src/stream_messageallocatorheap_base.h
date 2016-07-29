@@ -58,13 +58,13 @@ class Stream_MessageAllocatorHeapBase_T
   virtual ~Stream_MessageAllocatorHeapBase_T ();
 
   // implement Stream_IAllocator
-  virtual bool block (); // return value: block when pool is empty ?
+  inline virtual bool block () { return block_; };
   virtual void* calloc ();
   // *NOTE*: if argument is > 0, this returns a (pointer to) <MessageType>, and
   //         a (pointer to) <SessionMessageType> otherwise
   virtual void* malloc (size_t); // bytes
   // *NOTE*: frees a <MessageType>/<SessionMessageType>
-  virtual void free (void*); // element handle
+  virtual void free (void*); // handle
   virtual size_t cache_depth () const; // return value: #bytes allocated
   virtual size_t cache_size () const;  // return value: #inflight ACE_Message_Blocks
 

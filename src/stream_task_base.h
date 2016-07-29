@@ -65,11 +65,10 @@ class Stream_TaskBase_T
   virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleControlMessage (ControlMessageType&); // control message handle
   // *NOTE*: these are just default (essentially NOP) implementations
-  //virtual bool initialize (const void*); // configuration handle
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
+  inline virtual void handleControlMessage (ControlMessageType&) {};
+  inline virtual void handleDataMessage (DataMessageType*&,
+                                         bool&) {};
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass this message downstream ?
   virtual void handleProcessingError (const ACE_Message_Block* const); // message handle
@@ -94,6 +93,9 @@ class Stream_TaskBase_T
 
   ConfigurationType*                        configuration_;
   bool                                      isInitialized_;
+  bool                                      isLinked_;
+  typename SessionMessageType::DATA_T*      sessionData_;
+
   // *TODO*: synchronous tasks don't need this
   Stream_MessageQueue_T<SessionMessageType> queue_;
 
@@ -105,6 +107,14 @@ class Stream_TaskBase_T
                          SessionMessageType> inherited2;
 
   // convenient types
+  typedef Stream_TaskBase_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            SessionIdType,
+                            SessionEventType> OWN_TYPE_T;
   typedef Stream_ISessionNotify_T<SessionIdType,
                                   typename SessionMessageType::DATA_T::DATA_T,
                                   SessionEventType> INOTIFY_T;

@@ -71,9 +71,6 @@ class Stream_Module_Net_Source_T
   //// implement Stream_IModuleHandler_T
   //virtual const ModuleHandlerConfigurationType& get () const;
 
- protected:
-  typename SessionMessageType::DATA_T* sessionData_;
-
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -91,10 +88,10 @@ class Stream_Module_Net_Source_T
   typename ConnectionManagerType::CONNECTION_T* connection_;
   bool                                          isLinked_;
   bool                                          isPassive_;
-  // *NOTE*: this lock prevents races during (ordered) shutdown
-  // *TODO*: remove surplus STREAM_SESSION_END message(s)
-  ACE_SYNCH_MUTEX                               lock_;
-  bool                                          sessionEndInProgress_;
+  //// *NOTE*: this lock prevents races during (ordered) shutdown
+  //// *TODO*: remove surplus STREAM_SESSION_END message(s)
+  //ACE_SYNCH_MUTEX                               lock_;
+  //bool                                          sessionEndInProgress_;
 };
 
 //////////////////////////////////////////
@@ -205,10 +202,10 @@ class Stream_Module_Net_SourceH_T
   typename ConnectionManagerType::CONNECTION_T* connection_;
   bool                                          isLinked_;
   bool                                          isPassive_;
-  // *NOTE*: this lock prevents races during (ordered) shutdown
-  // *TODO*: remove surplus STREAM_SESSION_END message(s)
-  ACE_SYNCH_MUTEX                               lock_;
-  bool                                          sessionEndInProgress_;
+  //// *NOTE*: this lock prevents races during (ordered) shutdown
+  //// *TODO*: remove surplus STREAM_SESSION_END message(s)
+  //ACE_SYNCH_MUTEX                               lock_;
+  //bool                                          sessionEndInProgress_;
 };
 
 // include template definition

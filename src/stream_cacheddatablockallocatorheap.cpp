@@ -54,23 +54,37 @@ Stream_CachedDataBlockAllocatorHeap::~Stream_CachedDataBlockAllocatorHeap ()
 
 }
 
-bool
-Stream_CachedDataBlockAllocatorHeap::block ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::block"));
-
-  return false;
-}
-
 void*
 Stream_CachedDataBlockAllocatorHeap::calloc ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::calloc"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (NULL);
+  ACE_Data_Block* data_block_p = NULL;
+  try {
+    // delegate allocation to the base class and:
+    // - use placement new to invoke a ctor on the allocated space
+    // - perform necessary initialization...
+    ACE_NEW_MALLOC_NORETURN (data_block_p,
+                             static_cast<ACE_Data_Block*> (inherited::calloc (sizeof (ACE_Data_Block))),
+                             ACE_Data_Block (0,                                                         // size of data chunk
+                                             ACE_Message_Block::MB_NORMAL,                              // message type
+                                             NULL,                                                      // data --> use allocator !
+                                             NULL,                                                      // allocator
+                                             &Stream_CachedDataBlockAllocatorHeap::referenceCountLock_, // reference count lock
+                                             0,                                                         // flags: release (heap) memory in dtor
+                                             this));                                                    // data block allocator
+  } catch (...) {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block()), continuing\n")));
+  }
+  if (!data_block_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("unable to allocate ACE_Data_Block(), aborting\n")));
+    return NULL;
+  } // end IF
 
-  ACE_NOTREACHED (return NULL;)
+  return data_block_p;
 }
 
 void*
@@ -86,10 +100,9 @@ Stream_CachedDataBlockAllocatorHeap::malloc (size_t bytes_in)
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (bytes_in,                                                  // size of data chunk
-                                             ACE_Message_Block::MB_DATA,                                // message type
+                                             (bytes_in ? ACE_Message_Block::MB_DATA : ACE_Message_Block::MB_USER), // message type
                                              NULL,                                                      // data --> use allocator !
-                                             heapAllocator_,                                            // allocator
-                                             //NULL,                                                    // no allocator --> allocate this off the heap !
+                                             (bytes_in ? heapAllocator_ : NULL),                        // allocator
                                              &Stream_CachedDataBlockAllocatorHeap::referenceCountLock_, // reference count lock
                                              0,                                                         // flags: release (heap) memory in dtor
                                              this));                                                    // data block allocator
@@ -107,25 +120,6 @@ Stream_CachedDataBlockAllocatorHeap::malloc (size_t bytes_in)
   } // end IF
 
   return data_block_p;
-}
-
-void*
-Stream_CachedDataBlockAllocatorHeap::calloc (size_t bytes_in,
-                                             char initialValue_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::calloc"));
-
-  ACE_UNUSED_ARG (initialValue_in);
-
-  return malloc (bytes_in);
-}
-
-void
-Stream_CachedDataBlockAllocatorHeap::free (void* handle_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_CachedDataBlockAllocatorHeap::free"));
-
-  inherited::free (handle_in);
 }
 
 size_t

@@ -515,7 +515,7 @@ do_work (unsigned int bufferSize_in,
 
 //      return;
 //    } // end IF
-    stream.waitForCompletion (true, false);
+    stream.wait (true, false, false);
   } // end ELSE
 
   // step3: clean up

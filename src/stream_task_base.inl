@@ -45,17 +45,18 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   SessionMessageType,
                   SessionIdType,
                   SessionEventType>::Stream_TaskBase_T ()
- : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME), // thread name
-              STREAM_MODULE_TASK_GROUP_ID,                                   // group id
-              1,                                                             // # thread(s)
-              false,                                                         // auto-start ?
+ : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_THREAD_NAME), // thread name
+              STREAM_MODULE_TASK_GROUP_ID,                      // group id
+              1,                                                // # thread(s)
+              false,                                            // auto-start ?
               ////////////////////////////
-              //NULL)                                                          // queue handle
+              //NULL)                                           // queue handle
               // *TODO*: this looks dodgy, but seems to work nonetheless...
-              &queue_)                                                       // queue handle
+              &queue_)                                          // queue handle
  , configuration_ (NULL)
  , isInitialized_ (false)
- //, lock_ ()
+ , isLinked_ (false)
+ , sessionData_ (NULL)
  , queue_ (STREAM_QUEUE_MAX_SLOTS)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
@@ -84,6 +85,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   int result = -1;
 
+  if (sessionData_)
+    sessionData_->decrease ();
+
   //   // *TODO*: check whether this sequence works
   //   queue_.deactivate ();
   //   queue_.wait ();
@@ -102,7 +106,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   {
     if (inherited::mod_)
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("\"%s\": flushed %d message(s)...\n"),
+                  ACE_TEXT ("%s: flushed %d message(s)...\n"),
                   inherited::mod_->name (),
                   result));
     else
@@ -110,7 +114,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   ACE_TEXT ("flushed %d message(s)...\n"),
                   result));
   } // end ELSE IF
-
   //inherited::msg_queue (NULL);
 }
 
@@ -161,60 +164,16 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
   isInitialized_ = true;
+  isLinked_ = false;
+
+  if (sessionData_)
+  {
+    sessionData_->decrease ();
+    sessionData_ = NULL;
+  } // end IF
+  queue_.flush ();
 
   return true;
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionIdType,
-          typename SessionEventType>
-void
-Stream_TaskBase_T<ACE_SYNCH_USE,
-                  TimePolicyType,
-                  ConfigurationType,
-                  ControlMessageType,
-                  DataMessageType,
-                  SessionMessageType,
-                  SessionIdType,
-                  SessionEventType>::handleControlMessage (ControlMessageType& message_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleControlMessage"));
-
-  ACE_UNUSED_ARG (message_in);
-
-  // *NOTE*: a stub
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionIdType,
-          typename SessionEventType>
-void
-Stream_TaskBase_T<ACE_SYNCH_USE,
-                  TimePolicyType,
-                  ConfigurationType,
-                  ControlMessageType,
-                  DataMessageType,
-                  SessionMessageType,
-                  SessionIdType,
-                  SessionEventType>::handleDataMessage (DataMessageType*& message_inout,
-                                                        bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::handleDataMessage"));
-
-  ACE_UNUSED_ARG (message_inout);
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // *NOTE*: a stub
 }
 
 template <ACE_SYNCH_DECL,
@@ -241,30 +200,105 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   // initialize return value(s)
   passMessageDownstream_out = true;
 
-  // sanity check(s)
-  ACE_ASSERT (message_inout);
-
   // *NOTE*: the default behavior is to simply dump the module state at the end
   //         of a session
+
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+      break;
     case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      // sanity check(s)
+      if (sessionData_) // --> session head modules initialize this in open()
+        break;
+
+      sessionData_ =
+        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
+      sessionData_->increase ();
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_LINK:
+    {
+      isLinked_ = true;
+
+      // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
+      //                   the 'session end' message may already have been
+      //                   processed at this point ('concurrent' scenario)
+      // sanity check(s)
+      if (!sessionData_)
+        break;
+
+      typename SessionMessageType::DATA_T* session_data_container_p =
+        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
+      session_data_container_p->increase ();
+
+      // *IMPORTANT NOTE*: although reuse of the upstream session data is
+      //                   warranted, it may not be safe (e.g. connection might
+      //                   close unexpectedly, ...)
+      //                   --> use 'this' streams' session data lock instead
+      // *TODO*: with careful design, this precaution may be completely
+      //         unnecessary. Points to consider:
+      //         - linking/unlinking code may have to be synchronized
+      //         - upstream session resources (e.g. connection handles, ...)
+      //           must not be allocated/used/freed until the streams have been
+      //           un/linked
+      //         - ...
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->get ());
+      const typename SessionMessageType::DATA_T::DATA_T& session_data_2 =
+        sessionData_->get ();
+
+      ACE_ASSERT (session_data_r.lock);
+      ACE_ASSERT (session_data_2.lock);
+      {
+        ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
+        ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard_2, *session_data_2.lock);
+
+        session_data_r.lock = session_data_2.lock;
+
+        // *NOTE*: the idea here is to 'merge' the two datasets
+        session_data_r += session_data_2;
+
+        // switch session data
+        sessionData_->decrease ();
+        sessionData_ = session_data_container_p;
+      } // end lock scope
+
+      // *IMPORTANT NOTE*: currently, link()ing two streams implies that there
+      //                   will be two 'session end' messages: one for
+      //                  'upstream', and one for 'this'
+      //                   --> increase reference count of the session data, so
+      //                       it is not released prematurely
+      sessionData_->increase ();
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_STEP:
       break;
     case STREAM_SESSION_MESSAGE_END:
     {
-      try {
-        dump_state ();
-      } catch (...) {
-        if (inherited::mod_)
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("module \"%s\": caught exception in dump_state(), continuing\n"),
-                      inherited::mod_->name ()));
-        else
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("caught exception in dump_state(), continuing\n")));
-      }
+      //try {
+      //  dump_state ();
+      //} catch (...) {
+      //  if (inherited::mod_)
+      //    ACE_DEBUG ((LM_ERROR,
+      //                ACE_TEXT ("%s: caught exception in dump_state(), continuing\n"),
+      //                inherited::mod_->name ()));
+      //  else
+      //    ACE_DEBUG ((LM_ERROR,
+      //                ACE_TEXT ("caught exception in dump_state(), continuing\n")));
+      //}
+
+      if (isLinked_)
+        isLinked_ = false;
+
+      if (sessionData_)
+      {
+        sessionData_->decrease ();
+        sessionData_ = NULL;
+      } // end IF
 
       break;
     }
@@ -302,7 +336,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
   if (inherited::mod_)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("module: \"%s\": failed to process message %@, continuing\n"),
+                ACE_TEXT ("%s: failed to process message %@, continuing\n"),
                 inherited::mod_->name (),
                 messageBlock_in));
   else
@@ -374,6 +408,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   switch (messageBlock_in->msg_type ())
   {
     case ACE_Message_Block::MB_DATA:
+    case ACE_Message_Block::MB_PROTO:
     {
       DataMessageType* message_p =
         dynamic_cast<DataMessageType*> (messageBlock_in);
@@ -406,7 +441,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       } catch (...) {
         if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("module \"%s\": caught an exception in handleDataMessage() (ID was: %u), continuing\n"),
+                      ACE_TEXT ("%s: caught an exception in handleDataMessage() (ID was: %u), continuing\n"),
                       inherited::mod_->name (),
                       message_p->getID ()));
         else
@@ -417,7 +452,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
       break;
     }
-    case ACE_Message_Block::MB_PROTO:
+    case ACE_Message_Block::MB_NORMAL: // undifferentiated
+    case ACE_Message_Block::MB_BREAK:
+    case ACE_Message_Block::MB_FLUSH:
+    case ACE_Message_Block::MB_HANGUP:
     {
       ControlMessageType* control_message_p =
         dynamic_cast<ControlMessageType*> (messageBlock_in);
@@ -470,7 +508,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
           Stream_Tools::messageType2String (static_cast<Stream_MessageType> (messageBlock_in->msg_type ()));
         if (inherited::mod_)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("module \"%s\": caught an exception in handleUserMessage() (type was: \"%s\"), continuing\n"),
+                      ACE_TEXT ("%s: caught an exception in handleUserMessage() (type was: \"%s\"), continuing\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (type_string.c_str ())));
         else
@@ -485,7 +523,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     {
       if (inherited::mod_)
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("module \"%s\": received an unknown message (type was: %d), continuing\n"),
+                    ACE_TEXT ("%s: received an unknown message (type was: %d), continuing\n"),
                     inherited::mod_->name (),
                     messageBlock_in->msg_type ()));
       else
@@ -581,6 +619,10 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       // OK: process session message
       Stream_SessionMessageType session_message_type =
         session_message_p->type ();
+      // retain/update session data ?
+      if (session_message_type != STREAM_SESSION_MESSAGE_END)
+        OWN_TYPE_T::handleSessionMessage (session_message_p,
+                                          passMessageDownstream_out);
       try {
         handleSessionMessage (session_message_p,
                               passMessageDownstream_out);
@@ -596,7 +638,11 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
       // *NOTE*: if this was a SESSION_END message, stop processing (see above)
       if (session_message_type == STREAM_SESSION_MESSAGE_END)
+      { 
+        OWN_TYPE_T::handleSessionMessage (session_message_p,
+                                          passMessageDownstream_out);
         stopProcessing_out = true;
+      } // end IF
 
       break;
     }
@@ -604,7 +650,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     {
       if (inherited::mod_)
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("module \"%s\": received an unknown user message (type was: %d), continuing\n"),
+                    ACE_TEXT ("%s: received an unknown user message (type was: %d), continuing\n"),
                     inherited::mod_->name (),
                     messageBlock_in->msg_type ()));
       else
@@ -651,7 +697,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                        sessionEvent_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("module \"%s\": caught exception in Stream_ISessionNotify_T::notify(), continuing\n"),
+                ACE_TEXT ("%s: caught exception in Stream_ISessionNotify_T::notify(), continuing\n"),
                 inherited::mod_->name ()));
   }
 }

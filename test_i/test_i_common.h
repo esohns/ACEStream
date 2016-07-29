@@ -142,18 +142,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   inline Test_I_Stream_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
-//   , connection (NULL)
-//   , connectionManager (NULL)
-//   , HTTPForm ()
-//   , HTTPHeaders ()
-   //, hostName ()
    , inbound (true)
-//   , libreOfficeHost (TEST_I_DEFAULT_PORT,
-//                      ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST),
-//                      ACE_ADDRESS_FAMILY_INET)
-//   , libreOfficeRc ()
-//   , libreOfficeSheetStartColumn (0)
-//   , libreOfficeSheetStartRow (TEST_I_DEFAULT_LIBREOFFICE_START_ROW - 1)
    , mode (STREAM_MODULE_HTMLPARSER_SAX)
    , passive (false)
    , printFinalReport (true)
@@ -161,28 +150,16 @@ struct Test_I_Stream_ModuleHandlerConfiguration
    , pushStatisticMessages (true)
    , socketConfiguration (NULL)
    , socketHandlerConfiguration (NULL)
-//   , stockItems ()
-//   , stream (NULL)
    , targetFileName ()
-//   , URL ()
   {
-    crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES; // HTTP parser module
+    crunchMessages = HTTP_DEFAULT_CRUNCH_MESSAGES;
 
     traceParsing = NET_PROTOCOL_DEFAULT_YACC_TRACE; // HTTP parser module
     traceScanning = NET_PROTOCOL_DEFAULT_LEX_TRACE; // HTTP parser module
   };
 
   Test_I_Configuration*                     configuration;
-//  Test_I_IConnection_t*                     connection; // net source/IO module
-//  Test_I_Stream_InetConnectionManager_t*    connectionManager; // net source/IO module
-  bool                                      crunchMessages; // HTTP parser module
-//  HTTP_Form_t                               HTTPForm; // HTTP get module
-//  HTTP_Headers_t                            HTTPHeaders; // HTTP get module
   bool                                      inbound; // IO module
-//  ACE_INET_Addr                             libreOfficeHost; // spreadsheet writer module
-//  std::string                               libreOfficeRc; // spreadsheet writer module
-//  unsigned int                              libreOfficeSheetStartColumn; // spreadsheet writer module
-//  unsigned int                              libreOfficeSheetStartRow; // spreadsheet writer module
   Stream_Module_HTMLParser_Mode             mode; // html parser module
   bool                                      passive; // net source module
   bool                                      printFinalReport;
@@ -190,10 +167,7 @@ struct Test_I_Stream_ModuleHandlerConfiguration
   bool                                      pushStatisticMessages;
   Net_SocketConfiguration*                  socketConfiguration;
   Test_I_Stream_SocketHandlerConfiguration* socketHandlerConfiguration;
-//  Test_I_StockItems_t                       stockItems; // HTTP get module
-//  Test_I_StreamBase_t*                      stream; // net source module
   std::string                               targetFileName; // file writer module
-//  std::string                               URL; // HTTP get module
 };
 
 struct Stream_SignalHandlerConfiguration

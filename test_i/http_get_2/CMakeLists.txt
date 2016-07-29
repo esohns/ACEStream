@@ -213,7 +213,7 @@ set (http_get_2_EXE_SRCS
      stdafx.h
      test_i_common_modules.h
      test_i_connection_common.h
-     test_i_connection_manager_common.h
+#     test_i_connection_manager_common.h
      test_i_defines.h
      test_i_message.cpp
      test_i_message.h
@@ -227,15 +227,21 @@ set (http_get_2_EXE_SRCS
      test_i_session_message.h
      test_i_http_get.cpp
      test_i_http_get_common.h
+     test_i_http_get_connection_manager_common.h
      test_i_http_get_signalhandler.cpp
      test_i_http_get_signalhandler.h
      test_i_http_get_stream.cpp
      test_i_http_get_stream.h
      test_i_http_get_stream.inl)
 #  test_i_template_instantiations.cpp
+set (http_get_2_ETC_SRCS
+     etc/soffice.ini
+     etc/sofficerc
+     etc/symbols.ini
+     etc/template.ods)
 
 set (EXECUTABLE http_get_2)
-add_executable (${EXECUTABLE} ${http_get_2_EXE_SRCS} etc/soffice.ini etc/sofficerc etc/symbols.ini etc/table.ods)
+add_executable (${EXECUTABLE} ${http_get_2_EXE_SRCS} ${http_get_2_ETC_SRCS})
 
 if (UNIX)
  target_link_libraries (${EXECUTABLE} rt)
@@ -314,7 +320,7 @@ if (UNIX)
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-c.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\soffice.ini -f.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\symbols.ini -h localhost -l -o .\\\\output.ods -p 2083 -r -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_uebersicht.htn"
+                         ARGS "-c.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\soffice.ini -f.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\template.ods -h localhost -i.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\symbols.ini -l -o .\\\\output.ods -p 2083 -r -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_uebersicht.htn"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs
@@ -329,5 +335,5 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/../libACENetwork/cmake/src/protocol/http/Debug
                                               \"${OO_APP_DIRECTORY}\"
                          WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test_i/http_get_2
-                         ENVIRONMENT foo=bar)
+                         ENVIRONMENT foo=bar;_NO_DEBUG_HEAP=1)
 endif ()

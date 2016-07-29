@@ -30,12 +30,12 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Time_Value.h"
 
-#include "common_ilock.h"
 #include "common_istatemachine.h"
 #include "common_time_common.h"
 
 #include "stream_defines.h"
 #include "stream_iallocator.h"
+#include "stream_ilock.h"
 #include "stream_inotify.h"
 #include "stream_session_data.h"
 #include "stream_statistichandler.h"
@@ -326,13 +326,19 @@ struct Stream_ModuleConfiguration
   Stream_Configuration* streamConfiguration;
 };
 
-typedef Common_ILock_T<ACE_MT_SYNCH> Stream_ILock_t;
+typedef Stream_ILock_T<ACE_MT_SYNCH> Stream_ILock_t;
 
 struct Stream_ModuleHandlerConfiguration
 {
   inline Stream_ModuleHandlerConfiguration ()
-   : active (false)
-   , concurrent (false)
+   : active (false) // head module
+   // *WARNING*: when disabled, this 'locks down' the pipeline head module. It
+   //            will then hold the 'stream lock' during message processing to
+   //            support (down)stream synchronization. This really only makes
+   //            sense in fully synchronous layouts, or 'concurrent' scenarios
+   //            with non-reentrant modules
+   //            --> disable only if you know what you are doing
+   , concurrent (true)
    , crunchMessages (STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES)
    , hasHeader (false)
    , ilock (NULL)
@@ -341,10 +347,9 @@ struct Stream_ModuleHandlerConfiguration
    , reportingInterval (0)
    , statisticCollectionInterval (ACE_Time_Value::zero)
    , stateMachineLock (NULL)
-//, socketConfiguration (NULL)
    , streamConfiguration (NULL)
-   , traceParsing (STREAM_DEFAULT_YACC_TRACE)
-   , traceScanning (STREAM_DEFAULT_LEX_TRACE)
+   , traceParsing (STREAM_DEFAULT_YACC_TRACE) // parser module(s)
+   , traceScanning (STREAM_DEFAULT_LEX_TRACE) // parser module(s)
   {};
 
   bool                     active; // head module(s)
@@ -355,22 +360,23 @@ struct Stream_ModuleHandlerConfiguration
   bool                     hasHeader;
   // *NOTE*: modules can use this to temporarily relinquish the stream lock
   //         while they wait on some condition, in order to avoid deadlocks
-  //         --> use in non-concurrent scenarios
+  //         --> used primarily in 'non-concurrent' (see above) scenarios
   Stream_ILock_t*          ilock;
   Stream_IAllocator*       messageAllocator;
   bool                     passive; // network/device/... module(s)
 
   unsigned int             reportingInterval; // (statistic) reporting interval (second(s)) [0: off]
-  ACE_Time_Value           statisticCollectionInterval;
+  ACE_Time_Value           statisticCollectionInterval; // head module(s)
 
-  ACE_SYNCH_MUTEX*         stateMachineLock;
+  ACE_SYNCH_MUTEX*         stateMachineLock; // head module(s)
 
   //Net_SocketConfiguration* socketConfiguration;
   // *TODO*: remove this ASAP
   Stream_Configuration*    streamConfiguration;
 
-  bool                     traceParsing;  // debug yacc (bison) ?
-  bool                     traceScanning; // debug (f)lex ?
+  // *NOTE*: this distinction applies mostly to (f)lex/yacc(bison)-based parsers
+  bool                     traceParsing;  // parser module(s)
+  bool                     traceScanning; // parser module(s)
 };
 
 typedef Stream_StatisticHandler_Reactor_T<Stream_Statistic> Stream_StatisticHandler_Reactor_t;

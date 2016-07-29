@@ -49,7 +49,8 @@ class Stream_IStreamControlBase
   // *IMPORTANT NOTE*: the module list is currently a stack
   //                   --> push_back() the modules in 'back-to-front' sequence
   //                       (i.e. trailing module first)
-  virtual bool load (Stream_ModuleList_t&) = 0; // return value: module list
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&) = 0;           // return value: delete modules ?
 
   // *NOTE*: flush the pipeline, releasing any data
   // *NOTE*: session messages are not flushed, if all modules implement
@@ -60,11 +61,12 @@ class Stream_IStreamControlBase
                       bool = false) = 0; // flush upstream (if any) ?
   virtual void pause () = 0;
   virtual void rewind () = 0;
-  // *NOTE*: wait for all data queues to drain
-  virtual void waitForCompletion (bool = true,       // wait for any worker thread(s) ?
-                                  bool = false) = 0; // wait for upstream (if any) ?
-  //// *NOTE*: wait for all worker threads to join
-  //virtual void waitForIdleState (bool = false) const = 0; // wait for upstream (if any) ?
+  // *NOTE*: wait for workers, and/or all queued data to drain
+  virtual void wait (bool = true,       // wait for any worker thread(s) ?
+                     bool = false,      // wait for upstream (if any) ?
+                     bool = false) = 0; // wait for downstream (if any) ?
+  //// *NOTE*: wait for all queued data to drain
+  //virtual void idle (bool = false) const = 0; // wait for upstream (if any) ?
 
   virtual const Stream_Module_t* find (const std::string&) const = 0; // module name
   virtual std::string name () const = 0;

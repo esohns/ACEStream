@@ -231,37 +231,6 @@ Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                      ProtocolCommandType,
                                      StatisticContainerType,
                                      SessionDataType,          // session data
-                                     SessionDataContainerType>::handleControlMessage (ControlMessageType& message_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Statistic_WriterTask_T::handleControlMessage"));
-
-  ACE_UNUSED_ARG (message_in);
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename ProtocolCommandType,
-          typename StatisticContainerType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
-void
-Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
-                                     TimePolicyType,
-                                     ConfigurationType,
-                                     ControlMessageType,
-                                     DataMessageType,
-                                     SessionMessageType,
-                                     ProtocolCommandType,
-                                     StatisticContainerType,
-                                     SessionDataType,          // session data
                                      SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                                    bool& passMessageDownstream_out)
 {

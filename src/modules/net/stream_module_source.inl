@@ -21,6 +21,7 @@
 #include "ace/INET_Addr.h"
 #include "ace/Log_Msg.h"
 
+#include "common_ilock.h"
 #include "common_timer_manager_common.h"
 
 #include "stream_macros.h"
@@ -52,14 +53,13 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
                            ConnectionManagerType,
                            ConnectorType>::Stream_Module_Net_Source_T ()
  : inherited ()
- , sessionData_ (NULL)
  , connector_ (NULL,
                ACE_Time_Value::zero)
  , connection_ (NULL)
  , isLinked_ (false)
  , isPassive_ (false)
- , lock_ ()
- , sessionEndInProgress_ (false)
+ //, lock_ ()
+ //, sessionEndInProgress_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_T::Stream_Module_Net_Source_T"));
 
@@ -87,9 +87,6 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_T::~Stream_Module_Net_Source_T"));
 
   int result = -1;
-
-  if (sessionData_)
-    sessionData_->decrease ();
 
   if (connection_)
   {
@@ -161,12 +158,6 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
 
-    if (sessionData_)
-    {
-      sessionData_->decrease ();
-      sessionData_ = NULL;
-    } // end IF
-
     if (connection_)
     {
       if (isLinked_)
@@ -191,7 +182,7 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
         } // end IF
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: unlinked i/o streams\n"),
+                    ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
                     inherited::mod_->name ()));
       } // end IF
       isLinked_ = false;
@@ -217,7 +208,7 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
       connection_ = NULL;
     } // end IF
 
-    sessionEndInProgress_ = false;
+    //sessionEndInProgress_ = false;
 
     inherited::isInitialized_ = false;
   } // end IF
@@ -298,24 +289,46 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->streamConfiguration);
   ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::mod_);
+  ACE_ASSERT (inherited::sessionData_);
 
   ACE_TCHAR buffer[BUFSIZ];
   ACE_OS::memset (buffer, 0, sizeof (buffer));
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      if (connection_)
+      {
+        if (!isPassive_)
+        {
+          ACE_TCHAR buffer[BUFSIZ];
+          ACE_OS::memset (buffer, 0, sizeof (buffer));
+          ACE_HANDLE handle = ACE_INVALID_HANDLE;
+          ACE_INET_Addr local_address, peer_address;
+          connection_->info (handle,
+                             local_address, peer_address);
+          result = peer_address.addr_to_string (buffer,
+                                                sizeof (buffer));
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
+                        inherited::mod_->name ()));
+
+          connection_->close ();
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: closed connection to %s...\n"),
+                      inherited::mod_->name (),
+                      buffer));
+        } // end IF
+      } // end IF
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // sanity check(s)
-      ACE_ASSERT (!sessionData_);
-
-      sessionData_ =
-        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
-      sessionData_->increase ();
-      typename SessionMessageType::DATA_T* session_data_container_p = NULL;
-      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
-
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
@@ -325,6 +338,7 @@ Stream_Module_Net_Source_T<ACE_SYNCH_USE,
       typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
       typename ConnectorType::ICONNECTOR_T* iconnector_p = &connector_;
       typename ConnectorType::STREAM_T::MODULE_T* module_p = NULL;
+      typename SessionMessageType::DATA_T* session_data_container_p = NULL;
 
       if (isPassive_)
       {
@@ -514,21 +528,22 @@ reset:
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: linked i/o streams\n"),
+                  ACE_TEXT ("%s: linked i/o stream(s)\n"),
                   inherited::mod_->name ()));
       isLinked_ = true;
       //stream_p->dump_state ();
 
       // update session data in the session message
-      // *WARNING*: this works as long as the STREAM_SESSION_LINK message has
-      //            already been received at this point (see below; OK if
+      // *WARNING*: this works if the STREAM_SESSION_LINK message has already
+      //            been processed at this point (i.e. OK only as long as
       //            upstream is completely synchronous)
-      ACE_ASSERT (sessionData_);
-      sessionData_->increase ();
-      session_data_container_p = sessionData_;
+      inherited::sessionData_->increase ();
+      session_data_container_p = inherited::sessionData_;
       message_inout->initialize (STREAM_SESSION_MESSAGE_BEGIN,
                                  session_data_container_p,
                                  &const_cast<typename SessionMessageType::USER_DATA_T&> (message_inout->data ()));
+      session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->get ());
 
       goto continue_;
 
@@ -555,89 +570,60 @@ continue_:
       // re-set session ID, retain state information
       // *TODO*: remove type inferences
       ACE_ASSERT (session_data_r.lock);
-      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-      session_data_r.connectionState =
-        &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ());
-      session_data_r.sessionID = connection_->id ();
-
-      break;
-    }
-    // *NOTE*: the stream has been link()ed (see above), the message contains
-    //         the (merged) upstream session data --> retain a reference
-    case STREAM_SESSION_MESSAGE_LINK:
-    {
-      // *IMPORTANT NOTE*: in case the session has been aborted asynchronously,
-      //                   the 'session end' message may already have been
-      //                   processed at this point (concurrent scenario).
-      // *TODO*: - implement a state machine for network sessions to help avoid
-      //           race conditions
-      //         - flush the processing stream thoroughly on end-of-session
-      // sanity check(s)
-      if (!sessionData_)
-        break;
-
-      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        sessionData_->get ();
-
-      typename SessionMessageType::DATA_T* session_data_container_p =
-        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
-      session_data_container_p->increase ();
-
-      // *IMPORTANT NOTE*: although reuse of the upstream session data is
-      //                   warranted, it may not be safe, as the connection
-      //                   might go away, destroying the session data lock
-      //                   --> use 'this' streams' session data lock instead
-      typename SessionMessageType::DATA_T::DATA_T& session_data_2 =
-        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->get ());
-      session_data_2.lock = session_data_r.lock;
-
-      sessionData_->decrease ();
-      sessionData_ = session_data_container_p;
+      {
+        ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        session_data_r.connectionState =
+          &const_cast<typename ConnectionManagerType::STATE_T&> (connection_->state ());
+        session_data_r.sessionID = connection_->id ();
+      } // end lock scope
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      const typename SessionMessageType::DATA_T& session_data_container_r =
-        const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
-      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        session_data_container_r.get ();
+      // *IMPORTANT NOTE*: control reaches this point because either:
+      //                   - the connection has been closed and the processing
+      //                     stream has/is finished()-ing (see: handle_close())
+      //                   - the session is being aborted by the user
+      //                   - the session is being aborted by some module
+      // *NOTE*: in any case, the connection has been closed at this point
 
-      if (sessionData_)
-      {
-        sessionData_->decrease ();
-        sessionData_ = NULL;
-      } // end IF
+      //// *NOTE*: The connection handler will finished() the connection
+      ////         processing stream when it returns (see handle_close()). If it
+      ////         is link()ed to another processing stream at this stage (e.g.
+      ////         'this'), the 'session end' message is propagated.
+      ////         Note that when the (linked) processing stream (e.g. 'this')
+      ////         itself is finished() (see below), it propagates a second
+      ////         'session end' message. Handle this situation here; there is
+      ////         nothing more to do in this case
+      //{
+      //  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
 
-      // *NOTE*: when the connection is (asynchronously) closed by the peer, the
-      //         connection handler will finished() the connection processing
-      //         stream. If it is linked to another processing stream at this
-      //         point (i.e. 'this'), the 'session end' message is propagated.
-      //         Note that when the (linked) processing stream itself is
-      //         finished() (see below), it propagates a second session end
-      //         message. Handle this situation here; there is nothing more to
-      //         do in this case
-      {
-        ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, lock_);
+      //  if (sessionEndInProgress_)
+      //  {
+      //    passMessageDownstream_out = false;
+      //    message_inout->release ();
 
-        if (sessionEndInProgress_)
-        {
-          passMessageDownstream_out = false;
-          message_inout->release ();
+      //    break; // done
+      //  } // end IF
 
-          break; // done
-        } // end IF
+      //  sessionEndInProgress_ = true;
+      //} // end lock scope
 
-        sessionEndInProgress_ = true;
-      } // end lock scope
-
-      // sanity check(s)
-      ACE_ASSERT (inherited::configuration_->ilock);
-      ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (inherited::configuration_->ilock->getLock ());
       if (connection_)
       {
-        // wait for data (!) processing to complete
-        ACE_ASSERT (inherited::configuration_->stream);
+        // wait for upstream data processing to complete before unlinking ?
+
+        // *NOTE*: if the connection has been closed (see above), this is the
+        //         final session message, so there is no need to wait
+        //         --> proceed with unlink()
+        //         Otherwise, the session has been aborted (see above), and
+        //         there may be unprocessed data in the connection stream
+        //         --> flush() any remaining data first ?
+        // *TODO*: try not to flush server-side inbound data
+        if (!session_data_r.aborted)
+          goto error_2;
+
         typename ConnectorType::STREAM_T* stream_p = NULL;
         typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p =
           dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
@@ -650,47 +636,11 @@ continue_:
         } // end IF
         stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
-
-        // *NOTE*: if:
-        //         - the connection was closed abruptly (peer reset)
-        //         - the session has been aborted (initialization/processing
-        //           failed, user abort, tea is ready, ...)
-        //         there may be undispatched data in the connection stream
-        //         --> flush() so waitForCompletion() (see below) does not block
-        // *TODO*: this does not work reliably (race condition).
-        //         Also:
-        //         - verify role of the connection; do not flush server-side
-        //           inbound data
-        Net_Connection_Status status = connection_->status ();
-        if ((status != NET_CONNECTION_STATUS_OK) ||
-            session_data_r.aborted)
-          stream_p->flush (true,   // flush inbound data ?
-                           false,  // flush session messages ?
-                           false); // flush upstream (if any) ?
-
-        // *NOTE*: finalize the processing stream state so
-        //         waitForCompletion() (see below) does not block. Note that the
-        //         stream may already have finished() at this point (in fact,
-        //         this may be the finished() callstack)
-        // *TODO*: which scenarios are these ? (initialization failed, ...)
-        // *NOTE*: this (probably) also wakes up the (main) thread
-        // *TODO*: iff the connection has been (asynchronously) closed by the
-        //         peer, there is no need to signal completion here
-        inherited::configuration_->stream->finished (false); // finish upstream ?
-
-        if (session_data_r.aborted)
-          goto continue_2;
-
-        {
-          ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard, reverse_lock);
-          //inherited::configuration_->ilock->unlock ();
-          inherited::configuration_->stream->waitForCompletion (false, // wait for worker(s) ?
-                                                                true); // wait for upstream ?
-          //inherited::configuration_->ilock->lock ();
-        } // end lock scope
+        stream_p->flush (true,   // flush inbound data ?
+                         false,  // flush session messages ?
+                         false); // flush upstream (if any) ?
       } // end IF
 
-continue_2:
 error_2:
       if (connection_)
       {
@@ -706,49 +656,15 @@ error_2:
                         inherited::mod_->name ()));
           else
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: unlinked i/o streams\n"),
+                        ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
                         inherited::mod_->name ()));
           //inherited::configuration_->stream->dump_state ();
         } // end IF
         isLinked_ = false;
 
-        if (!isPassive_)
-        {
-          ACE_TCHAR buffer[BUFSIZ];
-          ACE_OS::memset (buffer, 0, sizeof (buffer));
-          ACE_HANDLE handle = ACE_INVALID_HANDLE;
-          ACE_INET_Addr local_address, peer_address;
-          connection_->info (handle,
-                             local_address, peer_address);
-          result = peer_address.addr_to_string (buffer,
-                                                sizeof (buffer));
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                        inherited::mod_->name ()));
-
-          // *NOTE*: closing the connection entails interaction with the event
-          //         dispatcher (see: handle_close() --> remove_handler()),
-          //         which may in turn be trying to deliver data to the
-          //         processing stream. (Depending on the dispatcher
-          //         implementation,) this can lead to a deadlock situation
-          //         --> relinquish the processing stream lock temporarily
-          {
-            ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard, reverse_lock);
-
-            connection_->close ();
-          } // end lock scope
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: closed connection to %s...\n"),
-                      inherited::mod_->name (),
-                      buffer));
-        } // end IF
-
         connection_->decrease ();
         connection_ = NULL;
       } // end IF
-
-      inherited::shutdown ();
 
       break;
     }
@@ -794,8 +710,8 @@ Stream_Module_Net_SourceH_T<LockType,
  , connection_ (NULL)
  , isLinked_ (false)
  , isPassive_ (isPassive_in)
- , lock_ ()
- , sessionEndInProgress_ (false)
+ //, lock_ ()
+ //, sessionEndInProgress_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_SourceH_T::Stream_Module_Net_SourceH_T"));
 
@@ -935,7 +851,7 @@ Stream_Module_Net_SourceH_T<LockType,
         } // end IF
         ACE_ASSERT (inherited::mod_);
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: unlinked i/o streams\n"),
+                    ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
                     inherited::mod_->name ()));
       } // end IF
       isLinked_ = false;
@@ -961,7 +877,7 @@ Stream_Module_Net_SourceH_T<LockType,
       connection_ = NULL;
     } // end IF
 
-    sessionEndInProgress_ = false;
+    //sessionEndInProgress_ = false;
   
     inherited::initialized_ = false;
   } // end IF
@@ -973,7 +889,7 @@ Stream_Module_Net_SourceH_T<LockType,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
     return false;
   } // end IF
-  // *NOTE*: data is fed into the stream from outside, as it arrives
+  // *NOTE*: data is delivered to the stream by the pro-/reactor, as it arrives
   //         --> do not run svc() on start()
   inherited::runSvcOnStart_ = false;
 
@@ -1069,6 +985,35 @@ Stream_Module_Net_SourceH_T<LockType,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      if (connection_)
+      {
+        if (!isPassive_)
+        {
+          ACE_TCHAR buffer[BUFSIZ];
+          ACE_OS::memset (buffer, 0, sizeof (buffer));
+          ACE_HANDLE handle = ACE_INVALID_HANDLE;
+          ACE_INET_Addr local_address, peer_address;
+          connection_->info (handle,
+                             local_address, peer_address);
+          result = peer_address.addr_to_string (buffer,
+                                                sizeof (buffer));
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
+                        inherited::mod_->name ()));
+
+          connection_->close ();
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("%s: closed connection to %s...\n"),
+                      inherited::mod_->name (),
+                      buffer));
+        } // end IF
+      } // end IF
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // schedule regular statistic collection ?
@@ -1298,7 +1243,7 @@ reset:
         goto error;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: linked i/o streams\n"),
+                  ACE_TEXT ("%s: linked i/o stream(s)\n"),
                   inherited::mod_->name ()));
       isLinked_ = true;
       //stream_p->dump_state ();
@@ -1311,6 +1256,8 @@ reset:
       message_inout->initialize (STREAM_SESSION_MESSAGE_BEGIN,
                                  session_data_container_p,
                                  &const_cast<typename SessionMessageType::USER_DATA_T&> (message_inout->data ()));
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
       goto continue_;
 
@@ -1326,7 +1273,7 @@ error:
         connection_ = NULL;
       } // end IF
 
-      session_data_r.aborted = true;
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
 
@@ -1337,52 +1284,42 @@ continue_:
       // set session ID
       // *TODO*: remove type inferences
       ACE_ASSERT (session_data_r.lock);
-      ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_r.lock);
-      session_data_r.sessionID = connection_->id ();
-
-      break;
-    }
-    // *NOTE*: the stream has been link()ed (see above), the message contains
-    //         the (merged) upstream session data --> retain a reference
-    case STREAM_SESSION_MESSAGE_LINK:
-    {
-      SessionDataContainerType& session_data_container_r =
-        const_cast<SessionDataContainerType&> (message_inout->get ());
-      session_data_container_r.increase ();
-      // *IMPORTANT NOTE*: although reuse of the upstream session data is
-      //                   warranted, it may not be safe, as the connection
-      //                   might go away, destroying the session data lock
-      //                   --> use 'this' streams' session data lock instead
-      SessionDataType& session_data_2 =
-        const_cast<SessionDataType&> (session_data_container_r.get ());
-      session_data_2.lock = session_data_r.lock;
-      inherited::sessionData_->decrease ();
-      inherited::sessionData_ = &session_data_container_r;
+      {
+        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_r.lock);
+        session_data_r.sessionID = connection_->id ();
+      } // end lock scope
 
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // *NOTE*: when the connection is (asynchronously) closed by the peer, the
-      //         connection handler will finished() the connection processing
-      //         stream. If it is linked to another processing stream at this
-      //         point, the 'session end' message is propagated. Note that when
-      //         the (linked) processing stream itself is finished() (see
-      //         below), it sends a second session end message. Handle this
-      //         situation here; there is nothing more to do in this case
-      {
-        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
+      // *IMPORTANT NOTE*: control reaches this point because either:
+      //                   - the connection has been closed and the processing
+      //                     stream has/is finished()-ing (see: handle_close())
+      //                   [- the session is being aborted by the user
+      //                   - the session is being aborted by some module]
 
-        if (sessionEndInProgress_)
-        {
-          passMessageDownstream_out = false;
-          message_inout->release ();
-          
-          break; // done
-        } // end IF
+      //// *NOTE*: when the connection is (asynchronously) closed by the peer, the
+      ////         connection handler will finished() the connection processing
+      ////         stream. If it is linked to another processing stream (e.g.
+      ////         'this') at this stage, the 'session end' message is propagated.
+      ////         Note that when the (linked) processing stream (e.g. 'this')
+      ////         itself is finished() (see below), it sends a second session end
+      ////         message. Handle this situation here; there is nothing more to do
+      ////         in this case
+      //{
+      //  ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-        sessionEndInProgress_ = true;
-      } // end lock scope
+      //  if (sessionEndInProgress_)
+      //  {
+      //    passMessageDownstream_out = false;
+      //    message_inout->release ();
+      //    
+      //    break; // done
+      //  } // end IF
+
+      //  sessionEndInProgress_ = true;
+      //} // end lock scope
 
       if (inherited::timerID_ != -1)
       {
@@ -1402,8 +1339,18 @@ continue_:
 
       if (connection_)
       {
-        // wait for data (!) processing to complete
-        ACE_ASSERT (inherited::configuration_->stream);
+        // wait for upstream data processing to complete before unlinking ?
+
+        // *NOTE*: if the connection has been closed (see above), this is the
+        //         final session message, so there is no need to wait
+        //         --> proceed with unlink()
+        //         Otherwise, the session has been aborted (see above), and
+        //         there may be unprocessed data in the connection stream
+        //         --> flush() any remaining data first ?
+        // *TODO*: try not to flush server-side inbound data
+        if (!session_data_r.aborted)
+          goto error_2;
+
         typename ConnectorType::STREAM_T* stream_p = NULL;
         typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p =
           dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
@@ -1416,25 +1363,7 @@ continue_:
         } // end IF
         stream_p =
           &const_cast<typename ConnectorType::STREAM_T&> (isocket_connection_p->stream ());
-
-        // *NOTE*: if the connection was closed abruptly, or the session was
-        //         aborted, there may well be undispatched data in the
-        //         connection stream. Flush it so waitForCompletion() (see
-        //         below) does not block
-        // *TODO*: this does not work reliably (race condition)
-        Net_Connection_Status status = connection_->status ();
-        if ((status != NET_CONNECTION_STATUS_OK) ||
-            session_data_r.aborted)
-          stream_p->flush (true);
-
-        // *NOTE*: finalize the processing stream state so
-        //         waitForCompletion() (see below) does not block
-        // *NOTE*: this (probably) also wakes up the (main) thread
-        // *TODO*: iff the connection has been (asynchronously) closed by the
-        //         peer, there is no need to signal completion here
-        inherited::configuration_->stream->finished (false); // finish upstream ?
-        inherited::configuration_->stream->waitForCompletion (false, // wait for worker(s) ?
-                                                              true); // wait for upstream ?
+        stream_p->flush (true);
       } // end IF
 
 error_2:
@@ -1452,42 +1381,15 @@ error_2:
                         inherited::mod_->name ()));
           else
             ACE_DEBUG ((LM_DEBUG,
-                        ACE_TEXT ("%s: unlinked i/o streams\n"),
+                        ACE_TEXT ("%s: unlinked i/o stream(s)\n"),
                         inherited::mod_->name ()));
           //inherited::configuration_->stream->dump_state ();
         } // end IF
         isLinked_ = false;
 
-        if (!isPassive_)
-        {
-          ACE_TCHAR buffer[BUFSIZ];
-          ACE_OS::memset (buffer, 0, sizeof (buffer));
-          ACE_HANDLE handle = ACE_INVALID_HANDLE;
-          ACE_INET_Addr local_address, peer_address;
-          connection_->info (handle,
-                             local_address, peer_address);
-          result = peer_address.addr_to_string (buffer,
-                                                sizeof (buffer));
-          if (result == -1)
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
-                        inherited::mod_->name ()));
-
-          connection_->close ();
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("%s: closed connection to %s...\n"),
-                      inherited::mod_->name (),
-                      buffer));
-        } // end IF
-
         connection_->decrease ();
         connection_ = NULL;
       } // end IF
-
-      inherited::sessionData_->decrease ();
-      inherited::sessionData_ = NULL;
-
-      inherited::shutdown ();
 
       break;
     }

@@ -26,28 +26,6 @@ template <typename ConnectorType>
 Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
  : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"),
               true) // support (upstream) linking
- , HTTPMarshal_ (ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
-                 NULL,
-                 false)
- , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                      NULL,
-                      false)
- , decompressor_ (ACE_TEXT_ALWAYS_CHAR ("Decompressor"),
-                  NULL,
-                  false)
- , HTMLParser_ (ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
-                NULL,
-                false)
- , spreadsheetWriter_ (ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter"),
-                       NULL,
-                       false)
- /////////////////////////////////////////
- , netSource_ (ACE_TEXT_ALWAYS_CHAR ("NetSource"),
-               NULL,
-               false)
- , HTTPGet_ (ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
-             NULL,
-             false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::Test_I_HTTPGet_Stream_T"));
 
@@ -63,24 +41,74 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::~Test_I_HTTPGet_Stream_T ()
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
+Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
+                                              bool& delete_out)
+
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::load"));
 
-  modules_out.push_back (&HTTPGet_);
-  modules_out.push_back (&netSource_);
-  modules_out.push_back (&spreadsheetWriter_);
-  modules_out.push_back (&HTMLParser_);
-  modules_out.push_back (&decompressor_);
-  modules_out.push_back (&runtimeStatistic_);
-  modules_out.push_back (&HTTPMarshal_);
+  // initialize return value(s)
+  modules_out.clear ();
+  delete_out = false;
+
+  Stream_Module_t* module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Stream_SpreadsheetWriter_Module (ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter"),
+                                                          NULL,
+                                                          false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Stream_HTMLParser_Module (ACE_TEXT_ALWAYS_CHAR ("HTMLParser"),
+                                                   NULL,
+                                                   false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Stream_HTTPGet_Module (ACE_TEXT_ALWAYS_CHAR ("HTTPGet"),
+                                                NULL,
+                                                false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  SOURCE_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetSource"),
+                                   NULL,
+                                   false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Stream_Decompressor_Module (ACE_TEXT_ALWAYS_CHAR ("Decompressor"),
+                                                     NULL,
+                                                     false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Stream_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
+                                                         NULL,
+                                                         false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Stream_HTTP_Marshal_Module (ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal"),
+                                                     NULL,
+                                                     false),
+                  false);
+  modules_out.push_back (module_p);
+
+  delete_out = true;
 
   return true;
 }
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_Stream_Configuration& configuration_in,
+Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_StreamConfiguration& configuration_in,
                                                     bool setupPipeline_in,
                                                     bool resetSessionData_in)
 {
@@ -94,6 +122,8 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_Stream_
     if (!inherited::finalize ())
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_Base_T::finalize(): \"%m\", continuing\n")));
+
+    inherited::isInitialized_ = false;
   } // end IF
 
   // allocate a new session state, reset stream
@@ -123,9 +153,18 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_Stream_
   Test_I_Stream_HTTP_Parser* HTTPParser_impl_p = NULL;
 
   // ******************* HTTP Marshal ************************
+  Stream_Module_t* module_p =
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("HTTPMarshal")));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("HTTPMarshal")));
+    goto failed;
+  } // end IF
   //HTTPMarshal_.initialize (*configuration_in.moduleConfiguration);
   HTTPParser_impl_p =
-    dynamic_cast<Test_I_Stream_HTTP_Parser*> (HTTPMarshal_.writer ());
+    dynamic_cast<Test_I_Stream_HTTP_Parser*> (module_p->writer ());
   if (!HTTPParser_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -137,28 +176,28 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_HTTPGet_Stream_
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              HTTPMarshal_.name ()));
+  //              module_p->name ()));
   //  goto failed;
   //} // end IF
   if (!HTTPParser_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                HTTPMarshal_.name ()));
+                module_p->name ()));
     goto failed;
   } // end IF
 
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  HTTPMarshal_.arg (inherited::sessionData_);
+  module_p->arg (inherited::sessionData_);
 
   if (setupPipeline_in)
     if (!inherited::setup ())
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to setup pipeline, aborting\n")));
-      return false;
+      goto failed;
     } // end IF
 
   // -------------------------------------------------------------
@@ -190,8 +229,17 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
   Test_I_Stream_SessionData& session_data_r =
       const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
+  Stream_Module_t* module_p =
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("RuntimeStatistic")));
+    return false;
+  } // end IF
   Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+    dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> (module_p->writer ());
   if (!runtimeStatistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -213,7 +261,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data
 
   session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
 
-  // delegate to the statistics module...
+  // delegate to the statistics module
   bool result_2 = false;
   try {
     result_2 = runtimeStatistic_impl->collect (data_out);
@@ -243,19 +291,6 @@ void
 Test_I_HTTPGet_Stream_T<ConnectorType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::report"));
-
-//   Test_I_Stream_Statistic_WriterTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("dynamic_cast<Test_I_Stream_Statistic_WriterTask_t*> failed, returning\n")));
-//
-//     return;
-//   } // end IF
-//
-//   // delegate to this module...
-//   return (runtimeStatistic_impl->report ());
 
   ACE_ASSERT (false);
   ACE_NOTSUP;

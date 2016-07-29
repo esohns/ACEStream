@@ -63,7 +63,8 @@ class Test_I_Target_Stream
   virtual ~Test_I_Target_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&); // return value: module list
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Stream_Configuration&, // configuration

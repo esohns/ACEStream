@@ -62,7 +62,8 @@ class Stream_Filecopy_Stream
   virtual ~Stream_Filecopy_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&); // return value: module list
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Stream_Filecopy_StreamConfiguration&, // configuration

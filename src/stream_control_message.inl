@@ -69,8 +69,7 @@ Stream_ControlMessage_T<ControlMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::Stream_ControlMessage_T"));
 
-  // set correct message type
-  // *WARNING*: initialization through initialize()
+  // *WARNING*: need to finalize initialization through initialize()
   inherited::msg_type (ACE_Message_Block::MB_NORMAL);
 
   // reset read/write pointers
@@ -95,7 +94,7 @@ Stream_ControlMessage_T<ControlMessageType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::Stream_ControlMessage_T"));
 
-  inherited::msg_type (ACE_Message_Block::MB_NORMAL);
+  inherited::msg_type (message_in.msg_type ());
 
   // set read/write pointers
   inherited::rd_ptr (message_in.rd_ptr ());
@@ -115,12 +114,11 @@ Stream_ControlMessage_T<ControlMessageType,
 
   type_ = STREAM_CONTROL_MESSAGE_INVALID;
 
-//  // *WARNING*: cannot do that anymore (data block has already gone away)
-//  inherited::msg_type (ACE_Message_Block::MB_USER);
-
-  // *IMPORTANT NOTE*: this is an ugly hack to enable some allocators
+  // *WARNING*: cannot reset the message type (data block has already gone)
+//  inherited::msg_type (ACE_Message_Block::MB_NORMAL);
+  // *IMPORTANT NOTE*: this is an ugly hack to support message allocators
   //                   (see e.g. stream_cachedmessageallocator.cpp:172)
-  inherited::priority_ = std::numeric_limits<unsigned long>::min ();
+  inherited::priority_ = STREAM_MESSAGE_CONTROL_PRIORITY;
 }
 
 template <typename ControlMessageType,

@@ -51,15 +51,6 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::~Stream_DataBlockAllocatorHe
 }
 
 template <typename ConfigurationType>
-bool
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::block ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::block"));
-
-  return true;
-}
-
-template <typename ConfigurationType>
 void*
 Stream_DataBlockAllocatorHeap_T<ConfigurationType>::calloc ()
 {
@@ -70,7 +61,7 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::calloc ()
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (0,
-                                             ACE_Message_Block::MB_USER,
+                                             ACE_Message_Block::MB_NORMAL,
                                              NULL,
                                              NULL,
                                              NULL,
@@ -121,10 +112,9 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (number_of_bytes,                          // size of data chunk
-                                             (bytes_in ? ACE_Message_Block::MB_DATA    // message type
-                                                       : ACE_Message_Block::MB_PROTO), // *TODO*: make this configurable ?
+                                             (bytes_in ? ACE_Message_Block::MB_DATA : ACE_Message_Block::MB_USER),
                                              NULL,                                     // data --> use allocator !
-                                             heapAllocator_,                           // heap allocator ? : heap
+                                             (bytes_in ? heapAllocator_ : NULL),       // heap allocator
                                              &OWN_TYPE_T::referenceCountLock_,         // reference count lock
                                              0,                                        // flags: release (heap) memory in dtor
                                              this));                                   // data block allocator
@@ -164,27 +154,15 @@ Stream_DataBlockAllocatorHeap_T<ConfigurationType>::malloc (size_t bytes_in)
 }
 
 template <typename ConfigurationType>
-void*
-Stream_DataBlockAllocatorHeap_T<ConfigurationType>::calloc (size_t bytes_in,
-                                                            char initialValue_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::calloc"));
-
-  ACE_UNUSED_ARG (initialValue_in);
-
-  return malloc (bytes_in);
-}
-
-template <typename ConfigurationType>
 void
 Stream_DataBlockAllocatorHeap_T<ConfigurationType>::free (void* handle_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::free"));
 
-  // delegate to base class...
+  // delegate to base class
   inherited::free (handle_in);
 
-  // *NOTE*: handle_in really is a ACE_Data_Block*...
+  // *NOTE*: handle_in really is a ACE_Data_Block*
 //   ACE_Data_Block* data_block = NULL;
 //   data_block = static_cast<ACE_Data_Block*> (handle_in);
 //   ACE_ASSERT (data_block);

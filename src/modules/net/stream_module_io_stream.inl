@@ -162,21 +162,14 @@ Stream_Module_Net_IO_Stream_T<LockType,
                               DataMessageType,
                               SessionMessageType,
                               AddressType,
-                              ConnectionManagerType>::load (Stream_ModuleList_t& modules_out)
+                              ConnectionManagerType>::load (Stream_ModuleList_t& modules_out,
+                                                            bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::load"));
 
-//  // initialize return value(s)
-//  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
-//       iterator != modules_out.end ();
-//       iterator++)
-//    delete *iterator;
-//  modules_out.clear ();
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  // *TODO*: remove type inference
-  ACE_ASSERT (inherited::configuration_->moduleHandlerConfiguration);
+  // initialize return value(s)
+  modules_out.clear ();
+  delete_out = false;
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -185,6 +178,8 @@ Stream_Module_Net_IO_Stream_T<LockType,
                                false),
                   false);
   modules_out.push_back (module_p);
+
+  delete_out = true;
 
   return true;
 }

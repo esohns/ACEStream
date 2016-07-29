@@ -23,14 +23,18 @@
 #include "stream_defines.h"
 #include "stream_macros.h"
 
-template <typename MessageType,
+template <typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType>
-Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType>::Stream_CachedMessageAllocatorHeapBase_T (unsigned int maximumNumberOfMessages_in)
  : inherited (maximumNumberOfMessages_in ? maximumNumberOfMessages_in
                                          : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES)
  , dataBlockAllocator_ (maximumNumberOfMessages_in ? maximumNumberOfMessages_in
                                                    : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES)
+ , controlMessageAllocator_ (maximumNumberOfMessages_in ? maximumNumberOfMessages_in
+                                                        : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES)
  , sessionMessageAllocator_ (maximumNumberOfMessages_in ? maximumNumberOfMessages_in
                                                         : STREAM_QUEUE_DEFAULT_CACHED_MESSAGES)
 {
@@ -43,61 +47,57 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType,
                 STREAM_QUEUE_DEFAULT_CACHED_MESSAGES));
 }
 
-template <typename MessageType,
+template <typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType>
-Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType>::~Stream_CachedMessageAllocatorHeapBase_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::~Stream_CachedMessageAllocatorHeapBase_T"));
 
 }
 
-template <typename MessageType,
+template <typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType>
 void*
-Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType>::calloc ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::calloc"));
 
   ACE_Data_Block* data_block_p = NULL;
   try {
-    ACE_NEW_MALLOC_NORETURN (data_block_p,
-                             static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (sizeof (ACE_Data_Block))),
-                             ACE_Data_Block (0,
-                                             ACE_Message_Block::MB_USER,
-                                             NULL,
-                                             NULL,
-                                             NULL,
-                                             0,
-                                             &dataBlockAllocator_));
+    ACE_ALLOCATOR_NORETURN (data_block_p,
+                            static_cast<ACE_Data_Block*> (dataBlockAllocator_.calloc ()));
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(), continuing\n")));
+                ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block), continuing\n")));
   }
   if (!data_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Data_Block(), aborting\n")));
+                ACE_TEXT ("failed to allocate ACE_Data_Block, aborting\n")));
     return NULL;
   } // end IF
 
   ACE_Message_Block* message_block_p = NULL;
   try {
     ACE_NEW_MALLOC_NORETURN (message_block_p,
-                             static_cast<ACE_Message_Block*> (inherited::malloc (sizeof (ACE_Message_Block))),
-                             ACE_Message_Block (data_block_p,
-                                                0,
-                                                this));
+                             static_cast<ControlMessageType*> (controlMessageAllocator_.malloc (sizeof (ACE_Message_Block))),
+                             ControlMessageType (data_block_p,
+                                                 this));
   }
   catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Message_Block(), continuing\n")));
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Message_Block), continuing\n")));
   }
   if (!message_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Message_Block(), aborting\n")));
+                ACE_TEXT ("failed to allocate control message, aborting\n")));
 
     // clean up
     delete data_block_p;
@@ -108,10 +108,12 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType,
   return message_block_p;
 }
 
-template <typename MessageType,
+template <typename ControlMessageType,
+          typename DataMessageType,
           typename SessionMessageType>
 void*
-Stream_CachedMessageAllocatorHeapBase_T<MessageType,
+Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
+                                        DataMessageType,
                                         SessionMessageType>::malloc (size_t bytes_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::malloc"));
@@ -119,41 +121,34 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType,
   // step1: get free data block
   ACE_Data_Block* data_block_p = NULL;
   try {
-    ACE_NEW_MALLOC_NORETURN (data_block_p,
-                             static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (sizeof (ACE_Data_Block))),
-                             ACE_Data_Block (0,
-                                             ACE_Message_Block::MB_USER,
-                                             NULL,
-                                             NULL,
-                                             NULL,
-                                             0,
-                                             &dataBlockAllocator_));
+    ACE_ALLOCATOR_NORETURN (data_block_p,
+                            static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (bytes_in)));
   }
   catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(), continuing\n")));
+                ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block), continuing\n")));
   }
   if (!data_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Data_Block(), aborting\n")));
+                ACE_TEXT ("failed to allocate ACE_Data_Block, aborting\n")));
     return NULL;
   } // end IF
 
   // *NOTE*: must clean up data block beyond this point !
 
   // step2: get free message
-  ACE_Message_Block* message_p = NULL;
+  ACE_Message_Block* message_block_p = NULL;
   try {
     // allocate memory and perform a placement new by invoking a ctor on the
     // allocated space
     if (bytes_in)
-      ACE_NEW_MALLOC_NORETURN (message_p,
-                               static_cast<MessageType*> (inherited::malloc (sizeof (MessageType))),
-                               MessageType (data_block_p, // use the data block just allocated
-                                            this));       // notify allocator upon destruction
+      ACE_NEW_MALLOC_NORETURN (message_block_p,
+                               static_cast<DataMessageType*> (inherited::malloc (sizeof (DataMessageType))),
+                               DataMessageType (data_block_p, // use the data block just allocated
+                                                this));       // notify allocator upon destruction
     else
-      ACE_NEW_MALLOC_NORETURN (message_p,
+      ACE_NEW_MALLOC_NORETURN (message_block_p,
                                static_cast<SessionMessageType*> (sessionMessageAllocator_.malloc (sizeof (SessionMessageType))),
                                SessionMessageType (data_block_p, // use the data block just allocated
                                                    this));       // notify allocator upon destruction
@@ -162,10 +157,10 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN([Session]MessageType(%u), continuing\n"),
                 bytes_in));
   }
-  if (!message_p)
+  if (!message_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("unable to allocate [Session]MessageType(%u), aborting\n"),
+                ACE_TEXT ("unable to allocate (session) message, aborting\n"),
                 bytes_in));
 
     // clean up
@@ -176,7 +171,56 @@ Stream_CachedMessageAllocatorHeapBase_T<MessageType,
 
   // ... and return the result
   // *NOTE*: the caller knows what to expect (either MessageType || SessionMessageType)
-  return message_p;
+  return message_block_p;
+}
+
+template <typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType>
+void
+Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
+                                        DataMessageType,
+                                        SessionMessageType>::free (void* handle_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocatorHeapBase_T::free"));
+
+  // *NOTE*: distinguish between different message types here
+
+  ACE_Message_Block* message_block_p =
+      static_cast<ACE_Message_Block*> (handle_in);
+  ACE_ASSERT (message_block_p);
+
+  // *WARNING*: cannot access the message type (data block has already gone)
+  //switch (message_block_p->msg_type ())
+  switch (message_block_p->msg_priority ())
+  {
+    //case ACE_Message_Block::MB_NORMAL: // undifferentiated
+    //case ACE_Message_Block::MB_BREAK:
+    //case ACE_Message_Block::MB_FLUSH:
+    //case ACE_Message_Block::MB_HANGUP:
+    case STREAM_MESSAGE_CONTROL_PRIORITY:
+      controlMessageAllocator_.free (handle_in);
+      break;
+    //case ACE_Message_Block::MB_DATA:
+    //case ACE_Message_Block::MB_PROTO:
+    case std::numeric_limits<unsigned long>::max ():
+      inherited::free (handle_in);
+      break;
+    //case ACE_Message_Block::MB_USER:
+    case std::numeric_limits<unsigned long>::min ():
+      sessionMessageAllocator_.free (handle_in);
+      break;
+    default:
+    {
+      //ACE_DEBUG ((LM_ERROR,
+      //            ACE_TEXT ("invalid/unknown message type (was: %d), returning\n"),
+      //            message_block_p->msg_type ()));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown message priority (was: %d), returning\n"),
+                  message_block_p->msg_priority ()));
+      break;
+    }
+  } // end SWITCH
 }
 
 //template <typename MessageType>

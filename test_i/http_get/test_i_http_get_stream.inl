@@ -60,9 +60,14 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::~Test_I_HTTPGet_Stream_T ()
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
+Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
+                                              bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::load"));
+
+  // initialize return value(s)
+  modules_out.clear ();
+  delete_out = false;
 
   modules_out.push_back (&HTTPGet_);
   modules_out.push_back (&netSource_);

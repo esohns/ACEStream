@@ -27,14 +27,15 @@
 
 #include "net_server_asynchlistener.h"
 #include "net_server_listener.h"
+#include "net_sock_acceptor.h"
 
 #include "test_i_connection_common.h"
 
-//#include "test_i_target_common.h"
-#include "test_i_target_stream.h"
+#include "test_i_target_common.h"
 
 // forward declarations
 struct Test_I_Target_ListenerConfiguration;
+class Test_I_Target_Stream;
 
 typedef Net_Server_AsynchListener_T<Test_I_Target_AsynchTCPConnection_t,
                                     ACE_INET_Addr,

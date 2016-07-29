@@ -33,7 +33,8 @@
 
 //class Stream_Export Stream_CachedDataBlockAllocatorHeap
 class Stream_CachedDataBlockAllocatorHeap
- : public ACE_Cached_Allocator<ACE_Data_Block, ACE_SYNCH_MUTEX>
+ : public ACE_Cached_Allocator<ACE_Data_Block,
+                               ACE_SYNCH_MUTEX>
  , public Stream_IAllocator
 {
  public:
@@ -42,17 +43,17 @@ class Stream_CachedDataBlockAllocatorHeap
   virtual ~Stream_CachedDataBlockAllocatorHeap ();
 
   // implement (part of) Stream_IAllocator
-  virtual bool block (); // return value: block when full ?
+  inline virtual bool block () { return false; };
   // *NOTE*: returns a pointer to ACE_Data_Block
   virtual void* malloc (size_t); // bytes
   // *NOTE*: frees an ACE_Data_Block
-  virtual void free (void*); // element handle
+  inline virtual void free (void* handle_in) { inherited::free (handle_in); }; // handle
   virtual size_t cache_depth () const; // return value: #bytes allocated
   virtual size_t cache_size () const;  // return value: #in-flight data blocks
 
   // *NOTE*: returns a pointer to ACE_Data_Block
-  virtual void* calloc (size_t,       // bytes
-                        char = '\0'); // initial value
+  inline virtual void* calloc (size_t bytes_in,
+                               char = '\0') { return malloc (bytes_in); };
 
   // convenience types
   // *NOTE*: serialize access to ACE_Data_Block reference count, which may be
@@ -66,7 +67,8 @@ class Stream_CachedDataBlockAllocatorHeap
   static DATABLOCK_LOCK_TYPE referenceCountLock_;
 
  private:
-  typedef ACE_Cached_Allocator<ACE_Data_Block, ACE_SYNCH_MUTEX> inherited;
+  typedef ACE_Cached_Allocator<ACE_Data_Block,
+                               ACE_SYNCH_MUTEX> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap (const Stream_CachedDataBlockAllocatorHeap&))
   ACE_UNIMPLEMENTED_FUNC (Stream_CachedDataBlockAllocatorHeap& operator= (const Stream_CachedDataBlockAllocatorHeap&))

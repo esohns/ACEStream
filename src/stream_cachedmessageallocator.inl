@@ -261,18 +261,43 @@ Stream_CachedMessageAllocator_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CachedMessageAllocator_T::free"));
 
-  // *IMPORTANT NOTE*: need to distinguish between MessageType and
-  //                   SessionMessageType here
+  // *NOTE*: distinguish between different message types here
+
   ACE_Message_Block* message_block_p =
       static_cast<ACE_Message_Block*> (handle_in);
   ACE_ASSERT (message_block_p);
-  // *IMPORTANT NOTE*: this is an ugly hack
-  //                   (see stream_data_message_base.inl:130 and
-  //                        stream_session_message_base.inl:130)
-  if (message_block_p->msg_priority () == std::numeric_limits<unsigned long>::max ())
-    dataMessageAllocator_.free (handle_in);
-  else
-    sessionMessageAllocator_.free (handle_in);
+
+  // *WARNING*: cannot access the message type (data block has already gone)
+  //switch (message_block_p->msg_type ())
+  switch (message_block_p->msg_priority ())
+  {
+    //case ACE_Message_Block::MB_NORMAL: // undifferentiated
+    //case ACE_Message_Block::MB_BREAK:
+    //case ACE_Message_Block::MB_FLUSH:
+    //case ACE_Message_Block::MB_HANGUP:
+    case STREAM_MESSAGE_CONTROL_PRIORITY:
+      controlMessageAllocator_.free (handle_in);
+      break;
+    //case ACE_Message_Block::MB_DATA:
+    //case ACE_Message_Block::MB_PROTO:
+    case std::numeric_limits<unsigned long>::max ():
+      dataMessageAllocator_.free (handle_in);
+      break;
+    //case ACE_Message_Block::MB_USER:
+    case std::numeric_limits<unsigned long>::min ():
+      sessionMessageAllocator_.free (handle_in);
+      break;
+    default:
+    {
+      //ACE_DEBUG ((LM_ERROR,
+      //            ACE_TEXT ("invalid/unknown message type (was: %d), returning\n"),
+      //            message_block_p->msg_type ()));
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown message priority (was: %d), returning\n"),
+                  message_block_p->msg_priority ()));
+      break;
+    }
+  } // end SWITCH
 }
 
 template <typename ConfigurationType,

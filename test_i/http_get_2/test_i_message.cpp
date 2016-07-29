@@ -145,3 +145,24 @@ Test_I_Stream_Message::CommandType2String (HTTP_Method_t method_in)
   return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE)
                                                        : HTTP_Tools::Method2String (method_in));
 }
+
+void
+Test_I_Stream_Message::dump_state () const
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Message::dump_state"));
+
+  // sanity check(s)
+  if (!inherited::data_)
+    return;
+  const Test_I_MessageData& data_r = inherited::data_->get ();
+
+  if (data_r.HTTPRecord)
+    ACE_DEBUG ((LM_INFO,
+                ACE_TEXT ("%s"),
+                ACE_TEXT (HTTP_Tools::dump (*data_r.HTTPRecord).c_str ())));
+  ACE_DEBUG ((LM_INFO,
+              ACE_TEXT ("ISIN: %s / symbol: %s / WKN: %s\n"),
+              ACE_TEXT (data_r.stockItem.ISIN.c_str ()),
+              ACE_TEXT (data_r.stockItem.symbol.c_str ()),
+              ACE_TEXT (data_r.stockItem.WKN.c_str ())));
+}

@@ -33,6 +33,143 @@
 #include "stream_macros.h"
 
 void
+Stream_Tools::crunch (ACE_Message_Block*& messageBlock_inout,
+                      Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::crunch"));
+
+  // sanity check(s)
+  ACE_ASSERT (messageBlock_inout);
+
+  // allocate a new message ?
+  int result = -1;
+  ACE_Message_Block* message_block_p = NULL;
+  size_t total_length = messageBlock_inout->total_length ();
+  if (total_length > messageBlock_inout->capacity ())
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("required %d byte(s) (available: %d): allocating a new message\n"),
+                total_length,
+                messageBlock_inout->capacity ()));
+
+    if (allocator_in)
+    {
+allocate:
+      try {
+        message_block_p =
+          static_cast<ACE_Message_Block*> (allocator_in->malloc (total_length));
+      } catch (...) {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
+                    total_length));
+
+        // clean up
+        messageBlock_inout->release ();
+        messageBlock_inout = NULL;
+
+        return;
+      }
+
+      // keep retrying ?
+      if (!message_block_p && !allocator_in->block ())
+        goto allocate;
+    } // end IF
+    else
+      ACE_NEW_NORETURN (message_block_p,
+                        ACE_Message_Block (total_length,
+                                           ACE_Message_Block::MB_DATA,
+                                           NULL,
+                                           NULL,
+                                           NULL,
+                                           NULL,
+                                           ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY,
+                                           ACE_Time_Value::zero,
+                                           ACE_Time_Value::max_time,
+                                           NULL,
+                                           NULL));
+    if (!message_block_p)
+    {
+      if (allocator_in)
+      {
+        if (allocator_in->block ())
+          ACE_DEBUG ((LM_CRITICAL,
+                      ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
+      } // end IF
+      else
+        ACE_DEBUG ((LM_CRITICAL,
+                    ACE_TEXT ("failed to allocate ACE_Message_Block: \"%m\", aborting\n")));
+
+      // clean up
+      messageBlock_inout->release ();
+      messageBlock_inout = NULL;
+
+      return;
+    } // end IF
+  } // end IF
+  else
+  {
+    result = messageBlock_inout->crunch ();
+    if (result = -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Message_Block::crunch(): \"%m\", returning\n")));
+
+      // clean up
+      messageBlock_inout->release ();
+      messageBlock_inout = NULL;
+
+      return;
+    } // end IF
+
+    for (message_block_p = messageBlock_inout->cont ();
+         message_block_p;
+         message_block_p = message_block_p->cont ())
+    {
+      ACE_ASSERT (message_block_p->length () <= messageBlock_inout->space ());
+      result = messageBlock_inout->copy (message_block_p->rd_ptr (),
+                                         message_block_p->length ());
+      if (result == -1)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
+
+        // clean up
+        messageBlock_inout->release ();
+        messageBlock_inout = NULL;
+
+        return;
+      } // end IF
+    } // end FOR
+
+    return;
+  } // end ELSE
+
+  for (ACE_Message_Block* message_block_2 = messageBlock_inout;
+       message_block_2;
+       message_block_2 = message_block_2->cont ())
+  {
+    ACE_ASSERT (message_block_2->length () <= message_block_p->space ());
+    result = message_block_p->copy (message_block_2->rd_ptr (),
+                                    message_block_2->length ());
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Message_Block::copy(): \"%m\", returning\n")));
+
+      // clean up
+      message_block_p->release ();
+      messageBlock_inout->release ();
+      messageBlock_inout = NULL;
+
+      return;
+    } // end IF
+  } // end FOR
+
+  messageBlock_inout->release ();
+  messageBlock_inout = message_block_p;
+}
+
+void
 Stream_Tools::dump (const ACE_Message_Block* messageBlock_in,
                     const std::string& filename_in)
 {

@@ -41,31 +41,6 @@ Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::Test_I_Target_Stream"));
 
-  // remember the "owned" ones...
-  // *TODO*: clean this up
-  // *NOTE*: one problem is that all modules which have NOT enqueued onto the
-  //         stream (e.g. because initialize() failed...) need to be explicitly
-  //         close()d
-  //inherited::modules_.push_front (&netIO_);
-  //inherited::modules_.push_front (&runtimeStatistic_);
-  //inherited::modules_.push_front (&fileWriter_);
-
-  //// *TODO* fix ACE bug: modules should initialize their "next" member to NULL
-  ////inherited::MODULE_T* module_p = NULL;
-  ////for (ACE_DLList_Iterator<inherited::MODULE_T> iterator (inherited::availableModules_);
-  ////     iterator.next (module_p);
-  ////     iterator.advance ())
-  ////  module_p->next (NULL);
-  //for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
-  //     iterator != inherited::modules_.end ();
-  //     iterator++)
-  //   (*iterator)->next (NULL);
-
-  // *TODO*: these really shouldn't be necessary
-  inherited::head ()->next (inherited::tail ());
-  ACE_ASSERT (inherited::head ()->next () == inherited::tail ());
-  inherited::tail ()->next (NULL);
-  ACE_ASSERT (inherited::tail ()->next () == NULL);
 }
 
 Test_I_Target_Stream::~Test_I_Target_Stream ()
@@ -86,16 +61,14 @@ Test_I_Target_Stream::ping ()
 }
 
 bool
-Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out)
+Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
+                            bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::load"));
 
-  //  // initialize return value(s)
-  //  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
-  //       iterator != modules_out.end ();
-  //       iterator++)
-  //    delete *iterator;
-  //  modules_out.clear ();
+  // initialize return value(s)
+  modules_out.clear ();
+  delete_out = false;
 
   modules_out.push_back (&fileWriter_);
   modules_out.push_back (&runtimeStatistic_);
@@ -154,87 +127,7 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   ACE_ASSERT (configuration_in.moduleConfiguration);
   //ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
-  //if (configuration_in.module)
-  //{
-  //  // *TODO*: (at least part of) this procedure belongs in libACEStream
-  //  //         --> remove type inferences
-  //  inherited::IMODULE_T* imodule_p =
-  //      dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
-  //  if (!imodule_p)
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-  //                configuration_in.module->name ()));
-  //    return false;
-  //  } // end IF
-  //  if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-  //                configuration_in.module->name ()));
-  //    return false;
-  //  } // end IF
-  //  imodule_p->reset ();
-  //  Stream_Task_t* task_p = configuration_in.module->writer ();
-  //  ACE_ASSERT (task_p);
-  //  inherited::MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
-  //    dynamic_cast<inherited::MODULEHANDLER_IINITIALIZE_T*> (task_p);
-  //  if (!iinitialize_p)
-  //  {
-  //    ACE_DEBUG ((LM_ERROR,
-  //                ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-  //                configuration_in.module->name ()));
-  //    return false;
-  //  } // end IF
-  //  //if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  //  //{
-  //  //  ACE_DEBUG ((LM_ERROR,
-  //  //              ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
-  //  //              configuration_in.module->name ()));
-  //  //  return false;
-  //  //} // end IF
-  //} // end IF
-
   // ---------------------------------------------------------------------------
-
-  // ******************* File Writer ************************
-  //fileWriter_.initialize (*configuration_in.moduleConfiguration);
-  //Test_I_Module_FileWriter* fileWriter_impl_p =
-  //  dynamic_cast<Test_I_Module_FileWriter*> (fileWriter_.writer ());
-  //if (!fileWriter_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Test_I_Module_FileWriter> failed, aborting\n")));
-  //  return false;
-  //} // end IF
-  //if (!fileWriter_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              fileWriter_.name ()));
-  //  return false;
-  //} // end IF
-
-  // ******************* Runtime Statistics ************************
-  //runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-  //Test_I_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-  //    dynamic_cast<Test_I_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-  //if (!runtimeStatistic_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("dynamic_cast<Test_I_Module_RuntimeStatistic> failed, aborting\n")));
-  //  return false;
-  //} // end IF
-  //if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval
-  //                                          true,                                        // push statistic messages
-  //                                          configuration_in.printFinalReport,           // print final report ?
-  //                                          configuration_in.messageAllocator))          // message allocator handle
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              runtimeStatistic_.name ()));
-  //  return false;
-  //} // end IF
 
   // ******************* Net IO ***********************
   //netIO_.initialize (*configuration_in.moduleConfiguration);
@@ -246,13 +139,13 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
                 ACE_TEXT ("dynamic_cast<Stream_Module_Net_Writer_T> failed, aborting\n")));
     return false;
   } // end IF
-  if (!netIO_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                netIO_.name ()));
-    return false;
-  } // end IF
+  //if (!netIO_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
+  //              netIO_.name ()));
+  //  return false;
+  //} // end IF
   if (!netIO_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,

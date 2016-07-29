@@ -40,8 +40,8 @@
 #include "stream_misc_directshow_source_filter.h"
 
 #include "test_i_defines.h"
-#include "test_i_message.h"
-#include "test_i_session_message.h"
+#include "test_i_target_message.h"
+#include "test_i_target_session_message.h"
 
 //// initialize static variables
 //static const WCHAR g_wszName[] =
@@ -166,14 +166,12 @@ const AMOVIESETUP_FILTER sudFilterRegAM2 =
 typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
                                                Test_I_Target_Stream_SessionMessage,
                                                Test_I_Target_Stream_Message,
-
                                                Test_I_Target_DirectShow_FilterConfiguration,
                                                Test_I_Target_DirectShow_PinConfiguration,
                                                struct _AMMediaType> Stream_Misc_DirectShow_Source_Filter_t;
 typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
                                                       Test_I_Target_Stream_SessionMessage,
                                                       Test_I_Target_Stream_Message,
-
                                                       Test_I_Target_DirectShow_FilterConfiguration,
                                                       Test_I_Target_DirectShow_PinConfiguration,
                                                       struct _AMMediaType> Stream_Misc_DirectShow_Asynch_Source_Filter_t;

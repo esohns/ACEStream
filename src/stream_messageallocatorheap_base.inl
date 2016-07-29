@@ -76,21 +76,6 @@ template <typename ConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
-bool
-Stream_MessageAllocatorHeapBase_T<ConfigurationType,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType>::block ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::block"));
-
-  return block_;
-}
-
-template <typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType>
 void*
 Stream_MessageAllocatorHeapBase_T<ConfigurationType,
                                   ControlMessageType,
@@ -118,7 +103,7 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   ACE_Data_Block* data_block_p = NULL;
   try {
     ACE_ALLOCATOR_NORETURN (data_block_p,
-                            static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (sizeof (ACE_Data_Block))));
+                            static_cast<ACE_Data_Block*> (dataBlockAllocator_.calloc ()));
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block()), continuing\n")));
@@ -126,36 +111,36 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   if (!data_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("unable to allocate ACE_Data_Block(), aborting\n")));
+                ACE_TEXT ("failed to allocate ACE_Data_Block(), aborting\n")));
     return NULL;
   } // end IF
 
   // *NOTE*: must clean up data block beyond this point !
 
   // step2: allocate a message
-  ControlMessageType* message_p = NULL;
+  ACE_Message_Block* message_block_p = NULL;
   try {
-    ACE_NEW_MALLOC_NORETURN (message_p,
+    ACE_NEW_MALLOC_NORETURN (message_block_p,
                              static_cast<ControlMessageType*> (inherited::malloc (sizeof (ControlMessageType))),
                              ControlMessageType (data_block_p,
                                                  this)); // message allocator
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(SessionMessageType(), continuing\n")));
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ControlMessageType(), continuing\n")));
   }
-  if (!message_p)
+  if (!message_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("unable to allocate SessionMessageType(), aborting\n")));
+                ACE_TEXT ("failed to allocate control message, aborting\n")));
 
     // clean up
     data_block_p->release ();
 
     return NULL;
   } // end IF
-  message_p->data_block (data_block_p);
+  message_block_p->data_block (data_block_p);
 
-  return message_p;
+  return message_block_p;
 }
 template <typename ConfigurationType,
           typename ControlMessageType,
@@ -191,14 +176,13 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
                             static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (bytes_in)));
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block(%u)), aborting\n"),
+                ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block(%u)), continuing\n"),
                 bytes_in));
-    return NULL;
   }
   if (!data_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("unable to allocate ACE_Data_Block(%u), aborting\n"),
+                ACE_TEXT ("failed to allocate ACE_Data_Block(%u), aborting\n"),
                 bytes_in));
     return NULL;
   } // end IF
@@ -206,32 +190,26 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   // *NOTE*: must clean up data block beyond this point !
 
   // step2: allocate message
-  DataMessageType* message_p = NULL;
-  SessionMessageType* session_message_p = NULL;
+  ACE_Message_Block* message_block_p = NULL;
   try {
     // allocate memory and perform a placement new by invoking a ctor
     // on the allocated space
     if (bytes_in)
-      ACE_NEW_MALLOC_NORETURN (message_p,
+      ACE_NEW_MALLOC_NORETURN (message_block_p,
                                static_cast<DataMessageType*> (inherited::malloc (sizeof (DataMessageType))),
                                DataMessageType (data_block_p, // use the newly allocated data block
                                                 this));       // message allocator
     else
-      ACE_NEW_MALLOC_NORETURN (session_message_p,
+      ACE_NEW_MALLOC_NORETURN (message_block_p,
                                static_cast<SessionMessageType*> (inherited::malloc (sizeof (SessionMessageType))),
                                SessionMessageType (data_block_p, // use the newly allocated data block
                                                    this));       // message allocator
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN((Session)MessageType(%u), aborting\n"),
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN((Session)MessageType(%u), continuing\n"),
                 bytes_in));
-
-    // clean up
-    data_block_p->release ();
-
-    return NULL;
   }
-  if (!message_p && ! session_message_p)
+  if (!message_block_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("unable to allocate (Session)MessageType(%u), aborting\n"),
@@ -244,9 +222,7 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
   } // end IF
 
   // *NOTE*: the caller knows what to expect; MessageType or SessionMessageType
-  if (bytes_in)
-    return message_p;
-  return session_message_p;
+  return message_block_p;
 }
 
 template <typename ConfigurationType,
@@ -286,15 +262,14 @@ Stream_MessageAllocatorHeapBase_T<ConfigurationType,
                                              : sizeof (SessionMessageType)));
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_New_Allocator::malloc(%u), aborting\n"),
+                ACE_TEXT ("caught exception in ACE_New_Allocator::malloc(%u), continuing\n"),
                 (bytes_in ? sizeof (DataMessageType)
                           : sizeof (SessionMessageType))));
-    return NULL;
   }
   if (!message_p)
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("unable to allocate (Session)MessageType(%u), aborting\n"),
+                ACE_TEXT ("failed to allocate (Session)MessageType(%u), aborting\n"),
                 (bytes_in ? sizeof (DataMessageType)
                           : sizeof (SessionMessageType))));
     return NULL;

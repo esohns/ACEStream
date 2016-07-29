@@ -150,7 +150,6 @@ class Stream_Module_Statistic_WriterTask_T
   //                 Stream_IAllocator* = NULL); // report cache usage ? [NULL: off]
 
   // implement (part of) Stream_ITaskBase
-  virtual void handleControlMessage (ControlMessageType&); // control message handle
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle

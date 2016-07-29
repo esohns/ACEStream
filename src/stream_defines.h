@@ -23,6 +23,11 @@
 
 // message
 #define STREAM_MESSAGE_DATA_BUFFER_SIZE                  1024 // 1 kB
+// *IMPORTANT NOTE*: this is not what it seems; the value is currently used ONLY
+//                   to distinguish between message types (see e.g.
+//                   stream_cachedmessageallocator.cpp:172)
+// *TODO*: find an alternative method and implement proper message priorization
+#define STREAM_MESSAGE_CONTROL_PRIORITY                  100
 
 // queue
 // *IMPORTANT NOTE*: any of these COULD seriously affect performance
@@ -38,10 +43,11 @@
 // module
 #define STREAM_MODULE_TASK_GROUP_ID                      10
 #define STREAM_MODULE_DEFAULT_HEAD_THREADS               1
-#define STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME           "stream dispatch"
+#define STREAM_MODULE_THREAD_NAME                        "stream dispatch"
 
 // modules (generic)
 #define STREAM_MODULE_DEFAULT_CRUNCH_MESSAGES            false
+#define STREAM_MODULE_HEAD_NAME                          "StreamHead"
 
 // (f)lex / yacc(/bison)
 #define STREAM_DEFAULT_LEX_TRACE                         false

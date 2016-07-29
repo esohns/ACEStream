@@ -49,14 +49,19 @@ Stream_RIFFDecoder_Stream::~Stream_RIFFDecoder_Stream ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Stream::~Stream_RIFFDecoder_Stream"));
 
-  // *NOTE*: this implements an ordered shutdown on destruction...
+  // *NOTE*: this implements an ordered shutdown on destruction
   inherited::shutdown ();
 }
 
 bool
-Stream_RIFFDecoder_Stream::load (Stream_ModuleList_t& modules_out)
+Stream_RIFFDecoder_Stream::load (Stream_ModuleList_t& modules_out,
+                                 bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_RIFFDecoder_Stream::load"));
+
+  // initialize return value(s)
+  modules_out.clear ();
+  delete_out = false;
 
   modules_out.push_back (&runtimeStatistic_);
   modules_out.push_back (&decoder_);

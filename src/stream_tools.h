@@ -31,6 +31,7 @@
 // forward declarations
 class ACE_Message_Block;
 enum Stream_MessageType : int;
+class Stream_IAllocator;
 
 // definitions
 #define STREAM_TOOLS_STRFTIME_FORMAT "%Y_%m_%d_%H_%M_%S"
@@ -41,6 +42,9 @@ enum Stream_MessageType : int;
 class Stream_Tools
 {
  public:
+  static void crunch (ACE_Message_Block*&,        // data buffer(s)
+                      Stream_IAllocator* = NULL); // allocator (NULL: use new)
+
   static void dump (const ACE_Message_Block*, // data buffer(s)
                     const std::string&);      // filename
 

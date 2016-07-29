@@ -238,7 +238,7 @@ do_work (bool debug_in,
 
 //      return;
 //    } // end IF
-  stream.waitForCompletion (true, false);
+  stream.wait (true, false, false);
 
   module_p = const_cast<Stream_Module_t*> (stream.find (ACE_TEXT ("Decoder")));
   if (!module_p)

@@ -819,7 +819,9 @@ do_work (unsigned int bufferSize_in,
 
   //      return;
   //    } // end IF
-  stream_p->waitForCompletion ();
+  stream_p->wait (true,   // wait for any worker thread(s) ?
+                  false,  // wait for upstream (if any) ?
+                  false); // wait for downstream (if any) ?
 
   // clean up
   connection_manager_p->stop ();

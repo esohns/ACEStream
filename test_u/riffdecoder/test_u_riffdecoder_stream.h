@@ -61,7 +61,8 @@ class Stream_RIFFDecoder_Stream
   virtual ~Stream_RIFFDecoder_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&); // return value: module list
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Stream_RIFFDecoder_StreamConfiguration&, // configuration

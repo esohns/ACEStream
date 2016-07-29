@@ -22,41 +22,14 @@
 
 #include "stream_macros.h"
 
+#include "test_i_common_modules.h"
+
 template <typename ConnectorType>
 Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string& name_in)
  : inherited (name_in)
- , fileReader_ (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
-                NULL,
-                false)
- , runtimeStatistic_ (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                      NULL,
-                      false)
- , netTarget_ (ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
-               NULL,
-               false)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Test_I_Source_Stream_T"));
 
-  //// remember the 'owned' ones
-  //// *TODO*: clean this up
-  //// *NOTE*: one problem is that all modules which have NOT enqueued onto the
-  ////         stream (e.g. because initialize() failed...) need to be explicitly
-  ////         close()d
-  //inherited::modules_.push_front (&fileReader_);
-  //inherited::modules_.push_front (&runtimeStatistic_);
-  //inherited::modules_.push_front (&netTarget_);
-
-  //// *TODO* fix ACE bug: modules should initialize their "next" member to NULL
-  //for (Stream_ModuleListIterator_t iterator = inherited::modules_.begin ();
-  //     iterator != inherited::modules_.end ();
-  //     iterator++)
-  //   (*iterator)->next (NULL);
-
-  //// *TODO*: these really shouldn't be necessary
-  //inherited::head ()->next (inherited::tail ());
-  //ACE_ASSERT (inherited::head ()->next () == inherited::tail ());
-  //inherited::tail ()->next (NULL);
-  //ACE_ASSERT (inherited::tail ()->next () == NULL);
 }
 
 template <typename ConnectorType>
@@ -81,20 +54,38 @@ Test_I_Source_Stream_T<ConnectorType>::ping ()
 
 template <typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out)
+Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
+                                             bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::load"));
 
-  //  // initialize return value(s)
-  //  for (Stream_ModuleListIterator_t iterator = modules_out.begin ();
-  //       iterator != modules_out.end ();
-  //       iterator++)
-  //    delete *iterator;
-  //  modules_out.clear ();
+  // initialize return value(s)
+  modules_out.clear ();
+  delete_out = false;
 
-  modules_out.push_back (&netTarget_);
-  modules_out.push_back (&runtimeStatistic_);
-  modules_out.push_back (&fileReader_);
+  Stream_Module_t* module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  TARGET_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
+                                   NULL,
+                                   false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Source_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
+                                                                NULL,
+                                                                false),
+                  false);
+  modules_out.push_back (module_p);
+  module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Module_FileReader_Module (ACE_TEXT_ALWAYS_CHAR ("FileReader"),
+                                                   NULL,
+                                                   false),
+                  false);
+  modules_out.push_back (module_p);
+
+  delete_out = true;
 
   return true;
 }
@@ -135,96 +126,24 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_Stream_Co
   ACE_ASSERT (configuration_in.moduleConfiguration);
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
-//  if (configuration_in.module)
-//  {
-//    // *TODO*: (at least part of) this procedure belongs in libACEStream
-//    //         --> remove type inferences
-//    inherited::IMODULE_T* imodule_p =
-//        dynamic_cast<inherited::IMODULE_T*> (configuration_in.module);
-//    if (!imodule_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: dynamic_cast<Stream_IModule_T> failed, aborting\n"),
-//                  configuration_in.module->name ()));
-//      return false;
-//    } // end IF
-//    if (!imodule_p->initialize (*configuration_in.moduleConfiguration))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-//                  configuration_in.module->name ()));
-//      return false;
-//    } // end IF
-//    imodule_p->reset ();
-//    Stream_Task_t* task_p = configuration_in.module->writer ();
-//    ACE_ASSERT (task_p);
-//    inherited::MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
-//      dynamic_cast<inherited::MODULEHANDLER_IINITIALIZE_T*> (task_p);
-//    if (!iinitialize_p)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-//                  configuration_in.module->name ()));
-//      return false;
-//    } // end IF
-//    if (!iinitialize_p->initialize (*configuration_in.moduleHandlerConfiguration))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("%s: failed to initialize module handler, aborting\n"),
-//                  configuration_in.module->name ()));
-//      return false;
-//    } // end IF
-////    inherited::modules_.push_front (configuration_in.module);
-//  } // end IF
-
   // ---------------------------------------------------------------------------
 
-//  WRITER_T* netTarget_impl_p = NULL;
-//  Test_I_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p = NULL;
   Test_I_Module_FileReader* fileReader_impl_p = NULL;
   Test_I_Stream_SessionData* session_data_p = NULL;
 
-  // ******************* Net Target ************************
-//  netTarget_.initialize (*configuration_in.moduleConfiguration);
-//  netTarget_impl_p = dynamic_cast<WRITER_T*> (netTarget_.writer ());
-//  if (!netTarget_impl_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("dynamic_cast<Test_I_Stream_Module_Net_Target_T> failed, aborting\n")));
-//    goto failed;
-//  } // end IF
-//  if (!netTarget_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-//                netTarget_.name ()));
-//    goto failed;
-//  } // end IF
-
-  // ******************* Runtime Statistics ************************
-//  runtimeStatistic_.initialize (*configuration_in.moduleConfiguration);
-//  runtimeStatistic_impl_p =
-//      dynamic_cast<Test_I_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
-//  if (!runtimeStatistic_impl_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("dynamic_cast<Test_I_Module_RuntimeStatistic> failed, aborting\n")));
-//    goto failed;
-//  } // end IF
-//  if (!runtimeStatistic_impl_p->initialize (configuration_in.statisticReportingInterval, // reporting interval (seconds)
-//                                            configuration_in.printFinalReport,           // print final report ?
-//                                            configuration_in.messageAllocator))          // message allocator handle
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-//                runtimeStatistic_.name ()));
-//    goto failed;
-//  } // end IF
-
   // ******************* File Reader ************************
+  Stream_Module_t* module_p =
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("FileReader")));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("FileReader")));
+    goto failed;
+  } // end IF
   //fileReader_.initialize (*configuration_in.moduleConfiguration);
   fileReader_impl_p =
-    dynamic_cast<Test_I_Module_FileReader*> (fileReader_.writer ());
+    dynamic_cast<Test_I_Module_FileReader*> (module_p->writer ());
   if (!fileReader_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -235,21 +154,21 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_Stream_Co
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-  //              fileReader_.name ()));
+  //              module_p->name ()));
   //  goto failed;
   //} // end IF
   if (!fileReader_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize module: \"%s\", aborting\n"),
-                fileReader_.name ()));
+                module_p->name ()));
     goto failed;
   } // end IF
   //fileReader_impl_p->reset ();
   // *NOTE*: push()ing the module will open() it
   //         --> set the argument that is passed along (head module expects a
   //             handle to the session data)
-  fileReader_.arg (inherited::sessionData_);
+  module_p->arg (inherited::sessionData_);
 
   if (setupPipeline_in)
     if (!inherited::setup ())
@@ -296,8 +215,17 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   Test_I_Stream_SessionData& session_data_r =
       const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
+  Stream_Module_t* module_p =
+    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
+                ACE_TEXT ("RuntimeStatistic")));
+    return false;
+  } // end IF
   Test_I_Source_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
-    dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());
+    dynamic_cast<Test_I_Source_Module_Statistic_WriterTask_t*> (module_p->writer ());
   if (!runtimeStatistic_impl)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -319,7 +247,7 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
 
   session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
 
-  // delegate to the statistics module...
+  // delegate to the statistics module
   bool result_2 = false;
   try {
     result_2 = runtimeStatistic_impl->collect (data_out);
@@ -349,19 +277,6 @@ void
 Test_I_Source_Stream_T<ConnectorType>::report () const
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::report"));
-
-//   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
-//   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());
-//   if (!runtimeStatistic_impl)
-//   {
-//     ACE_DEBUG ((LM_ERROR,
-//                 ACE_TEXT ("dynamic_cast<Net_Module_Statistic_ReaderTask_t> failed, returning\n")));
-//
-//     return;
-//   } // end IF
-//
-//   // delegate to this module...
-//   return (runtimeStatistic_impl->report ());
 
   ACE_ASSERT (false);
   ACE_NOTSUP;

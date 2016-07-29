@@ -55,7 +55,7 @@ class Test_I_HTTPGet_Stream_T
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
-                        Test_I_HTTPGet_Stream_Configuration,
+                        Test_I_HTTPGet_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
                         Stream_ModuleConfiguration,
                         Test_I_HTTPGet_ModuleHandlerConfiguration,
@@ -70,12 +70,13 @@ class Test_I_HTTPGet_Stream_T
   virtual ~Test_I_HTTPGet_Stream_T ();
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&); // return value: module list
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_HTTPGet_Stream_Configuration&, // configuration
-                           bool = true,                                // setup pipeline ?
-                           bool = true);                               // reset session data ?
+  virtual bool initialize (const Test_I_HTTPGet_StreamConfiguration&, // configuration
+                           bool = true,                               // setup pipeline ?
+                           bool = true);                              // reset session data ?
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -90,7 +91,7 @@ class Test_I_HTTPGet_Stream_T
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
                         Test_I_Stream_State,
-                        Test_I_HTTPGet_Stream_Configuration,
+                        Test_I_HTTPGet_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
                         Stream_ModuleConfiguration,
                         Test_I_HTTPGet_ModuleHandlerConfiguration,
@@ -106,7 +107,7 @@ class Test_I_HTTPGet_Stream_T
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      ACE_INET_Addr,
-                                     Test_I_Stream_InetConnectionManager_t,
+                                     Test_I_HTTPGet_InetConnectionManager_t,
                                      ConnectorType> SOURCE_WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                              // task synch type
                                          Common_TimePolicy_t,                       // time policy
@@ -123,16 +124,6 @@ class Test_I_HTTPGet_Stream_T
 
   // *TODO*: re-consider this API
   void ping ();
-
-  // modules
-  Test_I_Stream_HTTP_Marshal_Module      HTTPMarshal_;
-  Test_I_Stream_RuntimeStatistic_Module  runtimeStatistic_;
-  Test_I_Stream_Decompressor_Module      decompressor_;
-  Test_I_Stream_HTMLParser_Module        HTMLParser_;
-  Test_I_Stream_SpreadsheetWriter_Module spreadsheetWriter_;
-  ////////////////////////////////////////
-  SOURCE_MODULE_T                        netSource_;
-  Test_I_Stream_HTTPGet_Module           HTTPGet_;
 };
 
 // include template definition
@@ -140,8 +131,8 @@ class Test_I_HTTPGet_Stream_T
 
 //////////////////////////////////////////
 
-typedef Test_I_HTTPGet_Stream_T<Test_I_Stream_TCPConnector_t> Test_I_HTTPGet_Stream_t;
-typedef Test_I_HTTPGet_Stream_T<Test_I_Stream_SSLTCPConnector_t> Test_I_HTTPGet_SSL_Stream_t;
-typedef Test_I_HTTPGet_Stream_T<Test_I_Stream_TCPAsynchConnector_t> Test_I_HTTPGet_AsynchStream_t;
+typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_TCPConnector_t> Test_I_HTTPGet_Stream_t;
+typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_SSLTCPConnector_t> Test_I_HTTPGet_SSL_Stream_t;
+typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_TCPAsynchConnector_t> Test_I_HTTPGet_AsynchStream_t;
 
 #endif

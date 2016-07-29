@@ -59,12 +59,12 @@
 #include "http_defines.h"
 
 #include "test_i_common.h"
-#include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
 
 #include "test_i_module_spreadsheetwriter.h"
 
 #include "test_i_http_get_common.h"
+#include "test_i_http_get_connection_manager_common.h"
 #include "test_i_http_get_signalhandler.h"
 #include "test_i_http_get_stream.h"
 
@@ -125,13 +125,28 @@ do_printUsage (const std::string& programName_in)
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_file +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [FILE]   : stock index portfolio .ini [")
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_INPUT_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [FILE]   : LibreOffice calc template [")
             << configuration_file
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-h [HOST]   : LibreOffice application hostname [")
             << ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST)
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  configuration_file = path;
+#if defined (DEBUG_DEBUGGER)
+  configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
+#endif
+  configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_file +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  configuration_file +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-i [FILE]   : stock index portfolio .ini [")
+            << configuration_file
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-l          : log to a file [")
@@ -176,8 +191,9 @@ do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
                      std::string& bootstrapFileName_out,
                      bool& debug_out,
-                     std::string& configurationFileName_out,
+                     std::string& templateFileName_out,
                      std::string& hostName_out,
+                     std::string& configurationFileName_out,
                      bool& logToFile_out,
                      std::string& outputFileName_out,
                      unsigned short& port_out,
@@ -216,6 +232,18 @@ do_processArguments (int argc_in,
   bootstrapFileName_out +=
       ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
   debug_out = NET_PROTOCOL_DEFAULT_YACC_TRACE;
+  templateFileName_out = path;
+#if defined (DEBUG_DEBUGGER)
+  templateFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  templateFileName_out += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
+#endif
+  templateFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  templateFileName_out +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  templateFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  templateFileName_out +=
+      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_INPUT_FILE);
+  hostName_out = ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST);
   configurationFileName_out = path;
 #if defined (DEBUG_DEBUGGER)
   configurationFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -226,8 +254,7 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
   configurationFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configurationFileName_out +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE);
-  hostName_out = ACE_TEXT_ALWAYS_CHAR (ACE_LOCALHOST);
+    ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE);
   logToFile_out = false;
   outputFileName_out = path;
   outputFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -254,7 +281,7 @@ do_processArguments (int argc_in,
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("c:df:h:lo:p:rtu:vx:"),
+                              ACE_TEXT ("c:df:h:i:lo:p:rtu:vx:"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -279,13 +306,19 @@ do_processArguments (int argc_in,
       }
       case 'f':
       {
-        configurationFileName_out =
+        templateFileName_out =
             ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
       case 'h':
       {
         hostName_out = ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
+        break;
+      }
+      case 'i':
+      {
+        configurationFileName_out =
+          ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         break;
       }
       case 'l':
@@ -588,8 +621,9 @@ do_parseConfigurationFile (const std::string& fileName_in,
 void
 do_work (const std::string& bootstrapFileName_in,
          bool debug_in,
-         const std::string& configurationFileName_in,
+         const std::string& templateFileName_in,
          const std::string& hostName_in,
+         const std::string& configurationFileName_in,
          bool useThreadPool_in,
          const std::string& fileName_in,
          unsigned short port_in,
@@ -612,8 +646,8 @@ do_work (const std::string& bootstrapFileName_in,
   Test_I_StreamBase_t* stream_p = NULL;
   Test_I_StockItem stock_item;
   Test_I_HTTPGet_Configuration configuration;
-  Test_I_Stream_InetConnectionManager_t* connection_manager_p =
-    TEST_I_STREAM_CONNECTIONMANAGER_SINGLETON::instance ();
+  Test_I_HTTPGet_InetConnectionManager_t* connection_manager_p =
+    TEST_I_HTTPGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
   Stream_StatisticHandler_Reactor_t statistic_handler (ACTION_REPORT,
                                                        connection_manager_p,
@@ -697,6 +731,7 @@ do_work (const std::string& bootstrapFileName_in,
   configuration.moduleHandlerConfiguration.configuration = &configuration;
   configuration.moduleHandlerConfiguration.connectionManager =
     connection_manager_p;
+  configuration.moduleHandlerConfiguration.fileName = templateFileName_in;
   result =
     configuration.moduleHandlerConfiguration.libreOfficeHost.set (port_in,
                                                                   hostName_in.c_str (),
@@ -867,7 +902,7 @@ do_work (const std::string& bootstrapFileName_in,
 
   //      return;
   //    } // end IF
-  stream_p->waitForCompletion ();
+  stream_p->wait (true, false, false);
 
   // step3: clean up
   connection_manager_p->stop ();
@@ -982,7 +1017,8 @@ ACE_TMAIN (int argc_in,
   bool finalize_signals = false;
   ACE_Profile_Timer process_profile;
 
-  std::string path, bootstrap_file, configuration_file, host_name, output_file;
+  std::string path, bootstrap_file, template_file;
+  std::string configuration_file, host_name, output_file;
   bool debug, log_to_file, use_thread_pool, use_reactor, trace_information;
   unsigned short port;
   std::string URL;
@@ -1047,6 +1083,18 @@ ACE_TMAIN (int argc_in,
   bootstrap_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_LIBREOFFICE_BOOTSTRAP_FILE);
   debug = NET_PROTOCOL_DEFAULT_YACC_TRACE;
+  template_file = path;
+#if defined (DEBUG_DEBUGGER)
+  template_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  template_file += ACE_TEXT_ALWAYS_CHAR ("http_get_2");
+#endif
+  template_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  template_file +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_DIRECTORY);
+  template_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  template_file +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_INPUT_FILE);
+  host_name.clear ();
   configuration_file = path;
 #if defined (DEBUG_DEBUGGER)
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1058,7 +1106,6 @@ ACE_TMAIN (int argc_in,
   configuration_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   configuration_file +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_PORTFOLIO_CONFIGURATION_FILE);
-  host_name.clear ();
   log_to_file = false;
   output_file = path;
   output_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -1088,8 +1135,9 @@ ACE_TMAIN (int argc_in,
                             argv_in,
                             bootstrap_file,
                             debug,
-                            configuration_file,
+                            template_file,
                             host_name,
+                            configuration_file,
                             log_to_file,
                             output_file,
                             port,
@@ -1203,8 +1251,9 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (bootstrap_file,
            debug,
-           configuration_file,
+           template_file,
            host_name,
+           configuration_file,
            use_thread_pool,
            output_file,
            port,

@@ -49,7 +49,7 @@ class Stream_DataBlockAllocatorHeap_T
   virtual ~Stream_DataBlockAllocatorHeap_T ();
 
   // implement Stream_IAllocator
-  virtual bool block (); // return value: block when full ?
+  inline virtual bool block () { return true; };
   virtual void* calloc ();
   // *NOTE*: returns a pointer to ACE_Data_Block
   virtual void* malloc (size_t); // bytes
@@ -59,8 +59,8 @@ class Stream_DataBlockAllocatorHeap_T
   virtual size_t cache_size () const;  // return value: #inflight ACE_Data_Blocks
 
   // implement (part of) ACE_Allocator
-  virtual void* calloc (size_t,       // bytes
-                        char = '\0'); // initial value (not used)
+  inline virtual void* calloc (size_t bytes_in,
+                               char = '\0') { return malloc (bytes_in); };
 
   // implement Common_IDumpState
   virtual void dump_state () const;

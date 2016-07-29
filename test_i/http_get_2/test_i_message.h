@@ -66,6 +66,9 @@ class Test_I_Stream_Message
 
   static std::string CommandType2String (HTTP_Method_t);
 
+  // implement Common_IDumpState
+  virtual void dump_state () const;
+
  protected:
   // copy ctor to be used by duplicate() and derived classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")

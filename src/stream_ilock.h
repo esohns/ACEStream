@@ -18,44 +18,19 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_IALLOCATOR_H
-#define STREAM_IALLOCATOR_H
+#ifndef STREAM_ILOCK_H
+#define STREAM_ILOCK_H
 
-#include <cstddef>
+#include "common_ilock.h"
 
-//#include "ace/Malloc_Base.h"
-
-class Stream_IAllocatorStatistic
+template <ACE_SYNCH_DECL>
+class Stream_ILock_T
+ : public Common_ILock_T<ACE_SYNCH_USE>
 {
  public:
-  virtual ~Stream_IAllocatorStatistic () {}
+  inline virtual ~Stream_ILock_T () {};
 
-  // *NOTE*: informational: total size (memory/chunk/...) of the cache (i.e. when empty)
-  virtual size_t cache_depth () const = 0;
-  // *NOTE*: informational: current size (memory/chunk/...) of the cache
-  virtual size_t cache_size () const = 0;
-};
-
-// *NOTE*: this cannot inherit from ACE_Allocator directly, as it is not
-//         consistenly virtually-inherited in all implementations
-//         --> use dynamic "sidecasts"
-class Stream_IAllocator
- //: virtual public ACE_Allocator
- : public Stream_IAllocatorStatistic
-{
- public:
-  virtual ~Stream_IAllocator () {}
-
-  virtual bool block () = 0; // return value: block when full ?
-
-  // *IMPORTANT NOTE*: calloc/malloc return ACE_Message_Block* (or NULL) that
-  //                   may (or may not) be dynamic_cast-able to derived types !
-
-  // allocate control message
-  virtual void* calloc () = 0; // bytes
-  // allocate data/session message
-  virtual void* malloc (size_t) = 0; // bytes (? data- : session message)
-  virtual void free (void*) = 0; // handle
+  virtual bool hasLock () = 0;
 };
 
 #endif

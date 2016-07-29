@@ -800,7 +800,7 @@ loop:
 
     //      return;
     //    } // end IF
-    stream_p->waitForCompletion ();
+    stream_p->wait (true, false, false);
     if (CBData_in.loop)
     {
       ++counter;

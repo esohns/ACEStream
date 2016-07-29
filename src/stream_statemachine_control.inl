@@ -365,14 +365,14 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
 
           // *WARNING*: falls through
         }
-        case STREAM_STATE_FINISHED: // *NOTE*: allow FINISHED --> FINISHED
+        case STREAM_STATE_STOPPED:  // *NOTE*: allow FINISHED --> (STOPPED)
+        case STREAM_STATE_FINISHED: // *NOTE*: allow FINISHED --> (FINISHED)
         {
           result = true;
           goto unlock;
         }
         // error case
         case STREAM_STATE_PAUSED:
-        case STREAM_STATE_STOPPED:
         default:
           break;
       } // end SWITCH

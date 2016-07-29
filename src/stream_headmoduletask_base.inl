@@ -59,11 +59,17 @@ Stream_HeadModuleTaskBase_T<LockType,
                                                                                   bool generateSessionMessages_in)
  : inherited (lock_in)
  , inherited2 ()
+ // *WARNING*: when disabled, this 'locks down' the pipeline head module. It
+ //            will then hold the 'stream lock' during message processing to
+ //            support (down)stream synchronization. This really only makes
+ //            sense in fully synchronous layouts, or 'concurrent' scenarios
+ //            with non-reentrant modules
+ //            --> disable only if you know what you are doing
+ , concurrent_ (true)
  , configuration_ (NULL)
  , isInitialized_ (false)
- , allowConcurrency_ (false)
  , runSvcOnStart_ (false)
- , sessionData_ (NULL)
+ , sessionEndProcessed_ (false)
  , streamState_ (NULL)
  , statisticCollectionHandler_ (ACTION_COLLECT,
                                 this,
@@ -134,9 +140,6 @@ Stream_HeadModuleTaskBase_T<LockType,
                   timerID_));
   } // end IF
 
-  if (sessionData_)
-    sessionData_->decrease ();
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_hthread_t handle = threadID_.handle ();
   if (handle != ACE_INVALID_HANDLE)
@@ -194,17 +197,13 @@ Stream_HeadModuleTaskBase_T<LockType,
   } // end IF
 
   // otherwise, process 'in-line'
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->ilock);
+
   bool release_lock = false;
-  if (!allowConcurrency_)
-  {
-    result = inherited2::queue_.lock ().acquire ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n"),
-                  inherited2::name ()));
-    else
-      release_lock = true;
-  } // end IF
+  if (!concurrent_) release_lock = configuration_->ilock->lock (true);
   else
   {
     // *NOTE*: check the status first to intercept (primarily data) messages
@@ -217,14 +216,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   inherited2::handleMessage (messageBlock_in,
                              stop_processing);
 
-  if (release_lock)
-  {
-    result = inherited2::queue_.lock ().release ();
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::release(): \"%m\", continuing\n"),
-                  inherited2::name ()));
-  } // end IF
+  if (release_lock) configuration_->ilock->unlock (false);
 
   //return (stop_processing ? -1 : 0);
   return 0;
@@ -272,9 +264,10 @@ Stream_HeadModuleTaskBase_T<LockType,
   //} // end IF
 
   // step0: initialize this
-  sessionData_ = reinterpret_cast<SessionDataContainerType*> (arg_in);
-  ACE_ASSERT (sessionData_);
-  sessionData_->increase ();
+  ACE_ASSERT (!inherited2::sessionData_);
+  inherited2::sessionData_ = reinterpret_cast<SessionDataContainerType*> (arg_in);
+  if (inherited2::sessionData_)
+    inherited2::sessionData_->increase ();
 
   // step1: (re-)activate() the message queue
   // *NOTE*: the first time around, the queue will have been open()ed
@@ -483,6 +476,14 @@ Stream_HeadModuleTaskBase_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::svc"));
 
+  if (inherited2::mod_)
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("\"%s\": worker thread (ID: %t) starting...\n"),
+                inherited2::mod_->name ()));
+  else
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("worker thread (ID: %t) starting...\n")));
+
   // sanity check(s)
   ACE_ASSERT (sessionData_);
 
@@ -491,6 +492,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   ACE_Message_Block*     message_block_p = NULL;
   bool                   stop_processing = false;
   const SessionDataType& session_data_r  = sessionData_->get ();
+  bool                   release_lock    = false;
 
   // step1: process data
 //   ACE_DEBUG ((LM_DEBUG,
@@ -536,8 +538,19 @@ done:
       }
       default:
       {
+        // sanity check(s)
+        ACE_ASSERT (configuration_);
+        ACE_ASSERT (configuration_->ilock);
+
+        // grab lock if processing is 'non-concurrent'
+        if (!concurrent_)
+          release_lock = configuration_->ilock->lock (true);
+
         inherited2::handleMessage (message_block_p,
                                    stop_processing);
+
+        if (release_lock) configuration_->ilock->unlock (false);
+
         break;
       }
     } // end SWITCH
@@ -546,34 +559,38 @@ done:
     {
       // *IMPORTANT NOTE*: message_block_p has already been released() !
 
-      finished = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::finished ();
+      if (!finished)
+      {
+        finished = true;
+        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+        //         --> continue
+        inherited::finished ();
+      } // end IF
 
       continue;
     } // end IF
 
     // session aborted ?
-    // sanity check(s)
-    // *TODO*: remove type inferences
-    ACE_ASSERT (session_data_r.lock);
+    if (!finished)
     {
-      ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, -1);
-
-      if (session_data_r.aborted)
+      // sanity check(s)
+      // *TODO*: remove type inferences
+      ACE_ASSERT (session_data_r.lock);
       {
-        ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("session aborted...\n")));
+        ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, -1);
 
-        finished = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
-        inherited::finished ();
+        if (session_data_r.aborted)
+        {
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("session aborted\n")));
 
-        continue;
-      } // end IF
-    } // end lock scope
+          finished = true;
+          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+          //         --> continue
+          inherited::finished ();
+        } // end IF
+      } // end lock scope
+    } // end IF
 
     // clean up
     message_block_p = NULL;
@@ -708,24 +725,32 @@ Stream_HeadModuleTaskBase_T<LockType,
 
       break;
     }
-    // *NOTE*: the stream has been link()ed, the message contains the (merged)
-    //         upstream session data --> retain a reference
-    case STREAM_SESSION_MESSAGE_LINK:
-    {
-      // *NOTE*: relax the concurrency policy in this case
-      // *TODO*: this isn't very reliable
-      allowConcurrency_ = true;
+    //// *NOTE*: the stream has been link()ed, the message contains the (merged)
+    ////         upstream session data --> retain a reference
+    //case STREAM_SESSION_MESSAGE_LINK:
+    //{
+    //  // *NOTE*: relax the concurrency policy in this case
+    //  // *TODO*: this isn't very reliable and needs to be reset on unlink
+    //  concurrent_ = true;
 
-      SessionDataContainerType& session_data_container_r =
-        const_cast<SessionDataContainerType&> (message_inout->get ());
-      session_data_container_r.increase ();
-      sessionData_->decrease ();
-      sessionData_ = &session_data_container_r;
+    //  //SessionDataContainerType& session_data_container_r =
+    //  //  const_cast<SessionDataContainerType&> (message_inout->get ());
+    //  //session_data_container_r.increase ();
+    //  //sessionData_->decrease ();
+    //  //sessionData_ = &session_data_container_r;
 
-      break;
-    }
+    //  break;
+    //}
     case STREAM_SESSION_MESSAGE_END:
     {
+      // *NOTE*: only process the first 'session end' message (see above: 2566)
+      {
+        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
+
+        if (sessionEndProcessed_) break; // done
+        sessionEndProcessed_ = true;
+      } // end lock scope
+
       if (timerID_ != -1)
       {
         const void* act_p = NULL;
@@ -740,10 +765,12 @@ Stream_HeadModuleTaskBase_T<LockType,
         timerID_ = -1;
       } // end IF
 
-      sessionData_->decrease ();
-      sessionData_ = NULL;
-
-      inherited2::shutdown ();
+      // *NOTE*: in passive 'concurrent' scenarios, there is no 'worker' thread
+      //         running svc()
+      //         --> do not signal completion in this case
+      // *TODO*: remove type inference
+      if (inherited2::thr_count_ || runSvcOnStart_)
+        inherited2::shutdown ();
 
       break;
     }
@@ -841,10 +868,11 @@ Stream_HeadModuleTaskBase_T<LockType,
     isInitialized_ = false;
   } // end IF
 
+  concurrent_ = configuration_in.concurrent;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+
   // *TODO*: remove type inferences
   active_ = configuration_in.active;
-  allowConcurrency_ = configuration_in.concurrent;
   runSvcOnStart_ = !active_;
 
   // *TODO*: remove type inference
@@ -969,7 +997,6 @@ Stream_HeadModuleTaskBase_T<LockType,
   // sanity check(s)
   ACE_ASSERT (configuration_);
   ACE_ASSERT (configuration_->streamConfiguration);
-  ACE_ASSERT (sessionData_);
 
   enum Stream_SessionMessageType message_type = STREAM_SESSION_MESSAGE_STEP;
   switch (control_in)
@@ -988,8 +1015,11 @@ Stream_HeadModuleTaskBase_T<LockType,
       message_type = STREAM_SESSION_MESSAGE_LINK;
     case STREAM_CONTROL_STEP:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited2::sessionData_);
+
       if (!putSessionMessage (message_type,
-                              *sessionData_,
+                              *inherited2::sessionData_,
                               configuration_->streamConfiguration->messageAllocator))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(%d), returning\n"),
@@ -1051,6 +1081,7 @@ Stream_HeadModuleTaskBase_T<LockType,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
+      ACE_ASSERT (session_data_r.lock);
       {
         // *TODO*: remove type inferences
         ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
@@ -1067,20 +1098,27 @@ Stream_HeadModuleTaskBase_T<LockType,
       //         message generated by stop()
       //         --> grab the stream lock, run stop(), and flush any queued
       //             messages
-      // *NOTE*: that the implied policy cannot be really enforced like this, as
-      //         other threads may be processing messages at this point
-      //         --> more synchronization is needed (i.e. wait for all stream
+      // *TODO*: Note that the implied policy cannot be really enforced like
+      //         this, as other threads may be processing messages at this point
+      //         --> more synchronization is needed (e.g. wait for all stream
       //             processing queues and active worker threads to idle first)
-      lock ();
+      //lock (true);
+      if (!putSessionMessage (static_cast<Stream_SessionMessageType> (notification_in),
+                              *sessionData_,
+                              configuration_->streamConfiguration->messageAllocator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(%d), returning\n"),
+                    inherited2::name (),
+                    notification_in));
 
-      stop (false, // wait for completion ?
-            true); // locked access ?
+      //stop (false, // wait for completion ?
+      //      true); // locked access ?
 
-      flush (true,   // flush inbound data ?      [N/A]
-             false,  // flush session messages ?  [N/A]
-             false); // flush upstream (if any) ? [N/A]
+      //flush (true,   // flush inbound data ?      [N/A]
+      //       false,  // flush session messages ?  [N/A]
+      //       false); // flush upstream (if any) ? [N/A]
 
-      unlock ();
+      //unlock ();
 
       break;
     }
@@ -1167,7 +1205,7 @@ Stream_HeadModuleTaskBase_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::stop (bool waitForCompletion_in,
+                            StatisticContainerType>::stop (bool wait_in,
                                                            bool lockedAccess_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::stop"));
@@ -1177,8 +1215,10 @@ Stream_HeadModuleTaskBase_T<LockType,
   // (try to) change state
   inherited::change (STREAM_STATE_STOPPED);
 
-  if (waitForCompletion_in)
-    waitForCompletion ();
+  if (wait_in)
+    wait (true,
+          false,
+          false);
 }
 
 template <typename LockType,
@@ -1242,11 +1282,13 @@ Stream_HeadModuleTaskBase_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::load (Stream_ModuleList_t& modules_out)
+                            StatisticContainerType>::load (Stream_ModuleList_t& modules_out,
+                                                           bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::load"));
 
   ACE_UNUSED_ARG (modules_out);
+  ACE_UNUSED_ARG (delete_out);
 
   ACE_ASSERT (false);
   ACE_NOTSUP_RETURN (false);
@@ -1643,7 +1685,7 @@ template <typename LockType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
-void
+bool
 Stream_HeadModuleTaskBase_T<LockType,
                             ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1656,15 +1698,22 @@ Stream_HeadModuleTaskBase_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::lock ()
+                            StatisticContainerType>::lock (bool block_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::lock"));
 
-  int result = inherited2::queue_.lock ().acquire ();
+  int result = -1;
+  ACE_SYNCH_MUTEX_T& lock_r = inherited2::queue_.lock ();
+
+  result = (block_in ? lock_r.acquire () : lock_r.tryacquire ());
   if (result == -1)
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_SYNCH_MUTX::acquire(): \"%m\", continuing\n"),
-                inherited2::name ()));
+  {
+    int error = ACE_OS::last_error ();
+    if (error == EBUSY)
+      return false; 
+  } // end IF
+
+  return true;
 }
 template <typename LockType,
           ACE_SYNCH_DECL,
@@ -1679,7 +1728,7 @@ template <typename LockType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
-void
+int
 Stream_HeadModuleTaskBase_T<LockType,
                             ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1692,15 +1741,41 @@ Stream_HeadModuleTaskBase_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::unlock ()
+                            StatisticContainerType>::unlock (bool unlock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::unlock"));
 
-  int result = inherited2::queue_.lock ().release ();
+  int result = -1;
+  ACE_SYNCH_MUTEX_T& lock_r = inherited2::queue_.lock ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_thread_mutex_t& mutex_r = lock_r.lock ();
+  if (!ACE_OS::thr_equal (reinterpret_cast<ACE_thread_t> (mutex_r.OwningThread),
+                          ACE_OS::thr_self ()))
+    return -1;
+#else
+#error "todo"
+#endif
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  do
+  {
+    result = lock_r.release ();
+    if (!unlock_in) break;
+  } while (mutex_r.RecursionCount > 0);
+#else
+#error "todo"
+#endif
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_SYNCH_MUTX::release(): \"%m\", continuing\n"),
+                ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
                 inherited2::name ()));
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  return mutex_r.RecursionCount;
+#else
+#error "todo"
+#endif
 }
 template <typename LockType,
           ACE_SYNCH_DECL,
@@ -1715,7 +1790,7 @@ template <typename LockType,
           typename SessionDataType,          // session data
           typename SessionDataContainerType, // session message payload (reference counted)
           typename StatisticContainerType>
-ACE_SYNCH_MUTEX_T&
+ACE_SYNCH_RECURSIVE_MUTEX&
 Stream_HeadModuleTaskBase_T<LockType,
                             ACE_SYNCH_USE,
                             TimePolicyType,
@@ -1732,7 +1807,43 @@ Stream_HeadModuleTaskBase_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::getLock"));
 
-  return inherited2::queue_.lock ();
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (ACE_SYNCH_RECURSIVE_MUTEX ());
+
+  ACE_NOTREACHED (return ACE_SYNCH_RECURSIVE_MUTEX ();)
+}
+template <typename LockType,
+          ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename SessionDataType,          // session data
+          typename SessionDataContainerType, // session message payload (reference counted)
+          typename StatisticContainerType>
+bool
+Stream_HeadModuleTaskBase_T<LockType,
+                            ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            ConfigurationType,
+                            StreamControlType,
+                            StreamNotificationType,
+                            StreamStateType,
+                            SessionDataType,
+                            SessionDataContainerType,
+                            StatisticContainerType>::hasLock ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::hasLock"));
+
+  // *TODO*: this isn't nearly accurate enough...
+  return concurrent_;
 }
 
 template <typename LockType,
@@ -1761,18 +1872,20 @@ Stream_HeadModuleTaskBase_T<LockType,
                             StreamStateType,
                             SessionDataType,
                             SessionDataContainerType,
-                            StatisticContainerType>::waitForCompletion (bool waitForThreads_in,
-                                                                        bool waitForUpStream_in)
+                            StatisticContainerType>::wait (bool waitForThreads_in,
+                                                           bool waitForUpStream_in,
+                                                           bool waitForDownStream_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::waitForCompletion"));
+  STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::wait"));
 
   ACE_UNUSED_ARG (waitForUpStream_in);
+  ACE_UNUSED_ARG (waitForDownStream_in);
 
   // *IMPORTANT NOTE*: when a connection is close()d, a race condition may
   //                   arise here between any of the following actors:
   // - the application (main) thread waiting in Stream_Base_T::waitForCompletion
   // - a (network) event dispatching thread (connection hanndler calling
-  //   handle_close() --> waitForCompletion() of the (network) data processing
+  //   handle_close() --> wait() of the (network) data processing
   //   (sub-)stream)
   // - a stream head module thread pushing the SESSION_END message (i.e.
   //   processing in the 'Net Source/Target' module)
@@ -1780,14 +1893,13 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   int result = -1;
 
-  // *NOTE*: in certain 'non-concurrent' scenarios (see above), the lock has to
-  //         be released to prevent deadlocks
-  bool acquire_lock = false;
+  // *NOTE*: be sure to release the stream lock to support 'concurrent'
+  //         scenarios (e.g. scenarios where upstream generates the data)
+  int nesting_level = -1;
   ACE_ASSERT (configuration_->ilock);
   //ACE_Reverse_Lock<ACE_SYNCH_MUTEX> reverse_lock (configuration_->ilock->getLock ());
   //ACE_GUARD (ACE_Reverse_Lock<ACE_SYNCH_MUTEX>, aGuard, reverse_lock);
-  configuration_->ilock->unlock ();
-  acquire_lock = true;
+  nesting_level = configuration_->ilock->unlock (true);
 
   // step1: wait for final state
   inherited::wait (STREAM_STATE_FINISHED,
@@ -1799,9 +1911,7 @@ Stream_HeadModuleTaskBase_T<LockType,
     // *NOTE*: pthread_join() returns EDEADLK when the calling thread IS the
     //         thread to join
     //         --> prevent this by comparing thread ids
-    ACE_thread_t thread_id = ACE_Thread::self ();
-    if (ACE_OS::thr_equal (thread_id,
-                           threadID_.id ()))
+    if (ACE_OS::thr_equal (ACE_OS::thr_self (), threadID_.id ()))
       goto continue_;
 
     // *IMPORTANT NOTE*: (on Win32) only one thread may inherited2::wait(),
@@ -1829,7 +1939,7 @@ Stream_HeadModuleTaskBase_T<LockType,
     {
       // *NOTE*: the stream head module is using the calling thread
 
-      thread_id = threadID_.id ();
+      ACE_thread_t thread_id = threadID_.id ();
       ACE_THR_FUNC_RETURN status;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_hthread_t handle = threadID_.handle ();
@@ -1860,8 +1970,8 @@ Stream_HeadModuleTaskBase_T<LockType,
   } // end IF
 
 continue_:
-  if (acquire_lock)
-    configuration_->ilock->lock ();
+  if (nesting_level >= 0)
+    COMMON_ILOCK_ACQUIRE_N (configuration_->ilock, nesting_level + 1);
 
   return;
 }
@@ -2120,6 +2230,7 @@ Stream_HeadModuleTaskBase_T<LockType,
       ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
 
       sessionEndSent_ = false;
+      sessionEndProcessed_ = false;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_hthread_t handle = threadID_.handle ();
@@ -2202,7 +2313,7 @@ Stream_HeadModuleTaskBase_T<LockType,
         thread_ids[0] = 0;
         char thread_name[BUFSIZ];
         ACE_OS::memset (thread_name, 0, sizeof (thread_name));
-        ACE_OS::strcpy (thread_name, STREAM_MODULE_DEFAULT_HEAD_THREAD_NAME);
+        ACE_OS::strcpy (thread_name, STREAM_MODULE_THREAD_NAME);
         const char* thread_names[1];
         thread_names[0] = thread_name;
         result =
@@ -2239,7 +2350,7 @@ Stream_HeadModuleTaskBase_T<LockType,
         //                     thread_ids[0]));
 
         // *NOTE*: this may not work if the thread count is > 1 (see
-        //         waitForCompletion() above)
+        //         wait() above)
         {
           ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (inherited2::lock_);
 
@@ -2354,49 +2465,59 @@ Stream_HeadModuleTaskBase_T<LockType,
     }
     case STREAM_STATE_STOPPED:
     {
-      // resume worker ?
-      size_t number_of_threads = inherited2::thr_count_;
+      bool done = false;
 
       {
         ACE_Guard<ACE_SYNCH_MUTEX_T> aGuard (*inherited::stateLock_);
 
-        if (inherited::state_ == STREAM_STATE_PAUSED)
+        switch (inherited::state_)
         {
-          // *TODO*: remove type inference
-          if (number_of_threads)
+          case STREAM_STATE_PAUSED:
           {
-            result = inherited2::resume ();
-            if (result == -1)
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("failed to ACE_Task::resume(): \"%m\", continuing\n")));
-          } // end IF
-          else
-          {
-            // task object not active --> resume the borrowed thread
-            ACE_hthread_t handle = threadID_.handle ();
+            // resume worker ?
+            if (inherited2::thr_count_)
+            {
+              result = inherited2::resume ();
+              if (result == -1)
+                ACE_DEBUG ((LM_ERROR,
+                            ACE_TEXT ("failed to ACE_Task::resume(): \"%m\", continuing\n")));
+            } // end IF
+            else
+            {
+              // task is not 'active' --> resume the calling thread
+              ACE_hthread_t handle = threadID_.handle ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-            ACE_ASSERT (handle != ACE_INVALID_HANDLE);
+              ACE_ASSERT (handle != ACE_INVALID_HANDLE);
 #else
-            ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
+              ACE_ASSERT (static_cast<int> (handle) != ACE_INVALID_HANDLE);
 #endif
-            result = ACE_Thread::resume (handle);
-            if (result == -1)
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("failed to ACE_Thread::resume(): \"%m\", continuing\n")));
-          } // end ELSE
-        } // end IF
+              result = ACE_Thread::resume (handle);
+              if (result == -1)
+                ACE_DEBUG ((LM_ERROR,
+                            ACE_TEXT ("failed to ACE_Thread::resume(): \"%m\", continuing\n")));
+            } // end ELSE
+            break;
+          }
+          case STREAM_STATE_FINISHED:
+          {
+            done = true;
+            break;
+          }
+          default:
+            break;
+        } // end SWITCH
+        if (done) break;
 
         // *NOTE*: in 'passive' mode the finished() method waits for the stream
         //         --> set the (intermediate) state early
         inherited::state_ = STREAM_STATE_STOPPED;
       } // end lock scope
 
-      ACE_thread_t thread_id = ACE_Thread::self ();
-
       // *TODO*: remove type inference
-      if (number_of_threads ||
-          (runSvcOnStart_  && !ACE_OS::thr_equal (thread_id,
-                                                  threadID_.id ())))
+      if (inherited2::thr_count_ ||
+          (runSvcOnStart_  &&
+           !ACE_OS::thr_equal (ACE_OS::thr_self (),
+                               threadID_.id ())))
       {
         // *TODO*: use ACE_Stream::control() instead ?
         inherited2::shutdown ();
@@ -2425,7 +2546,7 @@ Stream_HeadModuleTaskBase_T<LockType,
         ACE_Guard<ACE_SYNCH_MUTEX_T> aGuard (*inherited::stateLock_);
 
         // *NOTE*: modules processing the final session message (see below) may
-        //         (indirectly) invoke waitForCompletion() on the stream,
+        //         (indirectly) invoke wait() on the stream,
         //         which would deadlock if the implementation is 'passive'
         //         --> set the state early
         // *TODO*: this may not be the best way to handle that case (i.e. it
@@ -2435,17 +2556,20 @@ Stream_HeadModuleTaskBase_T<LockType,
 
       // send final session message downstream ?
       // *IMPORTANT NOTE*: the transition STOPPED --> FINISHED is automatic (see
-      //                   above [*NOTE*: shutdown() MUST trigger this
-      //                   transition]). As the stream may be stop()ed several
-      //                   times (e.g. (safety/sanity) precaution during
-      //                   shutdown), this transition COULD occur several times
-      //                   --> ensure that (at most) one (!) session end message
+      //                   above [*NOTE*: in 'active'/svc() based scenarios,
+      //                   shutdown() triggers this transition]).
+      //                   However, as the stream may be stop()/finished()-ed
+      //                   concurrently (e.g. (safety/sanity) precaution during
+      //                   shutdown, connection reset, ...), this transition
+      //                   could trigger several times
+      //                   --> ensure that only a single 'session end' message
       //                       is generated per session
       bool send_end_message = false;
       {
         ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
 
-        if (!sessionEndSent_)
+        if (!sessionEndSent_ &&
+            !sessionEndProcessed_) // already processed upstream 'session end' ?
         {
           sessionEndSent_ = true;
           send_end_message = true;
@@ -2454,9 +2578,9 @@ Stream_HeadModuleTaskBase_T<LockType,
       if (generateSessionMessages_ &&
           send_end_message)
       {
-        ACE_ASSERT (sessionData_);
+        ACE_ASSERT (inherited2::sessionData_);
         if (!putSessionMessage (STREAM_SESSION_MESSAGE_END,                             // session message type
-                                *sessionData_,                                          // session data
+                                *inherited2::sessionData_,                              // session data
                                 configuration_->streamConfiguration->messageAllocator)) // allocator
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));

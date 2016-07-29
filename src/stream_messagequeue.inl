@@ -66,7 +66,7 @@ Stream_MessageQueue_T<SessionMessageType>::flush (bool flushSessionMessages_in)
             !flushSessionMessages_in)
           break;
       }
-      default:
+      case ACE_Message_Block::MB_DATA:
       {
         // remove this block
         if (message_block_p == inherited::head_)
@@ -90,6 +90,13 @@ Stream_MessageQueue_T<SessionMessageType>::flush (bool flushSessionMessages_in)
         ++result;
 
         continue;
+      }
+      default:
+      {
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("retaining message (type was: %d)\n"),
+        //            message_block_p->msg_type ()));
+        break;
       }
     } // end SWITCH
 

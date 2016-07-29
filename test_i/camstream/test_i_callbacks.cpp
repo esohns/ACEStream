@@ -62,6 +62,7 @@
 #include "test_i_target_message.h"
 #include "test_i_source_common.h"
 #include "test_i_target_common.h"
+#include "test_i_target_stream.h"
 #include "test_i_target_listener_common.h"
 
 // initialize statics

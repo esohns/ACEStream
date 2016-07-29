@@ -90,7 +90,8 @@ class Test_I_Source_Stream_T
 #endif
 
   // implement (part of) Stream_IStreamControlBase
-  virtual bool load (Stream_ModuleList_t&); // return value: module list
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
   virtual bool initialize (const Test_I_Source_StreamConfiguration&, // configuration
@@ -146,14 +147,6 @@ class Test_I_Source_Stream_T
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
-
-//  Test_I_Stream_Module_CamSource_Module               camSource_;
-//  Test_I_Source_Stream_Module_RuntimeStatistic_Module runtimeStatistic_;
-//  TARGET_MODULE_T                                     netTarget_;
-//  Test_I_Source_Stream_Module_Display_Module          display_;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  Test_I_Source_Stream_Module_DisplayNull_Module      displayNull_;
-//#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // media session
