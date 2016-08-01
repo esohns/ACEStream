@@ -53,8 +53,8 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
  , connection_ (NULL)
  , connector_ (NULL,
                ACE_Time_Value::zero)
- , sessionData_ (NULL)
  , isLinked_ (false)
+ , isOpen_ (false)
  , isPassive_ (false)
  , lock_ ()
 {
@@ -111,7 +111,8 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
   } // end IF
 
 close:
-  if (!isPassive_ && connection_)
+  if (!isPassive_ &&
+      connection_)
   {
     ACE_TCHAR buffer[BUFSIZ];
     ACE_OS::memset (buffer, 0, sizeof (buffer));
@@ -133,36 +134,6 @@ close:
 
   if (connection_)
     connection_->decrease ();
-
-  if (sessionData_)
-    sessionData_->decrease ();
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataContainerType,
-          typename ConnectionManagerType,
-          typename ConnectorType>
-void
-Stream_Module_Net_Target_T<ACE_SYNCH_USE,
-                           TimePolicyType,
-                           ConfigurationType,
-                           ControlMessageType,
-                           DataMessageType,
-                           SessionMessageType,
-                           SessionDataContainerType,
-                           ConnectionManagerType,
-                           ConnectorType>::handleDataMessage (DataMessageType*& message_inout,
-                                                              bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::handleDataMessage"));
-
-  ACE_UNUSED_ARG (message_inout);
-  ACE_UNUSED_ARG (passMessageDownstream_out);
 }
 
 template <ACE_SYNCH_DECL,
@@ -195,18 +166,45 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      if (!isPassive_ &&
+          connection_ &&
+          isOpen_)
+      {
+        ACE_TCHAR buffer[BUFSIZ];
+        ACE_OS::memset (buffer, 0, sizeof (buffer));
+        ACE_HANDLE handle = ACE_INVALID_HANDLE;
+        ACE_INET_Addr local_address, peer_address;
+        connection_->info (handle,
+                           local_address, peer_address);
+        result = peer_address.addr_to_string (buffer,
+                                              sizeof (buffer));
+        if (result == -1)
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
+
+        connection_->close ();
+        isOpen_ = false;
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: closed connection to %s...\n"),
+                    inherited::mod_->name (),
+                    buffer));
+      } // end IF
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
+      ACE_ASSERT (inherited::sessionData_);
       ACE_ASSERT (!connection_);
-      ACE_ASSERT (!sessionData_);
+      ACE_ASSERT (!isOpen_);
 
-      sessionData_ =
-          &const_cast<SessionDataContainerType&> (message_inout->get ());
-      sessionData_->increase ();
       typename SessionDataContainerType::DATA_T& session_data_r =
-          const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->get ());
+          const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->get ());
 
       // *TODO*: remove type inferences
       typename ConnectionManagerType::INTERFACE_T* iconnection_manager_p =
@@ -354,7 +352,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
           if (status != NET_CONNECTION_STATUS_INVALID)
             break;
         } while (COMMON_TIME_NOW < deadline);
-      } // end IF
+      } // end ELSE
       if (!connection_)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -399,6 +397,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
       } // end IF
       isocket_connection_p->wait (STREAM_STATE_RUNNING,
                                   NULL); // <-- block
+      isOpen_ = true;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("connected to \"%s\"...\n"),
                   buffer));
@@ -460,7 +459,9 @@ link:
       goto done;
 
 error:
-      if (!isPassive_ && connection_)
+      if (!isPassive_ &&
+          connection_ &&
+          isOpen_)
       {
         connection_->close ();
         ACE_DEBUG ((LM_DEBUG,
@@ -473,11 +474,7 @@ error:
         connection_ = NULL;
       } // end IF
 
-      {
-        ACE_ASSERT (session_data_r.lock);
-        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_r.lock);
-        session_data_r.aborted = true;
-      } // end lock scope
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
 
@@ -493,12 +490,18 @@ done:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      // *IMPORTANT NOTE*: control reaches this point because either:
+      //                   - the connection has been closed and the processing
+      //                     stream has/is finished()-ing (see: handle_close())
+      //                   [- the session is being aborted by the user
+      //                   - the session is being aborted by some module]
+
       typename ConnectorType::ISOCKET_CONNECTION_T* isocket_connection_p = NULL;
       typename ConnectorType::STREAM_T* stream_p = NULL;
 
       ACE_Guard<ACE_SYNCH_MUTEX> aGuard (lock_);
 
-      if (!isPassive_ && connection_)
+      if (connection_)
       {
         // wait for data (!) processing to complete
 //        ACE_ASSERT (configuration_->stream);
@@ -520,8 +523,8 @@ done:
         //Net_Connection_Status status = configuration_->connection->status ();
         //if (status != NET_CONNECTION_STATUS_OK)
         //  stream_p->flush (true);
-        //configuration_->stream->waitForCompletion (false, // wait for worker(s) ?
-        //                                          true); // wait for upstream ?
+        //configuration_->stream->wait (false, // wait for worker(s) ?
+        //                              true); // wait for upstream ?
 
         // *NOTE*: finalize the (connection) stream state so waitForCompletion()
         //         does not block forever
@@ -535,7 +538,7 @@ unlink:
       {
         // sanity check(s)
         ACE_ASSERT (connection_);
-  
+
         // *TODO*: if active (!) finished() (see above) already forwarded a
         //         session end message (on the linked stream)
         // *TODO*: this prevents the GTK close_all button from working
@@ -560,7 +563,7 @@ unlink:
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("failed to dynamic_cast<ConnectorType::ISOCKET_CONNECTION_T> (0x%@): \"%m\", continuing\n"),
                         connection_));
-            goto close;
+            goto release;
           } // end IF
         } // end IF
         if (!stream_p)
@@ -576,8 +579,8 @@ unlink:
       } // end IF
       isLinked_ = false;
 
-close:
-      if (!isPassive_ && connection_)
+      if (!isPassive_ &&
+          isOpen_)
       {
         ACE_TCHAR buffer[BUFSIZ];
         ACE_OS::memset (buffer, 0, sizeof (buffer));
@@ -589,50 +592,32 @@ close:
                                               sizeof (buffer));
         if (result == -1)
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
+                      ACE_TEXT ("%s: failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n"),
+                      inherited::mod_->name ()));
 
-        // *NOTE*: potential race condition here
-        Net_Connection_Status status = connection_->status ();
-        if (status == NET_CONNECTION_STATUS_OK)
-        {
-          connection_->close ();
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("closed connection to \"%s\"...\n"),
-                      buffer));
-        } // end IF
+        connection_->close ();
+        isOpen_ = false;
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: closed connection to %s...\n"),
+                    inherited::mod_->name (),
+                    buffer));
       } // end IF
 
+release:
       if (connection_)
       {
         connection_->decrease ();
         connection_ = NULL;
       } // end IF
 
-      if (sessionData_)
-      {
-        sessionData_->decrease ();
-        sessionData_ = NULL;
-      } // end IF
-
       break;
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
-      typename SessionDataContainerType::DATA_T& session_data_r =
-          const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->get ());
-
-      // sanity check(s)
-      ACE_ASSERT (connection_);
-
-      // check whether the connection is still active
-      Net_Connection_Status status = connection_->status ();
-      if (status == NET_CONNECTION_STATUS_PEER_CLOSED)
-      {
-        ACE_ASSERT (session_data_r.lock);
-        ACE_Guard<ACE_SYNCH_MUTEX> aGuard (*session_data_r.lock);
-        session_data_r.aborted = true;
-      } // end lock scope
-
+      isOpen_ = false;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: disconnected...\n"),
+                  inherited::mod_->name ()));
       break;
     }
     default:
@@ -688,7 +673,8 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
 
-    if (isLinked_ && connection_)
+    if (isLinked_ &&
+        connection_)
     {
       isocket_connection_p =
           dynamic_cast<typename ConnectorType::ISOCKET_CONNECTION_T*> (connection_);
@@ -714,7 +700,8 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
     isLinked_ = false;
 
 close:
-    if (!isPassive_ && connection_)
+    if (!isPassive_ &&
+        connection_)
     {
       ACE_OS::memset (buffer, 0, sizeof (buffer));
       ACE_HANDLE handle = ACE_INVALID_HANDLE;
@@ -729,6 +716,7 @@ close:
                     ACE_TEXT ("failed to ACE_INET_Addr::addr_to_string: \"%m\", continuing\n")));
 
       connection_->close ();
+      isOpen_ = false;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("closed connection to \"%s\"...\n"),
                   buffer));
@@ -738,12 +726,6 @@ close:
     {
       connection_->decrease ();
       connection_ = NULL;
-    } // end IF
-
-    if (sessionData_)
-    {
-      sessionData_->decrease ();
-      sessionData_ = NULL;
     } // end IF
 
     inherited::isInitialized_ = false;

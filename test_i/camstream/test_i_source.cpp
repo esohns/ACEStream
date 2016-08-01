@@ -814,6 +814,7 @@ do_work (unsigned int bufferSize_in,
 #endif
 
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+  ACE_ASSERT (heap_allocator.initialize (configuration.allocatorConfiguration));
   Test_I_Source_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                       &heap_allocator,     // heap allocator handle
                                                       true);               // block ?
@@ -1068,7 +1069,7 @@ do_work (unsigned int bufferSize_in,
 
     //      return;
     //    } // end IF
-    stream_p->waitForCompletion ();
+    stream_p->wait (true, false, false);
 
     // clean up
 //    connection_manager_p->stop ();

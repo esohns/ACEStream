@@ -173,9 +173,17 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
 //        htmlCtxtReset (parserContext_);
 
       // *TODO*: remove type inference
-      inherited::sessionData_ =
-        &const_cast<Test_I_Stream_SessionData_t&> (message_inout->get ());
-      inherited::sessionData_->increase ();
+      inherited::parserContext_.sessionData =
+        &const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_LINK:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::parserContext_.sessionData);
+
+      // *TODO*: remove type inference
       inherited::parserContext_.sessionData =
         &const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
@@ -195,11 +203,6 @@ Test_I_Stream_HTMLParser::handleSessionMessage (Test_I_Stream_SessionMessage*& m
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (inherited::sessionData_)
-      {
-        inherited::sessionData_->decrease ();
-        inherited::sessionData_ = NULL;
-      } // end IF
       inherited::parserContext_.sessionData = NULL;
 
       break;
@@ -229,6 +232,9 @@ Test_I_Stream_HTMLParser::initializeSAXParser ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTMLParser::initializeSAXParser"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::SAXHandler_.initialized);
+
   // set necessary SAX parser callbacks
   // *IMPORTANT NOTE*: the default SAX callbacks expect xmlParserCtxtPtr as user
   //                   data; this implementation uses Test_I_SAXParserContext*
@@ -250,12 +256,10 @@ Test_I_Stream_HTMLParser::initializeSAXParser ()
   inherited::SAXHandler_.startElement = startElement;
   inherited::SAXHandler_.endElement = endElement;
   inherited::SAXHandler_.characters = characters;
-  ///////////////////////////////////////
+  ////////////////////////////////////////
   inherited::SAXHandler_.warning = errorCallback;
   inherited::SAXHandler_.error = errorCallback;
   inherited::SAXHandler_.fatalError = errorCallback;
-
-  ACE_ASSERT (inherited::SAXHandler_.initialized);
 
   return true;
 }
@@ -630,6 +634,7 @@ startElement (void* userData_in,
       goto head;
     case SAXPARSER_STATE_IN_BODY:
     case SAXPARSER_STATE_IN_BODY_DIV_CONTENT:
+    case SAXPARSER_STATE_IN_SYMBOL_H1_CONTENT:
       goto body;
     default:
     {
@@ -688,7 +693,7 @@ body:
         if (xmlStrEqual (attributes_p[1],
                           BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("einzelkurs_header"))))
         {
-          data_p->state = SAXPARSER_STATE_READ_SYMBOL;
+          data_p->state = SAXPARSER_STATE_IN_SYMBOL_H1_CONTENT;
           break;
         } // end IF
         else if (xmlStrEqual (attributes_p[1],
@@ -702,6 +707,15 @@ body:
       attributes_p = &attributes_p[2];
     } // end WHILE
   } // end IF
+  else if (xmlStrEqual (name_in,
+                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("h1"))))
+  {
+    if (data_p->state == SAXPARSER_STATE_IN_SYMBOL_H1_CONTENT)
+    {
+      data_p->state = SAXPARSER_STATE_READ_SYMBOL;
+      return;
+    } // end IF
+  } // end ELSE IF
   else if (xmlStrEqual (name_in,
                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("span"))))
   {
@@ -730,12 +744,12 @@ body:
       {
         ACE_ASSERT (attributes_p[1]);
 
-        if (xmlStrEqual (attributes_p[1],
-                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("rightfloat big positive vertical_gap_1"))))
-        {
-          data_p->state = SAXPARSER_STATE_READ_CHANGE;
-          break;
-        } // end IF
+        //if (xmlStrEqual (attributes_p[1],
+        //                 BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("rightfloat big positive vertical_gap_1"))))
+        //{
+        //  data_p->state = SAXPARSER_STATE_READ_CHANGE;
+        //  break;
+        //} // end IF
         if (xmlStrEqual (attributes_p[1],
                          BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("rightfloat big negative vertical_gap_1"))))
         {

@@ -164,6 +164,8 @@ Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
   Test_I_GTK_Event event = TEST_I_GKTEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
+    case STREAM_SESSION_MESSAGE_DISCONNECT:
+      return;
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
       // sanity check(s)

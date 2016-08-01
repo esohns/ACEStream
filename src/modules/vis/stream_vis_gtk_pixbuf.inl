@@ -51,7 +51,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                                SessionMessageType,
                                SessionDataContainerType>::Stream_Module_Vis_GTK_Pixbuf_T ()
  : inherited ()
- , sessionData_ (NULL)
  , lock_ (NULL)
  , pixelBuffer_ (NULL)
  , isFirst_ (true)
@@ -79,9 +78,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 
   if (pixelBuffer_)
     g_object_unref (pixelBuffer_);
-
-  if (sessionData_)
-    sessionData_->decrease ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -144,10 +140,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
 //    ACE_ASSERT (message_block_p->cont ());
 //    message_block_p = message_block_p->cont ();
 //  } // end IF
-  ACE_ASSERT (sessionData_);
+  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (pixelBuffer_);
   const typename SessionDataContainerType::DATA_T& session_data_r =
-      sessionData_->get ();
+      inherited::sessionData_->get ();
   unsigned int total_length = message_inout->total_length ();
   ACE_ASSERT (total_length ==
               session_data_r.format.fmt.pix.sizeimage);
@@ -165,6 +161,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
               session_data_r.format.fmt.pix.sizeimage);
 
   bool leave_gdk = false;
+  bool release_lock = false;
   int result = -1;
 
   if (lock_)
@@ -176,6 +173,7 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
                   ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::acquire(): \"%m\", returning\n")));
       return;
     } // end IF
+    release_lock = true;
   } // end IF
 
   //gdk_threads_enter ();
@@ -196,17 +194,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
   int row_stride = session_data_r.format.fmt.pix.bytesperline;
   unsigned char* pixel_p = data_p;
   unsigned int* pixel_2 = (unsigned int*)data_2;
-
-  if (lock_)
-  {
-    result = lock_->acquire ();
-    if (result == -1)
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_SYNCH_RECURSIVE_MUTEX::acquire(): \"%m\", returning\n")));
-      return;
-    } // end IF
-  } // end IF
 
   switch (session_data_r.format.fmt.pix.pixelformat)
   {
@@ -588,8 +575,9 @@ clean:
   result = 0;
 
 unlock:
-  if (lock_)
+  if (release_lock)
   {
+    ACE_ASSERT (lock_);
     result = lock_->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
@@ -690,13 +678,10 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
-      ACE_ASSERT (!sessionData_);
+      ACE_ASSERT (inherited::sessionData_);
 
-      sessionData_ =
-          &const_cast<SessionDataContainerType&> (message_inout->get ());
-      sessionData_->increase ();
       typename SessionDataContainerType::DATA_T& session_data_r =
-          const_cast<typename SessionDataContainerType::DATA_T&> (sessionData_->get ());
+          const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->get ());
 
       // sanity check(s)
       if (!inherited::configuration_->gdkWindow)
@@ -723,12 +708,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
       {
         g_object_unref (pixelBuffer_);
         pixelBuffer_ = NULL;
-      } // end IF
-
-      if (sessionData_)
-      {
-        sessionData_->decrease ();
-        sessionData_ = NULL;
       } // end IF
 
       break;
@@ -762,12 +741,6 @@ Stream_Module_Vis_GTK_Pixbuf_T<ACE_SYNCH_USE,
     {
       g_object_unref (pixelBuffer_);
       pixelBuffer_ = NULL;
-    } // end IF
-
-    if (sessionData_)
-    {
-      sessionData_->decrease ();
-      sessionData_ = NULL;
     } // end IF
 
     isFirst_ = true;

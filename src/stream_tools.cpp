@@ -109,7 +109,7 @@ allocate:
   else
   {
     result = messageBlock_inout->crunch ();
-    if (result = -1)
+    if (result == -1)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Block::crunch(): \"%m\", returning\n")));

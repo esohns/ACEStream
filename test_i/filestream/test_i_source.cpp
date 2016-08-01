@@ -503,6 +503,7 @@ do_work (unsigned int bufferSize_in,
   configuration.useReactor = useReactor_in;
 
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+  ACE_ASSERT (heap_allocator.initialize (configuration.allocatorConfiguration));
   Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
@@ -533,7 +534,7 @@ do_work (unsigned int bufferSize_in,
     TEST_I_SOURCE_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (iconnection_manager_p);
 
-  // *********************** socket configuration data ************************
+  // ************************ socket configuration data ************************
   int result =
     configuration.socketConfiguration.address.set (port_in,
                                                    hostName_in.c_str (),
@@ -555,7 +556,7 @@ do_work (unsigned int bufferSize_in,
   configuration.socketConfiguration.useLoopBackDevice =
     configuration.socketConfiguration.address.is_loopback ();
   configuration.socketConfiguration.writeOnly = true;
-  // ******************** socket handler configuration data *******************
+  // ********************* socket handler configuration data *******************
   configuration.socketHandlerConfiguration.messageAllocator =
     &message_allocator;
   configuration.socketHandlerConfiguration.PDUSize = bufferSize_in;
@@ -589,7 +590,7 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleHandlerConfiguration.stream =
     ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
                                                         : CBData_in.UDPStream);
-  // ******************** (sub-)stream configuration data *********************
+  // ********************* (sub-)stream configuration data *********************
   if (bufferSize_in)
     configuration.streamConfiguration.bufferSize = bufferSize_in;
   configuration.streamConfiguration.messageAllocator = &message_allocator;

@@ -811,7 +811,8 @@ do_work (unsigned int bufferSize_in,
   //ACE_ASSERT (configuration.moduleHandlerConfiguration.builder);
 #endif
 
-  Stream_AllocatorHeap_T<Test_I_Target_AllocatorConfiguration> heap_allocator;
+  Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+  ACE_ASSERT (heap_allocator.initialize (configuration.allocatorConfiguration));
   Test_I_Target_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                       &heap_allocator,     // heap allocator handle
                                                       true);               // block ?
@@ -1055,7 +1056,7 @@ do_work (unsigned int bufferSize_in,
   // - dispatch connection attempts to acceptor
   // - dispatch socket events
   // timer events:
-  // - perform statistics collecting/reporting
+  // - perform statistic collecting/reporting
   // [GTK events:]
   // - dispatch UI events (if any)
 

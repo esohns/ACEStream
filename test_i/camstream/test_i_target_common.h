@@ -424,24 +424,24 @@ struct Test_I_Target_Configuration
   Test_I_Target_UserData                          userData;
 };
 
-struct Test_I_Target_AllocatorConfiguration
- : Stream_AllocatorConfiguration
-{
-  inline Test_I_Target_AllocatorConfiguration ()
-   : Stream_AllocatorConfiguration ()
-  {
-    // *NOTE*: this facilitates (message block) data buffers to be scanned with
-    //         'flex's yy_scan_buffer() method
-    buffer = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
-  };
-};
+//struct Test_I_Target_AllocatorConfiguration
+// : Stream_AllocatorConfiguration
+//{
+//  inline Test_I_Target_AllocatorConfiguration ()
+//   : Stream_AllocatorConfiguration ()
+//  {
+//    // *NOTE*: this facilitates (message block) data buffers to be scanned with
+//    //         'flex's yy_scan_buffer() method
+//    buffer = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
+//  };
+//};
 
 typedef Stream_ControlMessage_T<Stream_ControlMessageType,
-                                Test_I_Target_AllocatorConfiguration,
+                                Stream_AllocatorConfiguration,
                                 Test_I_Target_Stream_Message,
                                 Test_I_Target_Stream_SessionMessage> Test_I_Target_ControlMessage_t;
 
-typedef Stream_MessageAllocatorHeapBase_T<Test_I_Target_AllocatorConfiguration,
+typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
                                           Test_I_Target_ControlMessage_t,
                                           Test_I_Target_Stream_Message,
                                           Test_I_Target_Stream_SessionMessage> Test_I_Target_MessageAllocator_t;

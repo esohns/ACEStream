@@ -314,11 +314,6 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::mod_);
 
-  const SessionDataContainerType& session_data_container_r =
-    message_inout->get ();
-  const SessionDataType& session_data_r =
-    session_data_container_r.get ();
-
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
@@ -356,6 +351,11 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+      const SessionDataType& session_data_r =
+        inherited::sessionData_->get ();
+
       if (inherited::configuration_->streamConfiguration->statisticReportingInterval !=
           ACE_Time_Value::zero)
       {
@@ -470,6 +470,11 @@ Stream_Module_Net_IOWriter_T<ACE_SYNCH_USE,
         if (inherited::sessionEndProcessed_) break; // done
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
+
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+      const SessionDataType& session_data_r =
+        inherited::sessionData_->get ();
 
       if (inherited::timerID_ != -1)
       {

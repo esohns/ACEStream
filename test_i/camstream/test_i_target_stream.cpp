@@ -67,9 +67,9 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::load"));
 
-  // initialize return value(s)
-  modules_out.clear ();
-  delete_out = false;
+//  // initialize return value(s)
+//  modules_out.clear ();
+//  delete_out = false;
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
@@ -98,7 +98,7 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
- ACE_NEW_RETURN (module_p,
+  ACE_NEW_RETURN (module_p,
                   Test_I_Target_Stream_Module_Splitter_Module (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
                                                                NULL,
                                                                false),
@@ -168,53 +168,6 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     &inherited::state_.stateMachineLock;
 
   // ---------------------------------------------------------------------------
-
-  //Test_I_Target_Stream_Module_Display* display_impl_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Test_I_Target_Stream_Module_DisplayNull* displayNull_impl_p = NULL;
-#endif
-  //Test_I_Target_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-//    NULL;
-  Test_I_Target_Stream_Module_Splitter* splitter_impl_p = NULL;
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //bool graph_loaded = false;
-  //bool COM_initialized = false;
-  //HRESULT result = E_FAIL;
-  //IMFTopology* topology_p = NULL;
-#endif
-
-  // ************************ Splitter *****************************
-  Stream_Module_t* module_p =
-    const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("Splitter")));
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-                ACE_TEXT ("Splitter")));
-    goto error;
-  } // end IF
-  splitter_impl_p =
-    dynamic_cast<Test_I_Target_Stream_Module_Splitter*> (module_p->writer ());
-  if (!splitter_impl_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Test_I_Target_Stream_Module_Splitter> failed, aborting\n")));
-    goto error;
-  } // end IF
-  if (!splitter_impl_p->initialize (inherited::state_))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize writer, aborting\n"),
-                module_p->name ()));
-    goto error;
-  } // end IF
-  // *NOTE*: push()ing the module will open() it
-  //         --> set the argument that is passed along (head module expects a
-  //             handle to the session data)
-  module_p->arg (inherited::sessionData_);
-
-  // -------------------------------------------------------------
 
   if (setupPipeline_in)
     if (!inherited::setup (configuration_in.notificationStrategy))
@@ -320,12 +273,9 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
 
   // delegate to the statistics module...
   bool result_2 = false;
-  try
-  {
+  try {
     result_2 = runtimeStatistic_impl_p->collect (data_out);
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Common_IStatistic_T::collect(), continuing\n")));
   }

@@ -44,7 +44,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
  , delete_ (false)
  , lock_ (NULL)
  , subscribers_ (NULL)
- , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::Stream_Module_MessageHandler_T"));
 
@@ -148,8 +147,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
       return;
     } // end IF
   } // end IF
-
-  sessionData_ = NULL;
 }
 
 template <ACE_SYNCH_DECL,
@@ -187,6 +184,9 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 //   }
 
   // refer the data back to any subscriber(s)
+  const typename SessionDataContainerType::DATA_T* session_data_p = NULL;
+  if (inherited::sessionData_)
+    session_data_p = &inherited::sessionData_->get ();
 
   // synch access
   {
@@ -203,7 +203,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     {
       try {
         // *TODO*: remove type inference
-        (*iterator++)->notify ((sessionData_ ? sessionData_->sessionID : 0),
+        (*iterator++)->notify ((session_data_p ? session_data_p->sessionID : 0),
                                *message_inout);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
@@ -238,38 +238,33 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (lock_ && subscribers_);
+
+  const typename SessionDataContainerType::DATA_T& session_data_r =
+      inherited::sessionData_->get ();
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // sanity check(s)
-      ACE_ASSERT (!sessionData_);
-
-      // forward the session data to any subscriber(s)
-      const SessionDataContainerType& session_data_container_r =
-        message_inout->get ();
-      sessionData_ =
-          &const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.get ());
-
       // synch access
       {
         ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (*lock_);
 
-        // *WARNING* if users unsubscribe() within the callback Bad Things (TM)
-        // would happen, as the current iterator would be invalidated
-        // --> use a slightly modified for-loop (advance first and THEN invoke
-        //     the callback (*NOTE*: works for MOST containers...)
         // *NOTE*: this works because the lock is recursive
+        // *WARNING* if callees unsubscribe() within the callback bad things
+        //           happen, as the current iterator is invalidated
+        //           --> use a slightly modified for-loop (advance first before
+        //               invoking the callback (works for MOST containers...)
         for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_->begin ();
              iterator != subscribers_->end ();
              )
         {
           try {
             // *TODO*: remove type inference
-            (*iterator++)->start (sessionData_->sessionID,
-                                  *sessionData_);
+            (*iterator++)->start (session_data_r.sessionID,
+                                  session_data_r);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Common_INotify_T::start(), continuing\n")));
@@ -281,27 +276,22 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // sanity check(s)
-      ACE_ASSERT (sessionData_);
-
-      // refer the data back to any subscriber(s)
-
       // synch access
       {
         ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (*lock_);
 
-        // *WARNING* if users unsubscribe() within the callback Bad Things (TM)
-        // would happen, as the current iter would be invalidated
-        // --> use a slightly modified for-loop (advance first and THEN invoke the
-        // callback (*NOTE*: works for MOST containers...)
-        // *NOTE*: this works due to the ACE_RECURSIVE_Thread_Mutex used as a lock...
+        // *NOTE*: this works because the lock is recursive
+        // *WARNING* if callees unsubscribe() within the callback bad things
+        //           happen, as the current iterator is invalidated
+        //           --> use a slightly modified for-loop (advance first before
+        //               invoking the callback (works for MOST containers...)
         for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_->begin ();
              iterator != subscribers_->end ();
              )
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->end (sessionData_->sessionID);
+            (*(iterator++))->end (session_data_r.sessionID);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Common_INotify_T::end(), continuing\n")));
@@ -309,31 +299,28 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
         } // end FOR
       } // end lock scope
 
-      sessionData_ = NULL;
+      inherited::sessionData_ = NULL;
 
       break;
     }
     default:
     {
-      // refer the data back to any subscriber(s)
-
       // synch access
       {
         ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (*lock_);
 
-        // *WARNING* if users unsubscribe() within the callback Bad Things (TM)
-        // would happen, as the current iter would be invalidated
-        // --> use a slightly modified for-loop (advance first and THEN invoke the
-        // callback (*NOTE*: works for MOST containers...)
-        // *NOTE*: this works due to the ACE_RECURSIVE_Thread_Mutex used as a lock...
+        // *NOTE*: this works because the lock is recursive
+        // *WARNING* if callees unsubscribe() within the callback bad things
+        //           happen, as the current iterator is invalidated
+        //           --> use a slightly modified for-loop (advance first before
+        //               invoking the callback (works for MOST containers...)
         for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_->begin ();
              iterator != subscribers_->end ();
              )
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->notify ((sessionData_ ? sessionData_->sessionID
-                                                   : 0),
+            (*(iterator++))->notify (session_data_r.sessionID,
                                      *message_inout);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,

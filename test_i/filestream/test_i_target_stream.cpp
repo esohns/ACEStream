@@ -67,7 +67,7 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
   STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::load"));
 
   // initialize return value(s)
-  modules_out.clear ();
+//  modules_out.clear ();
   delete_out = false;
 
   modules_out.push_back (&fileWriter_);
@@ -185,6 +185,8 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
+  bool release_lock = false;
+
   Test_I_Stream_SessionData& session_data_r =
         const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
 
@@ -207,11 +209,12 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
                   ACE_TEXT ("failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", aborting\n")));
       return false;
     } // end IF
+    release_lock = true;
   } // end IF
 
   session_data_r.currentStatistic.timeStamp = COMMON_TIME_NOW;
 
-  // delegate to the statistics module...
+  // delegate to the statistic module
   bool result_2 = false;
   try {
     result_2 = runtimeStatistic_impl->collect (data_out);
@@ -225,8 +228,9 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   else
     session_data_r.currentStatistic = data_out;
 
-  if (session_data_r.lock)
+  if (release_lock)
   {
+    ACE_ASSERT (session_data_r.lock);
     result = session_data_r.lock->release ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,

@@ -40,9 +40,10 @@ struct Test_I_StockItem
 {
   inline Test_I_StockItem ()
    : /*description ()
-     ,*/ ISIN ()
+   ,*/ ISIN ()
    , symbol ()
    , WKN ()
+   , isStock (true)
   {};
 
   inline bool operator== (const Test_I_StockItem& rhs_in)
@@ -54,6 +55,7 @@ struct Test_I_StockItem
   std::string ISIN;
   std::string symbol;
   std::string WKN;
+  bool isStock;
 };
 
 struct Test_I_StockRecord
@@ -205,6 +207,7 @@ enum Test_I_SAXParserState
   //SAXPARSER_STATE_IN_HEAD_TITLE,
   ////////////////////////////////////////
   SAXPARSER_STATE_IN_BODY_DIV_CONTENT,
+  SAXPARSER_STATE_IN_SYMBOL_H1_CONTENT,
   ////////////////////////////////////////
   SAXPARSER_STATE_READ_CHANGE,
   SAXPARSER_STATE_READ_DATE,

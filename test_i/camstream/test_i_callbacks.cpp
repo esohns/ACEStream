@@ -1316,7 +1316,7 @@ stream_processing_function (void* arg_in)
   //                  ACE_TEXT ("failed to start stream, aborting\n")));
   //      return;
   //    } // end IF
-  stream_p->waitForCompletion (true, false);
+  stream_p->wait (true, false, false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -3656,12 +3656,9 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         if (!data_p->configuration->signalHandlerConfiguration.listener->initialize (data_p->configuration->listenerConfiguration))
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to initialize listener, continuing\n")));
-        try
-        {
+        try {
           data_p->configuration->signalHandlerConfiguration.listener->start ();
-        }
-        catch (...)
-        {
+        } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught exception in Net_Server_IListener::start(): \"%m\", continuing\n")));
         } // end catch
@@ -3674,12 +3671,9 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
         if (data_p->configuration->signalHandlerConfiguration.listener->isRunning ())
         {
-          try
-          {
+          try {
             data_p->configuration->signalHandlerConfiguration.listener->stop ();
-          }
-          catch (...)
-          {
+          } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
           } // end catch
@@ -3848,12 +3842,9 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
   else
   {
     ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
-    try
-    {
+    try {
       data_p->configuration->signalHandlerConfiguration.listener->stop ();
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
     } // end catch

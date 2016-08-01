@@ -170,7 +170,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to CoInitializeEx(): \"%s\", aborting\n"),
                   ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-      return false;
+      goto error;
     } // end IF
     COM_initialized = true;
   } // end IF
@@ -210,24 +210,24 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
       mediaSession_->Release ();
     } // end IF
 
-    if (inherited::sessionData_)
-    {
-      inherited::sessionData_->decrease ();
-      inherited::sessionData_ = NULL;
-    } // end IF
-
     inherited::isInitialized_ = false;
   } // end IF
 
   result = inherited::initialize (configuration_in);
   if (!result)
+  {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(): \"%m\", aborting\n")));
+    goto error;
+  } // end IF
 
-//done:
+  goto continue_;
+
+error:
   if (COM_initialized)
     CoUninitialize ();
 
+continue_:
   return result;
 }
 //template <ACE_SYNCH_DECL,
@@ -630,7 +630,7 @@ error:
       if (COM_initialized)
         CoUninitialize ();
 
-      session_data_r.aborted = true;
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -751,13 +751,12 @@ continue_:
       if (COM_initialized)
         CoUninitialize ();
 
-      if (inherited::sessionData_)
-      {
-        inherited::sessionData_->decrease ();
-        inherited::sessionData_ = NULL;
-      } // end IF
-
-      inherited::shutdown ();
+      // *NOTE*: in passive 'concurrent' scenarios, there is no 'worker' thread
+      //         running svc()
+      //         --> do not signal completion in this case
+      // *TODO*: remove type inference
+      if (inherited::thr_count_ || inherited::runSvcOnStart_)
+        inherited::shutdown ();
 
       break;
     }

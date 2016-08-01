@@ -137,6 +137,8 @@ Test_I_Stream_Source_EventHandler::notify (Stream_SessionId_t sessionID_in,
     return;
   } // end IF
 //  CBData_->eventSourceIds.insert (event_source_id);
+
+  CBData_->eventStack.push_back (TEST_I_GTKEVENT_DATA);
 }
 void
 Test_I_Stream_Source_EventHandler::notify (Stream_SessionId_t sessionID_in,

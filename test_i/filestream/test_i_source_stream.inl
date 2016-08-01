@@ -59,9 +59,9 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::load"));
 
-  // initialize return value(s)
-  modules_out.clear ();
-  delete_out = false;
+//  // initialize return value(s)
+//  modules_out.clear ();
+//  delete_out = false;
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,

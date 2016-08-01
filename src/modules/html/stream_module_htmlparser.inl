@@ -49,7 +49,6 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
  , complete_ (false)
  , parserContext_ ()
  , SAXHandler_ ()
- , sessionData_ (NULL)
  , mode_ (STREAM_MODULE_HTMLPARSER_DEFAULT_MODE)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::Stream_Module_HTMLParser_T"));
@@ -89,9 +88,6 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 
     xmlCleanupParser ();
   } // end IF
-
-  if (sessionData_)
-    sessionData_->decrease ();
 }
 
 template <ACE_SYNCH_DECL,
@@ -289,11 +285,19 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 //        htmlCtxtReset (parserContext_);
 
       // *TODO*: remove type inference
-      sessionData_ =
-        &const_cast<SessionDataContainerType&> (message_inout->get ());
-      sessionData_->increase ();
       parserContext_.sessionData =
-        &const_cast<SessionDataType&> (sessionData_->get ());
+        &const_cast<SessionDataType&> (inherited::sessionData_->get ());
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_LINK:
+    {
+      // sanity check(s)
+      ACE_ASSERT (parserContext_.sessionData);
+
+      // *TODO*: remove type inference
+      parserContext_.sessionData =
+        &const_cast<SessionDataType&> (inherited::sessionData_->get ());
 
       break;
     }
@@ -306,11 +310,6 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      if (sessionData_)
-      {
-        sessionData_->decrease ();
-        sessionData_ = NULL;
-      } // end IF
       parserContext_.sessionData = NULL;
 
       break;

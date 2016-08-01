@@ -206,19 +206,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
+    case STREAM_SESSION_MESSAGE_CONNECT:
+    case STREAM_SESSION_MESSAGE_DISCONNECT:
       break;
-    case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-      // sanity check(s)
-      if (sessionData_) // --> session head modules initialize this in open()
-        break;
-
-      sessionData_ =
-        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
-      sessionData_->increase ();
-
-      break;
-    }
     case STREAM_SESSION_MESSAGE_LINK:
     {
       isLinked_ = true;
@@ -252,7 +242,9 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (session_data_r.lock);
       ACE_ASSERT (session_data_2.lock);
+      if (&session_data_r != &session_data_2) // 'downstream' ?
       {
+        ACE_ASSERT (session_data_r.lock != session_data_2.lock);
         ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
         ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard_2, *session_data_2.lock);
 
@@ -264,13 +256,30 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
         // switch session data
         sessionData_->decrease ();
         sessionData_ = session_data_container_p;
-      } // end lock scope
+      } // end IF
 
-      // *IMPORTANT NOTE*: currently, link()ing two streams implies that there
-      //                   will be two 'session end' messages: one for
-      //                  'upstream', and one for 'this'
-      //                   --> increase reference count of the session data, so
-      //                       it is not released prematurely
+      //// *IMPORTANT NOTE*: link()ing two streams implies that there will be
+      ////                   two 'session end' messages: one for 'upstream', and
+      ////                   one for 'this'
+      ////                   --> increase reference count of the session data, so
+      ////                       it is not released prematurely
+      //sessionData_->increase ();
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_UNLINK:
+    {
+      isLinked_ = false;
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      // sanity check(s)
+      if (sessionData_) // --> session head modules initialize this in open()
+        break;
+
+      sessionData_ =
+        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
       sessionData_->increase ();
 
       break;
@@ -307,7 +316,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     default:
     {
       ACE_DEBUG ((LM_WARNING,
-                  ACE_TEXT ("invalid/unknown session message type (was: %d)\n"),
+                  ACE_TEXT ("invalid/unknown session message type (was: %d), continuing\n"),
                   message_inout->type ()));
       break;
     }
@@ -638,9 +647,15 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 
       // *NOTE*: if this was a SESSION_END message, stop processing (see above)
       if (session_message_type == STREAM_SESSION_MESSAGE_END)
-      { 
-        OWN_TYPE_T::handleSessionMessage (session_message_p,
-                                          passMessageDownstream_out);
+      {
+        // *TODO*: currently, the session data will not be released (see below)
+        //         if the module forwards the session end message itself
+        if (passMessageDownstream_out)
+        {
+          ACE_ASSERT (session_message_p);
+          OWN_TYPE_T::handleSessionMessage (session_message_p,
+                                            passMessageDownstream_out);
+        } // end IF
         stopProcessing_out = true;
       } // end IF
 

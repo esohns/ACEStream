@@ -160,8 +160,9 @@ loop:
   //                  ACE_TEXT ("failed to start stream, aborting\n")));
   //      return;
   //    } // end IF
-  stream_p->waitForCompletion (true,
-                               false);
+  stream_p->wait (true,
+                  false,
+                  false);
 
   ++counter;
   if (loop)

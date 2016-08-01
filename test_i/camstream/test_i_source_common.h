@@ -85,7 +85,7 @@ class Test_I_Source_Stream_Message;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       ACE_MT_SYNCH,
                       Common_TimePolicy_t,
-                      int,
+                      Stream_ControlType,
                       Stream_SessionMessageType,
                       Stream_StateMachine_ControlState,
                       Test_I_Source_StreamState,

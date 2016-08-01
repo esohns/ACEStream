@@ -65,9 +65,6 @@ class Stream_Module_Vis_GTK_Pixbuf_T
 //  // implement Stream_IModuleHandler_T
 //  virtual const ConfigurationType& get () const;
 
- protected:
-  SessionDataContainerType*  sessionData_;
-
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,

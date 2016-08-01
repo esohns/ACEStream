@@ -88,42 +88,81 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
+  ACE_Message_Block* message_block_p = NULL;
   if (!buffer_)
-    buffer_ = message_inout;
-  else
-    buffer_->cont (message_inout);
-
-  if (buffer_->total_length () < inherited::configuration_->frameSize)
-    return; // done
-
-  // got enough data --> split and forward
-  unsigned int count = 0;
-  ACE_Message_Block* message_block_p = buffer_;
-  do
   {
-    count += message_block_p->length ();
-    message_block_p = message_block_p->cont ();
-
-    if (count >= inherited::configuration_->frameSize)
-      break;
-  } while (true);
+    buffer_ = message_inout;
+    message_block_p = buffer_;
+  } // end IF
+  else
+  {
+    message_block_p = buffer_;
+    while (message_block_p->cont ())
+      message_block_p = message_block_p->cont ();
+    message_block_p->cont (message_inout);
+    message_block_p = message_inout;
+  } // end ELSE
   ACE_ASSERT (message_block_p);
 
-  buffer_ = message_block_p->duplicate ();
-  if (!buffer_)
+continue_:
+  // message_block_p points at the trailing fragment
+
+  unsigned int frame_size = 0;
+  unsigned int total_length = buffer_->total_length ();
+  // *TODO*: remove type inference
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_->format);
+
+  //if (total_length < inherited::configuration_->format->lSampleSize)
+  HRESULT result =
+      inherited::configuration_->format->GetUINT32 (MF_MT_SAMPLE_SIZE,
+                                                    &frame_size);
+  if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to MessageType::duplicate(): \"%m\", returning\n"),
-                inherited::mod_->name ()));
+                ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_SAMPLE_SIZE): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
-  buffer_->cont (NULL);
-  buffer_->rd_ptr (count - inherited::configuration_->frameSize);
+#else
+  frame_size = inherited::configuration_->format.fmt.pix.sizeimage;
+#endif
+  if (total_length < frame_size)
+    return; // done
 
-  message_block_p->reset ();
-  message_block_p->wr_ptr (count - inherited::configuration_->frameSize);
-  int result = inherited::put_next (message_block_p, NULL);
-  if (result == -1)
+  // received enough data --> (split and) forward
+  ACE_Message_Block* message_block_2 = NULL;
+  unsigned int remainder = (total_length - frame_size);
+  if (remainder)
+  {
+    message_block_2 = message_block_p->duplicate ();
+    if (!message_block_2)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
+                  inherited::mod_->name ()));
+      return;
+    } // end IF
+    message_block_2->rd_ptr (message_block_p->length () - remainder);
+    ACE_ASSERT (message_block_2->length () == remainder);
+
+    message_block_p->reset ();
+    message_block_p->wr_ptr (message_block_2->rd_ptr ());
+    message_block_p = buffer_;
+
+    buffer_ = message_block_2;
+  } // end IF
+  else
+  {
+    message_block_p = buffer_;
+    buffer_ = NULL;
+  } // end IF
+  total_length = message_block_p->total_length ();
+  ACE_ASSERT (total_length == frame_size);
+
+  int result_2 = inherited::put_next (message_block_p, NULL);
+  if (result_2 == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
@@ -133,6 +172,14 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
     message_block_p->release ();
 
     return;
+  } // end IF
+
+  // *NOTE*: more than one frame may have been received
+  //         --> split again ?
+  if (buffer_)
+  {
+    message_block_p = buffer_;
+    goto continue_;
   } // end IF
 }
 
@@ -186,16 +233,18 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
 //          typename SessionMessageType,
 //          typename SessionDataType>
 //bool
-//Stream_Module_Splitter_T<SessionMessageType,
-//                         MessageType,
+//Stream_Module_Splitter_T<ACE_SYNCH_USE,
+//                         TimePolicyType,
 //                         ConfigurationType,
+//                         ControlMessageType,
+//                         DataMessageType,
+//                         SessionMessageType,
 //                         SessionDataType>::initialize (const ConfigurationType& configuration_in)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::initialize"));
-//
-//  configuration_ =
-//    &const_cast<ConfigurationType&> (configuration_in);
-//
+
+//  inherited::configuration_ = &const_cast<ConfigurationType&> (configuration_in);
+
 //  return true;
 //}
 //template <typename SessionMessageType,
@@ -434,26 +483,12 @@ Stream_Module_SplitterH_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_SplitterH_T::handleSessionMessage"));
 
-  //int result = -1;
-
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  //// sanity check(s)
-  //ACE_ASSERT (inherited::configuration_);
-  //ACE_ASSERT (inherited::initialized_);
 
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-//      ACE_ASSERT (inherited::sessionData_);
-
-//      SessionDataType& session_data_r =
-//          const_cast<SessionDataType&> (inherited::sessionData_->get ());
-
-      break;
-    }
     case STREAM_SESSION_MESSAGE_END:
     default:
       break;

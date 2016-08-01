@@ -192,51 +192,51 @@ struct Test_I_Stream_SessionData
 
     connectionState = (connectionState ? connectionState : rhs_in.connectionState);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    // sanity check(s)
-    ACE_ASSERT (rhs_in.format);
+//    // sanity check(s)
+//    ACE_ASSERT (rhs_in.format);
 
-    if (format)
-    {
-      format->Release ();
-      format = NULL;
-    } // end IF
+//    if (format)
+//    {
+//      format->Release ();
+//      format = NULL;
+//    } // end IF
 
-    //if (!Stream_Module_Device_Tools::copyMediaType (*rhs_in.format,
-    //                                                format))
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), continuing\n")));
-    struct _AMMediaType media_type;
-    ACE_OS::memset (&media_type, 0, sizeof (media_type));
-    HRESULT result = MFInitAMMediaTypeFromMFMediaType (rhs_in.format,
-                                                       GUID_NULL,
-                                                       &media_type);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-      goto continue_;
-    } // end IF
+//    //if (!Stream_Module_Device_Tools::copyMediaType (*rhs_in.format,
+//    //                                                format))
+//    //  ACE_DEBUG ((LM_ERROR,
+//    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), continuing\n")));
+//    struct _AMMediaType media_type;
+//    ACE_OS::memset (&media_type, 0, sizeof (media_type));
+//    HRESULT result = MFInitAMMediaTypeFromMFMediaType (rhs_in.format,
+//                                                       GUID_NULL,
+//                                                       &media_type);
+//    if (FAILED (result))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", continuing\n"),
+//                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//      goto continue_;
+//    } // end IF
 
-    result = MFInitMediaTypeFromAMMediaType (format,
-      &media_type);
-    if (FAILED (result))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+//    result = MFInitMediaTypeFromAMMediaType (format,
+//                                             &media_type);
+//    if (FAILED (result))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", continuing\n"),
+//                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
 
-      // clean up
-      Stream_Module_Device_Tools::freeMediaType (media_type);
+//      // clean up
+//      Stream_Module_Device_Tools::freeMediaType (media_type);
 
-      goto continue_;
-    } // end IF
+//      goto continue_;
+//    } // end IF
 
-      // clean up
-    Stream_Module_Device_Tools::freeMediaType (media_type);
-  continue_:
+//    // clean up
+//    Stream_Module_Device_Tools::freeMediaType (media_type);
+//  continue_:
 #else
-    format = rhs_in.format;
+//    format = rhs_in.format;
 #endif
     userData = (userData ? userData : rhs_in.userData);
 
@@ -366,8 +366,9 @@ struct Test_I_Stream_State
 struct Test_I_Configuration
 {
   inline Test_I_Configuration ()
+   : allocatorConfiguration ()
 //   : signalHandlerConfiguration ()
-   : socketConfiguration ()
+   , socketConfiguration ()
    , socketHandlerConfiguration ()
    , moduleConfiguration ()
    , streamConfiguration ()
@@ -376,6 +377,8 @@ struct Test_I_Configuration
    , useReactor (NET_EVENT_USE_REACTOR)
   {};
 
+  // ***************************** allocator ***********************************
+  Stream_AllocatorConfiguration            allocatorConfiguration;
 //  // **************************** signal data **********************************
 //  Stream_SignalHandlerConfiguration        signalHandlerConfiguration;
   // **************************** socket data **********************************

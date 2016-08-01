@@ -66,6 +66,7 @@ Test_I_Source_Stream_T<ConnectorType>::ping ()
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
+
   ACE_NOTREACHED (return;)
 }
 
@@ -368,9 +369,9 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::load"));
 
-  // initialize return value(s)
-  modules_out.clear ();
-  delete_out = false;
+//  // initialize return value(s)
+//  modules_out.clear ();
+//  delete_out = false;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -664,13 +665,13 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   } // end IF
 #endif
 
-  if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
-                module_p->name ()));
-    goto error;
-  } // end IF
+  //if (!source_impl_p->initialize (*configuration_in.moduleHandlerConfiguration))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to initialize module writer, aborting\n"),
+  //              module_p->name ()));
+  //  goto error;
+  //} // end IF
   if (!source_impl_p->initialize (inherited::state_))
   {
     ACE_DEBUG ((LM_ERROR,

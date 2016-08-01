@@ -295,9 +295,24 @@ class Stream_Base_T
                          DataMessageType,
                          SessionMessageType> ITASK_T;
 
-  // make friends between ourselves; instances need to access the session data
-  // lock during (un)link() calls
-  friend class OWN_TYPE_T;
+//  // make friends between ourselves; instances need to access the session data
+//  // lock during (un)link() calls
+//  friend class Stream_Base_T<LockType,
+//                             ACE_SYNCH_USE,
+//                             TimePolicyType,
+//                             ControlType,
+//                             NotificationType,
+//                             StatusType,
+//                             StateType,
+//                             ConfigurationType,
+//                             StatisticContainerType,
+//                             ModuleConfigurationType,
+//                             HandlerConfigurationType,
+//                             SessionDataType,
+//                             SessionDataContainerType,
+//                             ControlMessageType,
+//                             DataMessageType,
+//                             SessionMessageType>;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Base_T (const Stream_Base_T&))

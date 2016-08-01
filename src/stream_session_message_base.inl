@@ -227,7 +227,6 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
   if (data_)
     return *data_;
 
-  ACE_ASSERT (false);
   return SessionDataType ();
 }
 
@@ -406,9 +405,24 @@ Stream_SessionMessageBase_T<AllocatorConfigurationType,
       string_out = ACE_TEXT_ALWAYS_CHAR ("ABORT");
       break;
     }
+    case STREAM_SESSION_MESSAGE_CONNECT:
+    {
+      string_out = ACE_TEXT_ALWAYS_CHAR ("CONNECT");
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_DISCONNECT:
+    {
+      string_out = ACE_TEXT_ALWAYS_CHAR ("DISCONNECT");
+      break;
+    }
     case STREAM_SESSION_MESSAGE_LINK:
     {
       string_out = ACE_TEXT_ALWAYS_CHAR ("LINK");
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_UNLINK:
+    {
+      string_out = ACE_TEXT_ALWAYS_CHAR ("UNLINK");
       break;
     }
     // *** control ***

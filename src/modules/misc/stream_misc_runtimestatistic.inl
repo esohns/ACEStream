@@ -765,14 +765,11 @@ Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
   if (allocator_)
   {
 allocate:
-    try
-    {
+    try {
       // *IMPORTANT NOTE*: 0 --> session message !
       session_message_p =
         static_cast<SessionMessageType*> (allocator_->malloc (0));
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 

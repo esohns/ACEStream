@@ -437,12 +437,6 @@ Stream_HeadModuleTaskBase_T<LockType,
           true); // locked access ?
   } // end IF
 
-  if (sessionData_)
-  {
-    sessionData_->decrease ();
-    sessionData_ = NULL;
-  } // end IF
-
   return 0;
 }
 
@@ -485,23 +479,50 @@ Stream_HeadModuleTaskBase_T<LockType,
                 ACE_TEXT ("worker thread (ID: %t) starting...\n")));
 
   // sanity check(s)
-  ACE_ASSERT (sessionData_);
+//  ACE_ASSERT (inherited2::mod_);
+  ACE_ASSERT (inherited2::sessionData_);
 
-  bool                   finished        = false;
+  int                    error           = -1;
+  bool                   has_finished    = false;
   int                    result          = -1;
   ACE_Message_Block*     message_block_p = NULL;
+//  int                    message_type = -1;
   bool                   stop_processing = false;
-  const SessionDataType& session_data_r  = sessionData_->get ();
+  const SessionDataType& session_data_r  = inherited2::sessionData_->get ();
   bool                   release_lock    = false;
 
-  // step1: process data
+  // step1: start processing data
 //   ACE_DEBUG ((LM_DEBUG,
-//               ACE_TEXT ("entering processing loop...\n")));
+//               ACE_TEXT ("%s: thread %t entering processing loop...\n"),
+//               inherited2::mod_->name ()));
 
-  while (inherited2::getq (message_block_p,
-                           NULL) != -1)
+  do
   {
-    // sanity check(s)
+    message_block_p = NULL;
+    result = inherited2::getq (message_block_p,
+                               NULL);
+    if (result == -1)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
+
+      error = ACE_OS::last_error ();
+      if (error != EWOULDBLOCK) // Win32: 10035
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
+
+        if (!has_finished)
+        {
+          has_finished = true;
+          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+          //         --> continue
+          inherited::finished ();
+        } // end IF
+
+        break;
+      } // end IF
+    } // end IF
     ACE_ASSERT (message_block_p);
 
     switch (message_block_p->msg_type ())
@@ -514,11 +535,11 @@ Stream_HeadModuleTaskBase_T<LockType,
 
         // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
         //         not have been set at this stage
-        
+
         // signal the controller ?
-        if (!finished)
+        if (!has_finished)
         {
-          finished = true;
+          has_finished = true;
           // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
           //         --> continue
           inherited::finished ();
@@ -551,27 +572,28 @@ done:
 
         if (release_lock) configuration_->ilock->unlock (false);
 
+        // finished ?
+        if (stop_processing)
+        {
+          // *IMPORTANT NOTE*: message_block_p has already been released() !
+
+          if (!has_finished)
+          {
+            has_finished = true;
+            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+            //         --> continue
+            inherited::finished ();
+          } // end IF
+
+          continue;
+        } // end IF
+
         break;
       }
     } // end SWITCH
-    // finished ?
-    if (stop_processing)
-    {
-      // *IMPORTANT NOTE*: message_block_p has already been released() !
-
-      if (!finished)
-      {
-        finished = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
-        inherited::finished ();
-      } // end IF
-
-      continue;
-    } // end IF
 
     // session aborted ?
-    if (!finished)
+    if (!has_finished)
     {
       // sanity check(s)
       // *TODO*: remove type inferences
@@ -584,21 +606,15 @@ done:
           ACE_DEBUG ((LM_DEBUG,
                       ACE_TEXT ("session aborted\n")));
 
-          finished = true;
+          has_finished = true;
           // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
           //         --> continue
           inherited::finished ();
         } // end IF
       } // end lock scope
     } // end IF
-
-    // clean up
-    message_block_p = NULL;
-  } // end WHILE
+  } while (true);
   result = -1;
-
-  ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("worker thread (ID: %t) failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
 continue_:
   return result;
@@ -681,11 +697,11 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   // sanity check(s)
   ACE_ASSERT (inherited2::mod_);
+  ACE_ASSERT (inherited2::sessionData_);
   ACE_ASSERT (configuration_);
-  ACE_ASSERT (sessionData_);
 
   SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (sessionData_->get ());
+    const_cast<SessionDataType&> (inherited2::sessionData_->get ());
 
   switch (message_inout->type ())
   {
@@ -1018,13 +1034,18 @@ Stream_HeadModuleTaskBase_T<LockType,
       // sanity check(s)
       ACE_ASSERT (inherited2::sessionData_);
 
+      inherited2::sessionData_->increase ();
+      SessionDataContainerType* session_data_container_p =
+          inherited2::sessionData_;
+
       if (!putSessionMessage (message_type,
-                              *inherited2::sessionData_,
+                              session_data_container_p,
                               configuration_->streamConfiguration->messageAllocator))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(%d), returning\n"),
                     inherited2::name (),
                     message_type));
+
       break;
     }
     case STREAM_CONTROL_UNLINK:
@@ -1072,15 +1093,17 @@ Stream_HeadModuleTaskBase_T<LockType,
   // sanity check(s)
   ACE_ASSERT (configuration_);
   ACE_ASSERT (configuration_->streamConfiguration);
-  ACE_ASSERT (sessionData_);
-
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (sessionData_->get ());
 
   switch (notification_in)
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited2::sessionData_);
+
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited2::sessionData_->get ());
+
       ACE_ASSERT (session_data_r.lock);
       {
         // *TODO*: remove type inferences
@@ -1102,30 +1125,18 @@ Stream_HeadModuleTaskBase_T<LockType,
       //         this, as other threads may be processing messages at this point
       //         --> more synchronization is needed (e.g. wait for all stream
       //             processing queues and active worker threads to idle first)
-      //lock (true);
-      if (!putSessionMessage (static_cast<Stream_SessionMessageType> (notification_in),
-                              *sessionData_,
-                              configuration_->streamConfiguration->messageAllocator))
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(%d), returning\n"),
-                    inherited2::name (),
-                    notification_in));
 
-      //stop (false, // wait for completion ?
-      //      true); // locked access ?
-
-      //flush (true,   // flush inbound data ?      [N/A]
-      //       false,  // flush session messages ?  [N/A]
-      //       false); // flush upstream (if any) ? [N/A]
-
-      //unlock ();
-
-      break;
+      // *WARNING*: falls through
     }
     default:
     {
+      SessionDataContainerType* session_data_container_p =
+          inherited2::sessionData_;
+      if (session_data_container_p)
+        session_data_container_p->increase ();
+
       if (!putSessionMessage (static_cast<Stream_SessionMessageType> (notification_in),
-                              *sessionData_,
+                              session_data_container_p,
                               configuration_->streamConfiguration->messageAllocator))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::putSessionMessage(%d), returning\n"),
@@ -1167,12 +1178,17 @@ Stream_HeadModuleTaskBase_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::start"));
 
-  if (sessionData_)
+  if (inherited2::sessionData_)
   {
     // *TODO*: remove type inference
     SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (sessionData_->get ());
-    session_data_r.startOfSession = COMMON_TIME_NOW;
+        const_cast<SessionDataType&> (inherited2::sessionData_->get ());
+
+    {
+      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+
+      session_data_r.startOfSession = COMMON_TIME_NOW;
+    } // end lock scope
   } // end IF
 
   // --> start a worker thread, if active
@@ -1747,14 +1763,16 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   int result = -1;
   ACE_SYNCH_MUTEX_T& lock_r = inherited2::queue_.lock ();
+  ACE_thread_mutex_t& mutex_r = lock_r.lock ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_thread_mutex_t& mutex_r = lock_r.lock ();
   if (!ACE_OS::thr_equal (reinterpret_cast<ACE_thread_t> (mutex_r.OwningThread),
                           ACE_OS::thr_self ()))
     return -1;
 #else
-#error "todo"
+  if (!ACE_OS::thr_equal (static_cast<ACE_thread_t> (mutex_r.__data.__owner),
+                          ACE_OS::thr_self ()))
+    return -1;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1764,7 +1782,11 @@ Stream_HeadModuleTaskBase_T<LockType,
     if (!unlock_in) break;
   } while (mutex_r.RecursionCount > 0);
 #else
-#error "todo"
+  do
+  {
+    result = lock_r.release ();
+    if (!unlock_in) break;
+  } while (mutex_r.__data.__count > 0);
 #endif
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
@@ -1774,7 +1796,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   return mutex_r.RecursionCount;
 #else
-#error "todo"
+  return mutex_r.__data.__count;
 #endif
 }
 template <typename LockType,
@@ -1807,10 +1829,12 @@ Stream_HeadModuleTaskBase_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::getLock"));
 
-  ACE_ASSERT (false);
-  ACE_NOTSUP_RETURN (ACE_SYNCH_RECURSIVE_MUTEX ());
+  ACE_SYNCH_RECURSIVE_MUTEX dummy;
 
-  ACE_NOTREACHED (return ACE_SYNCH_RECURSIVE_MUTEX ();)
+  ACE_ASSERT (false);
+  ACE_NOTSUP_RETURN (dummy);
+
+  ACE_NOTREACHED (return dummy;)
 }
 template <typename LockType,
           ACE_SYNCH_DECL,
@@ -2151,36 +2175,29 @@ Stream_HeadModuleTaskBase_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putStatisticMessage"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited2::sessionData_);
   ACE_ASSERT (configuration_);
   // *TODO*: remove type inference
   ACE_ASSERT (configuration_->streamConfiguration);
-  ACE_ASSERT (sessionData_);
 
   // step1: update session state
   SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (sessionData_->get ());
+    const_cast<SessionDataType&> (inherited2::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_r.currentStatistic = statisticData_in;
 
   // *TODO*: attach stream state information to the session data
 
-  //  // step2: create session data object container
-  //  SessionDataContainerType* session_data_p = NULL;
-  //  ACE_NEW_NORETURN (session_data_p,
-  //                    SessionDataContainerType (inherited::sessionData_,
-  //                                              false));
-  //  if (!session_data_p)
-  //  {
-  //    ACE_DEBUG ((LM_CRITICAL,
-  //                ACE_TEXT ("failed to allocate SessionDataContainerType: \"%m\", aborting\n")));
-  //    return false;
-  //  } // end IF
+  // step2: prepare session data object container
+  inherited2::sessionData_->increase ();
+  SessionDataContainerType* session_data_container_p =
+      inherited2::sessionData_;
 
   // step3: send the statistic data downstream
   //  // *NOTE*: fire-and-forget session_data_p here
   // *TODO*: remove type inference
   return putSessionMessage (STREAM_SESSION_MESSAGE_STATISTIC,
-                            *sessionData_,
+                            session_data_container_p,
                             configuration_->streamConfiguration->messageAllocator);
 }
 
@@ -2293,9 +2310,14 @@ Stream_HeadModuleTaskBase_T<LockType,
       // send initial session message downstream ?
       if (generateSessionMessages_)
       {
-        ACE_ASSERT (sessionData_);
+        ACE_ASSERT (inherited2::sessionData_);
+
+        inherited2::sessionData_->increase ();
+        SessionDataContainerType* session_data_container_p =
+            inherited2::sessionData_;
+
         if (!putSessionMessage (STREAM_SESSION_MESSAGE_BEGIN,                           // type
-                                *sessionData_,                                          // session data
+                                session_data_container_p,                               // session data
                                 configuration_->streamConfiguration->messageAllocator)) // allocator
         {
           ACE_DEBUG ((LM_ERROR,
@@ -2419,14 +2441,13 @@ Stream_HeadModuleTaskBase_T<LockType,
         //         --> just signal the controller
 
         // sanity check(s)
-        ACE_ASSERT (sessionData_);
+        ACE_ASSERT (inherited2::sessionData_);
         // *TODO*: remove type inferences
         SessionDataType& session_data_r =
-            const_cast<SessionDataType&> (sessionData_->get ());
+            const_cast<SessionDataType&> (inherited2::sessionData_->get ());
 
         {
           ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-
           if (session_data_r.aborted)
             this->finished ();
         } // end lock scope
@@ -2579,8 +2600,13 @@ Stream_HeadModuleTaskBase_T<LockType,
           send_end_message)
       {
         ACE_ASSERT (inherited2::sessionData_);
+
+        inherited2::sessionData_->increase ();
+        SessionDataContainerType* session_data_container_p =
+            inherited2::sessionData_;
+
         if (!putSessionMessage (STREAM_SESSION_MESSAGE_END,                             // session message type
-                                *inherited2::sessionData_,                              // session data
+                                session_data_container_p,                               // session data
                                 configuration_->streamConfiguration->messageAllocator)) // allocator
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("putSessionMessage(SESSION_END) failed, continuing\n")));
@@ -2739,7 +2765,7 @@ Stream_HeadModuleTaskBase_T<LockType,
                             SessionDataType,
                             SessionDataContainerType,
                             StatisticContainerType>::putSessionMessage (Stream_SessionMessageType messageType_in,
-                                                                        SessionDataContainerType& sessionData_in,
+                                                                        SessionDataContainerType*& sessionData_inout,
                                                                         Stream_IAllocator* allocator_in) const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::putSessionMessage"));
@@ -2749,7 +2775,7 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   int result = -1;
 
-  // create session message
+  // create a session message
   SessionMessageType* session_message_p = NULL;
   if (allocator_in)
   {
@@ -2762,9 +2788,12 @@ allocate:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Stream_IAllocator::malloc(0), aborting\n")));
 
-//      // clean up
-//      sessionData_inout->decrease ();
-//      sessionData_inout = NULL;
+      // clean
+      if (sessionData_inout)
+      {
+        sessionData_inout->decrease ();
+        sessionData_inout = NULL;
+      } // end IF
 
       return false;
     }
@@ -2776,12 +2805,10 @@ allocate:
   } // end IF
   else
   {
-    sessionData_in.increase ();
-    SessionDataContainerType* session_data_container_p = &sessionData_in;
     // *TODO*: remove type inference
     ACE_NEW_NORETURN (session_message_p,
                       SessionMessageType (messageType_in,
-                                          session_data_container_p,
+                                          sessionData_inout,
                                           streamState_->userData));
   } // end ELSE
   if (!session_message_p)
@@ -2796,18 +2823,20 @@ allocate:
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate SessionMessageType: \"%m\", aborting\n")));
 
-    // clean up
-    sessionData_in.decrease ();
+    // clean
+    if (sessionData_inout)
+    {
+      sessionData_inout->decrease ();
+      sessionData_inout = NULL;
+    } // end IF
 
     return false;
   } // end IF
   if (allocator_in)
   {
-    sessionData_in.increase ();
-    SessionDataContainerType* session_data_container_p = &sessionData_in;
     // *TODO*: remove type inference
     session_message_p->initialize (messageType_in,
-                                   session_data_container_p,
+                                   sessionData_inout,
                                    streamState_->userData);
   } // end IF
 

@@ -37,7 +37,6 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 class Test_I_Source_Stream_SessionMessage;
-struct Test_I_Target_AllocatorConfiguration;
 class Test_I_Target_Stream_SessionMessage;
 template <typename AllocatorConfigurationType,
           typename ControlMessageType,
@@ -47,20 +46,20 @@ class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Target_Stream_Message
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//: public Stream_DirectShowMessageBase_T<Test_I_Target_AllocatorConfiguration>
- : public Stream_MediaFoundationMessageBase_T<Test_I_Target_AllocatorConfiguration,
+//: public Stream_DirectShowMessageBase_T<Stream_AllocatorConfiguration>
+ : public Stream_MediaFoundationMessageBase_T<Stream_AllocatorConfiguration,
                                               Test_I_Target_ControlMessage_t,
                                               Test_I_Target_Stream_SessionMessage,
                                               Test_I_Target_MessageData>
 #else
- : public Stream_MessageBase_T<Test_I_Target_AllocatorConfiguration,
+ : public Stream_MessageBase_T<Stream_AllocatorConfiguration,
                                Test_I_Target_ControlMessage_t,
                                Test_I_Target_Stream_SessionMessage,
                                Test_I_CommandType_t>
 #endif
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Test_I_Target_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
                                                  Test_I_Target_ControlMessage_t,
                                                  Test_I_Target_Stream_Message,
                                                  Test_I_Target_Stream_SessionMessage>;
@@ -87,13 +86,13 @@ class Test_I_Target_Stream_Message
 
  private:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //typedef Stream_DirectShowMessageBase_T<Test_I_Target_AllocatorConfiguration> inherited;
-  typedef Stream_MediaFoundationMessageBase_T<Test_I_Target_AllocatorConfiguration,
+  //typedef Stream_DirectShowMessageBase_T<Stream_AllocatorConfiguration> inherited;
+  typedef Stream_MediaFoundationMessageBase_T<Stream_AllocatorConfiguration,
                                               Test_I_Target_ControlMessage_t,
                                               Test_I_Target_Stream_SessionMessage,
                                               Test_I_Target_MessageData> inherited;
 #else
-  typedef Stream_MessageBase_T<Test_I_Target_AllocatorConfiguration,
+  typedef Stream_MessageBase_T<Stream_AllocatorConfiguration,
                                Test_I_Target_ControlMessage_t,
                                Test_I_Target_Stream_SessionMessage,
                                Test_I_CommandType_t> inherited;

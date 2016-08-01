@@ -161,8 +161,13 @@ add_executable (${EXECUTABLE_SOURCE} ${camsource_EXE_SRCS} etc/resources.rc etc/
 
 #add_dependencies (${EXECUTABLE_SOURCE} ACE)
 add_dependencies (${EXECUTABLE_SOURCE} Common)
+add_dependencies (${EXECUTABLE_SOURCE} CommonUI)
 add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME})
+add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Device)
+add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Miscellaneous)
 add_dependencies (${EXECUTABLE_SOURCE} ACENetwork)
+add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Network)
+add_dependencies (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE_SOURCE} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE_SOURCE} ${ACE_LIBRARY})
@@ -433,8 +438,12 @@ add_executable (${EXECUTABLE_TARGET} ${camtarget_EXE_SRCS} etc/resources.rc etc/
 
 #add_dependencies (${EXECUTABLE_TARGET} ACE)
 add_dependencies (${EXECUTABLE_TARGET} Common)
+add_dependencies (${EXECUTABLE_TARGET} CommonUI)
 add_dependencies (${EXECUTABLE_TARGET} ${PROJECT_NAME})
+add_dependencies (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Miscellaneous)
 add_dependencies (${EXECUTABLE_TARGET} ACENetwork)
+add_dependencies (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Network)
+add_dependencies (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Visualization)
 
 target_link_libraries (${EXECUTABLE_TARGET} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (${EXECUTABLE_TARGET} ${ACE_LIBRARY})

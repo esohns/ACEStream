@@ -168,8 +168,8 @@ Stream_Module_Net_IO_Stream_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::load"));
 
   // initialize return value(s)
-  modules_out.clear ();
-  delete_out = false;
+//  modules_out.clear ();
+//  delete_out = false;
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,

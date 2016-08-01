@@ -51,12 +51,9 @@ Stream_ResetCounterHandler::handle_timeout (const ACE_Time_Value& tv_in,
   ACE_UNUSED_ARG (tv_in);
   ACE_UNUSED_ARG (arg_in);
 
-  try
-  {
+  try {
     counter_->reset ();
-  }
-  catch (...)
-  {
+  } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught an exception in Common_ICounter::reset() --> check implementation !, aborting\n")));
     return -1;

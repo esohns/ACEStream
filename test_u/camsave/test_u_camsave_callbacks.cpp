@@ -1390,7 +1390,7 @@ stream_processing_function (void* arg_in)
   //              ACE_TEXT ("failed to Stream_CamSave_Stream::start(): \"%m\", aborting\n")));
   //  goto done;
   //} // end IF
-  data_p->CBData->stream->waitForCompletion (true, false);
+  data_p->CBData->stream->wait (true, false, false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;

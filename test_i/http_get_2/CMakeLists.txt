@@ -305,7 +305,7 @@ install (TARGETS ${EXECUTABLE}
 
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-c./../../../test_i/http_get_2/etc/soffice.ini -f./../../../test_i/http_get_2/etc/symbols.ini -h localhost -l -o ./output.ods -p 2083 -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_uebersicht.htn"
+                         ARGS "-c./../../../test_i/http_get_2/etc/soffice.ini -f./../../../test_i/http_get_2/etc/symbols.ini -h localhost -l -o ./output.ods -p 2083 -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../gtk/bin
@@ -320,7 +320,7 @@ if (UNIX)
                          ENVIRONMENT foo=bar)
 elseif (WIN32)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-c.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\soffice.ini -f.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\template.ods -h localhost -i.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\symbols.ini -l -o .\\\\output.ods -p 2083 -r -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_uebersicht.htn"
+                         ARGS "-c.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\soffice.ini -d -f.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\template.ods -h localhost -i.\\\\..\\\\..\\\\..\\\\test_i\\\\http_get_2\\\\etc\\\\symbols.ini -l -o .\\\\output.ods -p 2083 -r -t -u http://kurse.boerse.ard.de/ard/kurse_einzelkurs_suche.htn"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/../ATCD/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../libxml2-2.9.1/.libs

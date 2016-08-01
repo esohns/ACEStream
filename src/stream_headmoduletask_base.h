@@ -168,7 +168,7 @@ class Stream_HeadModuleTaskBase_T
   // *NOTE*: message assumes responsibility for the payload data container
   //         --> "fire-and-forget" SessionDataContainerType
   bool putSessionMessage (Stream_SessionMessageType,        // session message type
-                          SessionDataContainerType&,        // session data container
+                          SessionDataContainerType*&,       // session data container
                           Stream_IAllocator* = NULL) const; // allocator (NULL ? --> use "new")
   bool putStatisticMessage (const StatisticContainerType&) const; // statistic information
 
@@ -185,9 +185,9 @@ class Stream_HeadModuleTaskBase_T
   //         that react to asynchronous events (such as connection resets, user
   //         aborts, signals, etc)
   // *TODO*: find a way to by-pass this additional overhead if 'true'
-  bool                      concurrent_;
-  ConfigurationType*        configuration_;
-  bool                      isInitialized_;
+  bool                 concurrent_;
+  ConfigurationType*   configuration_;
+  bool                 isInitialized_;
 
   // *NOTE*: default behaviour for '!active' modules (i.e. modules that have no
   //         dedicated worker thread), which 'borrows' the thread calling
@@ -197,13 +197,13 @@ class Stream_HeadModuleTaskBase_T
   //         However, this behaviour may not be intended for passive modules
   //         that don't do their processing via start(), but are 'supplied'
   //         externally (e.g. network source modules)
-  bool                      runSvcOnStart_;
-  bool                      sessionEndProcessed_;
-  StreamStateType*          streamState_;
+  bool                 runSvcOnStart_;
+  bool                 sessionEndProcessed_;
+  StreamStateType*     streamState_;
 
   // timer
-  COLLECTION_HANDLER_T      statisticCollectionHandler_;
-  long                      timerID_;
+  COLLECTION_HANDLER_T statisticCollectionHandler_;
+  long                 timerID_;
 
  private:
   typedef Stream_StateMachine_Control_T<LockType> inherited;
@@ -250,12 +250,12 @@ class Stream_HeadModuleTaskBase_T
   virtual void upStream (Stream_Base_t*);
   virtual Stream_Base_t* upStream () const;
 
-  bool                      active_;
+  bool                 active_;
   // *NOTE*: starts a worker thread in open (), i.e. when push()ed onto a stream
-  bool                      autoStart_;
-  bool                      generateSessionMessages_;
-  bool                      sessionEndSent_;
-  ACE_Thread_ID             threadID_;
+  bool                 autoStart_;
+  bool                 generateSessionMessages_;
+  bool                 sessionEndSent_;
+  ACE_Thread_ID        threadID_;
 };
 
 // include template definition

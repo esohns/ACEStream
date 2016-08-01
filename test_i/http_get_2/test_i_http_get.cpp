@@ -545,14 +545,13 @@ do_parseConfigurationFile (const std::string& fileName_in,
 
   int result = -1;
   ACE_Configuration_Heap configuration_heap;
-  result = configuration_heap.open ();
+  result = configuration_heap.open (ACE_DEFAULT_CONFIG_SECTION_SIZE);
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("ACE_Configuration_Heap::open() failed, aborting\n")));
     return false;
   } // end IF
-
   ACE_Ini_ImpExp ini_import_export (configuration_heap);
   result = ini_import_export.import_config (fileName_in.c_str ());
   if (result == -1)
@@ -563,18 +562,18 @@ do_parseConfigurationFile (const std::string& fileName_in,
     return false;
   } // end IF
 
-  // step1: find/open "timestamp" section...
+  // step1: find/open "stocks" section...
   ACE_Configuration_Section_Key section_key;
   result =
     configuration_heap.open_section (configuration_heap.root_section (),
-                                     ACE_TEXT (TEST_I_CNF_SYMBOLS_SECTION_HEADER),
+                                     ACE_TEXT (TEST_I_CNF_STOCKS_SECTION_HEADER),
                                      0, // MUST exist !
                                      section_key);
   if (result == -1)
   {
     ACE_ERROR ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Configuration_Heap::open_section(\"%s\"), aborting\n"),
-                ACE_TEXT (TEST_I_CNF_SYMBOLS_SECTION_HEADER)));
+                ACE_TEXT (TEST_I_CNF_STOCKS_SECTION_HEADER)));
     return false;
   } // end IF
 
@@ -606,13 +605,59 @@ do_parseConfigurationFile (const std::string& fileName_in,
                                                       : ACE_TEXT_ALWAYS_CHAR (""));
     stockItems_out.insert (stock_item);
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("added symbol: \"%s\"...\n"),
+                ACE_TEXT ("added stock item: \"%s\"...\n"),
+                ACE_TEXT (stock_item.symbol.c_str ())));
+
+    ++index;
+  } // end WHILE
+
+  // step2: find/open "equity funds" section...
+  result =
+    configuration_heap.open_section (configuration_heap.root_section (),
+                                     ACE_TEXT (TEST_I_CNF_EQUITYFUNDS_SECTION_HEADER),
+                                     0, // MUST exist !
+                                     section_key);
+  if (result == -1)
+  {
+    ACE_ERROR ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Configuration_Heap::open_section(\"%s\"), aborting\n"),
+                ACE_TEXT (TEST_I_CNF_EQUITYFUNDS_SECTION_HEADER)));
+    return false;
+  } // end IF
+
+  // import values...
+  stock_item.isStock = false;
+  index = 0;
+  while (configuration_heap.enumerate_values (section_key,
+                                              index,
+                                              item_name,
+                                              item_type) == 0)
+  {
+    result =
+      configuration_heap.get_string_value (section_key,
+                                           item_name.c_str (),
+                                           item_value);
+    if (result == -1)
+    {
+      ACE_ERROR ((LM_ERROR,
+                  ACE_TEXT ("failed to ACE_Configuration_Heap::get_string_value(\"%s\"), aborting\n"),
+                  item_name.c_str ()));
+      return false;
+    } // end IF
+
+    stock_item.symbol = ACE_TEXT_ALWAYS_CHAR (item_name.c_str ());
+    stock_item.ISIN =
+        ((item_value.length () == TEST_I_ISIN_LENGTH) ? ACE_TEXT_ALWAYS_CHAR (item_value.c_str ())
+                                                      : ACE_TEXT_ALWAYS_CHAR (""));
+    stockItems_out.insert (stock_item);
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("added equity fund item: \"%s\"...\n"),
                 ACE_TEXT (stock_item.symbol.c_str ())));
 
     ++index;
   } // end WHILE
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("loaded %u symbol(s)...\n"),
+              ACE_TEXT ("found %u items(s)...\n"),
               stockItems_out.size ()));
 
   return true;

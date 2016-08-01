@@ -621,7 +621,6 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   int error = 0;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
-  int message_type = -1;
   bool stop_processing = false;
   struct v4l2_buffer buffer;
   ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
@@ -636,9 +635,10 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   const SessionDataType& session_data_r = inherited::sessionData_->get ();
 
-  // step1: start processing data...
+  // step1: start processing data
 //   ACE_DEBUG ((LM_DEBUG,
 //               ACE_TEXT ("entering processing loop...\n")));
+
   do
   {
     message_block_p = NULL;
@@ -647,8 +647,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     if (result == 0)
     {
       ACE_ASSERT (message_block_p);
-      message_type = message_block_p->msg_type ();
-      switch (message_type)
+      switch (message_block_p->msg_type ())
       {
         case ACE_Message_Block::MB_STOP:
         {
@@ -656,20 +655,23 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
           message_block_p->release ();
           message_block_p = NULL;
 
-          // *NOTE*: when close()d manually (i.e. user abort, ...),
-          //         'hasFinished_' will not have been set at this stage
+          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
+          //         not have been set at this stage
+
+          // signal the controller ?
           if (!hasFinished_)
           {
             hasFinished_ = true;
             // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
             //         --> continue
             inherited::finished ();
+
             // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
             //         --> done
             if (inherited::thr_count_ == 0)
               goto done; // finished processing
 
-            continue;
+            continue; // process STREAM_SESSION_END
           } // end IF
 
 done:
@@ -678,27 +680,39 @@ done:
           goto continue_; // STREAM_SESSION_END has been processed
         }
         default:
-          break;
-      } // end SWITCH
-
-      // process
-      // *NOTE*: fire-and-forget message_block_p here
-      inherited::handleMessage (message_block_p,
-                                stop_processing);
-      if (stop_processing)
-      {
-        // *IMPORTANT NOTE*: message_block_p has already been released() !
-
-        if (!hasFinished_)
         {
-          hasFinished_ = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
-          inherited::finished ();
-        } // end IF
+          // sanity check(s)
+          ACE_ASSERT (inherited::configuration_);
+          ACE_ASSERT (inherited::configuration_->ilock);
 
-        continue;
-      } // end IF
+//          // grab lock if processing is 'non-concurrent'
+//          if (!concurrent_)
+//            release_lock = configuration_->ilock->lock (true);
+
+          inherited::handleMessage (message_block_p,
+                                    stop_processing);
+
+//          if (release_lock) configuration_->ilock->unlock (false);
+
+          // finished ?
+          if (stop_processing)
+          {
+            // *IMPORTANT NOTE*: message_block_p has already been released() !
+
+            if (!hasFinished_)
+            {
+              hasFinished_ = true;
+              // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+              //         --> continue
+              inherited::finished ();
+            } // end IF
+
+            continue;
+          } // end IF
+
+          break;
+        }
+      } // end SWITCH
     } // end IF
     else if (result == -1)
     {
@@ -721,17 +735,27 @@ done:
     } // end IF
 
     // session aborted ?
-    if (session_data_r.aborted)
+    if (!hasFinished_)
     {
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("session aborted...\n")));
+      // sanity check(s)
+      // *TODO*: remove type inferences
+      ACE_ASSERT (session_data_r.lock);
+      {
+        ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, -1);
 
-      hasFinished_ = true;
-      // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-      //         --> continue
-      inherited::finished ();
+        if (session_data_r.aborted)
+        {
+          ACE_DEBUG ((LM_DEBUG,
+                      ACE_TEXT ("session aborted\n")));
 
-      continue;
+          hasFinished_ = true;
+          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+          //         --> continue
+          inherited::finished ();
+
+          continue;
+        } // end IF
+      } // end lock scope
     } // end IF
 
 #if defined (_DEBUG)

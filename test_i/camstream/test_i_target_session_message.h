@@ -38,7 +38,7 @@ template <typename AllocatorConfigurationType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
 class Test_I_Target_Stream_SessionMessage
-  : public Stream_SessionMessageBase_T<Test_I_Target_AllocatorConfiguration,
+  : public Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
                                        Stream_SessionMessageType,
                                        Test_I_Target_Stream_SessionData_t,
                                        Test_I_Target_UserData,
@@ -46,7 +46,7 @@ class Test_I_Target_Stream_SessionMessage
                                        Test_I_Stream_Message>
 {
   // grant access to specific private ctors
-  friend class Stream_MessageAllocatorHeapBase_T<Test_I_Target_AllocatorConfiguration,
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
                                                  Test_I_Target_ControlMessage_t,
                                                  Test_I_Target_Stream_Message,
                                                  Test_I_Target_Stream_SessionMessage>;
@@ -63,7 +63,7 @@ class Test_I_Target_Stream_SessionMessage
   virtual ACE_Message_Block* duplicate (void) const;
 
  private:
-  typedef Stream_SessionMessageBase_T<Test_I_Target_AllocatorConfiguration,
+  typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
                                       Stream_SessionMessageType,
                                       Test_I_Target_Stream_SessionData_t,
                                       Test_I_Target_UserData,

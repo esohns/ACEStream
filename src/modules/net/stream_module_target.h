@@ -60,15 +60,14 @@ class Stream_Module_Net_Target_T
   virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase_T
-  virtual void handleDataMessage (DataMessageType*&, // data message handle
-                                  bool&);            // return value: pass message downstream ?
+  inline virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                         bool&) {};         // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
  protected:
   typename ConnectionManagerType::ICONNECTION_T* connection_;
   ConnectorType                                  connector_;
-  SessionDataContainerType*                      sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -84,6 +83,7 @@ class Stream_Module_Net_Target_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Target_T& operator= (const Stream_Module_Net_Target_T&))
 
   bool                                           isLinked_;
+  bool                                           isOpen_;
   bool                                           isPassive_;
   // *NOTE*: this lock prevents races during (ordered) shutdown
   // *TODO*: remove surplus STREAM_SESSION_END messages

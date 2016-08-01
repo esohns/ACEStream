@@ -250,7 +250,9 @@ struct Test_I_Configuration
    , useReactor (NET_EVENT_USE_REACTOR)
   {};
 
-//  // **************************** signal data **********************************
+  // ************************** allocator data *********************************
+  Stream_AllocatorConfiguration            allocatorConfiguration;
+  // **************************** signal data **********************************
 //  Stream_SignalHandlerConfiguration        signalHandlerConfiguration;
   // **************************** socket data **********************************
   Net_SocketConfiguration                  socketConfiguration;

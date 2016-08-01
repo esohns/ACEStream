@@ -63,8 +63,8 @@ class Stream_Module_Net_Source_T
   virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase
-  //virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-  //                                bool&);                // return value: pass message downstream ?
+  inline virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                         bool&) {};         // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -87,6 +87,7 @@ class Stream_Module_Net_Source_T
   ConnectorType                                 connector_;
   typename ConnectionManagerType::CONNECTION_T* connection_;
   bool                                          isLinked_;
+  bool                                          isOpen_;
   bool                                          isPassive_;
   //// *NOTE*: this lock prevents races during (ordered) shutdown
   //// *TODO*: remove surplus STREAM_SESSION_END message(s)
@@ -164,8 +165,8 @@ class Stream_Module_Net_SourceH_T
   bool isInitialized () const;
 
   // implement (part of) Stream_ITaskBase
-  //virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-  //                                bool&);                // return value: pass message downstream ?
+  inline virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                         bool&) {};         // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -201,6 +202,7 @@ class Stream_Module_Net_SourceH_T
   ConnectorType                                 connector_;
   typename ConnectionManagerType::CONNECTION_T* connection_;
   bool                                          isLinked_;
+  bool                                          isOpen_;
   bool                                          isPassive_;
   //// *NOTE*: this lock prevents races during (ordered) shutdown
   //// *TODO*: remove surplus STREAM_SESSION_END message(s)

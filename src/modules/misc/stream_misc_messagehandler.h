@@ -100,13 +100,11 @@ class Stream_Module_MessageHandler_T
   virtual void unsubscribe (INOTIFY_T*); // existing subscriber
 
  protected:
-  bool                                       delete_;
+  bool                       delete_;
   // *NOTE*: recursive so that callees may unsubscribe from within the
   //         notification callbacks...
-  ACE_SYNCH_RECURSIVE_MUTEX*                 lock_;
-  SUBSCRIBERS_T*                             subscribers_;
-
-  typename SessionDataContainerType::DATA_T* sessionData_;
+  ACE_SYNCH_RECURSIVE_MUTEX* lock_;
+  SUBSCRIBERS_T*             subscribers_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,

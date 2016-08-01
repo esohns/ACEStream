@@ -502,11 +502,6 @@ Stream_Base_T<LockType,
                 ACE_TEXT ("failed to Stream_IStreamControlBase::load(), returning\n")));
     return;
   } // end IF
-  //// *TODO* fix ACE bug: modules should initialize their 'next_' member
-  //for (Stream_ModuleListIterator_t iterator = modules_.begin ();
-  //     iterator != modules_.end ();
-  //     iterator++)
-  //  (*iterator)->next (NULL);
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
@@ -2040,12 +2035,12 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::find"));
 
-  inherited* base_p = const_cast<OWN_TYPE_T*> (this);
+  STREAM_T* stream_p = const_cast<OWN_TYPE_T*> (this);
 
   // step1: search for the module on the stream
   const ACE_TCHAR* name_p = ACE_TEXT_CHAR_TO_TCHAR (name_in.c_str ());
   const MODULE_T* module_p = NULL;
-  for (ITERATOR_T iterator (*base_p);
+  for (ITERATOR_T iterator (*stream_p);
        iterator.next (module_p);
        iterator.advance ())
     if (ACE_OS::strcmp (module_p->name (), name_p) == 0)
@@ -2211,10 +2206,10 @@ Stream_Base_T<LockType,
     if (error == EBUSY)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("[%T][%t]: lock %sheld by %d --> false\n"),
-      //            (block_in ? ACE_TEXT ("(block) ") : ACE_TEXT ("")),
-      //            mutex_r.OwningThread));
+//      ACE_DEBUG ((LM_DEBUG,
+//                  ACE_TEXT ("[%T][%t]: lock %sheld by %d --> false\n"),
+//                  (block_in ? ACE_TEXT ("(block) ") : ACE_TEXT ("")),
+//                  mutex_r.OwningThread));
 #endif
       return false;
     } // end IF
@@ -2317,7 +2312,17 @@ Stream_Base_T<LockType,
                 ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
                 ACE_TEXT (name_.c_str ())));
 #else
-#error "todo"
+  result = (lock_.get_nesting_level () > 0 ? lock_.get_nesting_level () - 1 : 0);
+  int result_2 = -1;
+  do
+  {
+    result_2 = lock_.release ();
+    if (!unlock_in) break;
+  } while (lock_.get_nesting_level () > 0);
+  if (result_2 == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_SYNCH_RECURSIVE_MUTEX::release(): \"%m\", continuing\n"),
+                ACE_TEXT (name_.c_str ())));
 #endif
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("[%T][%t]: unlock %s%d --> %d\n"),
@@ -2363,6 +2368,8 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::getLock"));
 
+  ACE_SYNCH_RECURSIVE_MUTEX dummy;
+
   if (upStream_)
   {
     ILOCK_T* ilock_p = dynamic_cast<ILOCK_T*> (upStream_);
@@ -2371,7 +2378,7 @@ Stream_Base_T<LockType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to dynamic_cast<Stream_ILock_T*>(%@), aborting\n"),
                   upStream_));
-      return ACE_SYNCH_RECURSIVE_MUTEX ();
+      return dummy;
     } // end IF
     try {
       return ilock_p->getLock ();
@@ -2835,11 +2842,11 @@ Stream_Base_T<LockType,
                     ACE_TEXT ("\"%s\": failed to Stream_IModule_T::clone(), aborting\n"),
                     configuration_inout.module->name ()));
         return false;
-      }
+      } // end IF
       state_.module = module_p;
       state_.deleteModule = true;
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: cloned final module 0x%@ (handle is: 0x%@)\n"),
+                  ACE_TEXT ("%s: cloned final module %@ (handle is: %@)\n"),
                   configuration_inout.module->name (),
                   configuration_inout.module,
                   state_.module));
@@ -2872,32 +2879,6 @@ Stream_Base_T<LockType,
 
     modules_.push_front (state_.module);
     hasFinal_ = true;
-
-    //if (!imodule_p->initialize (*configuration_inout.moduleConfiguration))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: failed to initialize module, aborting\n"),
-    //              state_.module->name ()));
-    //  return false;
-    //} // end IF
-    //Stream_Task_t* task_p = state_.module->writer ();
-    //ACE_ASSERT (task_p);
-    //MODULEHANDLER_IINITIALIZE_T* iinitialize_p =
-    //    dynamic_cast<MODULEHANDLER_IINITIALIZE_T*> (task_p);
-    //if (!iinitialize_p)
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: dynamic_cast<Common_IInitialize_T<HandlerConfigurationType>> failed, aborting\n"),
-    //              state_.module->name ()));
-    //  return false;
-    //} // end IF
-    //if (!iinitialize_p->initialize (*configuration_inout.moduleHandlerConfiguration))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("%s: failed to Common_IInitialize_T::initialize(), aborting\n"),
-    //              state_.module->name ()));
-    //  return false;
-    //} // end IF
   } // end IF
 
   configuration_ = &const_cast<ConfigurationType&> (configuration_inout);
@@ -3048,6 +3029,9 @@ Stream_Base_T<LockType,
 
   ////////////////////////////////////////
 
+  SessionDataType* session_data_p = NULL;
+  SessionDataType* session_data_2 = NULL;
+
   // ((re-)lock /) update configuration
   // *IMPORTANT NOTE*: in fully synchronous, or 'concurrent' scenarios, with
   //                   non-reentrant modules, the caller needs to hold the
@@ -3084,17 +3068,17 @@ continue_:
   //         away (see discussion above)
   //         --> make Stream_Base_T::get() return a reference instead
   session_data_container_p->increase ();
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (session_data_container_p->get ());
-  SessionDataType& session_data_2 =
-    const_cast<SessionDataType&> (sessionData_->get ());
+  session_data_p =
+    &const_cast<SessionDataType&> (session_data_container_p->get ());
+  session_data_2 =
+    &const_cast<SessionDataType&> (sessionData_->get ());
 
   {
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, sessionDataLock_, -1);
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard_2, stream_p->sessionDataLock_, -1);
 
     // *NOTE*: the idea here is to 'merge' the two datasets
-    session_data_r += session_data_2;
+    *session_data_p += *session_data_2;
 
     // switch session data
     sessionData_->decrease ();

@@ -71,7 +71,7 @@ Stream_CachedMessageAllocatorHeapBase_T<ControlMessageType,
   ACE_Data_Block* data_block_p = NULL;
   try {
     ACE_ALLOCATOR_NORETURN (data_block_p,
-                            static_cast<ACE_Data_Block*> (dataBlockAllocator_.calloc ()));
+                            static_cast<ACE_Data_Block*> (dataBlockAllocator_.calloc (sizeof (ACE_Data_Block))));
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block), continuing\n")));

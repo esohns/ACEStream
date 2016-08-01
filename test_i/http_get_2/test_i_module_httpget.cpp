@@ -22,6 +22,7 @@
 #include "test_i_module_httpget.h"
 
 #include "ace/Log_Msg.h"
+#include "ace/OS.h"
 
 #include "stream_macros.h"
 
@@ -80,22 +81,17 @@ Test_I_Stream_HTTPGet::handleDataMessage (Test_I_Stream_Message*& message_inout,
       break;
   } while (true);
 
-  //std::string url_string = inherited::configuration_->URL;
-  //std::string::size_type position =
-  //  url_string.find (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER),
-  //                   0,
-  //                   ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)));
-  //ACE_ASSERT (position != std::string::npos);
-  //url_string =
-  //  url_string.replace (position,
-  //                      ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)),
-  //                      (*iterator_).ISIN.c_str ());
+  std::string url_string = inherited::configuration_->URL;
   HTTP_Form_t form_data;
   form_data.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FORM_KEY_SEARCH_STRING),
                                     (*iterator_).ISIN));
+  if (form_data.empty ())
+    makeURI (inherited::configuration_->URL,
+             (*iterator_).ISIN,
+             url_string);
 
-  // send HTTP POST request
-  if (!inherited::send (inherited::configuration_->URL,
+  // send HTTP GET/POST request
+  if (!inherited::send (url_string,
                         inherited::configuration_->HTTPHeaders,
                         form_data))
   {
@@ -212,4 +208,32 @@ Test_I_Stream_HTTPGet::handleSessionMessage (Test_I_Stream_SessionMessage*& mess
     default:
       break;
   } // end SWITCH
+}
+
+void
+Test_I_Stream_HTTPGet::makeURI (const std::string& baseURL_in,
+                                const std::string& ISIN_in,
+                                std::string& URI_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_HTTPGet::makeURI"));
+
+  // initialize return value(s)
+  URI_out = baseURL_in;
+
+  std::string::size_type position =
+    URI_out.find (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER),
+                  0,
+                  ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)));
+  if (position != std::string::npos)
+    URI_out = URI_out.replace (position,
+                               ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_URL_SYMBOL_PLACEHOLDER)),
+                               ISIN_in.c_str ());
+  else
+  {
+    URI_out += ACE_TEXT_ALWAYS_CHAR ("?");
+    URI_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FORM_KEY_SEARCH_STRING);
+    URI_out += ACE_TEXT_ALWAYS_CHAR ("=");
+    URI_out += ISIN_in;
+    URI_out += ACE_TEXT_ALWAYS_CHAR ("&button=");
+  } // end ELSE
 }

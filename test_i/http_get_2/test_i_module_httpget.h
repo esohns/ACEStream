@@ -21,6 +21,8 @@
 #ifndef TEST_I_STREAM_HTTPGET_H
 #define TEST_I_STREAM_HTTPGET_H
 
+#include <string>
+
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -65,6 +67,11 @@ class Test_I_Stream_HTTPGet
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTTPGet (const Test_I_Stream_HTTPGet&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_HTTPGet& operator= (const Test_I_Stream_HTTPGet&))
+
+  // helper methods
+  void makeURI (const std::string&, // base URL
+                const std::string&, // ISIN string
+                std::string&);      // return value: URI
 
   Test_I_StockItemsIterator_t iterator_;
 };

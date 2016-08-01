@@ -129,7 +129,6 @@ class Stream_Module_HTMLParser_T
   bool                          complete_;
   ParserContextType             parserContext_;
   htmlSAXHandler                SAXHandler_;
-  SessionDataContainerType*     sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,

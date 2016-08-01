@@ -130,6 +130,8 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_SpreadsheetWriter::handleSessionMessage"));
 
   int result = -1;
+  oslProcessError result_2 = osl_Process_E_InvalidError;
+  ::osl::FileBase::RC result_3 = ::osl::FileBase::RC::E_invalidError;
   bool result_4 = false;
 
   // don't care (implies yes per default, if part of a stream)
@@ -138,6 +140,13 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::mod_);
+
+  ::rtl::OUString filename, working_directory, filename_url;
+  ::rtl::OUString absolute_filename_url;
+  result_2 = osl_getProcessWorkingDir (&working_directory.pData);
+  ACE_ASSERT (result_2 == osl_Process_E_None);
+  uno::Sequence<beans::PropertyValue> document_properties;
+  uno::Reference<task::XInteractionHandler> handler_p;
 
   const Test_I_Stream_SessionData_t& session_data_container_r =
     message_inout->get ();
@@ -163,17 +172,12 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       uno::Reference<bridge::XUnoUrlResolver> url_resolver_p;
       uno::Reference<frame::XDesktop2> desktop_p;
       uno::Reference<beans::XPropertySet> property_set_p;
-      ::rtl::OUString filename, working_directory, filename_url;
-      ::rtl::OUString absolute_filename_url;
-      uno::Reference<task::XInteractionHandler> handler_p;
 
       // --> create new frame (see below)
       ::rtl::OUString target_frame_name (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_FRAME_BLANK));
-      oslProcessError result_2 = osl_Process_E_InvalidError;
-      ::osl::FileBase::RC result_3 = ::osl::FileBase::RC::E_invalidError;
       const char* result_p = NULL;
       sal_Int32 search_flags = frame::FrameSearchFlag::AUTO;
-      uno::Sequence<beans::PropertyValue> document_properties (3);
+      document_properties.realloc (3);
       document_properties[0].Name =
           ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_HIDDEN));
       document_properties[0].Value <<= true;
@@ -189,9 +193,6 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
         ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_MACROEXECCUTIONMODE));
       document_properties[2].Value <<=
         document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
-
-      result_2 = osl_getProcessWorkingDir (&working_directory.pData);
-      ACE_ASSERT (result_2 == osl_Process_E_None);
 
       // *TODO*: ::cppu::defaultBootstrap_InitialComponentContext () appears to
       //         work but segfaults in XComponentLoader::loadComponentFromURL()
@@ -354,7 +355,7 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                                                         filename_url,
                                                         absolute_filename_url);
         ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
-      }
+      } // end IF
       else
         absolute_filename_url =
           ::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_FRAME_SPREADSHEET_NEW)); // <-- new file
@@ -528,6 +529,7 @@ error:
 
         std::string timestamp_string;
         if (!Common_Tools::timestamp2String ((*iterator).timeStamp,
+                                             false,
                                              timestamp_string))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -550,13 +552,47 @@ error:
                                    uno::UNO_QUERY);
         ACE_ASSERT (result_4);
         ACE_ASSERT (storable_p.is ());
+        //ACE_ASSERT (!storable_p->isReadonly ());
 
+        bool save_as = true;
+        if (Common_File_Tools::isValidFilename (inherited::configuration_->targetFileName))
+        {
+          filename =
+            ::rtl::OUString::createFromAscii (inherited::configuration_->targetFileName.c_str ());
+          result_3 = ::osl::FileBase::getFileURLFromSystemPath (filename,
+                                                                filename_url);
+          ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
+          result_3 = ::osl::FileBase::getAbsoluteFileURL (working_directory,
+                                                          filename_url,
+                                                          absolute_filename_url);
+          ACE_ASSERT (result_3 == ::osl::FileBase::RC::E_None);
+
+          document_properties.realloc (2);
+          document_properties[0].Name =
+            ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_OVERWRITE));
+          document_properties[0].Value <<= true;
+          document_properties[1].Name =
+            ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_INTERACTIONHANDLER));
+          result_4 =
+            handler_p.set (static_cast<task::XInteractionHandler*> (&handler_),
+                           uno::UNO_QUERY);
+          ACE_ASSERT (handler_p.is ());
+          ACE_ASSERT (result_4);
+          document_properties[1].Value = makeAny (handler_p);
+        } // end IF
+        else
+          save_as = false;
         try {
-          storable_p->store ();
+          if (save_as)
+            storable_p->storeToURL (absolute_filename_url,
+                                    document_properties);
+          else
+            storable_p->store ();
         } catch (io::IOException exception_in) {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: caught exception in XStorable::store(): \"%s\", returning\n"),
+                      ACE_TEXT ("%s: caught exception in XStorable::store%s(): \"%s\", returning\n"),
                       inherited::mod_->name (),
+                      (save_as ? ACE_TEXT ("ToURL") : ACE_TEXT ("")),
                       ACE_TEXT (::rtl::OUStringToOString (exception_in.Message,
                                                           RTL_TEXTENCODING_ASCII_US,
                                                           OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
