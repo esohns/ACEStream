@@ -209,17 +209,17 @@ load_capture_devices (GtkListStore* listStore_in)
   ACE_ASSERT (devices_pp);
 
   GtkTreeIter iterator;
-  WCHAR friendly_name_string[BUFSIZ];
+  WCHAR buffer[BUFSIZ];
   UINT32 length = 0;
   //unsigned int index = 0;
   for (UINT32 index = 0; index < count; index++)
   {
-    ACE_OS::memset (friendly_name_string, 0, sizeof (friendly_name_string));
+    ACE_OS::memset (buffer, 0, sizeof (buffer));
     length = 0;
     result_2 =
       devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
-                                    friendly_name_string,
-                                    sizeof (friendly_name_string),
+                                    buffer,
+                                    sizeof (buffer),
                                     &length);
     if (FAILED (result_2))
     {
@@ -231,7 +231,7 @@ load_capture_devices (GtkListStore* listStore_in)
 
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
-                        0, ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (friendly_name_string)),
+                        0, ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer)),
                         -1);
   } // end FOR
 
@@ -518,14 +518,13 @@ load_formats (IMFMediaSource* IMFMediaSource_in,
 
   GtkTreeIter iterator;
   OLECHAR GUID_string[CHARS_IN_GUID];
-  ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
+  ACE_OS::memset (GUID_string, 0, sizeof (GUID_string));
   for (std::set<struct _GUID, less_guid>::const_iterator iterator_2 = GUIDs.begin ();
        iterator_2 != GUIDs.end ();
        ++iterator_2)
   {
-    count = StringFromGUID2 (*iterator_2,
-                             GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (count == CHARS_IN_GUID);
+    ACE_ASSERT (StringFromGUID2 (*iterator_2,
+                                 GUID_string, sizeof (GUID_string)));
     GUID_stdstring =
       ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (GUID_string));
     gtk_list_store_append (listStore_in, &iterator);

@@ -802,9 +802,8 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
   {
     OLECHAR GUID_string[CHARS_IN_GUID];
     ACE_OS::memset (&GUID_string, 0, sizeof (GUID_string));
-    int nCount = StringFromGUID2 (CLSID_in,
-                                  GUID_string, sizeof (GUID_string));
-    ACE_ASSERT (nCount == CHARS_IN_GUID);
+    ACE_ASSERT (StringFromGUID2 (CLSID_in,
+                                 GUID_string, sizeof (GUID_string)));
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to CoCreateInstance(\"%s\"): \"%s\", aborting\n"),
                 ACE_TEXT_WCHAR_TO_TCHAR (GUID_string),

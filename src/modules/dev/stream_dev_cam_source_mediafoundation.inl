@@ -202,11 +202,11 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 
     if (mediaSession_)
     {
-      result = mediaSession_->Shutdown ();
-      if (FAILED (result))
+      result_2 = mediaSession_->Shutdown ();
+      if (FAILED (result_2))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-                    ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+                    ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
       mediaSession_->Release ();
     } // end IF
 

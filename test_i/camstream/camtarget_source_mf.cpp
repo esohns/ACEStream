@@ -258,7 +258,7 @@ RegisterByteStreamHandler (const GUID& guid,
   size_t  cchDescription = 0;
   result = StringCchLength (sDescription, STRSAFE_MAX_CCH, &cchDescription);
   if (SUCCEEDED (result))
-    result = StringFromGUID2 (guid, szCLSID, CHARS_IN_GUID);
+    ACE_ASSERT (StringFromGUID2 (guid, szCLSID, CHARS_IN_GUID));
   if (SUCCEEDED (result))
     result = CreateRegistryKey (HKEY_LOCAL_MACHINE,
                                 ACE_TEXT_ALWAYS_CHAR (MODULE_MISC_MF_WIN32_REG_BYTESTREAMHANDLERS_KEY),
@@ -303,10 +303,8 @@ UnregisterByteStreamHandler (const GUID& guid,
   if (FAILED (result_2)) goto done;
 
   // Create the CLSID name in canonical form.
-  result_2 = StringFromGUID2 (guid,
-                              szCLSID,
-                              CHARS_IN_GUID);
-  if (FAILED (result_2)) goto done;
+  ACE_ASSERT (StringFromGUID2 (guid,
+                               szCLSID, CHARS_IN_GUID));
 
   // Delete the CLSID entry under the subkey. 
   // Note: There might be multiple entries for this file extension, so we should not delete 
