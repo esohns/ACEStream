@@ -26,7 +26,8 @@
 
 template <typename ConnectorType>
 Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string& name_in)
- : inherited (name_in)
+ : inherited (name_in,
+              false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaSession_ (NULL)
  , referenceCount_ (1)
@@ -160,14 +161,6 @@ Test_I_Source_Stream_T<ConnectorType>::QueryInterface (const IID& IID_in,
                    query_interface_table,
                    IID_in,
                    interface_out);
-}
-template <typename ConnectorType>
-ULONG
-Test_I_Source_Stream_T<ConnectorType>::AddRef ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::AddRef"));
-
-  return InterlockedIncrement (&referenceCount_);
 }
 template <typename ConnectorType>
 ULONG
@@ -499,9 +492,9 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   IMFTopology* topology_p = NULL;
 
   result = CoInitializeEx (NULL,
-                            (COINIT_MULTITHREADED     |
-                             COINIT_DISABLE_OLE1DDE   |
-                             COINIT_SPEED_OVER_MEMORY));
+                           (COINIT_MULTITHREADED     |
+                            COINIT_DISABLE_OLE1DDE   |
+                            COINIT_SPEED_OVER_MEMORY));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,

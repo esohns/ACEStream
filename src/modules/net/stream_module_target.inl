@@ -55,7 +55,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                ACE_Time_Value::zero)
  , isLinked_ (false)
  , isOpen_ (false)
- , isPassive_ (false)
+ , isPassive_ (isPassive_in)
  , lock_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Target_T::Stream_Module_Net_Target_T"));

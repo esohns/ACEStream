@@ -1073,7 +1073,7 @@ do_work (unsigned int bufferSize_in,
 
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->start ();
     ACE_Time_Value one_second (1, 0);
-    int result = ACE_OS::sleep (one_second);
+    result = ACE_OS::sleep (one_second);
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_OS::sleep(): \"%m\", continuing\n")));
@@ -1198,7 +1198,7 @@ do_work (unsigned int bufferSize_in,
       // connect
       ACE_TCHAR buffer[BUFSIZ];
       ACE_OS::memset (buffer, 0, sizeof (buffer));
-      int result =
+      result =
         configuration.socketConfiguration.address.addr_to_string (buffer,
                                                                   sizeof (buffer),
                                                                   1);

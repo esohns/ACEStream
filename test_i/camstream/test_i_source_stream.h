@@ -39,12 +39,14 @@
 
 #include "stream_module_target.h"
 
+#include "test_i_connection_common.h"
 #include "test_i_source_common.h"
-#include "test_i_source_message.h"
-#include "test_i_source_session_message.h"
 
 // forward declarations
+class ACE_Message_Block;
 class Stream_IAllocator;
+class Test_I_Source_Stream_Message;
+class Test_I_Source_Stream_SessionMessage;
 
 template <typename ConnectorType>
 class Test_I_Source_Stream_T
@@ -82,7 +84,7 @@ class Test_I_Source_Stream_T
   // implement IMFAsyncCallback
   virtual STDMETHODIMP QueryInterface (const IID&,
                                        void**);
-  virtual STDMETHODIMP_ (ULONG) AddRef ();
+  inline virtual STDMETHODIMP_ (ULONG) AddRef () { return InterlockedIncrement (&referenceCount_); };
   virtual STDMETHODIMP_ (ULONG) Release ();
   virtual STDMETHODIMP GetParameters (DWORD*,  // return value: flags
                                       DWORD*); // return value: queue handle
@@ -97,9 +99,6 @@ class Test_I_Source_Stream_T
   virtual bool initialize (const Test_I_Source_StreamConfiguration&, // configuration
                            bool = true,                              // setup pipeline ?
                            bool = true);                             // reset session data ?
-
-  // *TODO*: re-consider this API
-  void ping ();
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -147,6 +146,9 @@ class Test_I_Source_Stream_T
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
+
+  // *TODO*: re-consider this API
+  void ping ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // media session

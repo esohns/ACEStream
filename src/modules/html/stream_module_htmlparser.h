@@ -76,10 +76,16 @@ enum Stream_Module_HTMLParser_Mode
 struct Stream_Module_HTMLParser_SAXParserContextBase
 {
   inline Stream_Module_HTMLParser_SAXParserContextBase ()
-   : parserContext (NULL)
+   : accumulate (false)
+   , characters ()
+   , parserContext (NULL)
    , sessionData (NULL)
   {};
 
+  // *NOTE*: for some reason, libxml2 serves some 'characters' data in chunks
+  //         --> buffer it in this member
+  bool                accumulate;
+  std::string         characters;
   htmlParserCtxtPtr   parserContext;
   Stream_SessionData* sessionData;
 };

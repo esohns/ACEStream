@@ -175,6 +175,7 @@ load_capture_devices (GtkListStore* listStore_in)
   //  moniker_p->Release ();
   //  moniker_p = NULL;
   //} // end WHILE
+  UINT32 count = 0;
   IMFAttributes* attributes_p = NULL;
   result_2 = MFCreateAttributes (&attributes_p, 1);
   if (FAILED (result_2))
@@ -182,7 +183,7 @@ load_capture_devices (GtkListStore* listStore_in)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
-    return false;
+    goto error;
   } // end IF
 
   result_2 =
@@ -196,7 +197,6 @@ load_capture_devices (GtkListStore* listStore_in)
     goto error;
   } // end IF
 
-  UINT32 count = 0;
   result_2 = MFEnumDeviceSources (attributes_p,
                                   &devices_pp,
                                   &count);
@@ -2001,7 +2001,7 @@ idle_end_source_UI_cb (gpointer userData_in)
   // stop progress reporting
   ACE_ASSERT (data_p->progressEventSourceID);
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard_2 (data_p->lock);
 
     if (!g_source_remove (data_p->progressEventSourceID))
       ACE_DEBUG ((LM_ERROR,
@@ -2113,7 +2113,7 @@ idle_update_progress_source_cb (gpointer userData_in)
   // step2: update progress bar text
   std::ostringstream converter;
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->GTKState->lock);
+    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard_2 (data_p->GTKState->lock);
 
     converter << data_p->statistic.messagesPerSecond;
   } // end lock scope
@@ -3505,6 +3505,8 @@ action_reset_activate_cb (GtkAction* action_in,
 {
   STREAM_TRACE (ACE_TEXT ("::action_reset_activate_cb"));
 
+  ACE_UNUSED_ARG (action_in);
+
   Test_I_Source_GTK_CBData* data_p =
     static_cast<Test_I_Source_GTK_CBData*> (userData_in);
 
@@ -3520,6 +3522,8 @@ action_settings_activate_cb (GtkAction* action_in,
                              gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::action_settings_activate_cb"));
+
+  ACE_UNUSED_ARG (action_in);
 
   Test_I_Source_GTK_CBData* data_p =
     static_cast<Test_I_Source_GTK_CBData*> (userData_in);
@@ -4388,6 +4392,20 @@ g_value_unset (&value_2);
 
   //buffer_negotiation_p->Release ();
 
+  //struct _GUID GUID_s;
+  //ACE_OS::memset (&GUID_s, 0, sizeof (GUID));
+  HRESULT result = E_FAIL;
+  result =
+    data_p->configuration->moduleHandlerConfiguration.format->SetGUID (MF_MT_MAJOR_TYPE,
+                                                                       MFMediaType_Video);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::SetGUID(MF_MT_MAJOR_TYPE): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+
   //if (!load_formats (data_p->streamConfiguration,
   //if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,
   if (!load_formats (data_p->configuration->moduleHandlerConfiguration.mediaSource,
@@ -4716,17 +4734,18 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   //if (media_type_p->formattype == FORMAT_VideoInfo)
   //if (data_p->configuration->moduleHandlerConfiguration.format->formattype == FORMAT_VideoInfo)
   result =
-    data_p->configuration->moduleHandlerConfiguration.format->GetGUID (MF_MT_AM_FORMAT_TYPE,
+    data_p->configuration->moduleHandlerConfiguration.format->GetGUID (MF_MT_MAJOR_TYPE, //MF_MT_AM_FORMAT_TYPE,
                                                                        &GUID_s);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_AM_FORMAT_TYPE): \"%s\", returning\n"),
+                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_MAJOR_TYPE): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
-  if ((GUID_s == FORMAT_VideoInfo) ||
-      (GUID_s == FORMAT_VideoInfo2))
+  //if ((GUID_s == FORMAT_VideoInfo) ||
+  //    (GUID_s == FORMAT_VideoInfo2))
+  if (GUID_s == MFMediaType_Video)
   {
     //struct tagVIDEOINFOHEADER* video_info_header_p =
     //  //reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_p->pbFormat);
@@ -4827,7 +4846,7 @@ continue_:
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
   {
-    GtkComboBox* combo_box_p =
+    combo_box_p =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_COMBOBOX_RATE_NAME)));
     ACE_ASSERT (combo_box_p);
@@ -5051,6 +5070,9 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
                                      gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_size_allocate_target_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (allocation_in);
 
   Test_I_Target_GTK_CBData* data_p =
     static_cast<Test_I_Target_GTK_CBData*> (userData_in);

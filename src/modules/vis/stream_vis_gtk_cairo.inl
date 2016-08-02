@@ -107,30 +107,6 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataType,
           typename SessionDataContainerType>
-int
-Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
-                              TimePolicyType,
-                              ConfigurationType,
-                              ControlMessageType,
-                              DataMessageType,
-                              SessionMessageType,
-                              SessionDataType,
-                              SessionDataContainerType>::clamp (int value_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::clamp"));
-
-  return ((value_in > 255) ? 255
-                           : ((value_in < 0) ? 0
-                                             : value_in));
-}
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType,
-          typename SessionDataContainerType>
 void
 Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                               TimePolicyType,
@@ -143,6 +119,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                                                             bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::handleDataMessage"));
+
+  ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -617,7 +595,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
       unsigned char* pointer_p = data_p;
 //      unsigned char* pixel_p = cairo_image_surface_get_data (cairo_surface_p);
-      unsigned char* pixel_p = data_2;
+      pixel_p = data_2;
       unsigned int number_of_pixels =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         height * width;
@@ -728,9 +706,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
       packet.size = session_data_r.format.fmt.pix.sizeimage;
 #endif
 
-      int result = -1;
       int got_picture = -1;
-      int image_size = -1;
+      int image_size_2 = -1;
       context_p = avcodec_alloc_context3 (codec_p);
       if (!context_p)
       {
@@ -775,9 +752,9 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                     ACE_TEXT ("failed to avcodec_decode_video2(): \"%m\", returning\n")));
         goto clean;
       } // end IF
-      image_size = avpicture_get_size (context_p->pix_fmt,
-                                       context_p->width, context_p->height);
-      if (image_size != result)
+      image_size_2 = avpicture_get_size (context_p->pix_fmt,
+                                         context_p->width, context_p->height);
+      if (image_size_2 != result)
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to avcodec_decode_video2(): \"%m\", returning\n")));
@@ -966,6 +943,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
                                                                                bool& passMessageDownstream_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Cairo_T::handleSessionMessage"));
+
+  ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);

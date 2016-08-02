@@ -356,7 +356,6 @@ Stream_StateMachine_Control_T<ACE_SYNCH_USE>::change (Stream_StateMachine_Contro
             inherited::change (newState_in);
           else
           {
-            ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (*inherited::stateLock_);
             {
               ACE_Guard<ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> > aGuard_2 (reverse_lock);
               inherited::change (newState_in);

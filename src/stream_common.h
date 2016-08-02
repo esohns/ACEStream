@@ -238,6 +238,7 @@ typedef ACE_Stream_Iterator<ACE_MT_SYNCH,
                             Common_TimePolicy_t> Stream_Iterator_t;
 typedef std::deque<Stream_Module_t*> Stream_ModuleList_t;
 typedef Stream_ModuleList_t::const_iterator Stream_ModuleListIterator_t;
+typedef Stream_ModuleList_t::reverse_iterator Stream_ModuleListReverseIterator_t;
 
 struct Stream_ModuleConfiguration;
 struct Stream_ModuleHandlerConfiguration;

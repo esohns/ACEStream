@@ -697,11 +697,11 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   // sanity check(s)
   ACE_ASSERT (inherited2::mod_);
-  ACE_ASSERT (inherited2::sessionData_);
+  //ACE_ASSERT (inherited2::sessionData_);
   ACE_ASSERT (configuration_);
 
-  SessionDataType& session_data_r =
-    const_cast<SessionDataType&> (inherited2::sessionData_->get ());
+  //SessionDataType& session_data_r =
+  //  const_cast<SessionDataType&> (inherited2::sessionData_->get ());
 
   switch (message_inout->type ())
   {
@@ -1099,18 +1099,19 @@ Stream_HeadModuleTaskBase_T<LockType,
     case STREAM_SESSION_MESSAGE_ABORT:
     {
       // sanity check(s)
-      ACE_ASSERT (inherited2::sessionData_);
-
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited2::sessionData_->get ());
-
-      ACE_ASSERT (session_data_r.lock);
+      if (inherited2::sessionData_)
       {
-        // *TODO*: remove type inferences
-        ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
+        SessionDataType& session_data_r =
+          const_cast<SessionDataType&> (inherited2::sessionData_->get ());
 
-        session_data_r.aborted = true;
-      } // end lock scope
+        ACE_ASSERT (session_data_r.lock);
+        {
+          // *TODO*: remove type inferences
+          ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
+
+          session_data_r.aborted = true;
+        } // end lock scope
+      } // end IF
 
       // *IMPORTANT NOTE*: in concurrent scenarios, (session) message processing
       //                   happens out of order. Control cannot be maintained
@@ -2391,7 +2392,7 @@ Stream_HeadModuleTaskBase_T<LockType,
         inherited::state_ = STREAM_STATE_RUNNING;
 
         {
-          ACE_Guard<ACE_SYNCH_MUTEX> aGuard (inherited2::lock_);
+          ACE_Guard<ACE_SYNCH_MUTEX> aGuard_2 (inherited2::lock_);
 
           threadID_.id (ACE_Thread::self ());
           ACE_hthread_t handle = ACE_INVALID_HANDLE;
@@ -2447,7 +2448,7 @@ Stream_HeadModuleTaskBase_T<LockType,
             const_cast<SessionDataType&> (inherited2::sessionData_->get ());
 
         {
-          ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+          ACE_GUARD (ACE_SYNCH_MUTEX, aGuard_2, *session_data_r.lock);
           if (session_data_r.aborted)
             this->finished ();
         } // end lock scope

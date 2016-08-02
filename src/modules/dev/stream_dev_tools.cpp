@@ -1902,7 +1902,8 @@ Stream_Module_Device_Tools::loadDeviceGraph (const std::string& deviceName_in,
   ICreateDevEnum* enumerator_p = NULL;
   result =
     CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
-                      CLSCTX_INPROC_SERVER, IID_PPV_ARGS (&enumerator_p));
+                      CLSCTX_INPROC_SERVER,
+                      IID_PPV_ARGS (&enumerator_p));
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,

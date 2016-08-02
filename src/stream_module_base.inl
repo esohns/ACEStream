@@ -117,6 +117,9 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::start"));
 
+  ACE_UNUSED_ARG (sessionID_in);
+  ACE_UNUSED_ARG (sessionData_in);
+
   ACE_ASSERT (false);
   ACE_NOTSUP;
 
@@ -190,9 +193,11 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      HandlerConfigurationType,
                      NotificationType,
                      ReaderTaskType,
-                     WriterTaskType>::end (SessionIdType sessionId_in)
+                     WriterTaskType>::end (SessionIdType sessionID_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::end"));
+
+  ACE_UNUSED_ARG (sessionID_in);
 
   ACE_ASSERT (false);
   ACE_NOTSUP;

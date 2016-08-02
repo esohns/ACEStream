@@ -1288,31 +1288,30 @@ Stream_Base_T<LockType,
   } // end IF
 
   Stream_ModuleList_t modules;
-//  const MODULE_T* head_p = inherited::head ();
-//  const MODULE_T* tail_p = inherited::tail ();
   const MODULE_T* module_p = NULL;
   TASK_T* task_p = NULL;
   Stream_IMessageQueue* iqueue_p = NULL;
-  //  unsigned int number_of_messages = 0;
-//  const MODULE_T* top_module_p =
-//    (upStream_ ? NULL
-//               : const_cast<MODULE_T*> (head_p)->next ());
 
-  // *TODO*: implement a control message and move the implementation into the
-  //         task itself
+  for (ITERATOR_T iterator (*this);
+       (iterator.next (module_p) != 0);
+       iterator.advance ())
+    modules.push_front (const_cast<MODULE_T*> (module_p));
+  modules.pop_back (); // discard head
+  modules.pop_front (); // discard tail
+
+  // *TODO*: implement a dedicated control message to push this functionality
+  //         into the task object
   if (!flushInbound_in)
     goto continue_;
 
   // writer (inbound) side
-  for (ITERATOR_T iterator (*this);
-       (iterator.next (module_p) != 0);
-       iterator.advance ())
+  for (Stream_ModuleListReverseIterator_t iterator = modules.rbegin ();
+       iterator != modules.rend ();
+       ++iterator)
   {
-    modules.push_front (const_cast<MODULE_T*> (module_p));
+    task_p = const_cast<MODULE_T*> (*iterator)->writer ();
+    if (!task_p) continue; // close()d already ?
 
-    task_p = const_cast<MODULE_T*> (module_p)->writer ();
-    if (!task_p) // close()d already ?
-      continue;
     ACE_ASSERT (task_p->msg_queue_);
     iqueue_p = dynamic_cast<Stream_IMessageQueue*> (task_p->msg_queue_);
     if (!iqueue_p)
@@ -1327,34 +1326,32 @@ Stream_Base_T<LockType,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s:%s writer: failed to Stream_IMessageQueue::flushData(): \"%m\", continuing\n"),
-                  ACE_TEXT (name_.c_str ()), module_p->name ()));
+                  ACE_TEXT (name_.c_str ()), (*iterator)->name ()));
     } // end IF
     else if (result)
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s:%s writer: flushed %d message(s)\n"),
-                  ACE_TEXT (name_.c_str ()), module_p->name (),
+                  ACE_TEXT (name_.c_str ()), (*iterator)->name (),
                   result));
     } // end IF
-
-    module_p = NULL;
   } // end FOR
 
 continue_:
   // reader (outbound) side
+  modules.push_back (const_cast<MODULE_T*> (inherited::head ())); // append head
   for (Stream_ModuleListIterator_t iterator = modules.begin ();
        iterator != modules.end ();
        iterator++)
   {
     task_p = (*iterator)->reader ();
-    if (!task_p) // close()d already ?
-      continue;
+    if (!task_p) continue; // close()d already ?
+
     ACE_ASSERT (task_p->msg_queue_);
     iqueue_p = dynamic_cast<Stream_IMessageQueue*> (task_p->msg_queue_);
     if (!iqueue_p)
     {
       // *NOTE*: most probable cause: module is (upstream) head
-      // *TODO*: all messages are flushed here, this must not happen
       result = task_p->msg_queue_->flush ();
     } // end IF
     else
@@ -2045,7 +2042,7 @@ Stream_Base_T<LockType,
        iterator.advance ())
     if (ACE_OS::strcmp (module_p->name (), name_p) == 0)
       return module_p;
-  //result = this_p->inherited::find (name_p);
+  //result = stream_p->inherited::find (name_p);
 
   // step2: search loaded modules
   for (Stream_ModuleListIterator_t iterator = modules_.begin ();
@@ -2197,7 +2194,7 @@ Stream_Base_T<LockType,
   } // end IF
 
   int nesting_level = lock_.get_nesting_level ();
-  ACE_recursive_thread_mutex_t& mutex_r = lock_.lock ();
+  //ACE_recursive_thread_mutex_t& mutex_r = lock_.lock ();
 
   result = (block_in ? lock_.acquire () : lock_.tryacquire ());
   if (result == -1)

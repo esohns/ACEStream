@@ -83,7 +83,7 @@ class Stream_Module_Vis_GTK_Cairo_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_GTK_Cairo_T& operator= (const Stream_Module_Vis_GTK_Cairo_T&))
 
   // helper methods
-  int clamp (int);
+  inline unsigned char clamp (int value_in) { return ((value_in > 255) ? 255 : ((value_in < 0) ? 0 : static_cast<unsigned char> (value_in))); };
 
 //  cairo_t*                   cairoContext_;
 //  cairo_surface_t*           cairoSurface_;
@@ -93,7 +93,7 @@ class Stream_Module_Vis_GTK_Cairo_T
   bool                       isFirst_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_vis_gtk_cairo.inl"
 
 #endif

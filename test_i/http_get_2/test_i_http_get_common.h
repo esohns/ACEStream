@@ -220,11 +220,11 @@ struct Test_I_SAXParserContext
 {
   inline Test_I_SAXParserContext ()
    : Stream_Module_HTMLParser_SAXParserContextBase ()
-   , data (NULL)
+   , record (NULL)
    , state (SAXPARSER_STATE_INVALID)
   {};
 
-  Test_I_StockRecord*   data;
+  Test_I_StockRecord*   record;
   Test_I_SAXParserState state;
 };
 

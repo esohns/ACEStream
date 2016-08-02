@@ -244,14 +244,34 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       ACE_ASSERT (session_data_2.lock);
       if (&session_data_r != &session_data_2) // 'downstream' ?
       {
-        ACE_ASSERT (session_data_r.lock != session_data_2.lock);
-        ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
-        ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard_2, *session_data_2.lock);
+        int result = -1;
+        bool release_lock = false;
+        {
+          ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
+          if (session_data_r.lock != session_data_2.lock)
+          {
+            result = session_data_2.lock->acquire ();
+            if (result == -1)
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX_T::acquire(): \"%m\", continuing\n"),
+                          inherited::mod_->name ()));
+            release_lock = true;
+          } // end IF
 
-        session_data_r.lock = session_data_2.lock;
+          session_data_r.lock = session_data_2.lock;
 
-        // *NOTE*: the idea here is to 'merge' the two datasets
-        session_data_r += session_data_2;
+          // *NOTE*: the idea here is to 'merge' the two datasets
+          session_data_r += session_data_2;
+
+          if (release_lock)
+          {
+            result = session_data_2.lock->release ();
+            if (result == -1)
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX_T::release(): \"%m\", continuing\n"),
+                          inherited::mod_->name ()));
+          } // end IF
+        } // end lock scope
 
         // switch session data
         sessionData_->decrease ();
@@ -708,7 +728,7 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
     return;
   } // end IF
   try { // *TODO*: retrieve session id
-    inotify_p->notify (-1,
+    inotify_p->notify (0,
                        sessionEvent_in);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,

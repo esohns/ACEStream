@@ -417,6 +417,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::handleSessionMessage"));
 
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
   //int result = -1;
   HRESULT result_2 = E_FAIL;
   bool COM_initialized = false;
@@ -725,6 +727,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                                                                              STREAM_VIS_TARGET_DIRECT3D_ADAPTER_T& adapter_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize_Direct3D"));
+
+  ACE_UNUSED_ARG (adapter_out);
 
   HRESULT result = E_FAIL;
 
@@ -1084,6 +1088,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                                                                             const GUID& subType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::create_swap_chains"));
+
+  ACE_UNUSED_ARG (subType_in);
 
   HRESULT result = S_OK;
 
