@@ -60,9 +60,9 @@ class Test_I_Target_Stream
                                         Test_I_Target_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
                                         Stream_ModuleConfiguration,
-                                        Test_I_Target_Stream_ModuleHandlerConfiguration,
-                                        Test_I_Target_Stream_SessionData,   // session data
-                                        Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
+                                        Test_I_Target_ModuleHandlerConfiguration,
+                                        Test_I_Target_SessionData,   // session data
+                                        Test_I_Target_SessionData_t, // session data container (reference counted)
                                         ACE_Message_Block,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_Stream_SessionMessage,
@@ -101,9 +101,9 @@ class Test_I_Target_Stream
                                         Test_I_Target_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
                                         Stream_ModuleConfiguration,
-                                        Test_I_Target_Stream_ModuleHandlerConfiguration,
-                                        Test_I_Target_Stream_SessionData,   // session data
-                                        Test_I_Target_Stream_SessionData_t, // session data container (reference counted)
+                                        Test_I_Target_ModuleHandlerConfiguration,
+                                        Test_I_Target_SessionData,   // session data
+                                        Test_I_Target_SessionData_t, // session data container (reference counted)
                                         ACE_Message_Block,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_Stream_SessionMessage,

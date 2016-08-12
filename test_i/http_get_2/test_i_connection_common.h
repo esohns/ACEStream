@@ -177,14 +177,6 @@ typedef Net_IConnector_T<ACE_INET_Addr,
 //////////////////////////////////////////
 
 // outbound
-typedef Net_Client_AsynchConnector_T<Test_I_AsynchTCPConnection_t,
-                                     ACE_INET_Addr,
-                                     Test_I_HTTPGet_Configuration,
-                                     Test_I_ConnectionState,
-                                     Test_I_RuntimeStatistic_t,
-                                     Test_I_NetStream_t,
-                                     Test_I_HTTPGet_SocketHandlerConfiguration,
-                                     Test_I_HTTPGet_UserData> Test_I_HTTPGet_TCPAsynchConnector_t;
 typedef Net_Client_Connector_T<Test_I_TCPConnection_t,
                                Net_SOCK_Connector,
                                ACE_INET_Addr,
@@ -203,5 +195,13 @@ typedef Net_Client_SSL_Connector_T<Test_I_SSLTCPConnection_t,
                                    Test_I_NetStream_t,
                                    Test_I_HTTPGet_SocketHandlerConfiguration,
                                    Test_I_HTTPGet_UserData> Test_I_HTTPGet_SSLTCPConnector_t;
+typedef Net_Client_AsynchConnector_T<Test_I_AsynchTCPConnection_t,
+                                     ACE_INET_Addr,
+                                     Test_I_HTTPGet_Configuration,
+                                     Test_I_ConnectionState,
+                                     Test_I_RuntimeStatistic_t,
+                                     Test_I_NetStream_t,
+                                     Test_I_HTTPGet_SocketHandlerConfiguration,
+                                     Test_I_HTTPGet_UserData> Test_I_HTTPGet_TCPAsynchConnector_t;
 
 #endif

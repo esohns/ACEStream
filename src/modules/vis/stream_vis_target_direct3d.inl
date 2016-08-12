@@ -192,6 +192,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   bool unlock_media_buffer = false;
   IDirect3DSurface9* d3d_surface_p = NULL;
   IDirect3DSurface9* d3d_backbuffer_p = NULL;
+  BYTE* scanline0_p = NULL;
+  LONG stride = 0;
 
   // sanity check(s)
   ACE_ASSERT (adapter_);
@@ -240,8 +242,6 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  BYTE* scanline0_p = NULL;
-  LONG stride = 0;
   D3DLOCKED_RECT d3d_locked_rectangle;
 
   stride = defaultStride_;
@@ -437,6 +437,9 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
       IMFTopology* topology_p = NULL;
       IMFMediaType* media_type_p = NULL;
+      enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
+        MFSESSION_GETFULLTOPOLOGY_CURRENT;
+      TOPOID node_id = 0;
 
       result_2 = CoInitializeEx (NULL,
                                  (COINIT_MULTITHREADED    |
@@ -455,8 +458,6 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_ASSERT (!IDirect3DDevice9Ex_);
       ACE_ASSERT (session_data_r.session);
 
-      enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
-        MFSESSION_GETFULLTOPOLOGY_CURRENT;
       // *NOTE*: IMFMediaSession::SetTopology() is asynchronous; subsequent calls
       //         to retrieve the topology handle may fail (MF_E_INVALIDREQUEST)
       //         --> (try to) wait for the next MESessionTopologySet event
@@ -475,7 +476,6 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Tools::error2String (result_2).c_str ())));
         goto error;
       } // end IF
-      TOPOID node_id = 0;
       if (!Stream_Module_Device_Tools::getOutputFormat (topology_p,
                                                         node_id,
                                                         media_type_p))

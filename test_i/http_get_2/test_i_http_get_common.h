@@ -25,7 +25,14 @@
 #include <set>
 #include <string>
 
+#include "libxml/tree.h"
+
 #include "stream_control_message.h"
+
+#include "stream_dec_common.h"
+#include "stream_module_htmlparser.h"
+
+#include "http_common.h"
 
 #include "test_i_common.h"
 #include "test_i_connection_common.h"
@@ -247,10 +254,10 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_Stream_Message,
                       Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
 struct Test_I_HTTPGet_ModuleHandlerConfiguration
- : Test_I_Stream_ModuleHandlerConfiguration
+ : Test_I_ModuleHandlerConfiguration
 {
   inline Test_I_HTTPGet_ModuleHandlerConfiguration ()
-   : Test_I_Stream_ModuleHandlerConfiguration ()
+   : Test_I_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , connection (NULL)
    , connectionManager (NULL)
@@ -264,6 +271,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
    , libreOfficeRc ()
    , libreOfficeSheetStartColumn (0)
    , libreOfficeSheetStartRow (TEST_I_DEFAULT_LIBREOFFICE_START_ROW - 1)
+   , mode (STREAM_MODULE_HTMLPARSER_SAX)
    , socketHandlerConfiguration (NULL)
    , stockItems ()
    , stream (NULL)
@@ -280,6 +288,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   std::string                                libreOfficeRc; // spreadsheet writer module
   unsigned int                               libreOfficeSheetStartColumn; // spreadsheet writer module
   unsigned int                               libreOfficeSheetStartRow; // spreadsheet writer module
+  enum Stream_Module_HTMLParser_Mode         mode; // HTML parser module
   Test_I_HTTPGet_SocketHandlerConfiguration* socketHandlerConfiguration;
   Test_I_StockItems_t                        stockItems; // HTTP get module
   Test_I_StreamBase_t*                       stream; // net source module
@@ -287,10 +296,10 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
 };
 
 struct Test_I_HTTPGet_StreamConfiguration
- : Test_I_Stream_Configuration
+ : Test_I_StreamConfiguration
 {
   inline Test_I_HTTPGet_StreamConfiguration ()
-   : Test_I_Stream_Configuration ()
+   : Test_I_StreamConfiguration ()
    , moduleHandlerConfiguration (NULL)
   {};
 
@@ -302,12 +311,14 @@ struct Test_I_HTTPGet_Configuration
 {
   inline Test_I_HTTPGet_Configuration ()
    : Test_I_Configuration ()
+   , allocatorConfiguration ()
    , socketHandlerConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
   {};
 
+  Test_I_AllocatorConfiguration             allocatorConfiguration;
   Test_I_HTTPGet_SocketHandlerConfiguration socketHandlerConfiguration;
   Test_I_HTTPGet_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Test_I_HTTPGet_StreamConfiguration        streamConfiguration;

@@ -60,7 +60,7 @@ Stream_Filecopy_EventHandler::start (Stream_SessionId_t sessionID_in,
 
   sessionData_ = &const_cast<Stream_Filecopy_SessionData&> (sessionData_in);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   if (sessionData_->lock)
   {
@@ -120,7 +120,7 @@ Stream_Filecopy_EventHandler::end (Stream_SessionId_t sessionID_in)
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -167,7 +167,7 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.copied += message_in.total_length ();
 
@@ -189,7 +189,7 @@ Stream_Filecopy_EventHandler::notify (Stream_SessionId_t sessionID_in,
       : STREAM_GKTEVENT_INVALID);
 
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+    ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
     CBData_->eventStack.push_back (event);
   } // end lock scope

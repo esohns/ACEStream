@@ -28,22 +28,22 @@
 
 #include "test_i_common.h"
 
-class Stream_Source_SignalHandler
- : public Common_SignalHandler_T<Stream_SignalHandlerConfiguration>
+class Test_I_SignalHandler
+ : public Common_SignalHandler_T<Test_I_SignalHandlerConfiguration>
  , public Common_ISignal
 {
  public:
-  Stream_Source_SignalHandler ();
-  virtual ~Stream_Source_SignalHandler ();
+  Test_I_SignalHandler ();
+  virtual ~Test_I_SignalHandler ();
 
   // implement Common_ISignal
   virtual bool handleSignal (int); // signal
 
  private:
-  typedef Common_SignalHandler_T<Stream_SignalHandlerConfiguration> inherited;
+  typedef Common_SignalHandler_T<Test_I_SignalHandlerConfiguration> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler (const Stream_Source_SignalHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Source_SignalHandler& operator= (const Stream_Source_SignalHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler (const Test_I_SignalHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_SignalHandler& operator= (const Test_I_SignalHandler&))
 };
 
 #endif

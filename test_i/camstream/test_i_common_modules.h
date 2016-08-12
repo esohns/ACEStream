@@ -72,15 +72,15 @@
 //typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
 //                                           Test_I_Source_Stream_SessionMessage,
 //                                           Test_I_Source_Stream_Message,
-//                                           Test_I_Source_Stream_ModuleHandlerConfiguration,
+//                                           Test_I_Source_ModuleHandlerConfiguration,
 //                                           Test_I_Source_StreamState,
-//                                           Test_I_Source_Stream_SessionData,
-//                                           Test_I_Source_Stream_SessionData_t,
+//                                           Test_I_Source_SessionData,
+//                                           Test_I_Source_SessionData_t,
 //                                           Test_I_Source_Stream_StatisticData> Test_I_Stream_Module_CamSource;
 //typedef Stream_Misc_DirectShow_Source_T<Test_I_Target_Stream_SessionMessage,
 //                                        Test_I_Target_Stream_Message,
-//                                        Test_I_Target_Stream_ModuleHandlerConfiguration,
-//                                        Test_I_Target_Stream_SessionData_t,
+//                                        Test_I_Target_ModuleHandlerConfiguration,
+//                                        Test_I_Target_SessionData_t,
 //                                        Test_I_Target_DirectShow_FilterConfiguration,
 //                                        Test_I_Target_DirectShow_PinConfiguration,
 //                                        struct _AMMediaType> Test_I_Target_Stream_Module_DirectShowSource;
@@ -88,80 +88,80 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 ACE_Message_Block,
                                                 Test_I_Source_Stream_Message,
                                                 Test_I_Source_Stream_SessionMessage,
-                                                Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                                Test_I_Source_ModuleHandlerConfiguration,
                                                 Stream_ControlType,
                                                 Stream_SessionMessageType,
                                                 Test_I_Source_StreamState,
-                                                Test_I_Source_Stream_SessionData,
-                                                Test_I_Source_Stream_SessionData_t,
+                                                Test_I_Source_SessionData,
+                                                Test_I_Source_SessionData_t,
                                                 Test_I_Source_Stream_StatisticData> Test_I_Stream_Module_CamSource;
 //typedef Stream_Misc_MediaFoundation_Source_T<Test_I_Target_Stream_SessionMessage,
 //                                             Test_I_Target_Stream_Message,
-//                                             Test_I_Target_Stream_ModuleHandlerConfiguration,
-//                                             Test_I_Target_Stream_SessionData_t,
+//                                             Test_I_Target_ModuleHandlerConfiguration,
+//                                             Test_I_Target_SessionData_t,
 //                                             IMFMediaType*> Test_I_Target_Stream_Module_MediaFoundationSource;
 #else
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       ACE_Message_Block,
                                       Test_I_Source_Stream_Message,
                                       Test_I_Source_Stream_SessionMessage,
-                                      Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                      Test_I_Source_ModuleHandlerConfiguration,
                                       Stream_ControlType,
                                       Stream_SessionMessageType,
                                       Test_I_Source_StreamState,
-                                      Test_I_Source_Stream_SessionData,
-                                      Test_I_Source_Stream_SessionData_t,
+                                      Test_I_Source_SessionData,
+                                      Test_I_Source_SessionData_t,
                                       Test_I_Source_Stream_StatisticData> Test_I_Stream_Module_CamSource;
 #endif
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_Stream_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_SessionData,                // session data type
                               Stream_SessionMessageType,                       // session event type
-                              Test_I_Source_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                          // stream notification interface type
                               Test_I_Stream_Module_CamSource);                 // writer type
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
 //                              Common_TimePolicy_t,                             // time policy
 //                              Stream_ModuleConfiguration,                      // module configuration type
-//                              Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
+//                              Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
 //                              Test_I_Target_Stream_Module_DirectShowSource);   // writer type
 //DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                       // task synch type
 //                              Common_TimePolicy_t,                                // time policy
 //                              Stream_ModuleConfiguration,                         // module configuration type
-//                              Test_I_Target_Stream_ModuleHandlerConfiguration,    // module handler configuration type
+//                              Test_I_Target_ModuleHandlerConfiguration,    // module handler configuration type
 //                              Test_I_Target_Stream_Module_MediaFoundationSource); // writer type
 #endif
 
 //typedef Stream_Decoder_AVIDecoder_T<Test_I_Target_Stream_SessionMessage,
 //                                    Test_I_Target_Stream_Message,
-//                                    Test_I_Target_Stream_ModuleHandlerConfiguration,
-//                                    Test_I_Target_Stream_SessionData> Test_I_Target_Stream_Module_AVIDecoder;
+//                                    Test_I_Target_ModuleHandlerConfiguration,
+//                                    Test_I_Target_SessionData> Test_I_Target_Stream_Module_AVIDecoder;
 //DATASTREAM_MODULE_INPUT_ONLY (ACE_MT_SYNCH,                                    // task synch type
 //                              Common_TimePolicy_t,                             // time policy
 //                              Stream_ModuleConfiguration,                      // module configuration type
-//                              Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
+//                              Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
 //                              Test_I_Target_Stream_Module_AVIDecoder);         // writer type
 
 //typedef Stream_Module_SplitterH_T<ACE_MT_SYNCH,
 //                                  ACE_Message_Block,
 //                                  Test_I_Target_Stream_Message,
 //                                  Test_I_Target_Stream_SessionMessage,
-//                                  Test_I_Target_Stream_ModuleHandlerConfiguration,
+//                                  Test_I_Target_ModuleHandlerConfiguration,
 //                                  Stream_ControlType,
 //                                  Stream_SessionMessageType,
 //                                  Test_I_Target_StreamState,
-//                                  Test_I_Target_Stream_SessionData,
-//                                  Test_I_Target_Stream_SessionData_t,
+//                                  Test_I_Target_SessionData,
+//                                  Test_I_Target_SessionData_t,
 //                                  Test_I_RuntimeStatistic_t> Test_I_Target_Stream_Module_Splitter;
 typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
-                                 Test_I_Target_Stream_ModuleHandlerConfiguration,
+                                 Test_I_Target_ModuleHandlerConfiguration,
                                  ACE_Message_Block,
                                  Test_I_Target_Stream_Message,
                                  Test_I_Target_Stream_SessionMessage,
-                                 Test_I_Target_Stream_SessionData> Test_I_Target_Stream_Module_Splitter;
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_Stream_SessionData,                // session data type
+                                 Test_I_Target_SessionData> Test_I_Target_Stream_Module_Splitter;
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                // session data type
                               Stream_SessionMessageType,                       // session event type
-                              Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                          // stream notification interface type
                               Test_I_Target_Stream_Module_Splitter);           // writer type
 
@@ -169,28 +169,28 @@ typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
                                      ACE_Message_Block,
                                      Test_I_Source_Stream_Message,
                                      Test_I_Source_Stream_SessionMessage,
-                                     Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                     Test_I_Source_ModuleHandlerConfiguration,
                                      Stream_ControlType,
                                      Stream_SessionMessageType,
                                      Test_I_Source_StreamState,
-                                     Test_I_Source_Stream_SessionData,
-                                     Test_I_Source_Stream_SessionData_t,
+                                     Test_I_Source_SessionData,
+                                     Test_I_Source_SessionData_t,
                                      Test_I_Source_Stream_StatisticData,
                                      ACE_INET_Addr,
                                      Test_I_Source_InetConnectionManager_t> Test_I_Source_Stream_Module_Net_Writer_t;
 typedef Stream_Module_Net_IOReader_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                     Test_I_Source_ModuleHandlerConfiguration,
                                      ACE_Message_Block,
                                      Test_I_Source_Stream_Message,
                                      Test_I_Source_Stream_SessionMessage,
-                                     Test_I_Source_Stream_SessionData,
-                                     Test_I_Source_Stream_SessionData_t,
+                                     Test_I_Source_SessionData,
+                                     Test_I_Source_SessionData_t,
                                      ACE_INET_Addr,
                                      Test_I_Source_InetConnectionManager_t> Test_I_Source_Stream_Module_Net_Reader_t;
-DATASTREAM_MODULE_DUPLEX (Test_I_Source_Stream_SessionData,                // session data type
+DATASTREAM_MODULE_DUPLEX (Test_I_Source_SessionData,                // session data type
                           Stream_SessionMessageType,                       // session event type
-                          Test_I_Source_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                          Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
                           Test_I_IStreamNotify_t,                          // stream notification interface type
                           Test_I_Source_Stream_Module_Net_Reader_t,        // reader type
                           Test_I_Source_Stream_Module_Net_Writer_t,        // writer type
@@ -199,79 +199,79 @@ DATASTREAM_MODULE_DUPLEX (Test_I_Source_Stream_SessionData,                // se
 //typedef Stream_Module_Net_IOWriter_T<ACE_MT_SYNCH,
 //                                     Test_I_Target_Stream_SessionMessage,
 //                                     Test_I_Target_Stream_Message,
-//                                     Test_I_Target_Stream_ModuleHandlerConfiguration,
+//                                     Test_I_Target_ModuleHandlerConfiguration,
 //                                     Test_I_Target_StreamState,
-//                                     Test_I_Target_Stream_SessionData,
-//                                     Test_I_Target_Stream_SessionData_t,
+//                                     Test_I_Target_SessionData,
+//                                     Test_I_Target_SessionData_t,
 //                                     Test_I_RuntimeStatistic_t,
 //                                     ACE_INET_Addr,
 //                                     Test_I_Target_InetConnectionManager_t> Test_I_Target_Stream_Module_Net_Writer_t;
 //typedef Stream_Module_Net_IOReader_T<Test_I_Target_Stream_SessionMessage,
 //                                     Test_I_Target_Stream_Message,
 //                                     Test_I_Target_Configuration,
-//                                     Test_I_Target_Stream_ModuleHandlerConfiguration,
-//                                     Test_I_Target_Stream_SessionData,
-//                                     Test_I_Target_Stream_SessionData_t,
+//                                     Test_I_Target_ModuleHandlerConfiguration,
+//                                     Test_I_Target_SessionData,
+//                                     Test_I_Target_SessionData_t,
 //                                     ACE_INET_Addr,
 //                                     Test_I_Target_InetConnectionManager_t> Test_I_Target_Stream_Module_Net_Reader_t;
 //DATASTREAM_MODULE_DUPLEX (ACE_MT_SYNCH,                                    // task synch type
 //                          Common_TimePolicy_t,                             // time policy
 //                          Stream_ModuleConfiguration,                      // module configuration type
-//                          Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
+//                          Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
 //                          Test_I_Target_Stream_Module_Net_Reader_t,        // reader type
 //                          Test_I_Target_Stream_Module_Net_Writer_t,        // writer type
 //                          Test_I_Target_Stream_Module_Net_IO);             // name
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                             Test_I_Source_ModuleHandlerConfiguration,
                                              ACE_Message_Block,
                                              Test_I_Source_Stream_Message,
                                              Test_I_Source_Stream_SessionMessage,
                                              Test_I_CommandType_t,
                                              Test_I_Source_Stream_StatisticData,
-                                             Test_I_Source_Stream_SessionData,
-                                             Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Statistic_ReaderTask_t;
+                                             Test_I_Source_SessionData,
+                                             Test_I_Source_SessionData_t> Test_I_Source_Stream_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                             Test_I_Source_ModuleHandlerConfiguration,
                                              ACE_Message_Block,
                                              Test_I_Source_Stream_Message,
                                              Test_I_Source_Stream_SessionMessage,
                                              Test_I_CommandType_t,
                                              Test_I_Source_Stream_StatisticData,
-                                             Test_I_Source_Stream_SessionData,
-                                             Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (Test_I_Source_Stream_SessionData,                   // session data type
+                                             Test_I_Source_SessionData,
+                                             Test_I_Source_SessionData_t> Test_I_Source_Stream_Module_Statistic_WriterTask_t;
+DATASTREAM_MODULE_DUPLEX (Test_I_Source_SessionData,                   // session data type
                           Stream_SessionMessageType,                          // session event type
-                          Test_I_Source_Stream_ModuleHandlerConfiguration,    // module handler configuration type
+                          Test_I_Source_ModuleHandlerConfiguration,    // module handler configuration type
                           Test_I_IStreamNotify_t,                             // stream notification interface type
                           Test_I_Source_Stream_Module_Statistic_ReaderTask_t, // reader type
                           Test_I_Source_Stream_Module_Statistic_WriterTask_t, // writer type
                           Test_I_Source_Stream_Module_RuntimeStatistic);      // name
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Test_I_Target_Stream_ModuleHandlerConfiguration,
+                                             Test_I_Target_ModuleHandlerConfiguration,
                                              ACE_Message_Block,
                                              Test_I_Target_Stream_Message,
                                              Test_I_Target_Stream_SessionMessage,
                                              Test_I_CommandType_t,
                                              Test_I_RuntimeStatistic_t,
-                                             Test_I_Target_Stream_SessionData,
-                                             Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Statistic_ReaderTask_t;
+                                             Test_I_Target_SessionData,
+                                             Test_I_Target_SessionData_t> Test_I_Target_Stream_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Test_I_Target_Stream_ModuleHandlerConfiguration,
+                                             Test_I_Target_ModuleHandlerConfiguration,
                                              ACE_Message_Block,
                                              Test_I_Target_Stream_Message,
                                              Test_I_Target_Stream_SessionMessage,
                                              Test_I_CommandType_t,
                                              Test_I_RuntimeStatistic_t,
-                                             Test_I_Target_Stream_SessionData,
-                                             Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Statistic_WriterTask_t;
-DATASTREAM_MODULE_DUPLEX (Test_I_Target_Stream_SessionData,                   // session data type
+                                             Test_I_Target_SessionData,
+                                             Test_I_Target_SessionData_t> Test_I_Target_Stream_Module_Statistic_WriterTask_t;
+DATASTREAM_MODULE_DUPLEX (Test_I_Target_SessionData,                   // session data type
                           Stream_SessionMessageType,                          // session event type
-                          Test_I_Target_Stream_ModuleHandlerConfiguration,    // module handler configuration type
+                          Test_I_Target_ModuleHandlerConfiguration,    // module handler configuration type
                           Test_I_IStreamNotify_t,                             // stream notification interface type
                           Test_I_Target_Stream_Module_Statistic_ReaderTask_t, // reader type
                           Test_I_Target_Stream_Module_Statistic_WriterTask_t, // writer type
@@ -280,93 +280,93 @@ DATASTREAM_MODULE_DUPLEX (Test_I_Target_Stream_SessionData,                   //
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //typedef Stream_Vis_Target_DirectShow_T<Test_I_Source_Stream_SessionMessage,
 //                                       Test_I_Source_Stream_Message,
-//                                       Test_I_Source_Stream_ModuleHandlerConfiguration,
-//                                       Test_I_Source_Stream_SessionData,
-//                                       Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
+//                                       Test_I_Source_ModuleHandlerConfiguration,
+//                                       Test_I_Source_SessionData,
+//                                       Test_I_Source_SessionData_t> Test_I_Source_Stream_Module_Display;
 //typedef Stream_Vis_Target_DirectShow_T<Test_I_Target_Stream_SessionMessage,
 //                                       Test_I_Target_Stream_Message,
-//                                       Test_I_Target_Stream_ModuleHandlerConfiguration,
-//                                       Test_I_Target_Stream_SessionData,
-//                                       Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
+//                                       Test_I_Target_ModuleHandlerConfiguration,
+//                                       Test_I_Target_SessionData,
+//                                       Test_I_Target_SessionData_t> Test_I_Target_Stream_Module_Display;
 //typedef Stream_Vis_Target_MediaFoundation_T<Test_I_Source_Stream_SessionMessage,
 //                                            Test_I_Source_Stream_Message,
-//                                            Test_I_Source_Stream_ModuleHandlerConfiguration,
-//                                            Test_I_Source_Stream_SessionData,
-//                                            Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
+//                                            Test_I_Source_ModuleHandlerConfiguration,
+//                                            Test_I_Source_SessionData,
+//                                            Test_I_Source_SessionData_t> Test_I_Source_Stream_Module_Display;
 typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             ACE_Message_Block,
                                             Test_I_Source_Stream_Message,
                                             Test_I_Source_Stream_SessionMessage,
-                                            Test_I_Source_Stream_ModuleHandlerConfiguration,
-                                            Test_I_Source_Stream_SessionData,
-                                            Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_DisplayNull;
+                                            Test_I_Source_ModuleHandlerConfiguration,
+                                            Test_I_Source_SessionData,
+                                            Test_I_Source_SessionData_t> Test_I_Source_Stream_Module_DisplayNull;
 typedef Stream_Vis_Target_MediaFoundation_2<ACE_MT_SYNCH,
                                             Common_TimePolicy_t,
                                             ACE_Message_Block,
                                             Test_I_Target_Stream_Message,
                                             Test_I_Target_Stream_SessionMessage,
-                                            Test_I_Target_Stream_ModuleHandlerConfiguration,
-                                            Test_I_Target_Stream_SessionData,
-                                            Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_DisplayNull;
+                                            Test_I_Target_ModuleHandlerConfiguration,
+                                            Test_I_Target_SessionData,
+                                            Test_I_Target_SessionData_t> Test_I_Target_Stream_Module_DisplayNull;
 typedef Stream_Vis_Target_Direct3D_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                     Test_I_Source_ModuleHandlerConfiguration,
                                      ACE_Message_Block,
                                      Test_I_Source_Stream_Message,
                                      Test_I_Source_Stream_SessionMessage,
-                                     Test_I_Source_Stream_SessionData,
-                                     Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
+                                     Test_I_Source_SessionData,
+                                     Test_I_Source_SessionData_t> Test_I_Source_Stream_Module_Display;
 //typedef Stream_Vis_Target_Direct3D_T<Test_I_Target_Stream_SessionMessage,
 //                                     Test_I_Target_Stream_Message,
-//                                     Test_I_Target_Stream_ModuleHandlerConfiguration,
-//                                     Test_I_Target_Stream_SessionData,
-//                                     Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
+//                                     Test_I_Target_ModuleHandlerConfiguration,
+//                                     Test_I_Target_SessionData,
+//                                     Test_I_Target_SessionData_t> Test_I_Target_Stream_Module_Display;
 typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      Test_I_Target_Stream_ModuleHandlerConfiguration,
+                                      Test_I_Target_ModuleHandlerConfiguration,
                                       ACE_Message_Block,
                                       Test_I_Target_Stream_Message,
                                       Test_I_Target_Stream_SessionMessage,
-                                      Test_I_Target_Stream_SessionData,
-                                      Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
+                                      Test_I_Target_SessionData,
+                                      Test_I_Target_SessionData_t> Test_I_Target_Stream_Module_Display;
 #else
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
-                                       Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                       Test_I_Source_ModuleHandlerConfiguration,
                                        ACE_Message_Block,
                                        Test_I_Source_Stream_Message,
                                        Test_I_Source_Stream_SessionMessage,
-                                       Test_I_Source_Stream_SessionData_t> Test_I_Source_Stream_Module_Display;
+                                       Test_I_Source_SessionData_t> Test_I_Source_Stream_Module_Display;
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
-                                       Test_I_Target_Stream_ModuleHandlerConfiguration,
+                                       Test_I_Target_ModuleHandlerConfiguration,
                                        ACE_Message_Block,
                                        Test_I_Target_Stream_Message,
                                        Test_I_Target_Stream_SessionMessage,
-                                       Test_I_Target_Stream_SessionData_t> Test_I_Target_Stream_Module_Display;
+                                       Test_I_Target_SessionData_t> Test_I_Target_Stream_Module_Display;
 #endif
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_Stream_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_SessionData,                // session data type
                               Stream_SessionMessageType,                       // session event type
-                              Test_I_Source_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                          // stream notification interface type
                               Test_I_Source_Stream_Module_Display);            // writer type
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_Stream_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_SessionData,                // session data type
                               Stream_SessionMessageType,                       // session event type
-                              Test_I_Source_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                          // stream notification interface type
                               Test_I_Source_Stream_Module_DisplayNull);        // writer type
 #endif
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_Stream_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                // session data type
                               Stream_SessionMessageType,                       // session event type
-                              Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                          // stream notification interface type
                               Test_I_Target_Stream_Module_Display);            // writer type
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_Stream_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                // session data type
                               Stream_SessionMessageType,                       // session event type
-                              Test_I_Target_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                          // stream notification interface type
                               Test_I_Target_Stream_Module_DisplayNull);        // writer type
 #endif

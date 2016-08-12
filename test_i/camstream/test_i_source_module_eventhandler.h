@@ -39,12 +39,12 @@ class Test_I_Source_Stream_SessionMessage;
 class Test_I_Source_Stream_Module_EventHandler
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                         Test_I_Source_ModuleHandlerConfiguration,
                                          ACE_Message_Block,
                                          Test_I_Source_Stream_Message,
                                          Test_I_Source_Stream_SessionMessage,
                                          Stream_SessionId_t,
-                                         Test_I_Source_Stream_SessionData_t>
+                                         Test_I_Source_SessionData_t>
 {
  public:
   Test_I_Source_Stream_Module_EventHandler ();
@@ -56,21 +56,21 @@ class Test_I_Source_Stream_Module_EventHandler
  private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-                                         Test_I_Source_Stream_ModuleHandlerConfiguration,
+                                         Test_I_Source_ModuleHandlerConfiguration,
                                          ACE_Message_Block,
                                          Test_I_Source_Stream_Message,
                                          Test_I_Source_Stream_SessionMessage,
                                          Stream_SessionId_t,
-                                         Test_I_Source_Stream_SessionData_t> inherited;
+                                         Test_I_Source_SessionData_t> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_Module_EventHandler (const Test_I_Source_Stream_Module_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_Module_EventHandler& operator= (const Test_I_Source_Stream_Module_EventHandler&))
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_Stream_SessionData,                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_SessionData,                       // session data type
                               Stream_SessionMessageType,                       // session event type
-                              Test_I_Source_Stream_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                          // stream notification interface type
                               Test_I_Source_Stream_Module_EventHandler);       // writer type
 

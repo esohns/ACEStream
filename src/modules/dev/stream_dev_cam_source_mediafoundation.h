@@ -113,8 +113,8 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement IMFSampleGrabberSinkCallback2
-  STDMETHODIMP STDMETHODCALLTYPE QueryInterface (const IID&,
-                                                 void**);
+  STDMETHODIMP QueryInterface (const IID&,
+                               void**);
   virtual ULONG STDMETHODCALLTYPE AddRef ();
   virtual ULONG STDMETHODCALLTYPE Release ();
   //STDMETHODIMP OnEvent (DWORD,           // stream index

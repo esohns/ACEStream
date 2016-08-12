@@ -72,8 +72,8 @@ if (UNIX)
  pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_SSL REQUIRED libssl)
 #pkg_check_modules (PKG_ACE REQUIRED ACE)
+ pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
 endif ()
-pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
 
 #if (WIN32)
 # *TODO*: repair pkgconfig support

@@ -117,7 +117,11 @@ stream_processing_function (void* arg_in)
 
 //done:
   { // synch access
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->CBData->lock);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, -1);
+#else
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, std::numeric_limits<void*>::max ());
+#endif
     data_p->CBData->progressData.completedActions.insert (ACE_Thread::self ());
   } // end lock scope
 
@@ -127,7 +131,7 @@ stream_processing_function (void* arg_in)
   return result;
 }
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 gboolean
 idle_initialize_UI_cb (gpointer userData_in)
@@ -314,7 +318,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   // step5: initialize updates
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
     // schedule asynchronous updates of the log view
     guint event_source_id = g_timeout_add_seconds (1,
@@ -565,10 +569,10 @@ idle_update_log_display_cb (gpointer userData_in)
 
   gchar* converted_text = NULL;
   { // synch access
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
     // sanity check
-    if (data_p->logStack.empty ()) return TRUE; // G_SOURCE_CONTINUE
+    if (data_p->logStack.empty ()) return G_SOURCE_CONTINUE;
 
     // step1: convert text
     for (Common_MessageStackConstIterator_t iterator_2 = data_p->logStack.begin ();
@@ -581,7 +585,7 @@ idle_update_log_display_cb (gpointer userData_in)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to convert message text (was: \"%s\"), aborting\n"),
                     ACE_TEXT ((*iterator_2).c_str ())));
-        return FALSE; // G_SOURCE_REMOVE
+        return G_SOURCE_REMOVE;
       } // end IF
 
       // step2: display text
@@ -646,9 +650,9 @@ idle_update_info_display_cb (gpointer userData_in)
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
   { // synch access
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
-    if (data_p->eventStack.empty ()) return TRUE; // G_SOURCE_CONTINUE
+    if (data_p->eventStack.empty ()) return G_SOURCE_CONTINUE;
 
     for (Stream_GTK_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
          iterator_2 != data_p->eventStack.end ();
@@ -747,7 +751,7 @@ idle_update_progress_cb (gpointer userData_in)
   ACE_ASSERT (progress_bar_p);
 
   // synch access
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->GTKState->lock);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->GTKState->lock, G_SOURCE_REMOVE);
 
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
@@ -978,7 +982,7 @@ action_start_activate_cb (GtkAction* action_in,
   ACE_ASSERT (thread_manager_p);
 
   // *NOTE*: lock access to the progress report structures to avoid a race
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
   int result =
     thread_manager_p->spawn (::stream_processing_function,    // function
                              thread_data_p,                   // argument

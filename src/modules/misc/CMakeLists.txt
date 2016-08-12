@@ -33,6 +33,9 @@ if (WIN32)
       stream_misc_dump.h
       stream_misc_dump.inl
       stream_misc_exports.h
+      stream_misc_mediafoundation_callback.cpp
+      stream_misc_mediafoundation_callback.h
+      stream_misc_mediafoundation_callback.inl
       stream_misc_mediafoundation_mediasource.cpp
       stream_misc_mediafoundation_mediasource.h
       stream_misc_mediafoundation_mediasource.inl
@@ -125,6 +128,14 @@ if (WIN32)
           stream_misc_dump.h
           stream_misc_dump.inl
           stream_misc_exports.h
+          stream_misc_mediafoundation_callback.h
+          stream_misc_mediafoundation_callback.inl
+          stream_misc_mediafoundation_mediasource.h
+          stream_misc_mediafoundation_mediasource.inl
+          stream_misc_mediafoundation_source.h
+          stream_misc_mediafoundation_source.inl
+          stream_misc_mediafoundation_target.h
+          stream_misc_mediafoundation_target.inl
           stream_misc_messagehandler.h
           stream_misc_messagehandler.inl
           stream_misc_queue_source.h

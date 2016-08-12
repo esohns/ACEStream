@@ -63,7 +63,7 @@ Test_I_Stream_Source_EventHandler::start (Stream_SessionId_t sessionID_in,
 
   int result = -1;
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   if (sessionData_->lock)
   {
@@ -110,7 +110,7 @@ Test_I_Stream_Source_EventHandler::end (Stream_SessionId_t sessionID_in)
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   guint event_source_id = g_idle_add (idle_end_source_UI_cb,
                                       CBData_);
@@ -139,7 +139,7 @@ Test_I_Stream_Source_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.transferred += message_in.total_length ();
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
@@ -165,8 +165,7 @@ Test_I_Stream_Source_EventHandler::notify (Stream_SessionId_t sessionID_in,
   } // end SWITCH
 
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
-
+    ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
     CBData_->eventStack.push_back (event);
   } // end lock scope
 }

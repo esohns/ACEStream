@@ -61,7 +61,7 @@ Test_I_Stream_Target_EventHandler::start (Stream_SessionId_t sessionID_in,
 
   sessionData_ = &const_cast<Test_I_Stream_SessionData&> (sessionData_in);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.transferred = 0;
   CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
@@ -102,7 +102,7 @@ Test_I_Stream_Target_EventHandler::end (Stream_SessionId_t sessionID_in)
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
 
@@ -131,7 +131,7 @@ Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.transferred += message_in.total_length ();
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
@@ -149,7 +149,7 @@ Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
 
   int result = -1;
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
   switch (sessionMessage_in.type ())

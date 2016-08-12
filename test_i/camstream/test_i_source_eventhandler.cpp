@@ -49,7 +49,7 @@ Test_I_Stream_Source_EventHandler::~Test_I_Stream_Source_EventHandler ()
 
 void
 Test_I_Stream_Source_EventHandler::start (Stream_SessionId_t sessionID_in,
-                                          const Test_I_Source_Stream_SessionData& sessionData_in)
+                                          const Test_I_Source_SessionData& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Source_EventHandler::start"));
 
@@ -60,9 +60,9 @@ Test_I_Stream_Source_EventHandler::start (Stream_SessionId_t sessionID_in,
   ACE_ASSERT (!sessionData_);
 
   sessionData_ =
-    &const_cast<Test_I_Source_Stream_SessionData&> (sessionData_in);
+    &const_cast<Test_I_Source_SessionData&> (sessionData_in);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.transferred = 0;
 
@@ -94,7 +94,7 @@ Test_I_Stream_Source_EventHandler::end (Stream_SessionId_t sessionID_in)
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->eventStack.push_back (TEST_I_GTKEVENT_END);
 
@@ -123,7 +123,7 @@ Test_I_Stream_Source_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.transferred += message_in.total_length ();
   CBData_->eventStack.push_back (TEST_I_GTKEVENT_DATA);
@@ -151,7 +151,7 @@ Test_I_Stream_Source_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   int result = -1;
   Test_I_GTK_Event event = TEST_I_GKTEVENT_INVALID;

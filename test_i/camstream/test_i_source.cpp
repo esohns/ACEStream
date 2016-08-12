@@ -743,7 +743,6 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // step0b: initialize configuration and stream
-  std::string stream_name = ACE_TEXT_ALWAYS_CHAR ("SourceStream");
   configuration.protocol = (useUDP_in ? NET_TRANSPORTLAYER_UDP
                                       : NET_TRANSPORTLAYER_TCP);
   configuration.userData.configuration = &configuration;
@@ -755,16 +754,16 @@ do_work (unsigned int bufferSize_in,
   if (useReactor_in)
   {
     ACE_NEW_NORETURN (CBData_in.stream,
-                      Test_I_Source_TCPStream_t (stream_name));
+                      Test_I_Source_TCPStream_t ());
     ACE_NEW_NORETURN (CBData_in.UDPStream,
-                      Test_I_Source_UDPStream_t (stream_name));
+                      Test_I_Source_UDPStream_t ());
   } // end IF
   else
   {
     ACE_NEW_NORETURN (CBData_in.stream,
-                      Test_I_Source_AsynchTCPStream_t (stream_name));
+                      Test_I_Source_AsynchTCPStream_t ());
     ACE_NEW_NORETURN (CBData_in.UDPStream,
-                      Test_I_Source_AsynchUDPStream_t (stream_name));
+                      Test_I_Source_AsynchUDPStream_t ());
   } // end ELSE
   if (!CBData_in.stream || !CBData_in.UDPStream)
   {
@@ -829,8 +828,13 @@ do_work (unsigned int bufferSize_in,
     goto clean;
   } // end IF
   event_handler_p->initialize (&CBData_in.subscribers,
-                               &CBData_in.lock);
+                               &CBData_in.subscribersLock);
   event_handler_p->subscribe (&ui_event_handler);
+
+  // *************************** media foundation *****************************
+  configuration.mediaFoundationConfiguration.controller = 
+    ((configuration.protocol == NET_TRANSPORTLAYER_TCP) ? CBData_in.stream
+                                                        : CBData_in.UDPStream);
 
   // *********************** socket configuration data ************************
   result =
@@ -906,6 +910,8 @@ do_work (unsigned int bufferSize_in,
     configuration.streamConfiguration.module = &event_handler;
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;
+  configuration.streamConfiguration.mediaFoundationConfiguration =
+    &configuration.mediaFoundationConfiguration;
   configuration.streamConfiguration.moduleHandlerConfiguration =
     &configuration.moduleHandlerConfiguration;
   configuration.streamConfiguration.printFinalReport = true;
@@ -1299,8 +1305,8 @@ ACE_TMAIN (int argc_in,
   Test_I_Source_GTK_CBData gtk_cb_user_data;
   gtk_cb_user_data.progressData.GTKState = &gtk_cb_user_data;
   // step1d: initialize logging and/or tracing
-  Common_Logger logger (&gtk_cb_user_data.logStack,
-                        &gtk_cb_user_data.lock);
+  Common_Logger_t logger (&gtk_cb_user_data.logStack,
+                          &gtk_cb_user_data.lock);
   std::string log_file_name;
   if (log_to_file)
     log_file_name =
@@ -1560,8 +1566,9 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_actions,
                                  previous_signal_mask);
   Common_Tools::finalizeLogging ();
+  Common_Tools::finalize ();
 
-  // *PORTABILITY*: on Windows, finalize ACE...
+  // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = ACE::fini ();
   if (result == -1)

@@ -230,6 +230,8 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   int bytes_per_pixel =
       ((gdk_pixbuf_get_bits_per_sample (pixelBuffer_) / 8) * 4);
   ACE_ASSERT (bytes_per_pixel == 4);
+  unsigned char* pixel_p = data_p;
+  unsigned char* pixel_2 = data_2;
 
 //  int bits_per_sample = 8;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -247,8 +249,6 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #else
   int row_stride = session_data_r.format.fmt.pix.bytesperline;
 #endif
-  unsigned char* pixel_p = data_p;
-  unsigned char* pixel_2 = data_2;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (Stream_Module_Visualization_Tools::mediaSubType2AVPixelFormat (sub_type))

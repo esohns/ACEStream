@@ -177,6 +177,7 @@ load_capture_devices (GtkListStore* listStore_in)
   //} // end WHILE
   UINT32 count = 0;
   IMFAttributes* attributes_p = NULL;
+  UINT32 length = 0;
   result_2 = MFCreateAttributes (&attributes_p, 1);
   if (FAILED (result_2))
   {
@@ -213,7 +214,6 @@ load_capture_devices (GtkListStore* listStore_in)
 
   GtkTreeIter iterator;
   WCHAR buffer[BUFSIZ];
-  UINT32 length = 0;
   //unsigned int index = 0;
   for (UINT32 index = 0; index < count; index++)
   {
@@ -889,7 +889,7 @@ load_rates (IMFMediaSource* IMFMediaSource_in,
 
   DWORD count = 0;
   IMFMediaType* media_type_p = NULL;
-  struct _GUID GUID_s = { 0 };
+  struct _GUID GUID_s = GUID_NULL;
   UINT32 width, height;
   UINT32 numerator, denominator;
   while (result == S_OK)
@@ -1238,14 +1238,18 @@ stream_processing_function (void* arg_in)
   GtkStatusbar* statusbar_p = NULL;
   Test_I_Source_StreamBase_t* stream_p = NULL;
   std::ostringstream converter;
-  const Test_I_Source_Stream_SessionData_t* session_data_container_p = NULL;
-  const Test_I_Source_Stream_SessionData* session_data_p = NULL;
+  const Test_I_Source_SessionData_t* session_data_container_p = NULL;
+  const Test_I_Source_SessionData* session_data_p = NULL;
 
   gdk_threads_enter ();
   bool leave_gdk = true;
 
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->CBData->lock);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, -1);
+#else
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, std::numeric_limits<void*>::max ());
+#endif
 
     Common_UI_GTKBuildersIterator_t iterator =
         data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -1327,7 +1331,11 @@ done:
     gdk_threads_leave ();
 
   { // synch access
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->CBData->lock);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, -1);
+#else
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, std::numeric_limits<void*>::max ());
+#endif
     data_p->CBData->progressData.completedActions.insert (data_p->eventSourceID);
   } // end lock scope
 
@@ -1337,7 +1345,7 @@ done:
   return result;
 }
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 gboolean
 idle_initialize_source_UI_cb (gpointer userData_in)
@@ -1659,7 +1667,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   // step5: initialize updates
   Test_I_GTK_CBData* cb_data_p = data_p;
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
     // schedule asynchronous updates of the log view
     guint event_source_id = g_timeout_add_seconds (1,
@@ -1962,7 +1970,7 @@ idle_end_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (data_p);
 
   // synch access
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
   Common_UI_GTKBuildersIterator_t iterator =
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2001,7 +2009,7 @@ idle_end_source_UI_cb (gpointer userData_in)
   // stop progress reporting
   ACE_ASSERT (data_p->progressEventSourceID);
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard_2 (data_p->lock);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, data_p->lock, G_SOURCE_REMOVE);
 
     if (!g_source_remove (data_p->progressEventSourceID))
       ACE_DEBUG ((LM_ERROR,
@@ -2039,7 +2047,7 @@ idle_update_progress_source_cb (gpointer userData_in)
   ACE_ASSERT (data_p->GTKState);
 
   // synch access
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->GTKState->lock);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->GTKState->lock, G_SOURCE_REMOVE);
 
   int result = -1;
   Common_UI_GTKBuildersIterator_t iterator =
@@ -2112,19 +2120,20 @@ idle_update_progress_source_cb (gpointer userData_in)
 
   // step2: update progress bar text
   std::ostringstream converter;
-  {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard_2 (data_p->GTKState->lock);
+  //{
+    //ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, data_p->GTKState->lock, G_SOURCE_REMOVE);
 
     converter << data_p->statistic.messagesPerSecond;
-  } // end lock scope
-  converter << ACE_TEXT_ALWAYS_CHAR (" fps");
+  //} // end lock scope
+  std::string progressbar_text = converter.str ();
+  progressbar_text += ACE_TEXT_ALWAYS_CHAR (" fps");
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
   gtk_progress_bar_set_text (progress_bar_p,
                              (done ? ACE_TEXT_ALWAYS_CHAR ("")
-                                   : ACE_TEXT_ALWAYS_CHAR (converter.str ().c_str ())));
+                                   : ACE_TEXT_ALWAYS_CHAR (progressbar_text.c_str ())));
   if (done)
   {
     gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
@@ -2426,7 +2435,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   guint event_source_id = 0;
   Test_I_GTK_CBData* cb_data_p = data_p;
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
     // schedule asynchronous updates of the log view
     event_source_id = g_timeout_add_seconds (1,
@@ -2772,8 +2781,7 @@ idle_end_target_UI_cb (gpointer userData_in)
   if (connection_count == 0)
   {
     {
-      ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
-
+      ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
       ACE_OS::memset (&(data_p->progressData.statistic),
                       0,
                       sizeof (data_p->progressData.statistic));
@@ -2824,8 +2832,7 @@ idle_reset_target_UI_cb (gpointer userData_in)
   gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
 
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
-
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
     data_p->progressData.transferred = 0;
   } // end lock scope
 
@@ -2859,8 +2866,7 @@ idle_update_progress_target_cb (gpointer userData_in)
   int result = -1;
   float fps, speed = 0.0F;
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->GTKState->lock);
-
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->GTKState->lock, G_SOURCE_REMOVE);
     fps   = data_p->statistic.messagesPerSecond;
     speed = data_p->statistic.bytesPerSecond;
   } // end lock scope
@@ -2952,7 +2958,7 @@ idle_update_info_display_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
   // sanity check(s)
   if (data_p->eventStack.empty ())
@@ -3062,7 +3068,7 @@ idle_update_log_display_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
   Common_UI_GTKBuildersIterator_t iterator =
       data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -3428,7 +3434,7 @@ toggleaction_stream_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // *NOTE*: lock access to the progress report structures to avoid a race
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+    ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
 
     ACE_THR_FUNC function_p = ACE_THR_FUNC (::stream_processing_function);
     result =
@@ -3819,7 +3825,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
 
     ACE_ASSERT (!data_p->progressEventSourceID);
     {
-      ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
 
       data_p->progressEventSourceID =
         //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
@@ -3875,7 +3881,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     // stop progress reporting
     ACE_ASSERT (data_p->progressEventSourceID);
     {
-      ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
 
       if (!g_source_remove (data_p->progressEventSourceID))
         ACE_DEBUG ((LM_ERROR,
@@ -4076,8 +4082,8 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (context_in);
 
-  Test_I_GTK_CBData* data_p =
-    static_cast<Test_I_GTK_CBData*> (userData_in);
+  Test_I_CamStream_GTK_CBData* data_p =
+    static_cast<Test_I_CamStream_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -4091,7 +4097,7 @@ drawingarea_draw_cb (GtkWidget* widget_in,
                          &width, &height);
 
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, FALSE);
 
     // *IMPORTANT NOTE*: potentially, this involves tranfer of image data to an
     //                   X server running on a different host
@@ -4392,8 +4398,7 @@ g_value_unset (&value_2);
 
   //buffer_negotiation_p->Release ();
 
-  //struct _GUID GUID_s;
-  //ACE_OS::memset (&GUID_s, 0, sizeof (GUID));
+  //struct _GUID GUID_s = GUID_NULL;
   HRESULT result = E_FAIL;
   result =
     data_p->configuration->moduleHandlerConfiguration.format->SetGUID (MF_MT_MAJOR_TYPE,
@@ -4402,6 +4407,27 @@ g_value_unset (&value_2);
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to IMFMediaType::SetGUID(MF_MT_MAJOR_TYPE): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+  result =
+    data_p->configuration->moduleHandlerConfiguration.format->SetUINT32 (MF_MT_INTERLACE_MODE,
+                                                                         MFVideoInterlace_Unknown);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::SetUINT32(MF_MT_INTERLACE_MODE): \"%s\", returning\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    return;
+  } // end IF
+  result =
+    MFSetAttributeRatio (data_p->configuration->moduleHandlerConfiguration.format,
+                         MF_MT_PIXEL_ASPECT_RATIO,
+                         1, 1);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFSetAttributeRatio(MF_MT_PIXEL_ASPECT_RATIO): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
@@ -4500,8 +4526,7 @@ combobox_format_changed_cb (GtkComboBox* comboBox_in,
   std::string format_string = g_value_get_string (&value);
   g_value_unset (&value);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s;
-  ACE_OS::memset (&GUID_s, 0, sizeof (GUID));
+  struct _GUID GUID_s = GUID_NULL;
   HRESULT result = E_FAIL;
 #if defined (OLE2ANSI)
   result = CLSIDFromString (format_string.c_str (),
@@ -4657,8 +4682,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct _GUID GUID_s;
-  ACE_OS::memset (&GUID_s, 0, sizeof (struct _GUID));
+  struct _GUID GUID_s = GUID_NULL;
   HRESULT result = E_FAIL;
 #if defined (OLE2ANSI)
   result = CLSIDFromString (g_value_get_string (&value),
@@ -4745,8 +4769,18 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
   } // end IF
   //if ((GUID_s == FORMAT_VideoInfo) ||
   //    (GUID_s == FORMAT_VideoInfo2))
-  if (GUID_s == MFMediaType_Video)
-  {
+  //{
+  ACE_ASSERT (GUID_s == MFMediaType_Video);
+    result =
+      data_p->configuration->moduleHandlerConfiguration.format->GetGUID (MF_MT_SUBTYPE,
+                                                                         &GUID_s);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      return;
+    } // end IF
     //struct tagVIDEOINFOHEADER* video_info_header_p =
     //  //reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_p->pbFormat);
     //  reinterpret_cast<struct tagVIDEOINFOHEADER*> (data_p->configuration->moduleHandlerConfiguration.format->pbFormat);
@@ -4777,7 +4811,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
       return;
     } // end IF
-  } // end IF
+  //} // end IF
   //else if (data_p->configuration->moduleHandlerConfiguration.format->formattype == FORMAT_VideoInfo2)
   //{
   //  // *NOTE*: these media subtypes do not work with the Video Renderer
@@ -4889,11 +4923,11 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   GValue value_2 = {0,};
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
-                            1, &value);
+                            0, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_UINT);
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
-                            2, &value_2);
+                            1, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
   unsigned int frame_interval = g_value_get_uint (&value);
   g_value_unset (&value);
@@ -4922,18 +4956,19 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   //if (data_p->configuration->moduleHandlerConfiguration.format->formattype == FORMAT_VideoInfo)
   struct _GUID format_type;
   HRESULT result =
-    data_p->configuration->moduleHandlerConfiguration.format->GetGUID (MF_MT_AM_FORMAT_TYPE,
+    data_p->configuration->moduleHandlerConfiguration.format->GetGUID (MF_MT_MAJOR_TYPE,
                                                                        &format_type);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_AM_FORMAT_TYPE): \"%s\", returning\n"),
+                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", returning\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
     return;
   } // end IF
-  if ((format_type == FORMAT_VideoInfo) ||
-      (format_type == FORMAT_VideoInfo2))
-  {
+  //if ((format_type == FORMAT_VideoInfo) ||
+  //    (format_type == FORMAT_VideoInfo2))
+  //{
+  ACE_ASSERT (format_type == MFMediaType_Video);
     //struct tagVIDEOINFOHEADER* video_info_header_p =
     //  //reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_p->pbFormat);
     //  reinterpret_cast<struct tagVIDEOINFOHEADER*> (data_p->configuration->moduleHandlerConfiguration.format->pbFormat);
@@ -4961,7 +4996,7 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
       return;
     } // end IF
     //PropVariantClear (&property_s);
-  } // end IF
+  //} // end IF
   //else if (data_p->configuration->moduleHandlerConfiguration.format->formattype == FORMAT_VideoInfo2)
   //{
   //  // *NOTE*: these media subtypes do not work with the Video Renderer

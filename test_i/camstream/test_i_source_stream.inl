@@ -22,15 +22,15 @@
 
 #include "stream_macros.h"
 
-#include "test_i_common_modules.h"
+//#include "test_i_common_modules.h"
 
 template <typename ConnectorType>
-Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T (const std::string& name_in)
- : inherited (name_in,
+Test_I_Source_Stream_T<ConnectorType>::Test_I_Source_Stream_T ()
+ : inherited (ACE_TEXT_ALWAYS_CHAR ("SourceStream"),
               false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , inherited2 ()
  , mediaSession_ (NULL)
- , referenceCount_ (1)
 #endif
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Test_I_Source_Stream_T"));
@@ -57,18 +57,6 @@ Test_I_Source_Stream_T<ConnectorType>::~Test_I_Source_Stream_T ()
 
   // *NOTE*: implements an ordered shutdown on destruction
   inherited::shutdown ();
-}
-
-template <typename ConnectorType>
-void
-Test_I_Source_Stream_T<ConnectorType>::ping ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::ping"));
-
-  ACE_ASSERT (false);
-  ACE_NOTSUP;
-
-  ACE_NOTREACHED (return;)
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -143,216 +131,6 @@ Test_I_Source_Stream_T<ConnectorType>::stop (bool waitForCompletion_in,
   inherited::stop (waitForCompletion_in,
                    lockedAccess_in);
 }
-
-template <typename ConnectorType>
-HRESULT
-Test_I_Source_Stream_T<ConnectorType>::QueryInterface (const IID& IID_in,
-                                                       void** interface_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::QueryInterface"));
-
-  static const QITAB query_interface_table[] =
-  {
-    QITABENT (OWN_TYPE_T, IMFAsyncCallback),
-    { 0 },
-  };
-
-  return QISearch (this,
-                   query_interface_table,
-                   IID_in,
-                   interface_out);
-}
-template <typename ConnectorType>
-ULONG
-Test_I_Source_Stream_T<ConnectorType>::Release ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Release"));
-
-  ULONG count = InterlockedDecrement (&referenceCount_);
-  if (count == 0);
-  //delete this;
-
-  return count;
-}
-template <typename ConnectorType>
-HRESULT
-Test_I_Source_Stream_T<ConnectorType>::GetParameters (DWORD* flags_out,
-                                                      DWORD* queue_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::GetParameters"));
-
-  ACE_UNUSED_ARG (flags_out);
-  ACE_UNUSED_ARG (queue_out);
-
-  // *NOTE*: "...If you want default values for both parameters, return
-  //         E_NOTIMPL. ..."
-  return E_NOTIMPL;
-}
-template <typename ConnectorType>
-HRESULT
-Test_I_Source_Stream_T<ConnectorType>::Invoke (IMFAsyncResult* result_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::Invoke"));
-
-  HRESULT result = E_FAIL;
-  IMFMediaEvent* media_event_p = NULL;
-  MediaEventType event_type = MEUnknown;
-  HRESULT status = E_FAIL;
-  struct tagPROPVARIANT value;
-  PropVariantInit (&value);
-
-  // sanity check(s)
-  ACE_ASSERT (result_in);
-  ACE_ASSERT (mediaSession_);
-  ACE_ASSERT (inherited::sessionData_);
-
-  //Test_I_Source_Stream_SessionData& session_data_r =
-  //  const_cast<Test_I_Source_Stream_SessionData&> (inherited::sessionData_->get ());
-
-  result = mediaSession_->EndGetEvent (result_in, &media_event_p);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaSession::EndGetEvent(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-  result = media_event_p->GetType (&event_type);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = media_event_p->GetStatus (&status);
-  ACE_ASSERT (SUCCEEDED (result));
-  result = media_event_p->GetValue (&value);
-  ACE_ASSERT (SUCCEEDED (result));
-  switch (event_type)
-  {
-  case MEEndOfPresentation:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MEEndOfPresentation...\n")));
-    break;
-  }
-  case MEError:
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("received MEError: \"%s\"\n"),
-                ACE_TEXT (Common_Tools::error2String (status).c_str ())));
-    break;
-  }
-  case MESessionClosed:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionClosed, shutting down...\n")));
-    //IMFMediaSource* media_source_p = NULL;
-    //if (!Stream_Module_Device_Tools::getMediaSource (mediaSession_,
-    //                                                 media_source_p))
-    //{
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), continuing\n")));
-    //  goto continue_;
-    //} // end IF
-    //ACE_ASSERT (media_source_p);
-    //result = media_source_p->Shutdown ();
-    //if (FAILED (result))
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to IMFMediaSource::Shutdown(): \"%s\", continuing\n"),
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    //media_source_p->Release ();
-//continue_:
-    // *TODO*: this crashes in CTopoNode::UnlinkInput ()...
-    //result = mediaSession_->Shutdown ();
-    //if (FAILED (result))
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to IMFMediaSession::Shutdown(): \"%s\", continuing\n"),
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    break;
-  }
-  case MESessionEnded:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionEnded, closing sesion...\n")));
-    result = mediaSession_->Close ();
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IMFMediaSession::Close(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    break;
-  }
-  case MESessionCapabilitiesChanged:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionCapabilitiesChanged...\n")));
-    break;
-  }
-  case MESessionNotifyPresentationTime:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionNotifyPresentationTime...\n")));
-    break;
-  }
-  case MESessionStarted:
-  { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionStarted...\n")));
-    break;
-  }
-  case MESessionStopped:
-  { // status MF_E_INVALIDREQUEST: 0xC00D36B2L
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionStopped, stopping...\n")));
-    if (isRunning ())
-      stop (false,
-            true);
-    break;
-  }
-  case MESessionTopologySet:
-  {
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionTopologySet (status was: \"%s\")...\n"),
-                ACE_TEXT (Common_Tools::error2String (status).c_str ())));
-    break;
-  }
-  case MESessionTopologyStatus:
-  {
-    UINT32 attribute_value = 0;
-    result = media_event_p->GetUINT32 (MF_EVENT_TOPOLOGY_STATUS,
-                                       &attribute_value);
-    ACE_ASSERT (SUCCEEDED (result));
-    MF_TOPOSTATUS topology_status =
-      static_cast<MF_TOPOSTATUS> (attribute_value);
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("received MESessionTopologyStatus: \"%s\"...\n"),
-                ACE_TEXT (Stream_Module_Device_Tools::topologyStatusToString (topology_status).c_str ())));
-    break;
-  }
-  default:
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("received unknown/invalid media session event (type was: %d), continuing\n"),
-                event_type));
-    break;
-  }
-  } // end SWITCH
-  PropVariantClear (&value);
-  media_event_p->Release ();
-
-  result = mediaSession_->BeginGetEvent (this, NULL);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaSession::BeginGetEvent(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    goto error;
-  } // end IF
-
-  return S_OK;
-
-error:
-  if (media_event_p)
-    media_event_p->Release ();
-  PropVariantClear (&value);
-
-  return E_FAIL;
-}
 #endif
 
 template <typename ConnectorType>
@@ -364,7 +142,7 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
 //  // initialize return value(s)
 //  modules_out.clear ();
-//  delete_out = false;
+  //delete_out = false;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -381,17 +159,17 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
                     false);
     modules_out.push_back (module_p);
   } // end IF
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //else
-  //{
-  //  ACE_NEW_RETURN (module_p,
-  //                  Test_I_Source_Stream_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-  //                                                                  NULL,
-  //                                                                  false),
-  //                  false);
-  //  modules_out.push_back (module_p);
-  //} // end ELSE
-#endif
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  //else
+//  //{
+//  //  ACE_NEW_RETURN (module_p,
+//  //                  Test_I_Source_Stream_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+//  //                                                                  NULL,
+//  //                                                                  false),
+//  //                  false);
+//  //  modules_out.push_back (module_p);
+//  //} // end ELSE
+//#endif
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
                   TARGET_MODULE_T (ACE_TEXT_ALWAYS_CHAR ("NetTarget"),
@@ -427,7 +205,8 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
-  //// sanity check(s)
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.mediaFoundationConfiguration);
   //ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
 
   //// *TODO*: remove type inference
@@ -452,8 +231,8 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Source_Stream_SessionData& session_data_r =
-    const_cast<Test_I_Source_Stream_SessionData&> (inherited::sessionData_->get ());
+  Test_I_Source_SessionData& session_data_r =
+    const_cast<Test_I_Source_SessionData&> (inherited::sessionData_->get ());
 #endif
 
 //  configuration_in.moduleConfiguration.streamState = &state_;
@@ -504,6 +283,9 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   } // end IF
   COM_initialized = true;
 
+  UINT32 item_count = 0;
+  ULONG reference_count = 0;
+
   IMFMediaType* media_type_p = NULL;
   if (!configuration_in.moduleHandlerConfiguration->format)
   {
@@ -542,7 +324,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   graph_loaded = true;
 
   // set default capture media type ?
-  UINT32 item_count = 0;
   result = media_type_p->GetCount (&item_count);
   if (FAILED (result))
   {
@@ -590,9 +371,9 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     goto error;
   } // end IF
 #if defined (_DEBUG)
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("capture format: \"%s\"...\n"),
-                ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (media_type_p).c_str ())));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("capture format: \"%s\"...\n"),
+              ACE_TEXT (Stream_Module_Device_Tools::mediaTypeToString (media_type_p).c_str ())));
 #endif
   media_type_p->Release ();
   media_type_p = NULL;
@@ -624,7 +405,6 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
     mediaSession_->Release ();
     mediaSession_ = NULL;
   } // end IF
-  ULONG reference_count = 0;
   if (configuration_in.moduleHandlerConfiguration->session)
   {
     reference_count =
@@ -696,6 +476,18 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamCon
   //session_data_p->size =
   //  Common_File_Tools::size (configuration_in.moduleHandlerConfiguration->fileName);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // *TODO*: remove type inferences
+  const_cast<Test_I_Source_StreamConfiguration&> (configuration_in).mediaFoundationConfiguration->mediaSession =
+    mediaSession_;
+  if (!inherited2::initialize (*configuration_in.mediaFoundationConfiguration))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Misc_MediaFoundation_Callback_T::initialize(), aborting\n")));
+    goto error;
+  } // end IF
+#endif
+
   // OK: all went well
   inherited::isInitialized_ = true;
 
@@ -755,8 +547,8 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_Source_Stream_StatisticDa
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
-  Test_I_Source_Stream_SessionData& session_data_r =
-      const_cast<Test_I_Source_Stream_SessionData&> (inherited::sessionData_->get ());
+  Test_I_Source_SessionData& session_data_r =
+      const_cast<Test_I_Source_SessionData&> (inherited::sessionData_->get ());
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
   if (!module_p)
@@ -835,5 +627,17 @@ Test_I_Source_Stream_T<ConnectorType>::report () const
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
+  ACE_NOTREACHED (return;)
+}
+
+template <typename ConnectorType>
+void
+Test_I_Source_Stream_T<ConnectorType>::ping ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::ping"));
+
+  ACE_ASSERT (false);
+  ACE_NOTSUP;
+
   ACE_NOTREACHED (return;)
 }

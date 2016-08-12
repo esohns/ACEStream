@@ -24,6 +24,7 @@
 #include "d3d9types.h"
 #include "dxva2api.h"
 #include "mferror.h"
+#include "shlwapi.h"
 
 #include "ace/Log_Msg.h"
 #include "ace/OS.h"

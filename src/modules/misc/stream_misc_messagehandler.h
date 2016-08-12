@@ -82,8 +82,8 @@ class Stream_Module_MessageHandler_T
                                SessionMessageType,
                                Stream_SessionId_t,
                                Stream_SessionMessageType>::initialize;
-  virtual void initialize (SUBSCRIBERS_T* = NULL,              // subscribers (handle)
-                           ACE_SYNCH_RECURSIVE_MUTEX* = NULL); // subscribers lock
+  virtual void initialize (SUBSCRIBERS_T* = NULL,                            // subscribers handle
+                           typename ACE_SYNCH_USE::RECURSIVE_MUTEX* = NULL); // subscribers lock handle (NULL: don't lock)
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
@@ -100,11 +100,11 @@ class Stream_Module_MessageHandler_T
   virtual void unsubscribe (INOTIFY_T*); // existing subscriber
 
  protected:
-  bool                       delete_;
-  // *NOTE*: recursive so that callees may unsubscribe from within the
-  //         notification callbacks...
-  ACE_SYNCH_RECURSIVE_MUTEX* lock_;
-  SUBSCRIBERS_T*             subscribers_;
+  bool                                     delete_;
+  // *IMPORTANT NOTE*: this must be 'recursive', so that callees may unsubscribe
+  //                   from within the notification callbacks
+  typename ACE_SYNCH_USE::RECURSIVE_MUTEX* lock_;
+  SUBSCRIBERS_T*                           subscribers_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,

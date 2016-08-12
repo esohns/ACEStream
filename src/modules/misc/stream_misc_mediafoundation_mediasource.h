@@ -34,7 +34,7 @@
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename ConfigurationType,
           typename PinConfigurationType,
           typename MediaType>

@@ -42,7 +42,7 @@
 #include "stream_dev_defines.h"
 #include "stream_dev_tools.h"
 
-#include "test_i_common.h"
+#include "test_i_camstream_common.h"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -79,7 +79,7 @@ struct Test_I_Source_SocketHandlerConfiguration
 struct Test_I_Source_StreamState;
 struct Test_I_Source_StreamConfiguration;
 struct Test_I_Source_Stream_StatisticData;
-struct Test_I_Source_Stream_ModuleHandlerConfiguration;
+struct Test_I_Source_ModuleHandlerConfiguration;
 class Test_I_Source_Stream_SessionMessage;
 class Test_I_Source_Stream_Message;
 typedef Stream_Base_T<ACE_MT_SYNCH,
@@ -92,17 +92,17 @@ typedef Stream_Base_T<ACE_MT_SYNCH,
                       Test_I_Source_StreamConfiguration,
                       Test_I_Source_Stream_StatisticData,
                       Stream_ModuleConfiguration,
-                      Test_I_Source_Stream_ModuleHandlerConfiguration,
-                      Test_I_Source_Stream_SessionData,   // session data
-                      Test_I_Source_Stream_SessionData_t, // session data container (reference counted)
+                      Test_I_Source_ModuleHandlerConfiguration,
+                      Test_I_Source_SessionData,   // session data
+                      Test_I_Source_SessionData_t, // session data container (reference counted)
                       ACE_Message_Block,
                       Test_I_Source_Stream_Message,
                       Test_I_Source_Stream_SessionMessage> Test_I_Source_StreamBase_t;
-struct Test_I_Source_Stream_ModuleHandlerConfiguration
- : Test_I_Stream_ModuleHandlerConfiguration
+struct Test_I_Source_ModuleHandlerConfiguration
+ : Test_I_CamStream_ModuleHandlerConfiguration
 {
-  inline Test_I_Source_Stream_ModuleHandlerConfiguration ()
-   : Test_I_Stream_ModuleHandlerConfiguration ()
+  inline Test_I_Source_ModuleHandlerConfiguration ()
+   : Test_I_CamStream_ModuleHandlerConfiguration ()
    , area ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , format (NULL)
@@ -208,19 +208,19 @@ struct Test_I_Source_Stream_StatisticData
 #endif
 };
 
-struct Test_I_Source_Stream_SessionData
- : Test_I_Stream_SessionData
+struct Test_I_Source_SessionData
+ : Test_I_CamStream_SessionData
 {
-  inline Test_I_Source_Stream_SessionData ()
-   : Test_I_Stream_SessionData ()
+  inline Test_I_Source_SessionData ()
+   : Test_I_CamStream_SessionData ()
    , connectionState (NULL)
    , userData (NULL)
   {};
 
-  inline Test_I_Source_Stream_SessionData& operator+= (const Test_I_Source_Stream_SessionData& rhs_in)
+  inline Test_I_Source_SessionData& operator+= (const Test_I_Source_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data...
-    Test_I_Stream_SessionData::operator+= (rhs_in);
+    Test_I_CamStream_SessionData::operator+= (rhs_in);
 
     connectionState = (connectionState ? connectionState 
                                        : rhs_in.connectionState);
@@ -232,17 +232,22 @@ struct Test_I_Source_Stream_SessionData
   Test_I_Source_ConnectionState* connectionState;
   Test_I_Source_UserData*        userData;
 };
-typedef Stream_SessionData_T<Test_I_Source_Stream_SessionData> Test_I_Source_Stream_SessionData_t;
+typedef Stream_SessionData_T<Test_I_Source_SessionData> Test_I_Source_SessionData_t;
 
+struct Test_I_MediaFoundationConfiguration;
 struct Test_I_Source_StreamConfiguration
- : Stream_Configuration
+ : Test_I_StreamConfiguration
 {
   inline Test_I_Source_StreamConfiguration ()
-   : Stream_Configuration ()
+   : Test_I_StreamConfiguration ()
+   , mediaFoundationConfiguration (NULL)
    , moduleHandlerConfiguration (NULL)
   {};
 
-  Test_I_Source_Stream_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  // **************************** media foundation *****************************
+  Test_I_MediaFoundationConfiguration*      mediaFoundationConfiguration;
+  // **************************** stream data **********************************
+  Test_I_Source_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 
 struct Test_I_Source_StreamState
@@ -254,15 +259,29 @@ struct Test_I_Source_StreamState
    , userData (NULL)
   {};
 
-  Test_I_Source_Stream_SessionData* currentSessionData;
+  Test_I_Source_SessionData* currentSessionData;
   Test_I_Source_UserData*           userData;
 };
 
+struct IMFMediaSession;
+class Common_IControl;
+struct Test_I_MediaFoundationConfiguration
+{
+  inline Test_I_MediaFoundationConfiguration ()
+   : controller (NULL)
+   , mediaSession (NULL)
+  {};
+
+  Common_IControl* controller;
+  IMFMediaSession* mediaSession;
+};
+
 struct Test_I_Source_Configuration
- : Test_I_Configuration
+ : Test_I_CamStream_Configuration
 {
   inline Test_I_Source_Configuration ()
-   : Test_I_Configuration ()
+   : Test_I_CamStream_Configuration ()
+   , mediaFoundationConfiguration ()
    , signalHandlerConfiguration ()
    , socketHandlerConfiguration ()
    , moduleHandlerConfiguration ()
@@ -270,15 +289,17 @@ struct Test_I_Source_Configuration
    , userData ()
   {};
 
+  // **************************** media foundation *****************************
+  Test_I_MediaFoundationConfiguration      mediaFoundationConfiguration;
   // **************************** signal data **********************************
-  Test_I_Source_SignalHandlerConfiguration        signalHandlerConfiguration;
+  Test_I_Source_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** socket data **********************************
-  Test_I_Source_SocketHandlerConfiguration        socketHandlerConfiguration;
+  Test_I_Source_SocketHandlerConfiguration socketHandlerConfiguration;
   // **************************** stream data **********************************
-  Test_I_Source_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  Test_I_Source_StreamConfiguration               streamConfiguration;
+  Test_I_Source_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  Test_I_Source_StreamConfiguration        streamConfiguration;
 
-  Test_I_Source_UserData                          userData;
+  Test_I_Source_UserData                   userData;
 };
 
 typedef Stream_ControlMessage_T<Stream_ControlMessageType,
@@ -291,19 +312,8 @@ typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
                                           Test_I_Source_Stream_Message,
                                           Test_I_Source_Stream_SessionMessage> Test_I_Source_MessageAllocator_t;
 
-//typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-//                                    Test_I_Stream_SessionData,
-//                                    Stream_SessionMessageType,
-//                                    Test_I_Source_Stream_Message,
-//                                    Test_I_Source_Stream_SessionMessage> Test_I_ISessionNotify_t;
-//typedef std::list<Test_I_ISessionNotify_t*> Test_I_Subscribers_t;
-//typedef Test_I_Subscribers_t::iterator Test_I_SubscribersIterator_t;
-
-//typedef Common_ISubscribe_T<Test_I_ISessionNotify_t> Test_I_ISubscribe_t;
-
-//typedef Stream_INotify_T<Stream_SessionMessageType> Test_I_Source_IStreamNotify_t;
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
-                                    Test_I_Source_Stream_SessionData,
+                                    Test_I_Source_SessionData,
                                     Stream_SessionMessageType,
                                     Test_I_Source_Stream_Message,
                                     Test_I_Source_Stream_SessionMessage> Test_I_Source_ISessionNotify_t;
@@ -313,13 +323,15 @@ typedef Test_I_Source_Subscribers_t::iterator Test_I_Source_SubscribersIterator_
 typedef Common_ISubscribe_T<Test_I_Source_ISessionNotify_t> Test_I_Source_ISubscribe_t;
 
 struct Test_I_Source_GTK_CBData
- : Test_I_GTK_CBData
+ : Test_I_CamStream_GTK_CBData
 {
   inline Test_I_Source_GTK_CBData ()
-   : Test_I_GTK_CBData ()
+   : Test_I_CamStream_GTK_CBData ()
    , configuration (NULL)
    , isFirst (true)
    , stream (NULL)
+   , subscribers ()
+   , subscribersLock ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , streamConfiguration (NULL)
 #else
@@ -331,12 +343,13 @@ struct Test_I_Source_GTK_CBData
   Test_I_Source_Configuration* configuration;
   bool                         isFirst; // first activation ?
   Test_I_Source_StreamBase_t*  stream;
+  Test_I_Source_Subscribers_t  subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX    subscribersLock;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   IAMStreamConfig*             streamConfiguration;
 #else
   int                          device; // (capture) device file descriptor
 #endif
-  Test_I_Source_Subscribers_t  subscribers;
   Test_I_Source_StreamBase_t*  UDPStream;
 };
 

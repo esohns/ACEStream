@@ -77,6 +77,8 @@ Stream_Base_T<LockType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::Stream_Base_T"));
 
+//  _CrtCheckMemory ();
+
   // *NOTE*: this enforces use of upstream (if any) session data for all session
   //         messages
   if (supportLinking_in)

@@ -26,7 +26,7 @@
 #include "stream_macros.h"
 
 Test_I_Target_Stream_SessionMessage::Test_I_Target_Stream_SessionMessage (Stream_SessionMessageType messageType_in,
-                                                                          Test_I_Target_Stream_SessionData_t*& sessionData_in,
+                                                                          Test_I_Target_SessionData_t*& sessionData_in,
                                                                           Test_I_Target_UserData* userData_in)
  : inherited (messageType_in,
               sessionData_in,

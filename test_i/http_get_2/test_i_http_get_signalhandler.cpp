@@ -31,23 +31,23 @@
 
 #include "test_i_connection_manager_common.h"
 
-Stream_Source_SignalHandler::Stream_Source_SignalHandler ()
+Test_I_SignalHandler::Test_I_SignalHandler ()
  : inherited (this) // event handler handle
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::Stream_Source_SignalHandler"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_SignalHandler::Test_I_SignalHandler"));
 
 }
 
-Stream_Source_SignalHandler::~Stream_Source_SignalHandler ()
+Test_I_SignalHandler::~Test_I_SignalHandler ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::~Stream_Source_SignalHandler"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_SignalHandler::~Test_I_SignalHandler"));
 
 }
 
 bool
-Stream_Source_SignalHandler::handleSignal (int signal_in)
+Test_I_SignalHandler::handleSignal (int signal_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Source_SignalHandler::handleSignal"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_SignalHandler::handleSignal"));
 
 //  int result = -1;
 

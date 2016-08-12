@@ -25,6 +25,7 @@
 
 #include "stream_macros.h"
 
+#include "http_defines.h"
 #include "http_tools.h"
 
 Test_I_Stream_Message::Test_I_Stream_Message (unsigned int size_in)

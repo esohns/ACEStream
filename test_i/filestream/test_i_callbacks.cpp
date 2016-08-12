@@ -83,8 +83,8 @@ stream_processing_function (void* arg_in)
   gdk_threads_enter ();
   bool leave_gdk = true;
 
-  {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->CBData->lock);
+  //{
+  //  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, -1);
 
     Common_UI_GTKBuildersIterator_t iterator =
         data_p->CBData->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -125,7 +125,7 @@ stream_processing_function (void* arg_in)
       GTK_STATUSBAR (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_STATUSBAR_NAME)));
     ACE_ASSERT (statusbar_p);
-  } // end lock scope
+  //} // end lock scope
 
   gdk_threads_leave ();
   leave_gdk = false;
@@ -194,7 +194,11 @@ done:
     gdk_threads_leave ();
 
   { // synch access
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->CBData->lock);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, -1);
+#else
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->lock, std::numeric_limits<void*>::max ());
+#endif
     data_p->CBData->progressData.completedActions.insert (data_p->eventSourceID);
   } // end lock scope
 
@@ -204,7 +208,7 @@ done:
   return result;
 }
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 gboolean
 idle_initialize_source_UI_cb (gpointer userData_in)
@@ -433,7 +437,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   // step5: initialize updates
   Stream_GTK_CBData* cb_data_p = data_p;
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
     // schedule asynchronous updates of the log view
     guint event_source_id = g_timeout_add_seconds (1,
@@ -652,7 +656,7 @@ idle_end_source_UI_cb (gpointer userData_in)
   ACE_ASSERT (data_p);
 
   // synch access
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
   if (data_p->loop > 0) --data_p->loop;
 
@@ -703,7 +707,7 @@ idle_update_progress_source_cb (gpointer userData_in)
   ACE_ASSERT (data_p->GTKState);
 
   // synch access
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->GTKState->lock);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->GTKState->lock, G_SOURCE_REMOVE);
 
   int result = -1;
   Common_UI_GTKBuildersIterator_t iterator =
@@ -1081,7 +1085,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   guint event_source_id = 0;
   Stream_GTK_CBData* cb_data_p = data_p;
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
     // schedule asynchronous updates of the log view
     event_source_id = g_timeout_add_seconds (1,
@@ -1408,8 +1412,7 @@ idle_reset_target_UI_cb (gpointer userData_in)
   gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
 
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
-
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
     data_p->progressData.transferred = 0;
   } // end lock scope
 
@@ -1444,8 +1447,7 @@ idle_update_progress_target_cb (gpointer userData_in)
   float speed = 0.0F;
 
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->GTKState->lock);
-
+    ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->GTKState->lock, G_SOURCE_REMOVE);
     speed = data_p->statistic.bytesPerSecond;
   } // end lock scope
   std::string magnitude_string = ACE_TEXT_ALWAYS_CHAR ("byte(s)/s");
@@ -1501,7 +1503,7 @@ idle_update_info_display_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -1642,7 +1644,7 @@ idle_update_log_display_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (data_p);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -1920,7 +1922,7 @@ toggle_action_start_toggled_cb (GtkToggleAction* action_in,
 
   // *NOTE*: lock access to the progress report structures to avoid a race
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+    ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
 
     ACE_THR_FUNC function_p = ACE_THR_FUNC (::stream_processing_function);
     result =
@@ -2474,7 +2476,7 @@ action_listen_activate_cb (GtkAction* action_in,
 
     ACE_ASSERT (!data_p->progressEventSourceID);
     {
-      ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
 
       data_p->progressEventSourceID =
         //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
@@ -2499,12 +2501,9 @@ action_listen_activate_cb (GtkAction* action_in,
   else
   {
     ACE_ASSERT (data_p->configuration->signalHandlerConfiguration.listener);
-    try
-    {
+    try {
       data_p->configuration->signalHandlerConfiguration.listener->stop ();
-    }
-    catch (...)
-    {
+    } catch (...) {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("caught exception in Net_Server_IListener::stop(): \"%m\", continuing\n")));
     } // end catch
@@ -2524,7 +2523,7 @@ action_listen_activate_cb (GtkAction* action_in,
     // stop progress reporting
     ACE_ASSERT (data_p->progressEventSourceID);
     {
-      ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (data_p->lock);
+      ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->lock);
 
       if (!g_source_remove (data_p->progressEventSourceID))
         ACE_DEBUG ((LM_ERROR,

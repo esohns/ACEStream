@@ -27,6 +27,7 @@
 
 #include "net_server_asynchlistener.h"
 #include "net_server_listener.h"
+#include "net_server_ssl_listener.h"
 #include "net_sock_acceptor.h"
 
 #include "test_i_connection_common.h"
@@ -52,10 +53,42 @@ typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
                               Test_I_Target_Stream,
                               Test_I_Target_SocketHandlerConfiguration,
                               Test_I_Target_UserData> Test_I_Target_Listener_t;
+typedef Net_Server_SSL_Listener_T<Test_I_Target_SSLTCPConnection_t,
+                                  ACE_SSL_SOCK_Connector,
+                                  ACE_INET_Addr,
+                                  Test_I_Target_Configuration,
+                                  Test_I_ConnectionState,
+                                  Test_I_Target_Stream,
+                                  Test_I_Target_SocketHandlerConfiguration,
+                                  Test_I_Target_UserData> Test_I_Target_SSLListener_t;
+
+//////////////////////////////////////////
+
+typedef Net_Client_AsynchConnector_T<Test_I_Target_AsynchUDPConnection_t,
+                                     ACE_INET_Addr,
+                                     Test_I_Target_Configuration,
+                                     Test_I_Target_ConnectionState,
+                                     Test_I_RuntimeStatistic_t,
+                                     Test_I_Target_Stream,
+                                     Test_I_Target_SocketHandlerConfiguration,
+                                     Test_I_Target_UserData> Test_I_Target_UDPAsynchConnector_t;
+typedef Net_Client_Connector_T<Test_I_Target_UDPConnection_t,
+                               ACE_SOCK_CONNECTOR,
+                               ACE_INET_Addr,
+                               Test_I_Target_Configuration,
+                               Test_I_Target_ConnectionState,
+                               Test_I_RuntimeStatistic_t,
+                               Test_I_Target_Stream,
+                               Test_I_Target_SocketHandlerConfiguration,
+                               Test_I_Target_UserData> Test_I_Target_UDPConnector_t;
+
+//////////////////////////////////////////
 
 typedef ACE_Singleton<Test_I_Target_AsynchListener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_ASYNCHLISTENER_SINGLETON;
 typedef ACE_Singleton<Test_I_Target_Listener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_LISTENER_SINGLETON;
+typedef ACE_Singleton<Test_I_Target_SSLListener_t,
+                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_SSL_LISTENER_SINGLETON;
 
 #endif

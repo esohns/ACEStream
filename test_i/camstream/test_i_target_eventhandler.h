@@ -39,7 +39,7 @@ class Test_I_Stream_Target_EventHandler
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
-                      const Test_I_Target_Stream_SessionData&);
+                      const Test_I_Target_SessionData&);
   virtual void notify (Stream_SessionId_t,
                        const Stream_SessionMessageType&);
   virtual void end (Stream_SessionId_t);
@@ -53,8 +53,8 @@ class Test_I_Stream_Target_EventHandler
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler (const Test_I_Stream_Target_EventHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler& operator= (const Test_I_Stream_Target_EventHandler&))
 
-  Test_I_GTK_CBData*                CBData_;
-  Test_I_Target_Stream_SessionData* sessionData_;
+  Test_I_GTK_CBData*         CBData_;
+  Test_I_Target_SessionData* sessionData_;
 };
 
 #endif

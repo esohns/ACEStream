@@ -680,7 +680,7 @@ do_work (const std::string& bootstrapFileName_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
-         Stream_Source_SignalHandler& signalHandler_in)
+         Test_I_SignalHandler& signalHandler_in)
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
@@ -1078,7 +1078,7 @@ ACE_TMAIN (int argc_in,
   ACE_Sig_Set ignored_signal_set (0);
   Common_SignalActions_t previous_signal_actions;
   sigset_t previous_signal_mask;
-  Stream_Source_SignalHandler signal_handler;
+  Test_I_SignalHandler signal_handler;
 
   ACE_High_Res_Timer timer;
   ACE_Profile_Timer::ACE_Elapsed_Time elapsed_time;

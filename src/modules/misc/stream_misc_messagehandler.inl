@@ -93,7 +93,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
                                SessionMessageType,
                                SessionIdType,
                                SessionDataContainerType>::initialize (SUBSCRIBERS_T* subscribers_in,
-                                                                      ACE_SYNCH_RECURSIVE_MUTEX* lock_in)
+                                                                      typename ACE_SYNCH_USE::RECURSIVE_MUTEX* lock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::initialize"));
 
@@ -117,7 +117,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   else
   {
     ACE_NEW_NORETURN (lock_,
-                      ACE_SYNCH_RECURSIVE_MUTEX (NULL, NULL));
+                      typename ACE_SYNCH_USE::RECURSIVE_MUTEX (NULL, NULL));
     if (!lock_)
     {
       ACE_DEBUG ((LM_CRITICAL,
@@ -190,7 +190,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 
   // synch access
   {
-    ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (*lock_);
+    ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
 
     // *WARNING* if users unsubscribe() within the callback Bad Things (TM)
     // would happen, as the current iter would be invalidated
@@ -250,7 +250,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     {
       // synch access
       {
-        ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (*lock_);
+        ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
 
         // *NOTE*: this works because the lock is recursive
         // *WARNING* if callees unsubscribe() within the callback bad things
@@ -278,7 +278,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     {
       // synch access
       {
-        ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (*lock_);
+        ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
 
         // *NOTE*: this works because the lock is recursive
         // *WARNING* if callees unsubscribe() within the callback bad things
@@ -307,7 +307,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     {
       // synch access
       {
-        ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (*lock_);
+        ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
 
         // *NOTE*: this works because the lock is recursive
         // *WARNING* if callees unsubscribe() within the callback bad things
@@ -421,7 +421,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   //} // end IF
 
   // synch access to subscribers
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (*lock_);
+  ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
 
   subscribers_->push_back (interfaceHandle_in);
 }
@@ -451,7 +451,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   ACE_ASSERT (interfaceHandle_in);
 
   // synch access to subscribers
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (*lock_);
+  ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
 
   SUBSCRIBERS_ITERATOR_T iterator = subscribers_->begin ();
   for (;

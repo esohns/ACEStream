@@ -144,8 +144,8 @@ Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& confi
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  Test_I_Target_Stream_SessionData& session_data_r =
-    const_cast<Test_I_Target_Stream_SessionData&> (inherited::sessionData_->get ());
+  Test_I_Target_SessionData& session_data_r =
+    const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.currentSessionData = &session_data_r;
@@ -237,8 +237,8 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
-  Test_I_Target_Stream_SessionData& session_data_r =
-    const_cast<Test_I_Target_Stream_SessionData&> (inherited::sessionData_->get ());
+  Test_I_Target_SessionData& session_data_r =
+    const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->get ());
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
   if (!module_p)

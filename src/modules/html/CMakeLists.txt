@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 2.8)
 
 include (FindPkgConfig)
-pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
-
 if (UNIX)
+ pkg_check_modules (PKG_LIBXML2 REQUIRED libxml-2.0)
+
  include_directories (${PKG_LIBXML2_INCLUDE_DIRS})
 elseif (WIN32)
 # *TODO*: repair pkgconfig support

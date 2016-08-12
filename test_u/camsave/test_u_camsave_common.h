@@ -280,7 +280,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
   // *PORTABILITY*: Win32: "FriendlyName" property
   //                UNIX : v4l2 device file (e.g. "/dev/video0" (Linux))
   std::string                device;
-  ACE_SYNCH_RECURSIVE_MUTEX* lock;
+  ACE_SYNCH_MUTEX*           lock;
   GdkPixbuf*                 pixelBuffer;
   std::string                targetFileName;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

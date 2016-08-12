@@ -81,10 +81,10 @@ class Stream_Module_Vis_GTK_Pixbuf_T
   // helper methods
   int clamp (int);
 
-  ACE_SYNCH_RECURSIVE_MUTEX* lock_;
-  GdkPixbuf*                 pixelBuffer_;
+  ACE_SYNCH_MUTEX_T* lock_;
+  GdkPixbuf*         pixelBuffer_;
 
-  bool                       isFirst_;
+  bool               isFirst_;
 };
 
 // include template definition

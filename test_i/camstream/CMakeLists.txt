@@ -120,6 +120,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
@@ -128,7 +129,7 @@ set (camsource_EXE_SRCS
      stdafx.h
      test_i_callbacks.cpp
      test_i_callbacks.h
-     test_i_common.h
+     test_i_camstream_common.h
      test_i_common_modules.h
      test_i_connection_common.h
      test_i_connection_manager_common.h
@@ -266,6 +267,7 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/../libav-11.7/libavcodec
                                               ${PROJECT_SOURCE_DIR}/../libav-11.7/libavresample
                                               ${PROJECT_SOURCE_DIR}/../libav-11.7/libavutil
+                                              G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug
@@ -408,7 +410,7 @@ set (camtarget_EXE_SRCS
      stdafx.h
      test_i_callbacks.cpp
      test_i_callbacks.h
-     test_i_common.h
+     test_i_camstream_common.h
      test_i_common_modules.h
      test_i_connection_common.h
      test_i_connection_manager_common.h
@@ -531,7 +533,7 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/../libav-11.7/libavresample
                                               ${PROJECT_SOURCE_DIR}/../libav-11.7/libavutil
 #                                              D:/projects/libxml2-2.9.1/.libs
-#                                              G:/software/Development/dll
+                                              G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug

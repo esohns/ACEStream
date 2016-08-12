@@ -57,7 +57,7 @@ Stream_CamSave_EventHandler::start (Stream_SessionId_t sessionID_in,
 
   sessionData_ = &const_cast<Stream_CamSave_SessionData&> (sessionData_in);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
 }
@@ -87,7 +87,7 @@ Stream_CamSave_EventHandler::end (Stream_SessionId_t sessionID_in)
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
 
@@ -116,7 +116,7 @@ Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.statistic.bytes += message_in.total_length ();
   CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
@@ -142,7 +142,7 @@ Stream_CamSave_EventHandler::notify (Stream_SessionId_t sessionID_in,
   // sanity check(s)
   ACE_ASSERT (CBData_);
 
-  ACE_Guard<ACE_SYNCH_RECURSIVE_MUTEX> aGuard (CBData_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   int result = -1;
   Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;

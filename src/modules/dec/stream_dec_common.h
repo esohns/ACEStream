@@ -15,10 +15,10 @@
 enum Stream_Decoder_CompressionFormatType : int
 {
   STREAM_COMPRESSION_FORMAT_NONE = -1,
-  ///////////////////////////////////////
+  ////////////////////////////////////////
   STREAM_COMPRESSION_FORMAT_GZIP,
   STREAM_COMPRESSION_FORMAT_ZLIB,
-  ///////////////////////////////////////
+  ////////////////////////////////////////
   STREAM_COMPRESSION_FORMAT_MAX,
   STREAM_COMPRESSION_FORMAT_INVALID
 };
