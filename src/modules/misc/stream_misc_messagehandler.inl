@@ -299,8 +299,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
         } // end FOR
       } // end lock scope
 
-      inherited::sessionData_ = NULL;
-
       break;
     }
     default:

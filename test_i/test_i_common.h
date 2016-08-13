@@ -147,7 +147,7 @@ struct Test_I_ModuleHandlerConfiguration
   inline Test_I_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
-   , inbound (true)
+   , inbound (false)
    , printFinalReport (true)
    , printProgressDot (false)
    , pushStatisticMessages (true)

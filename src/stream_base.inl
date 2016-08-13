@@ -2600,8 +2600,7 @@ Stream_Base_T<LockType,
     stream_layout.append (ACE_TEXT_ALWAYS_CHAR (module_p->name ()));
 
     // avoid trailing "-->"
-    //if (module_p != tail_p) // <-- does not work for some reason...
-    if (ACE_OS::strcmp (module_p->name (), tail_p->name ()) != 0)
+    if (module_p != tail_p)
       stream_layout += ACE_TEXT_ALWAYS_CHAR (" --> ");
 
     module_p = NULL;

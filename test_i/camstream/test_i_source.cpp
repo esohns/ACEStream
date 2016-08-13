@@ -870,8 +870,6 @@ do_work (unsigned int bufferSize_in,
   configuration.moduleConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
 
-  //configuration.moduleHandlerConfiguration.active =
-  //    !UIDefinitionFilename_in.empty ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   configuration.moduleHandlerConfiguration.device = deviceFilename_in;
@@ -1076,7 +1074,7 @@ do_work (unsigned int bufferSize_in,
 clean:
 //  if (!UIDefinitionFilename_in.empty ())
 //    COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop ();
-//  COMMON_TIMERMANAGER_SINGLETON::instance ()->stop ();
+  timer_manager_p->stop (true, true);
 
   //		{ // synch access
   //			ACE_Guard<ACE_Recursive_Thread_Mutex> aGuard(CBData_in.lock);
@@ -1103,12 +1101,12 @@ clean:
   //              ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
   //              event_handler.name ()));
 
+  delete CBData_in.stream;
+  delete CBData_in.UDPStream;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   do_finalize_media_framework (CBData_in);
 #endif
-
-  delete CBData_in.stream;
-  delete CBData_in.UDPStream;
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));
@@ -1247,7 +1245,6 @@ ACE_TMAIN (int argc_in,
                             print_version_and_exit,
                             number_of_dispatch_threads))
   {
-    // make 'em learn...
     do_printUsage (ACE::basename (argv_in[0]));
 
     // *PORTABILITY*: on Windows, finalize ACE...
