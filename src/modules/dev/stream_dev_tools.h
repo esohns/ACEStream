@@ -268,7 +268,7 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static bool getFrameRate (int,                 // device handle file descriptor
                             struct v4l2_fract&); // return value: frame rate (in time-per-frame (s))
   static bool setFrameRate (int,                       // file descriptor
-                            const struct v4l2_fract&); // frame rate (in time-per-frame)
+                            const struct v4l2_fract&); // frame rate (in time-per-frame (s))
 
   static std::string formatToString (__u32); // format (fourcc)
 #endif

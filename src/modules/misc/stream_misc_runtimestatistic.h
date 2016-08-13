@@ -72,6 +72,17 @@ class Stream_Module_Statistic_ReaderTask_T
  : public ACE_Thru_Task<ACE_SYNCH_USE,
                         TimePolicyType>
 {
+ friend class Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
+                                                   TimePolicyType,
+                                                   ConfigurationType,
+                                                   ControlMessageType,
+                                                   DataMessageType,
+                                                   SessionMessageType,
+                                                   ProtocolCommandType,
+                                                   StatisticContainerType,
+                                                   SessionDataType,
+                                                   SessionDataContainerType>;
+
  public:
   Stream_Module_Statistic_ReaderTask_T ();
   virtual ~Stream_Module_Statistic_ReaderTask_T ();
@@ -84,13 +95,10 @@ class Stream_Module_Statistic_ReaderTask_T
                         TimePolicyType> inherited;
   typedef Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                                TimePolicyType,
-
                                                ConfigurationType,
-
                                                ControlMessageType,
                                                DataMessageType,
                                                SessionMessageType,
-
                                                ProtocolCommandType,
                                                StatisticContainerType,
                                                SessionDataType,
@@ -100,6 +108,11 @@ class Stream_Module_Statistic_ReaderTask_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_ReaderTask_T (const Stream_Module_Statistic_ReaderTask_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Statistic_ReaderTask_T& operator= (const Stream_Module_Statistic_ReaderTask_T&))
+
+  // *NOTE*: if data travels downstream and upstream again, account for it only
+  //         once (e.g. data that travels upstream again to be dispatched from
+  //         there)
+  bool hasRoundTripData_;
 };
 
 template <ACE_SYNCH_DECL,
@@ -164,9 +177,23 @@ class Stream_Module_Statistic_WriterTask_T
   virtual void report () const;
 
  protected:
-  // *NOTE*: protects statistic and sessionData_
+  // *NOTE*: protects statistic
   mutable ACE_SYNCH_MUTEX    lock_;
-  SessionDataContainerType*  sessionData_;
+
+  // *DATA STATISTIC*
+  float                      inboundBytes_;
+  float                      outboundBytes_;
+  unsigned int               inboundMessages_;
+  unsigned int               outboundMessages_;
+
+  // *NOTE: support asynchronous collecting/reporting of data
+  size_t                     lastBytesPerSecondCount_;
+  unsigned int               lastDataMessagesPerSecondCount_;
+
+  // *IMPORTANT NOTE*: data messages == (messageCounter_ - sessionMessages_)
+  // *IMPORTANT NOTE*: data messages == (xxboundMessages_ - sessionMessages_)
+  // *TODO*: currently, session messages travel only downstream
+  unsigned int               sessionMessages_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE, 
@@ -181,18 +208,25 @@ class Stream_Module_Statistic_WriterTask_T
   // convenient types
   typedef Stream_Module_Statistic_WriterTask_T<ACE_SYNCH_USE,
                                                TimePolicyType,
-
                                                ConfigurationType,
-
                                                ControlMessageType,
                                                DataMessageType,
                                                SessionMessageType,
-
                                                ProtocolCommandType,
                                                StatisticContainerType,
                                                SessionDataType,          // session data
                                                SessionDataContainerType> OWN_TYPE_T;
   typedef Stream_StatisticHandler_Reactor_T<StatisticContainerType> REPORTING_HANDLER_T;
+  typedef Stream_Module_Statistic_ReaderTask_T<ACE_SYNCH_USE,
+                                               TimePolicyType,
+                                               ConfigurationType,
+                                               ControlMessageType,
+                                               DataMessageType,
+                                               SessionMessageType,
+                                               ProtocolCommandType,
+                                               StatisticContainerType,
+                                               SessionDataType,
+                                               SessionDataContainerType> READER_TASK_T;
 
   // message type counters
   typedef std::map<ProtocolCommandType,
@@ -210,8 +244,6 @@ class Stream_Module_Statistic_WriterTask_T
   // *IMPORTANT NOTE*: callers must hold lock_ !
   bool putStatisticMessage ();
 
-  bool                       initialized_;
-
   // timer stuff
   Stream_ResetCounterHandler resetTimeoutHandler_;
   long                       resetTimeoutHandlerID_;
@@ -222,22 +254,11 @@ class Stream_Module_Statistic_WriterTask_T
   bool                       printFinalReport_;
   bool                       pushStatisticMessages_; // 1-second interval
 
-  // *DATA STATISTIC*
-  // *NOTE*: data messages == (messageCounter_ - sessionMessages_)
-  unsigned int               inboundMessages_;
-  unsigned int               outboundMessages_;
-  unsigned int               sessionMessages_;
-  // used to compute message throughput...
-  unsigned int               messageCounter_;
-  // *NOTE: support asynchronous collecting/reporting of data
-  unsigned int               lastMessagesPerSecondCount_;
-
-  float                      inboundBytes_;
-  float                      outboundBytes_;
-  // used to compute data throughput...
+  // used to compute data/message throughput
   size_t                     byteCounter_;
-  // *NOTE: support asynchronous collecting/reporting of data
-  size_t                     lastBytesPerSecondCount_;
+  unsigned int               fragmentCounter_;
+  unsigned int               messageCounter_;
+  unsigned int               sessionMessageCounter_;
 
   // *TYPE STATISTIC*
   STATISTIC_T                messageTypeStatistic_;
@@ -246,7 +267,7 @@ class Stream_Module_Statistic_WriterTask_T
   Stream_IAllocator*         allocator_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_misc_runtimestatistic.inl"
 
 #endif

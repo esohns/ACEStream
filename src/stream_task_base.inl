@@ -217,67 +217,69 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       //                   the 'session end' message may already have been
       //                   processed at this point ('concurrent' scenario)
       // sanity check(s)
-      if (!sessionData_)
-        break;
+      if (!sessionData_) break;
 
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_->get ());
+
+      // *TODO*: avoid race condition here; get() should add a reference
       typename SessionMessageType::DATA_T* session_data_container_p =
         &const_cast<typename SessionMessageType::DATA_T&> (message_inout->get ());
       session_data_container_p->increase ();
-
       // *IMPORTANT NOTE*: although reuse of the upstream session data is
       //                   warranted, it may not be safe (e.g. connection might
       //                   close unexpectedly, ...)
       //                   --> use 'this' streams' session data lock instead
-      // *TODO*: with careful design, this precaution may be completely
-      //         unnecessary. Points to consider:
+      // *TODO*: this precaution may be completely unnecessary. Points to
+      //         consider:
       //         - linking/unlinking code may have to be synchronized
       //         - upstream session resources (e.g. connection handles, ...)
       //           must not be allocated/used/freed until the streams have been
       //           un/linked
       //         - ...
-      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->get ());
       const typename SessionMessageType::DATA_T::DATA_T& session_data_2 =
-        sessionData_->get ();
+        session_data_container_p->get ();
+
+      int result = -1;
+      bool release_lock = false;
+
+      // 'upstream' ? --> nothing to do
+      // *TODO*: writing this from a 'downstream' perspective may be better code
+      if (&session_data_r == &session_data_2) goto continue_;
 
       ACE_ASSERT (session_data_r.lock);
       ACE_ASSERT (session_data_2.lock);
-      if (&session_data_r != &session_data_2) // 'downstream' ?
       {
-        int result = -1;
-        bool release_lock = false;
+        ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+        if (session_data_r.lock != session_data_2.lock)
         {
-          ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
-          if (session_data_r.lock != session_data_2.lock)
-          {
-            result = session_data_2.lock->acquire ();
-            if (result == -1)
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX_T::acquire(): \"%m\", continuing\n"),
-                          inherited::mod_->name ()));
-            release_lock = true;
-          } // end IF
+          result = session_data_2.lock->acquire ();
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX::acquire(): \"%m\", continuing\n"),
+                        inherited::mod_->name ()));
+          release_lock = true;
+        } // end IF
+        session_data_r.lock = session_data_2.lock;
 
-          session_data_r.lock = session_data_2.lock;
+        // *NOTE*: the idea here is to 'merge' the two datasets
+        session_data_r += session_data_2;
 
-          // *NOTE*: the idea here is to 'merge' the two datasets
-          session_data_r += session_data_2;
+        if (release_lock)
+        {
+          result = session_data_2.lock->release ();
+          if (result == -1)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX_T::release(): \"%m\", continuing\n"),
+                        inherited::mod_->name ()));
+        } // end IF
+      } // end lock scope
 
-          if (release_lock)
-          {
-            result = session_data_2.lock->release ();
-            if (result == -1)
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to ACE_SYNCH_MUTEX_T::release(): \"%m\", continuing\n"),
-                          inherited::mod_->name ()));
-          } // end IF
-        } // end lock scope
+      // switch session data
+      sessionData_->decrease ();
+      sessionData_ = session_data_container_p;
 
-        // switch session data
-        sessionData_->decrease ();
-        sessionData_ = session_data_container_p;
-      } // end IF
-
+continue_:
       //// *IMPORTANT NOTE*: link()ing two streams implies that there will be
       ////                   two 'session end' messages: one for 'upstream', and
       ////                   one for 'this'

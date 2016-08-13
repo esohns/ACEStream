@@ -59,7 +59,6 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
  , debug_ (false)
 #endif
- , hasFinished_ (false)
  , isPassive_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::Stream_Module_CamSource_V4L_T"));
@@ -111,33 +110,6 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
                   overlayFileDescriptor_));
   } // end IF
 }
-
-//template <typename SessionMessageType,
-//          typename MessageType,
-//          typename ModuleHandlerConfigurationType,
-//          typename SessionDataType>
-//void
-//Stream_Module_CamSource_V4L_T<SessionMessageType,
-//                            MessageType,
-//                            ModuleHandlerConfigurationType,
-//                            SessionDataType>::handleDataMessage (MessageType*& message_inout,
-//                                                                 bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_V4L_T::handleDataMessage"));
-//
-//  ssize_t bytes_written = -1;
-//
-//  // don't care (implies yes per default, if part of a stream)
-//  ACE_UNUSED_ARG (passMessageDownstream_out);
-//
-//  // sanity check(s)
-//  if (!connection_)
-//  {
-////    ACE_DEBUG ((LM_ERROR,
-////                ACE_TEXT ("failed to open db connection, returning\n")));
-//    return;
-//  } // end IF
-//}
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
@@ -466,10 +438,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     } // end IF
 
     debug_ = false;
-    hasFinished_ = false;
     isPassive_ = false;
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   // *NOTE*: use O_NONBLOCK with a reactor (v4l2_select()) or proactor
@@ -530,8 +499,12 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
   // *TODO*: remove type inference
+  // *NOTE*: v4l expects time-per-frame (s) --> pass reciprocal value
+  struct v4l2_fract time_per_frame;
+  time_per_frame.numerator = configuration_in.frameRate.denominator;
+  time_per_frame.denominator = configuration_in.frameRate.numerator;
   if (!Stream_Module_Device_Tools::setFrameRate (captureFileDescriptor_,
-                                                 configuration_in.frameRate))
+                                                 time_per_frame))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::setFrameRate(%d), returning\n"),
@@ -614,14 +587,23 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_V4L_T::svc"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::isInitialized_);
+  ACE_ASSERT (inherited::mod_);
+  ACE_ASSERT (inherited::sessionData_);
 
-  int result = -1;
-  int result_2 = -1;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("\"%s\": worker thread (ID: %t) starting...\n"),
+              inherited::mod_->name ()));
+
   int error = 0;
+  bool has_finished = false;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  int result = -1;
+  int result_2 = -1;
   bool stop_processing = false;
+  const SessionDataType& session_data_r  = inherited::sessionData_->get ();
+  bool release_lock = false;
+
   struct v4l2_buffer buffer;
   ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
   buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -631,90 +613,13 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   Stream_Module_Device_BufferMapIterator_t iterator;
 //  unsigned int queued, done = 0;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  const SessionDataType& session_data_r = inherited::sessionData_->get ();
-
   // step1: start processing data
-//   ACE_DEBUG ((LM_DEBUG,
-//               ACE_TEXT ("entering processing loop...\n")));
-
   do
   {
     message_block_p = NULL;
     result = inherited::getq (message_block_p,
                               &no_wait);
-    if (result == 0)
-    {
-      ACE_ASSERT (message_block_p);
-      switch (message_block_p->msg_type ())
-      {
-        case ACE_Message_Block::MB_STOP:
-        {
-          // clean up
-          message_block_p->release ();
-          message_block_p = NULL;
-
-          // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
-          //         not have been set at this stage
-
-          // signal the controller ?
-          if (!hasFinished_)
-          {
-            hasFinished_ = true;
-            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-            //         --> continue
-            inherited::finished ();
-
-            // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
-            //         --> done
-            if (inherited::thr_count_ == 0)
-              goto done; // finished processing
-
-            continue; // process STREAM_SESSION_END
-          } // end IF
-
-done:
-          result_2 = 0;
-
-          goto continue_; // STREAM_SESSION_END has been processed
-        }
-        default:
-        {
-          // sanity check(s)
-          ACE_ASSERT (inherited::configuration_);
-          ACE_ASSERT (inherited::configuration_->ilock);
-
-//          // grab lock if processing is 'non-concurrent'
-//          if (!concurrent_)
-//            release_lock = configuration_->ilock->lock (true);
-
-          inherited::handleMessage (message_block_p,
-                                    stop_processing);
-
-//          if (release_lock) configuration_->ilock->unlock (false);
-
-          // finished ?
-          if (stop_processing)
-          {
-            // *IMPORTANT NOTE*: message_block_p has already been released() !
-
-            if (!hasFinished_)
-            {
-              hasFinished_ = true;
-              // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-              //         --> continue
-              inherited::finished ();
-            } // end IF
-
-            continue;
-          } // end IF
-
-          break;
-        }
-      } // end SWITCH
-    } // end IF
-    else if (result == -1)
+    if (result == -1)
     {
       error = ACE_OS::last_error ();
       if (error != EWOULDBLOCK) // Win32: 10035
@@ -722,9 +627,9 @@ done:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Task::getq(): \"%m\", aborting\n")));
 
-        if (!hasFinished_)
+        if (!has_finished)
         {
-          hasFinished_ = true;
+          has_finished = true;
           // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
           //         --> continue
           inherited::finished ();
@@ -732,31 +637,97 @@ done:
 
         break;
       } // end IF
+
+      goto continue_;
     } // end IF
+    ACE_ASSERT (message_block_p);
 
-    // session aborted ?
-    if (!hasFinished_)
+    switch (message_block_p->msg_type ())
     {
-      // sanity check(s)
-      // *TODO*: remove type inferences
-      ACE_ASSERT (session_data_r.lock);
+      case ACE_Message_Block::MB_STOP:
       {
-        ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, -1);
+        // clean up
+        message_block_p->release ();
+        message_block_p = NULL;
 
-        if (session_data_r.aborted)
+        // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
+        //         not have been set at this stage
+
+        // signal the controller ?
+        if (!has_finished)
         {
-          ACE_DEBUG ((LM_DEBUG,
-                      ACE_TEXT ("session aborted\n")));
-
-          hasFinished_ = true;
+          has_finished = true;
           // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
           //         --> continue
           inherited::finished ();
 
+          // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
+          //         --> done
+          if (inherited::thr_count_ == 0) goto done; // finished processing
+
+          continue; // process STREAM_SESSION_END
+        } // end IF
+
+done:
+        result = 0;
+
+        goto done_2; // STREAM_SESSION_END has been processed
+      }
+      default:
+      {
+        // sanity check(s)
+        ACE_ASSERT (inherited::configuration_);
+        ACE_ASSERT (inherited::configuration_->ilock);
+
+        // grab lock if processing is 'non-concurrent'
+        if (!inherited::concurrent_)
+          release_lock = inherited::configuration_->ilock->lock (true);
+
+        inherited::handleMessage (message_block_p,
+                                  stop_processing);
+
+        if (release_lock) inherited::configuration_->ilock->unlock (false);
+
+        // finished ?
+        if (stop_processing)
+        {
+          // *IMPORTANT NOTE*: message_block_p has already been released() !
+
+          if (!has_finished)
+          {
+            has_finished = true;
+            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+            //         --> continue
+            inherited::finished ();
+          } // end IF
+
           continue;
         } // end IF
-      } // end lock scope
-    } // end IF
+
+        break;
+      }
+    } // end SWITCH
+
+continue_:
+    // session aborted ?
+    // sanity check(s)
+    // *TODO*: remove type inferences
+    ACE_ASSERT (session_data_r.lock);
+    {
+      ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock, result);
+
+      if (session_data_r.aborted &&
+          !has_finished)
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("session aborted\n")));
+
+        has_finished = true;
+        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
+        //         --> continue
+        inherited::finished ();
+      } // end IF
+    } // end lock scope
 
 #if defined (_DEBUG)
     // log device status to kernel log ?
@@ -808,10 +779,10 @@ done:
     // *NOTE*: blocks until:
     //         - a buffer is available
     //         - a frame has been written by the device
-    result = v4l2_ioctl (captureFileDescriptor_,
-                         VIDIOC_DQBUF,
-                         &buffer);
-    if (result == -1)
+    result_2 = v4l2_ioctl (captureFileDescriptor_,
+                           VIDIOC_DQBUF,
+                           &buffer);
+    if (result_2 == -1)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", aborting\n"),
@@ -830,8 +801,8 @@ done:
     message_block_p->reset ();
     message_block_p->wr_ptr (buffer.bytesused);
 
-    result = inherited::put_next (message_block_p, NULL);
-    if (result == -1)
+    result_2 = inherited::put_next (message_block_p, NULL);
+    if (result_2 == -1)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Task::put_next(): \"%m\", aborting\n")));
@@ -842,7 +813,8 @@ done:
       break;
     } // end IF
   } while (true);
+  result = -1;
 
-continue_:
-  return result_2;
+done_2:
+  return result;
 }

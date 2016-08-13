@@ -29,6 +29,7 @@
 #include "stream_db_exports.h"
 
 // definitions
+// *TODO*: remove ASAP
 #define STREAM_MODULE_DB_TOOLS_STRFTIME_FORMAT "%Y-%m-%d %H:%M:%S"
 // *NOTE*: '\0' doesn't count: 4 + 2 + 2 + 2 + 2 + 2 + 5 whitespaces
 #define STREAM_MODULE_DB_TOOLS_STRFTIME_SIZE   19
@@ -36,8 +37,14 @@
 class STREAM_Db_Export Stream_Module_DataBase_Tools
 {
  public:
-  // *WARNING*: this uses localtime_r internally --> pass in a local time
-  //            - uses strftime() internally (see man page, format)
+  // *IMPORTANT NOTE*: uses localtime() (i.e. returns a 'wall clock'
+  //                   representation). Note that databases are 'mobile assets';
+  //                   make sure you know what you are doing
+  //                   --> verify that:
+  //                       - a (standardized) value (UTC/...) is stored
+  //                       [- the DBMS supports timezone configuration]
+  //                       [- the application supports timezone configuration]
+  //                       so the application can interpret this information
   static std::string timeStamp2DataBaseString (const ACE_Time_Value&); // timestamp
 
  private:

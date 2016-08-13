@@ -1212,7 +1212,7 @@ continue_:
 }
 #endif
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 ACE_THR_FUNC_RETURN
 stream_processing_function (void* arg_in)
@@ -4929,9 +4929,9 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
                             &iterator_2,
                             1, &value_2);
   ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_UINT);
-  unsigned int frame_interval = g_value_get_uint (&value);
+  unsigned int frame_rate = g_value_get_uint (&value);
   g_value_unset (&value);
-  unsigned int frame_interval_denominator = g_value_get_uint (&value_2);
+  unsigned int frame_rate_denominator = g_value_get_uint (&value_2);
   g_value_unset (&value_2);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -5032,9 +5032,9 @@ combobox_rate_changed_cb (GtkComboBox* comboBox_in,
   //Stream_Module_Device_Tools::deleteMediaType (media_type_p);
 #else
   data_p->configuration->moduleHandlerConfiguration.frameRate.numerator =
-      frame_interval;
+      frame_rate;
   data_p->configuration->moduleHandlerConfiguration.frameRate.denominator =
-      frame_interval_denominator;
+      frame_rate_denominator;
 #endif
 } // combobox_rate_changed_cb
 

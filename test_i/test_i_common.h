@@ -160,10 +160,10 @@ struct Test_I_ModuleHandlerConfiguration
   };
 
   Test_I_Configuration*              configuration;
-  bool                               inbound; // IO module
-  bool                               printFinalReport;
+  bool                               inbound; // statistic/IO module
+  bool                               printFinalReport; // statistic module
   bool                               printProgressDot; // file writer module
-  bool                               pushStatisticMessages;
+  bool                               pushStatisticMessages; // statistic module
   Net_SocketConfiguration*           socketConfiguration;
   Test_I_SocketHandlerConfiguration* socketHandlerConfiguration;
   std::string                        targetFileName; // file writer module

@@ -128,7 +128,6 @@ class Stream_Module_CamSource_V4L_T
 #if defined (_DEBUG)
   bool                             debug_; // log device status (to kernel log)
 #endif
-  bool                             hasFinished_;
   bool                             isPassive_; // foreign device descriptor ?
 };
 

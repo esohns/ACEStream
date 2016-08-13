@@ -174,6 +174,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (lock_ && subscribers_);
 
 //   try {
@@ -184,9 +185,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
 //   }
 
   // refer the data back to any subscriber(s)
-  const typename SessionDataContainerType::DATA_T* session_data_p = NULL;
-  if (inherited::sessionData_)
-    session_data_p = &inherited::sessionData_->get ();
+  const typename SessionDataContainerType::DATA_T& session_data_r =
+      inherited::sessionData_->get ();
 
   // synch access
   {
@@ -203,7 +203,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     {
       try {
         // *TODO*: remove type inference
-        (*iterator++)->notify ((session_data_p ? session_data_p->sessionID : 0),
+        (*iterator++)->notify (session_data_r.sessionID,
                                *message_inout);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
@@ -238,16 +238,16 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (lock_ && subscribers_);
 
-  const typename SessionDataContainerType::DATA_T& session_data_r =
-      inherited::sessionData_->get ();
-
+  const typename SessionDataContainerType::DATA_T* session_data_p = NULL;
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
+      ACE_ASSERT (inherited::sessionData_);
+      session_data_p = &inherited::sessionData_->get ();
+
       // synch access
       {
         ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
@@ -263,8 +263,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
         {
           try {
             // *TODO*: remove type inference
-            (*iterator++)->start (session_data_r.sessionID,
-                                  session_data_r);
+            (*iterator++)->start (session_data_p->sessionID,
+                                  *session_data_p);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Common_INotify_T::start(), continuing\n")));
@@ -276,6 +276,9 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+      ACE_ASSERT (inherited::sessionData_);
+      session_data_p = &inherited::sessionData_->get ();
+
       // synch access
       {
         ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
@@ -291,7 +294,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->end (session_data_r.sessionID);
+            (*(iterator++))->end (session_data_p->sessionID);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Common_INotify_T::end(), continuing\n")));
@@ -303,22 +306,27 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     }
     default:
     {
+      // *TODO*: this does not work in 'concurrent' scenarios
+      if (inherited::sessionData_)
+        session_data_p = &inherited::sessionData_->get ();
+
       // synch access
       {
         ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
 
+        // *WARNING* callees unsubscribe()ing within the callback invalidate the
+        //           iterator
+        //           --> use a slightly modified for-loop (advance before
+        //               invoking the callback; works for MOST containers)
         // *NOTE*: this works because the lock is recursive
-        // *WARNING* if callees unsubscribe() within the callback bad things
-        //           happen, as the current iterator is invalidated
-        //           --> use a slightly modified for-loop (advance first before
-        //               invoking the callback (works for MOST containers...)
         for (SUBSCRIBERS_ITERATOR_T iterator = subscribers_->begin ();
              iterator != subscribers_->end ();
              )
         {
           try {
             // *TODO*: remove type inference
-            (*(iterator++))->notify (session_data_r.sessionID,
+            (*(iterator++))->notify ((session_data_p ? session_data_p->sessionID
+                                                     : static_cast<SessionIdType> (-1)),
                                      *message_inout);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,

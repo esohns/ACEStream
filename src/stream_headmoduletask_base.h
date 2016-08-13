@@ -93,8 +93,8 @@ class Stream_HeadModuleTaskBase_T
   // implement (part of) Stream_ITask_T
   virtual void waitForIdleState () const;
 
-  // implement Stream_IModuleHandler_T
-  virtual const ConfigurationType& get () const;
+//  // implement Stream_IModuleHandler_T
+//  virtual const ConfigurationType& get () const;
   virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_IStreamControl_T
@@ -186,7 +186,7 @@ class Stream_HeadModuleTaskBase_T
   //         aborts, signals, etc)
   // *TODO*: find a way to by-pass this additional overhead if 'true'
   bool                 concurrent_;
-  ConfigurationType*   configuration_;
+//  ConfigurationType*   configuration_;
   bool                 isInitialized_;
 
   // *NOTE*: default behaviour for '!active' modules (i.e. modules that have no

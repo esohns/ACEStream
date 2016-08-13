@@ -880,8 +880,8 @@ do_work (unsigned int bufferSize_in,
       V4L2_PIX_FMT_RGB24;
   configuration.moduleHandlerConfiguration.format.fmt.pix.width = 320;
   configuration.moduleHandlerConfiguration.format.fmt.pix.height = 240;
-  configuration.moduleHandlerConfiguration.frameRate.numerator = 1;
-  configuration.moduleHandlerConfiguration.frameRate.denominator = 30;
+  configuration.moduleHandlerConfiguration.frameRate.numerator = 30;
+  configuration.moduleHandlerConfiguration.frameRate.denominator = 1;
   configuration.moduleHandlerConfiguration.method = V4L2_MEMORY_MMAP;
 
   configuration.moduleHandlerConfiguration.lock = &CBData_in.lock;
