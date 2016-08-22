@@ -32,10 +32,9 @@
 #include "stream_common.h"
 #include "stream_statemachine_control.h"
 
-#include "test_i_common.h"
 #include "test_i_common_modules.h"
-#include "test_i_message.h"
 #include "test_i_session_message.h"
+#include "test_i_target_common.h"
 
 // forward declarations
 class Stream_IAllocator;
@@ -47,16 +46,16 @@ class Test_I_Target_Stream
                         int,
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
-                        Test_I_Stream_State,
-                        Test_I_Stream_Configuration,
+                        Test_I_Target_StreamState,
+                        Test_I_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
                         Stream_ModuleConfiguration,
-                        Test_I_Stream_ModuleHandlerConfiguration,
-                        Test_I_Stream_SessionData,   // session data
-                        Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        ACE_Message_Block,
-                        Test_I_Stream_Message,
-                        Test_I_Stream_SessionMessage>
+                        Test_I_ModuleHandlerConfiguration,
+                        Test_I_Target_SessionData,   // session data
+                        Test_I_Target_SessionData_t, // session data container (reference counted)
+                        Test_I_Target_ControlMessage_t,
+                        Test_I_Target_Message_t,
+                        Test_I_Target_SessionMessage>
 {
  public:
   Test_I_Target_Stream (const std::string&); // name
@@ -67,9 +66,9 @@ class Test_I_Target_Stream
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_Stream_Configuration&, // configuration
-                           bool = true,                        // setup pipeline ?
-                           bool = true);                       // reset session data ?
+  virtual bool initialize (const Test_I_StreamConfiguration&, // configuration
+                           bool = true,                       // setup pipeline ?
+                           bool = true);                      // reset session data ?
 
   // *TODO*: re-consider this API
   void ping ();
@@ -86,23 +85,23 @@ class Test_I_Target_Stream
                         int,
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
-                        Test_I_Stream_State,
-                        Test_I_Stream_Configuration,
+                        Test_I_Target_StreamState,
+                        Test_I_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
                         Stream_ModuleConfiguration,
-                        Test_I_Stream_ModuleHandlerConfiguration,
-                        Test_I_Stream_SessionData,   // session data
-                        Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        ACE_Message_Block,
-                        Test_I_Stream_Message,
-                        Test_I_Stream_SessionMessage> inherited;
+                        Test_I_ModuleHandlerConfiguration,
+                        Test_I_Target_SessionData,
+                        Test_I_Target_SessionData_t,
+                        Test_I_Target_ControlMessage_t,
+                        Test_I_Target_Message_t,
+                        Test_I_Target_SessionMessage> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream ())
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 
   // modules
-  Test_I_Module_Net_IO_Module                  netIO_;
+  Test_I_Target_Module_Net_IO_Module           netIO_;
   Test_I_Target_Module_RuntimeStatistic_Module runtimeStatistic_;
   Test_I_Module_FileWriter_Module              fileWriter_;
 };

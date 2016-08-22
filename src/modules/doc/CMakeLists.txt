@@ -3,7 +3,8 @@
 if (UNIX)
  include_directories (/usr/lib/libreoffice/sdk/include)
 
- add_definitions (-DSAL_UNX)
+ add_definitions (-DSAL_UNX) # libreoffice
+ add_definitions (-DUNX)     # openoffice
 elseif (WIN32)
  if (DEFINED ENV{OO_SDK_HOME})
   set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
@@ -20,6 +21,9 @@ elseif (WIN32)
 #       "C:/LibreOffice_5.1_SDK_installer/sdk")
  message (STATUS "LibreOffice SDK directory: \"${OO_SDK_DIRECTORY}\"")
  include_directories (${OO_SDK_DIRECTORY}/include)
+
+ add_definitions (-DCPPU_ENV=msci)
+ add_definitions (-DWNT)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 

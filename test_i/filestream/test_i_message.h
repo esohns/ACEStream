@@ -23,36 +23,44 @@
 
 #include "ace/Global_Macros.h"
 
+#include "stream_common.h"
+#include "stream_control_message.h"
 #include "stream_message_base.h"
 
-#include "test_i_source_common.h"
+#include "test_i_common.h"
 
 // forward declaration(s)
 class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
-class Test_I_Stream_SessionMessage;
 template <typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType>
 class Stream_MessageAllocatorHeapBase_T;
 
-class Test_I_Stream_Message
+template <typename SessionMessageType>
+class Test_I_Message_T
  : public Stream_MessageBase_T<Stream_AllocatorConfiguration,
-                               Test_I_ControlMessage_t,
-                               Test_I_Stream_SessionMessage,
+                               Stream_ControlMessage_T<Stream_ControlMessageType,
+                                                       Stream_AllocatorConfiguration,
+                                                       Test_I_Message_T<SessionMessageType>,
+                                                       SessionMessageType>,
+                               SessionMessageType,
                                int>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-                                                 Test_I_ControlMessage_t,
-                                                 Test_I_Stream_Message,
-                                                 Test_I_Stream_SessionMessage>;
+                                                 Stream_ControlMessage_T<Stream_ControlMessageType,
+                                                                         Stream_AllocatorConfiguration,
+                                                                         Test_I_Message_T<SessionMessageType>,
+                                                                         SessionMessageType>,
+                                                 Test_I_Message_T<SessionMessageType>,
+                                                 SessionMessageType>;
 
  public:
-  Test_I_Stream_Message (unsigned int); // size
-  virtual ~Test_I_Stream_Message ();
+  Test_I_Message_T (unsigned int); // size
+  virtual ~Test_I_Message_T ();
 
   // overrides from ACE_Message_Block
   // --> create a "shallow" copy of ourselves that references the same packet
@@ -67,21 +75,30 @@ class Test_I_Stream_Message
  protected:
   // copy ctor to be used by duplicate() and child classes
   // --> uses an (incremented refcount of) the same datablock ("shallow copy")
-  Test_I_Stream_Message (const Test_I_Stream_Message&);
+  Test_I_Message_T (const Test_I_Message_T&);
 
  private:
   typedef Stream_MessageBase_T<Stream_AllocatorConfiguration,
-                               Test_I_ControlMessage_t,
-                               Test_I_Stream_SessionMessage,
+                               Stream_ControlMessage_T<Stream_ControlMessageType,
+                                                       Stream_AllocatorConfiguration,
+                                                       Test_I_Message_T<SessionMessageType>,
+                                                       SessionMessageType>,
+                               SessionMessageType,
                                int> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message ())
+  // convenient types
+  typedef Test_I_Message_T<SessionMessageType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Message_T ())
   // *NOTE*: to be used by message allocators
-  Test_I_Stream_Message (ACE_Data_Block*, // data block
-                         ACE_Allocator*,  // message allocator
-                         bool = true);    // increment running message counter ?
-  Test_I_Stream_Message (ACE_Allocator*); // message allocator
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Message& operator= (const Test_I_Stream_Message&))
+  Test_I_Message_T (ACE_Data_Block*, // data block
+                    ACE_Allocator*,  // message allocator
+                    bool = true);    // increment running message counter ?
+  Test_I_Message_T (ACE_Allocator*); // message allocator
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Message_T& operator= (const Test_I_Message_T&))
 };
+
+// include template definition
+#include "test_i_message.inl"
 
 #endif

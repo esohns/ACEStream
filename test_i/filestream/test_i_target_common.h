@@ -21,6 +21,8 @@
 #ifndef TEST_I_TARGET_COMMON_H
 #define TEST_I_TARGET_COMMON_H
 
+#include "gtk/gtk.h"
+
 #include "ace/INET_Addr.h"
 #include "ace/os_include/sys/os_socket.h"
 #include "ace/Time_Value.h"
@@ -28,9 +30,66 @@
 #include "net_defines.h"
 #include "net_ilistener.h"
 
-#include "test_i_common.h"
 #include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
+#include "test_i_filestream_common.h"
+#include "test_i_message.h"
+
+struct Test_I_Target_UserData
+ : Test_I_UserData
+{
+  inline Test_I_Target_UserData ()
+   : Test_I_UserData ()
+   , configuration (NULL)
+  {};
+
+  // *TODO*: currently required by the connection handler (see:
+  //         netsocketconnectionbase.inl:437)
+  //         --> add to the socket handler configuration ASAP
+  Test_I_Target_Configuration* configuration;
+};
+
+struct Test_I_Target_SessionData
+ : Test_I_SessionData
+{
+  inline Test_I_Target_SessionData ()
+   : Test_I_SessionData ()
+   , size (0)
+   , targetFileName ()
+   , userData (NULL)
+  {};
+
+  inline Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Test_I_SessionData::operator+= (rhs_in);
+
+    size = ((size == 0) ? rhs_in.size : size);
+    targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
+                                              : targetFileName);
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  unsigned int            size;
+  std::string             targetFileName;
+  Test_I_Target_UserData* userData;
+};
+typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
+
+struct Test_I_Target_StreamState
+ : Test_I_StreamState
+{
+  inline Test_I_Target_StreamState ()
+   : Test_I_StreamState ()
+   , currentSessionData (NULL)
+   , userData (NULL)
+  {};
+
+  Test_I_Target_SessionData* currentSessionData;
+  Test_I_Target_UserData*    userData;
+};
 
 struct Test_I_Target_SocketHandlerConfiguration;
 struct Test_I_Target_ListenerConfiguration
@@ -72,30 +131,29 @@ struct Test_I_Target_SignalHandlerConfiguration
   long                                statisticReportingTimerID;
 };
 
-struct Test_I_Target_UserData
- : Test_I_UserData
-{
-  inline Test_I_Target_UserData ()
-   : Test_I_UserData ()
-   , configuration (NULL)
-  {};
-
-  // *TODO*: currently required by the connection handler (see:
-  //         netsocketconnectionbase.inl:437)
-  //         --> add to the socket handler configuration ASAP
-  Test_I_Target_Configuration* configuration;
-};
-
 struct Test_I_Target_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
 {
   inline Test_I_Target_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
-   ////////////////////////////////////
+   ///////////////////////////////////////
    , userData (NULL)
   {};
 
   Test_I_Target_UserData* userData;
+};
+
+struct Test_I_Target_ModuleHandlerConfiguration
+ : Test_I_ModuleHandlerConfiguration
+{
+  inline Test_I_Target_ModuleHandlerConfiguration ()
+   : Test_I_ModuleHandlerConfiguration ()
+   , contextID (0)
+   , socketHandlerConfiguration (NULL)
+  {};
+
+  guint                                     contextID;
+  Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
 };
 
 struct Test_I_Target_Configuration
@@ -108,6 +166,8 @@ struct Test_I_Target_Configuration
    , listenerConfiguration ()
    , signalHandlerConfiguration ()
    , socketHandlerConfiguration ()
+   , moduleHandlerConfiguration ()
+   , protocol (TEST_I_DEFAULT_TRANSPORT_LAYER)
    , userData ()
   {};
 
@@ -116,21 +176,57 @@ struct Test_I_Target_Configuration
   Test_I_Target_ListenerConfiguration      listenerConfiguration;
   Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
   Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
+  Test_I_Target_ModuleHandlerConfiguration moduleHandlerConfiguration;
 
+  Net_TransportLayerType                   protocol;
   Test_I_Target_UserData                   userData;
 };
 
+class Test_I_Target_SessionMessage;
+typedef Test_I_Message_T<Test_I_Target_SessionMessage> Test_I_Target_Message_t;
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Stream_AllocatorConfiguration,
+                                Test_I_Target_Message_t,
+                                Test_I_Target_SessionMessage> Test_I_Target_ControlMessage_t;
+typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+                                          Test_I_Target_ControlMessage_t,
+                                          Test_I_Target_Message_t,
+                                          Test_I_Target_SessionMessage> Test_I_Target_MessageAllocator_t;
+
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    Test_I_Target_SessionData,
+                                    Stream_SessionMessageType,
+                                    Test_I_Target_Message_t,
+                                    Test_I_Target_SessionMessage> Test_I_Target_ISessionNotify_t;
+typedef std::list<Test_I_Target_ISessionNotify_t*> Test_I_Target_Subscribers_t;
+typedef Test_I_Target_Subscribers_t::iterator Test_I_SubscribersIterator_t;
+
+typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubscribe_t;
+
+//struct Test_I_Target_GTK_ProgressData
+// : Test_I_GTK_ProgressData
+//{
+//  inline Test_I_Target_GTK_ProgressData ()
+//   : Test_I_GTK_ProgressData ()
+//   , transferred (0)
+//  {};
+//
+//  size_t transferred; // bytes
+//};
+
 struct Test_I_Target_GTK_CBData
- : Stream_GTK_CBData
+ : Test_I_FileStream_GTK_CBData
 {
   inline Test_I_Target_GTK_CBData ()
-   : Stream_GTK_CBData ()
+   : Test_I_FileStream_GTK_CBData ()
    , configuration (NULL)
-   , progressEventSourceID (0)
+   , subscribers ()
+   , subscribersLock ()
   {};
 
   Test_I_Target_Configuration* configuration;
-  guint                        progressEventSourceID;
+  Test_I_Target_Subscribers_t  subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX    subscribersLock;
 };
 
 #endif

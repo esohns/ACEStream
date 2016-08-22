@@ -54,4 +54,7 @@
 
 // *TODO*: reference additional headers your program requires here
 
+// *NOTE*: do not use the Apache snprintf.h header
+#define _SNPRINTF_H
+
 #endif

@@ -51,13 +51,13 @@ class Test_I_HTTPGet_Stream_T
                         int,
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
-                        Test_I_Stream_State,
-                        Test_I_Stream_Configuration,
+                        Test_I_StreamState,
+                        Test_I_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
                         Stream_ModuleConfiguration,
-                        Test_I_Stream_ModuleHandlerConfiguration,
-                        Test_I_Stream_SessionData,   // session data
-                        Test_I_Stream_SessionData_t, // session data container (reference counted)
+                        Test_I_ModuleHandlerConfiguration,
+                        Test_I_Stream_SessionData,
+                        Test_I_Stream_SessionData_t,
                         ACE_Message_Block,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage>
@@ -71,9 +71,9 @@ class Test_I_HTTPGet_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_Stream_Configuration&, // configuration
-                           bool = true,                        // setup pipeline ?
-                           bool = true);                       // reset session data ?
+  virtual bool initialize (const Test_I_StreamConfiguration&, // configuration
+                           bool = true,                       // setup pipeline ?
+                           bool = true);                      // reset session data ?
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -87,34 +87,34 @@ class Test_I_HTTPGet_Stream_T
                         int,
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
-                        Test_I_Stream_State,
-                        Test_I_Stream_Configuration,
+                        Test_I_StreamState,
+                        Test_I_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
                         Stream_ModuleConfiguration,
-                        Test_I_Stream_ModuleHandlerConfiguration,
-                        Test_I_Stream_SessionData,   // session data
-                        Test_I_Stream_SessionData_t, // session data container (reference counted)
+                        Test_I_ModuleHandlerConfiguration,
+                        Test_I_Stream_SessionData,
+                        Test_I_Stream_SessionData_t,
                         ACE_Message_Block,
                         Test_I_Stream_Message,
                         Test_I_Stream_SessionMessage> inherited;
   typedef Stream_Module_Net_Source_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_Stream_ModuleHandlerConfiguration,
+                                     Test_I_ModuleHandlerConfiguration,
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
                                      ACE_INET_Addr,
                                      Test_I_Stream_InetConnectionManager_t,
                                      ConnectorType> SOURCE_WRITER_T;
-  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                             // task synch type
-                                         Common_TimePolicy_t,                      // time policy
-                                         Stream_SessionId_t,                       // session id type
-                                         Test_I_Stream_SessionData,                // session data type
-                                         Stream_SessionMessageType,                // session event type
-                                         Stream_ModuleConfiguration,               // module configuration type
-                                         Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                                         Stream_IStreamNotify_t,                   // stream notification interface type
-                                         SOURCE_WRITER_T> SOURCE_MODULE_T;         // writer type
+  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                      // task synch type
+                                         Common_TimePolicy_t,               // time policy
+                                         Stream_SessionId_t,                // session id type
+                                         Test_I_Stream_SessionData,         // session data type
+                                         Stream_SessionMessageType,         // session event type
+                                         Stream_ModuleConfiguration,        // module configuration type
+                                         Test_I_ModuleHandlerConfiguration, // module handler configuration type
+                                         Stream_IStreamNotify_t,            // stream notification interface type
+                                         SOURCE_WRITER_T> SOURCE_MODULE_T;  // writer type
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_HTTPGet_Stream_T (const Test_I_HTTPGet_Stream_T&))
   ACE_UNIMPLEMENTED_FUNC (Test_I_HTTPGet_Stream_T& operator= (const Test_I_HTTPGet_Stream_T&))

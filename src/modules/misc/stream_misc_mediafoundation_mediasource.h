@@ -34,9 +34,7 @@
 template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
-          ////////////////////////////////
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 class Stream_Misc_MediaFoundation_MediaSource_T
  : public IMFMediaSourceEx
@@ -47,7 +45,6 @@ class Stream_Misc_MediaFoundation_MediaSource_T
                                                     SessionMessageType,
                                                     ProtocolMessageType,
                                                     ConfigurationType,
-                                                    PinConfigurationType,
                                                     MediaType> OWN_TYPE_T;
 
   //// *NOTE*: the non-COM (!) ctor

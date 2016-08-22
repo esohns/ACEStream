@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "strsafe.h"
+
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
@@ -181,7 +183,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
     COM_initialized = true;
   } // end IF
 
-  if (inherited::initialized_)
+  if (inherited::isInitialized_)
   {
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("re-initializing...\n")));
@@ -317,7 +319,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (inherited::sessionData_);
 
   SessionDataType& session_data_r =
@@ -325,7 +327,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 
   switch (message_inout->type ())
   {
-    case STREAM_SESSION_BEGIN:
+    case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // *TODO*: remove type inference
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
@@ -607,7 +609,7 @@ error:
 
       break;
     }
-    case STREAM_SESSION_END:
+    case STREAM_SESSION_MESSAGE_END:
     {
       // sanity check(s)
       // *TODO*: remove type inference
@@ -777,7 +779,7 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_DirectShow_T::collect"));
 
   // sanity check(s)
-  ACE_ASSERT (inherited::initialized_);
+  ACE_ASSERT (inherited::isInitialized_);
   ACE_ASSERT (IAMDroppedFrames_);
 
   // step0: initialize container
@@ -951,12 +953,12 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
 
   ULONG reference_count = IMediaSample_in->AddRef ();
 
-  ProtocolMessageType* message_p = NULL;
+  DataMessageType* message_p = NULL;
   try {
-    message_p = dynamic_cast<ProtocolMessageType*> (IMediaSample_in);
+    message_p = dynamic_cast<DataMessageType*> (IMediaSample_in);
   } catch (...) {
     //ACE_DEBUG ((LM_ERROR,
-    //            ACE_TEXT ("failed to dynamic_cast<ProtocolMessageType*>(0x%@), continuing\n"),
+    //            ACE_TEXT ("failed to dynamic_cast<DataMessageType*>(0x%@), continuing\n"),
     //            IMediaSample_in));
     message_p = NULL;
   }
@@ -973,8 +975,8 @@ Stream_Dev_Cam_Source_DirectShow_T<LockType,
       return E_FAIL;
     } // end IF
     ACE_ASSERT (message_p);
-    typename ProtocolMessageType::DATA_T& data_r =
-      const_cast<typename ProtocolMessageType::DATA_T&> (message_p->get ());
+    typename DataMessageType::DATA_T& data_r =
+      const_cast<typename DataMessageType::DATA_T&> (message_p->get ());
     data_r.sample = IMediaSample_in;
     data_r.sampleTime = sampleTime_in;
 

@@ -261,6 +261,7 @@ elseif (WIN32)
                                               ${PROJECT_SOURCE_DIR}/../libav-11.7/libavcodec
                                               ${PROJECT_SOURCE_DIR}/../libav-11.7/libavresample
                                               ${PROJECT_SOURCE_DIR}/../libav-11.7/libavutil
+                                              G:/software/Development/dll
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/err/Debug
                                               ${PROJECT_SOURCE_DIR}/../libCommon/cmake/src/ui/Debug

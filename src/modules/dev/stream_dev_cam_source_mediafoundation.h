@@ -184,7 +184,7 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_MediaFoundation_T (const Stream_Dev_Cam_Source_MediaFoundation_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_MediaFoundation_T& operator= (const Stream_Dev_Cam_Source_MediaFoundation_T&))
 
-  virtual int svc (void);
+  //virtual int svc (void);
 
   // helper methods
   // *NOTE*: (if any,) fire-and-forget the media source handle (third argument)

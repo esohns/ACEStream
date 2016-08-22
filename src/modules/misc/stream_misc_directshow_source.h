@@ -24,17 +24,15 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "dshow.h"
+#include "streams.h"
+#include "strmif.h"
 
 #include "common_iinitialize.h"
-#include "common_time_common.h"
 
-#include "stream_common.h"
-//#include "stream_messagequeue.h"
 #include "stream_task_base_synch.h"
 
-#include "stream_misc_directshow_asynch_source_filter.h"
-#include "stream_misc_directshow_source_filter.h"
+//#include "stream_misc_directshow_asynch_source_filter.h"
+//#include "stream_misc_directshow_source_filter.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -96,7 +94,6 @@ class Stream_Misc_DirectShow_Source_T
 
  protected:
   //struct _AMMediaType* mediaType_; // 'preferred' media type
-  SessionDataType*     sessionData_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -113,7 +110,7 @@ class Stream_Misc_DirectShow_Source_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Misc_DirectShow_Source_T& operator= (const Stream_Misc_DirectShow_Source_T&))
 
   // helper methods
-  bool initialize_DirectShow (const struct _GUID&,            // (source) filter CLSID
+  bool initialize_DirectShow (REFGUID,                        // (source) filter CLSID
                               const FilterConfigurationType&, // (source) filter configuration
                               const struct _AMMediaType&,     // 'preferred' media type
                               const HWND,                     // (target) window handle {NULL: NullRenderer}

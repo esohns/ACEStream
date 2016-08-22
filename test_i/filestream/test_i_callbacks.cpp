@@ -75,8 +75,8 @@ stream_processing_function (void* arg_in)
   GtkStatusbar* statusbar_p = NULL;
   Test_I_StreamBase_t* stream_p = NULL;
   std::ostringstream converter;
-  const Test_I_Stream_SessionData_t* session_data_container_p = NULL;
-  const Test_I_Stream_SessionData* session_data_p = NULL;
+  const Test_I_Source_SessionData_t* session_data_container_p = NULL;
+  const Test_I_Source_SessionData* session_data_p = NULL;
   unsigned int counter = 0;
   bool loop = data_p->CBData->loop;
 
@@ -435,7 +435,7 @@ idle_initialize_source_UI_cb (gpointer userData_in)
   //  g_object_unref (buffer_p);
 
   // step5: initialize updates
-  Stream_GTK_CBData* cb_data_p = data_p;
+  Test_I_GTK_CBData* cb_data_p = data_p;
   {
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
@@ -699,8 +699,8 @@ idle_update_progress_source_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_source_cb"));
 
-  Stream_GTK_ProgressData* data_p =
-      static_cast<Stream_GTK_ProgressData*> (userData_in);
+  Test_I_Source_GTK_ProgressData* data_p =
+      static_cast<Test_I_Source_GTK_ProgressData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -723,8 +723,8 @@ idle_update_progress_source_cb (gpointer userData_in)
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
-  Stream_PendingActionsIterator_t iterator_2;
-  for (Stream_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
+  Test_I_PendingActionsIterator_t iterator_2;
+  for (Test_I_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
        iterator_3 != data_p->completedActions.end ();
        ++iterator_3)
   {
@@ -884,8 +884,8 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   GFile* file_p = NULL;
   std::string directory, file_name;
-  directory = data_p->configuration->moduleHandlerConfiguration.fileName;
-  file_name = data_p->configuration->moduleHandlerConfiguration.fileName;
+  directory = data_p->configuration->moduleHandlerConfiguration.targetFileName;
+  file_name = data_p->configuration->moduleHandlerConfiguration.targetFileName;
   // sanity check(s)
   if (!Common_File_Tools::isDirectory (directory))
   {
@@ -1083,7 +1083,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
 
   // step5: initialize updates
   guint event_source_id = 0;
-  Stream_GTK_CBData* cb_data_p = data_p;
+  Test_I_GTK_CBData* cb_data_p = data_p;
   {
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, G_SOURCE_REMOVE);
 
@@ -1280,7 +1280,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_chooser_button_p);
   std::string default_folder_uri = ACE_TEXT_ALWAYS_CHAR ("file://");
   default_folder_uri +=
-    data_p->configuration->moduleHandlerConfiguration.fileName;
+    data_p->configuration->moduleHandlerConfiguration.targetFileName;
   gboolean result =
     gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
                                              default_folder_uri.c_str ());
@@ -1424,8 +1424,8 @@ idle_update_progress_target_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_target_cb"));
 
-  Stream_GTK_ProgressData* data_p =
-    static_cast<Stream_GTK_ProgressData*> (userData_in);
+  Test_I_FileStream_GTK_ProgressData* data_p =
+    static_cast<Test_I_FileStream_GTK_ProgressData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -1497,8 +1497,8 @@ idle_update_info_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
-  Stream_GTK_CBData* data_p =
-      static_cast<Stream_GTK_CBData*> (userData_in);
+  Test_I_FileStream_GTK_CBData* data_p =
+      static_cast<Test_I_FileStream_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -1518,13 +1518,13 @@ idle_update_info_display_cb (gpointer userData_in)
   if (data_p->eventStack.empty ())
     return G_SOURCE_CONTINUE;
 
-  for (Stream_GTK_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
+  for (Test_I_GTK_EventsIterator_t iterator_2 = data_p->eventStack.begin ();
        iterator_2 != data_p->eventStack.end ();
        iterator_2++)
   {
     switch (*iterator_2)
     {
-      case STREAM_GTKEVENT_START:
+      case TEST_I_GTKEVENT_START:
       {
         spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1563,7 +1563,7 @@ idle_update_info_display_cb (gpointer userData_in)
         is_session_message = true;
         break;
       }
-      case STREAM_GTKEVENT_DATA:
+      case TEST_I_GTKEVENT_DATA:
       {
         spin_button_p =
           //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,
@@ -1581,7 +1581,7 @@ idle_update_info_display_cb (gpointer userData_in)
 
         break;
       }
-      case STREAM_GTKEVENT_END:
+      case TEST_I_GTKEVENT_END:
       {
         spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1604,7 +1604,7 @@ idle_update_info_display_cb (gpointer userData_in)
         is_session_message = true;
         break;
       }
-      case STREAM_GTKEVENT_STATISTIC:
+      case TEST_I_GTKEVENT_STATISTIC:
       {
         spin_button_p =
             GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1638,8 +1638,8 @@ idle_update_log_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_log_display_cb"));
 
-  Stream_GTK_CBData* data_p =
-      static_cast<Stream_GTK_CBData*> (userData_in);
+  Test_I_GTK_CBData* data_p =
+      static_cast<Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2056,8 +2056,8 @@ checkbutton_loop_toggled_cb (GtkToggleButton* toggleButton_in,
 {
   STREAM_TRACE (ACE_TEXT ("::checkbutton_loop_toggled_cb"));
 
-  Stream_GTK_CBData* data_p =
-    static_cast<Stream_GTK_CBData*> (userData_in);
+  Test_I_GTK_CBData* data_p =
+    static_cast<Test_I_GTK_CBData*> (userData_in);
 
   //Common_UI_GladeXMLsIterator_t iterator =
   //  data_p->gladeXML.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
@@ -2573,9 +2573,9 @@ filechooserbutton_target_cb (GtkFileChooserButton* button_in,
   } // end IF
   g_object_unref (file_p);
 
-  data_p->configuration->moduleHandlerConfiguration.fileName =
+  data_p->configuration->moduleHandlerConfiguration.targetFileName =
     Common_UI_Tools::UTF82Locale (string_p, -1);
-  if (data_p->configuration->moduleHandlerConfiguration.fileName.empty ())
+  if (data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
@@ -2619,9 +2619,9 @@ filechooser_target_cb (GtkFileChooser* fileChooser_in,
   } // end IF
   g_object_unref (file_p);
 
-  data_p->configuration->moduleHandlerConfiguration.fileName =
+  data_p->configuration->moduleHandlerConfiguration.targetFileName =
     Common_UI_Tools::UTF82Locale (string_p, -1);
-  if (data_p->configuration->moduleHandlerConfiguration.fileName.empty ())
+  if (data_p->configuration->moduleHandlerConfiguration.targetFileName.empty ())
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_Tools::UTF82Locale(\"%s\"): \"%m\", returning\n"),
@@ -2728,8 +2728,8 @@ button_clear_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  Stream_GTK_CBData* data_p =
-    static_cast<Stream_GTK_CBData*> (userData_in);
+  Test_I_GTK_CBData* data_p =
+    static_cast<Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2767,8 +2767,8 @@ button_about_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_about_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  Stream_GTK_CBData* data_p =
-    static_cast<Stream_GTK_CBData*> (userData_in);
+  Test_I_GTK_CBData* data_p =
+    static_cast<Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);
@@ -2866,8 +2866,8 @@ textview_size_allocate_cb (GtkWidget* widget_in,
 
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (rectangle_in);
-  Stream_GTK_CBData* data_p =
-    static_cast<Stream_GTK_CBData*> (userData_in);
+  Test_I_GTK_CBData* data_p =
+    static_cast<Test_I_GTK_CBData*> (userData_in);
 
   // sanity check(s)
   ACE_ASSERT (data_p);

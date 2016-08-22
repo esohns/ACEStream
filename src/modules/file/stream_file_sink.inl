@@ -206,18 +206,20 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                         O_WRONLY);
 
       const ACE_TCHAR* path_name_p = fileName_.get_path_name ();
-      if (!path_name_p &&
+      ACE_ASSERT (path_name_p);
+      bool is_empty = !ACE_OS::strlen (path_name_p);
+      if (is_empty &&
           session_data_r.targetFileName.empty ())
         goto continue_; // nothing to do
 
       // *TODO*: remove type inferences
       directory =
-        (session_data_r.targetFileName.empty () ? (!path_name_p ? Common_File_Tools::getTempDirectory ()
-                                                                : ACE_TEXT (path_name_p))
+        (session_data_r.targetFileName.empty () ? (is_empty ? Common_File_Tools::getTempDirectory ()
+                                                            : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       file_name =
-        (session_data_r.targetFileName.empty () ? (!path_name_p ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
-                                                                : ACE_TEXT (path_name_p))
+        (session_data_r.targetFileName.empty () ? (is_empty ? ACE_TEXT_ALWAYS_CHAR (STREAM_MODULE_FILE_DEFAULT_OUTPUT_FILE)
+                                                            : ACE_TEXT (path_name_p))
                                                 : session_data_r.targetFileName);
       // sanity check(s)
       if (!Common_File_Tools::isDirectory (directory))

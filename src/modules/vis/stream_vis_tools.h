@@ -35,7 +35,7 @@ class Stream_Vis_Export Stream_Module_Visualization_Tools
 {
  public:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   static enum AVPixelFormat mediaSubType2AVPixelFormat (const struct _GUID&); // media foundation subtype
+   static enum AVPixelFormat mediaSubType2AVPixelFormat (REFGUID); // media foundation subtype
 #endif
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Visualization_Tools ())

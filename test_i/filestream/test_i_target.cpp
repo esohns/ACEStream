@@ -488,14 +488,14 @@ do_work (unsigned int bufferSize_in,
 
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
   ACE_ASSERT (heap_allocator.initialize (configuration.allocatorConfiguration));
-  Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                               &heap_allocator,     // heap allocator handle
-                                               true);               // block ?
+  Test_I_Target_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                                      &heap_allocator,     // heap allocator handle
+                                                      true);               // block ?
 
   CBData_in.configuration = &configuration;
 //  Stream_GTK_CBData* cb_data_base_p = &CBData_in;
 //  cb_data_base_p->configuration = &configuration;
-  Test_I_Stream_Target_EventHandler ui_event_handler (&CBData_in);
+  Test_I_Target_EventHandler ui_event_handler (&CBData_in);
   Test_I_Target_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                           NULL,
                                                           true);
@@ -550,12 +550,12 @@ do_work (unsigned int bufferSize_in,
 //  configuration.moduleHandlerConfiguration.configuration = &configuration;
 //  configuration.moduleHandlerConfiguration.connectionManager =
 //    connection_manager_p;
-  configuration.moduleHandlerConfiguration.fileName = fileName_in;
   configuration.moduleHandlerConfiguration.inbound = true;
   configuration.moduleHandlerConfiguration.printProgressDot =
       UIDefinitionFile_in.empty ();
   configuration.moduleHandlerConfiguration.streamConfiguration =
     &configuration.streamConfiguration;
+  configuration.moduleHandlerConfiguration.targetFileName = fileName_in;
   // ******************** (sub-)stream configuration data *********************
   configuration.streamConfiguration.moduleConfiguration =
     &configuration.moduleConfiguration;

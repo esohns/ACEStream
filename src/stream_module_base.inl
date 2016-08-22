@@ -82,7 +82,7 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
                      HandlerConfigurationType,
                      NotificationType,
                      ReaderTaskType,
-                     WriterTaskType>::~Stream_Module_Base_T ()
+                     WriterTaskType>::~Stream_Module_Base_T () throw ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Base_T::~Stream_Module_Base_T"));
 

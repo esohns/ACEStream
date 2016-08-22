@@ -63,8 +63,8 @@
 #include "test_u_camsave_defines.h"
 #include "test_u_camsave_stream.h"
 
-// initialize statics
-bool asynchronous_stream_error = false;
+// global variables
+bool un_toggling_stream = false;
 
 int
 dirent_selector (const dirent* dirEntry_in)
@@ -1200,10 +1200,11 @@ load_rates (int fd_in,
   return true;
 }
 #endif
-void
-update_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
+
+unsigned int
+get_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::update_buffer_size"));
+  STREAM_TRACE (ACE_TEXT ("::get_buffer_size"));
 
   // sanity check(s)
   ACE_ASSERT (GTKCBData_in.configuration);
@@ -1220,7 +1221,7 @@ update_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
   GtkTreeIter iterator_2;
   if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_2))
-    return; // <-- nothing selected
+    return 0; // <-- nothing selected
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_FORMAT_NAME)));
@@ -1244,10 +1245,15 @@ update_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to CLSIDFromString(): \"%s\", returning\n"),
+                ACE_TEXT ("failed to CLSIDFromString(): \"%s\", aborting\n"),
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return;
+    return 0;
   } // end IF
+  // *NOTE*: on windows (TM) platforms, the media foundation session does all
+  //         the decompressing/decoding; therefore, the stream always carries
+  //         fragments/frames of type RGB24, and needs this size of buffers
+  if (!Stream_Module_Device_Tools::isRGB (GUID_s))
+    GUID_s = MFVideoFormat_RGB24;
 #endif
 
   combo_box_p =
@@ -1256,7 +1262,7 @@ update_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
   ACE_ASSERT (combo_box_p);
   if (!gtk_combo_box_get_active_iter (combo_box_p,
                                       &iterator_2))
-    return; // <-- nothing selected
+    return 0; // <-- nothing selected
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
@@ -1277,20 +1283,17 @@ update_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
 
   unsigned int buffer_size = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (Stream_Module_Device_Tools::isCompressed (GUID_s))
-    GUID_s = MFVideoFormat_RGB32;
-
   result = MFCalculateImageSize (GUID_s,
                                  width, height,
                                  &buffer_size);
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFCalculateImageSize(\"%s\", %u,%u): \"%s\", returning\n"),
+                ACE_TEXT ("failed to MFCalculateImageSize(\"%s\", %u,%u): \"%s\", aborting\n"),
                 ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (GUID_s).c_str ()),
                 width, height,
                 ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return;
+    return 0;
   } // end IF
 #else
   ACE_UNUSED_ARG (width);
@@ -1300,15 +1303,27 @@ update_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
       GTKCBData_in.configuration->moduleHandlerConfiguration.format.fmt.pix.sizeimage;
 #endif
 
+  return buffer_size;
+}
+void
+update_buffer_size (Stream_CamSave_GTK_CBData& GTKCBData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::update_buffer_size"));
+
+  Common_UI_GTKBuildersIterator_t iterator =
+    GTKCBData_in.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != GTKCBData_in.builders.end ());
+
   GtkSpinButton* spin_button_p =
     GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<gdouble> (buffer_size));
+                             static_cast<gdouble> (get_buffer_size (GTKCBData_in)));
 }
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 ACE_THR_FUNC_RETURN
 stream_processing_function (void* arg_in)
@@ -2179,19 +2194,6 @@ idle_session_end_cb (gpointer userData_in)
     data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_GTK_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  GtkFrame* frame_p =
-    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
-  ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
-  GtkProgressBar* progressbar_p =
-    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-  ACE_ASSERT (progressbar_p);
-  // *NOTE*: this disables "activity mode" (in Gtk2)
-  gtk_progress_bar_set_fraction (progressbar_p, 0.0);
-  gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
-
   // *IMPORTANT NOTE*: there are two major reasons for being here that are not
   //                   mutually exclusive, so there could be a race:
   //                   - user pressed stop
@@ -2200,12 +2202,54 @@ idle_session_end_cb (gpointer userData_in)
     GTK_TOGGLE_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_TOGGLEACTION_RECORD_NAME)));
   ACE_ASSERT (toggle_action_p);
+  gtk_action_set_stock_id (GTK_ACTION (toggle_action_p), GTK_STOCK_MEDIA_RECORD);
   if (gtk_toggle_action_get_active (toggle_action_p))
   {
-    asynchronous_stream_error = true;
+    un_toggling_stream = true;
     gtk_action_activate (GTK_ACTION (toggle_action_p));
   } // end IF
-  gtk_action_set_sensitive (GTK_ACTION (toggle_action_p), true);
+
+  GtkAction* action_p =
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, false);
+  action_p =
+    GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME)));
+  ACE_ASSERT (action_p);
+  gtk_action_set_sensitive (action_p, false);
+
+  GtkFrame* frame_p =
+    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
+  ACE_ASSERT (frame_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
+
+  //// stop progress reporting
+  //ACE_ASSERT (data_p->progressEventSourceID);
+  //{
+  //  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard_2, data_p->lock, G_SOURCE_REMOVE);
+
+  //  if (!g_source_remove (data_p->progressEventSourceID))
+  //    ACE_DEBUG ((LM_ERROR,
+  //                ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+  //                data_p->progressEventSourceID));
+  //  data_p->eventSourceIds.erase (data_p->progressEventSourceID);
+  //  data_p->progressEventSourceID = 0;
+
+  //  ACE_OS::memset (&(data_p->progressData.statistic),
+  //                  0,
+  //                  sizeof (data_p->progressData.statistic));
+  //} // end lock scope
+  GtkProgressBar* progressbar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progressbar_p);
+  // *NOTE*: this disables "activity mode" (in Gtk2)
+  gtk_progress_bar_set_fraction (progressbar_p, 0.0);
+  gtk_progress_bar_set_text (progressbar_p, ACE_TEXT_ALWAYS_CHAR (""));
+  gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
 
   return G_SOURCE_REMOVE;
 }
@@ -2456,12 +2500,12 @@ idle_update_progress_cb (gpointer userData_in)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %d has joined (status was: %@)...\n"),
+                  ACE_TEXT ("thread %u has joined (status was: %u)...\n"),
                   thread_id,
                   exit_status));
 #else
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %u has joined (status was: %d)...\n"),
+                  ACE_TEXT ("thread %d has joined (status was: %@)...\n"),
                   thread_id,
                   exit_status));
 #endif
@@ -2538,7 +2582,7 @@ idle_update_video_display_cb (gpointer userData_in)
   return G_SOURCE_REMOVE;
 }
 
-/////////////////////////////////////////
+//////////////////////////////////////////
 
 #ifdef __cplusplus
 extern "C"
@@ -2581,6 +2625,15 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 {
   STREAM_TRACE (ACE_TEXT ("::toggleaction_record_toggled_cb"));
 
+  // handle untoggle --> PLAY
+  if (un_toggling_stream)
+  {
+    un_toggling_stream = false;
+    return; // done
+  } // end IF
+
+  // --> user pressed play/pause/stop
+
   Stream_CamSave_GTK_CBData* data_p =
       static_cast<Stream_CamSave_GTK_CBData*> (userData_in);
 
@@ -2595,38 +2648,40 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
   ACE_ASSERT (data_p->stream);
   ACE_ASSERT (iterator != data_p->builders.end ());
 
-  // toggle record/stop ?
-  Stream_StateMachine_ControlState stream_state =
-    data_p->stream->status ();
-  if ((stream_state == STREAM_STATE_RUNNING) ||
-      (stream_state == STREAM_STATE_PAUSED)  ||
-      asynchronous_stream_error) // (asynch) stream error
+  // toggle ?
+  GtkAction* action_p = NULL;
+  GtkFrame* frame_p =
+    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
+  ACE_ASSERT (frame_p);
+  if (!gtk_toggle_action_get_active (toggleAction_in))
   {
+    // --> user pressed pause/stop
+
+    //// step0: modify widgets
+    //gtk_action_set_stock_id (GTK_ACTION (toggleAction_in),
+    //                         GTK_STOCK_MEDIA_RECORD);
+
+    //action_p =
+    //  GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+    //                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
+    //ACE_ASSERT (action_p);
+    //gtk_action_set_sensitive (action_p, false);
+    //action_p =
+    //  GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
+    //                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME)));
+    //ACE_ASSERT (action_p);
+    //gtk_action_set_sensitive (action_p, false);
+
+    //gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
+
+    // step1: stop stream
     data_p->stream->stop (false, true);
-
-    gtk_action_set_stock_id (GTK_ACTION (toggleAction_in),
-                             GTK_STOCK_MEDIA_RECORD);
-    // *NOTE*: because control does not wait for the stream to stop, disable
-    //         the control until notification arrives (see:
-    //         idle_session_end_cb())
-    gtk_action_set_sensitive (GTK_ACTION (toggleAction_in), false);
-    GtkAction* action_p =
-      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
-    ACE_ASSERT (action_p);
-    gtk_action_set_sensitive (action_p, false);
-    action_p =
-      GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
-                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME)));
-    ACE_ASSERT (action_p);
-    gtk_action_set_sensitive (action_p, false);
-
-    data_p->progressEventSourceID = 0;
-    if (asynchronous_stream_error)
-      asynchronous_stream_error = false;
 
     return;
   } // end IF
+
+  // --> user pressed record
 
   Stream_CamSave_ThreadData* thread_data_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2646,7 +2701,8 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
 
   // step0: modify widgets
   gtk_action_set_stock_id (GTK_ACTION (toggleAction_in), GTK_STOCK_MEDIA_STOP);
-  GtkAction* action_p =
+
+  action_p =
     GTK_ACTION (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_CUT_NAME)));
   ACE_ASSERT (action_p);
@@ -2656,10 +2712,7 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_ACTION_REPORT_NAME)));
   ACE_ASSERT (action_p);
   gtk_action_set_sensitive (action_p, true);
-  GtkFrame* frame_p =
-    GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_CONFIGURATION_NAME)));
-  ACE_ASSERT (frame_p);
+
   gtk_widget_set_sensitive (GTK_WIDGET (frame_p), false);
 
   // step1: set up progress reporting
@@ -2854,16 +2907,16 @@ toggleaction_record_toggled_cb (GtkToggleAction* toggleAction_in,
     } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("spawned processing thread (id was: %@)...\n"),
+                ACE_TEXT ("spawned processing thread (id was: %u)...\n"),
                 thread_id));
 #else
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("spawned processing thread (id was: %u)...\n"),
+                ACE_TEXT ("spawned processing thread (id was: %d)...\n"),
                 thread_id));
 #endif
 
     // step3: start progress reporting
-    ACE_ASSERT (!data_p->progressEventSourceID);
+    //ACE_ASSERT (!data_p->progressEventSourceID);
     data_p->progressEventSourceID =
       //g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
       //                 idle_update_progress_cb,
@@ -3551,6 +3604,9 @@ continue_:
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   media_source_p->Release ();
+  media_source_p = NULL;
+
+  return;
 
 error_2:
   if (media_source_p)
@@ -3794,6 +3850,9 @@ continue_:
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   media_source_p->Release ();
+  media_source_p = NULL;
+
+  return;
 
 error_2:
   if (media_source_p)
@@ -3969,10 +4028,12 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
 
-//  ACE_UNUSED_ARG (widget_in);
+  //ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (context_in);
 
   // sanity check(s)
-  ACE_ASSERT (context_in);
+  ACE_ASSERT (widget_in);
+  //ACE_ASSERT (context_in);
   ACE_ASSERT (userData_in);
 
   Stream_CamSave_GTK_CBData* data_p =
@@ -3992,14 +4053,14 @@ drawingarea_draw_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
     return FALSE;
   } // end IF
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  // *NOTE*: media foundation capture frames are v-flipped bgr
-//  cairo_rotate (context_p, 180.0 * M_PI / 180.0);
-//#endif
   gdk_cairo_set_source_pixbuf (context_p,
                                data_p->pixelBuffer,
                                0.0, 0.0);
 
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  // *NOTE*: media foundation capture frames are v-flipped
+//  cairo_rotate (context_p, 180.0 * M_PI / 180.0);
+//#endif
   {
     ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->lock, FALSE);
 

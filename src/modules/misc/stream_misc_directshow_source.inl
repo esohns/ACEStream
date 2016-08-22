@@ -54,7 +54,6 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
                                 MediaType>::Stream_Misc_DirectShow_Source_T ()
  : inherited ()
  //, mediaType_  (NULL)
- , sessionData_ (NULL)
  , push_ (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
  , IGraphBuilder_ (NULL)
 //, IMemAllocator_ (NULL)
@@ -258,15 +257,7 @@ continue_:
       IGraphBuilder_ = NULL;
     } // end IF
 
-    configuration_ = NULL;
     //mediaType_ = NULL;
-    if (sessionData_)
-    {
-      sessionData_->decrease ();
-      sessionData_ = NULL;
-    } // end IF
-
-    inherited::isInitialized_ = false;
   } // end IF
 
   //mediaType_ = &configuration_->mediaType;
@@ -452,15 +443,12 @@ Stream_Misc_DirectShow_Source_T<ACE_SYNCH_USE,
     case STREAM_SESSION_BEGIN:
     {
       // sanity check(s)
-      ACE_ASSERT (!sessionData_);
+      //ACE_ASSERT (inherited::sessionData_);
       // *TODO*: remove type inference
       ACE_ASSERT (inherited::configuration_->streamConfiguration);
 
-      sessionData_ =
-        &const_cast<SessionDataType&> (message_inout->get ());
-      sessionData_->increase ();
-      typename SessionDataType::DATA_T& session_data_r =
-        const_cast<typename SessionDataType::DATA_T&> (sessionData_->get ());
+      //typename SessionDataType::DATA_T& session_data_r =
+      //  const_cast<typename SessionDataType::DATA_T&> (inherited::sessionData_->get ());
 
       bool COM_initialized = false;
       bool is_running = false;
@@ -519,16 +507,15 @@ error_2:
       ACE_ASSERT (IGraphBuilder_);
       builder_p = IGraphBuilder_;
 
-      if (_DEBUG)
-      {
-        std::string log_file_name =
-          Common_File_Tools::getLogDirectory (std::string (),
-                                              0);
-        log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
-        log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
-        Stream_Module_Device_Tools::debug (IGraphBuilder_,
-                                           log_file_name);
-      } // end IF
+#if defined (_DEBUG)
+      std::string log_file_name =
+        Common_File_Tools::getLogDirectory (std::string (),
+                                            0);
+      log_file_name += ACE_DIRECTORY_SEPARATOR_STR;
+      log_file_name += MODULE_DEV_DIRECTSHOW_LOGFILE_NAME;
+      Stream_Module_Device_Tools::debug (IGraphBuilder_,
+                                          log_file_name);
+#endif
 
 do_run:
       ACE_ASSERT (builder_p);
@@ -620,7 +607,8 @@ error:
       } // end IF
       if (COM_initialized)
         CoUninitialize ();
-      session_data_r.aborted = true;
+
+      notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -711,12 +699,6 @@ continue_:
 
       if (COM_initialized)
         CoUninitialize ();
-
-      if (sessionData_)
-      {
-        sessionData_->decrease ();
-        sessionData_ = NULL;
-      } // end IF
 
       break;
     }

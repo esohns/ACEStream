@@ -504,12 +504,12 @@ do_work (unsigned int bufferSize_in,
 
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
   ACE_ASSERT (heap_allocator.initialize (configuration.allocatorConfiguration));
-  Stream_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                               &heap_allocator,     // heap allocator handle
-                                               true);               // block ?
+  Test_I_Source_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                                      &heap_allocator,     // heap allocator handle
+                                                      true);               // block ?
 
   CBData_in.configuration = &configuration;
-  Test_I_Stream_Source_EventHandler ui_event_handler (&CBData_in);
+  Test_I_Source_EventHandler ui_event_handler (&CBData_in);
   Test_I_Source_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
                                                           NULL,
                                                           true);

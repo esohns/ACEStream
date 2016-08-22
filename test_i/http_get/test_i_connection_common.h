@@ -52,11 +52,11 @@ class Test_I_Stream_SessionMessage;
 struct Test_I_Configuration;
 struct Test_I_ConnectionState;
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
-struct Test_I_Stream_Configuration;
-struct Test_I_Stream_ModuleHandlerConfiguration;
+struct Test_I_StreamConfiguration;
+struct Test_I_ModuleHandlerConfiguration;
 struct Test_I_Stream_SessionData;
 typedef Stream_SessionData_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
-struct Test_I_Stream_State;
+struct Test_I_StreamState;
 struct Test_I_UserData;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  Test_I_Configuration,
@@ -73,11 +73,11 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       int,
                                       Stream_SessionMessageType,
                                       Stream_StateMachine_ControlState,
-                                      Test_I_Stream_State,
-                                      Test_I_Stream_Configuration,
+                                      Test_I_StreamState,
+                                      Test_I_StreamConfiguration,
                                       Test_I_RuntimeStatistic_t,
                                       Stream_ModuleConfiguration,
-                                      Test_I_Stream_ModuleHandlerConfiguration,
+                                      Test_I_ModuleHandlerConfiguration,
                                       Test_I_Stream_SessionData,   // session data
                                       Test_I_Stream_SessionData_t, // session data container (reference counted)
                                       ACE_Message_Block,
@@ -126,7 +126,7 @@ typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHan
                                   Test_I_NetStream_t,
                                   Test_I_UserData,
                                   Stream_ModuleConfiguration,
-                                  Test_I_Stream_ModuleHandlerConfiguration> Test_I_TCPHandler_t;
+                                  Test_I_ModuleHandlerConfiguration> Test_I_TCPHandler_t;
 typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration,
                                                          ACE_SSL_SOCK_Stream>,
                                   ACE_INET_Addr,
@@ -136,7 +136,7 @@ typedef Net_StreamTCPSocketBase_T<Net_TCPSocketHandler_T<Test_I_Stream_SocketHan
                                   Test_I_NetStream_t,
                                   Test_I_UserData,
                                   Stream_ModuleConfiguration,
-                                  Test_I_Stream_ModuleHandlerConfiguration> Test_I_SSLTCPHandler_t;
+                                  Test_I_ModuleHandlerConfiguration> Test_I_SSLTCPHandler_t;
 typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<Test_I_Stream_SocketHandlerConfiguration>,
                                         ACE_INET_Addr,
                                         Test_I_Configuration,
@@ -145,7 +145,7 @@ typedef Net_StreamAsynchTCPSocketBase_T<Net_AsynchTCPSocketHandler_T<Test_I_Stre
                                         Test_I_NetStream_t,
                                         Test_I_UserData,
                                         Stream_ModuleConfiguration,
-                                        Test_I_Stream_ModuleHandlerConfiguration> Test_I_AsynchTCPHandler_t;
+                                        Test_I_ModuleHandlerConfiguration> Test_I_AsynchTCPHandler_t;
 
 typedef Net_TCPConnectionBase_T<Test_I_TCPHandler_t,
                                 Test_I_Configuration,

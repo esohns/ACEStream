@@ -24,16 +24,18 @@
 #include <sstream>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "oleauto.h"
+
 #include "dshow.h"
 #include "dvdmedia.h"
 #include "evr.h"
 //#include "ksuuids.h"
+#include "qedit.h"
+
 #include "mfapi.h"
 #include "mferror.h"
 //#include "mftransform.h"
-#include "mtype.h"
-#include "oleauto.h"
-#include "qedit.h"
+
 #include "wmcodecdsp.h"
 #endif
 
@@ -724,7 +726,8 @@ Stream_Module_Device_Tools::dump (IMFTopology* IMFTopology_in)
       result = (*iterator_2)->GetTopoNodeID (&id);
       ACE_ASSERT (SUCCEEDED (result));
 
-      topology_string = Stream_Module_Device_Tools::nodeTypeToString (node_type);
+      topology_string =
+        Stream_Module_Device_Tools::nodeTypeToString (node_type);
       topology_string += ACE_TEXT_ALWAYS_CHAR (" (");
       converter.str (ACE_TEXT_ALWAYS_CHAR (""));
       converter.clear ();
@@ -857,7 +860,7 @@ Stream_Module_Device_Tools::dump (IMFTransform* IMFTransform_in)
 }
 
 bool
-Stream_Module_Device_Tools::isCompressed (const struct _GUID& subType_in)
+Stream_Module_Device_Tools::isCompressed (REFGUID subType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isCompressed"));
 
@@ -867,7 +870,7 @@ Stream_Module_Device_Tools::isCompressed (const struct _GUID& subType_in)
 
 }
 bool
-Stream_Module_Device_Tools::isRGB (const struct _GUID& subType_in)
+Stream_Module_Device_Tools::isRGB (REFGUID subType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isRGB"));
 
@@ -879,7 +882,7 @@ Stream_Module_Device_Tools::isRGB (const struct _GUID& subType_in)
           (subType_in == MFVideoFormat_RGB8));
 }
 bool
-Stream_Module_Device_Tools::isChromaLuminance (const struct _GUID& subType_in)
+Stream_Module_Device_Tools::isChromaLuminance (REFGUID subType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::isChromaLuminance"));
 
@@ -1573,8 +1576,74 @@ Stream_Module_Device_Tools::getMediaSource (const IMFTopology* IMFTopology_in,
 }
 
 bool
+Stream_Module_Device_Tools::getSampleGrabberNodeId (const IMFTopology* IMFTopology_in,
+                                                    TOPOID& nodeId_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::getSampleGrabberNodeId"));
+
+  // initialize return value(s)
+  nodeId_out = 0;
+
+  // sanity check(s)
+  ACE_ASSERT (IMFTopology_in);
+
+  IMFCollection* collection_p = NULL;
+  HRESULT result =
+    const_cast<IMFTopology*> (IMFTopology_in)->GetOutputNodeCollection (&collection_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  DWORD number_of_output_nodes = 0;
+  result = collection_p->GetElementCount (&number_of_output_nodes);
+  ACE_ASSERT (SUCCEEDED (result));
+  if (number_of_output_nodes <= 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("media session topology has no sink nodes, aborting\n")));
+
+    // clean up
+    collection_p->Release ();
+
+    return false;
+  } // end IF
+  IMFTopologyNode* topology_node_p = NULL;
+  IUnknown* unknown_p = NULL;
+  result = collection_p->GetElement (0, &unknown_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  collection_p->Release ();
+  ACE_ASSERT (unknown_p);
+  result = unknown_p->QueryInterface (IID_PPV_ARGS (&topology_node_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    unknown_p->Release ();
+
+    return false;
+  } // end IF
+  unknown_p->Release ();
+  unknown_p = NULL;
+  result = topology_node_p->GetTopoNodeID (&nodeId_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopologyNode::GetTopoNodeID(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    topology_node_p->Release ();
+
+    return false;
+  } // end IF
+  topology_node_p->Release ();
+
+  return true;
+}
+
+bool
 Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
-                                               const IMFMediaType* IMFMediaType_in,
+                                               const struct _AMMediaType& mediaType_in,
                                                IDirect3DDevice9Ex*& IDirect3DDevice9Ex_out,
                                                struct _D3DPRESENT_PARAMETERS_& presentationParameters_out,
                                                IDirect3DDeviceManager9*& IDirect3DDeviceManager9_out,
@@ -1600,17 +1669,9 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   } // end IF
   ACE_ASSERT (resetToken_out == 0);
 
-  UINT32 width, height;
-  result = MFGetAttributeSize (const_cast<IMFMediaType*> (IMFMediaType_in),
-                               MF_MT_FRAME_SIZE,
-                               &width, &height);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return false;
-  } // end IF
+  ACE_ASSERT (mediaType_in.formattype == FORMAT_VideoInfo);
+  struct tagVIDEOINFO* video_info_p =
+    reinterpret_cast<struct tagVIDEOINFO*> (mediaType_in.pbFormat);
 
   IDirect3D9Ex* Direct3D9_p = NULL;
   result = Direct3DCreate9Ex (D3D_SDK_VERSION, &Direct3D9_p);
@@ -1671,8 +1732,9 @@ Stream_Module_Device_Tools::getDirect3DDevice (const HWND windowHandle_in,
   //} // end IF
   //else if (Mode == "winmode")
   //{
-  presentationParameters_out.BackBufferWidth = width;
-  presentationParameters_out.BackBufferHeight = height;
+  presentationParameters_out.BackBufferWidth = video_info_p->bmiHeader.biWidth;
+  presentationParameters_out.BackBufferHeight =
+    video_info_p->bmiHeader.biHeight;
   //} // end IF
   presentationParameters_out.BackBufferFormat = D3DFMT_X8R8G8B8;
   presentationParameters_out.BackBufferCount =
@@ -2399,6 +2461,196 @@ error:
     presentation_descriptor_p->Release ();
   if (stream_descriptor_p)
     stream_descriptor_p->Release ();
+  if (IMFTopology_out)
+  {
+    IMFTopology_out->Release ();
+    IMFTopology_out = NULL;
+  } // end IF
+
+  return false;
+}
+bool
+Stream_Module_Device_Tools::loadSourceTopology (const std::string& URL_in,
+                                                IMFMediaSource*& IMFMediaSource_inout,
+                                                IMFTopology*& IMFTopology_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadSourceTopology"));
+
+  // initialize return value(s)
+  if (IMFTopology_out)
+  {
+    IMFTopology_out->Release ();
+    IMFTopology_out = NULL;
+  } // end IF
+
+  bool release_source = false;
+  IMFTopologyNode* topology_node_p = NULL;
+  IMFTopologyNode* topology_node_2 = NULL;
+  TOPOID node_id = 0;
+  IMFPresentationDescriptor* presentation_descriptor_p = NULL;
+  IMFStreamDescriptor* stream_descriptor_p = NULL;
+  BOOL is_selected = FALSE;
+  IMFMediaType* media_type_p = NULL;
+  IMFMediaSink* media_sink_p = NULL;
+  IMFStreamSink* stream_sink_p = NULL;
+  IMFActivate* activate_p = NULL;
+
+  HRESULT result = MFCreateTopology (&IMFTopology_out);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopology(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = IMFTopology_out->SetUINT32 (MF_TOPOLOGY_DXVA_MODE,
+                                       MFTOPOLOGY_DXVA_FULL);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = IMFTopology_out->SetUINT32 (MF_TOPOLOGY_ENUMERATE_SOURCE_TYPES,
+                                       FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = IMFTopology_out->SetUINT32 (MF_TOPOLOGY_HARDWARE_MODE,
+                                       MFTOPOLOGY_HWMODE_USE_HARDWARE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = IMFTopology_out->SetUINT32 (MF_TOPOLOGY_NO_MARKIN_MARKOUT,
+                                       TRUE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = IMFTopology_out->SetUINT32 (MF_TOPOLOGY_STATIC_PLAYBACK_OPTIMIZATIONS,
+                                       FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  result = MFCreateTopologyNode (MF_TOPOLOGY_SOURCESTREAM_NODE,
+                                 &topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_SOURCESTREAM_NODE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_CONNECT_METHOD,
+                                       MF_CONNECT_DIRECT);
+  ACE_ASSERT (SUCCEEDED (result));
+  if (!IMFMediaSource_inout)
+  {
+    IMFSourceResolver* source_resolver_p = NULL;
+    result = MFCreateSourceResolver (&source_resolver_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateSourceResolver(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    DWORD flags = MF_RESOLUTION_MEDIASOURCE;
+    IPropertyStore* properties_p = NULL;
+    enum MF_OBJECT_TYPE object_type = MF_OBJECT_INVALID;
+    IUnknown* unknown_p = NULL;
+    result =
+      source_resolver_p->CreateObjectFromURL (ACE_TEXT_ALWAYS_WCHAR (URL_in.c_str ()),
+                                              flags,
+                                              properties_p,
+                                              &object_type,
+                                              &unknown_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFSourceResolver::CreateObjectFromURL(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT (URL_in.c_str ()),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      source_resolver_p->Release ();
+
+      goto error;
+    } // end IF
+    ACE_ASSERT (unknown_p);
+    ACE_ASSERT (object_type = MF_OBJECT_MEDIASOURCE);
+    source_resolver_p->Release ();
+    result = unknown_p->QueryInterface (IID_PPV_ARGS (&IMFMediaSource_inout));
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFMediaSource): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      unknown_p->Release ();
+
+      goto error;
+    } // end IF
+    unknown_p->Release ();
+    release_source = true;
+  } // end IF
+  ACE_ASSERT (IMFMediaSource_inout);
+  result = topology_node_p->SetUnknown (MF_TOPONODE_SOURCE,
+                                        IMFMediaSource_inout);
+  ACE_ASSERT (SUCCEEDED (result));
+  result =
+    IMFMediaSource_inout->CreatePresentationDescriptor (&presentation_descriptor_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaSource::CreatePresentationDescriptor(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result =
+    topology_node_p->SetUnknown (MF_TOPONODE_PRESENTATION_DESCRIPTOR,
+                                 presentation_descriptor_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  result =
+    presentation_descriptor_p->GetStreamDescriptorByIndex (0,
+                                                           &is_selected,
+                                                           &stream_descriptor_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFPresentationDescriptor::GetStreamDescriptor(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  ACE_ASSERT (is_selected);
+  presentation_descriptor_p->Release ();
+  presentation_descriptor_p = NULL;
+  result = topology_node_p->SetUnknown (MF_TOPONODE_STREAM_DESCRIPTOR,
+                                        stream_descriptor_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  stream_descriptor_p->Release ();
+  stream_descriptor_p = NULL;
+
+  result = IMFTopology_out->AddNode (topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = topology_node_p->GetTopoNodeID (&node_id);
+  ACE_ASSERT (SUCCEEDED (result));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("added source node (id: %q)...\n"),
+              node_id));
+
+  topology_node_p->Release ();
+  topology_node_p = NULL;
+
+  return true;
+
+error:
+  if (topology_node_p)
+    topology_node_p->Release ();
+  if (topology_node_2)
+    topology_node_2->Release ();
+  if (presentation_descriptor_p)
+    presentation_descriptor_p->Release ();
+  if (stream_descriptor_p)
+    stream_descriptor_p->Release ();
+  if (release_source)
+  {
+    IMFMediaSource_inout->Release ();
+    IMFMediaSource_inout = NULL;
+  } // end IF
   if (IMFTopology_out)
   {
     IMFTopology_out->Release ();
@@ -3266,6 +3518,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   } // end IF
 
   // step2: add decoder nodes ?
+  mft_register_type_info.guidMajorType = MFMediaType_Video;
   //BOOL is_compressed = false;
   //result = media_type_p->IsCompressedFormat (&is_compressed);
   //if (FAILED (result))
@@ -3276,9 +3529,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
   //  goto error;
   //} // end IF
   if (!Stream_Module_Device_Tools::isCompressed (sub_type))
-    goto continue_;
-
-  mft_register_type_info.guidMajorType = MFMediaType_Video;
+    goto transform;
 
   //if (!media_source_p)
   //{
@@ -3451,6 +3702,7 @@ Stream_Module_Device_Tools::loadRendererTopology (const std::string& deviceName_
       break; // done
   } // end WHILE
 
+transform:
   // transform to RGB ?
   if (Stream_Module_Device_Tools::isRGB (sub_type))
     goto continue_;
@@ -3841,6 +4093,8 @@ continue_3:
   media_source_p = NULL;
   media_type_p->Release ();
   media_type_p = NULL;
+  source_node_p->Release ();
+  source_node_p = NULL;
 
   if (!Stream_Module_Device_Tools::enableDirectXAcceleration (IMFTopology_inout))
   {
@@ -3875,6 +4129,7 @@ error:
 bool
 Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
                                                      IGraphBuilder*& IGraphBuilder_out,
+                                                     IAMBufferNegotiation*& IAMBufferNegotiation_out,
                                                      std::list<std::wstring>& pipeline_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadTargetRendererGraph"));
@@ -3912,6 +4167,7 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
     } // end IF
   } // end ELSE
   ACE_ASSERT (IGraphBuilder_out);
+  ACE_ASSERT (!IAMBufferNegotiation_out);
 
   //// split
   OLECHAR GUID_string[CHARS_IN_GUID];
@@ -4084,6 +4340,15 @@ Stream_Module_Device_Tools::loadTargetRendererGraph (const HWND windowHandle_in,
   if (filter_3)
     filter_3->Release ();
 
+  if (!Stream_Module_Device_Tools::getBufferNegotiation (IGraphBuilder_out,
+                                                         IAMBufferNegotiation_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getBufferNegotiation(): \"%s\", aborting\n")));
+    goto error;
+  } // end IF
+  ACE_ASSERT (IAMBufferNegotiation_out);
+
   return true;
 
 error:
@@ -4102,423 +4367,334 @@ error:
 
   return false;
 }
-//bool
-//Stream_Module_Device_Tools::loadTargetRendererTopology (const IMFMediaType* IMFMediaType_in,
-//                                                        const IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
-//                                                        const HWND windowHandle_in,
-//                                                        IMFTopology*& IMFTopology_inout)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadTargetRendererTopology"));
-//
-//  bool release_topology = false;
-//  struct _GUID sub_type = { 0 };
-//  MFT_REGISTER_TYPE_INFO mft_register_type_info = { 0 };
-//
-//  // initialize return value(s)
-//  IMFMediaSource* media_source_p = NULL;
-//
-//  if (!IMFTopology_inout)
-//  {
-//    if (!Stream_Module_Device_Tools::loadDeviceTopology (deviceName_in,
-//                                                         media_source_p,
-//                                                         IMFTopology_inout))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to Stream_Module_Device_Tools::loadDeviceTopology(\"%s\"), aborting\n"),
-//                  ACE_TEXT (deviceName_in.c_str ())));
-//      goto error;
-//    } // end IF
-//    release_topology = true;
-//  } // end IF
-//
-//  // step1: retrieve source node
-//  IMFTopologyNode* source_node_p = NULL;
-//  IMFCollection* collection_p = NULL;
-//  HRESULT result =
-//    IMFTopology_inout->GetSourceNodeCollection (&collection_p);
-//  ACE_ASSERT (SUCCEEDED (result));
-//  DWORD number_of_source_nodes = 0;
-//  result = collection_p->GetElementCount (&number_of_source_nodes);
-//  ACE_ASSERT (SUCCEEDED (result));
-//  if (number_of_source_nodes <= 0)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("topology contains no source nodes, aborting\n")));
-//
-//    // clean up
-//    collection_p->Release ();
-//    collection_p = NULL;
-//
-//    goto error;
-//  } // end IF
-//  IUnknown* unknown_p = NULL;
-//  result = collection_p->GetElement (0, &unknown_p);
-//  ACE_ASSERT (SUCCEEDED (result));
-//  collection_p->Release ();
-//  collection_p = NULL;
-//  ACE_ASSERT (unknown_p);
-//  result = unknown_p->QueryInterface (IID_PPV_ARGS (&source_node_p));
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//
-//    // clean up
-//    unknown_p->Release ();
-//    unknown_p = NULL;
-//
-//    goto error;
-//  } // end IF
-//  unknown_p->Release ();
-//  unknown_p = NULL;
-//
-//  // step2: add decoder nodes ?
-//  IMFActivate** decoders_p = NULL;
-//  UINT32 number_of_decoders = 0;
-//  mft_register_type_info.guidMajorType = MFMediaType_Video;
-//  UINT32 flags = (MFT_ENUM_FLAG_SYNCMFT |
-//    MFT_ENUM_FLAG_ASYNCMFT |
-//    MFT_ENUM_FLAG_HARDWARE |
-//    MFT_ENUM_FLAG_FIELDOFUSE |
-//    MFT_ENUM_FLAG_LOCALMFT |
-//    MFT_ENUM_FLAG_TRANSCODE_ONLY |
-//    MFT_ENUM_FLAG_SORTANDFILTER);
-//  IMFTransform* transform_p = NULL;
-//  IMFTopologyNode* topology_node_p = NULL;
-//  if (!media_source_p)
-//  {
-//    result = source_node_p->GetUnknown (MF_TOPONODE_SOURCE,
-//      IID_PPV_ARGS (&media_source_p));
-//    ACE_ASSERT (SUCCEEDED (result));
-//  } // end IF
-//  IMFMediaType* media_type_p = NULL;
-//  if (!Stream_Module_Device_Tools::getCaptureFormat (media_source_p,
-//    media_type_p))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
-//    goto error;
-//  } // end IF
-//  media_source_p->Release ();
-//  media_source_p = NULL;
-//
-//  if (!Stream_Module_Device_Tools::isCompressed (media_type_p))
-//    goto continue_;
-//
-//  while (true)
-//  {
-//    result = media_type_p->GetGUID (MF_MT_SUBTYPE, &sub_type);
-//    ACE_ASSERT (SUCCEEDED (result));
-//    mft_register_type_info.guidSubtype = sub_type;
-//
-//    result = MFTEnumEx (MFT_CATEGORY_VIDEO_DECODER, // category
-//      flags,                      // flags
-//      &mft_register_type_info,    // input type
-//      NULL,                       // output type
-//      &decoders_p,                // array of decoders
-//      &number_of_decoders);       // size of array
-//    if (FAILED (result))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//        ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
-//        ACE_TEXT (Common_Tools::error2String (result).c_str ()),
-//        ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
-//      goto error;
-//    } // end IF
-//    if (number_of_decoders <= 0)
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//        ACE_TEXT ("cannot find decoder for: \"%s\", aborting\n"),
-//        ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
-//      goto error;
-//    } // end IF
-//
-//    result =
-//      decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
-//    ACE_ASSERT (SUCCEEDED (result));
-//    for (UINT32 i = 0; i < number_of_decoders; i++)
-//      decoders_p[i]->Release ();
-//    CoTaskMemFree (decoders_p);
-//    result = transform_p->SetInputType (0,
-//      media_type_p,
-//      0);
-//    if (FAILED (result))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//        ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
-//        ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//
-//      // clean up
-//      transform_p->Release ();
-//
-//      goto error;
-//    } // end IF
-//
-//    result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
-//      &topology_node_p);
-//    if (FAILED (result))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//        ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
-//        ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//
-//      // clean up
-//      transform_p->Release ();
-//
-//      goto error;
-//    } // end IF
-//    result = topology_node_p->SetObject (transform_p);
-//    ACE_ASSERT (SUCCEEDED (result));
-//    result = IMFTopology_inout->AddNode (topology_node_p);
-//    if (FAILED (result))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//        ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-//        ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//      goto error;
-//    } // end IF
-//    result = source_node_p->ConnectOutput (0,
-//      topology_node_p,
-//      0);
-//    if (FAILED (result))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//        ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-//        ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//
-//      // clean up
-//      transform_p->Release ();
-//
-//      goto error;
-//    } // end IF
-//    source_node_p->Release ();
-//    source_node_p = topology_node_p;
-//    topology_node_p = NULL;
-//
-//    media_type_p->Release ();
-//    media_type_p = NULL;
-//    //if (!Stream_Module_Device_Tools::getOutputFormat (transform_p,
-//    //                                                  media_type_p))
-//    //{
-//    //  ACE_DEBUG ((LM_ERROR,
-//    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getOutputFormat(): \"%s\", aborting\n"),
-//    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//
-//    //  // clean up
-//    //  transform_p->Release ();
-//
-//    //  goto error;
-//    //} // end IF
-//    result = transform_p->GetOutputCurrentType (0,
-//      &media_type_p);
-//    if (FAILED (result))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//        ACE_TEXT ("failed to IMFTransform::GetOutputCurrentType(): \"%s\", aborting\n"),
-//        ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//
-//      // clean up
-//      transform_p->Release ();
-//
-//      goto error;
-//    } // end IF
-//    transform_p->Release ();
-//    transform_p = NULL;
-//
-//    // debug info
-//    ACE_DEBUG ((LM_DEBUG,
-//      ACE_TEXT ("added decoder for \"%s\"...\n"),
-//      ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
-//
-//    if (!Stream_Module_Device_Tools::isCompressed (media_type_p))
-//      break; // done
-//  } // end WHILE
-//  media_type_p->Release ();
-//  media_type_p = NULL;
-//
-//continue_:
-//  // step3: add tee node ?
-//  if (!IMFSampleGrabberSinkCallback_in && !windowHandle_in)
-//    goto continue_2;
-//
-//  result = MFCreateTopologyNode (MF_TOPOLOGY_TEE_NODE,
-//    &topology_node_p);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TEE_NODE): \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto error;
-//  } // end IF
-//  result = IMFTopology_inout->AddNode (topology_node_p);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto error;
-//  } // end IF
-//  result = source_node_p->ConnectOutput (0,
-//    topology_node_p,
-//    0);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto error;
-//  } // end IF
-//  source_node_p->Release ();
-//  source_node_p = topology_node_p;
-//  topology_node_p = NULL;
-//
-//continue_2:
-//  // step4: add sample grabber sink ?
-//  IMFActivate* activate_p = NULL;
-//
-//  if (!IMFSampleGrabberSinkCallback_in)
-//    goto continue_3;
-//
-//  result =
-//    MFCreateSampleGrabberSinkActivate (const_cast<IMFMediaType*> (IMFMediaType_in),
-//      const_cast<IMFSampleGrabberSinkCallback*> (IMFSampleGrabberSinkCallback_in),
-//      &activate_p);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to MFCreateSampleGrabberSinkActivate(): \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto error;
-//  } // end IF
-//    // To run as fast as possible, set this attribute (requires Windows 7):
-//  result = activate_p->SetUINT32 (MF_SAMPLEGRABBERSINK_IGNORE_CLOCK,
-//    TRUE);
-//  ACE_ASSERT (SUCCEEDED (result));
-//  result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
-//    &topology_node_p);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto error;
-//  } // end IF
-//  result = topology_node_p->SetObject (activate_p);
-//  ACE_ASSERT (SUCCEEDED (result));
-//  activate_p->Release ();
-//  activate_p = NULL;
-//  result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
-//  ACE_ASSERT (SUCCEEDED (result));
-//  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-//  ACE_ASSERT (SUCCEEDED (result));
-//  result = IMFTopology_inout->AddNode (topology_node_p);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto error;
-//  } // end IF
-//  result = source_node_p->ConnectOutput (0,
-//    topology_node_p,
-//    0);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto error;
-//  } // end IF
-//  topology_node_p->Release ();
-//  topology_node_p = NULL;
-//
-//continue_3:
-//  // step5: add video renderer sink ?
-//  if (!windowHandle_in)
-//    goto continue_4;
-//
-//  result = MFCreateVideoRendererActivate (windowHandle_in,
-//    &activate_p);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto error;
-//  } // end IF
-//    //// *NOTE*: select a (custom) video presenter
-//    //result = activate_p->SetGUID (MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID,
-//    //                              );
-//    //if (FAILED (result))
-//    //{
-//    //  ACE_DEBUG ((LM_ERROR,
-//    //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
-//    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    //  goto error;
-//    //} // end IF
-//
-//  result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
-//    &topology_node_p);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto error;
-//  } // end IF
-//  result = topology_node_p->SetObject (activate_p);
-//  ACE_ASSERT (SUCCEEDED (result));
-//  activate_p->Release ();
-//  activate_p = NULL;
-//  result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
-//  ACE_ASSERT (SUCCEEDED (result));
-//  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-//  ACE_ASSERT (SUCCEEDED (result));
-//  result = IMFTopology_inout->AddNode (topology_node_p);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto error;
-//  } // end IF
-//  result =
-//    source_node_p->ConnectOutput ((IMFSampleGrabberSinkCallback_in ? 1 : 0),
-//      topology_node_p,
-//      0);
-//  if (FAILED (result))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//      ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
-//      ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//    goto error;
-//  } // end IF
-//  topology_node_p->Release ();
-//  topology_node_p = NULL;
-//
-//continue_4:
-//  return true;
-//
-//error:
-//  if (media_source_p)
-//    media_source_p->Release ();
-//  if (media_type_p)
-//    media_type_p->Release ();
-//  if (source_node_p)
-//    source_node_p->Release ();
-//  if (topology_node_p)
-//    topology_node_p->Release ();
-//  if (activate_p)
-//    activate_p->Release ();
-//  if (release_topology)
-//  {
-//    IMFTopology_inout->Release ();
-//    IMFTopology_inout = NULL;
-//  } // end IF
-//
-//  return false;
-//}
+bool
+Stream_Module_Device_Tools::loadTargetRendererTopology (const std::string& URL_in,
+                                                        const IMFMediaType* IMFMediaType_in,
+                                                        const HWND windowHandle_in,
+                                                        TOPOID& rendererNodeId_out,
+                                                        IMFTopology*& IMFTopology_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::loadTargetRendererTopology"));
+
+  IMFMediaSource* media_source_p = NULL;
+  bool release_topology = false;
+  struct _GUID sub_type = GUID_NULL;
+  MFT_REGISTER_TYPE_INFO mft_register_type_info = { 0 };
+  IMFActivate* activate_p = NULL;
+
+  // initialize return value(s)
+  rendererNodeId_out = 0;
+
+  if (!IMFTopology_inout)
+  {
+    if (!Stream_Module_Device_Tools::loadSourceTopology (URL_in,
+                                                         media_source_p,
+                                                         IMFTopology_inout))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_Module_Device_Tools::loadSourceTopology(\"%s\"), aborting\n")));
+      goto error;
+    } // end IF
+    ACE_ASSERT (media_source_p);
+    release_topology = true;
+  } // end IF
+
+  // step1: retrieve source node
+  IMFTopologyNode* source_node_p = NULL;
+  IMFCollection* collection_p = NULL;
+  HRESULT result =
+    IMFTopology_inout->GetSourceNodeCollection (&collection_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  DWORD number_of_source_nodes = 0;
+  result = collection_p->GetElementCount (&number_of_source_nodes);
+  ACE_ASSERT (SUCCEEDED (result));
+  if (number_of_source_nodes <= 0)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("topology contains no source nodes, aborting\n")));
+
+    // clean up
+    collection_p->Release ();
+    collection_p = NULL;
+
+    goto error;
+  } // end IF
+  IUnknown* unknown_p = NULL;
+  result = collection_p->GetElement (0, &unknown_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  collection_p->Release ();
+  collection_p = NULL;
+  ACE_ASSERT (unknown_p);
+  result = unknown_p->QueryInterface (IID_PPV_ARGS (&source_node_p));
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IUnknown::QueryInterface(IID_IMFTopologyNode): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+    // clean up
+    unknown_p->Release ();
+    unknown_p = NULL;
+
+    goto error;
+  } // end IF
+  unknown_p->Release ();
+  unknown_p = NULL;
+
+  // step2: add decoder nodes ?
+  IMFActivate** decoders_p = NULL;
+  UINT32 number_of_decoders = 0;
+  mft_register_type_info.guidMajorType = MFMediaType_Video;
+  UINT32 flags = (MFT_ENUM_FLAG_SYNCMFT        |
+                  MFT_ENUM_FLAG_ASYNCMFT       |
+                  MFT_ENUM_FLAG_HARDWARE       |
+                  MFT_ENUM_FLAG_FIELDOFUSE     |
+                  MFT_ENUM_FLAG_LOCALMFT       |
+                  MFT_ENUM_FLAG_TRANSCODE_ONLY |
+                  MFT_ENUM_FLAG_SORTANDFILTER);
+  IMFTransform* transform_p = NULL;
+  IMFTopologyNode* topology_node_p = NULL;
+  if (!media_source_p)
+  {
+    result = source_node_p->GetUnknown (MF_TOPONODE_SOURCE,
+                                        IID_PPV_ARGS (&media_source_p));
+    ACE_ASSERT (SUCCEEDED (result));
+  } // end IF
+  IMFMediaType* media_type_p = NULL;
+  if (!Stream_Module_Device_Tools::getCaptureFormat (media_source_p,
+                                                     media_type_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_Module_Device_Tools::getCaptureFormat(), aborting\n")));
+    goto error;
+  } // end IF
+  media_source_p->Release ();
+  media_source_p = NULL;
+  result = media_type_p->GetGUID (MF_MT_SUBTYPE,
+                                  &sub_type);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+
+  if (!Stream_Module_Device_Tools::isCompressed (sub_type))
+    goto continue_;
+
+  while (true)
+  {
+    mft_register_type_info.guidSubtype = sub_type;
+    result = MFTEnumEx (MFT_CATEGORY_VIDEO_DECODER, // category
+                        flags,                      // flags
+                        &mft_register_type_info,    // input type
+                        NULL,                       // output type
+                        &decoders_p,                // array of decoders
+                        &number_of_decoders);       // size of array
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFTEnumEx(%s): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ()),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
+      goto error;
+    } // end IF
+    if (number_of_decoders <= 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("cannot find decoder for: \"%s\", aborting\n"),
+                  ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
+      goto error;
+    } // end IF
+
+    result =
+      decoders_p[0]->ActivateObject (IID_PPV_ARGS (&transform_p));
+    ACE_ASSERT (SUCCEEDED (result));
+    for (UINT32 i = 0; i < number_of_decoders; i++)
+      decoders_p[i]->Release ();
+    CoTaskMemFree (decoders_p);
+    result = transform_p->SetInputType (0,
+                                        media_type_p,
+                                        0);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFTransform::SetInputType(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      transform_p->Release ();
+
+      goto error;
+    } // end IF
+
+    result = MFCreateTopologyNode (MF_TOPOLOGY_TRANSFORM_NODE,
+                                   &topology_node_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      transform_p->Release ();
+
+      goto error;
+    } // end IF
+    result = topology_node_p->SetObject (transform_p);
+    ACE_ASSERT (SUCCEEDED (result));
+    result = IMFTopology_inout->AddNode (topology_node_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    result = source_node_p->ConnectOutput (0,
+                                           topology_node_p,
+                                           0);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      transform_p->Release ();
+
+      goto error;
+    } // end IF
+    source_node_p->Release ();
+    source_node_p = topology_node_p;
+    topology_node_p = NULL;
+
+    media_type_p->Release ();
+    media_type_p = NULL;
+    result = transform_p->GetOutputCurrentType (0,
+                                                &media_type_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFTransform::GetOutputCurrentType(): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+
+      // clean up
+      transform_p->Release ();
+
+      goto error;
+    } // end IF
+    transform_p->Release ();
+    transform_p = NULL;
+
+    // debug info
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("added decoder for \"%s\"...\n"),
+                ACE_TEXT (Stream_Module_Device_Tools::mediaSubTypeToString (sub_type).c_str ())));
+
+    result = media_type_p->GetGUID (MF_MT_SUBTYPE,
+                                    &sub_type);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
+                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+      goto error;
+    } // end IF
+    if (!Stream_Module_Device_Tools::isCompressed (sub_type))
+      break; // done
+  } // end WHILE
+  media_type_p->Release ();
+  media_type_p = NULL;
+
+continue_:
+  // step5: add video renderer sink ?
+  if (!windowHandle_in)
+    goto continue_2;
+
+  result = MFCreateVideoRendererActivate (windowHandle_in,
+                                          &activate_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateVideoRendererActivate() \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  //// *NOTE*: select a (custom) video presenter
+  //result = activate_p->SetGUID (MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID,
+  //                              );
+  //if (FAILED (result))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to IMFActivate::SetGUID(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_CLSID) \"%s\", aborting\n"),
+  //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+  //  goto error;
+  //} // end IF
+
+  result = MFCreateTopologyNode (MF_TOPOLOGY_OUTPUT_NODE,
+                                 &topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = topology_node_p->SetObject (activate_p);
+  ACE_ASSERT (SUCCEEDED (result));
+  activate_p->Release ();
+  activate_p = NULL;
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_STREAMID, 0);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = topology_node_p->SetUINT32 (MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
+  ACE_ASSERT (SUCCEEDED (result));
+  result = IMFTopology_inout->AddNode (topology_node_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopology::AddNode(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = source_node_p->ConnectOutput (0,
+                                         topology_node_p,
+                                         0);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to IMFTopologyNode::ConnectOutput(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  topology_node_p->Release ();
+  topology_node_p = NULL;
+  source_node_p->Release ();
+  source_node_p = NULL;
+
+continue_2:
+  return true;
+
+error:
+  if (media_source_p)
+    media_source_p->Release ();
+  if (media_type_p)
+    media_type_p->Release ();
+  if (source_node_p)
+    source_node_p->Release ();
+  if (topology_node_p)
+    topology_node_p->Release ();
+  if (activate_p)
+    activate_p->Release ();
+  if (release_topology)
+  {
+    IMFTopology_inout->Release ();
+    IMFTopology_inout = NULL;
+  } // end IF
+
+  return false;
+}
 bool
 Stream_Module_Device_Tools::setTopology (IMFTopology* IMFTopology_in,
                                          IMFMediaSession*& IMFMediaSession_inout,
@@ -7642,7 +7818,7 @@ Stream_Module_Device_Tools::setCaptureFormat (IGraphBuilder* builder_in,
 bool
 Stream_Module_Device_Tools::copyAttribute (const IMFAttributes* source_in,
                                            IMFAttributes* destination_in,
-                                           const struct _GUID& key_in)
+                                           REFGUID key_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::copyAttribute"));
 
@@ -7766,39 +7942,12 @@ Stream_Module_Device_Tools::deleteMediaType (struct _AMMediaType*& mediaType_ino
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::deleteMediaType"));
 
-  //// sanity check(s)
-  //if (!mediaType_inout)
-  //  return;
-
-  //Stream_Module_Device_Tools::freeMediaType (*mediaType_inout);
-
-  //CoTaskMemFree (mediaType_inout);
   DeleteMediaType (mediaType_inout);
-
   mediaType_inout = NULL;
-}
-void
-Stream_Module_Device_Tools::freeMediaType (struct _AMMediaType& mediaType_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::freeMediaType"));
-
-  //if (mediaType_in.cbFormat != 0)
-  //{
-  //  CoTaskMemFree (static_cast<LPVOID> (mediaType_in.pbFormat));
-  //  mediaType_in.cbFormat = 0;
-  //  mediaType_in.pbFormat = NULL;
-  //} // end IF
-  //if (mediaType_in.pUnk)
-  //{
-  //  // pUnk should not be used.
-  //  mediaType_in.pUnk->Release ();
-  //  mediaType_in.pUnk = NULL;
-  //} // end IF
-  FreeMediaType (mediaType_in);
 }
 
 std::string
-Stream_Module_Device_Tools::mediaSubTypeToString (const struct _GUID& GUID_in)
+Stream_Module_Device_Tools::mediaSubTypeToString (REFGUID GUID_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Device_Tools::mediaSubTypeToString"));
 

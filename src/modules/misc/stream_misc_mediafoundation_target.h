@@ -128,13 +128,10 @@ class Stream_Misc_MediaFoundation_Target_T
   // convenient types
   typedef Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                                TimePolicyType,
-
                                                ConfigurationType,
-
                                                ControlMessageType,
                                                DataMessageType,
                                                SessionMessageType,
-
                                                SessionDataType,          // session data
                                                SessionDataContainerType> OWN_TYPE_T;
 
@@ -144,7 +141,7 @@ class Stream_Misc_MediaFoundation_Target_T
 
   // helper methods
   DataMessageType* allocateMessage (unsigned int); // (requested) size
-  bool initialize_MediaFoundation (const IMFMediaType*,                  // sample grabber sink input media type handle
+  bool initialize_MediaFoundation (const struct _AMMediaType&,           // sample grabber sink input media type handle
                                    const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle
                                    TOPOID&,                              // return value: node id
                                    IMFMediaSession*&);                   // intput/return value: media session handle

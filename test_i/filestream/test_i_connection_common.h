@@ -51,25 +51,24 @@
 #include "net_client_asynchconnector.h"
 #include "net_client_connector.h"
 
+#include "test_i_source_common.h"
+
 // forward declarations
-class Test_I_Stream_Message;
-class Test_I_Stream_SessionMessage;
-struct Test_I_Configuration;
-struct Test_I_Source_Configuration;
+//struct Test_I_Source_Configuration;
 struct Test_I_Target_Configuration;
-struct Test_I_Source_ConnectionState;
+//struct Test_I_Source_ConnectionState;
 struct Test_I_Target_ConnectionState;
 typedef Stream_Statistic Test_I_RuntimeStatistic_t;
-struct Test_I_Source_Stream_Configuration;
-struct Test_I_Stream_Configuration;
-struct Test_I_Source_ModuleHandlerConfiguration;
-struct Test_I_Stream_ModuleHandlerConfiguration;
-struct Test_I_Source_SocketHandlerConfiguration;
+//struct Test_I_Source_Stream_Configuration;
+struct Test_I_StreamConfiguration;
+//struct Test_I_Source_ModuleHandlerConfiguration;
+struct Test_I_ModuleHandlerConfiguration;
+//struct Test_I_Source_SocketHandlerConfiguration;
 struct Test_I_Target_SocketHandlerConfiguration;
-struct Test_I_Stream_SessionData;
-typedef Stream_SessionData_T<Test_I_Stream_SessionData> Test_I_Stream_SessionData_t;
-struct Test_I_Stream_State;
-struct Test_I_Source_UserData;
+//struct Test_I_Source_SessionData;
+//typedef Stream_SessionData_T<Test_I_Source_SessionData> Test_I_Source_SessionData_t;
+struct Test_I_StreamState;
+//struct Test_I_Source_UserData;
 struct Test_I_Target_UserData;
 struct Test_I_UserData;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
@@ -93,53 +92,56 @@ typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                       int,
                                       Stream_SessionMessageType,
                                       Stream_StateMachine_ControlState,
-                                      Test_I_Stream_State,
-                                      Test_I_Source_Stream_Configuration,
+                                      Test_I_Source_StreamState,
+                                      Test_I_Source_StreamConfiguration,
                                       Test_I_RuntimeStatistic_t,
                                       Stream_ModuleConfiguration,
                                       Test_I_Source_ModuleHandlerConfiguration,
-                                      Test_I_Stream_SessionData,   // session data
-                                      Test_I_Stream_SessionData_t, // session data container (reference counted)
-                                      ACE_Message_Block,
-                                      Test_I_Stream_Message,
-                                      Test_I_Stream_SessionMessage,
+                                      Test_I_Source_SessionData,
+                                      Test_I_Source_SessionData_t,
+                                      Test_I_Source_ControlMessage_t,
+                                      Test_I_Source_Message_t,
+                                      Test_I_Source_SessionMessage,
                                       ACE_INET_Addr,
                                       Test_I_Source_InetConnectionManager_t> Test_I_Source_NetStream_t;
-typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
-                                      ACE_MT_SYNCH,
-                                      Common_TimePolicy_t,
-                                      int,
-                                      Stream_SessionMessageType,
-                                      Stream_StateMachine_ControlState,
-                                      Test_I_Stream_State,
-                                      Test_I_Stream_Configuration,
-                                      Test_I_RuntimeStatistic_t,
-                                      Stream_ModuleConfiguration,
-                                      Test_I_Stream_ModuleHandlerConfiguration,
-                                      Test_I_Stream_SessionData,   // session data
-                                      Test_I_Stream_SessionData_t, // session data container (reference counted)
-                                      ACE_Message_Block,
-                                      Test_I_Stream_Message,
-                                      Test_I_Stream_SessionMessage,
-                                      ACE_INET_Addr,
-                                      Test_I_Target_InetConnectionManager_t> Test_I_Target_NetStream_t;
+//typedef Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
+//                                      ACE_MT_SYNCH,
+//                                      Common_TimePolicy_t,
+//                                      int,
+//                                      Stream_SessionMessageType,
+//                                      Stream_StateMachine_ControlState,
+//                                      Test_I_Target_StreamState,
+//                                      Test_I_StreamConfiguration,
+//                                      Test_I_RuntimeStatistic_t,
+//                                      Stream_ModuleConfiguration,
+//                                      Test_I_Target_ModuleHandlerConfiguration,
+//                                      Test_I_Target_SessionData,
+//                                      Test_I_Target_SessionData_t,
+//                                      Test_I_Target_ControlMessage_t,
+//                                      Test_I_Target_Message_t,
+//                                      Test_I_Target_SessionMessage,
+//                                      ACE_INET_Addr,
+//                                      Test_I_Target_InetConnectionManager_t> Test_I_Target_NetStream_t;
 
 //////////////////////////////////////////
 
 struct Test_I_ConnectionState
+ : Net_ConnectionState
 {
   inline Test_I_ConnectionState ()
-   : status (NET_CONNECTION_STATUS_INVALID)
+   : Net_ConnectionState ()
+   , configuration (NULL)
    , currentStatistic ()
    , userData (NULL)
   {};
 
-  Net_Connection_Status     status;
+  Test_I_Configuration*     configuration;
 
   Test_I_RuntimeStatistic_t currentStatistic;
 
   Test_I_UserData*          userData;
 };
+
 struct Test_I_Source_ConnectionState
  : Test_I_ConnectionState
 {
@@ -153,6 +155,7 @@ struct Test_I_Source_ConnectionState
 
   Test_I_Source_UserData*      userData;
 };
+
 struct Test_I_Target_ConnectionState
  : Test_I_ConnectionState
 {

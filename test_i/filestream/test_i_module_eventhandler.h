@@ -24,6 +24,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_iclone.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -31,55 +32,65 @@
 
 #include "stream_misc_messagehandler.h"
 
-#include "test_i_message.h"
-#include "test_i_session_message.h"
+#include "test_i_common.h"
+
+// forward declarations
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Module;
 
 template <typename ModuleConfigurationType,
-          typename ConfigurationType>
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename MessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
 class Test_I_Stream_Module_EventHandler_T
  : public Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-
                                          ConfigurationType,
-
-                                         ACE_Message_Block,
-                                         Test_I_Stream_Message,
-                                         Test_I_Stream_SessionMessage,
-
+                                         ControlMessageType,
+                                         MessageType,
+                                         SessionMessageType,
                                          Stream_SessionId_t,
-                                         Test_I_Stream_SessionData_t>
+                                         SessionDataContainerType>
+  , public Common_IClone_T<ACE_Module<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t> >
 {
  public:
   Test_I_Stream_Module_EventHandler_T ();
   virtual ~Test_I_Stream_Module_EventHandler_T ();
 
   // implement Common_IClone_T
-  virtual Stream_Module_t* clone ();
+  virtual ACE_Module<ACE_MT_SYNCH,
+                     Common_TimePolicy_t>* clone ();
 
  private:
   typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
-
                                          ConfigurationType,
-
-                                         ACE_Message_Block,
-                                         Test_I_Stream_Message,
-                                         Test_I_Stream_SessionMessage,
-
+                                         ControlMessageType,
+                                         MessageType,
+                                         SessionMessageType,
                                          Stream_SessionId_t,
-                                         Test_I_Stream_SessionData_t> inherited;
+                                         SessionDataContainerType> inherited;
 
   // convenient types
   typedef Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
-                                              ConfigurationType> OWN_TYPE_T;
+                                              ConfigurationType,
+                                              ControlMessageType,
+                                              MessageType,
+                                              SessionMessageType,
+                                              SessionDataType,
+                                              SessionDataContainerType> OWN_TYPE_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,
                                          Common_TimePolicy_t,
                                          Stream_SessionId_t,
-                                         Test_I_Stream_SessionData,
+                                         SessionDataType,
                                          Stream_SessionMessageType,
                                          ModuleConfigurationType,
                                          ConfigurationType,
-                                         Stream_IStreamNotify_t,
+                                         Test_I_IStreamNotify_t,
                                          OWN_TYPE_T> MODULE_T;
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Module_EventHandler_T (const Test_I_Stream_Module_EventHandler_T&))

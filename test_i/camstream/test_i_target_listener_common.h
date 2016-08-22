@@ -21,6 +21,7 @@
 #ifndef TEST_I_TARGET_LISTENER_COMMON_H
 #define TEST_I_TARGET_LISTENER_COMMON_H
 
+#include "ace/config-lite.h"
 #include "ace/INET_Addr.h"
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
@@ -35,60 +36,168 @@
 #include "test_i_target_common.h"
 
 // forward declarations
-struct Test_I_Target_ListenerConfiguration;
-class Test_I_Target_Stream;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_ListenerConfiguration;
+struct Test_I_Target_MediaFoundation_ListenerConfiguration;
+class Test_I_Target_DirectShow_Stream;
+class Test_I_Target_MediaFoundation_Stream;
+#else
+struct Test_I_Target_V4L2_ListenerConfiguration;
+class Test_I_Target_V4L2_Stream;
+#endif
 
-typedef Net_Server_AsynchListener_T<Test_I_Target_AsynchTCPConnection_t,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Net_Server_AsynchListener_T<Test_I_Target_DirectShow_AsynchTCPConnection_t,
                                     ACE_INET_Addr,
-                                    Test_I_Target_ListenerConfiguration,
-                                    Test_I_Target_ConnectionState,
-                                    Test_I_Target_Stream,
-                                    Test_I_Target_SocketHandlerConfiguration,
-                                    Test_I_Target_UserData> Test_I_Target_AsynchListener_t;
-typedef Net_Server_Listener_T<Test_I_Target_TCPConnection_t,
+                                    Test_I_Target_DirectShow_ListenerConfiguration,
+                                    Test_I_Target_DirectShow_ConnectionState,
+                                    Test_I_Target_DirectShow_Stream,
+                                    Test_I_Target_DirectShow_SocketHandlerConfiguration,
+                                    Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_AsynchListener_t;
+typedef Net_Server_Listener_T<Test_I_Target_DirectShow_TCPConnection_t,
                               Net_SOCK_Acceptor,
                               ACE_INET_Addr,
-                              Test_I_Target_ListenerConfiguration,
-                              Test_I_Target_ConnectionState,
-                              Test_I_Target_Stream,
-                              Test_I_Target_SocketHandlerConfiguration,
-                              Test_I_Target_UserData> Test_I_Target_Listener_t;
-typedef Net_Server_SSL_Listener_T<Test_I_Target_SSLTCPConnection_t,
+                              Test_I_Target_DirectShow_ListenerConfiguration,
+                              Test_I_Target_DirectShow_ConnectionState,
+                              Test_I_Target_DirectShow_Stream,
+                              Test_I_Target_DirectShow_SocketHandlerConfiguration,
+                              Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_Listener_t;
+typedef Net_Server_SSL_Listener_T<Test_I_Target_DirectShow_SSLTCPConnection_t,
                                   ACE_SSL_SOCK_Connector,
                                   ACE_INET_Addr,
-                                  Test_I_Target_Configuration,
-                                  Test_I_ConnectionState,
-                                  Test_I_Target_Stream,
+                                  Test_I_Target_DirectShow_Configuration,
+                                  Test_I_Target_DirectShow_ConnectionState,
+                                  Test_I_Target_DirectShow_Stream,
+                                  Test_I_Target_DirectShow_SocketHandlerConfiguration,
+                                  Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_SSLListener_t;
+typedef Net_Server_AsynchListener_T<Test_I_Target_MediaFoundation_AsynchTCPConnection_t,
+                                    ACE_INET_Addr,
+                                    Test_I_Target_MediaFoundation_ListenerConfiguration,
+                                    Test_I_Target_MediaFoundation_ConnectionState,
+                                    Test_I_Target_MediaFoundation_Stream,
+                                    Test_I_Target_MediaFoundation_SocketHandlerConfiguration,
+                                    Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_AsynchListener_t;
+typedef Net_Server_Listener_T<Test_I_Target_MediaFoundation_TCPConnection_t,
+                              Net_SOCK_Acceptor,
+                              ACE_INET_Addr,
+                              Test_I_Target_MediaFoundation_ListenerConfiguration,
+                              Test_I_Target_MediaFoundation_ConnectionState,
+                              Test_I_Target_MediaFoundation_Stream,
+                              Test_I_Target_MediaFoundation_SocketHandlerConfiguration,
+                              Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_Listener_t;
+typedef Net_Server_SSL_Listener_T<Test_I_Target_MediaFoundation_SSLTCPConnection_t,
+                                  ACE_SSL_SOCK_Connector,
+                                  ACE_INET_Addr,
+                                  Test_I_Target_MediaFoundation_Configuration,
+                                  Test_I_Target_MediaFoundation_ConnectionState,
+                                  Test_I_Target_MediaFoundation_Stream,
+                                  Test_I_Target_MediaFoundation_SocketHandlerConfiguration,
+                                  Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_SSLListener_t;
+#else
+typedef Net_Server_AsynchListener_T<Test_I_Target_V4L2_AsynchTCPConnection_t,
+                                    ACE_INET_Addr,
+                                    Test_I_Target_V4L2_ListenerConfiguration,
+                                    Test_I_Target_V4L2_ConnectionState,
+                                    Test_I_Target_V4L2_Stream,
+                                    Test_I_Target_SocketHandlerConfiguration,
+                                    Test_I_Target_UserData> Test_I_Target_V4L2_AsynchListener_t;
+typedef Net_Server_Listener_T<Test_I_Target_V4L2_TCPConnection_t,
+                              Net_SOCK_Acceptor,
+                              ACE_INET_Addr,
+                              Test_I_Target_V4L2_ListenerConfiguration,
+                              Test_I_Target_V4L2_ConnectionState,
+                              Test_I_Target_V4L2_Stream,
+                              Test_I_Target_SocketHandlerConfiguration,
+                              Test_I_Target_UserData> Test_I_Target_V4L2_Listener_t;
+typedef Net_Server_SSL_Listener_T<Test_I_Target_V4L2_SSLTCPConnection_t,
+                                  ACE_SSL_SOCK_Connector,
+                                  ACE_INET_Addr,
+                                  Test_I_Target_V4L2_Configuration,
+                                  Test_I_Target_V4L2_ConnectionState,
+                                  Test_I_Target_V4L2_Stream,
                                   Test_I_Target_SocketHandlerConfiguration,
-                                  Test_I_Target_UserData> Test_I_Target_SSLListener_t;
+                                  Test_I_Target_UserData> Test_I_Target_V4L2_SSLListener_t;
+#endif
 
 //////////////////////////////////////////
 
-typedef Net_Client_AsynchConnector_T<Test_I_Target_AsynchUDPConnection_t,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Net_Client_AsynchConnector_T<Test_I_Target_DirectShow_AsynchUDPConnection_t,
                                      ACE_INET_Addr,
-                                     Test_I_Target_Configuration,
-                                     Test_I_Target_ConnectionState,
+                                     Test_I_Target_DirectShow_Configuration,
+                                     Test_I_Target_DirectShow_ConnectionState,
                                      Test_I_RuntimeStatistic_t,
-                                     Test_I_Target_Stream,
-                                     Test_I_Target_SocketHandlerConfiguration,
-                                     Test_I_Target_UserData> Test_I_Target_UDPAsynchConnector_t;
-typedef Net_Client_Connector_T<Test_I_Target_UDPConnection_t,
+                                     Test_I_Target_DirectShow_Stream,
+                                     Test_I_Target_DirectShow_SocketHandlerConfiguration,
+                                     Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_UDPAsynchConnector_t;
+typedef Net_Client_Connector_T<Test_I_Target_DirectShow_UDPConnection_t,
                                ACE_SOCK_CONNECTOR,
                                ACE_INET_Addr,
-                               Test_I_Target_Configuration,
-                               Test_I_Target_ConnectionState,
+                               Test_I_Target_DirectShow_Configuration,
+                               Test_I_Target_DirectShow_ConnectionState,
                                Test_I_RuntimeStatistic_t,
-                               Test_I_Target_Stream,
+                               Test_I_Target_DirectShow_Stream,
+                               Test_I_Target_DirectShow_SocketHandlerConfiguration,
+                               Test_I_Target_DirectShow_UserData> Test_I_Target_DirectShow_UDPConnector_t;
+typedef Net_Client_AsynchConnector_T<Test_I_Target_MediaFoundation_AsynchUDPConnection_t,
+                                     ACE_INET_Addr,
+                                     Test_I_Target_MediaFoundation_Configuration,
+                                     Test_I_Target_MediaFoundation_ConnectionState,
+                                     Test_I_RuntimeStatistic_t,
+                                     Test_I_Target_MediaFoundation_Stream,
+                                     Test_I_Target_MediaFoundation_SocketHandlerConfiguration,
+                                     Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_UDPAsynchConnector_t;
+typedef Net_Client_Connector_T<Test_I_Target_MediaFoundation_UDPConnection_t,
+                               ACE_SOCK_CONNECTOR,
+                               ACE_INET_Addr,
+                               Test_I_Target_MediaFoundation_Configuration,
+                               Test_I_Target_MediaFoundation_ConnectionState,
+                               Test_I_RuntimeStatistic_t,
+                               Test_I_Target_MediaFoundation_Stream,
+                               Test_I_Target_MediaFoundation_SocketHandlerConfiguration,
+                               Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_UDPConnector_t;
+#else
+typedef Net_Client_AsynchConnector_T<Test_I_Target_V4L2_AsynchUDPConnection_t,
+                                     ACE_INET_Addr,
+                                     Test_I_Target_V4L2_Configuration,
+                                     Test_I_Target_V4L2_ConnectionState,
+                                     Test_I_RuntimeStatistic_t,
+                                     Test_I_Target_V4L2_Stream,
+                                     Test_I_Target_SocketHandlerConfiguration,
+                                     Test_I_Target_UserData> Test_I_Target_V4L2_UDPAsynchConnector_t;
+typedef Net_Client_Connector_T<Test_I_Target_V4L2_UDPConnection_t,
+                               ACE_SOCK_CONNECTOR,
+                               ACE_INET_Addr,
+                               Test_I_Target_V4L2_Configuration,
+                               Test_I_Target_V4L2_ConnectionState,
+                               Test_I_RuntimeStatistic_t,
+                               Test_I_Target_V4L2_Stream,
                                Test_I_Target_SocketHandlerConfiguration,
-                               Test_I_Target_UserData> Test_I_Target_UDPConnector_t;
+                               Test_I_Target_UserData> Test_I_Target_V4L2_UDPConnector_t;
+#endif
 
 //////////////////////////////////////////
 
-typedef ACE_Singleton<Test_I_Target_AsynchListener_t,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef ACE_Singleton<Test_I_Target_DirectShow_AsynchListener_t,
+                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_DIRECTSHOW_ASYNCHLISTENER_SINGLETON;
+typedef ACE_Singleton<Test_I_Target_DirectShow_Listener_t,
+                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_DIRECTSHOW_LISTENER_SINGLETON;
+typedef ACE_Singleton<Test_I_Target_DirectShow_SSLListener_t,
+                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_DIRECTSHOW_SSL_LISTENER_SINGLETON;
+typedef ACE_Singleton<Test_I_Target_MediaFoundation_AsynchListener_t,
+                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_ASYNCHLISTENER_SINGLETON;
+typedef ACE_Singleton<Test_I_Target_MediaFoundation_Listener_t,
+                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_LISTENER_SINGLETON;
+typedef ACE_Singleton<Test_I_Target_MediaFoundation_SSLListener_t,
+                      ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_MEDIAFOUNDATION_SSL_LISTENER_SINGLETON;
+#else
+typedef ACE_Singleton<Test_I_Target_V4L2_AsynchListener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_ASYNCHLISTENER_SINGLETON;
-typedef ACE_Singleton<Test_I_Target_Listener_t,
+typedef ACE_Singleton<Test_I_Target_V4L2_Listener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_LISTENER_SINGLETON;
-typedef ACE_Singleton<Test_I_Target_SSLListener_t,
+typedef ACE_Singleton<Test_I_Target_V4L2_SSLListener_t,
                       ACE_SYNCH_RECURSIVE_MUTEX> TEST_I_TARGET_SSL_LISTENER_SINGLETON;
+#endif
 
 #endif

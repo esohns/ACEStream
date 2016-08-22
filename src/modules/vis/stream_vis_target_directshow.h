@@ -51,7 +51,6 @@ class Stream_Vis_Target_DirectShow_T
                                  SessionMessageType,
                                  Stream_SessionId_t,
                                  Stream_SessionMessageType>
- //, public Stream_IModuleHandler_T<ConfigurationType>
 {
  public:
   Stream_Vis_Target_DirectShow_T ();
@@ -64,9 +63,6 @@ class Stream_Vis_Target_DirectShow_T
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
-
-  //// implement Stream_IModuleHandler_T
-  //virtual const ConfigurationType& get () const;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,

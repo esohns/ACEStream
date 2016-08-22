@@ -141,18 +141,13 @@ struct Stream_CamSave_SessionData
    , targetFileName ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    //format =
-    //  static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    //if (!format)
-    //  ACE_DEBUG ((LM_CRITICAL,
-    //              ACE_TEXT ("failed to allocate memory, continuing\n")));
-    //else
-    //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
-    HRESULT result = MFCreateMediaType (&format);
-    if (FAILED (result))
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
-                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    format =
+      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+    if (!format)
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory, continuing\n")));
+    else
+      ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
 #endif
   };
 
@@ -182,7 +177,7 @@ struct Stream_CamSave_SessionData
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //struct _AMMediaType*         format;
   IDirect3DDevice9Ex*          direct3DDevice;
-  IMFMediaType*                format;
+  struct _AMMediaType*         format;
   TOPOID                       rendererNodeId;
   UINT                         resetToken; // direct 3D manager 'id'
   IMFMediaSession*             session;
@@ -304,15 +299,19 @@ struct Stream_CamSave_StreamConfiguration
 struct Stream_CamSave_Configuration
 {
   inline Stream_CamSave_Configuration ()
-   : signalHandlerConfiguration ()
+   : allocatorConfiguration ()
+   , signalHandlerConfiguration ()
    , moduleConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , streamUserData ()
   {};
 
+  // ***************************** allocator ***********************************
+  Stream_AllocatorConfiguration             allocatorConfiguration;
+  // **************************** signal data **********************************
   Stream_CamSave_SignalHandlerConfiguration signalHandlerConfiguration;
-
+  // **************************** stream data **********************************
   Stream_ModuleConfiguration                moduleConfiguration;
   Stream_CamSave_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Stream_CamSave_StreamConfiguration        streamConfiguration;

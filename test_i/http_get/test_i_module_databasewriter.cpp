@@ -25,6 +25,8 @@
 
 #include "stream_module_db_tools.h"
 
+#include "test_i_common.h"
+
 Test_I_Stream_DataBaseWriter::Test_I_Stream_DataBaseWriter ()
  : inherited ()
  //, commit_ (false)

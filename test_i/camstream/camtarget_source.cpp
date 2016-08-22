@@ -146,32 +146,32 @@ const AMOVIESETUP_PIN sudOutputPinAM =
 
 const AMOVIESETUP_FILTER sudFilterRegAM =
 {
-  &CLSID_ACEStream_Source_Filter,                     // Filter CLSID.
-  TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME, // Filter name.
-  MERIT_NORMAL,                                       // Merit.
-  1,                                                  // Number of pin types.
-  &sudOutputPinAM                                     // Pointer to pin information.
+  &CLSID_ACEStream_Source_Filter,            // Filter CLSID.
+  MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // Filter name.
+  MERIT_NORMAL,                              // Merit.
+  1,                                         // Number of pin types.
+  &sudOutputPinAM                            // Pointer to pin information.
 };
 const AMOVIESETUP_FILTER sudFilterRegAM2 =
 {
-  &CLSID_ACEStream_Asynch_Source_Filter,                    // Filter CLSID.
-  TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME, // Filter name.
-  MERIT_NORMAL,                                              // Merit.
-  1,                                                         // Number of pin types.
-  &sudOutputPinAM                                            // Pointer to pin information.
+  &CLSID_ACEStream_Asynch_Source_Filter,            // Filter CLSID.
+  MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // Filter name.
+  MERIT_NORMAL,                                     // Merit.
+  1,                                                // Number of pin types.
+  &sudOutputPinAM                                   // Pointer to pin information.
 };
 
 // -----------------------------------------------------------------------------
 
 typedef Stream_Misc_DirectShow_Source_Filter_T<Common_TimePolicy_t,
-                                               Test_I_Target_Stream_SessionMessage,
-                                               Test_I_Target_Stream_Message,
+                                               Test_I_Target_DirectShow_Stream_SessionMessage,
+                                               Test_I_Target_DirectShow_Stream_Message,
                                                Test_I_Target_DirectShow_FilterConfiguration,
                                                Test_I_Target_DirectShow_PinConfiguration,
                                                struct _AMMediaType> Stream_Misc_DirectShow_Source_Filter_t;
 typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
-                                                      Test_I_Target_Stream_SessionMessage,
-                                                      Test_I_Target_Stream_Message,
+                                                      Test_I_Target_DirectShow_Stream_SessionMessage,
+                                                      Test_I_Target_DirectShow_Stream_Message,
                                                       Test_I_Target_DirectShow_FilterConfiguration,
                                                       Test_I_Target_DirectShow_PinConfiguration,
                                                       struct _AMMediaType> Stream_Misc_DirectShow_Asynch_Source_Filter_t;
@@ -179,13 +179,13 @@ typedef Stream_Misc_DirectShow_Asynch_Source_Filter_T<Common_TimePolicy_t,
 void WINAPI InitRoutine (BOOL, const CLSID*);
 
 CFactoryTemplate g_Templates[] = {
-  { TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME     // Name.
+  { MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L              // Name.
   , &CLSID_ACEStream_Source_Filter                         // CLSID.
   , Stream_Misc_DirectShow_Source_Filter_t::CreateInstance // Creation function.
   , InitRoutine                                            // Initialization function.
   , &sudFilterRegAM },                                     // Pointer to filter information.
 
-  { TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME     // Name.
+  { MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L              // Name.
   , &CLSID_ACEStream_Asynch_Source_Filter                         // CLSID.
   , Stream_Misc_DirectShow_Asynch_Source_Filter_t::CreateInstance // Creation function.
   , InitRoutine                                                   // Initialization function.
@@ -315,12 +315,12 @@ DllRegisterServer ()
   ACE_ASSERT (ifilter_mapper_p);
 
   result =
-    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Source_Filter,                      // Filter CLSID.
-                                      TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME, // Filter name.
-                                      NULL,                                               // Device moniker.
-                                      &CLSID_LegacyAmFilterCategory,                      // Video capture category.
-                                      TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME, // Instance data.
-                                      &sudFilterReg);                                     // Pointer to filter information.
+    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Source_Filter,             // Filter CLSID.
+                                      MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // Filter name.
+                                      NULL,                                      // Device moniker.
+                                      &CLSID_LegacyAmFilterCategory,             // Video capture category.
+                                      MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L, // Instance data.
+                                      &sudFilterReg);                            // Pointer to filter information.
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -329,12 +329,12 @@ DllRegisterServer ()
     goto clean;
   } // end IF
   result =
-    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Asynch_Source_Filter,                      // Filter CLSID.
-                                      TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME, // Filter name.
-                                      NULL,                                                      // Device moniker.
-                                      &CLSID_LegacyAmFilterCategory,                             // Video capture category.
-                                      TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME, // Instance data.
-                                      &sudFilterReg);                                            // Pointer to filter information.
+    ifilter_mapper_p->RegisterFilter (CLSID_ACEStream_Asynch_Source_Filter,             // Filter CLSID.
+                                      MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // Filter name.
+                                      NULL,                                             // Device moniker.
+                                      &CLSID_LegacyAmFilterCategory,                    // Video capture category.
+                                      MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L, // Instance data.
+                                      &sudFilterReg);                                   // Pointer to filter information.
   if (FAILED (result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -380,7 +380,7 @@ DllUnregisterServer ()
 
   result =
     ifilter_mapper_p->UnregisterFilter (&CLSID_VideoInputDeviceCategory,
-                                        TEST_I_STREAM_MODULE_DIRECTSHOW_SOURCE_FILTER_NAME,
+                                        MODULE_MISC_DS_WIN32_FILTER_NAME_SOURCE_L,
                                         CLSID_ACEStream_Source_Filter);
   if (FAILED (result))
   {
@@ -391,7 +391,7 @@ DllUnregisterServer ()
   } // end IF
   result =
     ifilter_mapper_p->UnregisterFilter (&CLSID_VideoInputDeviceCategory,
-                                        TEST_I_STREAM_MODULE_DIRECTSHOW_ASYNCH_SOURCE_FILTER_NAME,
+                                        MODULE_MISC_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE_L,
                                         CLSID_ACEStream_Asynch_Source_Filter);
   if (FAILED (result))
   {

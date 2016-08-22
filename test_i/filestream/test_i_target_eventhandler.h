@@ -28,34 +28,35 @@
 #include "stream_common.h"
 
 #include "test_i_common.h"
-#include "test_i_message.h"
-#include "test_i_session_message.h"
 
-class Test_I_Stream_Target_EventHandler
- : public Stream_ISessionNotify_t
+#include "test_i_session_message.h"
+#include "test_i_target_common.h"
+
+class Test_I_Target_EventHandler
+ : public Test_I_Target_ISessionNotify_t
 {
  public:
-  Test_I_Stream_Target_EventHandler (Stream_GTK_CBData*); // GTK state
-  virtual ~Test_I_Stream_Target_EventHandler ();
+  Test_I_Target_EventHandler (Test_I_Target_GTK_CBData*); // GTK state
+  virtual ~Test_I_Target_EventHandler ();
 
   // implement Stream_ISessionDataNotify_T
   virtual void start (Stream_SessionId_t,
-                      const Test_I_Stream_SessionData&);
+                      const Test_I_Target_SessionData&);
   virtual void notify (Stream_SessionId_t,
                        const Stream_SessionMessageType&);
   virtual void end (Stream_SessionId_t);
   virtual void notify (Stream_SessionId_t,
-                       const Test_I_Stream_Message&);
+                       const Test_I_Target_Message_t&);
   virtual void notify (Stream_SessionId_t,
-                       const Test_I_Stream_SessionMessage&);
+                       const Test_I_Target_SessionMessage&);
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler ())
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler (const Test_I_Stream_Target_EventHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Target_EventHandler& operator= (const Test_I_Stream_Target_EventHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_EventHandler ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_EventHandler (const Test_I_Target_EventHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_EventHandler& operator= (const Test_I_Target_EventHandler&))
 
-  Stream_GTK_CBData*         CBData_;
-  Test_I_Stream_SessionData* sessionData_;
+  Test_I_Target_GTK_CBData*  CBData_;
+  Test_I_Target_SessionData* sessionData_;
 };
 
 #endif

@@ -221,7 +221,7 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       int toggle = 0;
-      bool shutdown = true;
+      //bool shutdown = true;
 
 //      // *NOTE*: if the stream is being shut down due to an external event (i.e.
 //      //         peer has closed the connection, ...), the stream is finished(),
@@ -303,7 +303,7 @@ error:
 //                      overlayFileDescriptor_));
 //      } // end IF
 
-      if (shutdown)
+      //if (shutdown)
         inherited::shutdown ();
 
       break;
@@ -598,11 +598,11 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   bool has_finished = false;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  bool release_lock = false;
   int result = -1;
   int result_2 = -1;
+  const SessionDataType& session_data_r = inherited::sessionData_->get ();
   bool stop_processing = false;
-  const SessionDataType& session_data_r  = inherited::sessionData_->get ();
-  bool release_lock = false;
 
   struct v4l2_buffer buffer;
   ACE_OS::memset (&buffer, 0, sizeof (struct v4l2_buffer));
@@ -617,9 +617,9 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   do
   {
     message_block_p = NULL;
-    result = inherited::getq (message_block_p,
-                              &no_wait);
-    if (result == -1)
+    result_2 = inherited::getq (message_block_p,
+                                &no_wait);
+    if (result_2 == -1)
     {
       error = ACE_OS::last_error ();
       if (error != EWOULDBLOCK) // Win32: 10035
@@ -630,8 +630,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         if (!has_finished)
         {
           has_finished = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
+          // enqueue(/process) STREAM_SESSION_END
           inherited::finished ();
         } // end IF
 
@@ -657,13 +656,11 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         if (!has_finished)
         {
           has_finished = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
+          // enqueue(/process) STREAM_SESSION_END
           inherited::finished ();
 
-          // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
-          //         --> done
-          if (inherited::thr_count_ == 0) goto done; // finished processing
+          // has STREAM_SESSION_END been processed ? --> done
+          if (!inherited::thr_count_ && !inherited::runSvcOnStart_) goto done;
 
           continue; // process STREAM_SESSION_END
         } // end IF
@@ -696,8 +693,7 @@ done:
           if (!has_finished)
           {
             has_finished = true;
-            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-            //         --> continue
+            // enqueue(/process) STREAM_SESSION_END
             inherited::finished ();
           } // end IF
 
@@ -723,8 +719,7 @@ continue_:
                     ACE_TEXT ("session aborted\n")));
 
         has_finished = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
+        // enqueue(/process) STREAM_SESSION_END
         inherited::finished ();
       } // end IF
     } // end lock scope

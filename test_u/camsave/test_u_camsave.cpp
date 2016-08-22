@@ -733,7 +733,11 @@ do_work (unsigned int bufferSize_in,
   //buffer_negotiation_p->Release ();
 #endif
 
+  Common_TimerConfiguration timer_configuration;
+  Common_Timer_Manager_t* timer_manager_p = NULL;
+
   Stream_AllocatorHeap_T<Stream_AllocatorConfiguration> heap_allocator;
+  heap_allocator.initialize (configuration.allocatorConfiguration);
   Stream_CamSave_MessageAllocator_t message_allocator (TEST_U_STREAM_CAMSAVE_MAX_MESSAGES, // maximum #buffers
                                                        &heap_allocator,                    // heap allocator handle
                                                        true);                              // block ?
@@ -812,7 +816,10 @@ do_work (unsigned int bufferSize_in,
   } // end IF
 
   // intialize timers
-  COMMON_TIMERMANAGER_SINGLETON::instance ()->start ();
+  timer_manager_p = COMMON_TIMERMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (timer_manager_p);
+  timer_manager_p->initialize (timer_configuration);
+  timer_manager_p->start ();
 
   // step0f: (initialize) processing stream
 
@@ -910,7 +917,7 @@ do_work (unsigned int bufferSize_in,
   //	} // end lock scope
 
 clean:
-  COMMON_TIMERMANAGER_SINGLETON::instance ()->stop ();
+  timer_manager_p->stop ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   do_finalize_mediafoundation (CBData_in);

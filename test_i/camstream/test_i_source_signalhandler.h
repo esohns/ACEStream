@@ -26,24 +26,26 @@
 #include "common_isignal.h"
 #include "common_signalhandler.h"
 
-#include "test_i_source_common.h"
-
-class Test_I_Source_SignalHandler
- : public Common_SignalHandler_T<Test_I_Source_SignalHandlerConfiguration>
+template <typename ConfigurationType>
+class Test_I_Source_SignalHandler_T
+ : public Common_SignalHandler_T<ConfigurationType>
  , public Common_ISignal
 {
  public:
-  Test_I_Source_SignalHandler ();
-  virtual ~Test_I_Source_SignalHandler ();
+  Test_I_Source_SignalHandler_T ();
+  virtual ~Test_I_Source_SignalHandler_T ();
 
   // implement Common_ISignal
   virtual bool handleSignal (int); // signal
 
  private:
-  typedef Common_SignalHandler_T<Test_I_Source_SignalHandlerConfiguration> inherited;
+  typedef Common_SignalHandler_T<ConfigurationType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_SignalHandler (const Test_I_Source_SignalHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_SignalHandler& operator= (const Test_I_Source_SignalHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_SignalHandler_T (const Test_I_Source_SignalHandler_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_SignalHandler_T& operator= (const Test_I_Source_SignalHandler_T&))
 };
+
+// include template definition
+#include "test_i_source_signalhandler.inl"
 
 #endif

@@ -70,7 +70,7 @@ class Stream_Module_Base_T
                            ConfigurationType,
                            HandlerConfigurationType> IMODULE_T;
 
-  virtual ~Stream_Module_Base_T ();
+  virtual ~Stream_Module_Base_T () throw ();
 
   // implement (part of) Stream_IModule_T
   // *IMPORTANT NOTE*: the default implementation simply forwards all module

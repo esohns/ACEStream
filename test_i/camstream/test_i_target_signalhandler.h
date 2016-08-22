@@ -26,24 +26,27 @@
 #include "common_isignal.h"
 #include "common_signalhandler.h"
 
-#include "test_i_target_common.h"
-
-class Stream_Target_SignalHandler
- : public Common_SignalHandler_T<Test_I_Target_SignalHandlerConfiguration>
+template <typename ConfigurationType,
+          typename ConnectionManagerType>
+class Test_I_Target_SignalHandler_T
+ : public Common_SignalHandler_T<ConfigurationType>
  , public Common_ISignal
 {
  public:
-  Stream_Target_SignalHandler ();
-  virtual ~Stream_Target_SignalHandler ();
+  Test_I_Target_SignalHandler_T ();
+  virtual ~Test_I_Target_SignalHandler_T ();
 
   // implement Common_ISignal
   virtual bool handleSignal (int); // signal
 
  private:
-  typedef Common_SignalHandler_T<Test_I_Target_SignalHandlerConfiguration> inherited;
+  typedef Common_SignalHandler_T<ConfigurationType> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler (const Stream_Target_SignalHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Target_SignalHandler& operator= (const Stream_Target_SignalHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_SignalHandler_T (const Test_I_Target_SignalHandler_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_SignalHandler_T& operator= (const Test_I_Target_SignalHandler_T&))
 };
+
+// include template definition
+#include "test_i_target_signalhandler.inl"
 
 #endif

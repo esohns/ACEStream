@@ -24,7 +24,6 @@
 #include <algorithm>
 #include <deque>
 #include <limits>
-#include <map>
 #include <string>
 
 #include "ace/Synch_Traits.h"
@@ -44,13 +43,14 @@
 #include "stream_session_data.h"
 #include "stream_statemachine_control.h"
 
+#include "net_common.h"
 #include "net_configuration.h"
 #include "net_defines.h"
 
 // forward declarations
 class Stream_IAllocator;
-class Test_I_Stream_Message;
-class Test_I_Stream_SessionMessage;
+//class Test_I_Stream_Message;
+//class Test_I_Stream_SessionMessage;
 struct Test_I_ConnectionState;
 
 typedef int Stream_HeaderType_t;
@@ -136,8 +136,8 @@ struct Test_I_Configuration;
 //                      Test_I_RuntimeStatistic_t,
 //                      Stream_ModuleConfiguration,
 //                      Test_I_Stream_ModuleHandlerConfiguration,
-//                      Test_I_Stream_SessionData,   // session data
-//                      Test_I_Stream_SessionData_t, // session data container (reference counted)
+//                      Test_I_Stream_SessionData,
+//                      Test_I_Stream_SessionData_t,
 //                      ACE_Message_Block,
 //                      Test_I_Stream_Message,
 //                      Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
@@ -155,8 +155,8 @@ struct Test_I_ModuleHandlerConfiguration
    , socketHandlerConfiguration (NULL)
    , targetFileName ()
   {
-    traceParsing = NET_PROTOCOL_DEFAULT_YACC_TRACE; // HTTP parser module
-    traceScanning = NET_PROTOCOL_DEFAULT_LEX_TRACE; // HTTP parser module
+    traceParsing = NET_PROTOCOL_DEFAULT_YACC_TRACE; // parser module
+    traceScanning = NET_PROTOCOL_DEFAULT_LEX_TRACE; // parser module
   };
 
   Test_I_Configuration*              configuration;
@@ -206,17 +206,31 @@ struct Test_I_StreamState
   Test_I_UserData*    userData;
 };
 
+struct IMFMediaSession;
+class Common_IControl;
+struct Test_I_MediaFoundationConfiguration
+{
+  inline Test_I_MediaFoundationConfiguration ()
+   : controller (NULL)
+   , mediaSession (NULL)
+  {};
+
+  Common_IControl* controller;
+  IMFMediaSession* mediaSession;
+};
+
 struct Test_I_Configuration
 {
   inline Test_I_Configuration ()
-    : allocatorConfiguration ()
-    , signalHandlerConfiguration ()
-    , socketConfiguration ()
-    , socketHandlerConfiguration ()
-    , moduleConfiguration ()
-    , streamConfiguration ()
-    , userData ()
-    , useReactor (NET_EVENT_USE_REACTOR)
+   : allocatorConfiguration ()
+   , signalHandlerConfiguration ()
+   , socketConfiguration ()
+   , socketHandlerConfiguration ()
+   , moduleConfiguration ()
+   , moduleHandlerConfiguration ()
+   , streamConfiguration ()
+   , userData ()
+   , useReactor (NET_EVENT_USE_REACTOR)
   {};
 
   // ***************************** allocator ***********************************
@@ -228,6 +242,7 @@ struct Test_I_Configuration
   Test_I_SocketHandlerConfiguration socketHandlerConfiguration;
   // **************************** stream data **********************************
   Stream_ModuleConfiguration        moduleConfiguration;
+  Test_I_ModuleHandlerConfiguration moduleHandlerConfiguration;
   Test_I_StreamConfiguration        streamConfiguration;
 
   Test_I_UserData                   userData;

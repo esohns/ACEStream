@@ -43,4 +43,7 @@
 #define STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_MACROEXECCUTIONMODE "MacroExecutionMode"
 #define STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_OVERWRITE           "Overwrite"
 
+// libreoffice calc properties
+#define STREAM_DOCUMENT_LIBREOFFICE_CALC_DEFAULT_TABLE_NAME           "Tabelle1"
+
 #endif

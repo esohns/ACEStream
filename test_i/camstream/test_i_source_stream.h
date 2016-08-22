@@ -24,6 +24,7 @@
 #include <string>
 
 #include "ace/Global_Macros.h"
+#include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
@@ -38,61 +39,54 @@
 
 #include "stream_module_target.h"
 
-#include "test_i_common_modules.h"
-#include "test_i_connection_common.h"
 #include "test_i_source_common.h"
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct IMFMediaSession;
 #endif
-class ACE_Message_Block;
 class Stream_IAllocator;
-class Test_I_Source_Stream_Message;
-class Test_I_Source_Stream_SessionMessage;
 
-template <typename ConnectorType>
-class Test_I_Source_Stream_T
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+template <typename StreamStateType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename MessageType,
+          typename SessionMessageType,
+          typename ConnectionManagerType,
+          typename ConnectorType>
+class Test_I_Source_DirectShow_Stream_T
  : public Stream_Base_T<ACE_MT_SYNCH,
                         ACE_MT_SYNCH,
                         Common_TimePolicy_t,
                         Stream_ControlType,
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
-                        Test_I_Source_StreamState,
-                        Test_I_Source_StreamConfiguration,
+                        StreamStateType,
+                        ConfigurationType,
                         Test_I_Source_Stream_StatisticData,
                         Stream_ModuleConfiguration,
-                        Test_I_Source_ModuleHandlerConfiguration,
-                        Test_I_Source_SessionData,   // session data
-                        Test_I_Source_SessionData_t, // session data container (reference counted)
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
                         ACE_Message_Block,
-                        Test_I_Source_Stream_Message,
-                        Test_I_Source_Stream_SessionMessage>
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
- , public Stream_Misc_MediaFoundation_Callback_T<Test_I_MediaFoundationConfiguration>
-#endif
+                        MessageType,
+                        SessionMessageType>
 {
  public:
-  Test_I_Source_Stream_T ();
-  virtual ~Test_I_Source_Stream_T ();
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // override (part of) Stream_IStreamControl_T
-  //virtual Stream_Module_t* find (const std::string&) const; // module name
-  virtual void start ();
-  virtual void stop (bool = true,  // wait for completion ?
-                     bool = true); // locked access ?
-#endif
+  Test_I_Source_DirectShow_Stream_T ();
+  virtual ~Test_I_Source_DirectShow_Stream_T ();
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ModuleList_t&, // return value: module list
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_Source_StreamConfiguration&, // configuration
-                           bool = true,                              // setup pipeline ?
-                           bool = true);                             // reset session data ?
+  virtual bool initialize (const ConfigurationType&, // configuration
+                           bool = true,              // setup pipeline ?
+                           bool = true);             // reset session data ?
 
   // implement Common_IStatistic_T
   // *NOTE*: these delegate to runtimeStatistic_
@@ -106,62 +100,408 @@ class Test_I_Source_Stream_T
                         Stream_ControlType,
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
-                        Test_I_Source_StreamState,
-                        Test_I_Source_StreamConfiguration,
+                        StreamStateType,
+                        ConfigurationType,
                         Test_I_Source_Stream_StatisticData,
                         Stream_ModuleConfiguration,
-                        Test_I_Source_ModuleHandlerConfiguration,
-                        Test_I_Source_SessionData,   // session data
-                        Test_I_Source_SessionData_t, // session data container (reference counted)
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
                         ACE_Message_Block,
-                        Test_I_Source_Stream_Message,
-                        Test_I_Source_Stream_SessionMessage> inherited;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  typedef Stream_Misc_MediaFoundation_Callback_T<Test_I_MediaFoundationConfiguration> inherited2;
-#endif
+                        MessageType,
+                        SessionMessageType> inherited;
 
-  typedef Test_I_Source_Stream_T<ConnectorType> OWN_TYPE_T;
+  typedef Test_I_Source_DirectShow_Stream_T<StreamStateType,
+                                            ConfigurationType,
+                                            HandlerConfigurationType,
+                                            SessionDataType,
+                                            SessionDataContainerType,
+                                            MessageType,
+                                            SessionMessageType,
+                                            ConnectionManagerType,
+                                            ConnectorType> OWN_TYPE_T;
   typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_Source_ModuleHandlerConfiguration,
+                                     HandlerConfigurationType,
                                      ACE_Message_Block,
-                                     Test_I_Source_Stream_Message,
-                                     Test_I_Source_Stream_SessionMessage,
-                                     Test_I_Source_SessionData_t,
-                                     Test_I_Source_InetConnectionManager_t,
+                                     MessageType,
+                                     SessionMessageType,
+                                     SessionDataContainerType,
+                                     ConnectionManagerType,
                                      ConnectorType> WRITER_T;
-  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                                    // task synch type
-                                         Common_TimePolicy_t,                             // time policy
-                                         Stream_SessionId_t,                              // session id type
-                                         Test_I_Source_SessionData,                       // session data type
-                                         Stream_SessionMessageType,                       // session event type
-                                         Stream_ModuleConfiguration,                      // module configuration type
-                                         Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
-                                         Test_I_IStreamNotify_t,                          // stream notification interface type
-                                         WRITER_T> TARGET_MODULE_T;                       // writer type
+  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
+                                         Common_TimePolicy_t,        // time policy
+                                         Stream_SessionId_t,         // session id type
+                                         SessionDataContainerType,   // session data type
+                                         Stream_SessionMessageType,  // session event type
+                                         Stream_ModuleConfiguration, // module configuration type
+                                         HandlerConfigurationType,   // module handler configuration type
+                                         Test_I_IStreamNotify_t,     // stream notification interface type
+                                         WRITER_T> TARGET_MODULE_T;  // writer type
 
-  //ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T ())
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T (const Test_I_Source_Stream_T&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T& operator= (const Test_I_Source_Stream_T&))
+  //ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_T ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_T (const Test_I_Source_DirectShow_Stream_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_T& operator= (const Test_I_Source_DirectShow_Stream_T&))
 
   // *TODO*: re-consider this API
   void ping ();
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  IGraphBuilder* graphBuilder_;
+};
+
+template <typename StreamStateType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename MessageType,
+          typename SessionMessageType,
+          typename ConnectionManagerType,
+          typename ConnectorType>
+class Test_I_Source_MediaFoundation_Stream_T
+ : public Stream_Base_T<ACE_MT_SYNCH,
+                        ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        Stream_ControlType,
+                        Stream_SessionMessageType,
+                        Stream_StateMachine_ControlState,
+                        StreamStateType,
+                        ConfigurationType,
+                        Test_I_Source_Stream_StatisticData,
+                        Stream_ModuleConfiguration,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ACE_Message_Block,
+                        MessageType,
+                        SessionMessageType>
+ , public Stream_Misc_MediaFoundation_Callback_T<Test_I_MediaFoundationConfiguration>
+{
+ public:
+  Test_I_Source_MediaFoundation_Stream_T ();
+  virtual ~Test_I_Source_MediaFoundation_Stream_T ();
+
+  // override (part of) Stream_IStreamControl_T
+  //virtual Stream_Module_t* find (const std::string&) const; // module name
+  virtual void start ();
+  virtual void stop (bool = true,  // wait for completion ?
+                     bool = true); // locked access ?
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const ConfigurationType&, // configuration
+                           bool = true,              // setup pipeline ?
+                           bool = true);             // reset session data ?
+
+  // implement Common_IStatistic_T
+  // *NOTE*: these delegate to runtimeStatistic_
+  virtual bool collect (Test_I_Source_Stream_StatisticData&); // return value: statistic data
+  virtual void report () const;
+
+ private:
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        Stream_ControlType,
+                        Stream_SessionMessageType,
+                        Stream_StateMachine_ControlState,
+                        StreamStateType,
+                        ConfigurationType,
+                        Test_I_Source_Stream_StatisticData,
+                        Stream_ModuleConfiguration,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ACE_Message_Block,
+                        MessageType,
+                        SessionMessageType> inherited;
+  typedef Stream_Misc_MediaFoundation_Callback_T<Test_I_MediaFoundationConfiguration> inherited2;
+
+  typedef Test_I_Source_MediaFoundation_Stream_T<StreamStateType,
+                                                 ConfigurationType,
+                                                 HandlerConfigurationType,
+                                                 SessionDataType,
+                                                 SessionDataContainerType,
+                                                 MessageType,
+                                                 SessionMessageType,
+                                                 ConnectionManagerType,
+                                                 ConnectorType> OWN_TYPE_T;
+  typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     HandlerConfigurationType,
+                                     ACE_Message_Block,
+                                     MessageType,
+                                     SessionMessageType,
+                                     SessionDataContainerType,
+                                     ConnectionManagerType,
+                                     ConnectorType> WRITER_T;
+  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
+                                         Common_TimePolicy_t,        // time policy
+                                         Stream_SessionId_t,         // session id type
+                                         SessionDataContainerType,   // session data type
+                                         Stream_SessionMessageType,  // session event type
+                                         Stream_ModuleConfiguration, // module configuration type
+                                         HandlerConfigurationType,   // module handler configuration type
+                                         Test_I_IStreamNotify_t,     // stream notification interface type
+                                         WRITER_T> TARGET_MODULE_T;  // writer type
+
+  //ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_T ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_T (const Test_I_Source_MediaFoundation_Stream_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_T& operator= (const Test_I_Source_MediaFoundation_Stream_T&))
+
+  // *TODO*: re-consider this API
+  void ping ();
+
   // media session
   IMFMediaSession* mediaSession_;
-#endif
 };
+#else
+template <typename StreamStateType,
+          typename ConfigurationType,
+          typename HandlerConfigurationType,
+          typename SessionDataType,
+          typename SessionDataContainerType,
+          typename MessageType,
+          typename SessionMessageType,
+          typename ConnectionManagerType,
+          typename ConnectorType>
+class Test_I_Source_V4L2_Stream_T
+ : public Stream_Base_T<ACE_MT_SYNCH,
+                        ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        Stream_ControlType,
+                        Stream_SessionMessageType,
+                        Stream_StateMachine_ControlState,
+                        StreamStateType,
+                        ConfigurationType,
+                        Test_I_Source_Stream_StatisticData,
+                        Stream_ModuleConfiguration,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ACE_Message_Block,
+                        MessageType,
+                        SessionMessageType>
+{
+ public:
+  Test_I_Source_V4L2_Stream_T ();
+  virtual ~Test_I_Source_V4L2_Stream_T ();
+
+  // implement (part of) Stream_IStreamControlBase
+  virtual bool load (Stream_ModuleList_t&, // return value: module list
+                     bool&);               // return value: delete modules ?
+
+  // implement Common_IInitialize_T
+  virtual bool initialize (const ConfigurationType&, // configuration
+                           bool = true,              // setup pipeline ?
+                           bool = true);             // reset session data ?
+
+  // implement Common_IStatistic_T
+  // *NOTE*: these delegate to runtimeStatistic_
+  virtual bool collect (Test_I_Source_Stream_StatisticData&); // return value: statistic data
+  virtual void report () const;
+
+ private:
+  typedef Stream_Base_T<ACE_MT_SYNCH,
+                        ACE_MT_SYNCH,
+                        Common_TimePolicy_t,
+                        Stream_ControlType,
+                        Stream_SessionMessageType,
+                        Stream_StateMachine_ControlState,
+                        StreamStateType,
+                        ConfigurationType,
+                        Test_I_Source_Stream_StatisticData,
+                        Stream_ModuleConfiguration,
+                        HandlerConfigurationType,
+                        SessionDataType,
+                        SessionDataContainerType,
+                        ACE_Message_Block,
+                        MessageType,
+                        SessionMessageType> inherited;
+
+  typedef Test_I_Source_V4L2_Stream_T<StreamStateType,
+                                      ConfigurationType,
+                                      HandlerConfigurationType,
+                                      SessionDataType,
+                                      SessionDataContainerType,
+                                      MessageType,
+                                      SessionMessageType,
+                                      ConnectionManagerType,
+                                      ConnectorType> OWN_TYPE_T;
+  typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     HandlerConfigurationType,
+                                     ACE_Message_Block,
+                                     MessageType,
+                                     SessionMessageType,
+                                     SessionDataContainerType,
+                                     ConnectionManagerType,
+                                     ConnectorType> WRITER_T;
+  typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,               // task synch type
+                                         Common_TimePolicy_t,        // time policy
+                                         Stream_SessionId_t,         // session id type
+                                         SessionDataContainerType,   // session data type
+                                         Stream_SessionMessageType,  // session event type
+                                         Stream_ModuleConfiguration, // module configuration type
+                                         HandlerConfigurationType,   // module handler configuration type
+                                         Test_I_IStreamNotify_t,     // stream notification interface type
+                                         WRITER_T> TARGET_MODULE_T;  // writer type
+
+  //ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_T ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_T (const Test_I_Source_V4L2_Stream_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_T& operator= (const Test_I_Source_V4L2_Stream_T&))
+
+  // *TODO*: re-consider this API
+  void ping ();
+};
+#endif
 
 // include template definition
 #include "test_i_source_stream.inl"
 
 //////////////////////////////////////////
 
-typedef Test_I_Source_Stream_T<Test_I_Source_TCPConnector_t> Test_I_Source_TCPStream_t;
-typedef Test_I_Source_Stream_T<Test_I_Source_SSLTCPConnector_t> Test_I_Source_SSLTCPStream_t;
-typedef Test_I_Source_Stream_T<Test_I_Source_TCPAsynchConnector_t> Test_I_Source_AsynchTCPStream_t;
-typedef Test_I_Source_Stream_T<Test_I_Source_UDPConnector_t> Test_I_Source_UDPStream_t;
-typedef Test_I_Source_Stream_T<Test_I_Source_UDPAsynchConnector_t> Test_I_Source_AsynchUDPStream_t;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Test_I_Source_DirectShow_Stream_T<Test_I_Source_DirectShow_StreamState,
+                                          Test_I_Source_DirectShow_StreamConfiguration,
+                                          Test_I_Source_DirectShow_ModuleHandlerConfiguration,
+                                          Test_I_Source_DirectShow_SessionData,
+                                          Test_I_Source_DirectShow_SessionData_t,
+                                          Test_I_Source_DirectShow_Stream_Message,
+                                          Test_I_Source_DirectShow_Stream_SessionMessage,
+                                          Test_I_Source_DirectShow_InetConnectionManager_t,
+                                          Test_I_Source_DirectShow_TCPConnector_t> Test_I_Source_DirectShow_TCPStream_t;
+typedef Test_I_Source_DirectShow_Stream_T<Test_I_Source_DirectShow_StreamState,
+                                          Test_I_Source_DirectShow_StreamConfiguration,
+                                          Test_I_Source_DirectShow_ModuleHandlerConfiguration,
+                                          Test_I_Source_DirectShow_SessionData,
+                                          Test_I_Source_DirectShow_SessionData_t,
+                                          Test_I_Source_DirectShow_Stream_Message,
+                                          Test_I_Source_DirectShow_Stream_SessionMessage,
+                                          Test_I_Source_DirectShow_InetConnectionManager_t,
+                                          Test_I_Source_DirectShow_SSLTCPConnector_t> Test_I_Source_DirectShow_SSLTCPStream_t;
+typedef Test_I_Source_DirectShow_Stream_T<Test_I_Source_DirectShow_StreamState,
+                                          Test_I_Source_DirectShow_StreamConfiguration,
+                                          Test_I_Source_DirectShow_ModuleHandlerConfiguration,
+                                          Test_I_Source_DirectShow_SessionData,
+                                          Test_I_Source_DirectShow_SessionData_t,
+                                          Test_I_Source_DirectShow_Stream_Message,
+                                          Test_I_Source_DirectShow_Stream_SessionMessage,
+                                          Test_I_Source_DirectShow_InetConnectionManager_t,
+                                          Test_I_Source_DirectShow_TCPAsynchConnector_t> Test_I_Source_DirectShow_AsynchTCPStream_t;
+typedef Test_I_Source_DirectShow_Stream_T<Test_I_Source_DirectShow_StreamState,
+                                          Test_I_Source_DirectShow_StreamConfiguration,
+                                          Test_I_Source_DirectShow_ModuleHandlerConfiguration,
+                                          Test_I_Source_DirectShow_SessionData,
+                                          Test_I_Source_DirectShow_SessionData_t,
+                                          Test_I_Source_DirectShow_Stream_Message,
+                                          Test_I_Source_DirectShow_Stream_SessionMessage,
+                                          Test_I_Source_DirectShow_InetConnectionManager_t,
+                                          Test_I_Source_DirectShow_UDPConnector_t> Test_I_Source_DirectShow_UDPStream_t;
+typedef Test_I_Source_DirectShow_Stream_T<Test_I_Source_DirectShow_StreamState,
+                                          Test_I_Source_DirectShow_StreamConfiguration,
+                                          Test_I_Source_DirectShow_ModuleHandlerConfiguration,
+                                          Test_I_Source_DirectShow_SessionData,
+                                          Test_I_Source_DirectShow_SessionData_t,
+                                          Test_I_Source_DirectShow_Stream_Message,
+                                          Test_I_Source_DirectShow_Stream_SessionMessage,
+                                          Test_I_Source_DirectShow_InetConnectionManager_t,
+                                          Test_I_Source_DirectShow_UDPAsynchConnector_t> Test_I_Source_DirectShow_AsynchUDPStream_t;
+
+typedef Test_I_Source_MediaFoundation_Stream_T<Test_I_Source_MediaFoundation_StreamState,
+                                               Test_I_Source_MediaFoundation_StreamConfiguration,
+                                               Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
+                                               Test_I_Source_MediaFoundation_SessionData,
+                                               Test_I_Source_MediaFoundation_SessionData_t,
+                                               Test_I_Source_MediaFoundation_Stream_Message,
+                                               Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                               Test_I_Source_MediaFoundation_InetConnectionManager_t,
+                                               Test_I_Source_MediaFoundation_TCPConnector_t> Test_I_Source_MediaFoundation_TCPStream_t;
+typedef Test_I_Source_MediaFoundation_Stream_T<Test_I_Source_MediaFoundation_StreamState,
+                                               Test_I_Source_MediaFoundation_StreamConfiguration,
+                                               Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
+                                               Test_I_Source_MediaFoundation_SessionData,
+                                               Test_I_Source_MediaFoundation_SessionData_t,
+                                               Test_I_Source_MediaFoundation_Stream_Message,
+                                               Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                               Test_I_Source_MediaFoundation_InetConnectionManager_t,
+                                               Test_I_Source_MediaFoundation_SSLTCPConnector_t> Test_I_Source_MediaFoundation_SSLTCPStream_t;
+typedef Test_I_Source_MediaFoundation_Stream_T<Test_I_Source_MediaFoundation_StreamState,
+                                               Test_I_Source_MediaFoundation_StreamConfiguration,
+                                               Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
+                                               Test_I_Source_MediaFoundation_SessionData,
+                                               Test_I_Source_MediaFoundation_SessionData_t,
+                                               Test_I_Source_MediaFoundation_Stream_Message,
+                                               Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                               Test_I_Source_MediaFoundation_InetConnectionManager_t,
+                                               Test_I_Source_MediaFoundation_TCPAsynchConnector_t> Test_I_Source_MediaFoundation_AsynchTCPStream_t;
+typedef Test_I_Source_MediaFoundation_Stream_T<Test_I_Source_MediaFoundation_StreamState,
+                                               Test_I_Source_MediaFoundation_StreamConfiguration,
+                                               Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
+                                               Test_I_Source_MediaFoundation_SessionData,
+                                               Test_I_Source_MediaFoundation_SessionData_t,
+                                               Test_I_Source_MediaFoundation_Stream_Message,
+                                               Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                               Test_I_Source_MediaFoundation_InetConnectionManager_t,
+                                               Test_I_Source_MediaFoundation_UDPConnector_t> Test_I_Source_MediaFoundation_UDPStream_t;
+typedef Test_I_Source_MediaFoundation_Stream_T<Test_I_Source_MediaFoundation_StreamState,
+                                               Test_I_Source_MediaFoundation_StreamConfiguration,
+                                               Test_I_Source_MediaFoundation_ModuleHandlerConfiguration,
+                                               Test_I_Source_MediaFoundation_SessionData,
+                                               Test_I_Source_MediaFoundation_SessionData_t,
+                                               Test_I_Source_MediaFoundation_Stream_Message,
+                                               Test_I_Source_MediaFoundation_Stream_SessionMessage,
+                                               Test_I_Source_MediaFoundation_InetConnectionManager_t,
+                                               Test_I_Source_MediaFoundation_UDPAsynchConnector_t> Test_I_Source_MediaFoundation_AsynchUDPStream_t;
+#else
+typedef Test_I_Source_V4L2_Stream_T<Test_I_Source_V4L2_StreamState,
+                                    Test_I_Source_V4L2_StreamConfiguration,
+                                    Test_I_Source_V4L2_ModuleHandlerConfiguration,
+                                    Test_I_Source_V4L2_SessionData,
+                                    Test_I_Source_V4L2_SessionData_t,
+                                    Test_I_Source_V4L2_Stream_Message,
+                                    Test_I_Source_V4L2_Stream_SessionMessage,
+                                    Test_I_Source_V4L2_InetConnectionManager_t,
+                                    Test_I_Source_V4L2_TCPConnector_t> Test_I_Source_V4L2_TCPStream_t;
+typedef Test_I_Source_V4L2_Stream_T<Test_I_Source_V4L2_StreamState,
+                                    Test_I_Source_V4L2_StreamConfiguration,
+                                    Test_I_Source_V4L2_ModuleHandlerConfiguration,
+                                    Test_I_Source_V4L2_SessionData,
+                                    Test_I_Source_V4L2_SessionData_t,
+                                    Test_I_Source_V4L2_Stream_Message,
+                                    Test_I_Source_V4L2_Stream_SessionMessage,
+                                    Test_I_Source_V4L2_InetConnectionManager_t,
+                                    Test_I_Source_V4L2_SSLTCPConnector_t> Test_I_Source_V4L2_SSLTCPStream_t;
+typedef Test_I_Source_V4L2_Stream_T<Test_I_Source_V4L2_StreamState,
+                                    Test_I_Source_V4L2_StreamConfiguration,
+                                    Test_I_Source_V4L2_ModuleHandlerConfiguration,
+                                    Test_I_Source_V4L2_SessionData,
+                                    Test_I_Source_V4L2_SessionData_t,
+                                    Test_I_Source_V4L2_Stream_Message,
+                                    Test_I_Source_V4L2_Stream_SessionMessage,
+                                    Test_I_Source_V4L2_InetConnectionManager_t,
+                                    Test_I_Source_V4L2_TCPAsynchConnector_t> Test_I_Source_V4L2_AsynchTCPStream_t;
+typedef Test_I_Source_V4L2_Stream_T<Test_I_Source_V4L2_StreamState,
+                                    Test_I_Source_V4L2_StreamConfiguration,
+                                    Test_I_Source_V4L2_ModuleHandlerConfiguration,
+                                    Test_I_Source_V4L2_SessionData,
+                                    Test_I_Source_V4L2_SessionData_t,
+                                    Test_I_Source_V4L2_Stream_Message,
+                                    Test_I_Source_V4L2_Stream_SessionMessage,
+                                    Test_I_Source_V4L2_InetConnectionManager_t,
+                                    Test_I_Source_V4L2_UDPConnector_t> Test_I_Source_V4L2_UDPStream_t;
+typedef Test_I_Source_V4L2_Stream_T<Test_I_Source_V4L2_StreamState,
+                                    Test_I_Source_V4L2_StreamConfiguration,
+                                    Test_I_Source_V4L2_ModuleHandlerConfiguration,
+                                    Test_I_Source_V4L2_SessionData,
+                                    Test_I_Source_V4L2_SessionData_t,
+                                    Test_I_Source_V4L2_Stream_Message,
+                                    Test_I_Source_V4L2_Stream_SessionMessage,
+                                    Test_I_Source_V4L2_InetConnectionManager_t,
+                                    Test_I_Source_V4L2_UDPAsynchConnector_t> Test_I_Source_V4L2_AsynchUDPStream_t;
+#endif
 
 #endif

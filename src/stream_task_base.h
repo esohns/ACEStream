@@ -27,12 +27,15 @@
 #include "common_iinitialize.h"
 #include "common_task_base.h"
 
+#include "stream_imodule.h"
 #include "stream_isessionnotify.h"
 #include "stream_itask.h"
 #include "stream_messagequeue.h"
 
 // forward declarations
 class ACE_Message_Block;
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Module;
 class ACE_Time_Value;
 
 template <ACE_SYNCH_DECL,
@@ -54,6 +57,8 @@ class Stream_TaskBase_T
  , public Stream_ITask_T<ControlMessageType,
                          DataMessageType,
                          SessionMessageType>
+ , public Stream_IModuleHandler_T<ACE_SYNCH_USE,
+                                  TimePolicyType>
 {
  public:
   virtual ~Stream_TaskBase_T ();
@@ -73,9 +78,12 @@ class Stream_TaskBase_T
                                      bool&);               // return value: pass this message downstream ?
   virtual void handleProcessingError (const ACE_Message_Block* const); // message handle
 
+  // implement Stream_IModuleHandler_T
+  inline virtual bool postClone (ACE_Module<ACE_SYNCH_USE,
+                                            TimePolicyType>*) { return true; };
+
   // implement Common_IDumpState
-  // *NOTE*: this is an implementation stub
-  virtual void dump_state () const;
+  inline virtual void dump_state () const {};
 
  protected:
   Stream_TaskBase_T ();

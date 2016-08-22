@@ -25,35 +25,44 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../dec)
 
 ############## next target ################
-if (WIN32)
-set (${PROJECT_NAME}_Device_LIB_SRCS
-     stdafx.cpp
-     stdafx.h
-     stream_dev_exports.h
-     stream_dev_common.h
-     stream_dev_defines.h
-     stream_dev_tools.cpp
-     stream_dev_tools.h
-     stream_dev_tools.inl
-     stream_dev_cam_source_directshow.cpp
-     stream_dev_cam_source_directshow.h
-     stream_dev_cam_source_directshow.inl
-     stream_dev_cam_source_mediafoundation.cpp
-     stream_dev_cam_source_mediafoundation.h
-     stream_dev_cam_source_mediafoundation.inl)
-elseif (UNIX)
-set (${PROJECT_NAME}_Device_LIB_SRCS
-     stream_dev_exports.h
-     stream_dev_common.h
-     stream_dev_defines.h
-     stream_dev_tools.cpp
-     stream_dev_tools.h
-     stream_dev_tools.inl
-     stream_dev_cam_source_v4l.cpp
-     stream_dev_cam_source_v4l.h
-     stream_dev_cam_source_v4l.inl
-     stdafx.cpp
-     stdafx.h)
+if (UNIX)
+ set (${PROJECT_NAME}_Device_LIB_SRCS
+      stdafx.cpp
+      stdafx.h
+      stream_dev_exports.h
+      stream_dev_common.h
+      stream_dev_defines.h
+      stream_dev_tools.cpp
+      stream_dev_tools.h
+      stream_dev_tools.inl
+      stream_dev_cam_source_v4l.cpp
+      stream_dev_cam_source_v4l.h
+      stream_dev_cam_source_v4l.inl)
+elseif (WIN32)
+ set (${PROJECT_NAME}_Device_LIB_SRCS
+      stdafx.cpp
+      stdafx.h
+      stream_dev_exports.h
+      stream_dev_common.h
+      stream_dev_defines.h
+      stream_dev_tools.cpp
+      stream_dev_tools.h
+      stream_dev_tools.inl
+      stream_dev_cam_source_directshow.cpp
+      stream_dev_cam_source_directshow.h
+      stream_dev_cam_source_directshow.inl
+      stream_dev_cam_source_mediafoundation.cpp
+      stream_dev_cam_source_mediafoundation.h
+      stream_dev_cam_source_mediafoundation.inl
+      stream_directshow_allocator_base.cpp
+      stream_directshow_allocator_base.h
+      stream_directshow_allocator_base.inl
+      stream_directshow_message_base.cpp
+      stream_directshow_message_base.h
+      stream_directshow_message_base.inl
+      stream_mediafoundation_message_base.cpp
+      stream_mediafoundation_message_base.h
+      stream_mediafoundation_message_base.inl)
 endif ()
 
 add_library (${PROJECT_NAME}_Device SHARED ${ACEStream_Device_LIB_SRCS})
@@ -97,7 +106,18 @@ export (TARGETS ${PROJECT_NAME}_Device
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 ############### install files ################
-if (WIN32)
+if (UNIX)
+ install (FILES
+          stream_dev_exports.h
+          stream_dev_common.h
+          stream_dev_defines.h
+          stream_dev_tools.h
+          stream_dev_tools.inl
+          stream_dev_cam_source_v4l.h
+          stream_dev_cam_source_v4l.inl
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+elseif (WIN32)
  install (FILES
           stream_dev_exports.h
           stream_dev_common.h
@@ -108,17 +128,12 @@ if (WIN32)
           stream_dev_cam_source_directshow.inl
           stream_dev_cam_source_mediafoundation.h
           stream_dev_cam_source_mediafoundation.inl
-          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
-          COMPONENT mod_include)
-elseif (UNIX)
- install (FILES
-          stream_dev_exports.h
-          stream_dev_common.h
-          stream_dev_defines.h
-          stream_dev_tools.h
-          stream_dev_tools.inl
-          stream_dev_cam_source_v4l.h
-          stream_dev_cam_source_v4l.inl
+          stream_directshow_allocator_base.h
+          stream_directshow_allocator_base.inl
+          stream_directshow_message_base.h
+          stream_directshow_message_base.inl
+          stream_mediafoundation_message_base.h
+          stream_mediafoundation_message_base.inl
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 endif ()

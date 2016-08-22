@@ -39,7 +39,8 @@ if NOT exist "%UNO_PATH%" (
 
 @rem step1: copy sal3.dll, salhelper3msc.dll, unoiddlo.dll, uwinapi.dll and
 @rem        reglo.dll storelo.dll to the path of cppumaker.exe (dependencies)
-for %%A in (sal3.dll salhelper3msc.dll unoidllo.dll uwinapi.dll reglo.dll storelo.dll) do (
+@rem for %%A in (sal3.dll salhelper3msc.dll unoidllo.dll uwinapi.dll reglo.dll storelo.dll) do (
+for %%A in (sal3.dll uwinapi.dll reg3.dll store3.dll) do (
  if NOT exist "%UNO_PATH%\%%A" (
   echo invalid .dll file ^(was: %%A^)^, exiting
   goto Failed
@@ -64,19 +65,25 @@ if NOT exist "%TYPES_RDB%" (
  echo invalid .rdb file ^(was: "%TYPES_RDB%"^)^, exiting
  goto Failed
 )
-@rem set SERVICES_RDB=%UNO_PATH%\services.rdb
-@rem if NOT exist "%SERVICES_RDB%" (
-@rem  echo invalid .rdb file ^(was: "%SERVICES_RDB%"^)^, exiting
+set SERVICES_RDB=%UNO_PATH%\services.rdb
+if NOT exist "%SERVICES_RDB%" (
+ echo invalid .rdb file ^(was: "%SERVICES_RDB%"^)^, exiting
+ goto Failed
+)
+@rem set OOAPI_RDB=%UNO_PATH%\types\offapi.rdb
+@rem if NOT exist "%OOAPI_RDB%" (
+@rem  echo invalid .rdb file ^(was: "%OOAPI_RDB%"^)^, exiting
 @rem  goto Failed
 @rem )
-set OOAPI_RDB=%UNO_PATH%\types\offapi.rdb
-if NOT exist "%OOAPI_RDB%" (
- echo invalid .rdb file ^(was: "%OOAPI_RDB_FILE%"^)^, exiting
+set OOVBAAPI_RDB=%UNO_PATH%\oovbaapi.rdb
+if NOT exist "%OOVBAAPI_RDB%" (
+ echo invalid .rdb file ^(was: "%OOVBAAPI_RDB%"^)^, exiting
  goto Failed
 )
 
 echo generating headers...
-%CPPUMAKEREXE% -C -Gc -O "%OO_SDK_HOME%\include" "%TYPES_RDB%" "%OOAPI_RDB%"
+@rem %CPPUMAKEREXE% -C -Gc -O "%OO_SDK_HOME%\include" "%TYPES_RDB%" "%OOAPI_RDB%"
+%CPPUMAKEREXE% -BUCR -C -Gc -O "%OO_SDK_HOME%\include" "%TYPES_RDB%" "%OOVBAAPI_RDB%"
 if %ERRORLEVEL% NEQ 0 (
  echo failed to generate headers^, exiting
  set RC=%ERRORLEVEL%

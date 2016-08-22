@@ -34,27 +34,33 @@
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//struct IAMStreamConfig;
+struct IAMStreamConfig;
 #endif
 
 // helper functions
 bool load_capture_devices (GtkListStore*);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//bool load_formats (IAMStreamConfig*, // filter handle
+bool load_formats (IAMStreamConfig*, // device configuration handle
+                   GtkListStore*);   // return value: supported media subtypes
 //bool load_formats (IMFSourceReader*, // source reader handle
 bool load_formats (IMFMediaSource*, // source handle
                    GtkListStore*);  // return value: supported media subtypes
-//bool load_resolutions (IAMStreamConfig*, // stream config handle
+bool load_resolutions (IAMStreamConfig*, // device configuration handle
+                       REFGUID,          // media subtype
+                       GtkListStore*);   // return value: supported resolutions
 //bool load_resolutions (IMFSourceReader*,    // source reader handle
-bool load_resolutions (IMFMediaSource*,     // source handle
-                       const struct _GUID&, // media subtype
-                       GtkListStore*);      // return value: supported resolutions
-//bool load_rates (IAMStreamConfig*, // stream config handle
+bool load_resolutions (IMFMediaSource*, // source handle
+                       REFGUID,         // media subtype
+                       GtkListStore*);  // return value: supported resolutions
+bool load_rates (IAMStreamConfig*, // device configuration handle
+                 REFGUID,          // media subtype
+                 unsigned int,     // resolution (width)
+                 GtkListStore*);   // return value: supported rates
 //bool load_rates (IMFSourceReader*,    // source reader handle
-bool load_rates (IMFMediaSource*,     // source handle
-                 const struct _GUID&, // media subtype
-                 unsigned int,        // resolution (width)
-                 GtkListStore*);      // return value: supported rates
+bool load_rates (IMFMediaSource*, // source handle
+                 REFGUID,         // media subtype
+                 unsigned int,    // resolution (width)
+                 GtkListStore*);  // return value: supported rates
 #else
 int dirent_selector (const dirent*);
 int dirent_comparator (const dirent**,

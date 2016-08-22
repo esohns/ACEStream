@@ -749,8 +749,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 void
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -758,7 +758,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::handleDataMessage (DataMessageType*& message_inout,
                                                                                    bool& passMessageDownstream_out)
 {
@@ -793,8 +793,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 void
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -802,7 +802,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                                       bool& passMessageDownstream_out)
 {
@@ -869,7 +869,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
 
       //WCHAR* symbolic_link_p = NULL;
       //UINT32 symbolic_link_size = 0;
-      if (!initialize_MediaFoundation (session_data_r.format,
+      if (!initialize_MediaFoundation (*session_data_r.format,
                                        this,
                                        sampleGrabberSinkNodeId_,
                                        mediaSession_))
@@ -956,8 +956,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 DataMessageType*
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -965,7 +965,7 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
+                                     SessionDataType,
                                      SessionDataContainerType>::allocateMessage (unsigned int requestedSize_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_Target_T::allocateMessage"));
@@ -1026,8 +1026,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,          // session data
-          typename SessionDataContainerType> // session message payload (reference counted)
+          typename SessionDataType,
+          typename SessionDataContainerType>
 bool
 Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      TimePolicyType,
@@ -1035,8 +1035,8 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                                      ControlMessageType,
                                      DataMessageType,
                                      SessionMessageType,
-                                     SessionDataType,          // session data
-                                     SessionDataContainerType>::initialize_MediaFoundation (const IMFMediaType* IMFMediaType_in,
+                                     SessionDataType,
+                                     SessionDataContainerType>::initialize_MediaFoundation (const struct _AMMediaType& mediaType_in,
                                                                                             const IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback2_in,
                                                                                             TOPOID& sampleGrabberSinkNodeId_out,
                                                                                             IMFMediaSession*& IMFMediaSession_inout)
@@ -1049,16 +1049,12 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (IMFMediaSession_inout);
 
-  //IMFMediaSource* media_source_p = NULL;
-  //if (!Stream_Module_Device_Tools::getMediaSource (IMFMediaSession_inout,
-  //                                                 media_source_p))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Stream_Module_Device_Tools::getMediaSource(), aborting\n")));
-  //  goto error;
-  //} // end IF
-  //ACE_ASSERT (media_source_p);
-
+  IMFMediaType* media_type_p = NULL;
+  TOPOID node_id = 0;
+  IMFTopologyNode* topology_node_p = NULL;
+  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);//    |
+                          //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
+                          //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
   IMFTopology* topology_p = NULL;
   enum MFSESSION_GETFULLTOPOLOGY_FLAGS flags =
     MFSESSION_GETFULLTOPOLOGY_CURRENT;
@@ -1075,8 +1071,24 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (topology_p);
 
-  TOPOID node_id = 0;
-  if (!Stream_Module_Device_Tools::addGrabber (IMFMediaType_in,
+  result = MFCreateMediaType (&media_type_p);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  result = MFInitMediaTypeFromAMMediaType (media_type_p,
+                                           &mediaType_in);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", aborting\n"),
+                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+    goto error;
+  } // end IF
+  if (!Stream_Module_Device_Tools::addGrabber (media_type_p,
                                                IMFSampleGrabberSinkCallback2_in,
                                                topology_p,
                                                node_id))
@@ -1085,16 +1097,13 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
                 ACE_TEXT ("failed to Stream_Module_Device_Tools::addGrabber(), aborting\n")));
     goto error;
   } // end IF
-  IMFTopologyNode* topology_node_p = NULL;
   result = topology_p->GetNodeByID (node_id,
                                     &topology_node_p);
   ACE_ASSERT (SUCCEEDED (result));
   ACE_ASSERT (topology_node_p);
   topology_node_p->Release ();
+  topology_node_p = NULL;
 
-  DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);//    |
-                          //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
-                          //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
   result = IMFMediaSession_inout->SetTopology (topology_flags,
                                                topology_p);
   if (FAILED (result))
@@ -1107,10 +1116,13 @@ Stream_Misc_MediaFoundation_Target_T<ACE_SYNCH_USE,
   // debug info
   Stream_Module_Device_Tools::dump (topology_p);
   topology_p->Release ();
+  topology_p = NULL;
 
   return true;
 
 error:
+  if (media_type_p)
+    media_type_p->Release ();
   if (topology_p)
     topology_p->Release ();
 

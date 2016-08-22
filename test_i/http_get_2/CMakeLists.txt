@@ -96,9 +96,9 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../zlib-1.2.8)
 
  if (DEFINED ENV{OO_SDK_HOME})
-  set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
+  set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME}/sdk)
  elseif (DEFINED ENV{UNO_PATH})
-   set (OO_SDK_DIRECTORY $ENV{UNO_PATH}\..\sdk)
+   set (OO_SDK_DIRECTORY $ENV{UNO_PATH}/../sdk)
  else ()
   message (FATAL_ERROR "%OO_SDK_HOME%/%UNO_PATH% not set, aborting")
  endif ()
@@ -177,8 +177,25 @@ else ()
 
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl/include)
 
- include_directories (${LIBREOFFICE_SDK_DIRECTORY}/include)
-# include_directories (${LIBREOFFICE_SDK_DIRECTORY}/cli)
+ if (DEFINED ENV{OO_SDK_HOME})
+  set (OO_SDK_DIRECTORY $ENV{OO_SDK_HOME})
+ elseif (DEFINED ENV{UNO_HOME})
+   set (OO_SDK_DIRECTORY $ENV{UNO_PATH}\..\sdk)
+ else ()
+  message (FATAL_ERROR "%OO_SDK_HOME%/%UNO_PATH% not set, aborting")
+ endif ()
+# *NOTE*: workaround
+# set(_PF86 "ProgramFiles(x86)")
+# set (OO_SDK_DIRECTORY
+#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+#      "$ENV{${_PF86}}/LibreOffice_5.1_SDK/sdk"
+#       "C:/LibreOffice_5.1_SDK_installer/sdk")
+ message (STATUS "LibreOffice SDK directory: \"${OO_SDK_DIRECTORY}\"")
+ include_directories (${OO_SDK_DIRECTORY}/include)
+# include_directories (${OO_SDK_DIRECTORY}/cli)
+
+ add_definitions (-DCPPU_ENV=msci)
+ add_definitions (-DWNT)
 
 # *TODO*: repair pkgconfig support
 # include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../gtk/include/glib-2.0)

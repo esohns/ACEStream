@@ -81,14 +81,14 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
 template <typename ConnectorType>
 bool
-Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_Stream_Configuration& configuration_in,
+Test_I_HTTPGet_Stream_T<ConnectorType>::initialize (const Test_I_StreamConfiguration& configuration_in,
                                                     bool setupPipeline_in,
                                                     bool resetSessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (!isRunning ());
+  ACE_ASSERT (!this->isRunning ());
 
   // allocate a new session state, reset stream
   if (!inherited::initialize (configuration_in,

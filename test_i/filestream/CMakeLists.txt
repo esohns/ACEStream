@@ -108,6 +108,7 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/file)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/misc)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/net)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/../..)
 
 ############## next target ################
@@ -116,13 +117,14 @@ set (filesource_EXE_SRCS
      stdafx.h
      test_i_callbacks.cpp
      test_i_callbacks.h
-     test_i_common.h
      test_i_common_modules.h
      test_i_connection_common.h
      test_i_connection_manager_common.h
      test_i_defines.h
+     test_i_filestream_common.h
      test_i_message.cpp
      test_i_message.h
+     test_i_message.inl
      test_i_module_eventhandler.cpp
      test_i_module_eventhandler.h
      test_i_module_eventhandler.inl
@@ -250,13 +252,14 @@ set (filetarget_EXE_SRCS
      stdafx.h
      test_i_callbacks.cpp
      test_i_callbacks.h
-     test_i_common.h
      test_i_common_modules.h
      test_i_connection_common.h
      test_i_connection_manager_common.h
      test_i_defines.h
+     test_i_filestream_common.h
      test_i_message.cpp
      test_i_message.h
+     test_i_message.inl
      test_i_module_eventhandler.cpp
      test_i_module_eventhandler.h
      test_i_module_eventhandler.inl

@@ -34,7 +34,6 @@
 
 #include "stream_module_target.h"
 
-#include "test_i_message.h"
 #include "test_i_session_message.h"
 #include "test_i_source_common.h"
 
@@ -49,16 +48,16 @@ class Test_I_Source_Stream_T
                         int,
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
-                        Test_I_Stream_State,
-                        Test_I_Source_Stream_Configuration,
+                        Test_I_Source_StreamState,
+                        Test_I_Source_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
                         Stream_ModuleConfiguration,
                         Test_I_Source_ModuleHandlerConfiguration,
-                        Test_I_Stream_SessionData,   // session data
-                        Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        ACE_Message_Block,
-                        Test_I_Stream_Message,
-                        Test_I_Stream_SessionMessage>
+                        Test_I_Source_SessionData,
+                        Test_I_Source_SessionData_t,
+                        Test_I_Source_ControlMessage_t,
+                        Test_I_Source_Message_t,
+                        Test_I_Source_SessionMessage>
 {
  public:
   Test_I_Source_Stream_T (const std::string&); // name
@@ -69,9 +68,9 @@ class Test_I_Source_Stream_T
                      bool&);               // return value: delete modules ?
 
   // implement Common_IInitialize_T
-  virtual bool initialize (const Test_I_Source_Stream_Configuration&, // configuration
-                           bool = true,                               // setup pipeline ?
-                           bool = true);                              // reset session data ?
+  virtual bool initialize (const Test_I_Source_StreamConfiguration&, // configuration
+                           bool = true,                              // setup pipeline ?
+                           bool = true);                             // reset session data ?
 
   // *TODO*: re-consider this API
   void ping ();
@@ -88,33 +87,33 @@ class Test_I_Source_Stream_T
                         int,
                         Stream_SessionMessageType,
                         Stream_StateMachine_ControlState,
-                        Test_I_Stream_State,
-                        Test_I_Source_Stream_Configuration,
+                        Test_I_Source_StreamState,
+                        Test_I_Source_StreamConfiguration,
                         Test_I_RuntimeStatistic_t,
                         Stream_ModuleConfiguration,
                         Test_I_Source_ModuleHandlerConfiguration,
-                        Test_I_Stream_SessionData,   // session data
-                        Test_I_Stream_SessionData_t, // session data container (reference counted)
-                        ACE_Message_Block,
-                        Test_I_Stream_Message,
-                        Test_I_Stream_SessionMessage> inherited;
+                        Test_I_Source_SessionData,
+                        Test_I_Source_SessionData_t,
+                        Test_I_Source_ControlMessage_t,
+                        Test_I_Source_Message_t,
+                        Test_I_Source_SessionMessage> inherited;
   typedef Stream_Module_Net_Target_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
                                      Test_I_Source_ModuleHandlerConfiguration,
-                                     ACE_Message_Block,
-                                     Test_I_Stream_Message,
-                                     Test_I_Stream_SessionMessage,
-                                     Test_I_Stream_SessionData_t,
+                                     Test_I_Source_ControlMessage_t,
+                                     Test_I_Source_Message_t,
+                                     Test_I_Source_SessionMessage,
+                                     Test_I_Source_SessionData_t,
                                      Test_I_Source_InetConnectionManager_t,
                                      ConnectorType> WRITER_T;
   typedef Stream_StreamModuleInputOnly_T<ACE_MT_SYNCH,                             // task synch type
                                          Common_TimePolicy_t,                      // time policy
                                          Stream_SessionId_t,                       // session id type
-                                         Test_I_Stream_SessionData,                // session data type
+                                         Test_I_Source_SessionData,                // session data type
                                          Stream_SessionMessageType,                // session event type
                                          Stream_ModuleConfiguration,               // module configuration type
                                          Test_I_Source_ModuleHandlerConfiguration, // module handler configuration type
-                                         Stream_IStreamNotify_t,                   // stream notification interface type
+                                         Test_I_IStreamNotify_t,                   // stream notification interface type
                                          WRITER_T> TARGET_MODULE_T;                // writer type
 
   ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_T ())

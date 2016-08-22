@@ -33,15 +33,6 @@
 template <ACE_SYNCH_DECL, class TIME_POLICY>
 class ACE_Module;
 
-//template <typename ConfigurationType>
-//class Stream_IModuleHandler_T
-// : public Common_IGet_T<ConfigurationType>
-// , public Common_IInitialize_T<ConfigurationType>
-//{
-// public:
-//  inline virtual ~Stream_IModuleHandler_T () {};
-//};
-
 template <typename SessionIdType,
           typename SessionDataType,
           typename SessionEventType,
@@ -95,6 +86,21 @@ class Stream_IModule_T
   // *WARNING*: do not call this from within module_closed(), it creates endless
   //            recursion (--> stack overflow)...
   virtual void reset () = 0;
+};
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType>
+class Stream_IModuleHandler_T
+{
+ public:
+   inline virtual ~Stream_IModuleHandler_T () {};
+
+  // *NOTE*: called on tasks after a module has been clone()d
+  //         --> use for (re-)initialization, as needed
+  virtual bool postClone (ACE_Module<ACE_SYNCH_USE,
+                                     TimePolicyType>*) = 0; // clone handle
 };
 
 #endif

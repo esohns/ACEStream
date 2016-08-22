@@ -20,6 +20,7 @@
 
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
+#include "ace/Module.h"
 #include "ace/OS_Memory.h"
 
 #include "stream_macros.h"
@@ -340,61 +341,6 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   } // end SWITCH
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename ModuleHandlerConfigurationType,
-//          typename SessionIdType,
-//          typename SessionDataContainerType>
-//bool
-//Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
-//                               TimePolicyType,
-//                               ConfigurationType,
-//                               ControlMessageType,
-//                               DataMessageType,
-//                               SessionMessageType,
-//                               ModuleHandlerConfigurationType,
-//                               SessionIdType,
-//                               SessionDataContainerType>::initialize (const ModuleHandlerConfigurationType& configuration_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::initialize"));
-//
-//  configuration_ =
-//      &const_cast<ModuleHandlerConfigurationType&> (configuration_in);
-//
-//  return true;
-//}
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename ModuleHandlerConfigurationType,
-//          typename SessionIdType,
-//          typename SessionDataContainerType>
-//const ModuleHandlerConfigurationType&
-//Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
-//                               TimePolicyType,
-//                               ConfigurationType,
-//                               ControlMessageType,
-//                               DataMessageType,
-//                               SessionMessageType,
-//                               ModuleHandlerConfigurationType,
-//                               SessionIdType,
-//                               SessionDataContainerType>::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::get"));
-//
-//  // sanity check(s)
-//  ACE_ASSERT (configuration_);
-//
-//  return *configuration_;
-//}
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -472,4 +418,43 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid argument (was: %@), continuing\n"),
                 interfaceHandle_in));
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionIdType,
+          typename SessionDataContainerType>
+bool
+Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionIdType,
+                               SessionDataContainerType>::postClone (ACE_Module<ACE_SYNCH_USE,
+                                                                                TimePolicyType>* clone_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_MessageHandler_T::postClone"));
+
+  // sanity check(s)
+  ACE_ASSERT (clone_in);
+
+  OWN_TYPE_T* message_handler_impl_p =
+    dynamic_cast<OWN_TYPE_T*> (clone_in->writer ());
+  if (!message_handler_impl_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("dynamic_cast<Stream_Module_MessageHandler_T> failed, aborting\n")));
+    return false;
+  } // end IF
+
+  message_handler_impl_p->initialize (subscribers_,
+                                      lock_);
+
+  return true;
 }

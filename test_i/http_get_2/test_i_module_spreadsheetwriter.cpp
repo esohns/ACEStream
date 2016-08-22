@@ -26,6 +26,7 @@
 #include "com/sun/star/beans/Optional.hpp"
 #include "com/sun/star/document/MacroExecMode.hpp"
 #include "com/sun/star/frame/FrameSearchFlag.hpp"
+#include "com/sun/star/frame/XComponentLoader.hpp"
 #include "com/sun/star/frame/XStorable.hpp"
 #include "com/sun/star/lang/XComponent.hpp"
 //#include "com/sun/star/registry/XSimpleRegistry.hpp"
@@ -115,6 +116,10 @@ Test_I_Stream_SpreadsheetWriter::Test_I_Stream_SpreadsheetWriter ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_SpreadsheetWriter::Test_I_Stream_SpreadsheetWriter"));
 
+  bool result = inherited::interactionHandler_.set (handler_,
+                                                    uno::UNO_QUERY);
+  ACE_ASSERT (inherited::interactionHandler_.is ());
+  ACE_ASSERT (result);
 }
 
 Test_I_Stream_SpreadsheetWriter::~Test_I_Stream_SpreadsheetWriter ()
@@ -138,15 +143,14 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::mod_);
+  ACE_ASSERT (inherited::configuration_);
 
   ::rtl::OUString filename, working_directory, filename_url;
   ::rtl::OUString absolute_filename_url;
   result_2 = osl_getProcessWorkingDir (&working_directory.pData);
   ACE_ASSERT (result_2 == osl_Process_E_None);
   uno::Sequence<beans::PropertyValue> document_properties;
-  uno::Reference<task::XInteractionHandler> handler_p;
 
   const Test_I_Stream_SessionData_t& session_data_container_r =
     message_inout->get ();
@@ -159,38 +163,27 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_->socketConfiguration);
 
-//      uno::Reference<uno::XInterface> interface_p;
-//      uno::Reference<registry::XSimpleRegistry> registry_p (::cppu::createSimpleRegistry ());
-      //uno::Reference<uno::XComponentContext> component_context_p; // local context
-      //uno::Reference<uno::XComponentContext> component_context_2; // remote context
       uno::Reference<lang::XMultiComponentFactory> multi_component_factory_p; // local
-      //uno::Reference<lang::XMultiComponentFactory> multi_component_factory_2; // remote
-      //uno::Reference<lang::XComponent> component_p;
       std::string connection_string = ACE_TEXT_ALWAYS_CHAR ("uno:socket,host=");
       std::ostringstream converter;
       ::rtl::OUString connection_string_2;
       uno::Reference<bridge::XUnoUrlResolver> url_resolver_p;
-      uno::Reference<frame::XDesktop2> desktop_p;
+      uno::Reference<frame::XComponentLoader> component_loader_p;
       uno::Reference<beans::XPropertySet> property_set_p;
 
       // --> create new frame (see below)
-      ::rtl::OUString target_frame_name (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_FRAME_BLANK));
+      ::rtl::OUString target_frame_name (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_FRAME_BLANK)));
       const char* result_p = NULL;
       sal_Int32 search_flags = frame::FrameSearchFlag::AUTO;
       document_properties.realloc (3);
       document_properties[0].Name =
-          ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_HIDDEN));
+          ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_HIDDEN)));
       document_properties[0].Value <<= true;
       document_properties[1].Name =
-        ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_INTERACTIONHANDLER));
-      result_4 =
-        handler_p.set (static_cast<task::XInteractionHandler*> (&handler_),
-                       uno::UNO_QUERY);
-      ACE_ASSERT (handler_p.is ());
-      ACE_ASSERT (result_4);
-      document_properties[1].Value = makeAny (handler_p);
+        ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_INTERACTIONHANDLER)));
+      document_properties[1].Value = makeAny (inherited::interactionHandler_);
       document_properties[2].Name =
-        ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_MACROEXECCUTIONMODE));
+        ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_MACROEXECCUTIONMODE)));
       document_properties[2].Value <<=
         document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
 
@@ -198,8 +191,8 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       //         work but segfaults in XComponentLoader::loadComponentFromURL()
       //         later on (why ?)
       try {
-        result_4 = inherited::context_.set (::cppu::bootstrap (),
-                                            uno::UNO_QUERY);
+        result_4 = inherited::componentContext_.set (::cppu::bootstrap (),
+                                                     uno::UNO_QUERY);
       } catch (uno::Exception& exception_in) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in ::cppu::bootstrap(): \"%s\", aborting\n"),
@@ -247,11 +240,11 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
   //                                                      OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
   //      goto error;
   //    }
-      ACE_ASSERT (inherited::context_.is ());
+      ACE_ASSERT (inherited::componentContext_.is ());
       ACE_ASSERT (result_4);
 
       result_4 =
-        multi_component_factory_p.set (inherited::context_->getServiceManager (),
+        multi_component_factory_p.set (inherited::componentContext_->getServiceManager (),
                                        uno::UNO_QUERY);
       ACE_ASSERT (multi_component_factory_p.is ());
       ACE_ASSERT (result_4);
@@ -293,8 +286,8 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
       connection_string_2 =
         ::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR (connection_string.c_str ()));
       result_4 =
-        url_resolver_p.set (multi_component_factory_p->createInstanceWithContext (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM ("com.sun.star.bridge.UnoUrlResolver")),
-                                                                                  inherited::context_),
+        url_resolver_p.set (multi_component_factory_p->createInstanceWithContext (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.bridge.UnoUrlResolver"))),
+                                                                                  inherited::componentContext_),
                             uno::UNO_QUERY);
       ACE_ASSERT (url_resolver_p.is ());
       ACE_ASSERT (result_4);
@@ -323,25 +316,21 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                   ACE_TEXT (::rtl::OUStringToOString (connection_string_2,
                                                       RTL_TEXTENCODING_ASCII_US,
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-      //uno::Reference<lang::XComponent>::query (inherited::context_)->dispose ();
-      property_set_p->getPropertyValue (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_DEFAULT_CONTEXT))) >>=
-        inherited::context_;
-      ACE_ASSERT (inherited::context_.is ());
+      property_set_p->getPropertyValue (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_DEFAULT_CONTEXT)))) >>=
+                                        inherited::componentContext_;
+      ACE_ASSERT (inherited::componentContext_.is ());
       result_4 =
-        multi_component_factory_p.set (context_->getServiceManager ());
+        multi_component_factory_p.set (inherited::componentContext_->getServiceManager ());
       ACE_ASSERT (multi_component_factory_p.is ());
       ACE_ASSERT (result_4);
       result_4 =
-        desktop_p.set (frame::Desktop::create (inherited::context_),
-                       uno::UNO_QUERY);
-      //desktop_p.set (multi_component_factory_p->createInstanceWithContext (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM ("com.sun.star.frame.Desktop")),
-      //                                                                     inherited::context_),
-      //               uno::UNO_QUERY);
-      ACE_ASSERT (desktop_p.is ());
+        component_loader_p.set (multi_component_factory_p->createInstanceWithContext (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.frame.Desktop"))),
+                                                                                      inherited::componentContext_),
+                                uno::UNO_QUERY);
+      ACE_ASSERT (component_loader_p.is ());
       ACE_ASSERT (result_4);
-      //uno::Reference<lang::XComponent>::query (multi_component_factory_p)->dispose ();
 
-      handler_.initialize (inherited::context_);
+      handler_.initialize (inherited::componentContext_);
 
       // generate document filename URL
       if (Common_File_Tools::isReadable (inherited::configuration_->fileName))
@@ -361,10 +350,10 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
           ::rtl::OUString::createFromAscii (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_FRAME_SPREADSHEET_NEW)); // <-- new file
       try {
         result_4 =
-            inherited::component_.set (desktop_p->loadComponentFromURL (absolute_filename_url, // URL
-                                                                        target_frame_name,     // target frame name
-                                                                        search_flags,          // search flags
-                                                                        document_properties),  // properties
+            inherited::component_.set (component_loader_p->loadComponentFromURL (absolute_filename_url, // URL
+                                                                                 target_frame_name,     // target frame name
+                                                                                 search_flags,          // search flags
+                                                                                 document_properties),  // properties
                                        uno::UNO_QUERY);
       } catch (uno::Exception& exception_in) {
         ACE_DEBUG ((LM_ERROR,
@@ -398,15 +387,6 @@ Test_I_Stream_SpreadsheetWriter::handleSessionMessage (Test_I_Stream_SessionMess
                                                       RTL_TEXTENCODING_ASCII_US,
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
 
-      // clean up
-      // *TODO*: ::lang::XComponent::dispose crashes the application
-      //result_4 = component_p.set (multi_component_factory_p,
-      //                            uno::UNO_QUERY);
-      //ACE_ASSERT (component_p.is ());
-      //ACE_ASSERT (result_4);
-      //component_p->dispose ();
-      //::uno::Reference<::lang::XComponent>::query (multi_component_factory_p)->dispose ();
-
       break;
 
 error:
@@ -417,7 +397,8 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
       uno::Reference<sheet::XSpreadsheets> spreadsheets_p;
-      uno::Reference<container::XIndexAccess> index_p;
+      //uno::Reference<container::XIndexAccess> index_p;
+      uno::Reference<container::XNameAccess> name_p;
       uno::Any any_p;
       uno::Reference<sheet::XSpreadsheet> sheet_p;
       uno::Reference<frame::XStorable> storable_p;
@@ -439,13 +420,18 @@ error:
       // load worksheet collection
       spreadsheets_p = document_->getSheets ();
       ACE_ASSERT (spreadsheets_p.is ());
-      result_4 = index_p.set (spreadsheets_p,
-                              uno::UNO_QUERY);
+      //result_4 = index_p.set (spreadsheets_p,
+      //                        uno::UNO_QUERY);
+      result_4 = name_p.set (spreadsheets_p,
+                             uno::UNO_QUERY);
       ACE_ASSERT (result_4);
-      ACE_ASSERT (index_p.is ());
+      //ACE_ASSERT (index_p.is ());
+      ACE_ASSERT (name_p.is ());
 
       // load first worksheet
-      any_p = index_p->getByIndex (0);
+      //any_p = index_p->getByIndex (0);
+      any_p =
+        name_p->getByName (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_CALC_DEFAULT_TABLE_NAME))));
       ACE_ASSERT (any_p.hasValue ());
       any_p >>= sheet_p;
       ACE_ASSERT (sheet_p.is ());
@@ -573,12 +559,7 @@ error:
           document_properties[0].Value <<= true;
           document_properties[1].Name =
             ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_INTERACTIONHANDLER));
-          result_4 =
-            handler_p.set (static_cast<task::XInteractionHandler*> (&handler_),
-                           uno::UNO_QUERY);
-          ACE_ASSERT (handler_p.is ());
-          ACE_ASSERT (result_4);
-          document_properties[1].Value = makeAny (handler_p);
+          document_properties[1].Value = makeAny (inherited::interactionHandler_);
         } // end IF
         else
           save_as = false;
@@ -608,8 +589,8 @@ continue_:
 error_2:
       if (inherited::component_.is ())
         inherited::component_->dispose ();
-      //if (inherited::context_.is ())
-      //  uno::Reference<lang::XComponent>::query (inherited::context_)->dispose ();
+      if (inherited::componentContext_.is ())
+        uno::Reference<lang::XComponent>::query (inherited::componentContext_)->dispose ();
 
       break;
     }

@@ -1,13 +1,22 @@
-#ifndef STREAM_MODULE_DEV_COMMON_H
-#define STREAM_MODULE_DEV_COMMON_H
+#ifndef STREAM_MODULE_VIS_COMMON_H
+#define STREAM_MODULE_VIS_COMMON_H
 
-#include "stream_module_dev_defines.h"
+#include "ace/config-lite.h"
 
-struct Stream_Module_Device_CamOptions
+enum Stream_Module_Visualization_Mode
 {
-  inline Stream_Module_Device_CamOptions ()
-  {};
-
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  STREAM_MODULE_VIS_MODE_DIRECT3D = 0,
+  STREAM_MODULE_VIS_MODE_DIRECTSHOW,
+  STREAM_MODULE_VIS_MODE_MEDIAFOUNDATION,
+  STREAM_MODULE_VIS_MODE_GTK_CAIRO,
+#else
+  STREAM_MODULE_VIS_MODE_GTK_CAIRO = 0,
+#endif
+  STREAM_MODULE_VIS_MODE_GTK_PIXBUF,
+  ////////////////////////////////////////
+  STREAM_MODULE_VIS_MODE_MAX,
+  STREAM_MODULE_VIS_MODE_INVALID
 };
 
 #endif

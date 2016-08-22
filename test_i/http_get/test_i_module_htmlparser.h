@@ -62,7 +62,7 @@ structuredErrorCallback (void*,        // user data
 class Test_I_Stream_HTMLParser
  : public Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_Stream_ModuleHandlerConfiguration,
+                                     Test_I_ModuleHandlerConfiguration,
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
@@ -74,8 +74,8 @@ class Test_I_Stream_HTMLParser
   Test_I_Stream_HTMLParser ();
   virtual ~Test_I_Stream_HTMLParser ();
 
-  //// override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const Test_I_Stream_ModuleHandlerConfiguration&);
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const Test_I_ModuleHandlerConfiguration&);
 
   // implement (part of) Stream_ITaskBase_T
 //  virtual void handleDataMessage (Test_I_Stream_Message*&, // data message handle
@@ -86,7 +86,7 @@ class Test_I_Stream_HTMLParser
  private:
   typedef Stream_Module_HTMLParser_T<ACE_MT_SYNCH,
                                      Common_TimePolicy_t,
-                                     Test_I_Stream_ModuleHandlerConfiguration,
+                                     Test_I_ModuleHandlerConfiguration,
                                      ACE_Message_Block,
                                      Test_I_Stream_Message,
                                      Test_I_Stream_SessionMessage,
@@ -102,10 +102,10 @@ class Test_I_Stream_HTMLParser
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Stream_SessionData,                // session data type
-                              Stream_SessionMessageType,                // session event type
-                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_IStreamNotify_t,                   // stream notification interface type
-                              Test_I_Stream_HTMLParser);                // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Stream_SessionData,         // session data type
+                              Stream_SessionMessageType,         // session event type
+                              Test_I_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_IStreamNotify_t,            // stream notification interface type
+                              Test_I_Stream_HTMLParser);         // writer type
 
 #endif

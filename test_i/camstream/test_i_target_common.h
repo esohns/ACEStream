@@ -37,9 +37,9 @@
 #include "strmif.h"
 #else
 //#include "linux/videodev2.h"
+#endif
 
 #include "gtk/gtk.h"
-#endif
 
 #include "stream_control_message.h"
 
@@ -60,15 +60,33 @@
 
 // forward declarations
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+class Test_I_Target_DirectShow_Stream_Message;
+class Test_I_Target_DirectShow_Stream_SessionMessage;
+class Test_I_Target_MediaFoundation_Stream_Message;
+class Test_I_Target_MediaFoundation_Stream_SessionMessage;
 #else
 struct v4l2_window;
 #endif
 class Test_I_Target_Stream_Message;
+class Test_I_Target_Stream_SessionMessage;
+template <typename ConfigurationType,
+          typename ConnectionManagerType>
+class Test_I_Target_SignalHandler_T;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-struct Test_I_Target_MessageData
+struct Test_I_Target_DirectShow_MessageData
 {
-  inline Test_I_Target_MessageData ()
+  inline Test_I_Target_DirectShow_MessageData ()
+   : sample (NULL)
+   , sampleTime (0.0)
+  {};
+
+  IMediaSample* sample;
+  double        sampleTime;
+};
+struct Test_I_Target_MediaFoundation_MessageData
+{
+  inline Test_I_Target_MediaFoundation_MessageData ()
    : sample (NULL)
    , sampleTime (0)
   {};
@@ -78,8 +96,42 @@ struct Test_I_Target_MessageData
 };
 #endif
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_Configuration;
+struct Test_I_Target_DirectShow_StreamConfiguration;
+
+struct Test_I_Target_MediaFoundation_Configuration;
+struct Test_I_Target_MediaFoundation_StreamConfiguration;
+#endif
 struct Test_I_Target_Configuration;
 struct Test_I_Target_StreamConfiguration;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_UserData
+ : Stream_UserData
+{
+  inline Test_I_Target_DirectShow_UserData ()
+   : Stream_UserData ()
+   , configuration (NULL)
+   , streamConfiguration (NULL)
+  {};
+
+  Test_I_Target_DirectShow_Configuration*       configuration;
+  Test_I_Target_DirectShow_StreamConfiguration* streamConfiguration;
+};
+struct Test_I_Target_MediaFoundation_UserData
+ : Stream_UserData
+{
+  inline Test_I_Target_MediaFoundation_UserData ()
+   : Stream_UserData ()
+   , configuration (NULL)
+   , streamConfiguration (NULL)
+  {};
+
+  Test_I_Target_MediaFoundation_Configuration*       configuration;
+  Test_I_Target_MediaFoundation_StreamConfiguration* streamConfiguration;
+};
+#endif
+struct Test_I_Target_V4L2_Configuration;
 struct Test_I_Target_UserData
  : Stream_UserData
 {
@@ -89,21 +141,124 @@ struct Test_I_Target_UserData
    , streamConfiguration (NULL)
   {};
 
-  Test_I_Target_Configuration*       configuration;
+  Test_I_Target_V4L2_Configuration*  configuration;
   Test_I_Target_StreamConfiguration* streamConfiguration;
 };
+
+struct Test_I_Target_SessionData
+ : Test_I_SessionData
+{
+  inline Test_I_Target_SessionData ()
+   : Test_I_SessionData ()
+   , connectionState (NULL)
+   , userData (NULL)
+  {};
+
+  inline Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Test_I_SessionData::operator+= (rhs_in);
+
+    connectionState =
+      (connectionState ? connectionState : rhs_in.connectionState);
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  Test_I_ConnectionState* connectionState;
+  Test_I_Target_UserData* userData;
+};
+typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_SessionData
+ : Test_I_CamStream_DirectShow_SessionData
+{
+  inline Test_I_Target_DirectShow_SessionData ()
+   : Test_I_CamStream_DirectShow_SessionData ()
+   , connectionState (NULL)
+   , userData (NULL)
+  {};
+
+  inline Test_I_Target_DirectShow_SessionData& operator+= (const Test_I_Target_DirectShow_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Test_I_CamStream_DirectShow_SessionData::operator+= (rhs_in);
+
+    connectionState =
+      (connectionState ? connectionState : rhs_in.connectionState);
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  Test_I_Target_DirectShow_ConnectionState* connectionState;
+  Test_I_Target_DirectShow_UserData*        userData;
+};
+typedef Stream_SessionData_T<Test_I_Target_DirectShow_SessionData> Test_I_Target_DirectShow_SessionData_t;
+struct Test_I_Target_MediaFoundation_SessionData
+ : Test_I_CamStream_MediaFoundation_SessionData
+{
+  inline Test_I_Target_MediaFoundation_SessionData ()
+   : Test_I_CamStream_MediaFoundation_SessionData ()
+   , connectionState (NULL)
+   , userData (NULL)
+  {};
+
+  inline Test_I_Target_MediaFoundation_SessionData& operator+= (const Test_I_Target_MediaFoundation_SessionData& rhs_in)
+  {
+    // *NOTE*: the idea is to 'merge' the data
+    Test_I_CamStream_MediaFoundation_SessionData::operator+= (rhs_in);
+
+    connectionState =
+      (connectionState ? connectionState : rhs_in.connectionState);
+    userData = (userData ? userData : rhs_in.userData);
+
+    return *this;
+  }
+
+  Test_I_Target_MediaFoundation_ConnectionState* connectionState;
+  Test_I_Target_MediaFoundation_UserData*        userData;
+};
+typedef Stream_SessionData_T<Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
+#endif
 
 struct Test_I_Target_SocketHandlerConfiguration
  : Net_SocketHandlerConfiguration
 {
   inline Test_I_Target_SocketHandlerConfiguration ()
    : Net_SocketHandlerConfiguration ()
-   ////////////////////////////////////
+   ///////////////////////////////////////
    , userData (NULL)
   {};
 
   Test_I_Target_UserData* userData;
 };
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
+{
+  inline Test_I_Target_DirectShow_SocketHandlerConfiguration ()
+   : Net_SocketHandlerConfiguration ()
+   ///////////////////////////////////////
+   , userData (NULL)
+  {};
+
+  Test_I_Target_DirectShow_UserData* userData;
+};
+struct Test_I_Target_MediaFoundation_SocketHandlerConfiguration
+ : Net_SocketHandlerConfiguration
+{
+  inline Test_I_Target_MediaFoundation_SocketHandlerConfiguration ()
+   : Net_SocketHandlerConfiguration ()
+   ///////////////////////////////////////
+   , userData (NULL)
+  {};
+
+  Test_I_Target_MediaFoundation_UserData* userData;
+};
+#endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 struct Test_I_Target_DirectShow_PinConfiguration
@@ -136,80 +291,138 @@ struct Test_I_Target_ModuleHandlerConfiguration
 {
   inline Test_I_Target_ModuleHandlerConfiguration ()
    : Test_I_CamStream_ModuleHandlerConfiguration ()
-   , area ()
+   , contextID (0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , device ()
-   //, filterCLSID ()
-   //, filterConfiguration (NULL)
-   , format (NULL)
-   , mediaSource (NULL)
-   //, push (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
-   , queue (NULL)
 #else
-   , format ()
-#endif
+   , area ()
    , connection (NULL)
    , connectionManager (NULL)
-   , printProgressDot (false)
+   , format ()
+#endif
+   , queue (NULL)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+   , socketHandlerConfiguration (NULL)
+#endif
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
    , v4l2Window (NULL)
 #endif
    , window (NULL)
+  {};
+
+  guint                                                contextID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-   , windowController (NULL)
+#else
+  GdkRectangle                                         area;
+  Test_I_Target_V4L2_IConnection_t*                    connection; // Net source/IO module
+  Test_I_Target_V4L2_InetConnectionManager_t*          connectionManager; // Net IO module
+  struct v4l2_format                                   format; // splitter module
 #endif
-  {
+  ACE_Message_Queue_Base*                              queue;  // (inbound) buffer queue handle
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    //format =
-    //  static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    //if (!format)
-    //{
-    //  ACE_DEBUG ((LM_CRITICAL,
-    //              ACE_TEXT ("failed to allocate memory, continuing\n")));
-    //} // end IF
-    //else
-    //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+  Test_I_Target_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
+#endif
+  std::string                                          targetFileName; // file writer module
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  struct v4l2_window*                                  v4l2Window;
+#endif
+  GdkWindow*                                           window;
+};
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_ModuleHandlerConfiguration
+ : Test_I_CamStream_ModuleHandlerConfiguration
+{
+  inline Test_I_Target_DirectShow_ModuleHandlerConfiguration ()
+   : Test_I_CamStream_ModuleHandlerConfiguration ()
+   , area ()
+   , builder (NULL)
+   , connection (NULL)
+   , connectionManager (NULL)
+   , contextID (0)
+   , device ()
+   , filterCLSID ()
+   , filterConfiguration (NULL)
+   , format (NULL)
+   , push (MODULE_MISC_DS_WIN32_FILTER_SOURCE_DEFAULT_PUSH)
+   , queue (NULL)
+   , socketHandlerConfiguration (NULL)
+   , window (NULL)
+   , windowController (NULL)
+  {
+    format =
+      static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
+    if (!format)
+    {
+      ACE_DEBUG ((LM_CRITICAL,
+                  ACE_TEXT ("failed to allocate memory, continuing\n")));
+    } // end IF
+    else
+      ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
+  };
+
+  struct tagRECT                                       area;
+  IGraphBuilder*                                       builder;
+  Test_I_Target_DirectShow_IConnection_t*              connection; // Net source/IO module
+  Test_I_Target_DirectShow_InetConnectionManager_t*    connectionManager; // Net IO module
+  guint                                                contextID;
+  std::string                                          device; // FriendlyName
+  Test_I_Target_DirectShow_FilterConfiguration*        filterConfiguration;
+  struct _GUID                                         filterCLSID;
+  struct _AMMediaType*                                 format; // splitter module
+  bool                                                 push; // media sample passing strategy
+  ACE_Message_Queue_Base*                              queue;  // (inbound) buffer queue handle
+  Test_I_Target_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
+  HWND                                                 window;
+  IVideoWindow*                                        windowController;
+};
+struct Test_I_Target_MediaFoundation_ModuleHandlerConfiguration
+ : Test_I_CamStream_ModuleHandlerConfiguration
+{
+  inline Test_I_Target_MediaFoundation_ModuleHandlerConfiguration ()
+   : Test_I_CamStream_ModuleHandlerConfiguration ()
+   , area ()
+   , connection (NULL)
+   , connectionManager (NULL)
+   , contextID (0)
+   , device ()
+   , format (NULL)
+   , mediaSource (NULL)
+   , queue (NULL)
+   //, sourceReader (NULL)
+   , session (NULL)
+   , socketHandlerConfiguration (NULL)
+   , window (NULL)
+   , windowController (NULL)
+  {
     HRESULT result = MFCreateMediaType (&format);
     if (FAILED (result))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
                   ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-#endif
   };
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct tagRECT                                  area;
-  std::string                                     device; // FriendlyName
-  //Test_I_Target_DirectShow_FilterConfiguration*   filterConfiguration;
-  //struct _GUID                                    filterCLSID;
-  //struct _AMMediaType*                            format; // splitter module
-  IMFMediaType*                                   format;
-  IMFMediaSource*                                 mediaSource;
-  //bool                                          push; // media sample passing strategy
-  ACE_Message_Queue_Base*                         queue;  // (inbound) buffer queue handle
-#else
-  GdkRectangle                                    area;
-  struct v4l2_format                              format; // splitter module
-#endif
-  Test_I_Target_IConnection_t*                    connection; // Net source/IO module
-  Test_I_Target_InetConnectionManager_t*          connectionManager; // Net IO module
-  bool                                            printProgressDot;
-  std::string                                     targetFileName; // file writer module
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HWND                                            window;
-  //IVideoWindow*                                   windowController;
-  IMFVideoDisplayControl*                         windowController;
-#else
-  struct v4l2_window*                             v4l2Window;
-  GdkWindow*                                      window;
-#endif
+  struct tagRECT                                            area;
+  Test_I_Target_MediaFoundation_IConnection_t*              connection; // Net source/IO module
+  Test_I_Target_MediaFoundation_InetConnectionManager_t*    connectionManager; // Net IO module
+  guint                                                     contextID;
+  std::string                                               device; // FriendlyName
+  IMFMediaType*                                             format;
+  IMFMediaSource*                                           mediaSource;
+  ACE_Message_Queue_Base*                                   queue;  // (inbound) buffer queue handle
+  //IMFSourceReaderEx*                                        sourceReader;
+  IMFMediaSession*                                          session;
+  Test_I_Target_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;
+  HWND                                                      window;
+  IMFVideoDisplayControl*                                   windowController;
 };
+#endif
 
-struct Test_I_Target_ListenerConfiguration
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_ListenerConfiguration
 {
-  inline Test_I_Target_ListenerConfiguration ()
+  inline Test_I_Target_DirectShow_ListenerConfiguration ()
    : address (TEST_I_DEFAULT_PORT, static_cast<ACE_UINT32> (INADDR_ANY))
    , addressFamily (ACE_ADDRESS_FAMILY_INET)
    , connectionManager (NULL)
@@ -219,164 +432,185 @@ struct Test_I_Target_ListenerConfiguration
    , useLoopBackDevice (false)
   {};
 
-  ACE_INET_Addr                             address;
-  int                                       addressFamily;
-  Test_I_Target_IInetConnectionManager_t*   connectionManager;
-  Stream_IAllocator*                        messageAllocator;
-  Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
-  ACE_Time_Value                            statisticReportingInterval; // [ACE_Time_Value::zero: off]
-  bool                                      useLoopBackDevice;
+  ACE_INET_Addr                                        address;
+  int                                                  addressFamily;
+  Test_I_Target_DirectShow_InetConnectionManager_t*    connectionManager;
+  Stream_IAllocator*                                   messageAllocator;
+  Test_I_Target_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
+  ACE_Time_Value                                       statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  bool                                                 useLoopBackDevice;
 };
+typedef Net_IListener_T<Test_I_Target_DirectShow_ListenerConfiguration,
+                        Test_I_Target_DirectShow_SocketHandlerConfiguration> Test_I_Target_DirectShow_IListener_t;
 
-typedef Net_IListener_T<Test_I_Target_ListenerConfiguration,
-                        Test_I_Target_SocketHandlerConfiguration> Test_I_Target_IListener_t;
+struct Test_I_Target_MediaFoundation_ListenerConfiguration
+{
+  inline Test_I_Target_MediaFoundation_ListenerConfiguration ()
+   : address (TEST_I_DEFAULT_PORT, static_cast<ACE_UINT32> (INADDR_ANY))
+   , addressFamily (ACE_ADDRESS_FAMILY_INET)
+   , connectionManager (NULL)
+   , messageAllocator (NULL)
+   , socketHandlerConfiguration (NULL)
+   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
+   , useLoopBackDevice (false)
+  {};
 
-struct Test_I_Target_SignalHandlerConfiguration
+  ACE_INET_Addr                                             address;
+  int                                                       addressFamily;
+  Test_I_Target_MediaFoundation_InetConnectionManager_t*    connectionManager;
+  Stream_IAllocator*                                        messageAllocator;
+  Test_I_Target_MediaFoundation_SocketHandlerConfiguration* socketHandlerConfiguration;
+  ACE_Time_Value                                            statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  bool                                                      useLoopBackDevice;
+};
+typedef Net_IListener_T<Test_I_Target_MediaFoundation_ListenerConfiguration,
+                        Test_I_Target_MediaFoundation_SocketHandlerConfiguration> Test_I_Target_MediaFoundation_IListener_t;
+#else
+struct Test_I_Target_V4L2_ListenerConfiguration
+{
+  inline Test_I_Target_V4L2_ListenerConfiguration ()
+   : address (TEST_I_DEFAULT_PORT, static_cast<ACE_UINT32> (INADDR_ANY))
+   , addressFamily (ACE_ADDRESS_FAMILY_INET)
+   , connectionManager (NULL)
+   , messageAllocator (NULL)
+   , socketHandlerConfiguration (NULL)
+   , statisticReportingInterval (NET_STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL, 0)
+   , useLoopBackDevice (false)
+  {};
+
+  ACE_INET_Addr                               address;
+  int                                         addressFamily;
+  Test_I_Target_V4L2_InetConnectionManager_t* connectionManager;
+  Stream_IAllocator*                          messageAllocator;
+  Test_I_Target_SocketHandlerConfiguration*   socketHandlerConfiguration;
+  ACE_Time_Value                              statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  bool                                        useLoopBackDevice;
+};
+typedef Net_IListener_T<Test_I_Target_V4L2_ListenerConfiguration,
+                        Test_I_Target_SocketHandlerConfiguration> Test_I_Target_V4L2_IListener_t;
+#endif
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
-  inline Test_I_Target_SignalHandlerConfiguration ()
+  inline Test_I_Target_DirectShow_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
    , listener (NULL)
    , statisticReportingHandler (NULL)
    , statisticReportingTimerID (-1)
   {};
 
-  Test_I_Target_IListener_t*          listener;
+  Test_I_Target_DirectShow_IListener_t* listener;
+  Test_I_StatisticReportingHandler_t*   statisticReportingHandler;
+  long                                  statisticReportingTimerID;
+};
+typedef Test_I_Target_SignalHandler_T<Test_I_Target_DirectShow_SignalHandlerConfiguration,
+                                      Test_I_Target_DirectShow_InetConnectionManager_t> Test_I_Target_DirectShow_SignalHandler_t;
+struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
+{
+  inline Test_I_Target_MediaFoundation_SignalHandlerConfiguration ()
+   : Common_SignalHandlerConfiguration ()
+   , listener (NULL)
+   , statisticReportingHandler (NULL)
+   , statisticReportingTimerID (-1)
+  {};
+
+  Test_I_Target_MediaFoundation_IListener_t* listener;
+  Test_I_StatisticReportingHandler_t*        statisticReportingHandler;
+  long                                       statisticReportingTimerID;
+};
+typedef Test_I_Target_SignalHandler_T<Test_I_Target_MediaFoundation_SignalHandlerConfiguration,
+                                      Test_I_Target_MediaFoundation_InetConnectionManager_t> Test_I_Target_MediaFoundation_SignalHandler_t;
+#else
+struct Test_I_Target_V4L2_SignalHandlerConfiguration
+ : Common_SignalHandlerConfiguration
+{
+  inline Test_I_Target_V4L2_SignalHandlerConfiguration ()
+   : Common_SignalHandlerConfiguration ()
+   , listener (NULL)
+   , statisticReportingHandler (NULL)
+   , statisticReportingTimerID (-1)
+  {};
+
+  Test_I_Target_V4L2_IListener_t*     listener;
   Test_I_StatisticReportingHandler_t* statisticReportingHandler;
   long                                statisticReportingTimerID;
 };
-
-struct Test_I_Target_SessionData
- : Test_I_CamStream_SessionData
-{
-  inline Test_I_Target_SessionData ()
-   : Test_I_CamStream_SessionData ()
-   , connectionState (NULL)
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//   , direct3DDevice (NULL)
-//   , format (NULL)
-//   , resetToken (0)
-//#else
-//   , format ()
-//#endif
-   , targetFileName ()
-   , userData (NULL)
-  {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    //format =
-    //  static_cast<struct _AMMediaType*> (CoTaskMemAlloc (sizeof (struct _AMMediaType)));
-    //if (!format)
-    //{
-    //  ACE_DEBUG ((LM_CRITICAL,
-    //              ACE_TEXT ("failed to allocate memory, continuing\n")));
-    //} // end IF
-    //else
-    //  ACE_OS::memset (format, 0, sizeof (struct _AMMediaType));
-    //HRESULT result = MFCreateMediaType (&format);
-    //if (FAILED (result))
-    //  ACE_DEBUG ((LM_ERROR,
-    //              ACE_TEXT ("failed to MFCreateMediaType(): \"%s\", continuing\n"),
-    //              ACE_TEXT (Common_Tools::error2String (result).c_str ())));
+typedef Test_I_Target_SignalHandler_T<Test_I_Target_V4L2_SignalHandlerConfiguration,
+                                      Test_I_Target_V4L2_InetConnectionManager_t> Test_I_Target_V4L2_SignalHandler_t;
 #endif
-  };
 
-  inline Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
-  {
-    // *NOTE*: the idea is to 'merge' the data
-    Test_I_SessionData::operator+= (rhs_in);
-
-    connectionState = (connectionState ? connectionState : rhs_in.connectionState);
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//    // sanity check(s)
-//    ACE_ASSERT (rhs_in.format);
-//
-//    if (format)
-//    {
-//      format->Release ();
-//      format = NULL;
-//    } // end IF
-//
-//    //if (!Stream_Module_Device_Tools::copyMediaType (*rhs_in.format,
-//    //                                                format))
-//    //  ACE_DEBUG ((LM_ERROR,
-//    //              ACE_TEXT ("failed to Stream_Module_Device_Tools::copyMediaType(), continuing\n")));
-//    struct _AMMediaType media_type;
-//    ACE_OS::memset (&media_type, 0, sizeof (media_type));
-//    HRESULT result = MFInitAMMediaTypeFromMFMediaType (rhs_in.format,
-//                                                       GUID_NULL,
-//                                                       &media_type);
-//    if (FAILED (result))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to MFInitAMMediaTypeFromMFMediaType(): \"%s\", continuing\n"),
-//                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//      goto continue_;
-//    } // end IF
-//
-//    result = MFInitMediaTypeFromAMMediaType (format,
-//                                             &media_type);
-//    if (FAILED (result))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to MFInitMediaTypeFromAMMediaType(): \"%s\", continuing\n"),
-//                  ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-//
-//      // clean up
-//      Stream_Module_Device_Tools::freeMediaType (media_type);
-//
-//      goto continue_;
-//    } // end IF
-//
-//    // clean up
-//    Stream_Module_Device_Tools::freeMediaType (media_type);
-//continue_:
-//#else
-//    format = rhs_in.format;
-//#endif
-    targetFileName = (targetFileName.empty () ? rhs_in.targetFileName
-                                              : targetFileName);
-    userData = (userData ? userData : rhs_in.userData);
-
-    return *this;
-  }
-
-  Test_I_Target_ConnectionState* connectionState;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  //struct _AMMediaType*           format;
-//  IDirect3DDevice9Ex*            direct3DDevice;
-//  IMFMediaType*                  format;
-//  UINT                           resetToken; // direct 3D manager 'id'
-//#else
-//  struct v4l2_format             format;
-//#endif
-  std::string                    targetFileName;
-  Test_I_Target_UserData*        userData;
-};
-typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
-
-struct Test_I_Target_StreamConfiguration
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_StreamConfiguration
  : Stream_Configuration
 {
-  inline Test_I_Target_StreamConfiguration ()
+  inline Test_I_Target_DirectShow_StreamConfiguration ()
    : Stream_Configuration ()
-   //, graphBuilder (NULL)
+   , graphBuilder (NULL)
    , moduleHandlerConfiguration (NULL)
-   //, window (NULL)
+   , window (NULL)
   {};
 
-  //IGraphBuilder*                                   graphBuilder;
+  IGraphBuilder*                                       graphBuilder;
+  Test_I_Target_DirectShow_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  HWND                                                 window;
+};
+struct Test_I_Target_MediaFoundation_StreamConfiguration
+  : Stream_Configuration
+{
+  inline Test_I_Target_MediaFoundation_StreamConfiguration ()
+    : Stream_Configuration ()
+    , moduleHandlerConfiguration (NULL)
+  {};
+
+  Test_I_Target_MediaFoundation_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+};
+#endif
+struct Test_I_Target_StreamConfiguration
+ : Test_I_StreamConfiguration
+{
+  inline Test_I_Target_StreamConfiguration ()
+   : Test_I_StreamConfiguration ()
+   , moduleHandlerConfiguration (NULL)
+   , window (NULL)
+  {};
+
   Test_I_Target_ModuleHandlerConfiguration* moduleHandlerConfiguration;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  HWND                                             window;
-//#else
-//  GdkWindow*                                       window;
-//#endif
+  GdkWindow*                                window;
 };
 
-struct Test_I_Target_StreamState
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_StreamState
  : Stream_State
 {
-  inline Test_I_Target_StreamState ()
+  inline Test_I_Target_DirectShow_StreamState ()
+   : Stream_State ()
+   , currentSessionData (NULL)
+   , userData (NULL)
+  {};
+
+  Test_I_Target_DirectShow_SessionData* currentSessionData;
+  Test_I_Target_DirectShow_UserData*    userData;
+};
+struct Test_I_Target_MediaFoundation_StreamState
+ : Stream_State
+{
+  inline Test_I_Target_MediaFoundation_StreamState ()
+   : Stream_State ()
+   , currentSessionData (NULL)
+   , userData (NULL)
+  {};
+
+  Test_I_Target_MediaFoundation_SessionData* currentSessionData;
+  Test_I_Target_MediaFoundation_UserData*    userData;
+};
+#else
+struct Test_I_Target_V4L2_StreamState
+ : Stream_State
+{
+  inline Test_I_Target_V4L2_StreamState ()
    : Stream_State ()
    , currentSessionData (NULL)
    , userData (NULL)
@@ -385,57 +619,127 @@ struct Test_I_Target_StreamState
   Test_I_Target_SessionData* currentSessionData;
   Test_I_Target_UserData*    userData;
 };
+#endif
 
-struct Test_I_Target_Configuration
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_Configuration
  : Test_I_CamStream_Configuration
 {
-  inline Test_I_Target_Configuration ()
+  inline Test_I_Target_DirectShow_Configuration ()
    : Test_I_CamStream_Configuration ()
    , socketHandlerConfiguration ()
    , handle (ACE_INVALID_HANDLE)
    //, listener (NULL)
    , listenerConfiguration ()
    , signalHandlerConfiguration ()
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-   //, pinConfiguration ()
-   //, filterConfiguration ()
-#endif
+   , pinConfiguration ()
+   , filterConfiguration ()
    , moduleHandlerConfiguration ()
    , streamConfiguration ()
    , userData ()
   {};
 
   // **************************** socket data **********************************
-  Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
+  Test_I_Target_DirectShow_SocketHandlerConfiguration socketHandlerConfiguration;
   // **************************** listener data ********************************
-  ACE_HANDLE                               handle;
+  ACE_HANDLE                                          handle;
   //Test_I_Target_IListener_t*               listener;
-  Test_I_Target_ListenerConfiguration      listenerConfiguration;
+  Test_I_Target_DirectShow_ListenerConfiguration      listenerConfiguration;
   // **************************** signal data **********************************
-  Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
+  Test_I_Target_DirectShow_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //Test_I_Target_DirectShow_PinConfiguration       pinConfiguration;
-  //Test_I_Target_DirectShow_FilterConfiguration    filterConfiguration;
-#endif
-  Test_I_Target_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  Test_I_Target_StreamConfiguration        streamConfiguration;
+  Test_I_Target_DirectShow_PinConfiguration           pinConfiguration;
+  Test_I_Target_DirectShow_FilterConfiguration        filterConfiguration;
+  Test_I_Target_DirectShow_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  Test_I_Target_DirectShow_StreamConfiguration        streamConfiguration;
 
-  Test_I_Target_UserData                   userData;
+  Test_I_Target_DirectShow_UserData                   userData;
 };
+struct Test_I_Target_MediaFoundation_Configuration
+ : Test_I_CamStream_Configuration
+{
+  inline Test_I_Target_MediaFoundation_Configuration ()
+   : Test_I_CamStream_Configuration ()
+   , mediaFoundationConfiguration ()
+   , signalHandlerConfiguration ()
+   , socketHandlerConfiguration ()
+   , handle (ACE_INVALID_HANDLE)
+   //, listener (NULL)
+   , listenerConfiguration ()
+   , moduleHandlerConfiguration ()
+   , streamConfiguration ()
+   , userData ()
+  {};
 
-//struct Test_I_Target_AllocatorConfiguration
-// : Stream_AllocatorConfiguration
-//{
-//  inline Test_I_Target_AllocatorConfiguration ()
-//   : Stream_AllocatorConfiguration ()
-//  {
-//    // *NOTE*: this facilitates (message block) data buffers to be scanned with
-//    //         'flex's yy_scan_buffer() method
-//    buffer = STREAM_DECODER_FLEX_BUFFER_BOUNDARY_SIZE;
-//  };
-//};
+  // **************************** media foundation *****************************
+  Test_I_MediaFoundationConfiguration                      mediaFoundationConfiguration;
+  // **************************** signal data **********************************
+  Test_I_Target_MediaFoundation_SignalHandlerConfiguration signalHandlerConfiguration;
+  // **************************** socket data **********************************
+  Test_I_Target_MediaFoundation_SocketHandlerConfiguration socketHandlerConfiguration;
+  // **************************** listener data ********************************
+  ACE_HANDLE                                               handle;
+  //Test_I_Target_IListener_t*                             listener;
+  Test_I_Target_MediaFoundation_ListenerConfiguration      listenerConfiguration;
+  // **************************** stream data **********************************
+  Test_I_Target_MediaFoundation_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  Test_I_Target_MediaFoundation_StreamConfiguration        streamConfiguration;
 
+  Test_I_Target_MediaFoundation_UserData                   userData;
+};
+#else
+struct Test_I_Target_V4L2_Configuration
+  : Test_I_CamStream_Configuration
+{
+  inline Test_I_Target_V4L2_Configuration ()
+    : Test_I_CamStream_Configuration ()
+    , socketHandlerConfiguration ()
+    , handle (ACE_INVALID_HANDLE)
+    //, listener (NULL)
+    , listenerConfiguration ()
+    , signalHandlerConfiguration ()
+    , moduleHandlerConfiguration ()
+    , streamConfiguration ()
+    , userData ()
+  {};
+
+  // **************************** socket data **********************************
+  Test_I_Target_SocketHandlerConfiguration      socketHandlerConfiguration;
+  // **************************** listener data ********************************
+  ACE_HANDLE                                    handle;
+  //Test_I_Target_IListener_t*               listener;
+  Test_I_Target_V4L2_ListenerConfiguration      listenerConfiguration;
+  // **************************** signal data **********************************
+  Test_I_Target_V4L2_SignalHandlerConfiguration signalHandlerConfiguration;
+  // **************************** stream data **********************************
+  Test_I_Target_ModuleHandlerConfiguration      moduleHandlerConfiguration;
+  Test_I_Target_StreamConfiguration             streamConfiguration;
+
+  Test_I_Target_UserData                        userData;
+};
+#endif
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Stream_AllocatorConfiguration,
+                                Test_I_Target_DirectShow_Stream_Message,
+                                Test_I_Target_DirectShow_Stream_SessionMessage> Test_I_Target_DirectShow_ControlMessage_t;
+
+typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+                                          Test_I_Target_DirectShow_ControlMessage_t,
+                                          Test_I_Target_DirectShow_Stream_Message,
+                                          Test_I_Target_DirectShow_Stream_SessionMessage> Test_I_Target_DirectShow_MessageAllocator_t;
+
+typedef Stream_ControlMessage_T<Stream_ControlMessageType,
+                                Stream_AllocatorConfiguration,
+                                Test_I_Target_MediaFoundation_Stream_Message,
+                                Test_I_Target_MediaFoundation_Stream_SessionMessage> Test_I_Target_MediaFoundation_ControlMessage_t;
+
+typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+                                          Test_I_Target_MediaFoundation_ControlMessage_t,
+                                          Test_I_Target_MediaFoundation_Stream_Message,
+                                          Test_I_Target_MediaFoundation_Stream_SessionMessage> Test_I_Target_MediaFoundation_MessageAllocator_t;
+#endif
 typedef Stream_ControlMessage_T<Stream_ControlMessageType,
                                 Stream_AllocatorConfiguration,
                                 Test_I_Target_Stream_Message,
@@ -446,20 +750,42 @@ typedef Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
                                           Test_I_Target_Stream_Message,
                                           Test_I_Target_Stream_SessionMessage> Test_I_Target_MessageAllocator_t;
 
+//////////////////////////////////////////
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    Test_I_Target_DirectShow_SessionData,
+                                    Stream_SessionMessageType,
+                                    Test_I_Target_DirectShow_Stream_Message,
+                                    Test_I_Target_DirectShow_Stream_SessionMessage> Test_I_Target_DirectShow_ISessionNotify_t;
+typedef std::list<Test_I_Target_DirectShow_ISessionNotify_t*> Test_I_Target_DirectShow_Subscribers_t;
+typedef Test_I_Target_DirectShow_Subscribers_t::iterator Test_I_Target_DirectShow_SubscribersIterator_t;
+typedef Common_ISubscribe_T<Test_I_Target_DirectShow_ISessionNotify_t> Test_I_Target_DirectShow_ISubscribe_t;
+
+typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
+                                    Test_I_Target_MediaFoundation_SessionData,
+                                    Stream_SessionMessageType,
+                                    Test_I_Target_MediaFoundation_Stream_Message,
+                                    Test_I_Target_MediaFoundation_Stream_SessionMessage> Test_I_Target_MediaFoundation_ISessionNotify_t;
+typedef std::list<Test_I_Target_MediaFoundation_ISessionNotify_t*> Test_I_Target_MediaFoundation_Subscribers_t;
+typedef Test_I_Target_MediaFoundation_Subscribers_t::iterator Test_I_Target_MediaFoundation_SubscribersIterator_t;
+typedef Common_ISubscribe_T<Test_I_Target_MediaFoundation_ISessionNotify_t> Test_I_Target_MediaFoundation_ISubscribe_t;
+#else
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     Test_I_Target_SessionData,
                                     Stream_SessionMessageType,
-                                    Test_I_Target_Stream_Message,
-                                    Test_I_Target_Stream_SessionMessage> Test_I_Target_ISessionNotify_t;
-typedef std::list<Test_I_Target_ISessionNotify_t*> Test_I_Target_Subscribers_t;
-typedef Test_I_Target_Subscribers_t::iterator Test_I_Target_SubscribersIterator_t;
+                                    Test_I_Target_V4L2_Stream_Message,
+                                    Test_I_Target_V4L2_Stream_SessionMessage> Test_I_Target_V4L2_ISessionNotify_t;
+typedef std::list<Test_I_Target_V4L2_ISessionNotify_t*> Test_I_Target_V4L2_Subscribers_t;
+typedef Test_I_Target_V4L2_Subscribers_t::iterator Test_I_Target_V4L2_SubscribersIterator_t;
+typedef Common_ISubscribe_T<Test_I_Target_V4L2_ISessionNotify_t> Test_I_Target_V4L2_ISubscribe_t;
+#endif
 
-typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubscribe_t;
-
-struct Test_I_Target_GTK_CBData
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+struct Test_I_Target_DirectShow_GTK_CBData
  : Test_I_CamStream_GTK_CBData
 {
-  inline Test_I_Target_GTK_CBData ()
+  inline Test_I_Target_DirectShow_GTK_CBData ()
    : Test_I_CamStream_GTK_CBData ()
    , configuration (NULL)
    , progressEventSourceID (0)
@@ -467,10 +793,44 @@ struct Test_I_Target_GTK_CBData
    , subscribersLock ()
   {};
 
-  Test_I_Target_Configuration* configuration;
-  guint                        progressEventSourceID;
-  Test_I_Target_Subscribers_t  subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX    subscribersLock;
+  Test_I_Target_DirectShow_Configuration* configuration;
+  guint                                   progressEventSourceID;
+  Test_I_Target_DirectShow_Subscribers_t  subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX               subscribersLock;
 };
+struct Test_I_Target_MediaFoundation_GTK_CBData
+ : Test_I_CamStream_GTK_CBData
+{
+  inline Test_I_Target_MediaFoundation_GTK_CBData ()
+   : Test_I_CamStream_GTK_CBData ()
+   , configuration (NULL)
+   , progressEventSourceID (0)
+   , subscribers ()
+   , subscribersLock ()
+  {};
+
+  Test_I_Target_MediaFoundation_Configuration* configuration;
+  guint                                        progressEventSourceID;
+  Test_I_Target_MediaFoundation_Subscribers_t  subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX                    subscribersLock;
+};
+#else
+struct Test_I_Target_V4L2_GTK_CBData
+ : Test_I_CamStream_GTK_CBData
+{
+  inline Test_I_Target_V4L2_GTK_CBData ()
+   : Test_I_CamStream_GTK_CBData ()
+   , configuration (NULL)
+   , progressEventSourceID (0)
+   , subscribers ()
+   , subscribersLock ()
+  {};
+
+  Test_I_Target_V4L2_Configuration* configuration;
+  guint                             progressEventSourceID;
+  Test_I_Target_V4L2_Subscribers_t  subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX         subscribersLock;
+};
+#endif
 
 #endif

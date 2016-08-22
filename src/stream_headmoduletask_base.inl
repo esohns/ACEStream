@@ -484,11 +484,13 @@ Stream_HeadModuleTaskBase_T<LockType,
 
   int                    error           = -1;
   bool                   has_finished    = false;
-  int                    result          = -1;
   ACE_Message_Block*     message_block_p = NULL;
-  bool                   stop_processing = false;
-  const SessionDataType& session_data_r  = inherited2::sessionData_->get ();
   bool                   release_lock    = false;
+  int                    result          = -1;
+  const SessionDataType& session_data_r  = inherited2::sessionData_->get ();
+  bool                   stop_processing = false;
+  //ACE_hthread_t          thread_handle   = ACE_INVALID_HANDLE;
+  //ACE_OS::thr_self (thread_handle);
 
   // step1: start processing data
   do
@@ -510,8 +512,7 @@ Stream_HeadModuleTaskBase_T<LockType,
         if (!has_finished)
         {
           has_finished = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
+          // enqueue(/process) STREAM_SESSION_END
           inherited::finished ();
         } // end IF
 
@@ -535,13 +536,11 @@ Stream_HeadModuleTaskBase_T<LockType,
         if (!has_finished)
         {
           has_finished = true;
-          // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-          //         --> continue
+          // enqueue(/process) STREAM_SESSION_END
           inherited::finished ();
 
-          // *NOTE*: (if passive,) STREAM_SESSION_END has been processed
-          //         --> done
-          if (inherited2::thr_count_ == 0) goto done; // finished processing
+          // has STREAM_SESSION_END been processed ? --> done
+          if (!inherited2::thr_count_ && !runSvcOnStart_) goto done;
 
           continue; // process STREAM_SESSION_END
         } // end IF
@@ -574,8 +573,7 @@ done:
           if (!has_finished)
           {
             has_finished = true;
-            // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-            //         --> continue
+            // enqueue(/process) STREAM_SESSION_END
             inherited::finished ();
           } // end IF
 
@@ -600,8 +598,7 @@ done:
                     ACE_TEXT ("session aborted\n")));
 
         has_finished = true;
-        // *NOTE*: (if active,) this enqueues STREAM_SESSION_END
-        //         --> continue
+        // enqueue(/process) STREAM_SESSION_END
         inherited::finished ();
       } // end IF
     } // end lock scope

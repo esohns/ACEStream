@@ -376,34 +376,49 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                 messageBlock_in));
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionIdType,
-          typename SessionEventType>
-void
-Stream_TaskBase_T<ACE_SYNCH_USE,
-                  TimePolicyType,
-                  ConfigurationType,
-                  ControlMessageType,
-                  DataMessageType,
-                  SessionMessageType,
-                  SessionIdType,
-                  SessionEventType>::dump_state () const
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::dump_state"));
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionIdType,
+//          typename SessionEventType>
+//bool
+//Stream_TaskBase_T<ACE_SYNCH_USE,
+//                  TimePolicyType,
+//                  ConfigurationType,
+//                  ControlMessageType,
+//                  DataMessageType,
+//                  SessionMessageType,
+//                  SessionIdType,
+//                  SessionEventType>::postClone ()
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::postClone"));
+//
+//}
 
-//   if (inherited::mod_)
-//     ACE_DEBUG ((LM_WARNING,
-//                 ACE_TEXT (" ***** MODULE: \"%s\" has not implemented the dump_state() API *****\n"),
-//                 inherited::mod_->name ()));
-//   else
-//     ACE_DEBUG ((LM_WARNING,
-//                 ACE_TEXT ("dump_state() API not implemented\n")));
-}
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename SessionIdType,
+//          typename SessionEventType>
+//void
+//Stream_TaskBase_T<ACE_SYNCH_USE,
+//                  TimePolicyType,
+//                  ConfigurationType,
+//                  ControlMessageType,
+//                  DataMessageType,
+//                  SessionMessageType,
+//                  SessionIdType,
+//                  SessionEventType>::dump_state () const
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::dump_state"));
+//
+//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

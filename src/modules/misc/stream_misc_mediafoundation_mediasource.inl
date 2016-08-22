@@ -30,14 +30,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::CreateInstance (IUnknown* parent_in,
                                                                       REFIID interfaceID_in,
                                                                       void** interface_out)
@@ -92,13 +90,11 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::Stream_Misc_MediaFoundation_MediaSource_T (HRESULT* result_out)
  : eventQueue_ (NULL)
 //, hasCOMReference_ (false)
@@ -124,13 +120,11 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::~Stream_Misc_MediaFoundation_MediaSource_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::~Stream_Misc_MediaFoundation_MediaSource_T"));
@@ -154,14 +148,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::QueryInterface (REFIID IID_in,
                                                                       void** interface_out)
 {
@@ -183,14 +175,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 ULONG
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::AddRef ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::AddRef"));
@@ -201,14 +191,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 ULONG
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::Release ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::Release"));
@@ -224,14 +212,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::BeginGetEvent (IMFAsyncCallback* asynchCallback_in,
                                                                      IUnknown* state_in)
 {
@@ -257,14 +243,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::EndGetEvent (IMFAsyncResult* asynchResult_in,
                                                                    IMFMediaEvent** event_out)
 {
@@ -291,14 +275,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::GetEvent (DWORD flags_in,
                                                                 IMFMediaEvent** event_out)
 {
@@ -335,14 +317,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::QueueEvent (MediaEventType type_in,
                                                                   REFGUID extendedType_in,
                                                                   HRESULT status_in,
@@ -374,14 +354,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::GetCharacteristics (DWORD* characteristics_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::GetCharacteristics"));
@@ -396,14 +374,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::CreatePresentationDescriptor (IMFPresentationDescriptor** presentationDescriptor_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::CreatePresentationDescriptor"));
@@ -418,14 +394,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::Start (IMFPresentationDescriptor* presentationDescriptor_in,
                                                              const GUID* timeFormat_in,
                                                              const PROPVARIANT* startPosition_in)
@@ -444,14 +418,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::Stop (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::Stop"));
@@ -464,14 +436,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::Pause (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::Pause"));
@@ -484,14 +454,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::Shutdown (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::Shutdown"));
@@ -505,14 +473,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::GetSourceAttributes (IMFAttributes** attributes_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::GetSourceAttributes"));
@@ -527,14 +493,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::GetStreamAttributes (DWORD streamIdentifier_in,
                                                                            IMFAttributes** attributes_out)
 {
@@ -551,14 +515,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 HRESULT
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::SetD3DManager (IUnknown* Direct3DManager_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::SetD3DManager"));
@@ -574,14 +536,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 bool
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::Stream_Misc_MediaFoundation_MediaSource_T::initialize (const ConfigurationType& configuration_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::initialize"));
@@ -595,14 +555,12 @@ template <typename TimePolicyType,
           typename SessionMessageType,
           typename ProtocolMessageType,
           typename ConfigurationType,
-          typename PinConfigurationType,
           typename MediaType>
 void
 Stream_Misc_MediaFoundation_MediaSource_T<TimePolicyType,
                                           SessionMessageType,
                                           ProtocolMessageType,
                                           ConfigurationType,
-                                          PinConfigurationType,
                                           MediaType>::operator delete (void* pointer_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Misc_MediaFoundation_MediaSource_T::operator delete"));

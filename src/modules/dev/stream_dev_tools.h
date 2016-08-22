@@ -21,6 +21,8 @@
 #ifndef STREAM_MODULE_DEV_TOOLS_H
 #define STREAM_MODULE_DEV_TOOLS_H
 
+#include "ace/config-lite.h"
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include <list>
 #include <map>
@@ -34,10 +36,13 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "d3d9.h"
 #include "dxva2api.h"
+
 #include "mfapi.h"
 #include "mfidl.h"
 #include "mfreadwrite.h"
+
 #include "strmif.h"
+#include "mtype.h"
 #else
 #include "linux/videodev2.h"
 #endif
@@ -118,6 +123,24 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                TOPOID,          // node identifier
                                IMFMediaType*&); // return value: media type
 
+  static bool getDirect3DDevice (const HWND,                      // target window handle
+                                 const struct _AMMediaType&,      // media format handle
+                                 IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
+                                 struct _D3DPRESENT_PARAMETERS_&, // return value: Direct3D presentation parameters
+                                 IDirect3DDeviceManager9*&,       // return value: Direct3D device manager handle
+                                 UINT&);                          // return value: reset token
+  static bool initializeDirect3DManager (const IDirect3DDevice9Ex*, // Direct3D device handle
+                                         IDirect3DDeviceManager9*&, // return value: Direct3D device manager handle
+                                         UINT&);                    // return value: reset token
+
+  static bool getMediaSource (const std::string&, // device ("FriendlyName")
+                              IMFMediaSource*&,   // return value: media device handle
+                              WCHAR*&,            // return value: symbolic link
+                              UINT32&);           // return value: symbolic link size
+  static bool getMediaSource (const IMFMediaSession*, // media session handle
+                              IMFMediaSource*&);      // return value: media source handle
+  static bool getMediaSource (const IMFTopology*, // topology handle
+                              IMFMediaSource*&);  // return value: media source handle
   //// *TODO*: using the Direct3D device manager (used by the EVR renderer) is
   ////         currently broken
   ////         --> pass NULL and use a different visualization module (e.g. the
@@ -129,23 +152,8 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   //                             const IMFSourceReaderCallback*, // callback handle
   //                             bool,                           // capture media type is YUV ?
   //                             IMFSourceReaderEx*&);           // return value: source reader handle
-  static bool getMediaSource (const std::string&, // device ("FriendlyName")
-                              IMFMediaSource*&,   // return value: media device handle
-                              WCHAR*&,            // return value: symbolic link
-                              UINT32&);           // return value: symbolic link size
-  static bool getMediaSource (const IMFMediaSession*, // media session handle
-                              IMFMediaSource*&);      // return value: media source handle
-  static bool getMediaSource (const IMFTopology*, // topology handle
-                              IMFMediaSource*&);  // return value: media source handle
-  static bool getDirect3DDevice (const HWND,                      // target window handle
-                                 const IMFMediaType*,             // media format handle
-                                 IDirect3DDevice9Ex*&,            // return value: Direct3D device handle
-                                 struct _D3DPRESENT_PARAMETERS_&, // return value: Direct3D presentation parameters
-                                 IDirect3DDeviceManager9*&,       // return value: Direct3D device manager handle
-                                 UINT&);                          // return value: reset token
-  static bool initializeDirect3DManager (const IDirect3DDevice9Ex*, // Direct3D device handle
-                                         IDirect3DDeviceManager9*&, // return value: Direct3D device manager handle
-                                         UINT&);                    // return value: reset token
+  static bool getSampleGrabberNodeId (const IMFTopology*, // topology handle
+                                      TOPOID&);           // return value: topology node id
 
   // *NOTE*: loads the capture device filter and puts it into an empty (capture)
   //         graph
@@ -154,9 +162,12 @@ class Stream_Dev_Export Stream_Module_Device_Tools
                                IAMBufferNegotiation*&, // return value: capture filter output pin buffer allocator configuration handle
                                IAMStreamConfig*&);     // return value: format configuration handle
   static bool loadDeviceTopology (const std::string&,                   // device ("FriendlyName")
-                                  IMFMediaSource*&,                     // input/return value: (capture) source handle
+                                  IMFMediaSource*&,                     // input/return value: (capture) media source handle
                                   const IMFSampleGrabberSinkCallback2*, // sample grabber sink callback handle [NULL: do not use tee/grabber]
                                   IMFTopology*&);                       // return value: topology handle
+  static bool loadSourceTopology (const std::string&, // URL
+                                  IMFMediaSource*&,   // input/return value: media source handle
+                                  IMFTopology*&);     // return value: topology handle
   // *NOTE*: disconnects the (capture) graph and removes all but the capture
   //         filter
   static bool resetDeviceGraph (IGraphBuilder*); // filter graph handle
@@ -186,11 +197,13 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   // *NOTE*: loads a filter graph (target side)
   static bool loadTargetRendererGraph (const HWND,                // window handle [NULL: NullRenderer]
                                        IGraphBuilder*&,           // return value: graph handle
+                                       IAMBufferNegotiation*&,    // return value: source filter output pin buffer allocator configuration handle
                                        std::list<std::wstring>&); // return value: pipeline filter configuration
-  //static bool loadTargetRendererTopology (const IMFMediaType*,                 // grabber sink input media type handle
-  //                                        const IMFSampleGrabberSinkCallback*, // grabber sink callback handle [NULL: do not use tee/grabber]
-  //                                        const HWND,                          // window handle [NULL: do not use tee/EVR]
-  //                                        IMFTopology*&);                      // input/return value: topology handle
+  static bool loadTargetRendererTopology (const std::string&,  // URL
+                                          const IMFMediaType*, // media source output media type handle
+                                          const HWND,          // window handle [NULL: do not use tee/EVR]
+                                          TOPOID&,             // return value: EVR sink node id
+                                          IMFTopology*&);      // input/return value: topology handle
   static bool setTopology (IMFTopology*,      // topology handle
                            IMFMediaSession*&, // input/return value: media session handle
                            bool = true);      // wait for completion ?
@@ -205,9 +218,9 @@ class Stream_Dev_Export Stream_Module_Device_Tools
   static void dump (IMFTopology*); // topology handle
   static void dump (IMFTransform*); // transform handle
 
-  static bool isChromaLuminance (const struct _GUID&); // media subtype
-  static bool isRGB (const struct _GUID&); // media subtype
-  static bool isCompressed (const struct _GUID&); // media subtype
+  static bool isChromaLuminance (REFGUID); // media subtype
+  static bool isRGB (REFGUID); // media subtype
+  static bool isCompressed (REFGUID); // media subtype
 
   // *NOTE*: return value (if any) has an outstanding reference --> Release()
   static IPin* pin (IBaseFilter*,        // filter handle
@@ -220,14 +233,14 @@ class Stream_Dev_Export Stream_Module_Device_Tools
 
   static bool copyAttribute (const IMFAttributes*, // source
                              IMFAttributes*,       // destination
-                             const struct _GUID&); // key
+                             REFGUID);             // key
   static bool copyMediaType (const IMFMediaType*, // media type
                              IMFMediaType*&);     // return value: handle
   static bool copyMediaType (const struct _AMMediaType&, // media type
                              struct _AMMediaType*&);     // return value: handle
   static void deleteMediaType (struct _AMMediaType*&); // handle
-  static void freeMediaType (struct _AMMediaType&);
-  static std::string mediaSubTypeToString (const struct _GUID&); // media subtype
+  static inline void freeMediaType (struct _AMMediaType& mediaType_in) { FreeMediaType (mediaType_in); };
+  static std::string mediaSubTypeToString (REFGUID); // media subtype
   static std::string mediaTypeToString (const struct _AMMediaType&); // media type
   static std::string mediaTypeToString (const IMFMediaType*); // media type
   static std::string topologyStatusToString (MF_TOPOSTATUS); // topology status

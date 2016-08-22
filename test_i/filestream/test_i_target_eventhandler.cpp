@@ -33,25 +33,25 @@
 #include "test_i_callbacks.h"
 #include "test_i_defines.h"
 
-Test_I_Stream_Target_EventHandler::Test_I_Stream_Target_EventHandler (Stream_GTK_CBData* CBData_in)
+Test_I_Target_EventHandler::Test_I_Target_EventHandler (Test_I_Target_GTK_CBData* CBData_in)
  : CBData_ (CBData_in)
  , sessionData_ (NULL)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::Test_I_Stream_Target_EventHandler"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler::Test_I_Target_EventHandler"));
 
 }
 
-Test_I_Stream_Target_EventHandler::~Test_I_Stream_Target_EventHandler ()
+Test_I_Target_EventHandler::~Test_I_Target_EventHandler ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::~Test_I_Stream_Target_EventHandler"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler::~Test_I_Target_EventHandler"));
 
 }
 
 void
-Test_I_Stream_Target_EventHandler::start (Stream_SessionId_t sessionID_in,
-                                          const Test_I_Stream_SessionData& sessionData_in)
+Test_I_Target_EventHandler::start (Stream_SessionId_t sessionID_in,
+                                   const Test_I_Target_SessionData& sessionData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::start"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler::start"));
 
   ACE_UNUSED_ARG (sessionID_in);
 
@@ -59,12 +59,12 @@ Test_I_Stream_Target_EventHandler::start (Stream_SessionId_t sessionID_in,
   ACE_ASSERT (CBData_);
   ACE_ASSERT (!sessionData_);
 
-  sessionData_ = &const_cast<Test_I_Stream_SessionData&> (sessionData_in);
+  sessionData_ = &const_cast<Test_I_Target_SessionData&> (sessionData_in);
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.transferred = 0;
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_START);
+  CBData_->eventStack.push_back (TEST_I_GTKEVENT_START);
 
   guint event_source_id = g_idle_add (idle_start_target_UI_cb,
                                       CBData_);
@@ -78,10 +78,10 @@ Test_I_Stream_Target_EventHandler::start (Stream_SessionId_t sessionID_in,
 }
 
 void
-Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
-                                           const Stream_SessionMessageType& sessionEvent_in)
+Test_I_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
+                                    const Stream_SessionMessageType& sessionEvent_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::notify"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler::notify"));
 
   ACE_UNUSED_ARG (sessionID_in);
   ACE_UNUSED_ARG (sessionEvent_in);
@@ -93,9 +93,9 @@ Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
 }
 
 void
-Test_I_Stream_Target_EventHandler::end (Stream_SessionId_t sessionID_in)
+Test_I_Target_EventHandler::end (Stream_SessionId_t sessionID_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::end"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler::end"));
 
   ACE_UNUSED_ARG (sessionID_in);
 
@@ -104,7 +104,7 @@ Test_I_Stream_Target_EventHandler::end (Stream_SessionId_t sessionID_in)
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_END);
+  CBData_->eventStack.push_back (TEST_I_GTKEVENT_END);
 
   guint event_source_id = g_idle_add (idle_end_target_UI_cb,
                                       CBData_);
@@ -121,10 +121,10 @@ Test_I_Stream_Target_EventHandler::end (Stream_SessionId_t sessionID_in)
 }
 
 void
-Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
-                                           const Test_I_Stream_Message& message_in)
+Test_I_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
+                                    const Test_I_Target_Message_t& message_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::notify"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler::notify"));
 
   ACE_UNUSED_ARG (sessionID_in);
 
@@ -134,13 +134,13 @@ Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
   CBData_->progressData.transferred += message_in.total_length ();
-  CBData_->eventStack.push_back (STREAM_GTKEVENT_DATA);
+  CBData_->eventStack.push_back (TEST_I_GTKEVENT_DATA);
 }
 void
-Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
-                                           const Test_I_Stream_SessionMessage& sessionMessage_in)
+Test_I_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
+                                    const Test_I_Target_SessionMessage& sessionMessage_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Target_EventHandler::notify"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_EventHandler::notify"));
 
   ACE_UNUSED_ARG (sessionID_in);
 
@@ -151,7 +151,7 @@ Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
 
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, CBData_->lock);
 
-  Stream_GTK_Event event = STREAM_GKTEVENT_INVALID;
+  Test_I_GTK_Event event = TEST_I_GKTEVENT_INVALID;
   switch (sessionMessage_in.type ())
   {
     case STREAM_SESSION_MESSAGE_DISCONNECT:
@@ -179,7 +179,7 @@ Test_I_Stream_Target_EventHandler::notify (Stream_SessionId_t sessionID_in,
       } // end IF
 
 continue_:
-      event = STREAM_GTKEVENT_STATISTIC;
+      event = TEST_I_GTKEVENT_STATISTIC;
       break;
     }
     default:

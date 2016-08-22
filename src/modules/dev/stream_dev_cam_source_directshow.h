@@ -26,7 +26,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "dshow.h"
+#include "streams.h"
 #include "qedit.h"
 
 #include "common_time_common.h"
@@ -52,22 +52,17 @@ template <typename LockType,
           typename StatisticContainerType>
 class Stream_Dev_Cam_Source_DirectShow_T
  : public Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType>
  , public IMemAllocatorNotifyCallbackTemp
  , public ISampleGrabberCB
@@ -127,22 +122,17 @@ class Stream_Dev_Cam_Source_DirectShow_T
 
  private:
   typedef Stream_HeadModuleTaskBase_T<LockType,
-                                      ////
                                       ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
                                       SessionMessageType,
-                                      ////
                                       ConfigurationType,
-                                      ////
                                       StreamControlType,
                                       StreamNotificationType,
                                       StreamStateType,
-                                      ////
                                       SessionDataType,
                                       SessionDataContainerType,
-                                      ////
                                       StatisticContainerType> inherited;
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_DirectShow_T ())
@@ -166,6 +156,7 @@ class Stream_Dev_Cam_Source_DirectShow_T
   DWORD                  ROTID_;
 };
 
+// include template definition
 #include "stream_dev_cam_source_directshow.inl"
 
 #endif

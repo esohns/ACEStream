@@ -24,12 +24,15 @@
 #include "ace/Global_Macros.h"
 
 #include "com/sun/star/lang/XComponent.hpp"
+#include "com/sun/star/task/XInteractionHandler.hpp"
 #include "com/sun/star/uno/Reference.h"
 #include "com/sun/star/uno/XComponentContext.hpp"
 
 #include "common_time_common.h"
 
 #include "stream_task_base_synch.h"
+
+#include "stream_module_libreoffice_document_handler.h"
 
 using namespace ::com::sun::star;
 
@@ -60,7 +63,7 @@ class Stream_Module_LibreOffice_Document_Writer_T
 {
  public:
   Stream_Module_LibreOffice_Document_Writer_T ();
-  virtual ~Stream_Module_LibreOffice_Document_Writer_T ();
+  virtual ~Stream_Module_LibreOffice_Document_Writer_T () throw ();
 
   //// implement Stream_IModuleHandler_T
   virtual bool initialize (const ModuleHandlerConfigurationType&);
@@ -76,8 +79,9 @@ class Stream_Module_LibreOffice_Document_Writer_T
   //virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
-  uno::Reference<lang::XComponent>       component_;
-  uno::Reference<uno::XComponentContext> context_;
+  uno::Reference<lang::XComponent>           component_;
+  uno::Reference<uno::XComponentContext>     componentContext_;
+  uno::Reference<task::XInteractionHandler>  interactionHandler_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -91,9 +95,11 @@ class Stream_Module_LibreOffice_Document_Writer_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T (const Stream_Module_LibreOffice_Document_Writer_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T& operator= (const Stream_Module_LibreOffice_Document_Writer_T&))
+
+  Stream_Module_LibreOffice_Document_Handler handler_;
 };
 
-// include template implementation
+// include template definition
 #include "stream_module_libreoffice_document_writer.inl"
 
 #endif

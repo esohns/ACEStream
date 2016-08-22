@@ -38,7 +38,7 @@
 class Test_I_Stream_DataBaseWriter
  : public Stream_Module_MySQLWriter_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      Test_I_Stream_ModuleHandlerConfiguration,
+                                      Test_I_ModuleHandlerConfiguration,
                                       ACE_Message_Block,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
@@ -55,7 +55,7 @@ class Test_I_Stream_DataBaseWriter
  private:
   typedef Stream_Module_MySQLWriter_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
-                                      Test_I_Stream_ModuleHandlerConfiguration,
+                                      Test_I_ModuleHandlerConfiguration,
                                       ACE_Message_Block,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
@@ -68,10 +68,10 @@ class Test_I_Stream_DataBaseWriter
 };
 
 // declare module
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Stream_SessionData,                // session data type
-                              Stream_SessionMessageType,                // session event type
-                              Test_I_Stream_ModuleHandlerConfiguration, // module handler configuration type
-                              Stream_IStreamNotify_t,                   // stream notification interface type
-                              Test_I_Stream_DataBaseWriter);            // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Stream_SessionData,         // session data type
+                              Stream_SessionMessageType,         // session event type
+                              Test_I_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_IStreamNotify_t,            // stream notification interface type
+                              Test_I_Stream_DataBaseWriter);     // writer type
 
 #endif

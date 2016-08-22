@@ -18,12 +18,26 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "ace/Log_Msg.h"
+#include "ace/Module.h"
+#include "ace/OS_Memory.h"
+
 #include "stream_macros.h"
 
 template <typename ModuleConfigurationType,
-          typename ConfigurationType>
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename MessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
 Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
-                                    ConfigurationType>::Test_I_Stream_Module_EventHandler_T ()
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    MessageType,
+                                    SessionMessageType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::Test_I_Stream_Module_EventHandler_T ()
  : inherited ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler_T::Test_I_Stream_Module_EventHandler_T"));
@@ -31,24 +45,46 @@ Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
 }
 
 template <typename ModuleConfigurationType,
-          typename ConfigurationType>
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename MessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
 Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
-                                    ConfigurationType>::~Test_I_Stream_Module_EventHandler_T ()
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    MessageType,
+                                    SessionMessageType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::~Test_I_Stream_Module_EventHandler_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler_T::~Test_I_Stream_Module_EventHandler_T"));
 
 }
 
 template <typename ModuleConfigurationType,
-          typename ConfigurationType>
-Stream_Module_t*
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename MessageType,
+          typename SessionMessageType,
+          typename SessionDataType,
+          typename SessionDataContainerType>
+ACE_Module<ACE_MT_SYNCH,
+           Common_TimePolicy_t>*
 Test_I_Stream_Module_EventHandler_T<ModuleConfigurationType,
-                                    ConfigurationType>::clone ()
+                                    ConfigurationType,
+                                    ControlMessageType,
+                                    MessageType,
+                                    SessionMessageType,
+                                    SessionDataType,
+                                    SessionDataContainerType>::clone ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream_Module_EventHandler_T::clone"));
 
   // initialize return value(s)
-  Stream_Module_t* module_p = NULL;
+  ACE_Module<ACE_MT_SYNCH,
+             Common_TimePolicy_t>* module_p = NULL;
 
   ACE_NEW_NORETURN (module_p,
                     MODULE_T (ACE_TEXT_ALWAYS_CHAR (inherited::name ()),

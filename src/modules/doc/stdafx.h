@@ -2,6 +2,10 @@
 //  or project specific include files that are used frequently, but
 //      are changed infrequently
 //
+#pragma once
+#ifndef STDAFX_H
+#define STDAFX_H
+
 #if defined _MSC_VER
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
@@ -35,3 +39,8 @@
 
 // Local Header Files
 #include "stream_macros.h"
+
+// *NOTE*: do not use the Apache snprintf.h header
+#define _SNPRINTF_H
+
+#endif

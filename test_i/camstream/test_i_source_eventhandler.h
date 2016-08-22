@@ -23,39 +23,46 @@
 
 #include "ace/Global_Macros.h"
 
-#include "common_inotify.h"
+#include "stream_isessionnotify.h"
 
-#include "stream_common.h"
-
-#include "test_i_common.h"
-#include "test_i_source_message.h"
-#include "test_i_source_session_message.h"
-
-class Test_I_Stream_Source_EventHandler
- : public Test_I_Source_ISessionNotify_t
+template <typename SessionIdType,
+          typename SessionDataType,
+          typename SessionEventType,
+          typename MessageType,
+          typename SessionMessageType,
+          typename CallbackDataType>
+class Test_I_Source_EventHandler_T
+ : public Stream_ISessionDataNotify_T<SessionIdType,
+                                      SessionDataType,
+                                      SessionEventType,
+                                      MessageType,
+                                      SessionMessageType>
 {
  public:
-  Test_I_Stream_Source_EventHandler (Test_I_GTK_CBData*); // GTK state
-  virtual ~Test_I_Stream_Source_EventHandler ();
+  Test_I_Source_EventHandler_T (CallbackDataType*); // GTK state
+  virtual ~Test_I_Source_EventHandler_T ();
 
-  // implement Common_INotify_T
-  virtual void start (Stream_SessionId_t,
-                      const Test_I_Source_SessionData&);
-  virtual void notify (Stream_SessionId_t,
-                       const Stream_SessionMessageType&);
-  virtual void end (Stream_SessionId_t);
-  virtual void notify (Stream_SessionId_t,
-                       const Test_I_Source_Stream_Message&);
-  virtual void notify (Stream_SessionId_t,
-                       const Test_I_Source_Stream_SessionMessage&);
+  // implement Stream_ISessionDataNotify_T
+  virtual void start (SessionIdType,           // session id
+                      const SessionDataType&); // session data
+  virtual void notify (SessionIdType,            // session id
+                       const SessionEventType&); // event (state/status change, ...)
+  virtual void end (SessionIdType); // session id
+  virtual void notify (SessionIdType,       // session id
+                       const MessageType&); // (protocol) data
+  virtual void notify (SessionIdType,              // session id
+                       const SessionMessageType&); // session message
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Source_EventHandler ())
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Source_EventHandler (const Test_I_Stream_Source_EventHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_Source_EventHandler& operator= (const Test_I_Stream_Source_EventHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_EventHandler_T ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_EventHandler_T (const Test_I_Source_EventHandler_T&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_EventHandler_T& operator= (const Test_I_Source_EventHandler_T&))
 
-  Test_I_GTK_CBData*         CBData_;
-  Test_I_Source_SessionData* sessionData_;
+  CallbackDataType* CBData_;
+  SessionDataType*  sessionData_;
 };
+
+// include template definition
+#include "test_i_source_eventhandler.inl"
 
 #endif

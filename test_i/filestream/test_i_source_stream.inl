@@ -92,7 +92,7 @@ Test_I_Source_Stream_T<ConnectorType>::load (Stream_ModuleList_t& modules_out,
 
 template <typename ConnectorType>
 bool
-Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_Stream_Configuration& configuration_in,
+Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_StreamConfiguration& configuration_in,
                                                    bool setupPipeline_in,
                                                    bool resetSessionData_in)
 {
@@ -129,7 +129,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_Stream_Co
   // ---------------------------------------------------------------------------
 
   Test_I_Module_FileReader* fileReader_impl_p = NULL;
-  Test_I_Stream_SessionData* session_data_p = NULL;
+  Test_I_Source_SessionData* session_data_p = NULL;
 
   // ******************* File Reader ************************
   Stream_Module_t* module_p =
@@ -182,7 +182,7 @@ Test_I_Source_Stream_T<ConnectorType>::initialize (const Test_I_Source_Stream_Co
 
   // *TODO*: remove type inferences
   session_data_p =
-      &const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+      &const_cast<Test_I_Source_SessionData&> (inherited::sessionData_->get ());
   session_data_p->fileName =
     configuration_in.moduleHandlerConfiguration->fileName;
   session_data_p->size =
@@ -212,8 +212,8 @@ Test_I_Source_Stream_T<ConnectorType>::collect (Test_I_RuntimeStatistic_t& data_
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
-  Test_I_Stream_SessionData& session_data_r =
-      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+  Test_I_Source_SessionData& session_data_r =
+      const_cast<Test_I_Source_SessionData&> (inherited::sessionData_->get ());
 
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));

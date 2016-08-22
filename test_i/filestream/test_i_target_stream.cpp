@@ -78,7 +78,7 @@ Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configuration_in,
+Test_I_Target_Stream::initialize (const Test_I_StreamConfiguration& configuration_in,
                                   bool setupPipeline_in,
                                   bool resetSessionData_in)
 {
@@ -105,13 +105,13 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
   } // end IF
   ACE_ASSERT (configuration_in.moduleHandlerConfiguration);
   // *TODO*: remove type inferences
-  Test_I_Stream_SessionData& session_data_r =
-      const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+  Test_I_Target_SessionData& session_data_r =
+      const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->get ());
 //  session_data_r.fileName =
 //    configuration_in.moduleHandlerConfiguration->fileName;
   session_data_r.sessionID = configuration_in.sessionID;
   session_data_r.targetFileName =
-    configuration_in.moduleHandlerConfiguration->fileName;
+    configuration_in.moduleHandlerConfiguration->targetFileName;
 
   // things to be done here:
   // [- initialize base class]
@@ -131,8 +131,8 @@ Test_I_Target_Stream::initialize (const Test_I_Stream_Configuration& configurati
 
   // ******************* Net IO ***********************
   //netIO_.initialize (*configuration_in.moduleConfiguration);
-  Test_I_Stream_Module_Net_Writer_t* netIO_impl_p =
-    dynamic_cast<Test_I_Stream_Module_Net_Writer_t*> (netIO_.writer ());
+  Test_I_Target_Module_Net_Writer_t* netIO_impl_p =
+    dynamic_cast<Test_I_Target_Module_Net_Writer_t*> (netIO_.writer ());
   if (!netIO_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -187,8 +187,8 @@ Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
   int result = -1;
   bool release_lock = false;
 
-  Test_I_Stream_SessionData& session_data_r =
-        const_cast<Test_I_Stream_SessionData&> (inherited::sessionData_->get ());
+  Test_I_Target_SessionData& session_data_r =
+        const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->get ());
 
   Test_I_Target_Module_Statistic_WriterTask_t* runtimeStatistic_impl =
     dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t*> (runtimeStatistic_.writer ());

@@ -186,7 +186,7 @@ struct Test_I_SAXParserContext
 };
 
 struct Test_I_Configuration;
-struct Test_I_Stream_Configuration;
+struct Test_I_StreamConfiguration;
 struct Test_I_UserData
  : Stream_UserData
 {
@@ -196,8 +196,8 @@ struct Test_I_UserData
    , streamConfiguration (NULL)
   {};
 
-  Test_I_Configuration*        configuration;
-  Test_I_Stream_Configuration* streamConfiguration;
+  Test_I_Configuration*       configuration;
+  Test_I_StreamConfiguration* streamConfiguration;
 };
 
 struct Test_I_Stream_SessionData
@@ -253,26 +253,27 @@ struct Test_I_Stream_SocketHandlerConfiguration
 
 // forward declarations
 struct Test_I_Configuration;
+struct Test_I_ModuleHandlerConfiguration;
 typedef Stream_Base_T<ACE_MT_SYNCH,
                       ACE_MT_SYNCH,
                       Common_TimePolicy_t,
                       int,
                       Stream_SessionMessageType,
                       Stream_StateMachine_ControlState,
-                      Test_I_Stream_State,
-                      Test_I_Stream_Configuration,
+                      Test_I_StreamState,
+                      Test_I_StreamConfiguration,
                       Test_I_RuntimeStatistic_t,
                       Stream_ModuleConfiguration,
-                      Test_I_Stream_ModuleHandlerConfiguration,
+                      Test_I_ModuleHandlerConfiguration,
                       Test_I_Stream_SessionData,   // session data
                       Test_I_Stream_SessionData_t, // session data container (reference counted)
                       ACE_Message_Block,
                       Test_I_Stream_Message,
                       Test_I_Stream_SessionMessage> Test_I_StreamBase_t;
-struct Test_I_Stream_ModuleHandlerConfiguration
+struct Test_I_ModuleHandlerConfiguration
  : Stream_ModuleHandlerConfiguration
 {
-  inline Test_I_Stream_ModuleHandlerConfiguration ()
+  inline Test_I_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
    , configuration (NULL)
    , connection (NULL)
@@ -337,21 +338,21 @@ struct Stream_SignalHandlerConfiguration
   unsigned int       statisticReportingInterval; // statistic collecting interval (second(s)) [0: off]
 };
 
-struct Test_I_Stream_Configuration
+struct Test_I_StreamConfiguration
  : Stream_Configuration
 {
-  inline Test_I_Stream_Configuration ()
+  inline Test_I_StreamConfiguration ()
    : Stream_Configuration ()
    , moduleHandlerConfiguration (NULL)
   {};
 
-  Test_I_Stream_ModuleHandlerConfiguration* moduleHandlerConfiguration;
+  Test_I_ModuleHandlerConfiguration* moduleHandlerConfiguration;
 };
 
-struct Test_I_Stream_State
+struct Test_I_StreamState
  : Stream_State
 {
-  inline Test_I_Stream_State ()
+  inline Test_I_StreamState ()
    : Stream_State ()
    , currentSessionData (NULL)
    , userData (NULL)
@@ -381,8 +382,8 @@ struct Test_I_Configuration
   Test_I_Stream_SocketHandlerConfiguration socketHandlerConfiguration;
   // **************************** stream data **********************************
   Stream_ModuleConfiguration               moduleConfiguration;
-  Test_I_Stream_ModuleHandlerConfiguration moduleHandlerConfiguration;
-  Test_I_Stream_Configuration              streamConfiguration;
+  Test_I_ModuleHandlerConfiguration        moduleHandlerConfiguration;
+  Test_I_StreamConfiguration               streamConfiguration;
   // *************************** protocol data *********************************
   Test_I_UserData                          userData;
   bool                                     useReactor;

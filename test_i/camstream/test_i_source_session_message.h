@@ -31,33 +31,33 @@
 
 // forward declaration(s)
 class ACE_Allocator;
-class Test_I_Stream_Message;
 template <typename AllocatorConfigurationType,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType> class Stream_MessageAllocatorHeapBase_T;
 
-class Test_I_Source_Stream_SessionMessage
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+class Test_I_Source_DirectShow_Stream_SessionMessage
  : public Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
                                       Stream_SessionMessageType,
-                                      Test_I_Source_SessionData_t,
-                                      Test_I_Source_UserData,
-                                      Test_I_ControlMessage_t,
-                                      Test_I_Stream_Message>
+                                      Test_I_Source_DirectShow_SessionData_t,
+                                      Test_I_Source_DirectShow_UserData,
+                                      Test_I_DirectShow_ControlMessage_t,
+                                      Test_I_Source_DirectShow_Stream_Message>
 {
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
-                                                 Test_I_ControlMessage_t,
-                                                 Test_I_Source_Stream_Message,
-                                                 Test_I_Source_Stream_SessionMessage>;
+                                                 Test_I_DirectShow_ControlMessage_t,
+                                                 Test_I_Source_DirectShow_Stream_Message,
+                                                 Test_I_Source_DirectShow_Stream_SessionMessage>;
 
  public:
   // *NOTE*: assumes responsibility for the second argument !
   // *TODO*: (using gcc) cannot pass reference to pointer for some reason
-  Test_I_Source_Stream_SessionMessage (Stream_SessionMessageType,     // session message type
-                                       Test_I_Source_SessionData_t*&, // session data container handle
-                                       Test_I_Source_UserData*);      // user data handle
-  virtual ~Test_I_Source_Stream_SessionMessage ();
+  Test_I_Source_DirectShow_Stream_SessionMessage (Stream_SessionMessageType,                // session message type
+                                                  Test_I_Source_DirectShow_SessionData_t*&, // session data container handle
+                                                  Test_I_Source_DirectShow_UserData*);      // user data handle
+  virtual ~Test_I_Source_DirectShow_Stream_SessionMessage ();
 
   // overloaded from ACE_Message_Block
   virtual ACE_Message_Block* duplicate (void) const;
@@ -65,22 +65,115 @@ class Test_I_Source_Stream_SessionMessage
  private:
   typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
                                       Stream_SessionMessageType,
-                                      Test_I_Source_SessionData_t,
-                                      Test_I_Source_UserData,
-                                      Test_I_ControlMessage_t,
-                                      Test_I_Stream_Message> inherited;
+                                      Test_I_Source_DirectShow_SessionData_t,
+                                      Test_I_Source_DirectShow_UserData,
+                                      Test_I_DirectShow_ControlMessage_t,
+                                      Test_I_Source_DirectShow_Stream_Message> inherited;
 
   // copy ctor to be used by duplicate()
-  Test_I_Source_Stream_SessionMessage (const Test_I_Source_Stream_SessionMessage&);
+  Test_I_Source_DirectShow_Stream_SessionMessage (const Test_I_Source_DirectShow_Stream_SessionMessage&);
 
   // *NOTE*: these may be used by message allocators
   // *WARNING*: these ctors are NOT threadsafe
-  Test_I_Source_Stream_SessionMessage (ACE_Allocator*); // message allocator
-  Test_I_Source_Stream_SessionMessage (ACE_Data_Block*, // data block
-                                       ACE_Allocator*); // message allocator
+  Test_I_Source_DirectShow_Stream_SessionMessage (ACE_Allocator*); // message allocator
+  Test_I_Source_DirectShow_Stream_SessionMessage (ACE_Data_Block*, // data block
+                                                  ACE_Allocator*); // message allocator
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_SessionMessage ())
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_Stream_SessionMessage& operator= (const Test_I_Source_Stream_SessionMessage&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_SessionMessage ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_DirectShow_Stream_SessionMessage& operator= (const Test_I_Source_DirectShow_Stream_SessionMessage&))
 };
+
+class Test_I_Source_MediaFoundation_Stream_SessionMessage
+ : public Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+                                      Stream_SessionMessageType,
+                                      Test_I_Source_MediaFoundation_SessionData_t,
+                                      Test_I_Source_MediaFoundation_UserData,
+                                      Test_I_MediaFoundation_ControlMessage_t,
+                                      Test_I_Source_MediaFoundation_Stream_Message>
+{
+  // grant access to specific private ctors
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+                                                 Test_I_MediaFoundation_ControlMessage_t,
+                                                 Test_I_Source_MediaFoundation_Stream_Message,
+                                                 Test_I_Source_MediaFoundation_Stream_SessionMessage>;
+
+ public:
+  // *NOTE*: assumes responsibility for the second argument !
+  // *TODO*: (using gcc) cannot pass reference to pointer for some reason
+  Test_I_Source_MediaFoundation_Stream_SessionMessage (Stream_SessionMessageType,                     // session message type
+                                                       Test_I_Source_MediaFoundation_SessionData_t*&, // session data container handle
+                                                       Test_I_Source_MediaFoundation_UserData*);      // user data handle
+  virtual ~Test_I_Source_MediaFoundation_Stream_SessionMessage ();
+
+  // overloaded from ACE_Message_Block
+  virtual ACE_Message_Block* duplicate (void) const;
+
+ private:
+  typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+                                      Stream_SessionMessageType,
+                                      Test_I_Source_MediaFoundation_SessionData_t,
+                                      Test_I_Source_MediaFoundation_UserData,
+                                      Test_I_MediaFoundation_ControlMessage_t,
+                                      Test_I_Source_MediaFoundation_Stream_Message> inherited;
+
+  // copy ctor to be used by duplicate()
+  Test_I_Source_MediaFoundation_Stream_SessionMessage (const Test_I_Source_MediaFoundation_Stream_SessionMessage&);
+
+  // *NOTE*: these may be used by message allocators
+  // *WARNING*: these ctors are NOT threadsafe
+  Test_I_Source_MediaFoundation_Stream_SessionMessage (ACE_Allocator*); // message allocator
+  Test_I_Source_MediaFoundation_Stream_SessionMessage (ACE_Data_Block*, // data block
+                                                       ACE_Allocator*); // message allocator
+
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_SessionMessage ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_MediaFoundation_Stream_SessionMessage& operator= (const Test_I_Source_MediaFoundation_Stream_SessionMessage&))
+};
+#else
+class Test_I_Source_V4L2_Stream_SessionMessage
+ : public Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+                                      Stream_SessionMessageType,
+                                      Test_I_Source_V4L2_SessionData_t,
+                                      Test_I_Source_V4L2_UserData,
+                                      Test_I_V4L2_ControlMessage_t,
+                                      Test_I_Source_V4L2_Stream_Message>
+{
+  // grant access to specific private ctors
+  friend class Stream_MessageAllocatorHeapBase_T<Stream_AllocatorConfiguration,
+                                                 Test_I_V4L2_ControlMessage_t,
+                                                 Test_I_Source_V4L2_Stream_Message,
+                                                 Test_I_Source_V4L2_Stream_SessionMessage>;
+
+ public:
+  // *NOTE*: assumes responsibility for the second argument !
+  // *TODO*: (using gcc) cannot pass reference to pointer for some reason
+  Test_I_Source_V4L2_Stream_SessionMessage (Stream_SessionMessageType,          // session message type
+                                            Test_I_Source_V4L2_SessionData_t*&, // session data container handle
+                                            Test_I_Source_V4L2_UserData*);      // user data handle
+  virtual ~Test_I_Source_V4L2_Stream_SessionMessage ();
+
+  // overloaded from ACE_Message_Block
+  virtual ACE_Message_Block* duplicate (void) const;
+
+ private:
+  typedef Stream_SessionMessageBase_T<Stream_AllocatorConfiguration,
+                                      Stream_SessionMessageType,
+                                      Test_I_Source_V4L2_SessionData_t,
+                                      Test_I_Source_V4L2_UserData,
+                                      Test_I_V4L2_ControlMessage_t,
+                                      Test_I_Source_V4L2_Stream_Message> inherited;
+
+  // copy ctor to be used by duplicate()
+  Test_I_Source_V4L2_Stream_SessionMessage (const Test_I_Source_V4L2_Stream_SessionMessage&);
+
+  // *NOTE*: these may be used by message allocators
+  // *WARNING*: these ctors are NOT threadsafe
+  Test_I_Source_V4L2_Stream_SessionMessage (ACE_Allocator*); // message allocator
+  Test_I_Source_V4L2_Stream_SessionMessage (ACE_Data_Block*, // data block
+                                            ACE_Allocator*); // message allocator
+
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_SessionMessage ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Source_V4L2_Stream_SessionMessage& operator= (const Test_I_Source_V4L2_Stream_SessionMessage&))
+};
+#endif
 
 #endif

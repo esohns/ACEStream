@@ -13,8 +13,15 @@ if (UNIX)
  include_directories (${PKG_GTK_INCLUDE_DIRS})
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/libCommon/src)
 elseif (WIN32)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
- include_directories ($ENV{ACE_ROOT})
+ # *NOTE*: workaround
+ set(_PF86 "ProgramFiles(x86)")
+ set (DIRECTSHOW_BASECLASSES_DIRECTORY
+#      "$ENV{PROGRAMFILES}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+      "$ENV{${_PF86}}/Microsoft SDKs/Windows/v7.0/Samples/multimedia/directshow/baseclasses")
+# message (STATUS "DirectShow baseclasses directory: \"${DIRECTSHOW_BASECLASSES_DIRECTORY}\"")
+
+ include_directories (${DIRECTSHOW_BASECLASSES_DIRECTORY})
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../ATCD/ACE)
 # *TODO*: repair pkgconfig support
 # gtk
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../../gtk3/include/glib-2.0)
@@ -55,6 +62,9 @@ if (WIN32)
       stream_vis_target_mediafoundation.cpp
       stream_vis_target_mediafoundation.h
       stream_vis_target_mediafoundation.inl
+      stream_vis_gtk_pixbuf.cpp
+      stream_vis_gtk_pixbuf.h
+      stream_vis_gtk_pixbuf.inl
       stream_vis_tools.cpp
       stream_vis_tools.h)
 else ()
@@ -115,6 +125,8 @@ if (WIN32)
           stream_vis_target_directshow.inl
           stream_vis_target_mediafoundation.h
           stream_vis_target_mediafoundation.inl
+          stream_vis_gtk_pixbuf.h
+          stream_vis_gtk_pixbuf.inl
           stream_vis_tools.h
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)

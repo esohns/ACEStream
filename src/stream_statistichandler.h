@@ -32,7 +32,7 @@ enum Stream_StatisticActionType
 {
   ACTION_COLLECT = 0,
   ACTION_REPORT,
-  ///////////////////////////////////////
+  ////////////////////////////////////////
   ACTION_MAX,
   ACTION_INVALID
 };

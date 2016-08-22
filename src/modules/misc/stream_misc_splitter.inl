@@ -38,6 +38,7 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
                          SessionDataType>::Stream_Module_Splitter_T ()
  : inherited ()
  , buffer_ (NULL)
+ , PDUSize_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::Stream_Module_Splitter_T"));
 
@@ -107,33 +108,14 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
 continue_:
   // message_block_p points at the trailing fragment
 
-  unsigned int frame_size = 0;
   unsigned int total_length = buffer_->total_length ();
   // *TODO*: remove type inference
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_->format);
-
-  //if (total_length < inherited::configuration_->format->lSampleSize)
-  HRESULT result =
-      inherited::configuration_->format->GetUINT32 (MF_MT_SAMPLE_SIZE,
-                                                    &frame_size);
-  if (FAILED (result))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to IMFMediaType::GetUINT32(MF_MT_SAMPLE_SIZE): \"%s\", returning\n"),
-                ACE_TEXT (Common_Tools::error2String (result).c_str ())));
-    return;
-  } // end IF
-#else
-  frame_size = inherited::configuration_->format.fmt.pix.sizeimage;
-#endif
-  if (total_length < frame_size)
+  if (total_length < PDUSize_)
     return; // done
 
   // received enough data --> (split and) forward
   ACE_Message_Block* message_block_2 = NULL;
-  unsigned int remainder = (total_length - frame_size);
+  unsigned int remainder = (total_length - PDUSize_);
   if (remainder)
   {
     message_block_2 = message_block_p->duplicate ();
@@ -159,7 +141,7 @@ continue_:
     buffer_ = NULL;
   } // end IF
   total_length = message_block_p->total_length ();
-  ACE_ASSERT (total_length == frame_size);
+  ACE_ASSERT (total_length == PDUSize_);
 
   int result_2 = inherited::put_next (message_block_p, NULL);
   if (result_2 == -1)
@@ -183,48 +165,6 @@ continue_:
   } // end IF
 }
 
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename SessionDataType>
-void
-Stream_Module_Splitter_T<ACE_SYNCH_USE,
-                         TimePolicyType,
-                         ConfigurationType,
-                         ControlMessageType,
-                         DataMessageType,
-                         SessionMessageType,
-                         SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                 bool& passMessageDownstream_out)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::handleSessionMessage"));
-
-  // don't care (implies yes per default, if part of a stream)
-  ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // sanity check(s)
-  ACE_ASSERT (message_inout);
-
-  switch (message_inout->type ())
-  {
-    case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-      //// *TODO*: remove type inferences
-      //const typename SessionMessageType::SESSION_DATA_T& session_data_container_r =
-      //  message_inout->get ();
-      //const SessionDataType& session_data_r = session_data_container_r.get ();
-
-      break;
-    }
-    case STREAM_SESSION_MESSAGE_END:
-    default:
-      break;
-  } // end SWITCH
-}
-
 //template <ACE_SYNCH_DECL,
 //          typename TimePolicyType,
 //          typename ConfigurationType,
@@ -232,21 +172,59 @@ Stream_Module_Splitter_T<ACE_SYNCH_USE,
 //          typename DataMessageType,
 //          typename SessionMessageType,
 //          typename SessionDataType>
-//bool
+//void
 //Stream_Module_Splitter_T<ACE_SYNCH_USE,
 //                         TimePolicyType,
 //                         ConfigurationType,
 //                         ControlMessageType,
 //                         DataMessageType,
 //                         SessionMessageType,
-//                         SessionDataType>::initialize (const ConfigurationType& configuration_in)
+//                         SessionDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+//                                                                 bool& passMessageDownstream_out)
 //{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::initialize"));
-
-//  inherited::configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-
-//  return true;
+//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::handleSessionMessage"));
+//
+//  // don't care (implies yes per default, if part of a stream)
+//  ACE_UNUSED_ARG (passMessageDownstream_out);
+//
+//  // sanity check(s)
+//  ACE_ASSERT (message_inout);
+//
+//  switch (message_inout->type ())
+//  {
+//    case STREAM_SESSION_MESSAGE_BEGIN:
+//      break;
+//    case STREAM_SESSION_MESSAGE_END:
+//    default:
+//      break;
+//  } // end SWITCH
 //}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataType>
+bool
+Stream_Module_Splitter_T<ACE_SYNCH_USE,
+                         TimePolicyType,
+                         ConfigurationType,
+                         ControlMessageType,
+                         DataMessageType,
+                         SessionMessageType,
+                         SessionDataType>::initialize (const ConfigurationType& configuration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Splitter_T::initialize"));
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  PDUSize_ = configuration_in.format.fmt.pix.sizeimage;
+#endif
+
+  return inherited::initialize (configuration_in);
+}
 //template <typename SessionMessageType,
 //          typename MessageType,
 //          typename ConfigurationType,

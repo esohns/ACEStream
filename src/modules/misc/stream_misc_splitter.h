@@ -59,16 +59,20 @@ class Stream_Module_Splitter_T
   Stream_Module_Splitter_T ();
   virtual ~Stream_Module_Splitter_T ();
 
-//  virtual bool initialize (const ConfigurationType&);
+  virtual bool initialize (const ConfigurationType&);
 
   // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
-  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
-                                     bool&);               // return value: pass message downstream ?
+  //virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+  //                                   bool&);               // return value: pass message downstream ?
 
   //// implement Stream_IModuleHandler_T
   //virtual const ConfigurationType& get () const;
+
+ protected:
+  ACE_Message_Block* buffer_;
+  unsigned int       PDUSize_;
 
  private:
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -82,8 +86,6 @@ class Stream_Module_Splitter_T
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T (const Stream_Module_Splitter_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Splitter_T& operator= (const Stream_Module_Splitter_T&))
-
-  ACE_Message_Block* buffer_;
 };
 
 //////////////////////////////////////////

@@ -35,6 +35,10 @@
 #include "stream_isessionnotify.h"
 #include "stream_task_base_synch.h"
 
+// forward declarations
+template <ACE_SYNCH_DECL, class TIME_POLICY>
+class ACE_Module;
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -55,13 +59,11 @@ class Stream_Module_MessageHandler_T
                                  SessionMessageType,
                                  Stream_SessionId_t,
                                  Stream_SessionMessageType>
- //, public Stream_IModuleHandler_T<ModuleHandlerConfigurationType>
  , public Common_ISubscribe_T<Stream_ISessionDataNotify_T<SessionIdType,
                                                           typename SessionDataContainerType::DATA_T,
                                                           Stream_SessionMessageType,
                                                           DataMessageType,
                                                           SessionMessageType> >
- , public Common_IClone_T<Stream_Module_t>
 {
  public:
   typedef Stream_ISessionDataNotify_T<SessionIdType,
@@ -91,13 +93,13 @@ class Stream_Module_MessageHandler_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
-  //// implement Stream_IModuleHandler_T
-  //virtual bool initialize (const ModuleHandlerConfigurationType&);
-  //virtual const ModuleHandlerConfigurationType& get () const;
-
   // implement Common_ISubscribe_T
   virtual void subscribe (INOTIFY_T*);   // new subscriber
   virtual void unsubscribe (INOTIFY_T*); // existing subscriber
+
+  // implement Stream_IModuleHandler_T
+  virtual bool postClone (ACE_Module<ACE_SYNCH_USE,
+                                     TimePolicyType>*); // clone handle
 
  protected:
   bool                                     delete_;

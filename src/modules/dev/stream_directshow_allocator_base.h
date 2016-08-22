@@ -28,7 +28,7 @@
 #include "ace/Synch_Traits.h"
 #include "ace/Thread_Semaphore.h"
 
-#include "dshow.h"
+#include "strmif.h"
 
 #include "common_idumpstate.h"
 
@@ -40,7 +40,7 @@ class Stream_AllocatorHeap_T;
 class Stream_IAllocator;
 
 template <typename ConfigurationType,
-          ///////////////////////////////
+          ////////////////////////////////
           typename MessageType,
           typename SessionMessageType>
 class Stream_DirectShowAllocatorBase_T
