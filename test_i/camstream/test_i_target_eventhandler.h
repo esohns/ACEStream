@@ -93,9 +93,9 @@ typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
 typedef Test_I_Target_EventHandler_T<Stream_SessionId_t,
                                      Test_I_Target_SessionData,
                                      Stream_SessionMessageType,
-                                     Test_I_Target_V4L2_Stream_Message,
-                                     Test_I_Target_V4L2_Stream_SessionMessage,
-                                     Test_I_Target_V4L2_GTK_CBData> Test_I_Target_V4L2_EventHandler_t;
+                                     Test_I_Target_Stream_Message,
+                                     Test_I_Target_Stream_SessionMessage,
+                                     Test_I_Target_GTK_CBData> Test_I_Target_EventHandler_t;
 #endif
 
 #endif

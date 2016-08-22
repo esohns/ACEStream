@@ -53,10 +53,10 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  Test_I_Target_MediaFoundation_UserData> Test_I_Target_MediaFoundation_InetConnectionManager_t;
 #else
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 Test_I_Target_V4L2_Configuration,
-                                 Test_I_Target_V4L2_ConnectionState,
+                                 Test_I_Target_Configuration,
+                                 Test_I_Target_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_Target_UserData> Test_I_Target_V4L2_InetConnectionManager_t;
+                                 Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -198,29 +198,29 @@ class Test_I_Target_MediaFoundation_Stream
   ULONG            referenceCount_;
 };
 #else
-class Test_I_Target_V4L2_Stream
+class Test_I_Target_Stream
  : public Stream_Module_Net_IO_Stream_T<ACE_MT_SYNCH,
                                         ACE_MT_SYNCH,
                                         Common_TimePolicy_t,
                                         Stream_ControlType,
                                         Stream_SessionMessageType,
                                         Stream_StateMachine_ControlState,
-                                        Test_I_Target_V4L2_StreamState,
+                                        Test_I_Target_StreamState,
                                         Test_I_Target_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
                                         Stream_ModuleConfiguration,
-                                        Test_I_Target_V4L2_ModuleHandlerConfiguration,
+                                        Test_I_Target_ModuleHandlerConfiguration,
                                         Test_I_Target_SessionData,
                                         Test_I_Target_SessionData_t,
                                         ACE_Message_Block,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_Stream_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_V4L2_InetConnectionManager_t>
+                                        Test_I_Target_InetConnectionManager_t>
 {
  public:
-  Test_I_Target_V4L2_Stream (const std::string&); // name
-  virtual ~Test_I_Target_V4L2_Stream ();
+  Test_I_Target_Stream (const std::string&); // name
+  virtual ~Test_I_Target_Stream ();
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ModuleList_t&, // return value: module list
@@ -246,22 +246,22 @@ class Test_I_Target_V4L2_Stream
                                         Stream_ControlType,
                                         Stream_SessionMessageType,
                                         Stream_StateMachine_ControlState,
-                                        Test_I_Target_V4L2_StreamState,
+                                        Test_I_Target_StreamState,
                                         Test_I_Target_StreamConfiguration,
                                         Test_I_RuntimeStatistic_t,
                                         Stream_ModuleConfiguration,
-                                        Test_I_Target_V4L2_ModuleHandlerConfiguration,
+                                        Test_I_Target_ModuleHandlerConfiguration,
                                         Test_I_Target_SessionData,
                                         Test_I_Target_SessionData_t,
                                         ACE_Message_Block,
                                         Test_I_Target_Stream_Message,
                                         Test_I_Target_Stream_SessionMessage,
                                         ACE_INET_Addr,
-                                        Test_I_Target_V4L2_InetConnectionManager_t> inherited;
+                                        Test_I_Target_InetConnectionManager_t> inherited;
 
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_V4L2_Stream ())
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_V4L2_Stream (const Test_I_Target_V4L2_Stream&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_V4L2_Stream& operator= (const Test_I_Target_V4L2_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream (const Test_I_Target_Stream&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_Target_Stream& operator= (const Test_I_Target_Stream&))
 };
 #endif
 

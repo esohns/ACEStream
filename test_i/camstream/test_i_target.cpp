@@ -224,8 +224,10 @@ do_processArguments (int argc_in,
   gtkGladeFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
   useThreadPool_out = NET_EVENT_USE_THREAD_POOL;
   logToFile_out = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   useMediaFoundation_out =
     TEST_I_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION;
+#endif
   netWorkInterface_out =
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT);
   useLoopBack_out = false;
@@ -840,7 +842,7 @@ do_work (unsigned int bufferSize_in,
          Test_I_Target_MediaFoundation_GTK_CBData& mediaFoundationCBData_in,
          Test_I_Target_DirectShow_GTK_CBData& directShowCBData_in,
 #else
-         Test_I_Target_V4L2_GTK_CBData& v4l2CBData_in,
+         Test_I_Target_GTK_CBData& v4l2CBData_in,
 #endif
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -864,7 +866,7 @@ do_work (unsigned int bufferSize_in,
   else
     stream_configuration_p = &directshow_configuration.streamConfiguration;
 #else
-  Test_I_Target_V4L2_Configuration v4l2_configuration;
+  Test_I_Target_Configuration v4l2_configuration;
   stream_configuration_p = &v4l2_configuration.streamConfiguration;
 #endif
   ACE_ASSERT (stream_configuration_p);
@@ -980,10 +982,10 @@ do_work (unsigned int bufferSize_in,
                                                                                           NULL,
                                                                                           true);
 #else
-  Test_I_Target_V4L2_EventHandler_t v4l2_ui_event_handler (&v4l2CBData_in);
-  Test_I_Target_V4L2_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
-                                                               NULL,
-                                                               true);
+  Test_I_Target_EventHandler_t v4l2_ui_event_handler (&v4l2CBData_in);
+  Test_I_Target_Module_EventHandler_Module event_handler (ACE_TEXT_ALWAYS_CHAR ("EventHandler"),
+                                                          NULL,
+                                                          true);
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -992,7 +994,7 @@ do_work (unsigned int bufferSize_in,
   Test_I_Target_MediaFoundation_Module_EventHandler* mediafoundation_event_handler_p =
     NULL;
 #else
-  Test_I_Target_Stream_Module_EventHandler* v4l2_event_handler_p = NULL;
+  Test_I_Target_Module_EventHandler* v4l2_event_handler_p = NULL;
 #endif
   Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p =
@@ -1002,6 +1004,8 @@ do_work (unsigned int bufferSize_in,
   int group_id = -1;
   Net_IConnectionManagerBase* iconnection_manager_p = NULL;
   Test_I_StatisticReportingHandler_t* report_handler_p = NULL;
+  bool result_2 = false;
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
@@ -1029,8 +1033,8 @@ do_work (unsigned int bufferSize_in,
   } // end ELSE
 #else
   v4l2_configuration.moduleHandlerConfiguration.connectionManager =
-    TEST_I_TARGET_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (connection_manager_p);
+    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
+  ACE_ASSERT (v4l2_configuration.moduleHandlerConfiguration.connectionManager);
   v4l2_configuration.moduleHandlerConfiguration.connectionManager->initialize (maximumNumberOfConnections_in);
   v4l2_configuration.moduleHandlerConfiguration.connectionManager->set (v4l2_configuration,
                                                                         &v4l2_configuration.userData);
@@ -1045,10 +1049,9 @@ do_work (unsigned int bufferSize_in,
                                                        report_handler_p,
                                                        false);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_Event_Handler* event_handler_p = NULL;
   Net_SocketHandlerConfiguration* socket_handler_configuration_p = NULL;
-
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_DirectShow_SignalHandler_t directshow_signal_handler;
   Test_I_Target_MediaFoundation_SignalHandler_t mediafoundation_signal_handler;
 
@@ -1059,15 +1062,15 @@ do_work (unsigned int bufferSize_in,
     directshow_event_handler_p =
       dynamic_cast<Test_I_Target_DirectShow_Module_EventHandler*> (directshow_event_handler.writer ());
 #else
-  Test_I_Target_V4L2_SignalHandler_t signal_handler;
+  Test_I_Target_SignalHandler_t signal_handler;
 
   v4l2_event_handler_p =
-    dynamic_cast<Test_I_Target_Stream_Module_EventHandler*> (event_handler.writer ());
+    dynamic_cast<Test_I_Target_Module_EventHandler*> (event_handler.writer ());
 #endif
   if (!event_handler_p)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to dynamic_cast<Test_I_Stream_Module_EventHandler_T>, returning\n")));
+                ACE_TEXT ("failed to dynamic_cast<Test_I_Target_Module_EventHandler>, returning\n")));
     goto clean;
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1089,6 +1092,7 @@ do_work (unsigned int bufferSize_in,
   v4l2_event_handler_p->subscribe (&v4l2_ui_event_handler);
 #endif
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
   {
     // *************************** media foundation ****************************
@@ -1096,6 +1100,7 @@ do_work (unsigned int bufferSize_in,
     //  ((mediafoundation_configuration.protocol == NET_TRANSPORTLAYER_TCP) ? mediaFoundationCBData_in.stream
     //                                                                      : mediaFoundationCBData_in.UDPStream);
   } // end IF
+#endif
 
   // ********************** socket configuration data **************************
   camstream_configuration_p->socketConfiguration.address.set_port_number (listeningPortNumber_in,
@@ -1253,7 +1258,6 @@ do_work (unsigned int bufferSize_in,
   v4l2_configuration.moduleHandlerConfiguration.inbound = true;
   v4l2_configuration.moduleHandlerConfiguration.printProgressDot =
     UIDefinitionFile_in.empty ();
-  v4l2_configuration.moduleHandlerConfiguration.push = false;
   v4l2_configuration.moduleHandlerConfiguration.targetFileName =
     fileName_in;
 #endif
@@ -1308,8 +1312,6 @@ do_work (unsigned int bufferSize_in,
     v4l2_configuration.streamConfiguration.module = &event_handler;
   v4l2_configuration.streamConfiguration.moduleConfiguration =
     &v4l2_configuration.moduleConfiguration;
-  v4l2_configuration.streamConfiguration.mediaFoundationConfiguration =
-    &v4l2_configuration.mediaFoundationConfiguration;
   v4l2_configuration.streamConfiguration.moduleHandlerConfiguration =
     &v4l2_configuration.moduleHandlerConfiguration;
   v4l2_configuration.streamConfiguration.printFinalReport = true;
@@ -1430,8 +1432,6 @@ do_work (unsigned int bufferSize_in,
     event_handler_p = &directshow_signal_handler;
   } // end IF
 #else
-  Test_I_Source_V4L2_SignalHandler_t v4l2_signal_handler;
-
   if (useReactor_in)
     v4l2_configuration.signalHandlerConfiguration.listener =
       TEST_I_TARGET_LISTENER_SINGLETON::instance ();
@@ -1574,7 +1574,6 @@ do_work (unsigned int bufferSize_in,
   if (UIDefinitionFile_in.empty ())
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-    bool result_2 = false;
     Test_I_Target_DirectShow_IInetConnector_t* directshow_iconnector_p = NULL;
     Test_I_Target_MediaFoundation_IInetConnector_t* mediafoundation_iconnector_p =
       NULL;
@@ -1614,14 +1613,14 @@ do_work (unsigned int bufferSize_in,
 #else
       if (useReactor_in)
         ACE_NEW_NORETURN (iconnector_p,
-                          Test_I_Target_V4L2_UDPConnector_t (configuration.moduleHandlerConfiguration.connectionManager,
-                                                             configuration.streamConfiguration.statisticReportingInterval));
+                          Test_I_Target_UDPConnector_t (v4l2_configuration.moduleHandlerConfiguration.connectionManager,
+                                                        v4l2_configuration.streamConfiguration.statisticReportingInterval));
       else
         ACE_NEW_NORETURN (iconnector_p,
-                          Test_I_Target_V4L2_UDPAsynchConnector_t (configuration.moduleHandlerConfiguration.connectionManager,
-                                                                   configuration.streamConfiguration.statisticReportingInterval));
+                          Test_I_Target_UDPAsynchConnector_t (v4l2_configuration.moduleHandlerConfiguration.connectionManager,
+                                                              v4l2_configuration.streamConfiguration.statisticReportingInterval));
       result_2 =
-        iconnector_p->initialize (configuration.socketHandlerConfiguration);
+        iconnector_p->initialize (v4l2_configuration.socketHandlerConfiguration);
       if (!iconnector_p)
 #endif
       {
@@ -1695,9 +1694,9 @@ do_work (unsigned int bufferSize_in,
                                                                                1);
 #else
       result =
-        configuration.socketConfiguration.address.addr_to_string (buffer,
-                                                                  sizeof (buffer),
-                                                                  1);
+        v4l2_configuration.socketConfiguration.address.addr_to_string (buffer,
+                                                                       sizeof (buffer),
+                                                                       1);
 #endif
 
       if (result == -1)
@@ -1713,8 +1712,8 @@ do_work (unsigned int bufferSize_in,
         directshow_configuration.handle =
           directshow_iconnector_p->connect (directshow_configuration.socketConfiguration.address);
 #else
-      configuration.handle =
-        iconnector_p->connect (configuration.socketConfiguration.address);
+      v4l2_configuration.handle =
+        iconnector_p->connect (v4l2_configuration.socketConfiguration.address);
 #endif
       if (!useReactor_in)
       {
@@ -1732,7 +1731,8 @@ do_work (unsigned int bufferSize_in,
         Test_I_Target_DirectShow_UDPAsynchConnector_t::ICONNECTION_T* directshow_connection_p =
           NULL;
 #else
-        Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p = NULL;
+        Test_I_Target_UDPAsynchConnector_t::ICONNECTION_T* connection_p =
+            NULL;
 #endif
         do
         {
@@ -1745,7 +1745,7 @@ do_work (unsigned int bufferSize_in,
               directshow_configuration.moduleHandlerConfiguration.connectionManager->get (directshow_configuration.socketConfiguration.address);
 #else
           connection_p =
-            configuration.moduleHandlerConfiguration.connectionManager->get (configuration.socketConfiguration.address);
+            v4l2_configuration.moduleHandlerConfiguration.connectionManager->get (v4l2_configuration.socketConfiguration.address);
 #endif
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           if (useMediaFoundation_in)
@@ -1769,7 +1769,7 @@ do_work (unsigned int bufferSize_in,
 #else
           if (connection_p)
           {
-            configuration.handle =
+            v4l2_configuration.handle =
               static_cast<ACE_HANDLE> (connection_p->id ());
             connection_p->decrease ();
             break;
@@ -1783,7 +1783,7 @@ do_work (unsigned int bufferSize_in,
       else
         result_2 = (directshow_configuration.handle == ACE_INVALID_HANDLE);
 #else
-      result_2 = (configuration.handle == ACE_INVALID_HANDLE);
+      result_2 = (v4l2_configuration.handle == ACE_INVALID_HANDLE);
 #endif
       if (!result_2)
       {
@@ -1850,7 +1850,7 @@ do_work (unsigned int bufferSize_in,
           directShowCBData_in.configuration->signalHandlerConfiguration.listener->initialize (directshow_configuration.listenerConfiguration);
 #else
       result_2 =
-        CBData_in.configuration->signalHandlerConfiguration.listener->initialize (configuration.listenerConfiguration);
+        v4l2CBData_in.configuration->signalHandlerConfiguration.listener->initialize (v4l2_configuration.listenerConfiguration);
 #endif
       if (!result_2)
       {
@@ -1889,9 +1889,9 @@ do_work (unsigned int bufferSize_in,
           directShowCBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
       } // end ELSE
 #else
-      CBData_in.configuration->signalHandlerConfiguration.listener->start ();
+      v4l2CBData_in.configuration->signalHandlerConfiguration.listener->start ();
       result_2 =
-        CBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
+        v4l2CBData_in.configuration->signalHandlerConfiguration.listener->isRunning ();
 #endif
       if (!result_2)
       {
@@ -1957,7 +1957,7 @@ clean:
   else
     directshow_configuration.moduleHandlerConfiguration.connectionManager->wait ();
 #else
-  configuration.moduleHandlerConfiguration.connectionManager->wait ();
+  v4l2_configuration.moduleHandlerConfiguration.connectionManager->wait ();
 #endif
   Common_Tools::finalizeEventDispatch (useReactor_in,
                                        !useReactor_in,
@@ -1988,6 +1988,7 @@ clean:
                 ACE_TEXT ("%s: failed to ACE_Module::close (): \"%m\", continuing\n"),
                 event_handler.name ()));
 #endif
+  } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (useMediaFoundation_in)
@@ -2094,8 +2095,10 @@ ACE_TMAIN (int argc_in,
       ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_TARGET_GLADE_FILE);
   bool use_thread_pool = NET_EVENT_USE_THREAD_POOL;
   bool log_to_file = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool use_mediafoundation =
     TEST_I_STREAM_WIN32_FRAMEWORK_DEFAULT_USE_MEDIAFOUNDATION;
+#endif
   std::string network_interface =
     ACE_TEXT_ALWAYS_CHAR (NET_INTERFACE_DEFAULT);
   bool use_loopback = false;
@@ -2120,7 +2123,9 @@ ACE_TMAIN (int argc_in,
                             gtk_glade_file,
                             use_thread_pool,
                             log_to_file,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             use_mediafoundation,
+#endif
                             network_interface,
                             use_loopback,
                             listening_port_number,
@@ -2207,7 +2212,7 @@ ACE_TMAIN (int argc_in,
     gtk_cb_user_data_p = &directshow_gtk_cb_user_data;
   } // end ELSE
 #else
-  Test_I_Target_V4L2_GTK_CBData v4l2_gtk_cb_user_data;
+  Test_I_Target_GTK_CBData v4l2_gtk_cb_user_data;
   v4l2_gtk_cb_user_data.progressData.GTKState = &v4l2_gtk_cb_user_data;
   gtk_cb_user_data_p = &v4l2_gtk_cb_user_data;
 #endif

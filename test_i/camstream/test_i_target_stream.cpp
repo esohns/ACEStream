@@ -1004,25 +1004,25 @@ Test_I_Target_MediaFoundation_Stream::report () const
   ACE_NOTREACHED (return;)
 }
 #else
-Test_I_Target_V4L2_Stream::Test_I_Target_V4L2_Stream (const std::string& name_in)
+Test_I_Target_Stream::Test_I_Target_Stream (const std::string& name_in)
  : inherited (name_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_V4L2_Stream::Test_I_Target_V4L2_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::Test_I_Target_Stream"));
 
 }
 
-Test_I_Target_V4L2_Stream::~Test_I_Target_V4L2_Stream ()
+Test_I_Target_Stream::~Test_I_Target_Stream ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_V4L2_Stream::~Test_I_Target_V4L2_Stream"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::~Test_I_Target_Stream"));
 
   inherited::shutdown ();
 }
 
 bool
-Test_I_Target_V4L2_Stream::load (Stream_ModuleList_t& modules_out,
+Test_I_Target_Stream::load (Stream_ModuleList_t& modules_out,
                             bool& delete_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_V4L2_Stream::load"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::load"));
 
 //  // initialize return value(s)
 //  modules_out.clear ();
@@ -1030,33 +1030,33 @@ Test_I_Target_V4L2_Stream::load (Stream_ModuleList_t& modules_out,
 
   Stream_Module_t* module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_V4L2_Module_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
-                                                            NULL,
-                                                            false),
+                  Test_I_Target_Module_Display_Module (ACE_TEXT_ALWAYS_CHAR ("Display"),
+                                                       NULL,
+                                                       false),
                   false);
   modules_out.push_back (module_p);
 //  ACE_NEW_RETURN (module_p,
-//                  Test_I_Target_V4L2_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
-//                                                                NULL,
-//                                                                false),
+//                  Test_I_Target_Module_DisplayNull_Module (ACE_TEXT_ALWAYS_CHAR ("DisplayNull"),
+//                                                           NULL,
+//                                                           false),
 //                  false);
 //  modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_V4L2_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
-                                                                     NULL,
-                                                                     false),
+                  Test_I_Target_Module_RuntimeStatistic_Module (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic"),
+                                                                NULL,
+                                                                false),
                   false);
   modules_out.push_back (module_p);
   module_p = NULL;
   ACE_NEW_RETURN (module_p,
-                  Test_I_Target_V4L2_Module_Splitter_Module (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
-                                                             NULL,
-                                                             false),
+                  Test_I_Target_Module_Splitter_Module (ACE_TEXT_ALWAYS_CHAR ("Splitter"),
+                                                        NULL,
+                                                        false),
                   false);
   modules_out.push_back (module_p);
-  //Test_I_Target_V4L2_Module_AVIDecoder_Module            decoder_;
-  //Test_I_Target_V4L2_Module_Net_IO_Module                source_;
+  //Test_I_Target_Module_AVIDecoder_Module            decoder_;
+  //Test_I_Target_Module_Net_IO_Module                source_;
 
   if (!inherited::load (modules_out,
                         delete_out))
@@ -1073,11 +1073,11 @@ Test_I_Target_V4L2_Stream::load (Stream_ModuleList_t& modules_out,
 }
 
 bool
-Test_I_Target_V4L2_Stream::initialize (const Test_I_Target_StreamConfiguration& configuration_in,
-                                       bool setupPipeline_in,
-                                       bool resetSessionData_in)
+Test_I_Target_Stream::initialize (const Test_I_Target_StreamConfiguration& configuration_in,
+                                  bool setupPipeline_in,
+                                  bool resetSessionData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_V4L2_Stream::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::initialize"));
 
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
@@ -1095,8 +1095,8 @@ Test_I_Target_V4L2_Stream::initialize (const Test_I_Target_StreamConfiguration& 
     return false;
   } // end IF
   ACE_ASSERT (inherited::sessionData_);
-  Test_I_Target_V4L2_SessionData& session_data_r =
-    const_cast<Test_I_Target_V4L2_SessionData&> (inherited::sessionData_->get ());
+  Test_I_Target_SessionData& session_data_r =
+    const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->get ());
   // *TODO*: remove type inferences
   session_data_r.lock = &(inherited::sessionDataLock_);
   inherited::state_.currentSessionData = &session_data_r;
@@ -1109,8 +1109,8 @@ Test_I_Target_V4L2_Stream::initialize (const Test_I_Target_StreamConfiguration& 
 
   ACE_ASSERT (configuration_in.moduleConfiguration);
   //  configuration_in.moduleConfiguration.streamState = &state_;
-  Test_I_Target_V4L2_StreamConfiguration& configuration_r =
-      const_cast<Test_I_Target_V4L2_StreamConfiguration&> (configuration_in);
+  Test_I_Target_StreamConfiguration& configuration_r =
+      const_cast<Test_I_Target_StreamConfiguration&> (configuration_in);
   configuration_r.moduleHandlerConfiguration->stateMachineLock =
     &inherited::state_.stateMachineLock;
 
@@ -1131,9 +1131,9 @@ error:
 }
 
 void
-Test_I_Target_V4L2_Stream::ping ()
+Test_I_Target_Stream::ping ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_V4L2_Stream::ping"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::ping"));
 
   ACE_ASSERT (false);
   ACE_NOTSUP;
@@ -1142,16 +1142,16 @@ Test_I_Target_V4L2_Stream::ping ()
 }
 
 bool
-Test_I_Target_V4L2_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
+Test_I_Target_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_V4L2_Stream::collect"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::collect"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
 
   int result = -1;
-  Test_I_Target_V4L2_SessionData& session_data_r =
-    const_cast<Test_I_Target_V4L2_SessionData&> (inherited::sessionData_->get ());
+  Test_I_Target_SessionData& session_data_r =
+    const_cast<Test_I_Target_SessionData&> (inherited::sessionData_->get ());
   Stream_Module_t* module_p =
     const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("RuntimeStatistic")));
   if (!module_p)
@@ -1161,8 +1161,8 @@ Test_I_Target_V4L2_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
                 ACE_TEXT ("RuntimeStatistic")));
     return false;
   } // end IF
-  Test_I_Target_Stream_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
-    dynamic_cast<Test_I_Target_Stream_Module_Statistic_WriterTask_t*> (module_p->writer ());
+  Test_I_Target_Module_Statistic_WriterTask_t* runtimeStatistic_impl_p =
+    dynamic_cast<Test_I_Target_Module_Statistic_WriterTask_t*> (module_p->writer ());
   if (!runtimeStatistic_impl_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1210,9 +1210,9 @@ Test_I_Target_V4L2_Stream::collect (Test_I_RuntimeStatistic_t& data_out)
 }
 
 void
-Test_I_Target_V4L2_Stream::report () const
+Test_I_Target_Stream::report () const
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_Target_V4L2_Stream::report"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_Target_Stream::report"));
 
 //   Net_Module_Statistic_ReaderTask_t* runtimeStatistic_impl = NULL;
 //   runtimeStatistic_impl = dynamic_cast<Net_Module_Statistic_ReaderTask_t*> (//runtimeStatistic_.writer ());

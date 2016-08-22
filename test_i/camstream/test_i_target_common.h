@@ -131,7 +131,7 @@ struct Test_I_Target_MediaFoundation_UserData
   Test_I_Target_MediaFoundation_StreamConfiguration* streamConfiguration;
 };
 #endif
-struct Test_I_Target_V4L2_Configuration;
+struct Test_I_Target_Configuration;
 struct Test_I_Target_UserData
  : Stream_UserData
 {
@@ -141,23 +141,25 @@ struct Test_I_Target_UserData
    , streamConfiguration (NULL)
   {};
 
-  Test_I_Target_V4L2_Configuration*  configuration;
+  Test_I_Target_Configuration*       configuration;
   Test_I_Target_StreamConfiguration* streamConfiguration;
 };
 
+struct Test_I_Target_ConnectionState;
 struct Test_I_Target_SessionData
- : Test_I_SessionData
+ : Test_I_CamStream_V4L2_SessionData
 {
   inline Test_I_Target_SessionData ()
-   : Test_I_SessionData ()
+   : Test_I_CamStream_V4L2_SessionData ()
    , connectionState (NULL)
+   , targetFileName ()
    , userData (NULL)
   {};
 
   inline Test_I_Target_SessionData& operator+= (const Test_I_Target_SessionData& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
-    Test_I_SessionData::operator+= (rhs_in);
+    Test_I_CamStream_V4L2_SessionData::operator+= (rhs_in);
 
     connectionState =
       (connectionState ? connectionState : rhs_in.connectionState);
@@ -166,8 +168,9 @@ struct Test_I_Target_SessionData
     return *this;
   }
 
-  Test_I_ConnectionState* connectionState;
-  Test_I_Target_UserData* userData;
+  Test_I_Target_ConnectionState* connectionState;
+  std::string                    targetFileName;
+  Test_I_Target_UserData*        userData;
 };
 typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -302,6 +305,8 @@ struct Test_I_Target_ModuleHandlerConfiguration
    , queue (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , socketHandlerConfiguration (NULL)
+#else
+   , socketHandlerConfiguration (NULL)
 #endif
    , targetFileName ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -315,13 +320,15 @@ struct Test_I_Target_ModuleHandlerConfiguration
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
   GdkRectangle                                         area;
-  Test_I_Target_V4L2_IConnection_t*                    connection; // Net source/IO module
-  Test_I_Target_V4L2_InetConnectionManager_t*          connectionManager; // Net IO module
+  Test_I_Target_IConnection_t*                         connection; // Net source/IO module
+  Test_I_Target_InetConnectionManager_t*               connectionManager; // Net IO module
   struct v4l2_format                                   format; // splitter module
 #endif
   ACE_Message_Queue_Base*                              queue;  // (inbound) buffer queue handle
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Target_DirectShow_SocketHandlerConfiguration* socketHandlerConfiguration;
+#else
+  Test_I_Target_SocketHandlerConfiguration*            socketHandlerConfiguration;
 #endif
   std::string                                          targetFileName; // file writer module
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -466,9 +473,9 @@ struct Test_I_Target_MediaFoundation_ListenerConfiguration
 typedef Net_IListener_T<Test_I_Target_MediaFoundation_ListenerConfiguration,
                         Test_I_Target_MediaFoundation_SocketHandlerConfiguration> Test_I_Target_MediaFoundation_IListener_t;
 #else
-struct Test_I_Target_V4L2_ListenerConfiguration
+struct Test_I_Target_ListenerConfiguration
 {
-  inline Test_I_Target_V4L2_ListenerConfiguration ()
+  inline Test_I_Target_ListenerConfiguration ()
    : address (TEST_I_DEFAULT_PORT, static_cast<ACE_UINT32> (INADDR_ANY))
    , addressFamily (ACE_ADDRESS_FAMILY_INET)
    , connectionManager (NULL)
@@ -478,16 +485,16 @@ struct Test_I_Target_V4L2_ListenerConfiguration
    , useLoopBackDevice (false)
   {};
 
-  ACE_INET_Addr                               address;
-  int                                         addressFamily;
-  Test_I_Target_V4L2_InetConnectionManager_t* connectionManager;
-  Stream_IAllocator*                          messageAllocator;
-  Test_I_Target_SocketHandlerConfiguration*   socketHandlerConfiguration;
-  ACE_Time_Value                              statisticReportingInterval; // [ACE_Time_Value::zero: off]
-  bool                                        useLoopBackDevice;
+  ACE_INET_Addr                             address;
+  int                                       addressFamily;
+  Test_I_Target_InetConnectionManager_t*    connectionManager;
+  Stream_IAllocator*                        messageAllocator;
+  Test_I_Target_SocketHandlerConfiguration* socketHandlerConfiguration;
+  ACE_Time_Value                            statisticReportingInterval; // [ACE_Time_Value::zero: off]
+  bool                                      useLoopBackDevice;
 };
-typedef Net_IListener_T<Test_I_Target_V4L2_ListenerConfiguration,
-                        Test_I_Target_SocketHandlerConfiguration> Test_I_Target_V4L2_IListener_t;
+typedef Net_IListener_T<Test_I_Target_ListenerConfiguration,
+                        Test_I_Target_SocketHandlerConfiguration> Test_I_Target_IListener_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -524,22 +531,24 @@ struct Test_I_Target_MediaFoundation_SignalHandlerConfiguration
 typedef Test_I_Target_SignalHandler_T<Test_I_Target_MediaFoundation_SignalHandlerConfiguration,
                                       Test_I_Target_MediaFoundation_InetConnectionManager_t> Test_I_Target_MediaFoundation_SignalHandler_t;
 #else
-struct Test_I_Target_V4L2_SignalHandlerConfiguration
+struct Test_I_Target_SignalHandlerConfiguration
  : Common_SignalHandlerConfiguration
 {
-  inline Test_I_Target_V4L2_SignalHandlerConfiguration ()
+  inline Test_I_Target_SignalHandlerConfiguration ()
    : Common_SignalHandlerConfiguration ()
+   , connectionManager (NULL)
    , listener (NULL)
    , statisticReportingHandler (NULL)
    , statisticReportingTimerID (-1)
   {};
 
-  Test_I_Target_V4L2_IListener_t*     listener;
-  Test_I_StatisticReportingHandler_t* statisticReportingHandler;
-  long                                statisticReportingTimerID;
+  Test_I_Target_InetConnectionManager_t* connectionManager;
+  Test_I_Target_IListener_t*             listener;
+  Test_I_StatisticReportingHandler_t*    statisticReportingHandler;
+  long                                   statisticReportingTimerID;
 };
-typedef Test_I_Target_SignalHandler_T<Test_I_Target_V4L2_SignalHandlerConfiguration,
-                                      Test_I_Target_V4L2_InetConnectionManager_t> Test_I_Target_V4L2_SignalHandler_t;
+typedef Test_I_Target_SignalHandler_T<Test_I_Target_SignalHandlerConfiguration,
+                                      Test_I_Target_InetConnectionManager_t> Test_I_Target_SignalHandler_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -607,10 +616,10 @@ struct Test_I_Target_MediaFoundation_StreamState
   Test_I_Target_MediaFoundation_UserData*    userData;
 };
 #else
-struct Test_I_Target_V4L2_StreamState
+struct Test_I_Target_StreamState
  : Stream_State
 {
-  inline Test_I_Target_V4L2_StreamState ()
+  inline Test_I_Target_StreamState ()
    : Stream_State ()
    , currentSessionData (NULL)
    , userData (NULL)
@@ -688,10 +697,10 @@ struct Test_I_Target_MediaFoundation_Configuration
   Test_I_Target_MediaFoundation_UserData                   userData;
 };
 #else
-struct Test_I_Target_V4L2_Configuration
+struct Test_I_Target_Configuration
   : Test_I_CamStream_Configuration
 {
-  inline Test_I_Target_V4L2_Configuration ()
+  inline Test_I_Target_Configuration ()
     : Test_I_CamStream_Configuration ()
     , socketHandlerConfiguration ()
     , handle (ACE_INVALID_HANDLE)
@@ -704,18 +713,18 @@ struct Test_I_Target_V4L2_Configuration
   {};
 
   // **************************** socket data **********************************
-  Test_I_Target_SocketHandlerConfiguration      socketHandlerConfiguration;
+  Test_I_Target_SocketHandlerConfiguration socketHandlerConfiguration;
   // **************************** listener data ********************************
-  ACE_HANDLE                                    handle;
+  ACE_HANDLE                               handle;
   //Test_I_Target_IListener_t*               listener;
-  Test_I_Target_V4L2_ListenerConfiguration      listenerConfiguration;
+  Test_I_Target_ListenerConfiguration      listenerConfiguration;
   // **************************** signal data **********************************
-  Test_I_Target_V4L2_SignalHandlerConfiguration signalHandlerConfiguration;
+  Test_I_Target_SignalHandlerConfiguration signalHandlerConfiguration;
   // **************************** stream data **********************************
-  Test_I_Target_ModuleHandlerConfiguration      moduleHandlerConfiguration;
-  Test_I_Target_StreamConfiguration             streamConfiguration;
+  Test_I_Target_ModuleHandlerConfiguration moduleHandlerConfiguration;
+  Test_I_Target_StreamConfiguration        streamConfiguration;
 
-  Test_I_Target_UserData                        userData;
+  Test_I_Target_UserData                   userData;
 };
 #endif
 
@@ -774,11 +783,11 @@ typedef Common_ISubscribe_T<Test_I_Target_MediaFoundation_ISessionNotify_t> Test
 typedef Stream_ISessionDataNotify_T<Stream_SessionId_t,
                                     Test_I_Target_SessionData,
                                     Stream_SessionMessageType,
-                                    Test_I_Target_V4L2_Stream_Message,
-                                    Test_I_Target_V4L2_Stream_SessionMessage> Test_I_Target_V4L2_ISessionNotify_t;
-typedef std::list<Test_I_Target_V4L2_ISessionNotify_t*> Test_I_Target_V4L2_Subscribers_t;
-typedef Test_I_Target_V4L2_Subscribers_t::iterator Test_I_Target_V4L2_SubscribersIterator_t;
-typedef Common_ISubscribe_T<Test_I_Target_V4L2_ISessionNotify_t> Test_I_Target_V4L2_ISubscribe_t;
+                                    Test_I_Target_Stream_Message,
+                                    Test_I_Target_Stream_SessionMessage> Test_I_Target_ISessionNotify_t;
+typedef std::list<Test_I_Target_ISessionNotify_t*> Test_I_Target_Subscribers_t;
+typedef Test_I_Target_Subscribers_t::iterator Test_I_Target_SubscribersIterator_t;
+typedef Common_ISubscribe_T<Test_I_Target_ISessionNotify_t> Test_I_Target_ISubscribe_t;
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -815,10 +824,10 @@ struct Test_I_Target_MediaFoundation_GTK_CBData
   ACE_SYNCH_RECURSIVE_MUTEX                    subscribersLock;
 };
 #else
-struct Test_I_Target_V4L2_GTK_CBData
+struct Test_I_Target_GTK_CBData
  : Test_I_CamStream_GTK_CBData
 {
-  inline Test_I_Target_V4L2_GTK_CBData ()
+  inline Test_I_Target_GTK_CBData ()
    : Test_I_CamStream_GTK_CBData ()
    , configuration (NULL)
    , progressEventSourceID (0)
@@ -826,10 +835,10 @@ struct Test_I_Target_V4L2_GTK_CBData
    , subscribersLock ()
   {};
 
-  Test_I_Target_V4L2_Configuration* configuration;
-  guint                             progressEventSourceID;
-  Test_I_Target_V4L2_Subscribers_t  subscribers;
-  ACE_SYNCH_RECURSIVE_MUTEX         subscribersLock;
+  Test_I_Target_Configuration* configuration;
+  guint                        progressEventSourceID;
+  Test_I_Target_Subscribers_t  subscribers;
+  ACE_SYNCH_RECURSIVE_MUTEX    subscribersLock;
 };
 #endif
 

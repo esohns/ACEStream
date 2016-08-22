@@ -201,17 +201,17 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_MediaFoundation_SessionData,        
 #else
 typedef Stream_Module_Splitter_T<ACE_MT_SYNCH,
                                  Common_TimePolicy_t,
-                                 Test_I_Target_V4L2_ModuleHandlerConfiguration,
+                                 Test_I_Target_ModuleHandlerConfiguration,
                                  Test_I_Target_ControlMessage_t,
-                                 Test_I_Target_V4L2_Stream_Message,
-                                 Test_I_Target_V4L2_Stream_SessionMessage,
-                                 Test_I_Target_SessionData> Test_I_Target_V4L2_Module_Splitter;
+                                 Test_I_Target_Stream_Message,
+                                 Test_I_Target_Stream_SessionMessage,
+                                 Test_I_Target_SessionData> Test_I_Target_Module_Splitter;
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                     // session data type
-                              Stream_SessionMessageType,                     // session event type
-                              Test_I_Target_V4L2_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_IStreamNotify_t,                        // stream notification interface type
-                              Test_I_Target_V4L2_Module_Splitter);           // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                // session data type
+                              Stream_SessionMessageType,                // session event type
+                              Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_IStreamNotify_t,                   // stream notification interface type
+                              Test_I_Target_Module_Splitter);           // writer type
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -447,20 +447,20 @@ typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
 
 typedef Stream_Module_Statistic_ReaderTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Test_I_Target_V4L2_ModuleHandlerConfiguration,
+                                             Test_I_Target_ModuleHandlerConfiguration,
                                              Test_I_Target_ControlMessage_t,
-                                             Test_I_Target_V4L2_Stream_Message,
-                                             Test_I_Target_V4L2_Stream_SessionMessage,
+                                             Test_I_Target_Stream_Message,
+                                             Test_I_Target_Stream_SessionMessage,
                                              Test_I_CommandType_t,
                                              Test_I_RuntimeStatistic_t,
                                              Test_I_Target_SessionData,
                                              Test_I_Target_SessionData_t> Test_I_Target_Module_Statistic_ReaderTask_t;
 typedef Stream_Module_Statistic_WriterTask_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
-                                             Test_I_Target_V4L2_ModuleHandlerConfiguration,
+                                             Test_I_Target_ModuleHandlerConfiguration,
                                              Test_I_Target_ControlMessage_t,
-                                             Test_I_Target_V4L2_Stream_Message,
-                                             Test_I_Target_V4L2_Stream_SessionMessage,
+                                             Test_I_Target_Stream_Message,
+                                             Test_I_Target_Stream_SessionMessage,
                                              Test_I_CommandType_t,
                                              Test_I_RuntimeStatistic_t,
                                              Test_I_Target_SessionData,
@@ -473,13 +473,13 @@ DATASTREAM_MODULE_DUPLEX (Test_I_Source_V4L2_SessionData,                // sess
                           Test_I_Source_Module_Statistic_ReaderTask_t,   // reader type
                           Test_I_Source_Module_Statistic_WriterTask_t,   // writer type
                           Test_I_Source_V4L2_Module_RuntimeStatistic);   // name
-DATASTREAM_MODULE_DUPLEX (Test_I_Target_SessionData,                     // session data type
-                          Stream_SessionMessageType,                     // session event type
-                          Test_I_Target_V4L2_ModuleHandlerConfiguration, // module handler configuration type
-                          Test_I_IStreamNotify_t,                        // stream notification interface type
-                          Test_I_Target_Module_Statistic_ReaderTask_t,   // reader type
-                          Test_I_Target_Module_Statistic_WriterTask_t,   // writer type
-                          Test_I_Target_V4L2_Module_RuntimeStatistic);   // name
+DATASTREAM_MODULE_DUPLEX (Test_I_Target_SessionData,                   // session data type
+                          Stream_SessionMessageType,                   // session event type
+                          Test_I_Target_ModuleHandlerConfiguration,    // module handler configuration type
+                          Test_I_IStreamNotify_t,                      // stream notification interface type
+                          Test_I_Target_Module_Statistic_ReaderTask_t, // reader type
+                          Test_I_Target_Module_Statistic_WriterTask_t, // writer type
+                          Test_I_Target_Module_RuntimeStatistic);      // name
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -658,22 +658,22 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Test_I_Source_V4L2_SessionData_t> Test_I_Source_V4L2_Module_Display;
 typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
-                                       Test_I_Target_V4L2_ModuleHandlerConfiguration,
+                                       Test_I_Target_ModuleHandlerConfiguration,
                                        Test_I_Target_ControlMessage_t,
-                                       Test_I_Target_V4L2_Stream_Message,
-                                       Test_I_Target_V4L2_Stream_SessionMessage,
-                                       Test_I_Target_SessionData_t> Test_I_Target_V4L2_Module_Display;
+                                       Test_I_Target_Stream_Message,
+                                       Test_I_Target_Stream_SessionMessage,
+                                       Test_I_Target_SessionData_t> Test_I_Target_Module_Display;
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L2_SessionData,                // session data type
                               Stream_SessionMessageType,                     // session event type
                               Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                        // stream notification interface type
                               Test_I_Source_V4L2_Module_Display);            // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                     // session data type
-                              Stream_SessionMessageType,                     // session event type
-                              Test_I_Target_V4L2_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_IStreamNotify_t,                        // stream notification interface type
-                              Test_I_Target_V4L2_Module_Display);            // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData,                // session data type
+                              Stream_SessionMessageType,                // session event type
+                              Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_IStreamNotify_t,                   // stream notification interface type
+                              Test_I_Target_Module_Display);            // writer type
 
 typedef Test_I_Stream_Module_EventHandler_T<Stream_ModuleConfiguration,
                                             Test_I_Source_V4L2_ModuleHandlerConfiguration,
@@ -683,23 +683,23 @@ typedef Test_I_Stream_Module_EventHandler_T<Stream_ModuleConfiguration,
                                             Test_I_Source_V4L2_SessionData,
                                             Test_I_Source_V4L2_SessionData_t> Test_I_Source_V4L2_Module_EventHandler;
 typedef Test_I_Stream_Module_EventHandler_T<Stream_ModuleConfiguration,
-                                            Test_I_Target_V4L2_ModuleHandlerConfiguration,
+                                            Test_I_Target_ModuleHandlerConfiguration,
                                             Test_I_Target_ControlMessage_t,
-                                            Test_I_Target_V4L2_Stream_Message,
-                                            Test_I_Target_V4L2_Stream_SessionMessage,
+                                            Test_I_Target_Stream_Message,
+                                            Test_I_Target_Stream_SessionMessage,
                                             Test_I_Target_SessionData,
-                                            Test_I_Target_SessionData_t> Test_I_Target_V4L2_Module_EventHandler;
+                                            Test_I_Target_SessionData_t> Test_I_Target_Module_EventHandler;
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_Source_V4L2_SessionData_t,              // session data type
                               Stream_SessionMessageType,                     // session event type
                               Test_I_Source_V4L2_ModuleHandlerConfiguration, // module handler configuration type
                               Test_I_IStreamNotify_t,                        // stream notification interface type
                               Test_I_Source_V4L2_Module_EventHandler);       // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData_t,                   // session data type
-                              Stream_SessionMessageType,                     // session event type
-                              Test_I_Target_V4L2_ModuleHandlerConfiguration, // module handler configuration type
-                              Test_I_IStreamNotify_t,                        // stream notification interface type
-                              Test_I_Target_V4L2_Module_EventHandler);       // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_Target_SessionData_t,              // session data type
+                              Stream_SessionMessageType,                // session event type
+                              Test_I_Target_ModuleHandlerConfiguration, // module handler configuration type
+                              Test_I_IStreamNotify_t,                   // stream notification interface type
+                              Test_I_Target_Module_EventHandler);       // writer type
 #endif
 
 #endif

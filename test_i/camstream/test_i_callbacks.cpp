@@ -3051,8 +3051,8 @@ idle_end_target_UI_cb (gpointer userData_in)
     connection_count = connection_manager_p->count ();
   } // end ELSE
 #else
-  Test_I_Target_V4L2_InetConnectionManager_t* connection_manager_p =
-    TEST_I_TARGET_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
+  Test_I_Target_InetConnectionManager_t* connection_manager_p =
+    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
   connection_count = connection_manager_p->count ();
 #endif
@@ -4012,8 +4012,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     directshow_data_p =
       static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
 #else
-  Test_I_Target_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<Test_I_Target_V4L2_GTK_CBData*> (userData_in);
+  Test_I_Target_GTK_CBData* v4l2_data_p =
+    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
 #endif
 
   Common_UI_GTKBuildersIterator_t iterator =
@@ -4064,8 +4064,8 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
     ACE_ASSERT (directshow_connection_manager_p);
   } // end ELSE
 #else
-  Test_I_Target_V4L2_InetConnectionManager_t* connection_manager_p =
-    TEST_I_TARGET_V4L2_CONNECTIONMANAGER_SINGLETON::instance ();
+  Test_I_Target_InetConnectionManager_t* connection_manager_p =
+    TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON::instance ();
   ACE_ASSERT (connection_manager_p);
 #endif
   bool result = false;
@@ -4125,7 +4125,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
 #else
         if (v4l2_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
-          Test_I_Target_V4L2_InetConnectionManager_t::ICONNECTION_T* connection_p =
+          Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
             connection_manager_p->get (v4l2_data_p->configuration->handle);
           if (connection_p)
           {
@@ -4226,7 +4226,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
 #else
         if (v4l2_data_p->configuration->handle != ACE_INVALID_HANDLE)
         {
-          Test_I_Target_V4L2_InetConnectionManager_t::ICONNECTION_T* connection_p =
+          Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
             connection_manager_p->get (v4l2_data_p->configuration->handle);
           if (connection_p)
           {
@@ -4288,18 +4288,18 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             iconnector_2->initialize (directshow_data_p->configuration->socketHandlerConfiguration);
         } // end ELSE
 #else
-        Test_I_Target_V4L2_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
+        Test_I_Target_InetConnectionManager_t::INTERFACE_T* iconnection_manager_p =
           connection_manager_p;
         ACE_ASSERT (iconnection_manager_p);
-        Test_I_Target_V4L2_IInetConnector_t* iconnector_2 = NULL;
+        Test_I_Target_IInetConnector_t* iconnector_2 = NULL;
         if (v4l2_data_p->configuration->useReactor)
           ACE_NEW_NORETURN (iconnector_2,
-                            Test_I_Target_V4L2_UDPConnector_t (iconnection_manager_p,
-                                                               v4l2_data_p->configuration->streamConfiguration.statisticReportingInterval));
+                            Test_I_Target_UDPConnector_t (iconnection_manager_p,
+                                                          v4l2_data_p->configuration->streamConfiguration.statisticReportingInterval));
         else
           ACE_NEW_NORETURN (iconnector_2,
-                            Test_I_Target_V4L2_UDPAsynchConnector_t (iconnection_manager_p,
-                                                                     v4l2_data_p->configuration->streamConfiguration.statisticReportingInterval));
+                            Test_I_Target_UDPAsynchConnector_t (iconnection_manager_p,
+                                                                v4l2_data_p->configuration->streamConfiguration.statisticReportingInterval));
         if (!iconnector_2)
         {
           ACE_DEBUG ((LM_CRITICAL,
@@ -4453,7 +4453,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
           //              ACE_TEXT ("failed to ACE_OS::sleep(%#T): \"%m\", continuing\n"),
           //              &timeout));
           ACE_Time_Value deadline = COMMON_TIME_NOW + timeout;
-          Test_I_Target_V4L2_InetConnectionManager_t::ICONNECTION_T* connection_p =
+          Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
             NULL;
           do
           {
@@ -4601,7 +4601,7 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
 #else
     if (v4l2_data_p->configuration->handle != ACE_INVALID_HANDLE)
     {
-      Test_I_Target_V4L2_InetConnectionManager_t::ICONNECTION_T* connection_p =
+      Test_I_Target_InetConnectionManager_t::ICONNECTION_T* connection_p =
         connection_manager_p->get (v4l2_data_p->configuration->handle);
       if (connection_p)
       {
@@ -5933,8 +5933,8 @@ drawingarea_size_allocate_target_cb (GtkWidget* widget_in,
     directshow_data_p =
       static_cast<Test_I_Target_DirectShow_GTK_CBData*> (userData_in);
 #else
-  Test_I_Target_V4L2_GTK_CBData* v4l2_data_p =
-    static_cast<Test_I_Target_V4L2_GTK_CBData*> (userData_in);
+  Test_I_Target_GTK_CBData* v4l2_data_p =
+    static_cast<Test_I_Target_GTK_CBData*> (userData_in);
 #endif
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

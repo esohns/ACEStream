@@ -53,8 +53,8 @@ struct Test_I_Source_V4L2_Configuration;
 struct Test_I_Source_V4L2_ConnectionState;
 struct Test_I_Source_V4L2_UserData;
 
-struct Test_I_Target_V4L2_Configuration;
-struct Test_I_Target_V4L2_ConnectionState;
+struct Test_I_Target_Configuration;
+struct Test_I_Target_ConnectionState;
 struct Test_I_Target_UserData;
 #endif
 
@@ -132,15 +132,15 @@ typedef Net_Connection_Manager_T<ACE_INET_Addr,
                                  Test_I_RuntimeStatistic_t,
                                  Test_I_Source_V4L2_UserData> Test_I_Source_V4L2_InetConnectionManager_t;
 typedef Net_Connection_Manager_T<ACE_INET_Addr,
-                                 Test_I_Target_V4L2_Configuration,
-                                 Test_I_Target_V4L2_ConnectionState,
+                                 Test_I_Target_Configuration,
+                                 Test_I_Target_ConnectionState,
                                  Test_I_RuntimeStatistic_t,
-                                 Test_I_Target_UserData> Test_I_Target_V4L2_InetConnectionManager_t;
+                                 Test_I_Target_UserData> Test_I_Target_InetConnectionManager_t;
 
 typedef ACE_Singleton<Test_I_Source_V4L2_InetConnectionManager_t,
                       ACE_SYNCH_MUTEX> TEST_I_SOURCE_V4L2_CONNECTIONMANAGER_SINGLETON;
-typedef ACE_Singleton<Test_I_Target_V4L2_InetConnectionManager_t,
-                      ACE_SYNCH_MUTEX> TEST_I_TARGET_V4L2_CONNECTIONMANAGER_SINGLETON;
+typedef ACE_Singleton<Test_I_Target_InetConnectionManager_t,
+                      ACE_SYNCH_MUTEX> TEST_I_TARGET_CONNECTIONMANAGER_SINGLETON;
 #endif
 
 #endif
